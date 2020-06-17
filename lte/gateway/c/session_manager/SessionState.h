@@ -82,16 +82,16 @@ class SessionState {
   StoredSessionState marshal();
 
   /**
-   * new_report sets the state of terminating session to aggregating, to tell if
+   * notify_new_report_for_sessions sets the state of terminating session to aggregating, to tell if
    * flows for the terminating session is in the latest report.
    * Should be called before add_used_credit.
    */
   void new_report();
 
   /**
-   * finish_report updates the state of aggregating session not included report
+   * notify_finish_report_for_sessions updates the state of aggregating session not included report
    * to specify its flows are deleted and termination can be completed.
-   * Should be called after new_report and add_used_credit.
+   * Should be called after notify_new_report_for_sessions and add_used_credit.
    */
   void finish_report();
 
@@ -110,11 +110,13 @@ class SessionState {
    * Only updates request number
    * @param update_request (out) - request to add new updates to
    * @param actions (out) - actions to take on services
+   * @param force_update force updates if revalidation timer expires
    */
   void get_updates(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false);
 
   /**
    * start_termination starts the termination process for the session.
@@ -201,6 +203,8 @@ class SessionState {
     const magma::lte::TgppContext& tgpp_context,
     SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
 
+  void set_config(const Config& config);
+
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
   void set_subscriber_quota_state(
@@ -247,6 +251,8 @@ class SessionState {
 
   uint32_t total_monitored_rules_count();
 
+  uint32_t get_credit_key_count();
+
  private:
   /**
    * State transitions of a session:
@@ -262,11 +268,11 @@ class SessionState {
    *       V                   V
    * SESSION_TERMINATING_FLOW_ACTIVE <----------
    *       |                                   |
-   *       | (new_report)                      | (add_used_credit)
+   *       | (notify_new_report_for_sessions)  | (add_used_credit)
    *       V                                   |
    * SESSION_TERMINATING_AGGREGATING_STATS -----
    *       |
-   *       | (finish_report)
+   *       | (notify_finish_report_for_sessions)
    *       V
    * SESSION_TERMINATING_FLOW_DELETED
    *       |
@@ -312,11 +318,13 @@ class SessionState {
    *
    * @param update_request_out Modified with added CreditUsageUpdate
    * @param actions_out Modified with additional actions to take on session
+   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_charging_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the
@@ -324,11 +332,13 @@ class SessionState {
    *
    * @param update_request_out Modified with added UsdageMonitoringUpdateRequest
    * @param actions_out Modified with additional actions to take on session.
+   * @param force_update force updates if revalidation timer expires
    */
   void get_updates_from_monitor_pool(
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA);
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false);
 };
 
 } // namespace magma

@@ -22,7 +22,7 @@ import (
 	"magma/feg/gateway/services/aaa/store"
 	managed_configs "magma/gateway/mconfig"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 )
 
 const (

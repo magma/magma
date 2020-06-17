@@ -78,8 +78,8 @@ func (aru *ActionsRuleUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = aru.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(aru.hooks); i > 0; i-- {
-			mut = aru.hooks[i-1](mut)
+		for i := len(aru.hooks) - 1; i >= 0; i-- {
+			mut = aru.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aru.mutation); err != nil {
 			return 0, err
@@ -227,8 +227,8 @@ func (aruo *ActionsRuleUpdateOne) Save(ctx context.Context) (*ActionsRule, error
 			node, err = aruo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(aruo.hooks); i > 0; i-- {
-			mut = aruo.hooks[i-1](mut)
+		for i := len(aruo.hooks) - 1; i >= 0; i-- {
+			mut = aruo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, aruo.mutation); err != nil {
 			return nil, err

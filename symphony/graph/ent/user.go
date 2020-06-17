@@ -47,9 +47,11 @@ type User struct {
 type UserEdges struct {
 	// ProfilePhoto holds the value of the profile_photo edge.
 	ProfilePhoto *File
+	// Groups holds the value of the groups edge.
+	Groups []*UsersGroup
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // ProfilePhotoOrErr returns the ProfilePhoto value or an error if the edge
@@ -64,6 +66,15 @@ func (e UserEdges) ProfilePhotoOrErr() (*File, error) {
 		return e.ProfilePhoto, nil
 	}
 	return nil, &NotLoadedError{edge: "profile_photo"}
+}
+
+// GroupsOrErr returns the Groups value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) GroupsOrErr() ([]*UsersGroup, error) {
+	if e.loadedTypes[1] {
+		return e.Groups, nil
+	}
+	return nil, &NotLoadedError{edge: "groups"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -155,6 +166,11 @@ func (u *User) assignValues(values ...interface{}) error {
 // QueryProfilePhoto queries the profile_photo edge of the User.
 func (u *User) QueryProfilePhoto() *FileQuery {
 	return (&UserClient{config: u.config}).QueryProfilePhoto(u)
+}
+
+// QueryGroups queries the groups edge of the User.
+func (u *User) QueryGroups() *UsersGroupQuery {
+	return (&UserClient{config: u.config}).QueryGroups(u)
 }
 
 // Update returns a builder for updating this User.

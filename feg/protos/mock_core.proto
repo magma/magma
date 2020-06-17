@@ -138,6 +138,7 @@ service MockPCRF {
     rpc SetUsageMonitors (UsageMonitorConfiguration) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
     rpc ReAuth(PolicyReAuthTarget) returns (PolicyReAuthAnswer) {}
+    rpc AbortSession(PolicyAbortSessionRequest) returns (PolicyAbortSessionResponse) {}
 
     rpc SetExpectations(GxCreditControlExpectations) returns (magma.orc8r.Void) {}
     rpc AssertExpectations(magma.orc8r.Void) returns (GxCreditControlResult) {}
@@ -244,8 +245,8 @@ message GxCreditControlAnswer {
     repeated UsageMonitoringInformation usage_monitoring_infos = 11;
     RuleInstalls rule_installs = 12;
     RuleRemovals rule_removals = 13;
-    // TODO repeated magma.lte.EventTrigger event_triggers = 14;
-    // TODO google.protobuf.Timestamp revalidation_time = 15;
+    repeated uint32 event_triggers = 14;
+    google.protobuf.Timestamp revalidation_time = 15;
 }
 
 message GyCreditControlExpectation {
@@ -312,4 +313,22 @@ message PolicyReAuthAnswer {
     string session_id = 1;
     uint32 result_code = 2;
     map<string, uint32> failed_rules = 3;
+}
+
+enum AbortCauseType {
+    BearerReleased = 0;
+    InsufficientServerResources = 1;
+    InsufficientBearerResources = 2;
+}
+
+// gx interface
+message PolicyAbortSessionRequest {
+    string imsi = 1;
+    AbortCauseType cause = 2;
+}
+
+message PolicyAbortSessionResponse {
+    string session_id = 1;
+    uint32 result_code = 2;
+    string error_message = 3;
 }

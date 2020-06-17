@@ -315,7 +315,6 @@ int s1ap_mme_handle_s1_setup_request(
   uint32_t enb_id = 0;
   char *enb_name = NULL;
   int ta_ret = 0;
-  uint16_t max_enb_connected = 0;
   uint8_t bplmn_list_count = 0; //Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -447,38 +446,6 @@ int s1ap_mme_handle_s1_setup_request(
 
   OAILOG_MESSAGE_FINISH((void *) context);
 
-  mme_config_read_lock(&mme_config);
-  max_enb_connected = mme_config.max_enbs;
-  mme_config_unlock(&mme_config);
-
-  if (state->num_enbs == max_enb_connected) {
-    OAILOG_ERROR(
-      LOG_S1AP,
-      "There is too much eNB connected to MME, rejecting the association\n");
-    OAILOG_DEBUG(
-      LOG_S1AP,
-      "Connected = %d, maximum allowed = %d\n",
-      state->num_enbs,
-      max_enb_connected);
-    /*
-     * Send an overload cause...
-     */
-    rc = s1ap_mme_generate_s1_setup_failure(
-      assoc_id,
-      S1ap_Cause_PR_misc,
-      S1ap_CauseMisc_control_processing_overload,
-      S1ap_TimeToWait_v20s);
-
-    increment_counter(
-      "s1_setup",
-      1,
-      2,
-      "result",
-      "failure",
-      "cause",
-      "max_allowed_enb_connected");
-    OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-  }
   /* Requirement MME36.413R10_8.7.3.4 Abnormal Conditions
    * If the eNB initiates the procedure by sending a S1 SETUP REQUEST message including the PLMN Identity IEs and
    * none of the PLMNs provided by the eNB is identified by the MME, then the MME shall reject the eNB S1 Setup
@@ -686,8 +653,9 @@ int s1ap_mme_handle_ue_cap_indication(
     &imsi64);
 
   if (ue_ref_p->enb_ue_s1ap_id != ue_cap_p->eNB_UE_S1AP_ID) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
       ", received: " ENB_UE_S1AP_ID_FMT "\n",
       ue_ref_p->enb_ue_s1ap_id,
@@ -699,8 +667,9 @@ int s1ap_mme_handle_ue_cap_indication(
    * Just display a warning when message received over wrong stream
    */
   if (ue_ref_p->sctp_stream_recv != stream) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
       "Received ue capability indication for "
       "(MME UE S1AP ID/eNB UE S1AP ID) (" MME_UE_S1AP_ID_FMT
       "/" ENB_UE_S1AP_ID_FMT
@@ -785,8 +754,9 @@ int s1ap_mme_handle_initial_context_setup_response(
   if (
     ue_ref_p->enb_ue_s1ap_id !=
     initialContextSetupResponseIEs_p->eNB_UE_S1AP_ID) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
       " %u(10), received: 0x%06x %u(10)\n",
       ue_ref_p->enb_ue_s1ap_id,
@@ -799,7 +769,7 @@ int s1ap_mme_handle_initial_context_setup_response(
   if (
     initialContextSetupResponseIEs_p->e_RABSetupListCtxtSURes
       .s1ap_E_RABSetupItemCtxtSURes.count != 1) {
-    OAILOG_DEBUG(LOG_S1AP, "E-RAB creation has failed\n");
+    OAILOG_WARNING_UE(LOG_S1AP, imsi64,  "E-RAB creation has failed\n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -984,8 +954,9 @@ int s1ap_mme_handle_ue_context_release_request(
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "UE_CONTEXT_RELEASE_REQUEST ignored, cause mismatch enb_ue_s1ap_id: "
         "ctxt " ENB_UE_S1AP_ID_FMT " != request " ENB_UE_S1AP_ID_FMT " ",
         (uint32_t) ue_ref_p->enb_ue_s1ap_id,
@@ -1058,7 +1029,7 @@ static int s1ap_mme_generate_ue_context_release_command(
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
     default:
-      OAILOG_ERROR(LOG_S1AP, "Unknown cause for context release");
+      OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   s1ap_mme_set_cause(
@@ -1198,8 +1169,9 @@ int s1ap_handle_ue_context_release_command(
   if (
     (ue_ref_p = s1ap_state_get_ue_mmeid(
        state, ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %u(10)\n",
       ue_context_release_command_pP->mme_ue_s1ap_id,
       ue_context_release_command_pP->mme_ue_s1ap_id);
@@ -1209,6 +1181,12 @@ int s1ap_handle_ue_context_release_command(
      * Check the cause. If it is implicit detach or sctp reset/shutdown no need to send UE context release command to
      * eNB. Free UE context locally.
      */
+
+    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+    hashtable_uint64_ts_remove(
+        imsi_map->mme_ue_id_imsi_htbl,
+        (const hash_key_t) ue_context_release_command_pP->mme_ue_s1ap_id);
+
     if (
       ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
       ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
@@ -1241,8 +1219,9 @@ int s1ap_handle_ue_context_mod_req(
   if (
     (ue_ref_p = s1ap_state_get_ue_mmeid(
        state, ue_context_mod_req_pP->mme_ue_s1ap_id)) == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %u(10)\n",
       ue_context_mod_req_pP->mme_ue_s1ap_id,
       ue_context_mod_req_pP->mme_ue_s1ap_id);
@@ -1358,8 +1337,9 @@ int s1ap_mme_handle_initial_context_setup_failure(
   switch (cause_type) {
     case S1ap_Cause_PR_radioNetwork:
       cause_value = initialContextSetupFailureIEs_p->cause.choice.radioNetwork;
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Radio Network and "
         "Cause_Value = %ld\n",
         cause_value);
@@ -1367,8 +1347,9 @@ int s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_transport:
       cause_value = initialContextSetupFailureIEs_p->cause.choice.transport;
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Transport and "
         "Cause_Value = %ld\n",
         cause_value);
@@ -1376,8 +1357,9 @@ int s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_nas:
       cause_value = initialContextSetupFailureIEs_p->cause.choice.nas;
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = NAS and Cause_Value = "
         "%ld\n",
         cause_value);
@@ -1385,8 +1367,9 @@ int s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_protocol:
       cause_value = initialContextSetupFailureIEs_p->cause.choice.protocol;
-      OAILOG_DEBUG(
+        OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Protocol and "
         "Cause_Value = %ld\n",
         cause_value);
@@ -1394,16 +1377,18 @@ int s1ap_mme_handle_initial_context_setup_failure(
 
     case S1ap_Cause_PR_misc:
       cause_value = initialContextSetupFailureIEs_p->cause.choice.misc;
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = MISC and Cause_Value "
         "= %ld\n",
         cause_value);
       break;
 
     default:
-      OAILOG_ERROR(
+        OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "INITIAL_CONTEXT_SETUP_FAILURE with Invalid Cause_Type = %d\n",
         cause_type);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -1486,8 +1471,9 @@ int s1ap_mme_handle_ue_context_modification_response(
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "S1AP_UE_CONTEXT_MODIFICATION_RESPONSE ignored, cause mismatch "
         "enb_ue_s1ap_id: ctxt" ENB_UE_S1AP_ID_FMT
         " != request " ENB_UE_S1AP_ID_FMT " ",
@@ -1549,8 +1535,9 @@ int s1ap_mme_handle_ue_context_modification_failure(
       switch (cause_type) {
         case S1ap_Cause_PR_radioNetwork:
           cause_value = ueContextModification_p->cause.choice.radioNetwork;
-          OAILOG_DEBUG(
+          OAILOG_DEBUG_UE(
             LOG_S1AP,
+            imsi64,
             "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Radio Network "
             "and Cause_Value = %ld\n",
             cause_value);
@@ -1558,8 +1545,9 @@ int s1ap_mme_handle_ue_context_modification_failure(
 
         case S1ap_Cause_PR_transport:
           cause_value = ueContextModification_p->cause.choice.transport;
-          OAILOG_DEBUG(
+          OAILOG_DEBUG_UE(
             LOG_S1AP,
+            imsi64,
             "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Transport and "
             "Cause_Value = %ld\n",
             cause_value);
@@ -1567,8 +1555,9 @@ int s1ap_mme_handle_ue_context_modification_failure(
 
         case S1ap_Cause_PR_nas:
           cause_value = ueContextModification_p->cause.choice.nas;
-          OAILOG_DEBUG(
+          OAILOG_DEBUG_UE(
             LOG_S1AP,
+            imsi64,
             "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = NAS and "
             "Cause_Value = %ld\n",
             cause_value);
@@ -1576,8 +1565,9 @@ int s1ap_mme_handle_ue_context_modification_failure(
 
         case S1ap_Cause_PR_protocol:
           cause_value = ueContextModification_p->cause.choice.protocol;
-          OAILOG_DEBUG(
+          OAILOG_DEBUG_UE(
             LOG_S1AP,
+            imsi64,
             "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Protocol and "
             "Cause_Value = %ld\n",
             cause_value);
@@ -1585,16 +1575,18 @@ int s1ap_mme_handle_ue_context_modification_failure(
 
         case S1ap_Cause_PR_misc:
           cause_value = ueContextModification_p->cause.choice.misc;
-          OAILOG_DEBUG(
+          OAILOG_DEBUG_UE(
             LOG_S1AP,
+            imsi64,
             "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = MISC and "
             "Cause_Value = %ld\n",
             cause_value);
           break;
 
         default:
-          OAILOG_ERROR(
+          OAILOG_ERROR_UE(
             LOG_S1AP,
+            imsi64,
             "UE_CONTEXT_MODIFICATION_FAILURE with Invalid Cause_Type = %d\n",
             cause_type);
           OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -1617,8 +1609,9 @@ int s1ap_mme_handle_ue_context_modification_failure(
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
-      OAILOG_DEBUG(
+      OAILOG_DEBUG_UE(
         LOG_S1AP,
+        imsi64,
         "S1AP_UE_CONTEXT_MODIFICATION_FAILURE ignored, cause mismatch "
         "enb_ue_s1ap_id: ctxt " ENB_UE_S1AP_ID_FMT
         " != request " ENB_UE_S1AP_ID_FMT " ",
@@ -1673,11 +1666,23 @@ int s1ap_mme_handle_path_switch_request(
   // eNB UE S1AP ID is limited to 24 bits
   enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
     pathSwitchRequest_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
-  OAILOG_DEBUG(
+
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) pathSwitchRequest_p->sourceMME_UE_S1AP_ID,
+      &imsi64);
+
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "Path Switch Request message received from eNB UE S1AP "
     "ID: " ENB_UE_S1AP_ID_FMT "\n",
     enb_ue_s1ap_id);
+
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) pathSwitchRequest_p->sourceMME_UE_S1AP_ID,
+      &imsi64);
 
   /* If all the E-RAB ID IEs in E-RABToBeSwitchedDLList is set to the
    * same value, send PATH SWITCH REQUEST FAILURE message to eNB */
@@ -1697,16 +1702,18 @@ int s1ap_mme_handle_path_switch_request(
      * The MME UE S1AP ID provided by eNB doesn't point to any valid UE.
      * MME ignore this PATH SWITCH REQUEST.
      */
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
       "source MME_UE_S1AP_ID (%lu) does not point to any valid UE\n",
       pathSwitchRequest_p->sourceMME_UE_S1AP_ID);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     new_ue_ref_p = s1ap_state_get_ue_enbid(enb_association, enb_ue_s1ap_id);
     if (new_ue_ref_p != NULL) {
-      OAILOG_ERROR(
+      OAILOG_ERROR_UE(
         LOG_S1AP,
+        imsi64,
         "S1AP:Path Switch Request- Recieved ENB_UE_S1AP_ID is not Unique "
         "Drop Path Switch Request for eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
         enb_ue_s1ap_id);
@@ -1718,8 +1725,9 @@ int s1ap_mme_handle_path_switch_request(
      */
     if ((new_ue_ref_p = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == NULL) {
       // If we failed to allocate a new UE return -1
-      OAILOG_ERROR(
+      OAILOG_ERROR_UE(
         LOG_S1AP,
+        imsi64,
         "S1AP:Path Switch Request- Failed to allocate S1AP UE Context, "
         "eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
         enb_ue_s1ap_id);
@@ -1750,16 +1758,9 @@ int s1ap_mme_handle_path_switch_request(
       (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
       (void *) (uintptr_t) assoc_id);
 
-    // Update mme_ue_s1ap => IMSI mapping
-    hashtable_uint64_ts_remove(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
-    hashtable_uint64_ts_insert(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
-      imsi64);
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
       ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
       assoc_id,
@@ -2130,8 +2131,16 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   DevAssert(ue_ref_p != NULL);
   ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
   imsi64_t imsi64 = INVALID_IMSI64;
-  OAILOG_DEBUG(
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id,
+      &imsi64);
+
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "Expired- UE Context Release Timer for UE id  %d \n",
     ue_ref_p->mme_ue_s1ap_id);
   /*
@@ -2147,24 +2156,21 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
     ue_ref_p->mme_ue_s1ap_id;
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_get(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) ue_ref_p->mme_ue_s1ap_id,
-    &imsi64);
-
   message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
-  OAILOG_DEBUG(
+
+  hashtable_uint64_ts_remove(
+      imsi_map->mme_ue_id_imsi_htbl,
+      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
+
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) ue_ref_p->mme_ue_s1ap_id);
   s1ap_remove_ue(state, ue_ref_p);
 
-  hashtable_uint64_ts_remove(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -2177,8 +2183,9 @@ void s1ap_mme_release_ue_context(
   MessageDef *message_p = NULL;
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(ue_ref_p != NULL);
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "Releasing UE Context for UE id  %d \n",
     ue_ref_p->mme_ue_s1ap_id);
   /*
@@ -2197,8 +2204,9 @@ void s1ap_mme_release_ue_context(
   message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) ue_ref_p->mme_ue_s1ap_id);
 
@@ -2488,8 +2496,9 @@ int s1ap_mme_handle_enb_reset(
                 reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
                   INVALID_MME_UE_S1AP_ID;
                 reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = -1;
-                OAILOG_ERROR(
+                OAILOG_ERROR_UE(
                   LOG_S1AP,
+                  imsi64,
                   "Partial Reset Request:enb_ue_s1ap_id mismatch between id %d "
                   "sent by eNB and id %d stored in epc for mme_ue_s1ap_id %d "
                   "\n",
@@ -2503,8 +2512,9 @@ int s1ap_mme_handle_enb_reset(
               reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = -1;
             }
           } else {
-            OAILOG_ERROR(
+            OAILOG_ERROR_UE(
               LOG_S1AP,
+              imsi64,
               "Partial Reset Request - No UE context found for mme_ue_s1ap_id "
               "%d "
               "\n",
@@ -2524,16 +2534,18 @@ int s1ap_mme_handle_enb_reset(
               reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
                 ue_ref_p->mme_ue_s1ap_id;
             } else {
-              OAILOG_ERROR(
+              OAILOG_ERROR_UE(
                 LOG_S1AP,
+                imsi64,
                 "Partial Reset Request without any valid S1 signaling "
                 "connection.Ignoring it \n");
               // TBD - Here MME should send Error Indication as it is abnormal scenario.
               OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
             }
           } else {
-            OAILOG_ERROR(
+            OAILOG_ERROR_UE(
               LOG_S1AP,
+              imsi64,
               "Partial Reset Request without any valid S1 signaling "
               "connection.Ignoring it \n");
             // TBD - Here MME should send Error Indication as it is abnormal scenario.
@@ -2597,7 +2609,7 @@ int s1ap_handle_enb_initiated_reset_ack(
     }
   }
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
-    OAILOG_ERROR(LOG_S1AP, "Reset Ack encoding failed \n");
+    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Reset Ack encoding failed \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
@@ -2690,7 +2702,7 @@ int s1ap_handle_paging_request(
     for (int idx = 0; idx < (num_of_tac + 1); idx++) {
       S1ap_TAIItem_t* tai_item = calloc(tai_list_count, sizeof(S1ap_TAIItem_t));
       if (tai_item == NULL) {
-        OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory\n");
+        OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Failed to allocate memory\n");
         OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
       PLMN_T_TO_PLMNID(
@@ -2716,8 +2728,9 @@ int s1ap_handle_paging_request(
   // Encode message
   int enc_rval = s1ap_mme_encode_pdu(&message, &buffer, &length);
   if (enc_rval < 0) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
       "Failed to encode paging message for IMSI %s\n",
       paging_request->imsi);
     free_s1ap_paging(paging_message);
@@ -2936,8 +2949,9 @@ int s1ap_handle_path_switch_req_ack(
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
     state, path_switch_req_ack_p->mme_ue_s1ap_id)) == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
       (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -2964,12 +2978,13 @@ int s1ap_handle_path_switch_req_ack(
     .nextHopParameter.size = AUTH_NEXT_HOP_SIZE;
 
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
-    OAILOG_ERROR(LOG_S1AP, "Path Switch Request Ack encoding failed \n");
+    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Path Switch Request Ack encoding failed \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "send PATH_SWITCH_REQUEST_ACK for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
     (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
 
@@ -2999,8 +3014,9 @@ int s1ap_handle_path_switch_req_failure(
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
     state, path_switch_req_failure_p->mme_ue_s1ap_id)) == NULL) {
-    OAILOG_DEBUG(
+    OAILOG_DEBUG_UE(
       LOG_S1AP,
+      imsi64,
       "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
       (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -3025,8 +3041,9 @@ int s1ap_handle_path_switch_req_failure(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "send PATH_SWITCH_REQUEST_Failure for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
     "\n", (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
 

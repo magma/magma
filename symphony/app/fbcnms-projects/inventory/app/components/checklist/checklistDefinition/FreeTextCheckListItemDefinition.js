@@ -8,17 +8,14 @@
  * @format
  */
 
-import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemDefinitionProps} from './CheckListItemDefinition';
 
+import * as React from 'react';
 import CheckListItemDefinitionBase from './CheckListItemDefinitionBase';
-import React from 'react';
 
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedItem: CheckListItem) => void,
-};
-
-const FreeTextCheckListItemDefinition = (props: Props) => {
+const FreeTextCheckListItemDefinition = (
+  props: CheckListItemDefinitionProps,
+): React.Node => {
   return <CheckListItemDefinitionBase {...props} />;
 };
 

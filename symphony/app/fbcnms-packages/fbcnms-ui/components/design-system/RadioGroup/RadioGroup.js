@@ -70,6 +70,7 @@ export type RadioOption = {
 type Props = {
   className?: string,
   optionClassName?: string,
+  selectedOptionClassName?: string,
   value: string,
   options: RadioOption[],
   disabled?: ?boolean,
@@ -80,6 +81,7 @@ const RadioGroup = (props: Props) => {
   const {
     className,
     optionClassName,
+    selectedOptionClassName,
     value,
     options,
     onChange,
@@ -99,10 +101,16 @@ const RadioGroup = (props: Props) => {
         const isDisabled = disabled || option.disabled;
         return (
           <div
-            className={classNames(classes.option, optionClassName, {
-              [classes.selected]: isSelected,
-              [classes.disabled]: isDisabled,
-            })}
+            key={`radio_option_${option.value}`}
+            className={classNames(
+              classes.option,
+              optionClassName,
+              isSelected ? selectedOptionClassName : null,
+              {
+                [classes.selected]: isSelected,
+                [classes.disabled]: isDisabled,
+              },
+            )}
             onClick={() => !isDisabled && onChange && onChange(option.value)}>
             <div className={classes.checkIcon}>
               {isSelected ? (

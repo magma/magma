@@ -11,6 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from gql.gql.enum_utils import enum_field
 from .service_endpoint_role_enum import ServiceEndpointRole
@@ -18,85 +19,14 @@ from .service_endpoint_role_enum import ServiceEndpointRole
 from .service_create_data_input import ServiceCreateData
 
 
-@dataclass
-class AddServiceMutation(DataClassJsonMixin):
-    @dataclass
-    class AddServiceMutationData(DataClassJsonMixin):
-        @dataclass
-        class Service(DataClassJsonMixin):
-            @dataclass
-            class Customer(DataClassJsonMixin):
-                id: str
-                name: str
-                externalId: Optional[str] = None
-
-            @dataclass
-            class ServiceEndpoint(DataClassJsonMixin):
-                @dataclass
-                class EquipmentPort(DataClassJsonMixin):
-                    @dataclass
-                    class Property(PropertyFragment):
-                        pass
-
-                    @dataclass
-                    class EquipmentPortDefinition(DataClassJsonMixin):
-                        @dataclass
-                        class EquipmentPortType(DataClassJsonMixin):
-                            id: str
-                            name: str
-
-                        id: str
-                        name: str
-                        portType: Optional[EquipmentPortType] = None
-
-                    @dataclass
-                    class Link(DataClassJsonMixin):
-                        @dataclass
-                        class Service(DataClassJsonMixin):
-                            id: str
-
-                        id: str
-                        services: List[Service]
-
-                    id: str
-                    properties: List[Property]
-                    definition: EquipmentPortDefinition
-                    link: Optional[Link] = None
-
-                id: str
-                port: EquipmentPort
-                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
-
-            @dataclass
-            class Link(DataClassJsonMixin):
-                @dataclass
-                class Service(DataClassJsonMixin):
-                    id: str
-
-                id: str
-                services: List[Service]
-
-            id: str
-            name: str
-            endpoints: List[ServiceEndpoint]
-            links: List[Link]
-            externalId: Optional[str] = None
-            customer: Optional[Customer] = None
-
-        addService: Service
-
-    data: AddServiceMutationData
-
-    __QUERY__: str = PropertyFragmentQuery + """
-    mutation AddServiceMutation($data: ServiceCreateData!) {
+QUERY: List[str] = CustomerFragmentQuery + PropertyFragmentQuery + ["""
+mutation AddServiceMutation($data: ServiceCreateData!) {
   addService(data: $data) {
     id
     name
     externalId
     customer {
-      id
-      name
-      externalId
+      ...CustomerFragment
     }
     endpoints {
       id
@@ -115,6 +45,9 @@ class AddServiceMutation(DataClassJsonMixin):
         }
         link {
           id
+          properties {
+            ...PropertyFragment
+          }
           services {
             id
           }
@@ -124,6 +57,9 @@ class AddServiceMutation(DataClassJsonMixin):
     }
     links {
       id
+      properties {
+        ...PropertyFragment
+      }
       services {
         id
       }
@@ -131,12 +67,89 @@ class AddServiceMutation(DataClassJsonMixin):
   }
 }
 
-    """
+"""]
+
+@dataclass
+class AddServiceMutation(DataClassJsonMixin):
+    @dataclass
+    class AddServiceMutationData(DataClassJsonMixin):
+        @dataclass
+        class Service(DataClassJsonMixin):
+            @dataclass
+            class Customer(CustomerFragment):
+                pass
+
+            @dataclass
+            class ServiceEndpoint(DataClassJsonMixin):
+                @dataclass
+                class EquipmentPort(DataClassJsonMixin):
+                    @dataclass
+                    class Property(PropertyFragment):
+                        pass
+
+                    @dataclass
+                    class EquipmentPortDefinition(DataClassJsonMixin):
+                        @dataclass
+                        class EquipmentPortType(DataClassJsonMixin):
+                            id: str
+                            name: str
+
+                        id: str
+                        name: str
+                        portType: Optional[EquipmentPortType]
+
+                    @dataclass
+                    class Link(DataClassJsonMixin):
+                        @dataclass
+                        class Property(PropertyFragment):
+                            pass
+
+                        @dataclass
+                        class Service(DataClassJsonMixin):
+                            id: str
+
+                        id: str
+                        properties: List[Property]
+                        services: List[Service]
+
+                    id: str
+                    properties: List[Property]
+                    definition: EquipmentPortDefinition
+                    link: Optional[Link]
+
+                id: str
+                port: EquipmentPort
+                role: ServiceEndpointRole = enum_field(ServiceEndpointRole)
+
+            @dataclass
+            class Link(DataClassJsonMixin):
+                @dataclass
+                class Property(PropertyFragment):
+                    pass
+
+                @dataclass
+                class Service(DataClassJsonMixin):
+                    id: str
+
+                id: str
+                properties: List[Property]
+                services: List[Service]
+
+            id: str
+            name: str
+            endpoints: List[ServiceEndpoint]
+            links: List[Link]
+            externalId: Optional[str]
+            customer: Optional[Customer]
+
+        addService: Service
+
+    data: AddServiceMutationData
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, data: ServiceCreateData) -> AddServiceMutationData:
         # fmt: off
         variables = {"data": data}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

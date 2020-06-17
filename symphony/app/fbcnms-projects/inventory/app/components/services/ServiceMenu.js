@@ -7,12 +7,12 @@
  * @flow strict-local
  * @format
  */
-import type {MenuOption} from '../TableRowOptionsButton';
+import type {MenuOption} from '../OptionsPopoverButton';
 
 import * as React from 'react';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import Dialog from '@material-ui/core/Dialog';
-import TableRowOptionsButton from '../TableRowOptionsButton';
+import OptionsPopoverButton from '../OptionsPopoverButton';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
@@ -42,7 +42,7 @@ const ServiceMenu = (props: Props) => {
 
   return (
     <>
-      <TableRowOptionsButton
+      <OptionsPopoverButton
         options={items}
         menuIcon={<AddCircleOutlineIcon className={classes.addIcon} />}
       />

@@ -14,8 +14,8 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	hss "magma/feg/gateway/services/testcore/hss/servicers/test_utils"
-	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/service"
 )
 
 func StartTestService(t *testing.T) (*service.Service, error) {

@@ -13,7 +13,8 @@
         ]
       }
     ],
-    "Access Gateway": ["lte/setup_deb", "lte/config_agw", "lte/enodebd", "lte/tr069"],
+    "Access Gateway": ["lte/setup_deb", "lte/config_agw", "lte/enodebd",
+      "lte/tr069", "lte/s1ap_tests"],
     "Federation Gateway": [
       {
         "type": "subcategory",

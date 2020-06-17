@@ -15,49 +15,8 @@ from gql.gql.enum_utils import enum_field
 from .survey_question_type_enum import SurveyQuestionType
 
 
-@dataclass
-class LocationSurveysQuery(DataClassJsonMixin):
-    @dataclass
-    class LocationSurveysQueryData(DataClassJsonMixin):
-        @dataclass
-        class Node(DataClassJsonMixin):
-            @dataclass
-            class Survey(DataClassJsonMixin):
-                @dataclass
-                class File(DataClassJsonMixin):
-                    id: str
-                    fileName: str
-                    storeKey: Optional[str] = None
-
-                @dataclass
-                class SurveyQuestion(DataClassJsonMixin):
-                    questionText: str
-                    formName: Optional[str] = None
-                    questionFormat: Optional[SurveyQuestionType] = None
-                    boolData: Optional[bool] = None
-                    emailData: Optional[str] = None
-                    latitude: Optional[Number] = None
-                    longitude: Optional[Number] = None
-                    phoneData: Optional[str] = None
-                    textData: Optional[str] = None
-                    floatData: Optional[Number] = None
-                    intData: Optional[int] = None
-                    dateData: Optional[int] = None
-
-                id: str
-                name: str
-                completionTimestamp: int
-                surveyResponses: List[SurveyQuestion]
-                sourceFile: Optional[File] = None
-
-            surveys: List[Survey]
-
-        location: Optional[Node] = None
-
-    data: LocationSurveysQueryData
-
-    __QUERY__: str = """
-    query LocationSurveysQuery($id: ID!) {
+QUERY: List[str] = ["""
+query LocationSurveysQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
       surveys {
@@ -88,12 +47,53 @@ class LocationSurveysQuery(DataClassJsonMixin):
   }
 }
 
-    """
+"""]
+
+@dataclass
+class LocationSurveysQuery(DataClassJsonMixin):
+    @dataclass
+    class LocationSurveysQueryData(DataClassJsonMixin):
+        @dataclass
+        class Node(DataClassJsonMixin):
+            @dataclass
+            class Survey(DataClassJsonMixin):
+                @dataclass
+                class File(DataClassJsonMixin):
+                    id: str
+                    fileName: str
+                    storeKey: Optional[str]
+
+                @dataclass
+                class SurveyQuestion(DataClassJsonMixin):
+                    questionText: str
+                    formName: Optional[str]
+                    questionFormat: Optional[SurveyQuestionType] = enum_field(SurveyQuestionType)
+                    boolData: Optional[bool]
+                    emailData: Optional[str]
+                    latitude: Optional[Number]
+                    longitude: Optional[Number]
+                    phoneData: Optional[str]
+                    textData: Optional[str]
+                    floatData: Optional[Number]
+                    intData: Optional[int]
+                    dateData: Optional[int]
+
+                id: str
+                name: str
+                completionTimestamp: int
+                surveyResponses: List[SurveyQuestion]
+                sourceFile: Optional[File]
+
+            surveys: List[Survey]
+
+        location: Optional[Node]
+
+    data: LocationSurveysQueryData
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationSurveysQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

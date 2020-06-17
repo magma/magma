@@ -24,14 +24,15 @@ import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_
 import Button from '@fbcnms/ui/components/design-system/Button';
 import EditWorkOrderMutation from '../../mutations/EditWorkOrderMutation';
 import FormAction from '../../../../../fbcnms-packages/fbcnms-ui/components/design-system/Form/FormAction';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
+import {getGraphError} from '../../common/EntUtils';
 import {isTempId} from '../../common/EntUtils';
 import {toPropertyInput} from '../../common/Property';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useFormContext} from '../../common/FormContext';
 
 type Props = {
   workOrder: WorkOrderDetails_workOrder,
@@ -61,11 +62,11 @@ const WorkOrderSaveButton = (props: Props) => {
       id,
       name,
       description,
-      ownerName,
+      owner,
       installDate,
       status,
       priority,
-      assignee,
+      assignedTo,
       project,
     } = workOrder;
     const checkListCategoriesInput: Array<CheckListCategoryInput> = checkListCategories.map(
@@ -83,6 +84,16 @@ const WorkOrderSaveButton = (props: Props) => {
               enumSelectionMode: item.enumSelectionMode,
               stringValue: item.stringValue,
               checked: item.checked,
+              yesNoResponse: item.yesNoResponse,
+              files: item.files?.map(file => ({
+                id: file.id,
+                storeKey: file.storeKey,
+                fileName: file.fileName,
+                sizeInBytes: file.sizeInBytes,
+                modificationTime: file.modificationTime,
+                uploadTime: file.uploadTime,
+                fileType: 'FILE',
+              })),
             };
           },
         );
@@ -99,11 +110,11 @@ const WorkOrderSaveButton = (props: Props) => {
         id,
         name,
         description,
-        ownerName,
+        ownerId: owner.id,
         installDate: installDate ? installDate.toString() : null,
         status,
         priority,
-        assignee,
+        assigneeId: assignedTo?.id,
         projectId: project?.id,
         properties: toPropertyInput(properties),
         locationId,
@@ -119,8 +130,8 @@ const WorkOrderSaveButton = (props: Props) => {
           history.push(match.url);
         }
       },
-      onError: () => {
-        enqueueError('Error saving work order');
+      onError: (error: Error) => {
+        enqueueError(getGraphError(error));
       },
     };
     ServerLogger.info(LogEvents.SAVE_WORK_ORDER_BUTTON_CLICKED, {
@@ -137,11 +148,11 @@ const WorkOrderSaveButton = (props: Props) => {
     match.url,
   ]);
 
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
 
   return (
-    <FormAction disabled={validationContext.error.detected}>
-      <Button tooltip={validationContext.error.message} onClick={saveWorkOrder}>
+    <FormAction disabled={form.alerts.error.detected}>
+      <Button tooltip={form.alerts.error.message} onClick={saveWorkOrder}>
         Save
       </Button>
     </FormAction>

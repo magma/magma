@@ -99,6 +99,11 @@ ipfix:
   obs_domain_id: 1
   obs_point_id: 1
 
+# Configuration for LI mirroring
+li_local_iface: li_port
+li_mirror_all: true
+li_dst_iface: eth4
+
 # Interface to NAT traffic to
 nat_iface: eth2
 
@@ -122,7 +127,7 @@ monitored_ifaces: ['cwag_br0',
 clean_restart: true
 
 # Information for cwf check quota servers
-quota_check_ip: '192.168.128.99'
+quota_check_ip: '192.0.0.1'
 has_quota_port: 51115
 no_quota_port: 51125
 

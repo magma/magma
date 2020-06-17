@@ -18,7 +18,7 @@ import (
 	"magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/gateway/streamer"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 )
 
 func main() {

@@ -17,8 +17,8 @@ import * as React from 'react';
 import EnumPropertySelectValueInput from './EnumPropertySelectValueInput';
 import EnumPropertyValueInput from './EnumPropertyValueInput';
 import EquipmentTypeahead from '../typeahead/EquipmentTypeahead';
+import FormContext from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import GPSPropertyValueInput from './GPSPropertyValueInput';
 import LocationTypeahead from '../typeahead/LocationTypeahead';
 import RangePropertyValueInput from './RangePropertyValueInput';
@@ -31,16 +31,16 @@ import update from 'immutability-helper';
 import {getPropertyValue} from '../../common/Property';
 import {withStyles} from '@material-ui/core/styles';
 
-type Props = {
+type Props<T: Property | PropertyType> = {
   autoFocus: boolean,
   className: string,
   inputClassName?: ?string,
   label: ?string,
   inputType: 'Property' | 'PropertyType',
-  property: Property | PropertyType,
+  property: T,
   required: boolean,
   disabled: boolean,
-  onChange: (Property | PropertyType) => void,
+  onChange: T => void,
   onBlur?: (e: FocusEvent<HTMLInputElement>) => void,
   onKeyDown?: ?(e: SyntheticKeyboardEvent<>) => void,
   margin: 'none' | 'dense' | 'normal',
@@ -50,7 +50,8 @@ type Props = {
 
 const styles = {
   input: {
-    width: (props: Props): string => (props.fullWidth ? 'auto' : '300px'),
+    width: (props: Props<Property | PropertyType>): string =>
+      props.fullWidth ? 'auto' : '300px',
     display: 'flex',
     '&&': {
       margin: '0px',
@@ -72,7 +73,9 @@ const styles = {
   },
 };
 
-class PropertyValueInput extends React.Component<Props> {
+class PropertyValueInput<T: Property | PropertyType> extends React.Component<
+  Props<T>,
+> {
   static defaultProps = {
     required: false,
     autoFocus: false,
@@ -359,9 +362,9 @@ class PropertyValueInput extends React.Component<Props> {
 
   render() {
     return (
-      <FormValidationContext.Consumer>
-        {validationContext => {
-          const input = this.getTextInput(validationContext.editLock.detected);
+      <FormContext.Consumer>
+        {form => {
+          const input = this.getTextInput(form.alerts.editLock.detected);
 
           const {property, headlineVariant, required} = this.props;
           const propertyType = !!property.propertyType
@@ -376,7 +379,7 @@ class PropertyValueInput extends React.Component<Props> {
           ) {
             return input;
           }
-          const errorText = validationContext.error.check({
+          const errorText = form.alerts.error.check({
             fieldId: propertyType.name,
             fieldDisplayName: propertyType.name,
             value: getPropertyValue(property),
@@ -392,7 +395,7 @@ class PropertyValueInput extends React.Component<Props> {
             </FormField>
           );
         }}
-      </FormValidationContext.Consumer>
+      </FormContext.Consumer>
     );
   }
 }

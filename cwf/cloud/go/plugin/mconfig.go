@@ -14,6 +14,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin/models"
+	cwfmconfig "magma/cwf/cloud/go/protos/mconfig"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -110,6 +111,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		RelayEnabled:    true,
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
+		LiImsis:         gwConfig.LiImsis,
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
@@ -121,6 +123,18 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	}
 	ret["directoryd"] = &orc8rmconfig.DirectoryD{
 		LogLevel: protos.LogLevel_INFO,
+	}
+	healthCfg := gwConfig.GatewayHealthConfigs
+	if healthCfg != nil {
+		mc := &cwfmconfig.CwfGatewayHealthConfig{
+			CpuUtilThresholdPct: healthCfg.CPUUtilThresholdPct,
+			MemUtilThresholdPct: healthCfg.MemUtilThresholdPct,
+			GreProbeInterval:    healthCfg.GreProbeIntervalSecs,
+			IcmpProbePktCount:   healthCfg.IcmpProbePktCount,
+		}
+		protos.FillIn(healthCfg, mc)
+		mc.GrePeers = getHealthServiceGrePeers(allowedGrePeers)
+		ret["health"] = mc
 	}
 	return ret, err
 }
@@ -155,4 +169,18 @@ func getPipelineDServicesConfig(networkServices []string) ([]ltemconfig.Pipeline
 		}
 	}
 	return apps, nil
+}
+
+func getHealthServiceGrePeers(pipelinedPeers []*ltemconfig.PipelineD_AllowedGrePeer) []*cwfmconfig.CwfGatewayHealthConfigGrePeer {
+	healthPeers := []*cwfmconfig.CwfGatewayHealthConfigGrePeer{}
+	if pipelinedPeers == nil {
+		return healthPeers
+	}
+	for _, peer := range pipelinedPeers {
+		healthPeer := &cwfmconfig.CwfGatewayHealthConfigGrePeer{
+			Ip: peer.Ip,
+		}
+		healthPeers = append(healthPeers, healthPeer)
+	}
+	return healthPeers
 }

@@ -6,9 +6,7 @@ query ServiceTypeServicesQuery($id: ID!) {
         name
         externalId
         customer {
-          id
-          name
-          externalId
+          ...CustomerFragment
         }
       }
     }

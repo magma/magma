@@ -72,6 +72,7 @@ var (
 		{Name: "enum_values", Type: field.TypeString, Nullable: true},
 		{Name: "enum_selection_mode", Type: field.TypeString, Nullable: true},
 		{Name: "selected_enum_values", Type: field.TypeString, Nullable: true},
+		{Name: "yes_no_val", Type: field.TypeEnum, Nullable: true, Enums: []string{"YES", "NO"}},
 		{Name: "help_text", Type: field.TypeString, Nullable: true},
 		{Name: "check_list_category_check_list_items", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_check_list_items", Type: field.TypeInt, Nullable: true},
@@ -84,14 +85,14 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "check_list_items_check_list_categories_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[10]},
+				Columns: []*schema.Column{CheckListItemsColumns[11]},
 
 				RefColumns: []*schema.Column{CheckListCategoriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "check_list_items_work_orders_check_list_items",
-				Columns: []*schema.Column{CheckListItemsColumns[11]},
+				Columns: []*schema.Column{CheckListItemsColumns[12]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -101,7 +102,7 @@ var (
 			{
 				Name:    "checklistitem_title_work_order_check_list_items",
 				Unique:  true,
-				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[11]},
+				Columns: []*schema.Column{CheckListItemsColumns[1], CheckListItemsColumns[12]},
 			},
 		},
 	}
@@ -144,8 +145,8 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "create_time", Type: field.TypeTime},
 		{Name: "update_time", Type: field.TypeTime},
-		{Name: "author_name", Type: field.TypeString},
 		{Name: "text", Type: field.TypeString},
+		{Name: "comment_author", Type: field.TypeInt, Nullable: true},
 		{Name: "project_comments", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_comments", Type: field.TypeInt, Nullable: true},
 	}
@@ -155,6 +156,13 @@ var (
 		Columns:    CommentsColumns,
 		PrimaryKey: []*schema.Column{CommentsColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "comments_users_author",
+				Columns: []*schema.Column{CommentsColumns[4]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
 			{
 				Symbol:  "comments_projects_comments",
 				Columns: []*schema.Column{CommentsColumns[5]},
@@ -441,9 +449,11 @@ var (
 		{Name: "content_type", Type: field.TypeString},
 		{Name: "store_key", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "check_list_item_files", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_files", Type: field.TypeInt, Nullable: true},
 		{Name: "location_files", Type: field.TypeInt, Nullable: true},
 		{Name: "survey_question_photo_data", Type: field.TypeInt, Nullable: true},
+		{Name: "survey_question_images", Type: field.TypeInt, Nullable: true},
 		{Name: "work_order_files", Type: field.TypeInt, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -453,29 +463,43 @@ var (
 		PrimaryKey: []*schema.Column{FilesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:  "files_equipment_files",
+				Symbol:  "files_check_list_items_files",
 				Columns: []*schema.Column{FilesColumns[11]},
+
+				RefColumns: []*schema.Column{CheckListItemsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_equipment_files",
+				Columns: []*schema.Column{FilesColumns[12]},
 
 				RefColumns: []*schema.Column{EquipmentColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_locations_files",
-				Columns: []*schema.Column{FilesColumns[12]},
+				Columns: []*schema.Column{FilesColumns[13]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_survey_questions_photo_data",
-				Columns: []*schema.Column{FilesColumns[13]},
+				Columns: []*schema.Column{FilesColumns[14]},
+
+				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_survey_questions_images",
+				Columns: []*schema.Column{FilesColumns[15]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_work_orders_files",
-				Columns: []*schema.Column{FilesColumns[14]},
+				Columns: []*schema.Column{FilesColumns[16]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -867,6 +891,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "type", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
+		{Name: "external_id", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "index", Type: field.TypeInt, Nullable: true},
 		{Name: "category", Type: field.TypeString, Nullable: true},
 		{Name: "int_val", Type: field.TypeInt, Nullable: true},
@@ -897,49 +922,49 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "property_types_equipment_port_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[19]},
-
-				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:  "property_types_equipment_port_types_link_property_types",
 				Columns: []*schema.Column{PropertyTypesColumns[20]},
 
 				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "property_types_equipment_types_property_types",
+				Symbol:  "property_types_equipment_port_types_link_property_types",
 				Columns: []*schema.Column{PropertyTypesColumns[21]},
+
+				RefColumns: []*schema.Column{EquipmentPortTypesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "property_types_equipment_types_property_types",
+				Columns: []*schema.Column{PropertyTypesColumns[22]},
 
 				RefColumns: []*schema.Column{EquipmentTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_location_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[22]},
+				Columns: []*schema.Column{PropertyTypesColumns[23]},
 
 				RefColumns: []*schema.Column{LocationTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_project_types_properties",
-				Columns: []*schema.Column{PropertyTypesColumns[23]},
+				Columns: []*schema.Column{PropertyTypesColumns[24]},
 
 				RefColumns: []*schema.Column{ProjectTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_service_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[24]},
+				Columns: []*schema.Column{PropertyTypesColumns[25]},
 
 				RefColumns: []*schema.Column{ServiceTypesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "property_types_work_order_types_property_types",
-				Columns: []*schema.Column{PropertyTypesColumns[25]},
+				Columns: []*schema.Column{PropertyTypesColumns[26]},
 
 				RefColumns: []*schema.Column{WorkOrderTypesColumns[0]},
 				OnDelete:   schema.SetNull,
@@ -949,27 +974,27 @@ var (
 			{
 				Name:    "propertytype_name_location_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[22]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[23]},
 			},
 			{
 				Name:    "propertytype_name_equipment_port_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[19]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[20]},
 			},
 			{
 				Name:    "propertytype_name_equipment_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[21]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[22]},
 			},
 			{
 				Name:    "propertytype_name_equipment_port_type_link_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[20]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[21]},
 			},
 			{
 				Name:    "propertytype_name_work_order_type_property_types",
 				Unique:  true,
-				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[25]},
+				Columns: []*schema.Column{PropertyTypesColumns[4], PropertyTypesColumns[26]},
 			},
 		},
 	}
@@ -1332,6 +1357,22 @@ var (
 			},
 		},
 	}
+	// UsersGroupsColumns holds the columns for the "users_groups" table.
+	UsersGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "update_time", Type: field.TypeTime},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"ACTIVE", "DEACTIVATED"}, Default: "ACTIVE"},
+	}
+	// UsersGroupsTable holds the schema information for the "users_groups" table.
+	UsersGroupsTable = &schema.Table{
+		Name:        "users_groups",
+		Columns:     UsersGroupsColumns,
+		PrimaryKey:  []*schema.Column{UsersGroupsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// WorkOrdersColumns holds the columns for the "work_orders" table.
 	WorkOrdersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -1529,6 +1570,33 @@ var (
 			},
 		},
 	}
+	// UsersGroupMembersColumns holds the columns for the "users_group_members" table.
+	UsersGroupMembersColumns = []*schema.Column{
+		{Name: "users_group_id", Type: field.TypeInt},
+		{Name: "user_id", Type: field.TypeInt},
+	}
+	// UsersGroupMembersTable holds the schema information for the "users_group_members" table.
+	UsersGroupMembersTable = &schema.Table{
+		Name:       "users_group_members",
+		Columns:    UsersGroupMembersColumns,
+		PrimaryKey: []*schema.Column{UsersGroupMembersColumns[0], UsersGroupMembersColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:  "users_group_members_users_group_id",
+				Columns: []*schema.Column{UsersGroupMembersColumns[0]},
+
+				RefColumns: []*schema.Column{UsersGroupsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:  "users_group_members_user_id",
+				Columns: []*schema.Column{UsersGroupMembersColumns[1]},
+
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ActionsRulesTable,
@@ -1569,12 +1637,14 @@ var (
 		SurveyWiFiScansTable,
 		TechniciansTable,
 		UsersTable,
+		UsersGroupsTable,
 		WorkOrdersTable,
 		WorkOrderDefinitionsTable,
 		WorkOrderTypesTable,
 		ServiceUpstreamTable,
 		ServiceLinksTable,
 		ServiceCustomerTable,
+		UsersGroupMembersTable,
 	}
 )
 
@@ -1584,8 +1654,9 @@ func init() {
 	CheckListItemsTable.ForeignKeys[0].RefTable = CheckListCategoriesTable
 	CheckListItemsTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	CheckListItemDefinitionsTable.ForeignKeys[0].RefTable = WorkOrderTypesTable
-	CommentsTable.ForeignKeys[0].RefTable = ProjectsTable
-	CommentsTable.ForeignKeys[1].RefTable = WorkOrdersTable
+	CommentsTable.ForeignKeys[0].RefTable = UsersTable
+	CommentsTable.ForeignKeys[1].RefTable = ProjectsTable
+	CommentsTable.ForeignKeys[2].RefTable = WorkOrdersTable
 	EquipmentTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	EquipmentTable.ForeignKeys[1].RefTable = WorkOrdersTable
 	EquipmentTable.ForeignKeys[2].RefTable = EquipmentPositionsTable
@@ -1599,10 +1670,12 @@ func init() {
 	EquipmentPositionsTable.ForeignKeys[1].RefTable = EquipmentPositionDefinitionsTable
 	EquipmentPositionDefinitionsTable.ForeignKeys[0].RefTable = EquipmentTypesTable
 	EquipmentTypesTable.ForeignKeys[0].RefTable = EquipmentCategoriesTable
-	FilesTable.ForeignKeys[0].RefTable = EquipmentTable
-	FilesTable.ForeignKeys[1].RefTable = LocationsTable
-	FilesTable.ForeignKeys[2].RefTable = SurveyQuestionsTable
-	FilesTable.ForeignKeys[3].RefTable = WorkOrdersTable
+	FilesTable.ForeignKeys[0].RefTable = CheckListItemsTable
+	FilesTable.ForeignKeys[1].RefTable = EquipmentTable
+	FilesTable.ForeignKeys[2].RefTable = LocationsTable
+	FilesTable.ForeignKeys[3].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[4].RefTable = SurveyQuestionsTable
+	FilesTable.ForeignKeys[5].RefTable = WorkOrdersTable
 	FloorPlansTable.ForeignKeys[0].RefTable = LocationsTable
 	FloorPlansTable.ForeignKeys[1].RefTable = FloorPlanReferencePointsTable
 	FloorPlansTable.ForeignKeys[2].RefTable = FloorPlanScalesTable
@@ -1661,4 +1734,6 @@ func init() {
 	ServiceLinksTable.ForeignKeys[1].RefTable = LinksTable
 	ServiceCustomerTable.ForeignKeys[0].RefTable = ServicesTable
 	ServiceCustomerTable.ForeignKeys[1].RefTable = CustomersTable
+	UsersGroupMembersTable.ForeignKeys[0].RefTable = UsersGroupsTable
+	UsersGroupMembersTable.ForeignKeys[1].RefTable = UsersTable
 }

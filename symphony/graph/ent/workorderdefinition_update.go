@@ -133,8 +133,8 @@ func (wodu *WorkOrderDefinitionUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = wodu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(wodu.hooks); i > 0; i-- {
-			mut = wodu.hooks[i-1](mut)
+		for i := len(wodu.hooks) - 1; i >= 0; i-- {
+			mut = wodu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wodu.mutation); err != nil {
 			return 0, err
@@ -398,8 +398,8 @@ func (woduo *WorkOrderDefinitionUpdateOne) Save(ctx context.Context) (*WorkOrder
 			node, err = woduo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(woduo.hooks); i > 0; i-- {
-			mut = woduo.hooks[i-1](mut)
+		for i := len(woduo.hooks) - 1; i >= 0; i-- {
+			mut = woduo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, woduo.mutation); err != nil {
 			return nil, err

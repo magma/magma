@@ -50,6 +50,26 @@ func (ptu *PropertyTypeUpdate) SetName(s string) *PropertyTypeUpdate {
 	return ptu
 }
 
+// SetExternalID sets the external_id field.
+func (ptu *PropertyTypeUpdate) SetExternalID(s string) *PropertyTypeUpdate {
+	ptu.mutation.SetExternalID(s)
+	return ptu
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableExternalID(s *string) *PropertyTypeUpdate {
+	if s != nil {
+		ptu.SetExternalID(*s)
+	}
+	return ptu
+}
+
+// ClearExternalID clears the value of external_id.
+func (ptu *PropertyTypeUpdate) ClearExternalID() *PropertyTypeUpdate {
+	ptu.mutation.ClearExternalID()
+	return ptu
+}
+
 // SetIndex sets the index field.
 func (ptu *PropertyTypeUpdate) SetIndex(i int) *PropertyTypeUpdate {
 	ptu.mutation.ResetIndex()
@@ -583,8 +603,8 @@ func (ptu *PropertyTypeUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = ptu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(ptu.hooks); i > 0; i-- {
-			mut = ptu.hooks[i-1](mut)
+		for i := len(ptu.hooks) - 1; i >= 0; i-- {
+			mut = ptu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ptu.mutation); err != nil {
 			return 0, err
@@ -652,6 +672,19 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: propertytype.FieldName,
+		})
+	}
+	if value, ok := ptu.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldExternalID,
+		})
+	}
+	if ptu.mutation.ExternalIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldExternalID,
 		})
 	}
 	if value, ok := ptu.mutation.Index(); ok {
@@ -1171,6 +1204,26 @@ func (ptuo *PropertyTypeUpdateOne) SetType(s string) *PropertyTypeUpdateOne {
 // SetName sets the name field.
 func (ptuo *PropertyTypeUpdateOne) SetName(s string) *PropertyTypeUpdateOne {
 	ptuo.mutation.SetName(s)
+	return ptuo
+}
+
+// SetExternalID sets the external_id field.
+func (ptuo *PropertyTypeUpdateOne) SetExternalID(s string) *PropertyTypeUpdateOne {
+	ptuo.mutation.SetExternalID(s)
+	return ptuo
+}
+
+// SetNillableExternalID sets the external_id field if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableExternalID(s *string) *PropertyTypeUpdateOne {
+	if s != nil {
+		ptuo.SetExternalID(*s)
+	}
+	return ptuo
+}
+
+// ClearExternalID clears the value of external_id.
+func (ptuo *PropertyTypeUpdateOne) ClearExternalID() *PropertyTypeUpdateOne {
+	ptuo.mutation.ClearExternalID()
 	return ptuo
 }
 
@@ -1707,8 +1760,8 @@ func (ptuo *PropertyTypeUpdateOne) Save(ctx context.Context) (*PropertyType, err
 			node, err = ptuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ptuo.hooks); i > 0; i-- {
-			mut = ptuo.hooks[i-1](mut)
+		for i := len(ptuo.hooks) - 1; i >= 0; i-- {
+			mut = ptuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ptuo.mutation); err != nil {
 			return nil, err
@@ -1774,6 +1827,19 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 			Type:   field.TypeString,
 			Value:  value,
 			Column: propertytype.FieldName,
+		})
+	}
+	if value, ok := ptuo.mutation.ExternalID(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: propertytype.FieldExternalID,
+		})
+	}
+	if ptuo.mutation.ExternalIDCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: propertytype.FieldExternalID,
 		})
 	}
 	if value, ok := ptuo.mutation.Index(); ok {

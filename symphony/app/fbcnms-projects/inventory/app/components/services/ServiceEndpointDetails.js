@@ -14,8 +14,8 @@ import ActiveConsumerEndpointIcon from '@fbcnms/ui/icons/ActiveConsumerEndpointI
 import ActiveProviderEndpointIcon from '@fbcnms/ui/icons/ActiveProviderEndpointIcon';
 import EndpointIcon from '@fbcnms/ui/icons/EndpointIcon';
 import EquipmentBreadcrumbs from '../equipment/EquipmentBreadcrumbs';
+import OptionsPopoverButton from '../OptionsPopoverButton';
 import React from 'react';
-import TableRowOptionsButton from '../TableRowOptionsButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import camelCase from 'lodash/camelCase';
 import classNames from 'classnames';
@@ -132,7 +132,7 @@ const ServiceEndpointDetails = (props: Props) => {
         </div>
       </div>
 
-      <TableRowOptionsButton
+      <OptionsPopoverButton
         options={[
           {
             caption: fbt(

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9e904563bba3014645455d046b137b88
+ * @relayHash 0cf9b14874deed6615c6cd97503bf5c6
  */
 
 /* eslint-disable */
@@ -16,9 +16,11 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 export type CheckListItemEnumSelectionMode = "multiple" | "single" | "%future added value";
-export type CheckListItemType = "enum" | "simple" | "string" | "%future added value";
+export type CheckListItemType = "enum" | "files" | "simple" | "string" | "yes_no" | "%future added value";
+export type FileType = "FILE" | "IMAGE" | "%future added value";
 export type WorkOrderPriority = "HIGH" | "LOW" | "MEDIUM" | "NONE" | "URGENT" | "%future added value";
 export type WorkOrderStatus = "DONE" | "PENDING" | "PLANNED" | "%future added value";
+export type YesNoResponse = "NO" | "YES" | "%future added value";
 export type AddWorkOrderInput = {|
   name: string,
   description?: ?string,
@@ -28,8 +30,10 @@ export type AddWorkOrderInput = {|
   properties?: ?$ReadOnlyArray<PropertyInput>,
   checkList?: ?$ReadOnlyArray<CheckListItemInput>,
   ownerName?: ?string,
+  ownerId?: ?string,
   checkListCategories?: ?$ReadOnlyArray<CheckListCategoryInput>,
   assignee?: ?string,
+  assigneeId?: ?string,
   index?: ?number,
   status?: ?WorkOrderStatus,
   priority?: ?WorkOrderPriority,
@@ -62,6 +66,18 @@ export type CheckListItemInput = {|
   selectedEnumValues?: ?string,
   stringValue?: ?string,
   checked?: ?boolean,
+  files?: ?$ReadOnlyArray<FileInput>,
+  yesNoResponse?: ?YesNoResponse,
+|};
+export type FileInput = {|
+  id?: ?string,
+  fileName: string,
+  sizeInBytes?: ?number,
+  modificationTime?: ?number,
+  uploadTime?: ?number,
+  fileType?: ?FileType,
+  mimeType?: ?string,
+  storeKey: string,
 |};
 export type CheckListCategoryInput = {|
   id?: ?string,
@@ -77,11 +93,17 @@ export type AddWorkOrderMutationResponse = {|
     +id: string,
     +name: string,
     +description: ?string,
-    +ownerName: string,
+    +owner: {|
+      +id: string,
+      +email: string,
+    |},
     +creationDate: any,
     +installDate: ?any,
     +status: WorkOrderStatus,
-    +assignee: ?string,
+    +assignedTo: ?{|
+      +id: string,
+      +email: string,
+    |},
     +location: ?{|
       +id: string,
       +name: string,
@@ -112,11 +134,17 @@ mutation AddWorkOrderMutation(
     id
     name
     description
-    ownerName
+    owner {
+      id
+      email
+    }
     creationDate
     installDate
     status
-    assignee
+    assignedTo {
+      id
+      email
+    }
     location {
       id
       name
@@ -159,9 +187,19 @@ v2 = {
 },
 v3 = [
   (v1/*: any*/),
-  (v2/*: any*/)
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
 ],
 v4 = [
+  (v1/*: any*/),
+  (v2/*: any*/)
+],
+v5 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -187,11 +225,14 @@ v4 = [
         "storageKey": null
       },
       {
-        "kind": "ScalarField",
+        "kind": "LinkedField",
         "alias": null,
-        "name": "ownerName",
+        "name": "owner",
+        "storageKey": null,
         "args": null,
-        "storageKey": null
+        "concreteType": "User",
+        "plural": false,
+        "selections": (v3/*: any*/)
       },
       {
         "kind": "ScalarField",
@@ -215,11 +256,14 @@ v4 = [
         "storageKey": null
       },
       {
-        "kind": "ScalarField",
+        "kind": "LinkedField",
         "alias": null,
-        "name": "assignee",
+        "name": "assignedTo",
+        "storageKey": null,
         "args": null,
-        "storageKey": null
+        "concreteType": "User",
+        "plural": false,
+        "selections": (v3/*: any*/)
       },
       {
         "kind": "LinkedField",
@@ -229,7 +273,7 @@ v4 = [
         "args": null,
         "concreteType": "Location",
         "plural": false,
-        "selections": (v3/*: any*/)
+        "selections": (v4/*: any*/)
       },
       {
         "kind": "LinkedField",
@@ -239,7 +283,7 @@ v4 = [
         "args": null,
         "concreteType": "WorkOrderType",
         "plural": false,
-        "selections": (v3/*: any*/)
+        "selections": (v4/*: any*/)
       },
       {
         "kind": "LinkedField",
@@ -249,7 +293,7 @@ v4 = [
         "args": null,
         "concreteType": "Project",
         "plural": false,
-        "selections": (v3/*: any*/)
+        "selections": (v4/*: any*/)
       },
       {
         "kind": "ScalarField",
@@ -269,19 +313,19 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v4/*: any*/)
+    "selections": (v5/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "AddWorkOrderMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v4/*: any*/)
+    "selections": (v5/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "AddWorkOrderMutation",
     "id": null,
-    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    ownerName\n    creationDate\n    installDate\n    status\n    assignee\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n    closeDate\n  }\n}\n",
+    "text": "mutation AddWorkOrderMutation(\n  $input: AddWorkOrderInput!\n) {\n  addWorkOrder(input: $input) {\n    id\n    name\n    description\n    owner {\n      id\n      email\n    }\n    creationDate\n    installDate\n    status\n    assignedTo {\n      id\n      email\n    }\n    location {\n      id\n      name\n    }\n    workOrderType {\n      id\n      name\n    }\n    project {\n      id\n      name\n    }\n    closeDate\n  }\n}\n",
     "metadata": {}
   }
 };

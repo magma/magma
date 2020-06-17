@@ -11,7 +11,11 @@
 import fbt from 'fbt';
 
 const Strings = {
+  helpers: {
+    productNameParam: 'product name',
+  },
   common: {
+    productName: `${fbt('Symphony', '')}`,
     emptyField: `${fbt(
       'None',
       'Text to be displayed in case a user input field has no value',
@@ -47,6 +51,9 @@ const Strings = {
       'Text for button that go to previous operation',
     )}`,
     addButton: `${fbt('Add', 'Text for button that adds an item')}`,
+    removeButton: `${fbt('Remove', 'Text for button that removes an item')}`,
+    yesButton: `${fbt('Yes', 'Yes response to a question')}`,
+    noButton: `${fbt('No', 'No response to a question')}`,
     fields: {
       url: {
         label: 'URL',
@@ -82,6 +89,7 @@ const Strings = {
       'Archivos Simulación',
       'Reportes de Mantenimiento',
       'Fotos',
+      'Site Folder',
     ],
   },
 };

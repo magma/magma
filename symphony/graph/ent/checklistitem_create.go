@@ -14,6 +14,7 @@ import (
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
+	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 )
 
@@ -120,6 +121,20 @@ func (clic *CheckListItemCreate) SetNillableSelectedEnumValues(s *string) *Check
 	return clic
 }
 
+// SetYesNoVal sets the yes_no_val field.
+func (clic *CheckListItemCreate) SetYesNoVal(cnv checklistitem.YesNoVal) *CheckListItemCreate {
+	clic.mutation.SetYesNoVal(cnv)
+	return clic
+}
+
+// SetNillableYesNoVal sets the yes_no_val field if the given value is not nil.
+func (clic *CheckListItemCreate) SetNillableYesNoVal(cnv *checklistitem.YesNoVal) *CheckListItemCreate {
+	if cnv != nil {
+		clic.SetYesNoVal(*cnv)
+	}
+	return clic
+}
+
 // SetHelpText sets the help_text field.
 func (clic *CheckListItemCreate) SetHelpText(s string) *CheckListItemCreate {
 	clic.mutation.SetHelpText(s)
@@ -132,6 +147,21 @@ func (clic *CheckListItemCreate) SetNillableHelpText(s *string) *CheckListItemCr
 		clic.SetHelpText(*s)
 	}
 	return clic
+}
+
+// AddFileIDs adds the files edge to File by ids.
+func (clic *CheckListItemCreate) AddFileIDs(ids ...int) *CheckListItemCreate {
+	clic.mutation.AddFileIDs(ids...)
+	return clic
+}
+
+// AddFiles adds the files edges to File.
+func (clic *CheckListItemCreate) AddFiles(f ...*File) *CheckListItemCreate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return clic.AddFileIDs(ids...)
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -161,6 +191,11 @@ func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, erro
 	if _, ok := clic.mutation.GetType(); !ok {
 		return nil, errors.New("ent: missing required field \"type\"")
 	}
+	if v, ok := clic.mutation.YesNoVal(); ok {
+		if err := checklistitem.YesNoValValidator(v); err != nil {
+			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+		}
+	}
 	var (
 		err  error
 		node *CheckListItem
@@ -177,8 +212,8 @@ func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, erro
 			node, err = clic.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(clic.hooks); i > 0; i-- {
-			mut = clic.hooks[i-1](mut)
+		for i := len(clic.hooks) - 1; i >= 0; i-- {
+			mut = clic.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, clic.mutation); err != nil {
 			return nil, err
@@ -271,6 +306,14 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 		})
 		cli.SelectedEnumValues = value
 	}
+	if value, ok := clic.mutation.YesNoVal(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: checklistitem.FieldYesNoVal,
+		})
+		cli.YesNoVal = value
+	}
 	if value, ok := clic.mutation.HelpText(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
@@ -278,6 +321,25 @@ func (clic *CheckListItemCreate) sqlSave(ctx context.Context) (*CheckListItem, e
 			Column: checklistitem.FieldHelpText,
 		})
 		cli.HelpText = &value
+	}
+	if nodes := clic.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   checklistitem.FilesTable,
+			Columns: []string{checklistitem.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := clic.mutation.WorkOrderIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

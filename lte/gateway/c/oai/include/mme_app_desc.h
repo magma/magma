@@ -34,6 +34,7 @@ typedef struct mme_app_desc_s {
 
   long statistic_timer_id;
   uint32_t statistic_timer_period;
+  mme_ue_s1ap_id_t mme_app_ue_s1ap_id_generator;
 
   /* ***************Statistics*************
    * number of attached UE,number of connected UE,

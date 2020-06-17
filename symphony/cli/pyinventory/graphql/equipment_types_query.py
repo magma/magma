@@ -15,6 +15,30 @@ from .equipment_port_definition_fragment import EquipmentPortDefinitionFragment,
 from .equipment_position_definition_fragment import EquipmentPositionDefinitionFragment, QUERY as EquipmentPositionDefinitionFragmentQuery
 from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
 
+QUERY: List[str] = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + ["""
+query EquipmentTypesQuery {
+  equipmentTypes {
+    edges {
+      node {
+        id
+        name
+        category
+        propertyTypes {
+          ...PropertyTypeFragment
+        }
+        positionDefinitions {
+          ...EquipmentPositionDefinitionFragment
+        }
+        portDefinitions {
+          ...EquipmentPortDefinitionFragment
+        }
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class EquipmentTypesQuery(DataClassJsonMixin):
     @dataclass
@@ -42,9 +66,9 @@ class EquipmentTypesQuery(DataClassJsonMixin):
                     propertyTypes: List[PropertyType]
                     positionDefinitions: List[EquipmentPositionDefinition]
                     portDefinitions: List[EquipmentPortDefinition]
-                    category: Optional[str] = None
+                    category: Optional[str]
 
-                node: Optional[EquipmentType] = None
+                node: Optional[EquipmentType]
 
             edges: List[EquipmentTypeEdge]
 
@@ -52,34 +76,10 @@ class EquipmentTypesQuery(DataClassJsonMixin):
 
     data: EquipmentTypesQueryData
 
-    __QUERY__: str = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + """
-    query EquipmentTypesQuery {
-  equipmentTypes {
-    edges {
-      node {
-        id
-        name
-        category
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
-        positionDefinitions {
-          ...EquipmentPositionDefinitionFragment
-        }
-        portDefinitions {
-          ...EquipmentPortDefinitionFragment
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient) -> EquipmentTypesQueryData:
         # fmt: off
         variables = {}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

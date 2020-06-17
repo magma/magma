@@ -15,47 +15,8 @@ from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from .edit_equipment_port_input import EditEquipmentPortInput
 
 
-@dataclass
-class EditEquipmentPortMutation(DataClassJsonMixin):
-    @dataclass
-    class EditEquipmentPortMutationData(DataClassJsonMixin):
-        @dataclass
-        class EquipmentPort(DataClassJsonMixin):
-            @dataclass
-            class Property(PropertyFragment):
-                pass
-
-            @dataclass
-            class EquipmentPortDefinition(DataClassJsonMixin):
-                @dataclass
-                class EquipmentPortType(DataClassJsonMixin):
-                    id: str
-                    name: str
-
-                id: str
-                name: str
-                portType: Optional[EquipmentPortType] = None
-
-            @dataclass
-            class Link(DataClassJsonMixin):
-                @dataclass
-                class Service(DataClassJsonMixin):
-                    id: str
-
-                id: str
-                services: List[Service]
-
-            id: str
-            properties: List[Property]
-            definition: EquipmentPortDefinition
-            link: Optional[Link] = None
-
-        editEquipmentPort: EquipmentPort
-
-    data: EditEquipmentPortMutationData
-
-    __QUERY__: str = PropertyFragmentQuery + """
-    mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
+QUERY: List[str] = PropertyFragmentQuery + ["""
+mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {
   editEquipmentPort(input: $input) {
     id
     properties {
@@ -78,12 +39,51 @@ class EditEquipmentPortMutation(DataClassJsonMixin):
   }
 }
 
-    """
+"""]
+
+@dataclass
+class EditEquipmentPortMutation(DataClassJsonMixin):
+    @dataclass
+    class EditEquipmentPortMutationData(DataClassJsonMixin):
+        @dataclass
+        class EquipmentPort(DataClassJsonMixin):
+            @dataclass
+            class Property(PropertyFragment):
+                pass
+
+            @dataclass
+            class EquipmentPortDefinition(DataClassJsonMixin):
+                @dataclass
+                class EquipmentPortType(DataClassJsonMixin):
+                    id: str
+                    name: str
+
+                id: str
+                name: str
+                portType: Optional[EquipmentPortType]
+
+            @dataclass
+            class Link(DataClassJsonMixin):
+                @dataclass
+                class Service(DataClassJsonMixin):
+                    id: str
+
+                id: str
+                services: List[Service]
+
+            id: str
+            properties: List[Property]
+            definition: EquipmentPortDefinition
+            link: Optional[Link]
+
+        editEquipmentPort: EquipmentPort
+
+    data: EditEquipmentPortMutationData
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditEquipmentPortInput) -> EditEquipmentPortMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

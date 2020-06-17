@@ -348,6 +348,21 @@ func (sqc *SurveyQuestionCreate) AddPhotoData(f ...*File) *SurveyQuestionCreate 
 	return sqc.AddPhotoDatumIDs(ids...)
 }
 
+// AddImageIDs adds the images edge to File by ids.
+func (sqc *SurveyQuestionCreate) AddImageIDs(ids ...int) *SurveyQuestionCreate {
+	sqc.mutation.AddImageIDs(ids...)
+	return sqc
+}
+
+// AddImages adds the images edges to File.
+func (sqc *SurveyQuestionCreate) AddImages(f ...*File) *SurveyQuestionCreate {
+	ids := make([]int, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return sqc.AddImageIDs(ids...)
+}
+
 // Save creates the SurveyQuestion in the database.
 func (sqc *SurveyQuestionCreate) Save(ctx context.Context) (*SurveyQuestion, error) {
 	if _, ok := sqc.mutation.CreateTime(); !ok {
@@ -383,8 +398,8 @@ func (sqc *SurveyQuestionCreate) Save(ctx context.Context) (*SurveyQuestion, err
 			node, err = sqc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(sqc.hooks); i > 0; i-- {
-			mut = sqc.hooks[i-1](mut)
+		for i := len(sqc.hooks) - 1; i >= 0; i-- {
+			mut = sqc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, sqc.mutation); err != nil {
 			return nil, err
@@ -636,6 +651,25 @@ func (sqc *SurveyQuestionCreate) sqlSave(ctx context.Context) (*SurveyQuestion, 
 			Inverse: false,
 			Table:   surveyquestion.PhotoDataTable,
 			Columns: []string{surveyquestion.PhotoDataColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: file.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := sqc.mutation.ImagesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   surveyquestion.ImagesTable,
+			Columns: []string{surveyquestion.ImagesColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: &sqlgraph.FieldSpec{

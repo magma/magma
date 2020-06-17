@@ -11,50 +11,35 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
+
+QUERY: List[str] = LocationFragmentQuery + ["""
+query LocationDetailsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      ...LocationFragment
+    }
+  }
+}
+
+"""]
 
 @dataclass
 class LocationDetailsQuery(DataClassJsonMixin):
     @dataclass
     class LocationDetailsQueryData(DataClassJsonMixin):
         @dataclass
-        class Node(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
+        class Node(LocationFragment):
+            pass
 
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str] = None
-
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationDetailsQueryData
-
-    __QUERY__: str = """
-    query LocationDetailsQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      id
-      name
-      latitude
-      longitude
-      externalId
-      locationType {
-        name
-      }
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationDetailsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

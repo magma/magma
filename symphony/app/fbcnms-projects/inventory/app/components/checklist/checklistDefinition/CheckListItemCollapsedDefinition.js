@@ -16,7 +16,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {CheckListItemIcons} from '../checkListCategory/CheckListItemConsts';
+import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -52,7 +52,11 @@ type Props = {
 const CheckListItemCollapsedDefinition = ({item, className}: Props) => {
   const classes = useStyles();
   const dispatch = useContext(ChecklistItemsDialogMutateDispatchContext);
-  const Icon = CheckListItemIcons[item.type];
+  const itemConfig = CheckListItemConfigs[item.type];
+  if (itemConfig == null) {
+    return null;
+  }
+  const Icon = itemConfig.icon;
   return (
     <div
       className={classNames(classes.root, className)}

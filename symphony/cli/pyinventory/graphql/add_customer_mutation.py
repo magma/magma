@@ -11,38 +11,35 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .customer_fragment import CustomerFragment, QUERY as CustomerFragmentQuery
 from .add_customer_input import AddCustomerInput
 
+
+QUERY: List[str] = CustomerFragmentQuery + ["""
+mutation AddCustomerMutation($input: AddCustomerInput!) {
+  addCustomer(input: $input) {
+    ...CustomerFragment
+  }
+}
+
+"""]
 
 @dataclass
 class AddCustomerMutation(DataClassJsonMixin):
     @dataclass
     class AddCustomerMutationData(DataClassJsonMixin):
         @dataclass
-        class Customer(DataClassJsonMixin):
-            id: str
-            name: str
-            externalId: Optional[str] = None
+        class Customer(CustomerFragment):
+            pass
 
         addCustomer: Customer
 
     data: AddCustomerMutationData
-
-    __QUERY__: str = """
-    mutation AddCustomerMutation($input: AddCustomerInput!) {
-  addCustomer(input: $input) {
-    id
-    name
-    externalId
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddCustomerInput) -> AddCustomerMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

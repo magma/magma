@@ -7,9 +7,10 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import sys
 from distutils.util import strtobool
+from enum import Enum
 
+import sys
 from fabric.api import cd, env, execute, lcd, local, put, run, settings, sudo
 
 sys.path.append('../../orc8r')
@@ -26,8 +27,20 @@ CWAG_BR_NAME = "cwag_br0"
 CWAG_TEST_BR_NAME = "cwag_test_br0"
 
 
+class SubTests(Enum):
+    ALL = "integ_test"
+    AUTH = "authenticate"
+    GX = "gx"
+    GY = "gy"
+
+    @staticmethod
+    def list():
+        return list(map(lambda t: t.value, SubTests))
+
+
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
-               destroy_vm="False", no_build="False"):
+               transfer_images='False',
+               destroy_vm="False", no_build="False", tests_to_run="integ_test"):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -47,9 +60,15 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     no_build: When set to true, this script will NOT rebuild all docker images.
     """
-
+    try:
+        tests_to_run = SubTests(tests_to_run)
+    except ValueError:
+        print("{} is not a valid value. We support {}".format(
+            tests_to_run, SubTests.list()))
+        return
     destroy_vm = bool(strtobool(destroy_vm))
     no_build = bool(strtobool(no_build))
+    transfer_images = bool(strtobool(transfer_images))
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -65,7 +84,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     cwag_br_mac = cwag_host_to_mac[host]
 
     # Transfer built images from local machine to CWAG host
-    if gateway_host:
+    if gateway_host or transfer_images:
         execute(_transfer_docker_images)
     else:
         execute(_stop_gateway)
@@ -97,19 +116,21 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Get back to the gateway vm to setup static arp
     if not gateway_host:
-        vagrant_setup("cwag", destroy_vm)
+        # We do NOT want to destroy this VM after we just set it up...
+        vagrant_setup("cwag", False)
     else:
         ansible_setup(gateway_host, "cwag", "cwag_dev.yml")
     execute(_set_cwag_networking, cwag_test_br_mac)
 
     # Start tests
     if not test_host:
-        vagrant_setup("cwag_test", destroy_vm)
+        # No, definitely do NOT destroy this VM
+        vagrant_setup("cwag_test", False)
     else:
         ansible_setup(test_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
     execute(_set_cwag_test_networking, cwag_br_mac)
-    execute(_run_integ_tests, test_host, trf_host)
+    execute(_run_integ_tests, test_host, trf_host, tests_to_run)
 
 
 def _transfer_docker_images():
@@ -210,11 +231,11 @@ def _run_unit_tests():
         run('make test')
 
 
-def _run_integ_tests(test_host, trf_host):
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests):
     """ Run the integration tests """
     with cd(CWAG_INTEG_ROOT):
-        result = run('make integ_test', warn_only=True)
-
+        command = "make " + str(tests_to_run.value)
+        result = run(command, warn_only=True)
     if not test_host and not trf_host:
         # Clean up only for now when running locally
         execute(_clean_up)

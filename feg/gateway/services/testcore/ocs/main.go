@@ -16,7 +16,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/testcore/ocs/mock_ocs"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )

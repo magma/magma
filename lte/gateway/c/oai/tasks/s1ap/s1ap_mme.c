@@ -302,7 +302,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
             if (
               (ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) ==
               NULL) {
-              OAILOG_WARNING(
+              OAILOG_WARNING_UE(
+                imsi64,
                 LOG_S1AP,
                 "Timer expired but no assoicated UE context for UE id %d\n",
                 mme_ue_s1ap_id);
@@ -314,8 +315,9 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
               received_message_p->ittiMsg.timer_has_expired.timer_id ==
               ue_ref_p->s1ap_ue_context_rel_timer.id) {
               // UE context release complete timer expiry handler
-              OAILOG_INFO(
+              OAILOG_WARNING_UE(
                 LOG_S1AP,
+                imsi64,
                 "ue_context_release_command_timer_expired for UE id %d\n",
                 mme_ue_s1ap_id);
               increment_counter(
@@ -325,7 +327,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
           } else if (timer_arg.timer_class == S1AP_ENB_TIMER) {
             sctp_assoc_id_t assoc_id = timer_arg.instance_id;
             if ((enb_ref_p = s1ap_state_get_enb(state, assoc_id)) == NULL) {
-              OAILOG_WARNING(
+              OAILOG_WARNING_UE(
+                imsi64,
                 LOG_S1AP,
                 "Timer expired but no assoicated eNB context for eNB assoc_id "
                 "%d\n",
@@ -337,7 +340,8 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
             if (
               received_message_p->ittiMsg.timer_has_expired.timer_id ==
               enb_ref_p->s1ap_enb_assoc_clean_up_timer.id) {
-              OAILOG_INFO(
+              OAILOG_DEBUG_UE(
+                imsi64,
                 LOG_S1AP,
                 "enb_sctp_shutdown_ue_clean_up_timer_expired for enb assoc_id "
                 "%d\n",
@@ -347,8 +351,9 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
               s1ap_enb_assoc_clean_up_timer_expiry(state, enb_ref_p);
             }
           } else {
-            OAILOG_WARNING(
+            OAILOG_WARNING_UE(
               LOG_S1AP,
+              imsi64,
               " S1AP Timer expired with invalid timer class  %u \n",
               timer_arg.timer_class);
           }
@@ -632,10 +637,7 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref)
   hashtable_ts_free(&enb_ref->ue_coll, ue_ref->enb_ue_s1ap_id);
   hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
 
-  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-  hashtable_uint64_ts_remove(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) mme_ue_s1ap_id);
+
 
   if (!enb_ref->nb_ue_associated) {
     if (enb_ref->s1_state == S1AP_RESETING) {

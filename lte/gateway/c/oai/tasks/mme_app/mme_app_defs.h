@@ -79,7 +79,7 @@ int mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_t *mme_app_desc_p,
 void mme_app_handle_conn_est_cnf(
   nas_establish_rsp_t* const nas_conn_est_cnf_pP);
 
-void mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
+imsi64_t mme_app_handle_initial_ue_message(mme_app_desc_t *mme_app_desc_p,
   itti_s1ap_initial_ue_message_t *const conn_est_ind_pP);
 
 int mme_app_handle_create_sess_resp(mme_app_desc_t *mme_app_desc_p,

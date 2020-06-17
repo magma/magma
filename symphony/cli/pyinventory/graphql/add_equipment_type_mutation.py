@@ -17,6 +17,26 @@ from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeF
 from .add_equipment_type_input import AddEquipmentTypeInput
 
 
+QUERY: List[str] = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + ["""
+mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {
+  addEquipmentType(input: $input) {
+    id
+    name
+    category
+    propertyTypes {
+      ...PropertyTypeFragment
+    }
+    positionDefinitions {
+      ...EquipmentPositionDefinitionFragment
+    }
+    portDefinitions {
+      ...EquipmentPortDefinitionFragment
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class AddEquipmentTypeMutation(DataClassJsonMixin):
     @dataclass
@@ -40,36 +60,16 @@ class AddEquipmentTypeMutation(DataClassJsonMixin):
             propertyTypes: List[PropertyType]
             positionDefinitions: List[EquipmentPositionDefinition]
             portDefinitions: List[EquipmentPortDefinition]
-            category: Optional[str] = None
+            category: Optional[str]
 
         addEquipmentType: EquipmentType
 
     data: AddEquipmentTypeMutationData
-
-    __QUERY__: str = EquipmentPortDefinitionFragmentQuery + EquipmentPositionDefinitionFragmentQuery + PropertyTypeFragmentQuery + """
-    mutation AddEquipmentTypeMutation($input: AddEquipmentTypeInput!) {
-  addEquipmentType(input: $input) {
-    id
-    name
-    category
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-    positionDefinitions {
-      ...EquipmentPositionDefinitionFragment
-    }
-    portDefinitions {
-      ...EquipmentPortDefinitionFragment
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddEquipmentTypeInput) -> AddEquipmentTypeMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

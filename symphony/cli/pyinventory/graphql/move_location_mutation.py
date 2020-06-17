@@ -11,48 +11,33 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
+
+QUERY: List[str] = LocationFragmentQuery + ["""
+mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
+  moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
+    ...LocationFragment
+  }
+}
+
+"""]
 
 @dataclass
 class MoveLocationMutation(DataClassJsonMixin):
     @dataclass
     class MoveLocationMutationData(DataClassJsonMixin):
         @dataclass
-        class Location(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
-
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str] = None
+        class Location(LocationFragment):
+            pass
 
         moveLocation: Location
 
     data: MoveLocationMutationData
-
-    __QUERY__: str = """
-    mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
-  moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
-    id
-    name
-    latitude
-    longitude
-    externalId
-    locationType {
-      name
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, locationID: str, parentLocationID: Optional[str] = None) -> MoveLocationMutationData:
         # fmt: off
         variables = {"locationID": locationID, "parentLocationID": parentLocationID}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

@@ -14,6 +14,7 @@ import type {ChecklistCategoriesMutateStateActionType} from '../checklist/Checkl
 import type {ChecklistCategoriesStateType} from '../checklist/ChecklistCategoriesMutateState';
 import type {ContextRouter} from 'react-router-dom';
 import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
+import type {Property} from '../../common/Property';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WorkOrderDetails_workOrder} from './__generated__/WorkOrderDetails_workOrder.graphql.js';
 
@@ -28,10 +29,8 @@ import CommentsBox from '../comments/CommentsBox';
 import EntityDocumentsTable from '../EntityDocumentsTable';
 import ExpandingPanel from '@fbcnms/ui/components/ExpandingPanel';
 import FileUploadButton from '../FileUpload/FileUploadButton';
+import FormContext, {FormContextProvider} from '../../common/FormContext';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import FormValidationContext, {
-  FormValidationContextProvider,
-} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
 import Grid from '@material-ui/core/Grid';
 import InsertLinkIcon from '@material-ui/icons/InsertLink';
 import LocationBreadcrumbsTitle from '../location/LocationBreadcrumbsTitle';
@@ -59,7 +58,7 @@ import {
   reducer,
 } from '../checklist/ChecklistCategoriesMutateReducer';
 import {makeStyles} from '@material-ui/styles';
-import {sortPropertiesByIndex} from '../../common/Property';
+import {sortPropertiesByIndex, toMutableProperty} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
 
 type Props = {
@@ -148,10 +147,15 @@ const WorkOrderDetails = ({
   confirm,
 }: Props) => {
   const classes = useStyles();
-  const [workOrder, setWorkOrder] = useState(propsWorkOrder);
-  const [properties, setProperties] = useState(
-    // eslint-disable-next-line flowtype/no-weak-types
-    ([...propsWorkOrder.properties]: any).sort(sortPropertiesByIndex),
+  const [workOrder, setWorkOrder] = useState<WorkOrderDetails_workOrder>(
+    propsWorkOrder,
+  );
+  const [properties, setProperties] = useState<Array<Property>>(
+    propsWorkOrder.properties
+      .filter(Boolean)
+      .slice()
+      .map<Property>(toMutableProperty)
+      .sort(sortPropertiesByIndex),
   );
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
@@ -247,9 +251,9 @@ const WorkOrderDetails = ({
     key:
       | 'name'
       | 'description'
-      | 'ownerName'
+      | 'owner'
       | 'installDate'
-      | 'assignee'
+      | 'assignedTo'
       | 'priority'
       | 'project',
     value,
@@ -261,7 +265,7 @@ const WorkOrderDetails = ({
   const actionsEnabled = isFeatureEnabled('planned_equipment');
   return (
     <div className={classes.root}>
-      <FormValidationContextProvider>
+      <FormContextProvider>
         <WorkOrderHeader
           workOrderName={propsWorkOrder.name}
           workOrder={workOrder}
@@ -271,15 +275,15 @@ const WorkOrderDetails = ({
           onWorkOrderRemoved={onWorkOrderRemoved}
           onCancelClicked={onCancelClicked}
         />
-        <FormValidationContext.Consumer>
-          {validationContext => {
-            const noOwnerError = validationContext.error.check({
+        <FormContext.Consumer>
+          {form => {
+            const noOwnerError = form.alerts.error.check({
               fieldId: 'Owner',
               fieldDisplayName: 'Owner',
-              value: workOrder.ownerName,
+              value: workOrder.owner,
               required: true,
             });
-            validationContext.editLock.check({
+            form.alerts.editLock.check({
               fieldId: 'status',
               fieldDisplayName: 'Status',
               value: propsWorkOrder.status,
@@ -288,24 +292,24 @@ const WorkOrderDetails = ({
                   ? `Work order is on '${doneStatus.label}' state`
                   : '',
             });
-            validationContext.editLock.check({
+            form.alerts.editLock.check({
               fieldId: 'OwnerRule',
               fieldDisplayName: 'Owner rule',
               value: {user, workOrder: propsWorkOrder},
               checkCallback: checkData =>
                 checkData?.user.isSuperUser ||
-                checkData?.user.email === checkData?.workOrder.ownerName ||
-                checkData?.user.email === checkData?.workOrder.assignee
+                checkData?.user.email === checkData?.workOrder.owner.email ||
+                checkData?.user.email === checkData?.workOrder.assignedTo?.email
                   ? ''
                   : 'User is not allowed to edit this work order',
             });
-            const nonOwnerAssignee = validationContext.editLock.check({
+            const nonOwnerAssignee = form.alerts.editLock.check({
               fieldId: 'NonOwnerAssigneeRule',
               fieldDisplayName: 'Non Owner assignee rule',
               value: {user, workOrder: propsWorkOrder},
               checkCallback: checkData =>
-                checkData?.user.email !== checkData?.workOrder.ownerName &&
-                checkData?.user.email === checkData?.workOrder.assignee
+                checkData?.user.email !== checkData?.workOrder.owner.email &&
+                checkData?.user.email === checkData?.workOrder.assignedTo?.email
                   ? 'Assignee is not allowed to change owner'
                   : '',
               notAggregated: true,
@@ -362,7 +366,7 @@ const WorkOrderDetails = ({
                         <Grid item xs={12} sm={6} lg={4} xl={4}>
                           <FormField
                             label="Status"
-                            disabled={validationContext.error.detected}>
+                            disabled={form.alerts.error.detected}>
                             <Select
                               options={statusValues}
                               selectedValue={workOrder.status}
@@ -545,18 +549,18 @@ const WorkOrderDetails = ({
                         errorText={noOwnerError}
                         disabled={!!nonOwnerAssignee}>
                         <UserTypeahead
-                          selectedUser={workOrder.ownerName}
+                          selectedUser={workOrder.owner}
                           onUserSelection={user =>
-                            _setWorkOrderDetail('ownerName', user)
+                            _setWorkOrderDetail('owner', user)
                           }
                           margin="dense"
                         />
                       </FormField>
                       <FormField label="Assignee" className={classes.input}>
                         <UserTypeahead
-                          selectedUser={workOrder.assignee}
+                          selectedUser={workOrder.assignedTo}
                           onUserSelection={user =>
-                            _setWorkOrderDetail('assignee', user)
+                            _setWorkOrderDetail('assignedTo', user)
                           }
                           margin="dense"
                         />
@@ -579,8 +583,8 @@ const WorkOrderDetails = ({
               </div>
             );
           }}
-        </FormValidationContext.Consumer>
-      </FormValidationContextProvider>
+        </FormContext.Consumer>
+      </FormContextProvider>
     </div>
   );
 };
@@ -608,8 +612,14 @@ export default withRouter(
             }
             ...LocationBreadcrumbsTitle_locationDetails
           }
-          ownerName
-          assignee
+          owner {
+            id
+            email
+          }
+          assignedTo {
+            id
+            email
+          }
           creationDate
           installDate
           status
@@ -653,6 +663,17 @@ export default withRouter(
               stringValue
               enumSelectionMode
               selectedEnumValues
+              yesNoResponse
+              files {
+                id
+                fileName
+                sizeInBytes
+                modified
+                uploaded
+                fileType
+                storeKey
+                category
+              }
             }
           }
         }

@@ -74,6 +74,7 @@ typedef struct mme_sgw_tunnel_s {
 // AGW-wide state for SPGW task
 typedef struct spgw_state_s {
   STAILQ_HEAD(ipv4_list_allocated_s, ipv4_list_elm_s) ipv4_list_allocated;
+  STAILQ_HEAD(ipv4_list_free_s, ipv4_list_elm_s) ipv4_list_free;
   hash_table_ts_t* deactivated_predefined_pcc_rules;
   hash_table_ts_t* predefined_pcc_rules;
   gtpv1u_data_t gtpv1u_data;
@@ -87,4 +88,14 @@ void handle_s5_create_session_response(
   spgw_state_t* state,
   s_plus_p_gw_eps_bearer_context_information_t *new_bearer_ctxt_info_p,
   s5_create_session_response_t session_resp);
+
+int sgw_handle_sgi_endpoint_created(
+  spgw_state_t* state,
+  itti_sgi_create_end_point_response_t *const resp_p,
+  imsi64_t imsi64);
+
+int sgw_send_s11_create_session_response(
+  const s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+  const gtpv2c_cause_value_t cause,
+  imsi64_t imsi64);
 #endif /* FILE_SPGW_TYPES_SEEN */

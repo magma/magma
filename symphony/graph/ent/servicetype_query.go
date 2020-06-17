@@ -33,8 +33,9 @@ type ServiceTypeQuery struct {
 	// eager-loading edges.
 	withServices      *ServiceQuery
 	withPropertyTypes *PropertyTypeQuery
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Where adds a new predicate for the builder.
@@ -64,24 +65,36 @@ func (stq *ServiceTypeQuery) Order(o ...Order) *ServiceTypeQuery {
 // QueryServices chains the current query on the services edge.
 func (stq *ServiceTypeQuery) QueryServices() *ServiceQuery {
 	query := &ServiceQuery{config: stq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
-		sqlgraph.To(service.Table, service.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := stq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+			sqlgraph.To(service.Table, service.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, servicetype.ServicesTable, servicetype.ServicesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
 // QueryPropertyTypes chains the current query on the property_types edge.
 func (stq *ServiceTypeQuery) QueryPropertyTypes() *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: stq.config}
-	step := sqlgraph.NewStep(
-		sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
-		sqlgraph.To(propertytype.Table, propertytype.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
-	)
-	query.sql = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := stq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(servicetype.Table, servicetype.FieldID, stq.sqlQuery()),
+			sqlgraph.To(propertytype.Table, propertytype.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, servicetype.PropertyTypesTable, servicetype.PropertyTypesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(stq.driver.Dialect(), step)
+		return fromU, nil
+	}
 	return query
 }
 
@@ -181,6 +194,9 @@ func (stq *ServiceTypeQuery) OnlyXID(ctx context.Context) int {
 
 // All executes the query and returns a list of ServiceTypes.
 func (stq *ServiceTypeQuery) All(ctx context.Context) ([]*ServiceType, error) {
+	if err := stq.prepareQuery(ctx); err != nil {
+		return nil, err
+	}
 	return stq.sqlAll(ctx)
 }
 
@@ -213,6 +229,9 @@ func (stq *ServiceTypeQuery) IDsX(ctx context.Context) []int {
 
 // Count returns the count of the given query.
 func (stq *ServiceTypeQuery) Count(ctx context.Context) (int, error) {
+	if err := stq.prepareQuery(ctx); err != nil {
+		return 0, err
+	}
 	return stq.sqlCount(ctx)
 }
 
@@ -227,6 +246,9 @@ func (stq *ServiceTypeQuery) CountX(ctx context.Context) int {
 
 // Exist returns true if the query has elements in the graph.
 func (stq *ServiceTypeQuery) Exist(ctx context.Context) (bool, error) {
+	if err := stq.prepareQuery(ctx); err != nil {
+		return false, err
+	}
 	return stq.sqlExist(ctx)
 }
 
@@ -250,7 +272,8 @@ func (stq *ServiceTypeQuery) Clone() *ServiceTypeQuery {
 		unique:     append([]string{}, stq.unique...),
 		predicates: append([]predicate.ServiceType{}, stq.predicates...),
 		// clone intermediate query.
-		sql: stq.sql.Clone(),
+		sql:  stq.sql.Clone(),
+		path: stq.path,
 	}
 }
 
@@ -294,7 +317,12 @@ func (stq *ServiceTypeQuery) WithPropertyTypes(opts ...func(*PropertyTypeQuery))
 func (stq *ServiceTypeQuery) GroupBy(field string, fields ...string) *ServiceTypeGroupBy {
 	group := &ServiceTypeGroupBy{config: stq.config}
 	group.fields = append([]string{field}, fields...)
-	group.sql = stq.sqlQuery()
+	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := stq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return stq.sqlQuery(), nil
+	}
 	return group
 }
 
@@ -313,8 +341,24 @@ func (stq *ServiceTypeQuery) GroupBy(field string, fields ...string) *ServiceTyp
 func (stq *ServiceTypeQuery) Select(field string, fields ...string) *ServiceTypeSelect {
 	selector := &ServiceTypeSelect{config: stq.config}
 	selector.fields = append([]string{field}, fields...)
-	selector.sql = stq.sqlQuery()
+	selector.path = func(ctx context.Context) (prev *sql.Selector, err error) {
+		if err := stq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		return stq.sqlQuery(), nil
+	}
 	return selector
+}
+
+func (stq *ServiceTypeQuery) prepareQuery(ctx context.Context) error {
+	if stq.path != nil {
+		prev, err := stq.path(ctx)
+		if err != nil {
+			return err
+		}
+		stq.sql = prev
+	}
+	return nil
 }
 
 func (stq *ServiceTypeQuery) sqlAll(ctx context.Context) ([]*ServiceType, error) {
@@ -485,8 +529,9 @@ type ServiceTypeGroupBy struct {
 	config
 	fields []string
 	fns    []Aggregate
-	// intermediate query.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
@@ -497,6 +542,11 @@ func (stgb *ServiceTypeGroupBy) Aggregate(fns ...Aggregate) *ServiceTypeGroupBy 
 
 // Scan applies the group-by query and scan the result into the given value.
 func (stgb *ServiceTypeGroupBy) Scan(ctx context.Context, v interface{}) error {
+	query, err := stgb.path(ctx)
+	if err != nil {
+		return err
+	}
+	stgb.sql = query
 	return stgb.sqlScan(ctx, v)
 }
 
@@ -615,12 +665,18 @@ func (stgb *ServiceTypeGroupBy) sqlQuery() *sql.Selector {
 type ServiceTypeSelect struct {
 	config
 	fields []string
-	// intermediate queries.
-	sql *sql.Selector
+	// intermediate query (i.e. traversal path).
+	sql  *sql.Selector
+	path func(context.Context) (*sql.Selector, error)
 }
 
 // Scan applies the selector query and scan the result into the given value.
 func (sts *ServiceTypeSelect) Scan(ctx context.Context, v interface{}) error {
+	query, err := sts.path(ctx)
+	if err != nil {
+		return err
+	}
+	sts.sql = query
 	return sts.sqlScan(ctx, v)
 }
 

@@ -180,8 +180,8 @@ func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
 			node, err = sc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(sc.hooks); i > 0; i-- {
-			mut = sc.hooks[i-1](mut)
+		for i := len(sc.hooks) - 1; i >= 0; i-- {
+			mut = sc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, sc.mutation); err != nil {
 			return nil, err

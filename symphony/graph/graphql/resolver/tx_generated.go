@@ -25,6 +25,7 @@ func (tr txResolver) WithTransaction(ctx context.Context, f func(context.Context
 	if err != nil {
 		return fmt.Errorf("creating transaction: %w", err)
 	}
+	ctx = ent.NewTxContext(ctx, tx)
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -54,6 +55,73 @@ func (tr txResolver) EditUser(ctx context.Context, input models.EditUserInput) (
 	}
 	if result != nil {
 		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) AddUsersGroup(ctx context.Context, input models.AddUsersGroupInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.AddUsersGroup(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) EditUsersGroup(ctx context.Context, input models.EditUsersGroupInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.EditUsersGroup(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) UpdateUserGroups(ctx context.Context, input models.UpdateUserGroupsInput) (*ent.User, error) {
+	var result, zero *ent.User
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdateUserGroups(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) UpdateUsersGroupMembers(ctx context.Context, input models.UpdateUsersGroupMembersInput) (*ent.UsersGroup, error) {
+	var result, zero *ent.UsersGroup
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.UpdateUsersGroupMembers(ctx, input)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) DeleteUsersGroup(ctx context.Context, id int) (bool, error) {
+	var result, zero bool
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.DeleteUsersGroup(ctx, id)
+		return
+	}); err != nil {
+		return zero, err
 	}
 	return result, nil
 }
@@ -932,6 +1000,20 @@ func (tr txResolver) TechnicianWorkOrderCheckIn(ctx context.Context, workOrderID
 	var result, zero *ent.WorkOrder
 	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
 		result, err = mr.TechnicianWorkOrderCheckIn(ctx, workOrderID)
+		return
+	}); err != nil {
+		return zero, err
+	}
+	if result != nil {
+		result = result.Unwrap()
+	}
+	return result, nil
+}
+
+func (tr txResolver) TechnicianWorkOrderUploadData(ctx context.Context, input models.TechnicianWorkOrderUploadInput) (*ent.WorkOrder, error) {
+	var result, zero *ent.WorkOrder
+	if err := tr.WithTransaction(ctx, func(ctx context.Context, mr generated.MutationResolver) (err error) {
+		result, err = mr.TechnicianWorkOrderUploadData(ctx, input)
 		return
 	}); err != nil {
 		return zero, err

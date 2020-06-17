@@ -28,7 +28,8 @@
       "services": [
       ],
       "allowedGrePeers": [
-      ]
+      ],
+      "liImsis": []
     },
     "policydb": {
       "@type": "type.googleapis.com/magma.mconfig.PolicyDB",

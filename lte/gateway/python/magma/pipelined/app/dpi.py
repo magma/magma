@@ -15,7 +15,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match
+    flow_match_to_magma_match, flip_flow_match
 
 
 from ryu.lib.packet import ether_types
@@ -26,7 +26,9 @@ from ryu.lib.packet import ether_types
 PARENT_PROTOS = {"facebook": 10, "google_gen": 20, "viber": 30, "imo": 40}
 APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
               "gmail": 4, "google_docs": 5, "netflix": 6,
-              "apple": 7, "microsoft": 8}
+              "apple": 7, "microsoft": 8, 'reddit': 9, 'whatsapp': 101,
+              "google_play": 102, "appstore": 103, "amazon": 104, "wechat": 105,
+              "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109}
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 
 
@@ -87,12 +89,6 @@ class DPIController(MagmaController):
         Example we care about google traffic, but don't neccessarily want to
         classify every specific google service.
         """
-        try:
-            match = flow_match_to_magma_match(flow_match)
-        except FlowMatchError as e:
-            self.logger.error(e)
-            return
-
         parser = self._datapath.ofproto_parser
         tokens = app.split('.')
 
@@ -129,23 +125,38 @@ class DPIController(MagmaController):
                     service_id = SERVICE_IDS[serv]
                     break
             app_id += service_id
-            self.logger.error("Classified %s-%s as %d", app, service_type,
+            self.logger.debug("Classified %s-%s as %d", app, service_type,
                               app_id)
 
+        try:
+            ul_match = flow_match_to_magma_match(flow_match)
+            ul_match.direction = None
+            dl_match = flow_match_to_magma_match(flip_flow_match(flow_match))
+            dl_match.direction = None
+        except FlowMatchError as e:
+            self.logger.error(e)
+            return
         actions = [parser.OFPActionOutput(self._mon_port_number),
                    parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-            match, actions, priority=flows.DEFAULT_PRIORITY,
+            ul_match, actions, priority=flows.DEFAULT_PRIORITY,
+            resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
+            dl_match, actions, priority=flows.DEFAULT_PRIORITY,
             resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
 
-    def remove_classify_flow(self, match):
+    def remove_classify_flow(self, flow_match):
         try:
-            match = flow_match_to_magma_match(match)
+            ul_match = flow_match_to_magma_match(flow_match)
+            ul_match.direction = None
+            dl_match = flow_match_to_magma_match(flip_flow_match(flow_match))
+            dl_match.direction = None
         except FlowMatchError as e:
             self.logger.error(e)
             return False
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+        flows.delete_flow(self._datapath, self.tbl_num, ul_match)
+        flows.delete_flow(self._datapath, self.tbl_num, dl_match)
         return True
 
     def _install_default_flows(self, datapath):

@@ -18,12 +18,13 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {WithSnackbarProps} from 'notistack';
 
 import DeleteHyperlinkMutation from '../mutations/DeleteHyperlinkMutation';
+import OptionsPopoverButton from './OptionsPopoverButton';
 import React, {useCallback} from 'react';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
-import TableRowOptionsButton from './TableRowOptionsButton';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {createFragmentContainer, graphql} from 'react-relay';
+import {getGraphError} from '../common/EntUtils';
 import {withSnackbar} from 'notistack';
 
 type Props = {
@@ -89,7 +90,7 @@ const HyperlinkTableMenu = (props: Props) => {
           }
         },
         onError: error => {
-          errorMessageHandling(error.message);
+          errorMessageHandling(getGraphError(error));
         },
       };
 
@@ -113,7 +114,7 @@ const HyperlinkTableMenu = (props: Props) => {
     },
     ,
   ];
-  return <TableRowOptionsButton options={menuOptions} />;
+  return <OptionsPopoverButton options={menuOptions} />;
 };
 
 export default withAlert(

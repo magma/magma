@@ -134,8 +134,8 @@ func (stqc *SurveyTemplateQuestionCreate) Save(ctx context.Context) (*SurveyTemp
 			node, err = stqc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(stqc.hooks); i > 0; i-- {
-			mut = stqc.hooks[i-1](mut)
+		for i := len(stqc.hooks) - 1; i >= 0; i-- {
+			mut = stqc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, stqc.mutation); err != nil {
 			return nil, err

@@ -587,8 +587,8 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = wou.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(wou.hooks); i > 0; i-- {
-			mut = wou.hooks[i-1](mut)
+		for i := len(wou.hooks) - 1; i >= 0; i-- {
+			mut = wou.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wou.mutation); err != nil {
 			return 0, err
@@ -1804,8 +1804,8 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 			node, err = wouo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(wouo.hooks); i > 0; i-- {
-			mut = wouo.hooks[i-1](mut)
+		for i := len(wouo.hooks) - 1; i >= 0; i-- {
+			mut = wouo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wouo.mutation); err != nil {
 			return nil, err

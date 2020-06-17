@@ -196,3 +196,28 @@ func (m *NetworkCarrierWifiConfigs) ToUpdateCriteria(network configurator.Networ
 func (m *NetworkCarrierWifiConfigs) GetFromNetwork(network configurator.Network) interface{} {
 	return orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
 }
+
+func (m *LiImsis) FromBackendModels(networkID string, gatewayID string) error {
+	carrierWifi := &GatewayCwfConfigs{}
+	err := carrierWifi.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = carrierWifi.LiImsis
+
+	return nil
+}
+
+func (m *LiImsis) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	carrierWifi := &GatewayCwfConfigs{}
+	err := carrierWifi.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	carrierWifi.LiImsis = *m
+	return carrierWifi.ToUpdateCriteria(networkID, gatewayID)
+}
+
+func (m *LiImsis) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

@@ -7,36 +7,70 @@
  * @flow strict-local
  * @format
  */
+import type {RowsSeparationTypes} from '../../components/design-system/Table/TableContent';
+import type {
+  TableRowDataType,
+  TableVariantTypes,
+} from '../../components/design-system/Table/Table';
 
+import Button from '../../components/design-system/Button';
+import Checkbox from '../../components/design-system/Checkbox/Checkbox';
+import RadioGroup from '../../components/design-system/RadioGroup/RadioGroup';
 import React, {useMemo, useState} from 'react';
 import Table from '../../components/design-system/Table/Table';
+import Text from '../../components/design-system/Text';
+import ThreeDotsVerticalIcon from '../../components/design-system/Icons/Actions/ThreeDotsVerticalIcon';
+import {ROW_SEPARATOR_TYPES} from '../../components/design-system/Table/TableContent';
 import {STORY_CATEGORIES} from '../storybookUtils';
+import {TABLE_SORT_ORDER} from '../../components/design-system/Table/TableContext';
+import {TABLE_VARIANT_TYPES} from '../../components/design-system/Table/Table';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
 
-const DATA = [
+type DataType = {|
+  title?: string,
+  firstName: string,
+  lastName: string,
+  startingDate: Date,
+  age: number,
+  city: string,
+|};
+type RowDataType = TableRowDataType<DataType>;
+
+const DATA: Array<RowDataType> = [
   {
+    key: '1',
     firstName: 'Meghan',
     lastName: 'Bishop',
-    birthDate: 'December 30, 2019',
+    age: 32,
+    startingDate: new Date('Febuary 13, 2020'),
     city: 'Tel Aviv',
   },
   {
+    key: '2',
+    title: 'Dr.',
     firstName: 'Sara',
     lastName: 'Porter',
-    birthDate: 'June 28, 1990',
+    age: 21,
+    startingDate: new Date('Febuary 28, 1999'),
     city: 'Raanana',
   },
   {
+    key: '3',
+    title: 'Don',
     firstName: 'Dolev',
     lastName: 'Hadar',
-    birthDate: 'Febuary 11, 1990',
+    age: 22,
+    startingDate: new Date('May 02, 1990'),
     city: 'Tel Aviv',
   },
   {
+    key: '4',
+    title: 'Mr.',
     firstName: 'Walter',
     lastName: 'Jenning',
-    birthDate: 'July 11, 2001',
+    age: 76,
+    startingDate: new Date('July 11, 2001'),
     city: 'Ramat Gan',
   },
 ];
@@ -48,101 +82,242 @@ const useStyles = makeStyles(_theme => ({
   table: {
     marginBottom: '24px',
   },
+  optionsContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    marginTop: '32px',
+  },
+  displayOption: {
+    marginTop: '4px',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  displayMenuOption: {
+    marginTop: '4px',
+    display: 'flex',
+    alignItems: 'top',
+  },
+  optionCheckbox: {
+    marginRight: '8px',
+  },
+  iconColumn: {
+    width: '36px',
+  },
 }));
-
-type DataType = {
-  firstName: string,
-  lastName: string,
-  birthDate: string,
-  city: string,
-};
 
 const TablesRoot = () => {
   const classes = useStyles();
+  const [showSelection, setShowSelection] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
 
-  const sortData = (col, sortDirection) =>
-    DATA.slice().sort(
-      (d1: DataType, d2: DataType) =>
-        d1[col].localeCompare(d2[col]) * (sortDirection === 'asc' ? -1 : 1),
-    );
-  const [sortDirection, setSortDirection] = useState('desc');
-  const [sortColumn, setSortColumn] = useState('firstName');
-  const sortedData = useMemo(() => sortData(sortColumn, sortDirection), [
-    sortColumn,
-    sortDirection,
-  ]);
+  const [showSorting, setShowSorting] = useState(false);
+
+  const columns = useMemo(
+    () => [
+      {
+        key: 'title',
+        title: 'Title',
+        render: row => row.title || '',
+        getSortingValue: showSorting ? row => row.title : undefined,
+      },
+      {
+        key: 'firstName',
+        title: 'First Name',
+        render: row => row.firstName,
+        getSortingValue: showSorting ? row => row.firstName : undefined,
+      },
+      {
+        key: 'lastName',
+        title: 'Last Name',
+        render: row => row.lastName,
+      },
+      {
+        key: 'age',
+        title: 'Age',
+        render: row => row.age,
+        getSortingValue: showSorting ? row => row.age : undefined,
+      },
+      {
+        key: 'startingDate',
+        title: 'Starting Date',
+        render: row => Intl.DateTimeFormat('default').format(row.startingDate),
+        getSortingValue: showSorting
+          ? row => row.startingDate.getTime()
+          : undefined,
+      },
+      {
+        key: 'city',
+        title: 'City',
+        render: row => (
+          <Button variant="text" onClick={() => alert(`clicked ${row.city}`)}>
+            {row.city}
+          </Button>
+        ),
+        getSortingValue: showSorting ? row => row.city : undefined,
+      },
+      {
+        key: 'menu_icon',
+        title: '',
+        titleClassName: classes.iconColumn,
+        className: classes.iconColumn,
+        render: _row => (
+          <Button variant="text" onClick={() => alert(`menu opening`)}>
+            <ThreeDotsVerticalIcon color="gray" />
+          </Button>
+        ),
+      },
+    ],
+    [classes.iconColumn, showSorting],
+  );
+
+  const [rowsSeparator, setRowsSeparator] = useState<RowsSeparationTypes>(
+    ROW_SEPARATOR_TYPES.bands,
+  );
+  const [tableVariant, setTableVariant] = useState<TableVariantTypes>(
+    TABLE_VARIANT_TYPES.standalone,
+  );
+
+  const [showActiveRow, setShowActiveRow] = useState(false);
+  const [activeRowId, setActiveRowId] = useState(null);
+
+  const [showDetailsCard, setShowDetailsCard] = useState(false);
+
+  const tableProps = useMemo(
+    () => ({
+      data: DATA,
+      columns: columns,
+      variant: tableVariant,
+      dataRowsSeparator: rowsSeparator,
+      sortSettings: showSorting
+        ? {
+            columnKey: 'title',
+            order: TABLE_SORT_ORDER.ascending,
+          }
+        : undefined,
+      showSelection: showSelection,
+      selectedIds: showSelection ? selectedIds : undefined,
+      onSelectionChanged: showSelection ? setSelectedIds : undefined,
+      activeRowId: showActiveRow ? activeRowId : undefined,
+      onActiveRowIdChanged: showActiveRow ? setActiveRowId : undefined,
+      detailsCard: showDetailsCard ? (
+        <div>
+          <div>
+            <Text variant="h6">Here you can show some intersting details</Text>
+          </div>
+          <div>
+            <Text variant="subtitle2">Usually be used with 'activeRow'</Text>
+          </div>
+        </div>
+      ) : (
+        undefined
+      ),
+    }),
+    [
+      activeRowId,
+      columns,
+      rowsSeparator,
+      selectedIds,
+      showActiveRow,
+      showDetailsCard,
+      showSelection,
+      showSorting,
+      tableVariant,
+    ],
+  );
 
   return (
     <div className={classes.root}>
       <div className={classes.table}>
-        <Table
-          data={DATA}
-          columns={[
-            {key: '0', title: 'First Name', render: row => row.firstName},
-            {key: '1', title: 'Last Name', render: row => row.lastName},
-            {key: '2', title: 'Birth Date', render: row => row.birthDate},
-            {key: '3', title: 'City', render: row => row.city},
-          ]}
-        />
+        <Table {...tableProps} />
       </div>
-      <div className={classes.table}>
-        <Table
-          showSelection
-          selectedIds={selectedIds}
-          onSelectionChanged={ids => setSelectedIds(ids)}
-          data={DATA}
-          columns={[
-            {key: '0', title: 'First Name', render: row => row.firstName},
-            {key: '1', title: 'Last Name', render: row => row.lastName},
-            {key: '2', title: 'Birth Date', render: row => row.birthDate},
-            {key: '3', title: 'City', render: row => row.city},
-          ]}
-        />
-      </div>
-      <div className={classes.table}>
-        <Table
-          className={classes.table}
-          data={sortedData}
-          columns={[
-            {
-              key: 'firstName',
-              title: 'First Name',
-              render: row => row.firstName,
-              sortable: true,
-              sortDirection:
-                sortColumn === 'firstName' ? sortDirection : undefined,
-            },
-            {
-              key: 'lastName',
-              title: 'Last Name',
-              render: row => row.lastName,
-              sortable: true,
-              sortDirection:
-                sortColumn === 'lastName' ? sortDirection : undefined,
-            },
-            {
-              key: 'birthDate',
-              title: 'Birth Date',
-              render: row => row.birthDate,
-            },
-            {
-              key: 'city',
-              title: 'City',
-              render: row => row.city,
-              sortable: true,
-              sortDirection: sortColumn === 'city' ? sortDirection : undefined,
-            },
-          ]}
-          onSortClicked={col => {
-            if (sortColumn === col) {
-              setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-            } else {
-              setSortColumn(col);
-              setSortDirection('desc');
+      <div className={classes.optionsContainer}>
+        <div className={classes.displayOption}>
+          <Checkbox
+            className={classes.optionCheckbox}
+            checked={showSorting}
+            onChange={selection =>
+              setShowSorting(selection === 'checked' ? true : false)
             }
-          }}
-        />
+          />
+          <Text>With Sorting</Text>
+        </div>
+        <div className={classes.displayOption}>
+          <Checkbox
+            className={classes.optionCheckbox}
+            checked={showSelection}
+            onChange={selection =>
+              setShowSelection(selection === 'checked' ? true : false)
+            }
+          />
+          <Text>With Selection</Text>
+        </div>
+        <div className={classes.displayOption}>
+          <Checkbox
+            className={classes.optionCheckbox}
+            checked={showActiveRow}
+            onChange={selection =>
+              setShowActiveRow(selection === 'checked' ? true : false)
+            }
+          />
+          <Text>Row can be active (clickable)</Text>
+        </div>
+        <div className={classes.displayOption}>
+          <Checkbox
+            className={classes.optionCheckbox}
+            checked={showDetailsCard}
+            onChange={selection =>
+              setShowDetailsCard(selection === 'checked' ? true : false)
+            }
+          />
+          <Text>Details Card Shown</Text>
+        </div>
+        <div className={classes.displayMenuOption}>
+          <div>
+            <Text>Row Separation Type: </Text>
+          </div>
+          <RadioGroup
+            options={[
+              {
+                value: 'bands',
+                label: `'${ROW_SEPARATOR_TYPES.bands}'`,
+                details: 'Rows are banded with stripes',
+              },
+              {
+                value: 'border',
+                label: `'${ROW_SEPARATOR_TYPES.border}'`,
+                details: 'Rows have light border in between',
+              },
+              {
+                value: 'none',
+                label: `'${ROW_SEPARATOR_TYPES.none}'`,
+                details: 'Rows have no visual separation',
+              },
+            ]}
+            value={rowsSeparator}
+            onChange={value => setRowsSeparator(ROW_SEPARATOR_TYPES[value])}
+          />
+        </div>
+        <div className={classes.displayMenuOption}>
+          <div>
+            <Text>Table Variant: </Text>
+          </div>
+          <RadioGroup
+            options={[
+              {
+                value: 'standalone',
+                label: `'${TABLE_VARIANT_TYPES.standalone}'`,
+                details: 'Table is shown elevated',
+              },
+              {
+                value: 'embedded',
+                label: `'${TABLE_VARIANT_TYPES.embedded}'`,
+                details: 'No elevation and no inner padding',
+              },
+            ]}
+            value={tableVariant}
+            onChange={value => setTableVariant(TABLE_VARIANT_TYPES[value])}
+          />
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,5 @@
 mutation MoveLocationMutation($locationID: ID!, $parentLocationID: ID) {
   moveLocation(locationID: $locationID, parentLocationID: $parentLocationID) {
-    id
-    name
-    latitude
-    longitude
-    externalId
-    locationType {
-      name
-    }
+    ...LocationFragment
   }
 }

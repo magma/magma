@@ -10,86 +10,49 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent/actionsrule"
-	"github.com/facebookincubator/symphony/graph/ent/schema"
-
 	"github.com/facebookincubator/symphony/graph/ent/checklistcategory"
-
 	"github.com/facebookincubator/symphony/graph/ent/checklistitemdefinition"
-
 	"github.com/facebookincubator/symphony/graph/ent/comment"
-
 	"github.com/facebookincubator/symphony/graph/ent/customer"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentcategory"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentport"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentportdefinition"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentporttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentposition"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmentpositiondefinition"
-
 	"github.com/facebookincubator/symphony/graph/ent/equipmenttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/file"
-
 	"github.com/facebookincubator/symphony/graph/ent/floorplan"
-
 	"github.com/facebookincubator/symphony/graph/ent/floorplanreferencepoint"
-
 	"github.com/facebookincubator/symphony/graph/ent/floorplanscale"
-
 	"github.com/facebookincubator/symphony/graph/ent/hyperlink"
-
 	"github.com/facebookincubator/symphony/graph/ent/link"
-
 	"github.com/facebookincubator/symphony/graph/ent/location"
-
 	"github.com/facebookincubator/symphony/graph/ent/locationtype"
-
 	"github.com/facebookincubator/symphony/graph/ent/project"
-
 	"github.com/facebookincubator/symphony/graph/ent/projecttype"
-
 	"github.com/facebookincubator/symphony/graph/ent/property"
-
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-
 	"github.com/facebookincubator/symphony/graph/ent/reportfilter"
-
+	"github.com/facebookincubator/symphony/graph/ent/schema"
 	"github.com/facebookincubator/symphony/graph/ent/service"
-
 	"github.com/facebookincubator/symphony/graph/ent/serviceendpoint"
-
 	"github.com/facebookincubator/symphony/graph/ent/servicetype"
-
 	"github.com/facebookincubator/symphony/graph/ent/survey"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveycellscan"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveyquestion"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatecategory"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveytemplatequestion"
-
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
-
 	"github.com/facebookincubator/symphony/graph/ent/technician"
-
 	"github.com/facebookincubator/symphony/graph/ent/user"
-
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
-
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 
 	"github.com/facebookincubator/ent"
-	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 )
 
 // The init function reads all schema descriptors with runtime
@@ -557,19 +520,19 @@ func init() {
 	// propertytype.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	propertytype.UpdateDefaultUpdateTime = propertytypeDescUpdateTime.UpdateDefault.(func() time.Time)
 	// propertytypeDescIsInstanceProperty is the schema descriptor for is_instance_property field.
-	propertytypeDescIsInstanceProperty := propertytypeFields[12].Descriptor()
+	propertytypeDescIsInstanceProperty := propertytypeFields[13].Descriptor()
 	// propertytype.DefaultIsInstanceProperty holds the default value on creation for the is_instance_property field.
 	propertytype.DefaultIsInstanceProperty = propertytypeDescIsInstanceProperty.Default.(bool)
 	// propertytypeDescEditable is the schema descriptor for editable field.
-	propertytypeDescEditable := propertytypeFields[13].Descriptor()
+	propertytypeDescEditable := propertytypeFields[14].Descriptor()
 	// propertytype.DefaultEditable holds the default value on creation for the editable field.
 	propertytype.DefaultEditable = propertytypeDescEditable.Default.(bool)
 	// propertytypeDescMandatory is the schema descriptor for mandatory field.
-	propertytypeDescMandatory := propertytypeFields[14].Descriptor()
+	propertytypeDescMandatory := propertytypeFields[15].Descriptor()
 	// propertytype.DefaultMandatory holds the default value on creation for the mandatory field.
 	propertytype.DefaultMandatory = propertytypeDescMandatory.Default.(bool)
 	// propertytypeDescDeleted is the schema descriptor for deleted field.
-	propertytypeDescDeleted := propertytypeFields[15].Descriptor()
+	propertytypeDescDeleted := propertytypeFields[16].Descriptor()
 	// propertytype.DefaultDeleted holds the default value on creation for the deleted field.
 	propertytype.DefaultDeleted = propertytypeDescDeleted.Default.(bool)
 	reportfilterMixin := schema.ReportFilter{}.Mixin()
@@ -808,6 +771,26 @@ func init() {
 	userDescEmail := userFields[3].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
 	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
+	usersgroupMixin := schema.UsersGroup{}.Mixin()
+	usersgroupMixinFields := [...][]ent.Field{
+		usersgroupMixin[0].Fields(),
+	}
+	usersgroupFields := schema.UsersGroup{}.Fields()
+	_ = usersgroupFields
+	// usersgroupDescCreateTime is the schema descriptor for create_time field.
+	usersgroupDescCreateTime := usersgroupMixinFields[0][0].Descriptor()
+	// usersgroup.DefaultCreateTime holds the default value on creation for the create_time field.
+	usersgroup.DefaultCreateTime = usersgroupDescCreateTime.Default.(func() time.Time)
+	// usersgroupDescUpdateTime is the schema descriptor for update_time field.
+	usersgroupDescUpdateTime := usersgroupMixinFields[0][1].Descriptor()
+	// usersgroup.DefaultUpdateTime holds the default value on creation for the update_time field.
+	usersgroup.DefaultUpdateTime = usersgroupDescUpdateTime.Default.(func() time.Time)
+	// usersgroup.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	usersgroup.UpdateDefaultUpdateTime = usersgroupDescUpdateTime.UpdateDefault.(func() time.Time)
+	// usersgroupDescName is the schema descriptor for name field.
+	usersgroupDescName := usersgroupFields[0].Descriptor()
+	// usersgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	usersgroup.NameValidator = usersgroupDescName.Validators[0].(func(string) error)
 	workorderMixin := schema.WorkOrder{}.Mixin()
 	workorderMixinFields := [...][]ent.Field{
 		workorderMixin[0].Fields(),

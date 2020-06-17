@@ -6,7 +6,6 @@ package resolver
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -33,17 +32,22 @@ func (r queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int,
 		Paginate(ctx, after, first, before, last)
 }
 
-func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
-	client := r.ClientFrom(ctx)
+func (userResolver) Groups(ctx context.Context, obj *ent.User) ([]*ent.UsersGroup, error) {
+	return obj.QueryGroups().All(ctx)
+}
 
-	u, err := client.User.UpdateOneID(input.ID).
+func (r mutationResolver) EditUser(ctx context.Context, input models.EditUserInput) (*ent.User, error) {
+	return r.ClientFrom(ctx).User.UpdateOneID(input.ID).
 		SetNillableFirstName(input.FirstName).
 		SetNillableLastName(input.LastName).
 		SetNillableStatus(input.Status).
 		SetNillableRole(input.Role).
 		Save(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("edit user: %w", err)
-	}
-	return u, nil
+}
+
+func (r mutationResolver) UpdateUserGroups(ctx context.Context, input models.UpdateUserGroupsInput) (*ent.User, error) {
+	return r.ClientFrom(ctx).User.UpdateOneID(input.ID).
+		AddGroupIDs(input.AddGroupIds...).
+		RemoveGroupIDs(input.RemoveGroupIds...).
+		Save(ctx)
 }

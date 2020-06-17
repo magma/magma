@@ -81,6 +81,9 @@ class InventoryClient(SymphonyClient):
         get_or_create_equipment_in_position,
         edit_equipment,
         get_equipment_properties,
+        get_equipments_by_type,
+        get_equipments_by_location,
+        get_equipment_by_external_id,
     )
     from .api.link import (
         add_link,
@@ -158,7 +161,16 @@ class InventoryClient(SymphonyClient):
         """
         super().__init__(email, password, tenant, is_local_host, is_dev_mode, reporter)
         self._verify_version_is_not_broken()
+        self.populate_types()
+
+    def populate_types(self) -> None:
         _populate_location_types(self)
         _populate_equipment_types(self)
         _populate_service_types(self)
         _populate_equipment_port_types(self)
+
+    def _clear_types(self) -> None:
+        self.locationTypes = {}
+        self.equipmentTypes = {}
+        self.serviceTypes = {}
+        self.portTypes = {}

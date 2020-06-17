@@ -48,6 +48,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -103,6 +104,7 @@ const (
 	TypeSurveyWiFiScan              = "SurveyWiFiScan"
 	TypeTechnician                  = "Technician"
 	TypeUser                        = "User"
+	TypeUsersGroup                  = "UsersGroup"
 	TypeWorkOrder                   = "WorkOrder"
 	TypeWorkOrderDefinition         = "WorkOrderDefinition"
 	TypeWorkOrderType               = "WorkOrderType"
@@ -121,7 +123,7 @@ type ActionsRuleMutation struct {
 	triggerID     *string
 	ruleFilters   *[]*core.ActionsRuleFilter
 	ruleActions   *[]*core.ActionsRuleAction
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 }
 
 var _ ent.Mutation = (*ActionsRuleMutation)(nil)
@@ -132,7 +134,7 @@ func newActionsRuleMutation(c config, op Op) *ActionsRuleMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeActionsRule,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -417,7 +419,8 @@ func (m *ActionsRuleMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ActionsRuleMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -524,7 +527,7 @@ type CheckListCategoryMutation struct {
 	update_time             *time.Time
 	title                   *string
 	description             *string
-	clearedFields           map[string]bool
+	clearedFields           map[string]struct{}
 	check_list_items        map[int]struct{}
 	removedcheck_list_items map[int]struct{}
 }
@@ -537,7 +540,7 @@ func newCheckListCategoryMutation(c config, op Op) *CheckListCategoryMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeCheckListCategory,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -643,12 +646,13 @@ func (m *CheckListCategoryMutation) Description() (r string, exists bool) {
 // ClearDescription clears the value of description.
 func (m *CheckListCategoryMutation) ClearDescription() {
 	m.description = nil
-	m.clearedFields[checklistcategory.FieldDescription] = true
+	m.clearedFields[checklistcategory.FieldDescription] = struct{}{}
 }
 
 // DescriptionCleared returns if the field description was cleared in this mutation.
 func (m *CheckListCategoryMutation) DescriptionCleared() bool {
-	return m.clearedFields[checklistcategory.FieldDescription]
+	_, ok := m.clearedFields[checklistcategory.FieldDescription]
+	return ok
 }
 
 // ResetDescription reset all changes of the description field.
@@ -809,7 +813,7 @@ func (m *CheckListCategoryMutation) AddField(name string, value ent.Value) error
 // during this mutation.
 func (m *CheckListCategoryMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[checklistcategory.FieldDescription] {
+	if m.FieldCleared(checklistcategory.FieldDescription) {
 		fields = append(fields, checklistcategory.FieldDescription)
 	}
 	return fields
@@ -818,7 +822,8 @@ func (m *CheckListCategoryMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *CheckListCategoryMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -952,8 +957,11 @@ type CheckListItemMutation struct {
 	enum_values          *string
 	enum_selection_mode  *string
 	selected_enum_values *string
+	yes_no_val           *checklistitem.YesNoVal
 	help_text            *string
-	clearedFields        map[string]bool
+	clearedFields        map[string]struct{}
+	files                map[int]struct{}
+	removedfiles         map[int]struct{}
 	work_order           *int
 	clearedwork_order    bool
 }
@@ -966,7 +974,7 @@ func newCheckListItemMutation(c config, op Op) *CheckListItemMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeCheckListItem,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -1073,12 +1081,13 @@ func (m *CheckListItemMutation) AddedIndex() (r int, exists bool) {
 func (m *CheckListItemMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[checklistitem.FieldIndex] = true
+	m.clearedFields[checklistitem.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *CheckListItemMutation) IndexCleared() bool {
-	return m.clearedFields[checklistitem.FieldIndex]
+	_, ok := m.clearedFields[checklistitem.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -1105,12 +1114,13 @@ func (m *CheckListItemMutation) Checked() (r bool, exists bool) {
 // ClearChecked clears the value of checked.
 func (m *CheckListItemMutation) ClearChecked() {
 	m.checked = nil
-	m.clearedFields[checklistitem.FieldChecked] = true
+	m.clearedFields[checklistitem.FieldChecked] = struct{}{}
 }
 
 // CheckedCleared returns if the field checked was cleared in this mutation.
 func (m *CheckListItemMutation) CheckedCleared() bool {
-	return m.clearedFields[checklistitem.FieldChecked]
+	_, ok := m.clearedFields[checklistitem.FieldChecked]
+	return ok
 }
 
 // ResetChecked reset all changes of the checked field.
@@ -1136,12 +1146,13 @@ func (m *CheckListItemMutation) StringVal() (r string, exists bool) {
 // ClearStringVal clears the value of string_val.
 func (m *CheckListItemMutation) ClearStringVal() {
 	m.string_val = nil
-	m.clearedFields[checklistitem.FieldStringVal] = true
+	m.clearedFields[checklistitem.FieldStringVal] = struct{}{}
 }
 
 // StringValCleared returns if the field string_val was cleared in this mutation.
 func (m *CheckListItemMutation) StringValCleared() bool {
-	return m.clearedFields[checklistitem.FieldStringVal]
+	_, ok := m.clearedFields[checklistitem.FieldStringVal]
+	return ok
 }
 
 // ResetStringVal reset all changes of the string_val field.
@@ -1167,12 +1178,13 @@ func (m *CheckListItemMutation) EnumValues() (r string, exists bool) {
 // ClearEnumValues clears the value of enum_values.
 func (m *CheckListItemMutation) ClearEnumValues() {
 	m.enum_values = nil
-	m.clearedFields[checklistitem.FieldEnumValues] = true
+	m.clearedFields[checklistitem.FieldEnumValues] = struct{}{}
 }
 
 // EnumValuesCleared returns if the field enum_values was cleared in this mutation.
 func (m *CheckListItemMutation) EnumValuesCleared() bool {
-	return m.clearedFields[checklistitem.FieldEnumValues]
+	_, ok := m.clearedFields[checklistitem.FieldEnumValues]
+	return ok
 }
 
 // ResetEnumValues reset all changes of the enum_values field.
@@ -1198,12 +1210,13 @@ func (m *CheckListItemMutation) EnumSelectionMode() (r string, exists bool) {
 // ClearEnumSelectionMode clears the value of enum_selection_mode.
 func (m *CheckListItemMutation) ClearEnumSelectionMode() {
 	m.enum_selection_mode = nil
-	m.clearedFields[checklistitem.FieldEnumSelectionMode] = true
+	m.clearedFields[checklistitem.FieldEnumSelectionMode] = struct{}{}
 }
 
 // EnumSelectionModeCleared returns if the field enum_selection_mode was cleared in this mutation.
 func (m *CheckListItemMutation) EnumSelectionModeCleared() bool {
-	return m.clearedFields[checklistitem.FieldEnumSelectionMode]
+	_, ok := m.clearedFields[checklistitem.FieldEnumSelectionMode]
+	return ok
 }
 
 // ResetEnumSelectionMode reset all changes of the enum_selection_mode field.
@@ -1229,18 +1242,51 @@ func (m *CheckListItemMutation) SelectedEnumValues() (r string, exists bool) {
 // ClearSelectedEnumValues clears the value of selected_enum_values.
 func (m *CheckListItemMutation) ClearSelectedEnumValues() {
 	m.selected_enum_values = nil
-	m.clearedFields[checklistitem.FieldSelectedEnumValues] = true
+	m.clearedFields[checklistitem.FieldSelectedEnumValues] = struct{}{}
 }
 
 // SelectedEnumValuesCleared returns if the field selected_enum_values was cleared in this mutation.
 func (m *CheckListItemMutation) SelectedEnumValuesCleared() bool {
-	return m.clearedFields[checklistitem.FieldSelectedEnumValues]
+	_, ok := m.clearedFields[checklistitem.FieldSelectedEnumValues]
+	return ok
 }
 
 // ResetSelectedEnumValues reset all changes of the selected_enum_values field.
 func (m *CheckListItemMutation) ResetSelectedEnumValues() {
 	m.selected_enum_values = nil
 	delete(m.clearedFields, checklistitem.FieldSelectedEnumValues)
+}
+
+// SetYesNoVal sets the yes_no_val field.
+func (m *CheckListItemMutation) SetYesNoVal(cnv checklistitem.YesNoVal) {
+	m.yes_no_val = &cnv
+}
+
+// YesNoVal returns the yes_no_val value in the mutation.
+func (m *CheckListItemMutation) YesNoVal() (r checklistitem.YesNoVal, exists bool) {
+	v := m.yes_no_val
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearYesNoVal clears the value of yes_no_val.
+func (m *CheckListItemMutation) ClearYesNoVal() {
+	m.yes_no_val = nil
+	m.clearedFields[checklistitem.FieldYesNoVal] = struct{}{}
+}
+
+// YesNoValCleared returns if the field yes_no_val was cleared in this mutation.
+func (m *CheckListItemMutation) YesNoValCleared() bool {
+	_, ok := m.clearedFields[checklistitem.FieldYesNoVal]
+	return ok
+}
+
+// ResetYesNoVal reset all changes of the yes_no_val field.
+func (m *CheckListItemMutation) ResetYesNoVal() {
+	m.yes_no_val = nil
+	delete(m.clearedFields, checklistitem.FieldYesNoVal)
 }
 
 // SetHelpText sets the help_text field.
@@ -1260,18 +1306,61 @@ func (m *CheckListItemMutation) HelpText() (r string, exists bool) {
 // ClearHelpText clears the value of help_text.
 func (m *CheckListItemMutation) ClearHelpText() {
 	m.help_text = nil
-	m.clearedFields[checklistitem.FieldHelpText] = true
+	m.clearedFields[checklistitem.FieldHelpText] = struct{}{}
 }
 
 // HelpTextCleared returns if the field help_text was cleared in this mutation.
 func (m *CheckListItemMutation) HelpTextCleared() bool {
-	return m.clearedFields[checklistitem.FieldHelpText]
+	_, ok := m.clearedFields[checklistitem.FieldHelpText]
+	return ok
 }
 
 // ResetHelpText reset all changes of the help_text field.
 func (m *CheckListItemMutation) ResetHelpText() {
 	m.help_text = nil
 	delete(m.clearedFields, checklistitem.FieldHelpText)
+}
+
+// AddFileIDs adds the files edge to File by ids.
+func (m *CheckListItemMutation) AddFileIDs(ids ...int) {
+	if m.files == nil {
+		m.files = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.files[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveFileIDs removes the files edge to File by ids.
+func (m *CheckListItemMutation) RemoveFileIDs(ids ...int) {
+	if m.removedfiles == nil {
+		m.removedfiles = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedfiles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFiles returns the removed ids of files.
+func (m *CheckListItemMutation) RemovedFilesIDs() (ids []int) {
+	for id := range m.removedfiles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FilesIDs returns the files ids in the mutation.
+func (m *CheckListItemMutation) FilesIDs() (ids []int) {
+	for id := range m.files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFiles reset all changes of the files edge.
+func (m *CheckListItemMutation) ResetFiles() {
+	m.files = nil
+	m.removedfiles = nil
 }
 
 // SetWorkOrderID sets the work_order edge to WorkOrder by id.
@@ -1327,7 +1416,7 @@ func (m *CheckListItemMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CheckListItemMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
 	if m.title != nil {
 		fields = append(fields, checklistitem.FieldTitle)
 	}
@@ -1351,6 +1440,9 @@ func (m *CheckListItemMutation) Fields() []string {
 	}
 	if m.selected_enum_values != nil {
 		fields = append(fields, checklistitem.FieldSelectedEnumValues)
+	}
+	if m.yes_no_val != nil {
+		fields = append(fields, checklistitem.FieldYesNoVal)
 	}
 	if m.help_text != nil {
 		fields = append(fields, checklistitem.FieldHelpText)
@@ -1379,6 +1471,8 @@ func (m *CheckListItemMutation) Field(name string) (ent.Value, bool) {
 		return m.EnumSelectionMode()
 	case checklistitem.FieldSelectedEnumValues:
 		return m.SelectedEnumValues()
+	case checklistitem.FieldYesNoVal:
+		return m.YesNoVal()
 	case checklistitem.FieldHelpText:
 		return m.HelpText()
 	}
@@ -1446,6 +1540,13 @@ func (m *CheckListItemMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetSelectedEnumValues(v)
 		return nil
+	case checklistitem.FieldYesNoVal:
+		v, ok := value.(checklistitem.YesNoVal)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetYesNoVal(v)
+		return nil
 	case checklistitem.FieldHelpText:
 		v, ok := value.(string)
 		if !ok {
@@ -1498,25 +1599,28 @@ func (m *CheckListItemMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *CheckListItemMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[checklistitem.FieldIndex] {
+	if m.FieldCleared(checklistitem.FieldIndex) {
 		fields = append(fields, checklistitem.FieldIndex)
 	}
-	if m.clearedFields[checklistitem.FieldChecked] {
+	if m.FieldCleared(checklistitem.FieldChecked) {
 		fields = append(fields, checklistitem.FieldChecked)
 	}
-	if m.clearedFields[checklistitem.FieldStringVal] {
+	if m.FieldCleared(checklistitem.FieldStringVal) {
 		fields = append(fields, checklistitem.FieldStringVal)
 	}
-	if m.clearedFields[checklistitem.FieldEnumValues] {
+	if m.FieldCleared(checklistitem.FieldEnumValues) {
 		fields = append(fields, checklistitem.FieldEnumValues)
 	}
-	if m.clearedFields[checklistitem.FieldEnumSelectionMode] {
+	if m.FieldCleared(checklistitem.FieldEnumSelectionMode) {
 		fields = append(fields, checklistitem.FieldEnumSelectionMode)
 	}
-	if m.clearedFields[checklistitem.FieldSelectedEnumValues] {
+	if m.FieldCleared(checklistitem.FieldSelectedEnumValues) {
 		fields = append(fields, checklistitem.FieldSelectedEnumValues)
 	}
-	if m.clearedFields[checklistitem.FieldHelpText] {
+	if m.FieldCleared(checklistitem.FieldYesNoVal) {
+		fields = append(fields, checklistitem.FieldYesNoVal)
+	}
+	if m.FieldCleared(checklistitem.FieldHelpText) {
 		fields = append(fields, checklistitem.FieldHelpText)
 	}
 	return fields
@@ -1525,7 +1629,8 @@ func (m *CheckListItemMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *CheckListItemMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -1549,6 +1654,9 @@ func (m *CheckListItemMutation) ClearField(name string) error {
 		return nil
 	case checklistitem.FieldSelectedEnumValues:
 		m.ClearSelectedEnumValues()
+		return nil
+	case checklistitem.FieldYesNoVal:
+		m.ClearYesNoVal()
 		return nil
 	case checklistitem.FieldHelpText:
 		m.ClearHelpText()
@@ -1586,6 +1694,9 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 	case checklistitem.FieldSelectedEnumValues:
 		m.ResetSelectedEnumValues()
 		return nil
+	case checklistitem.FieldYesNoVal:
+		m.ResetYesNoVal()
+		return nil
 	case checklistitem.FieldHelpText:
 		m.ResetHelpText()
 		return nil
@@ -1596,7 +1707,10 @@ func (m *CheckListItemMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListItemMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.files != nil {
+		edges = append(edges, checklistitem.EdgeFiles)
+	}
 	if m.work_order != nil {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1607,6 +1721,12 @@ func (m *CheckListItemMutation) AddedEdges() []string {
 // the given edge name.
 func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case checklistitem.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.files))
+		for id := range m.files {
+			ids = append(ids, id)
+		}
+		return ids
 	case checklistitem.EdgeWorkOrder:
 		if id := m.work_order; id != nil {
 			return []ent.Value{*id}
@@ -1618,7 +1738,10 @@ func (m *CheckListItemMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListItemMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedfiles != nil {
+		edges = append(edges, checklistitem.EdgeFiles)
+	}
 	return edges
 }
 
@@ -1626,6 +1749,12 @@ func (m *CheckListItemMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case checklistitem.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.removedfiles))
+		for id := range m.removedfiles {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -1633,7 +1762,7 @@ func (m *CheckListItemMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListItemMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedwork_order {
 		edges = append(edges, checklistitem.EdgeWorkOrder)
 	}
@@ -1666,6 +1795,9 @@ func (m *CheckListItemMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *CheckListItemMutation) ResetEdge(name string) error {
 	switch name {
+	case checklistitem.EdgeFiles:
+		m.ResetFiles()
+		return nil
 	case checklistitem.EdgeWorkOrder:
 		m.ResetWorkOrder()
 		return nil
@@ -1688,7 +1820,7 @@ type CheckListItemDefinitionMutation struct {
 	addindex               *int
 	enum_values            *string
 	help_text              *string
-	clearedFields          map[string]bool
+	clearedFields          map[string]struct{}
 	work_order_type        *int
 	clearedwork_order_type bool
 }
@@ -1701,7 +1833,7 @@ func newCheckListItemDefinitionMutation(c config, op Op) *CheckListItemDefinitio
 		config:        c,
 		op:            op,
 		typ:           TypeCheckListItemDefinition,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -1846,12 +1978,13 @@ func (m *CheckListItemDefinitionMutation) AddedIndex() (r int, exists bool) {
 func (m *CheckListItemDefinitionMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[checklistitemdefinition.FieldIndex] = true
+	m.clearedFields[checklistitemdefinition.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *CheckListItemDefinitionMutation) IndexCleared() bool {
-	return m.clearedFields[checklistitemdefinition.FieldIndex]
+	_, ok := m.clearedFields[checklistitemdefinition.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -1878,12 +2011,13 @@ func (m *CheckListItemDefinitionMutation) EnumValues() (r string, exists bool) {
 // ClearEnumValues clears the value of enum_values.
 func (m *CheckListItemDefinitionMutation) ClearEnumValues() {
 	m.enum_values = nil
-	m.clearedFields[checklistitemdefinition.FieldEnumValues] = true
+	m.clearedFields[checklistitemdefinition.FieldEnumValues] = struct{}{}
 }
 
 // EnumValuesCleared returns if the field enum_values was cleared in this mutation.
 func (m *CheckListItemDefinitionMutation) EnumValuesCleared() bool {
-	return m.clearedFields[checklistitemdefinition.FieldEnumValues]
+	_, ok := m.clearedFields[checklistitemdefinition.FieldEnumValues]
+	return ok
 }
 
 // ResetEnumValues reset all changes of the enum_values field.
@@ -1909,12 +2043,13 @@ func (m *CheckListItemDefinitionMutation) HelpText() (r string, exists bool) {
 // ClearHelpText clears the value of help_text.
 func (m *CheckListItemDefinitionMutation) ClearHelpText() {
 	m.help_text = nil
-	m.clearedFields[checklistitemdefinition.FieldHelpText] = true
+	m.clearedFields[checklistitemdefinition.FieldHelpText] = struct{}{}
 }
 
 // HelpTextCleared returns if the field help_text was cleared in this mutation.
 func (m *CheckListItemDefinitionMutation) HelpTextCleared() bool {
-	return m.clearedFields[checklistitemdefinition.FieldHelpText]
+	_, ok := m.clearedFields[checklistitemdefinition.FieldHelpText]
+	return ok
 }
 
 // ResetHelpText reset all changes of the help_text field.
@@ -2123,13 +2258,13 @@ func (m *CheckListItemDefinitionMutation) AddField(name string, value ent.Value)
 // during this mutation.
 func (m *CheckListItemDefinitionMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[checklistitemdefinition.FieldIndex] {
+	if m.FieldCleared(checklistitemdefinition.FieldIndex) {
 		fields = append(fields, checklistitemdefinition.FieldIndex)
 	}
-	if m.clearedFields[checklistitemdefinition.FieldEnumValues] {
+	if m.FieldCleared(checklistitemdefinition.FieldEnumValues) {
 		fields = append(fields, checklistitemdefinition.FieldEnumValues)
 	}
-	if m.clearedFields[checklistitemdefinition.FieldHelpText] {
+	if m.FieldCleared(checklistitemdefinition.FieldHelpText) {
 		fields = append(fields, checklistitemdefinition.FieldHelpText)
 	}
 	return fields
@@ -2138,7 +2273,8 @@ func (m *CheckListItemDefinitionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *CheckListItemDefinitionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -2277,9 +2413,10 @@ type CommentMutation struct {
 	id            *int
 	create_time   *time.Time
 	update_time   *time.Time
-	author_name   *string
 	text          *string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
+	author        *int
+	clearedauthor bool
 }
 
 var _ ent.Mutation = (*CommentMutation)(nil)
@@ -2290,7 +2427,7 @@ func newCommentMutation(c config, op Op) *CommentMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeComment,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -2360,25 +2497,6 @@ func (m *CommentMutation) ResetUpdateTime() {
 	m.update_time = nil
 }
 
-// SetAuthorName sets the author_name field.
-func (m *CommentMutation) SetAuthorName(s string) {
-	m.author_name = &s
-}
-
-// AuthorName returns the author_name value in the mutation.
-func (m *CommentMutation) AuthorName() (r string, exists bool) {
-	v := m.author_name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetAuthorName reset all changes of the author_name field.
-func (m *CommentMutation) ResetAuthorName() {
-	m.author_name = nil
-}
-
 // SetText sets the text field.
 func (m *CommentMutation) SetText(s string) {
 	m.text = &s
@@ -2398,6 +2516,45 @@ func (m *CommentMutation) ResetText() {
 	m.text = nil
 }
 
+// SetAuthorID sets the author edge to User by id.
+func (m *CommentMutation) SetAuthorID(id int) {
+	m.author = &id
+}
+
+// ClearAuthor clears the author edge to User.
+func (m *CommentMutation) ClearAuthor() {
+	m.clearedauthor = true
+}
+
+// AuthorCleared returns if the edge author was cleared.
+func (m *CommentMutation) AuthorCleared() bool {
+	return m.clearedauthor
+}
+
+// AuthorID returns the author id in the mutation.
+func (m *CommentMutation) AuthorID() (id int, exists bool) {
+	if m.author != nil {
+		return *m.author, true
+	}
+	return
+}
+
+// AuthorIDs returns the author ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// AuthorID instead. It exists only for internal usage by the builders.
+func (m *CommentMutation) AuthorIDs() (ids []int) {
+	if id := m.author; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAuthor reset all changes of the author edge.
+func (m *CommentMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+}
+
 // Op returns the operation name.
 func (m *CommentMutation) Op() Op {
 	return m.op
@@ -2412,15 +2569,12 @@ func (m *CommentMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *CommentMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 3)
 	if m.create_time != nil {
 		fields = append(fields, comment.FieldCreateTime)
 	}
 	if m.update_time != nil {
 		fields = append(fields, comment.FieldUpdateTime)
-	}
-	if m.author_name != nil {
-		fields = append(fields, comment.FieldAuthorName)
 	}
 	if m.text != nil {
 		fields = append(fields, comment.FieldText)
@@ -2437,8 +2591,6 @@ func (m *CommentMutation) Field(name string) (ent.Value, bool) {
 		return m.CreateTime()
 	case comment.FieldUpdateTime:
 		return m.UpdateTime()
-	case comment.FieldAuthorName:
-		return m.AuthorName()
 	case comment.FieldText:
 		return m.Text()
 	}
@@ -2463,13 +2615,6 @@ func (m *CommentMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetUpdateTime(v)
-		return nil
-	case comment.FieldAuthorName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAuthorName(v)
 		return nil
 	case comment.FieldText:
 		v, ok := value.(string)
@@ -2513,7 +2658,8 @@ func (m *CommentMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *CommentMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -2533,9 +2679,6 @@ func (m *CommentMutation) ResetField(name string) error {
 	case comment.FieldUpdateTime:
 		m.ResetUpdateTime()
 		return nil
-	case comment.FieldAuthorName:
-		m.ResetAuthorName()
-		return nil
 	case comment.FieldText:
 		m.ResetText()
 		return nil
@@ -2546,7 +2689,10 @@ func (m *CommentMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CommentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.author != nil {
+		edges = append(edges, comment.EdgeAuthor)
+	}
 	return edges
 }
 
@@ -2554,6 +2700,10 @@ func (m *CommentMutation) AddedEdges() []string {
 // the given edge name.
 func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 	switch name {
+	case comment.EdgeAuthor:
+		if id := m.author; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -2561,7 +2711,7 @@ func (m *CommentMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CommentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
 	return edges
 }
 
@@ -2576,7 +2726,10 @@ func (m *CommentMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CommentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedauthor {
+		edges = append(edges, comment.EdgeAuthor)
+	}
 	return edges
 }
 
@@ -2584,6 +2737,8 @@ func (m *CommentMutation) ClearedEdges() []string {
 // cleared in this mutation.
 func (m *CommentMutation) EdgeCleared(name string) bool {
 	switch name {
+	case comment.EdgeAuthor:
+		return m.clearedauthor
 	}
 	return false
 }
@@ -2591,6 +2746,11 @@ func (m *CommentMutation) EdgeCleared(name string) bool {
 // ClearEdge clears the value for the given name. It returns an
 // error if the edge name is not defined in the schema.
 func (m *CommentMutation) ClearEdge(name string) error {
+	switch name {
+	case comment.EdgeAuthor:
+		m.ClearAuthor()
+		return nil
+	}
 	return fmt.Errorf("unknown Comment unique edge %s", name)
 }
 
@@ -2599,6 +2759,9 @@ func (m *CommentMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *CommentMutation) ResetEdge(name string) error {
 	switch name {
+	case comment.EdgeAuthor:
+		m.ResetAuthor()
+		return nil
 	}
 	return fmt.Errorf("unknown Comment edge %s", name)
 }
@@ -2614,7 +2777,7 @@ type CustomerMutation struct {
 	update_time     *time.Time
 	name            *string
 	external_id     *string
-	clearedFields   map[string]bool
+	clearedFields   map[string]struct{}
 	services        map[int]struct{}
 	removedservices map[int]struct{}
 }
@@ -2627,7 +2790,7 @@ func newCustomerMutation(c config, op Op) *CustomerMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeCustomer,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -2733,12 +2896,13 @@ func (m *CustomerMutation) ExternalID() (r string, exists bool) {
 // ClearExternalID clears the value of external_id.
 func (m *CustomerMutation) ClearExternalID() {
 	m.external_id = nil
-	m.clearedFields[customer.FieldExternalID] = true
+	m.clearedFields[customer.FieldExternalID] = struct{}{}
 }
 
 // ExternalIDCleared returns if the field external_id was cleared in this mutation.
 func (m *CustomerMutation) ExternalIDCleared() bool {
-	return m.clearedFields[customer.FieldExternalID]
+	_, ok := m.clearedFields[customer.FieldExternalID]
+	return ok
 }
 
 // ResetExternalID reset all changes of the external_id field.
@@ -2899,7 +3063,7 @@ func (m *CustomerMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *CustomerMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[customer.FieldExternalID] {
+	if m.FieldCleared(customer.FieldExternalID) {
 		fields = append(fields, customer.FieldExternalID)
 	}
 	return fields
@@ -2908,7 +3072,8 @@ func (m *CustomerMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *CustomerMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -3039,7 +3204,7 @@ type EquipmentMutation struct {
 	future_state           *string
 	device_id              *string
 	external_id            *string
-	clearedFields          map[string]bool
+	clearedFields          map[string]struct{}
 	_type                  *int
 	cleared_type           bool
 	location               *int
@@ -3068,7 +3233,7 @@ func newEquipmentMutation(c config, op Op) *EquipmentMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeEquipment,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -3174,12 +3339,13 @@ func (m *EquipmentMutation) FutureState() (r string, exists bool) {
 // ClearFutureState clears the value of future_state.
 func (m *EquipmentMutation) ClearFutureState() {
 	m.future_state = nil
-	m.clearedFields[equipment.FieldFutureState] = true
+	m.clearedFields[equipment.FieldFutureState] = struct{}{}
 }
 
 // FutureStateCleared returns if the field future_state was cleared in this mutation.
 func (m *EquipmentMutation) FutureStateCleared() bool {
-	return m.clearedFields[equipment.FieldFutureState]
+	_, ok := m.clearedFields[equipment.FieldFutureState]
+	return ok
 }
 
 // ResetFutureState reset all changes of the future_state field.
@@ -3205,12 +3371,13 @@ func (m *EquipmentMutation) DeviceID() (r string, exists bool) {
 // ClearDeviceID clears the value of device_id.
 func (m *EquipmentMutation) ClearDeviceID() {
 	m.device_id = nil
-	m.clearedFields[equipment.FieldDeviceID] = true
+	m.clearedFields[equipment.FieldDeviceID] = struct{}{}
 }
 
 // DeviceIDCleared returns if the field device_id was cleared in this mutation.
 func (m *EquipmentMutation) DeviceIDCleared() bool {
-	return m.clearedFields[equipment.FieldDeviceID]
+	_, ok := m.clearedFields[equipment.FieldDeviceID]
+	return ok
 }
 
 // ResetDeviceID reset all changes of the device_id field.
@@ -3236,12 +3403,13 @@ func (m *EquipmentMutation) ExternalID() (r string, exists bool) {
 // ClearExternalID clears the value of external_id.
 func (m *EquipmentMutation) ClearExternalID() {
 	m.external_id = nil
-	m.clearedFields[equipment.FieldExternalID] = true
+	m.clearedFields[equipment.FieldExternalID] = struct{}{}
 }
 
 // ExternalIDCleared returns if the field external_id was cleared in this mutation.
 func (m *EquipmentMutation) ExternalIDCleared() bool {
-	return m.clearedFields[equipment.FieldExternalID]
+	_, ok := m.clearedFields[equipment.FieldExternalID]
+	return ok
 }
 
 // ResetExternalID reset all changes of the external_id field.
@@ -3750,13 +3918,13 @@ func (m *EquipmentMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *EquipmentMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[equipment.FieldFutureState] {
+	if m.FieldCleared(equipment.FieldFutureState) {
 		fields = append(fields, equipment.FieldFutureState)
 	}
-	if m.clearedFields[equipment.FieldDeviceID] {
+	if m.FieldCleared(equipment.FieldDeviceID) {
 		fields = append(fields, equipment.FieldDeviceID)
 	}
-	if m.clearedFields[equipment.FieldExternalID] {
+	if m.FieldCleared(equipment.FieldExternalID) {
 		fields = append(fields, equipment.FieldExternalID)
 	}
 	return fields
@@ -3765,7 +3933,8 @@ func (m *EquipmentMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -4061,7 +4230,7 @@ type EquipmentCategoryMutation struct {
 	create_time   *time.Time
 	update_time   *time.Time
 	name          *string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 	types         map[int]struct{}
 	removedtypes  map[int]struct{}
 }
@@ -4074,7 +4243,7 @@ func newEquipmentCategoryMutation(c config, op Op) *EquipmentCategoryMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentCategory,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -4308,7 +4477,8 @@ func (m *EquipmentCategoryMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentCategoryMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -4427,7 +4597,7 @@ type EquipmentPortMutation struct {
 	id                *int
 	create_time       *time.Time
 	update_time       *time.Time
-	clearedFields     map[string]bool
+	clearedFields     map[string]struct{}
 	definition        *int
 	cleareddefinition bool
 	parent            *int
@@ -4448,7 +4618,7 @@ func newEquipmentPortMutation(c config, op Op) *EquipmentPortMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentPort,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -4810,7 +4980,8 @@ func (m *EquipmentPortMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentPortMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -5006,7 +5177,7 @@ type EquipmentPortDefinitionMutation struct {
 	addindex                   *int
 	bandwidth                  *string
 	visibility_label           *string
-	clearedFields              map[string]bool
+	clearedFields              map[string]struct{}
 	equipment_port_type        *int
 	clearedequipment_port_type bool
 	ports                      map[int]struct{}
@@ -5023,7 +5194,7 @@ func newEquipmentPortDefinitionMutation(c config, op Op) *EquipmentPortDefinitio
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentPortDefinition,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -5149,12 +5320,13 @@ func (m *EquipmentPortDefinitionMutation) AddedIndex() (r int, exists bool) {
 func (m *EquipmentPortDefinitionMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[equipmentportdefinition.FieldIndex] = true
+	m.clearedFields[equipmentportdefinition.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *EquipmentPortDefinitionMutation) IndexCleared() bool {
-	return m.clearedFields[equipmentportdefinition.FieldIndex]
+	_, ok := m.clearedFields[equipmentportdefinition.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -5181,12 +5353,13 @@ func (m *EquipmentPortDefinitionMutation) Bandwidth() (r string, exists bool) {
 // ClearBandwidth clears the value of bandwidth.
 func (m *EquipmentPortDefinitionMutation) ClearBandwidth() {
 	m.bandwidth = nil
-	m.clearedFields[equipmentportdefinition.FieldBandwidth] = true
+	m.clearedFields[equipmentportdefinition.FieldBandwidth] = struct{}{}
 }
 
 // BandwidthCleared returns if the field bandwidth was cleared in this mutation.
 func (m *EquipmentPortDefinitionMutation) BandwidthCleared() bool {
-	return m.clearedFields[equipmentportdefinition.FieldBandwidth]
+	_, ok := m.clearedFields[equipmentportdefinition.FieldBandwidth]
+	return ok
 }
 
 // ResetBandwidth reset all changes of the bandwidth field.
@@ -5212,12 +5385,13 @@ func (m *EquipmentPortDefinitionMutation) VisibilityLabel() (r string, exists bo
 // ClearVisibilityLabel clears the value of visibility_label.
 func (m *EquipmentPortDefinitionMutation) ClearVisibilityLabel() {
 	m.visibility_label = nil
-	m.clearedFields[equipmentportdefinition.FieldVisibilityLabel] = true
+	m.clearedFields[equipmentportdefinition.FieldVisibilityLabel] = struct{}{}
 }
 
 // VisibilityLabelCleared returns if the field visibility_label was cleared in this mutation.
 func (m *EquipmentPortDefinitionMutation) VisibilityLabelCleared() bool {
-	return m.clearedFields[equipmentportdefinition.FieldVisibilityLabel]
+	_, ok := m.clearedFields[equipmentportdefinition.FieldVisibilityLabel]
+	return ok
 }
 
 // ResetVisibilityLabel reset all changes of the visibility_label field.
@@ -5495,13 +5669,13 @@ func (m *EquipmentPortDefinitionMutation) AddField(name string, value ent.Value)
 // during this mutation.
 func (m *EquipmentPortDefinitionMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[equipmentportdefinition.FieldIndex] {
+	if m.FieldCleared(equipmentportdefinition.FieldIndex) {
 		fields = append(fields, equipmentportdefinition.FieldIndex)
 	}
-	if m.clearedFields[equipmentportdefinition.FieldBandwidth] {
+	if m.FieldCleared(equipmentportdefinition.FieldBandwidth) {
 		fields = append(fields, equipmentportdefinition.FieldBandwidth)
 	}
-	if m.clearedFields[equipmentportdefinition.FieldVisibilityLabel] {
+	if m.FieldCleared(equipmentportdefinition.FieldVisibilityLabel) {
 		fields = append(fields, equipmentportdefinition.FieldVisibilityLabel)
 	}
 	return fields
@@ -5510,7 +5684,8 @@ func (m *EquipmentPortDefinitionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentPortDefinitionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -5686,7 +5861,7 @@ type EquipmentPortTypeMutation struct {
 	create_time                *time.Time
 	update_time                *time.Time
 	name                       *string
-	clearedFields              map[string]bool
+	clearedFields              map[string]struct{}
 	property_types             map[int]struct{}
 	removedproperty_types      map[int]struct{}
 	link_property_types        map[int]struct{}
@@ -5703,7 +5878,7 @@ func newEquipmentPortTypeMutation(c config, op Op) *EquipmentPortTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentPortType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -6021,7 +6196,8 @@ func (m *EquipmentPortTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentPortTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -6182,7 +6358,7 @@ type EquipmentPositionMutation struct {
 	id                *int
 	create_time       *time.Time
 	update_time       *time.Time
-	clearedFields     map[string]bool
+	clearedFields     map[string]struct{}
 	definition        *int
 	cleareddefinition bool
 	parent            *int
@@ -6199,7 +6375,7 @@ func newEquipmentPositionMutation(c config, op Op) *EquipmentPositionMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentPosition,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -6477,7 +6653,8 @@ func (m *EquipmentPositionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentPositionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -6630,7 +6807,7 @@ type EquipmentPositionDefinitionMutation struct {
 	index                 *int
 	addindex              *int
 	visibility_label      *string
-	clearedFields         map[string]bool
+	clearedFields         map[string]struct{}
 	positions             map[int]struct{}
 	removedpositions      map[int]struct{}
 	equipment_type        *int
@@ -6645,7 +6822,7 @@ func newEquipmentPositionDefinitionMutation(c config, op Op) *EquipmentPositionD
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentPositionDefinition,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -6771,12 +6948,13 @@ func (m *EquipmentPositionDefinitionMutation) AddedIndex() (r int, exists bool) 
 func (m *EquipmentPositionDefinitionMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[equipmentpositiondefinition.FieldIndex] = true
+	m.clearedFields[equipmentpositiondefinition.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *EquipmentPositionDefinitionMutation) IndexCleared() bool {
-	return m.clearedFields[equipmentpositiondefinition.FieldIndex]
+	_, ok := m.clearedFields[equipmentpositiondefinition.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -6803,12 +6981,13 @@ func (m *EquipmentPositionDefinitionMutation) VisibilityLabel() (r string, exist
 // ClearVisibilityLabel clears the value of visibility_label.
 func (m *EquipmentPositionDefinitionMutation) ClearVisibilityLabel() {
 	m.visibility_label = nil
-	m.clearedFields[equipmentpositiondefinition.FieldVisibilityLabel] = true
+	m.clearedFields[equipmentpositiondefinition.FieldVisibilityLabel] = struct{}{}
 }
 
 // VisibilityLabelCleared returns if the field visibility_label was cleared in this mutation.
 func (m *EquipmentPositionDefinitionMutation) VisibilityLabelCleared() bool {
-	return m.clearedFields[equipmentpositiondefinition.FieldVisibilityLabel]
+	_, ok := m.clearedFields[equipmentpositiondefinition.FieldVisibilityLabel]
+	return ok
 }
 
 // ResetVisibilityLabel reset all changes of the visibility_label field.
@@ -7035,10 +7214,10 @@ func (m *EquipmentPositionDefinitionMutation) AddField(name string, value ent.Va
 // during this mutation.
 func (m *EquipmentPositionDefinitionMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[equipmentpositiondefinition.FieldIndex] {
+	if m.FieldCleared(equipmentpositiondefinition.FieldIndex) {
 		fields = append(fields, equipmentpositiondefinition.FieldIndex)
 	}
-	if m.clearedFields[equipmentpositiondefinition.FieldVisibilityLabel] {
+	if m.FieldCleared(equipmentpositiondefinition.FieldVisibilityLabel) {
 		fields = append(fields, equipmentpositiondefinition.FieldVisibilityLabel)
 	}
 	return fields
@@ -7047,7 +7226,8 @@ func (m *EquipmentPositionDefinitionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentPositionDefinitionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -7199,7 +7379,7 @@ type EquipmentTypeMutation struct {
 	create_time                 *time.Time
 	update_time                 *time.Time
 	name                        *string
-	clearedFields               map[string]bool
+	clearedFields               map[string]struct{}
 	port_definitions            map[int]struct{}
 	removedport_definitions     map[int]struct{}
 	position_definitions        map[int]struct{}
@@ -7220,7 +7400,7 @@ func newEquipmentTypeMutation(c config, op Op) *EquipmentTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeEquipmentType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -7619,7 +7799,8 @@ func (m *EquipmentTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *EquipmentTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -7828,7 +8009,7 @@ type FileMutation struct {
 	content_type  *string
 	store_key     *string
 	category      *string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 }
 
 var _ ent.Mutation = (*FileMutation)(nil)
@@ -7839,7 +8020,7 @@ func newFileMutation(c config, op Op) *FileMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeFile,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -7984,12 +8165,13 @@ func (m *FileMutation) AddedSize() (r int, exists bool) {
 func (m *FileMutation) ClearSize() {
 	m.size = nil
 	m.addsize = nil
-	m.clearedFields[file.FieldSize] = true
+	m.clearedFields[file.FieldSize] = struct{}{}
 }
 
 // SizeCleared returns if the field size was cleared in this mutation.
 func (m *FileMutation) SizeCleared() bool {
-	return m.clearedFields[file.FieldSize]
+	_, ok := m.clearedFields[file.FieldSize]
+	return ok
 }
 
 // ResetSize reset all changes of the size field.
@@ -8016,12 +8198,13 @@ func (m *FileMutation) ModifiedAt() (r time.Time, exists bool) {
 // ClearModifiedAt clears the value of modified_at.
 func (m *FileMutation) ClearModifiedAt() {
 	m.modified_at = nil
-	m.clearedFields[file.FieldModifiedAt] = true
+	m.clearedFields[file.FieldModifiedAt] = struct{}{}
 }
 
 // ModifiedAtCleared returns if the field modified_at was cleared in this mutation.
 func (m *FileMutation) ModifiedAtCleared() bool {
-	return m.clearedFields[file.FieldModifiedAt]
+	_, ok := m.clearedFields[file.FieldModifiedAt]
+	return ok
 }
 
 // ResetModifiedAt reset all changes of the modified_at field.
@@ -8047,12 +8230,13 @@ func (m *FileMutation) UploadedAt() (r time.Time, exists bool) {
 // ClearUploadedAt clears the value of uploaded_at.
 func (m *FileMutation) ClearUploadedAt() {
 	m.uploaded_at = nil
-	m.clearedFields[file.FieldUploadedAt] = true
+	m.clearedFields[file.FieldUploadedAt] = struct{}{}
 }
 
 // UploadedAtCleared returns if the field uploaded_at was cleared in this mutation.
 func (m *FileMutation) UploadedAtCleared() bool {
-	return m.clearedFields[file.FieldUploadedAt]
+	_, ok := m.clearedFields[file.FieldUploadedAt]
+	return ok
 }
 
 // ResetUploadedAt reset all changes of the uploaded_at field.
@@ -8116,12 +8300,13 @@ func (m *FileMutation) Category() (r string, exists bool) {
 // ClearCategory clears the value of category.
 func (m *FileMutation) ClearCategory() {
 	m.category = nil
-	m.clearedFields[file.FieldCategory] = true
+	m.clearedFields[file.FieldCategory] = struct{}{}
 }
 
 // CategoryCleared returns if the field category was cleared in this mutation.
 func (m *FileMutation) CategoryCleared() bool {
-	return m.clearedFields[file.FieldCategory]
+	_, ok := m.clearedFields[file.FieldCategory]
+	return ok
 }
 
 // ResetCategory reset all changes of the category field.
@@ -8327,16 +8512,16 @@ func (m *FileMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *FileMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[file.FieldSize] {
+	if m.FieldCleared(file.FieldSize) {
 		fields = append(fields, file.FieldSize)
 	}
-	if m.clearedFields[file.FieldModifiedAt] {
+	if m.FieldCleared(file.FieldModifiedAt) {
 		fields = append(fields, file.FieldModifiedAt)
 	}
-	if m.clearedFields[file.FieldUploadedAt] {
+	if m.FieldCleared(file.FieldUploadedAt) {
 		fields = append(fields, file.FieldUploadedAt)
 	}
-	if m.clearedFields[file.FieldCategory] {
+	if m.FieldCleared(file.FieldCategory) {
 		fields = append(fields, file.FieldCategory)
 	}
 	return fields
@@ -8345,7 +8530,8 @@ func (m *FileMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *FileMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -8477,7 +8663,7 @@ type FloorPlanMutation struct {
 	create_time            *time.Time
 	update_time            *time.Time
 	name                   *string
-	clearedFields          map[string]bool
+	clearedFields          map[string]struct{}
 	location               *int
 	clearedlocation        bool
 	reference_point        *int
@@ -8496,7 +8682,7 @@ func newFloorPlanMutation(c config, op Op) *FloorPlanMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeFloorPlan,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -8844,7 +9030,8 @@ func (m *FloorPlanMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *FloorPlanMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -9022,7 +9209,7 @@ type FloorPlanReferencePointMutation struct {
 	addlatitude   *float64
 	longitude     *float64
 	addlongitude  *float64
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 }
 
 var _ ent.Mutation = (*FloorPlanReferencePointMutation)(nil)
@@ -9033,7 +9220,7 @@ func newFloorPlanReferencePointMutation(c config, op Op) *FloorPlanReferencePoin
 		config:        c,
 		op:            op,
 		typ:           TypeFloorPlanReferencePoint,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -9449,7 +9636,8 @@ func (m *FloorPlanReferencePointMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *FloorPlanReferencePointMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -9564,7 +9752,7 @@ type FloorPlanScaleMutation struct {
 	addreference_point2_y *int
 	scale_in_meters       *float64
 	addscale_in_meters    *float64
-	clearedFields         map[string]bool
+	clearedFields         map[string]struct{}
 }
 
 var _ ent.Mutation = (*FloorPlanScaleMutation)(nil)
@@ -9575,7 +9763,7 @@ func newFloorPlanScaleMutation(c config, op Op) *FloorPlanScaleMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeFloorPlanScale,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -10054,7 +10242,8 @@ func (m *FloorPlanScaleMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *FloorPlanScaleMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -10165,7 +10354,7 @@ type HyperlinkMutation struct {
 	url           *string
 	name          *string
 	category      *string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 }
 
 var _ ent.Mutation = (*HyperlinkMutation)(nil)
@@ -10176,7 +10365,7 @@ func newHyperlinkMutation(c config, op Op) *HyperlinkMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeHyperlink,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -10282,12 +10471,13 @@ func (m *HyperlinkMutation) Name() (r string, exists bool) {
 // ClearName clears the value of name.
 func (m *HyperlinkMutation) ClearName() {
 	m.name = nil
-	m.clearedFields[hyperlink.FieldName] = true
+	m.clearedFields[hyperlink.FieldName] = struct{}{}
 }
 
 // NameCleared returns if the field name was cleared in this mutation.
 func (m *HyperlinkMutation) NameCleared() bool {
-	return m.clearedFields[hyperlink.FieldName]
+	_, ok := m.clearedFields[hyperlink.FieldName]
+	return ok
 }
 
 // ResetName reset all changes of the name field.
@@ -10313,12 +10503,13 @@ func (m *HyperlinkMutation) Category() (r string, exists bool) {
 // ClearCategory clears the value of category.
 func (m *HyperlinkMutation) ClearCategory() {
 	m.category = nil
-	m.clearedFields[hyperlink.FieldCategory] = true
+	m.clearedFields[hyperlink.FieldCategory] = struct{}{}
 }
 
 // CategoryCleared returns if the field category was cleared in this mutation.
 func (m *HyperlinkMutation) CategoryCleared() bool {
-	return m.clearedFields[hyperlink.FieldCategory]
+	_, ok := m.clearedFields[hyperlink.FieldCategory]
+	return ok
 }
 
 // ResetCategory reset all changes of the category field.
@@ -10449,10 +10640,10 @@ func (m *HyperlinkMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *HyperlinkMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[hyperlink.FieldName] {
+	if m.FieldCleared(hyperlink.FieldName) {
 		fields = append(fields, hyperlink.FieldName)
 	}
-	if m.clearedFields[hyperlink.FieldCategory] {
+	if m.FieldCleared(hyperlink.FieldCategory) {
 		fields = append(fields, hyperlink.FieldCategory)
 	}
 	return fields
@@ -10461,7 +10652,8 @@ func (m *HyperlinkMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *HyperlinkMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -10572,7 +10764,7 @@ type LinkMutation struct {
 	create_time       *time.Time
 	update_time       *time.Time
 	future_state      *string
-	clearedFields     map[string]bool
+	clearedFields     map[string]struct{}
 	ports             map[int]struct{}
 	removedports      map[int]struct{}
 	work_order        *int
@@ -10591,7 +10783,7 @@ func newLinkMutation(c config, op Op) *LinkMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeLink,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -10678,12 +10870,13 @@ func (m *LinkMutation) FutureState() (r string, exists bool) {
 // ClearFutureState clears the value of future_state.
 func (m *LinkMutation) ClearFutureState() {
 	m.future_state = nil
-	m.clearedFields[link.FieldFutureState] = true
+	m.clearedFields[link.FieldFutureState] = struct{}{}
 }
 
 // FutureStateCleared returns if the field future_state was cleared in this mutation.
 func (m *LinkMutation) FutureStateCleared() bool {
-	return m.clearedFields[link.FieldFutureState]
+	_, ok := m.clearedFields[link.FieldFutureState]
+	return ok
 }
 
 // ResetFutureState reset all changes of the future_state field.
@@ -10955,7 +11148,7 @@ func (m *LinkMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *LinkMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[link.FieldFutureState] {
+	if m.FieldCleared(link.FieldFutureState) {
 		fields = append(fields, link.FieldFutureState)
 	}
 	return fields
@@ -10964,7 +11157,8 @@ func (m *LinkMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *LinkMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -11155,7 +11349,7 @@ type LocationMutation struct {
 	longitude          *float64
 	addlongitude       *float64
 	site_survey_needed *bool
-	clearedFields      map[string]bool
+	clearedFields      map[string]struct{}
 	_type              *int
 	cleared_type       bool
 	parent             *int
@@ -11190,7 +11384,7 @@ func newLocationMutation(c config, op Op) *LocationMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeLocation,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -11296,12 +11490,13 @@ func (m *LocationMutation) ExternalID() (r string, exists bool) {
 // ClearExternalID clears the value of external_id.
 func (m *LocationMutation) ClearExternalID() {
 	m.external_id = nil
-	m.clearedFields[location.FieldExternalID] = true
+	m.clearedFields[location.FieldExternalID] = struct{}{}
 }
 
 // ExternalIDCleared returns if the field external_id was cleared in this mutation.
 func (m *LocationMutation) ExternalIDCleared() bool {
-	return m.clearedFields[location.FieldExternalID]
+	_, ok := m.clearedFields[location.FieldExternalID]
+	return ok
 }
 
 // ResetExternalID reset all changes of the external_id field.
@@ -11405,12 +11600,13 @@ func (m *LocationMutation) SiteSurveyNeeded() (r bool, exists bool) {
 // ClearSiteSurveyNeeded clears the value of site_survey_needed.
 func (m *LocationMutation) ClearSiteSurveyNeeded() {
 	m.site_survey_needed = nil
-	m.clearedFields[location.FieldSiteSurveyNeeded] = true
+	m.clearedFields[location.FieldSiteSurveyNeeded] = struct{}{}
 }
 
 // SiteSurveyNeededCleared returns if the field site_survey_needed was cleared in this mutation.
 func (m *LocationMutation) SiteSurveyNeededCleared() bool {
-	return m.clearedFields[location.FieldSiteSurveyNeeded]
+	_, ok := m.clearedFields[location.FieldSiteSurveyNeeded]
+	return ok
 }
 
 // ResetSiteSurveyNeeded reset all changes of the site_survey_needed field.
@@ -12090,10 +12286,10 @@ func (m *LocationMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *LocationMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[location.FieldExternalID] {
+	if m.FieldCleared(location.FieldExternalID) {
 		fields = append(fields, location.FieldExternalID)
 	}
-	if m.clearedFields[location.FieldSiteSurveyNeeded] {
+	if m.FieldCleared(location.FieldSiteSurveyNeeded) {
 		fields = append(fields, location.FieldSiteSurveyNeeded)
 	}
 	return fields
@@ -12102,7 +12298,8 @@ func (m *LocationMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *LocationMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -12473,7 +12670,7 @@ type LocationTypeMutation struct {
 	addmap_zoom_level                 *int
 	index                             *int
 	addindex                          *int
-	clearedFields                     map[string]bool
+	clearedFields                     map[string]struct{}
 	locations                         map[int]struct{}
 	removedlocations                  map[int]struct{}
 	property_types                    map[int]struct{}
@@ -12490,7 +12687,7 @@ func newLocationTypeMutation(c config, op Op) *LocationTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeLocationType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -12615,12 +12812,13 @@ func (m *LocationTypeMutation) MapType() (r string, exists bool) {
 // ClearMapType clears the value of map_type.
 func (m *LocationTypeMutation) ClearMapType() {
 	m.map_type = nil
-	m.clearedFields[locationtype.FieldMapType] = true
+	m.clearedFields[locationtype.FieldMapType] = struct{}{}
 }
 
 // MapTypeCleared returns if the field map_type was cleared in this mutation.
 func (m *LocationTypeMutation) MapTypeCleared() bool {
-	return m.clearedFields[locationtype.FieldMapType]
+	_, ok := m.clearedFields[locationtype.FieldMapType]
+	return ok
 }
 
 // ResetMapType reset all changes of the map_type field.
@@ -12666,12 +12864,13 @@ func (m *LocationTypeMutation) AddedMapZoomLevel() (r int, exists bool) {
 func (m *LocationTypeMutation) ClearMapZoomLevel() {
 	m.map_zoom_level = nil
 	m.addmap_zoom_level = nil
-	m.clearedFields[locationtype.FieldMapZoomLevel] = true
+	m.clearedFields[locationtype.FieldMapZoomLevel] = struct{}{}
 }
 
 // MapZoomLevelCleared returns if the field map_zoom_level was cleared in this mutation.
 func (m *LocationTypeMutation) MapZoomLevelCleared() bool {
-	return m.clearedFields[locationtype.FieldMapZoomLevel]
+	_, ok := m.clearedFields[locationtype.FieldMapZoomLevel]
+	return ok
 }
 
 // ResetMapZoomLevel reset all changes of the map_zoom_level field.
@@ -13019,10 +13218,10 @@ func (m *LocationTypeMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *LocationTypeMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[locationtype.FieldMapType] {
+	if m.FieldCleared(locationtype.FieldMapType) {
 		fields = append(fields, locationtype.FieldMapType)
 	}
-	if m.clearedFields[locationtype.FieldMapZoomLevel] {
+	if m.FieldCleared(locationtype.FieldMapZoomLevel) {
 		fields = append(fields, locationtype.FieldMapZoomLevel)
 	}
 	return fields
@@ -13031,7 +13230,8 @@ func (m *LocationTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *LocationTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -13214,7 +13414,7 @@ type ProjectMutation struct {
 	update_time        *time.Time
 	name               *string
 	description        *string
-	clearedFields      map[string]bool
+	clearedFields      map[string]struct{}
 	_type              *int
 	cleared_type       bool
 	location           *int
@@ -13237,7 +13437,7 @@ func newProjectMutation(c config, op Op) *ProjectMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeProject,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -13343,12 +13543,13 @@ func (m *ProjectMutation) Description() (r string, exists bool) {
 // ClearDescription clears the value of description.
 func (m *ProjectMutation) ClearDescription() {
 	m.description = nil
-	m.clearedFields[project.FieldDescription] = true
+	m.clearedFields[project.FieldDescription] = struct{}{}
 }
 
 // DescriptionCleared returns if the field description was cleared in this mutation.
 func (m *ProjectMutation) DescriptionCleared() bool {
-	return m.clearedFields[project.FieldDescription]
+	_, ok := m.clearedFields[project.FieldDescription]
+	return ok
 }
 
 // ResetDescription reset all changes of the description field.
@@ -13710,7 +13911,7 @@ func (m *ProjectMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *ProjectMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[project.FieldDescription] {
+	if m.FieldCleared(project.FieldDescription) {
 		fields = append(fields, project.FieldDescription)
 	}
 	return fields
@@ -13719,7 +13920,8 @@ func (m *ProjectMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ProjectMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -13944,7 +14146,7 @@ type ProjectTypeMutation struct {
 	update_time        *time.Time
 	name               *string
 	description        *string
-	clearedFields      map[string]bool
+	clearedFields      map[string]struct{}
 	projects           map[int]struct{}
 	removedprojects    map[int]struct{}
 	properties         map[int]struct{}
@@ -13961,7 +14163,7 @@ func newProjectTypeMutation(c config, op Op) *ProjectTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeProjectType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -14067,12 +14269,13 @@ func (m *ProjectTypeMutation) Description() (r string, exists bool) {
 // ClearDescription clears the value of description.
 func (m *ProjectTypeMutation) ClearDescription() {
 	m.description = nil
-	m.clearedFields[projecttype.FieldDescription] = true
+	m.clearedFields[projecttype.FieldDescription] = struct{}{}
 }
 
 // DescriptionCleared returns if the field description was cleared in this mutation.
 func (m *ProjectTypeMutation) DescriptionCleared() bool {
-	return m.clearedFields[projecttype.FieldDescription]
+	_, ok := m.clearedFields[projecttype.FieldDescription]
+	return ok
 }
 
 // ResetDescription reset all changes of the description field.
@@ -14317,7 +14520,7 @@ func (m *ProjectTypeMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *ProjectTypeMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[projecttype.FieldDescription] {
+	if m.FieldCleared(projecttype.FieldDescription) {
 		fields = append(fields, projecttype.FieldDescription)
 	}
 	return fields
@@ -14326,7 +14529,8 @@ func (m *ProjectTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ProjectTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -14509,7 +14713,7 @@ type PropertyMutation struct {
 	range_to_val           *float64
 	addrange_to_val        *float64
 	string_val             *string
-	clearedFields          map[string]bool
+	clearedFields          map[string]struct{}
 	_type                  *int
 	cleared_type           bool
 	location               *int
@@ -14542,7 +14746,7 @@ func newPropertyMutation(c config, op Op) *PropertyMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeProperty,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -14649,12 +14853,13 @@ func (m *PropertyMutation) AddedIntVal() (r int, exists bool) {
 func (m *PropertyMutation) ClearIntVal() {
 	m.int_val = nil
 	m.addint_val = nil
-	m.clearedFields[property.FieldIntVal] = true
+	m.clearedFields[property.FieldIntVal] = struct{}{}
 }
 
 // IntValCleared returns if the field int_val was cleared in this mutation.
 func (m *PropertyMutation) IntValCleared() bool {
-	return m.clearedFields[property.FieldIntVal]
+	_, ok := m.clearedFields[property.FieldIntVal]
+	return ok
 }
 
 // ResetIntVal reset all changes of the int_val field.
@@ -14681,12 +14886,13 @@ func (m *PropertyMutation) BoolVal() (r bool, exists bool) {
 // ClearBoolVal clears the value of bool_val.
 func (m *PropertyMutation) ClearBoolVal() {
 	m.bool_val = nil
-	m.clearedFields[property.FieldBoolVal] = true
+	m.clearedFields[property.FieldBoolVal] = struct{}{}
 }
 
 // BoolValCleared returns if the field bool_val was cleared in this mutation.
 func (m *PropertyMutation) BoolValCleared() bool {
-	return m.clearedFields[property.FieldBoolVal]
+	_, ok := m.clearedFields[property.FieldBoolVal]
+	return ok
 }
 
 // ResetBoolVal reset all changes of the bool_val field.
@@ -14732,12 +14938,13 @@ func (m *PropertyMutation) AddedFloatVal() (r float64, exists bool) {
 func (m *PropertyMutation) ClearFloatVal() {
 	m.float_val = nil
 	m.addfloat_val = nil
-	m.clearedFields[property.FieldFloatVal] = true
+	m.clearedFields[property.FieldFloatVal] = struct{}{}
 }
 
 // FloatValCleared returns if the field float_val was cleared in this mutation.
 func (m *PropertyMutation) FloatValCleared() bool {
-	return m.clearedFields[property.FieldFloatVal]
+	_, ok := m.clearedFields[property.FieldFloatVal]
+	return ok
 }
 
 // ResetFloatVal reset all changes of the float_val field.
@@ -14784,12 +14991,13 @@ func (m *PropertyMutation) AddedLatitudeVal() (r float64, exists bool) {
 func (m *PropertyMutation) ClearLatitudeVal() {
 	m.latitude_val = nil
 	m.addlatitude_val = nil
-	m.clearedFields[property.FieldLatitudeVal] = true
+	m.clearedFields[property.FieldLatitudeVal] = struct{}{}
 }
 
 // LatitudeValCleared returns if the field latitude_val was cleared in this mutation.
 func (m *PropertyMutation) LatitudeValCleared() bool {
-	return m.clearedFields[property.FieldLatitudeVal]
+	_, ok := m.clearedFields[property.FieldLatitudeVal]
+	return ok
 }
 
 // ResetLatitudeVal reset all changes of the latitude_val field.
@@ -14836,12 +15044,13 @@ func (m *PropertyMutation) AddedLongitudeVal() (r float64, exists bool) {
 func (m *PropertyMutation) ClearLongitudeVal() {
 	m.longitude_val = nil
 	m.addlongitude_val = nil
-	m.clearedFields[property.FieldLongitudeVal] = true
+	m.clearedFields[property.FieldLongitudeVal] = struct{}{}
 }
 
 // LongitudeValCleared returns if the field longitude_val was cleared in this mutation.
 func (m *PropertyMutation) LongitudeValCleared() bool {
-	return m.clearedFields[property.FieldLongitudeVal]
+	_, ok := m.clearedFields[property.FieldLongitudeVal]
+	return ok
 }
 
 // ResetLongitudeVal reset all changes of the longitude_val field.
@@ -14888,12 +15097,13 @@ func (m *PropertyMutation) AddedRangeFromVal() (r float64, exists bool) {
 func (m *PropertyMutation) ClearRangeFromVal() {
 	m.range_from_val = nil
 	m.addrange_from_val = nil
-	m.clearedFields[property.FieldRangeFromVal] = true
+	m.clearedFields[property.FieldRangeFromVal] = struct{}{}
 }
 
 // RangeFromValCleared returns if the field range_from_val was cleared in this mutation.
 func (m *PropertyMutation) RangeFromValCleared() bool {
-	return m.clearedFields[property.FieldRangeFromVal]
+	_, ok := m.clearedFields[property.FieldRangeFromVal]
+	return ok
 }
 
 // ResetRangeFromVal reset all changes of the range_from_val field.
@@ -14940,12 +15150,13 @@ func (m *PropertyMutation) AddedRangeToVal() (r float64, exists bool) {
 func (m *PropertyMutation) ClearRangeToVal() {
 	m.range_to_val = nil
 	m.addrange_to_val = nil
-	m.clearedFields[property.FieldRangeToVal] = true
+	m.clearedFields[property.FieldRangeToVal] = struct{}{}
 }
 
 // RangeToValCleared returns if the field range_to_val was cleared in this mutation.
 func (m *PropertyMutation) RangeToValCleared() bool {
-	return m.clearedFields[property.FieldRangeToVal]
+	_, ok := m.clearedFields[property.FieldRangeToVal]
+	return ok
 }
 
 // ResetRangeToVal reset all changes of the range_to_val field.
@@ -14972,12 +15183,13 @@ func (m *PropertyMutation) StringVal() (r string, exists bool) {
 // ClearStringVal clears the value of string_val.
 func (m *PropertyMutation) ClearStringVal() {
 	m.string_val = nil
-	m.clearedFields[property.FieldStringVal] = true
+	m.clearedFields[property.FieldStringVal] = struct{}{}
 }
 
 // StringValCleared returns if the field string_val was cleared in this mutation.
 func (m *PropertyMutation) StringValCleared() bool {
-	return m.clearedFields[property.FieldStringVal]
+	_, ok := m.clearedFields[property.FieldStringVal]
+	return ok
 }
 
 // ResetStringVal reset all changes of the string_val field.
@@ -15672,28 +15884,28 @@ func (m *PropertyMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *PropertyMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[property.FieldIntVal] {
+	if m.FieldCleared(property.FieldIntVal) {
 		fields = append(fields, property.FieldIntVal)
 	}
-	if m.clearedFields[property.FieldBoolVal] {
+	if m.FieldCleared(property.FieldBoolVal) {
 		fields = append(fields, property.FieldBoolVal)
 	}
-	if m.clearedFields[property.FieldFloatVal] {
+	if m.FieldCleared(property.FieldFloatVal) {
 		fields = append(fields, property.FieldFloatVal)
 	}
-	if m.clearedFields[property.FieldLatitudeVal] {
+	if m.FieldCleared(property.FieldLatitudeVal) {
 		fields = append(fields, property.FieldLatitudeVal)
 	}
-	if m.clearedFields[property.FieldLongitudeVal] {
+	if m.FieldCleared(property.FieldLongitudeVal) {
 		fields = append(fields, property.FieldLongitudeVal)
 	}
-	if m.clearedFields[property.FieldRangeFromVal] {
+	if m.FieldCleared(property.FieldRangeFromVal) {
 		fields = append(fields, property.FieldRangeFromVal)
 	}
-	if m.clearedFields[property.FieldRangeToVal] {
+	if m.FieldCleared(property.FieldRangeToVal) {
 		fields = append(fields, property.FieldRangeToVal)
 	}
-	if m.clearedFields[property.FieldStringVal] {
+	if m.FieldCleared(property.FieldStringVal) {
 		fields = append(fields, property.FieldStringVal)
 	}
 	return fields
@@ -15702,7 +15914,8 @@ func (m *PropertyMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *PropertyMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -16047,6 +16260,7 @@ type PropertyTypeMutation struct {
 	update_time                     *time.Time
 	_type                           *string
 	name                            *string
+	external_id                     *string
 	index                           *int
 	addindex                        *int
 	category                        *string
@@ -16068,7 +16282,7 @@ type PropertyTypeMutation struct {
 	editable                        *bool
 	mandatory                       *bool
 	deleted                         *bool
-	clearedFields                   map[string]bool
+	clearedFields                   map[string]struct{}
 	properties                      map[int]struct{}
 	removedproperties               map[int]struct{}
 	location_type                   *int
@@ -16095,7 +16309,7 @@ func newPropertyTypeMutation(c config, op Op) *PropertyTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypePropertyType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -16203,6 +16417,38 @@ func (m *PropertyTypeMutation) ResetName() {
 	m.name = nil
 }
 
+// SetExternalID sets the external_id field.
+func (m *PropertyTypeMutation) SetExternalID(s string) {
+	m.external_id = &s
+}
+
+// ExternalID returns the external_id value in the mutation.
+func (m *PropertyTypeMutation) ExternalID() (r string, exists bool) {
+	v := m.external_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearExternalID clears the value of external_id.
+func (m *PropertyTypeMutation) ClearExternalID() {
+	m.external_id = nil
+	m.clearedFields[propertytype.FieldExternalID] = struct{}{}
+}
+
+// ExternalIDCleared returns if the field external_id was cleared in this mutation.
+func (m *PropertyTypeMutation) ExternalIDCleared() bool {
+	_, ok := m.clearedFields[propertytype.FieldExternalID]
+	return ok
+}
+
+// ResetExternalID reset all changes of the external_id field.
+func (m *PropertyTypeMutation) ResetExternalID() {
+	m.external_id = nil
+	delete(m.clearedFields, propertytype.FieldExternalID)
+}
+
 // SetIndex sets the index field.
 func (m *PropertyTypeMutation) SetIndex(i int) {
 	m.index = &i
@@ -16240,12 +16486,13 @@ func (m *PropertyTypeMutation) AddedIndex() (r int, exists bool) {
 func (m *PropertyTypeMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[propertytype.FieldIndex] = true
+	m.clearedFields[propertytype.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *PropertyTypeMutation) IndexCleared() bool {
-	return m.clearedFields[propertytype.FieldIndex]
+	_, ok := m.clearedFields[propertytype.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -16272,12 +16519,13 @@ func (m *PropertyTypeMutation) Category() (r string, exists bool) {
 // ClearCategory clears the value of category.
 func (m *PropertyTypeMutation) ClearCategory() {
 	m.category = nil
-	m.clearedFields[propertytype.FieldCategory] = true
+	m.clearedFields[propertytype.FieldCategory] = struct{}{}
 }
 
 // CategoryCleared returns if the field category was cleared in this mutation.
 func (m *PropertyTypeMutation) CategoryCleared() bool {
-	return m.clearedFields[propertytype.FieldCategory]
+	_, ok := m.clearedFields[propertytype.FieldCategory]
+	return ok
 }
 
 // ResetCategory reset all changes of the category field.
@@ -16323,12 +16571,13 @@ func (m *PropertyTypeMutation) AddedIntVal() (r int, exists bool) {
 func (m *PropertyTypeMutation) ClearIntVal() {
 	m.int_val = nil
 	m.addint_val = nil
-	m.clearedFields[propertytype.FieldIntVal] = true
+	m.clearedFields[propertytype.FieldIntVal] = struct{}{}
 }
 
 // IntValCleared returns if the field int_val was cleared in this mutation.
 func (m *PropertyTypeMutation) IntValCleared() bool {
-	return m.clearedFields[propertytype.FieldIntVal]
+	_, ok := m.clearedFields[propertytype.FieldIntVal]
+	return ok
 }
 
 // ResetIntVal reset all changes of the int_val field.
@@ -16355,12 +16604,13 @@ func (m *PropertyTypeMutation) BoolVal() (r bool, exists bool) {
 // ClearBoolVal clears the value of bool_val.
 func (m *PropertyTypeMutation) ClearBoolVal() {
 	m.bool_val = nil
-	m.clearedFields[propertytype.FieldBoolVal] = true
+	m.clearedFields[propertytype.FieldBoolVal] = struct{}{}
 }
 
 // BoolValCleared returns if the field bool_val was cleared in this mutation.
 func (m *PropertyTypeMutation) BoolValCleared() bool {
-	return m.clearedFields[propertytype.FieldBoolVal]
+	_, ok := m.clearedFields[propertytype.FieldBoolVal]
+	return ok
 }
 
 // ResetBoolVal reset all changes of the bool_val field.
@@ -16406,12 +16656,13 @@ func (m *PropertyTypeMutation) AddedFloatVal() (r float64, exists bool) {
 func (m *PropertyTypeMutation) ClearFloatVal() {
 	m.float_val = nil
 	m.addfloat_val = nil
-	m.clearedFields[propertytype.FieldFloatVal] = true
+	m.clearedFields[propertytype.FieldFloatVal] = struct{}{}
 }
 
 // FloatValCleared returns if the field float_val was cleared in this mutation.
 func (m *PropertyTypeMutation) FloatValCleared() bool {
-	return m.clearedFields[propertytype.FieldFloatVal]
+	_, ok := m.clearedFields[propertytype.FieldFloatVal]
+	return ok
 }
 
 // ResetFloatVal reset all changes of the float_val field.
@@ -16458,12 +16709,13 @@ func (m *PropertyTypeMutation) AddedLatitudeVal() (r float64, exists bool) {
 func (m *PropertyTypeMutation) ClearLatitudeVal() {
 	m.latitude_val = nil
 	m.addlatitude_val = nil
-	m.clearedFields[propertytype.FieldLatitudeVal] = true
+	m.clearedFields[propertytype.FieldLatitudeVal] = struct{}{}
 }
 
 // LatitudeValCleared returns if the field latitude_val was cleared in this mutation.
 func (m *PropertyTypeMutation) LatitudeValCleared() bool {
-	return m.clearedFields[propertytype.FieldLatitudeVal]
+	_, ok := m.clearedFields[propertytype.FieldLatitudeVal]
+	return ok
 }
 
 // ResetLatitudeVal reset all changes of the latitude_val field.
@@ -16510,12 +16762,13 @@ func (m *PropertyTypeMutation) AddedLongitudeVal() (r float64, exists bool) {
 func (m *PropertyTypeMutation) ClearLongitudeVal() {
 	m.longitude_val = nil
 	m.addlongitude_val = nil
-	m.clearedFields[propertytype.FieldLongitudeVal] = true
+	m.clearedFields[propertytype.FieldLongitudeVal] = struct{}{}
 }
 
 // LongitudeValCleared returns if the field longitude_val was cleared in this mutation.
 func (m *PropertyTypeMutation) LongitudeValCleared() bool {
-	return m.clearedFields[propertytype.FieldLongitudeVal]
+	_, ok := m.clearedFields[propertytype.FieldLongitudeVal]
+	return ok
 }
 
 // ResetLongitudeVal reset all changes of the longitude_val field.
@@ -16542,12 +16795,13 @@ func (m *PropertyTypeMutation) StringVal() (r string, exists bool) {
 // ClearStringVal clears the value of string_val.
 func (m *PropertyTypeMutation) ClearStringVal() {
 	m.string_val = nil
-	m.clearedFields[propertytype.FieldStringVal] = true
+	m.clearedFields[propertytype.FieldStringVal] = struct{}{}
 }
 
 // StringValCleared returns if the field string_val was cleared in this mutation.
 func (m *PropertyTypeMutation) StringValCleared() bool {
-	return m.clearedFields[propertytype.FieldStringVal]
+	_, ok := m.clearedFields[propertytype.FieldStringVal]
+	return ok
 }
 
 // ResetStringVal reset all changes of the string_val field.
@@ -16593,12 +16847,13 @@ func (m *PropertyTypeMutation) AddedRangeFromVal() (r float64, exists bool) {
 func (m *PropertyTypeMutation) ClearRangeFromVal() {
 	m.range_from_val = nil
 	m.addrange_from_val = nil
-	m.clearedFields[propertytype.FieldRangeFromVal] = true
+	m.clearedFields[propertytype.FieldRangeFromVal] = struct{}{}
 }
 
 // RangeFromValCleared returns if the field range_from_val was cleared in this mutation.
 func (m *PropertyTypeMutation) RangeFromValCleared() bool {
-	return m.clearedFields[propertytype.FieldRangeFromVal]
+	_, ok := m.clearedFields[propertytype.FieldRangeFromVal]
+	return ok
 }
 
 // ResetRangeFromVal reset all changes of the range_from_val field.
@@ -16645,12 +16900,13 @@ func (m *PropertyTypeMutation) AddedRangeToVal() (r float64, exists bool) {
 func (m *PropertyTypeMutation) ClearRangeToVal() {
 	m.range_to_val = nil
 	m.addrange_to_val = nil
-	m.clearedFields[propertytype.FieldRangeToVal] = true
+	m.clearedFields[propertytype.FieldRangeToVal] = struct{}{}
 }
 
 // RangeToValCleared returns if the field range_to_val was cleared in this mutation.
 func (m *PropertyTypeMutation) RangeToValCleared() bool {
-	return m.clearedFields[propertytype.FieldRangeToVal]
+	_, ok := m.clearedFields[propertytype.FieldRangeToVal]
+	return ok
 }
 
 // ResetRangeToVal reset all changes of the range_to_val field.
@@ -17065,7 +17321,7 @@ func (m *PropertyTypeMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *PropertyTypeMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 19)
 	if m.create_time != nil {
 		fields = append(fields, propertytype.FieldCreateTime)
 	}
@@ -17077,6 +17333,9 @@ func (m *PropertyTypeMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, propertytype.FieldName)
+	}
+	if m.external_id != nil {
+		fields = append(fields, propertytype.FieldExternalID)
 	}
 	if m.index != nil {
 		fields = append(fields, propertytype.FieldIndex)
@@ -17136,6 +17395,8 @@ func (m *PropertyTypeMutation) Field(name string) (ent.Value, bool) {
 		return m.GetType()
 	case propertytype.FieldName:
 		return m.Name()
+	case propertytype.FieldExternalID:
+		return m.ExternalID()
 	case propertytype.FieldIndex:
 		return m.Index()
 	case propertytype.FieldCategory:
@@ -17200,6 +17461,13 @@ func (m *PropertyTypeMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case propertytype.FieldExternalID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetExternalID(v)
 		return nil
 	case propertytype.FieldIndex:
 		v, ok := value.(int)
@@ -17416,34 +17684,37 @@ func (m *PropertyTypeMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *PropertyTypeMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[propertytype.FieldIndex] {
+	if m.FieldCleared(propertytype.FieldExternalID) {
+		fields = append(fields, propertytype.FieldExternalID)
+	}
+	if m.FieldCleared(propertytype.FieldIndex) {
 		fields = append(fields, propertytype.FieldIndex)
 	}
-	if m.clearedFields[propertytype.FieldCategory] {
+	if m.FieldCleared(propertytype.FieldCategory) {
 		fields = append(fields, propertytype.FieldCategory)
 	}
-	if m.clearedFields[propertytype.FieldIntVal] {
+	if m.FieldCleared(propertytype.FieldIntVal) {
 		fields = append(fields, propertytype.FieldIntVal)
 	}
-	if m.clearedFields[propertytype.FieldBoolVal] {
+	if m.FieldCleared(propertytype.FieldBoolVal) {
 		fields = append(fields, propertytype.FieldBoolVal)
 	}
-	if m.clearedFields[propertytype.FieldFloatVal] {
+	if m.FieldCleared(propertytype.FieldFloatVal) {
 		fields = append(fields, propertytype.FieldFloatVal)
 	}
-	if m.clearedFields[propertytype.FieldLatitudeVal] {
+	if m.FieldCleared(propertytype.FieldLatitudeVal) {
 		fields = append(fields, propertytype.FieldLatitudeVal)
 	}
-	if m.clearedFields[propertytype.FieldLongitudeVal] {
+	if m.FieldCleared(propertytype.FieldLongitudeVal) {
 		fields = append(fields, propertytype.FieldLongitudeVal)
 	}
-	if m.clearedFields[propertytype.FieldStringVal] {
+	if m.FieldCleared(propertytype.FieldStringVal) {
 		fields = append(fields, propertytype.FieldStringVal)
 	}
-	if m.clearedFields[propertytype.FieldRangeFromVal] {
+	if m.FieldCleared(propertytype.FieldRangeFromVal) {
 		fields = append(fields, propertytype.FieldRangeFromVal)
 	}
-	if m.clearedFields[propertytype.FieldRangeToVal] {
+	if m.FieldCleared(propertytype.FieldRangeToVal) {
 		fields = append(fields, propertytype.FieldRangeToVal)
 	}
 	return fields
@@ -17452,13 +17723,17 @@ func (m *PropertyTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *PropertyTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *PropertyTypeMutation) ClearField(name string) error {
 	switch name {
+	case propertytype.FieldExternalID:
+		m.ClearExternalID()
+		return nil
 	case propertytype.FieldIndex:
 		m.ClearIndex()
 		return nil
@@ -17509,6 +17784,9 @@ func (m *PropertyTypeMutation) ResetField(name string) error {
 		return nil
 	case propertytype.FieldName:
 		m.ResetName()
+		return nil
+	case propertytype.FieldExternalID:
+		m.ResetExternalID()
 		return nil
 	case propertytype.FieldIndex:
 		m.ResetIndex()
@@ -17777,7 +18055,7 @@ type ReportFilterMutation struct {
 	name          *string
 	entity        *reportfilter.Entity
 	filters       *string
-	clearedFields map[string]bool
+	clearedFields map[string]struct{}
 }
 
 var _ ent.Mutation = (*ReportFilterMutation)(nil)
@@ -17788,7 +18066,7 @@ func newReportFilterMutation(c config, op Op) *ReportFilterMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeReportFilter,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -18042,7 +18320,8 @@ func (m *ReportFilterMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ReportFilterMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -18147,7 +18426,7 @@ type ServiceMutation struct {
 	name              *string
 	external_id       *string
 	status            *string
-	clearedFields     map[string]bool
+	clearedFields     map[string]struct{}
 	_type             *int
 	cleared_type      bool
 	downstream        map[int]struct{}
@@ -18172,7 +18451,7 @@ func newServiceMutation(c config, op Op) *ServiceMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeService,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -18278,12 +18557,13 @@ func (m *ServiceMutation) ExternalID() (r string, exists bool) {
 // ClearExternalID clears the value of external_id.
 func (m *ServiceMutation) ClearExternalID() {
 	m.external_id = nil
-	m.clearedFields[service.FieldExternalID] = true
+	m.clearedFields[service.FieldExternalID] = struct{}{}
 }
 
 // ExternalIDCleared returns if the field external_id was cleared in this mutation.
 func (m *ServiceMutation) ExternalIDCleared() bool {
-	return m.clearedFields[service.FieldExternalID]
+	_, ok := m.clearedFields[service.FieldExternalID]
+	return ok
 }
 
 // ResetExternalID reset all changes of the external_id field.
@@ -18724,7 +19004,7 @@ func (m *ServiceMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *ServiceMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[service.FieldExternalID] {
+	if m.FieldCleared(service.FieldExternalID) {
 		fields = append(fields, service.FieldExternalID)
 	}
 	return fields
@@ -18733,7 +19013,8 @@ func (m *ServiceMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ServiceMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -18987,7 +19268,7 @@ type ServiceEndpointMutation struct {
 	create_time    *time.Time
 	update_time    *time.Time
 	role           *string
-	clearedFields  map[string]bool
+	clearedFields  map[string]struct{}
 	port           *int
 	clearedport    bool
 	service        *int
@@ -19002,7 +19283,7 @@ func newServiceEndpointMutation(c config, op Op) *ServiceEndpointMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeServiceEndpoint,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -19272,7 +19553,8 @@ func (m *ServiceEndpointMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ServiceEndpointMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -19408,7 +19690,7 @@ type ServiceTypeMutation struct {
 	update_time           *time.Time
 	name                  *string
 	has_customer          *bool
-	clearedFields         map[string]bool
+	clearedFields         map[string]struct{}
 	services              map[int]struct{}
 	removedservices       map[int]struct{}
 	property_types        map[int]struct{}
@@ -19423,7 +19705,7 @@ func newServiceTypeMutation(c config, op Op) *ServiceTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeServiceType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -19730,7 +20012,8 @@ func (m *ServiceTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *ServiceTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -19877,7 +20160,7 @@ type SurveyMutation struct {
 	owner_name           *string
 	creation_timestamp   *time.Time
 	completion_timestamp *time.Time
-	clearedFields        map[string]bool
+	clearedFields        map[string]struct{}
 	location             *int
 	clearedlocation      bool
 	source_file          *int
@@ -19894,7 +20177,7 @@ func newSurveyMutation(c config, op Op) *SurveyMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeSurvey,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -20000,12 +20283,13 @@ func (m *SurveyMutation) OwnerName() (r string, exists bool) {
 // ClearOwnerName clears the value of owner_name.
 func (m *SurveyMutation) ClearOwnerName() {
 	m.owner_name = nil
-	m.clearedFields[survey.FieldOwnerName] = true
+	m.clearedFields[survey.FieldOwnerName] = struct{}{}
 }
 
 // OwnerNameCleared returns if the field owner_name was cleared in this mutation.
 func (m *SurveyMutation) OwnerNameCleared() bool {
-	return m.clearedFields[survey.FieldOwnerName]
+	_, ok := m.clearedFields[survey.FieldOwnerName]
+	return ok
 }
 
 // ResetOwnerName reset all changes of the owner_name field.
@@ -20031,12 +20315,13 @@ func (m *SurveyMutation) CreationTimestamp() (r time.Time, exists bool) {
 // ClearCreationTimestamp clears the value of creation_timestamp.
 func (m *SurveyMutation) ClearCreationTimestamp() {
 	m.creation_timestamp = nil
-	m.clearedFields[survey.FieldCreationTimestamp] = true
+	m.clearedFields[survey.FieldCreationTimestamp] = struct{}{}
 }
 
 // CreationTimestampCleared returns if the field creation_timestamp was cleared in this mutation.
 func (m *SurveyMutation) CreationTimestampCleared() bool {
-	return m.clearedFields[survey.FieldCreationTimestamp]
+	_, ok := m.clearedFields[survey.FieldCreationTimestamp]
+	return ok
 }
 
 // ResetCreationTimestamp reset all changes of the creation_timestamp field.
@@ -20318,10 +20603,10 @@ func (m *SurveyMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *SurveyMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[survey.FieldOwnerName] {
+	if m.FieldCleared(survey.FieldOwnerName) {
 		fields = append(fields, survey.FieldOwnerName)
 	}
-	if m.clearedFields[survey.FieldCreationTimestamp] {
+	if m.FieldCleared(survey.FieldCreationTimestamp) {
 		fields = append(fields, survey.FieldCreationTimestamp)
 	}
 	return fields
@@ -20330,7 +20615,8 @@ func (m *SurveyMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *SurveyMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -20529,7 +20815,7 @@ type SurveyCellScanMutation struct {
 	addlatitude             *float64
 	longitude               *float64
 	addlongitude            *float64
-	clearedFields           map[string]bool
+	clearedFields           map[string]struct{}
 	survey_question         *int
 	clearedsurvey_question  bool
 	location                *int
@@ -20544,7 +20830,7 @@ func newSurveyCellScanMutation(c config, op Op) *SurveyCellScanMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeSurveyCellScan,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -20689,12 +20975,13 @@ func (m *SurveyCellScanMutation) Timestamp() (r time.Time, exists bool) {
 // ClearTimestamp clears the value of timestamp.
 func (m *SurveyCellScanMutation) ClearTimestamp() {
 	m.timestamp = nil
-	m.clearedFields[surveycellscan.FieldTimestamp] = true
+	m.clearedFields[surveycellscan.FieldTimestamp] = struct{}{}
 }
 
 // TimestampCleared returns if the field timestamp was cleared in this mutation.
 func (m *SurveyCellScanMutation) TimestampCleared() bool {
-	return m.clearedFields[surveycellscan.FieldTimestamp]
+	_, ok := m.clearedFields[surveycellscan.FieldTimestamp]
+	return ok
 }
 
 // ResetTimestamp reset all changes of the timestamp field.
@@ -20720,12 +21007,13 @@ func (m *SurveyCellScanMutation) BaseStationID() (r string, exists bool) {
 // ClearBaseStationID clears the value of base_station_id.
 func (m *SurveyCellScanMutation) ClearBaseStationID() {
 	m.base_station_id = nil
-	m.clearedFields[surveycellscan.FieldBaseStationID] = true
+	m.clearedFields[surveycellscan.FieldBaseStationID] = struct{}{}
 }
 
 // BaseStationIDCleared returns if the field base_station_id was cleared in this mutation.
 func (m *SurveyCellScanMutation) BaseStationIDCleared() bool {
-	return m.clearedFields[surveycellscan.FieldBaseStationID]
+	_, ok := m.clearedFields[surveycellscan.FieldBaseStationID]
+	return ok
 }
 
 // ResetBaseStationID reset all changes of the base_station_id field.
@@ -20751,12 +21039,13 @@ func (m *SurveyCellScanMutation) NetworkID() (r string, exists bool) {
 // ClearNetworkID clears the value of network_id.
 func (m *SurveyCellScanMutation) ClearNetworkID() {
 	m.network_id = nil
-	m.clearedFields[surveycellscan.FieldNetworkID] = true
+	m.clearedFields[surveycellscan.FieldNetworkID] = struct{}{}
 }
 
 // NetworkIDCleared returns if the field network_id was cleared in this mutation.
 func (m *SurveyCellScanMutation) NetworkIDCleared() bool {
-	return m.clearedFields[surveycellscan.FieldNetworkID]
+	_, ok := m.clearedFields[surveycellscan.FieldNetworkID]
+	return ok
 }
 
 // ResetNetworkID reset all changes of the network_id field.
@@ -20782,12 +21071,13 @@ func (m *SurveyCellScanMutation) SystemID() (r string, exists bool) {
 // ClearSystemID clears the value of system_id.
 func (m *SurveyCellScanMutation) ClearSystemID() {
 	m.system_id = nil
-	m.clearedFields[surveycellscan.FieldSystemID] = true
+	m.clearedFields[surveycellscan.FieldSystemID] = struct{}{}
 }
 
 // SystemIDCleared returns if the field system_id was cleared in this mutation.
 func (m *SurveyCellScanMutation) SystemIDCleared() bool {
-	return m.clearedFields[surveycellscan.FieldSystemID]
+	_, ok := m.clearedFields[surveycellscan.FieldSystemID]
+	return ok
 }
 
 // ResetSystemID reset all changes of the system_id field.
@@ -20813,12 +21103,13 @@ func (m *SurveyCellScanMutation) CellID() (r string, exists bool) {
 // ClearCellID clears the value of cell_id.
 func (m *SurveyCellScanMutation) ClearCellID() {
 	m.cell_id = nil
-	m.clearedFields[surveycellscan.FieldCellID] = true
+	m.clearedFields[surveycellscan.FieldCellID] = struct{}{}
 }
 
 // CellIDCleared returns if the field cell_id was cleared in this mutation.
 func (m *SurveyCellScanMutation) CellIDCleared() bool {
-	return m.clearedFields[surveycellscan.FieldCellID]
+	_, ok := m.clearedFields[surveycellscan.FieldCellID]
+	return ok
 }
 
 // ResetCellID reset all changes of the cell_id field.
@@ -20844,12 +21135,13 @@ func (m *SurveyCellScanMutation) LocationAreaCode() (r string, exists bool) {
 // ClearLocationAreaCode clears the value of location_area_code.
 func (m *SurveyCellScanMutation) ClearLocationAreaCode() {
 	m.location_area_code = nil
-	m.clearedFields[surveycellscan.FieldLocationAreaCode] = true
+	m.clearedFields[surveycellscan.FieldLocationAreaCode] = struct{}{}
 }
 
 // LocationAreaCodeCleared returns if the field location_area_code was cleared in this mutation.
 func (m *SurveyCellScanMutation) LocationAreaCodeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldLocationAreaCode]
+	_, ok := m.clearedFields[surveycellscan.FieldLocationAreaCode]
+	return ok
 }
 
 // ResetLocationAreaCode reset all changes of the location_area_code field.
@@ -20875,12 +21167,13 @@ func (m *SurveyCellScanMutation) MobileCountryCode() (r string, exists bool) {
 // ClearMobileCountryCode clears the value of mobile_country_code.
 func (m *SurveyCellScanMutation) ClearMobileCountryCode() {
 	m.mobile_country_code = nil
-	m.clearedFields[surveycellscan.FieldMobileCountryCode] = true
+	m.clearedFields[surveycellscan.FieldMobileCountryCode] = struct{}{}
 }
 
 // MobileCountryCodeCleared returns if the field mobile_country_code was cleared in this mutation.
 func (m *SurveyCellScanMutation) MobileCountryCodeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldMobileCountryCode]
+	_, ok := m.clearedFields[surveycellscan.FieldMobileCountryCode]
+	return ok
 }
 
 // ResetMobileCountryCode reset all changes of the mobile_country_code field.
@@ -20906,12 +21199,13 @@ func (m *SurveyCellScanMutation) MobileNetworkCode() (r string, exists bool) {
 // ClearMobileNetworkCode clears the value of mobile_network_code.
 func (m *SurveyCellScanMutation) ClearMobileNetworkCode() {
 	m.mobile_network_code = nil
-	m.clearedFields[surveycellscan.FieldMobileNetworkCode] = true
+	m.clearedFields[surveycellscan.FieldMobileNetworkCode] = struct{}{}
 }
 
 // MobileNetworkCodeCleared returns if the field mobile_network_code was cleared in this mutation.
 func (m *SurveyCellScanMutation) MobileNetworkCodeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldMobileNetworkCode]
+	_, ok := m.clearedFields[surveycellscan.FieldMobileNetworkCode]
+	return ok
 }
 
 // ResetMobileNetworkCode reset all changes of the mobile_network_code field.
@@ -20937,12 +21231,13 @@ func (m *SurveyCellScanMutation) PrimaryScramblingCode() (r string, exists bool)
 // ClearPrimaryScramblingCode clears the value of primary_scrambling_code.
 func (m *SurveyCellScanMutation) ClearPrimaryScramblingCode() {
 	m.primary_scrambling_code = nil
-	m.clearedFields[surveycellscan.FieldPrimaryScramblingCode] = true
+	m.clearedFields[surveycellscan.FieldPrimaryScramblingCode] = struct{}{}
 }
 
 // PrimaryScramblingCodeCleared returns if the field primary_scrambling_code was cleared in this mutation.
 func (m *SurveyCellScanMutation) PrimaryScramblingCodeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldPrimaryScramblingCode]
+	_, ok := m.clearedFields[surveycellscan.FieldPrimaryScramblingCode]
+	return ok
 }
 
 // ResetPrimaryScramblingCode reset all changes of the primary_scrambling_code field.
@@ -20968,12 +21263,13 @@ func (m *SurveyCellScanMutation) Operator() (r string, exists bool) {
 // ClearOperator clears the value of operator.
 func (m *SurveyCellScanMutation) ClearOperator() {
 	m.operator = nil
-	m.clearedFields[surveycellscan.FieldOperator] = true
+	m.clearedFields[surveycellscan.FieldOperator] = struct{}{}
 }
 
 // OperatorCleared returns if the field operator was cleared in this mutation.
 func (m *SurveyCellScanMutation) OperatorCleared() bool {
-	return m.clearedFields[surveycellscan.FieldOperator]
+	_, ok := m.clearedFields[surveycellscan.FieldOperator]
+	return ok
 }
 
 // ResetOperator reset all changes of the operator field.
@@ -21019,12 +21315,13 @@ func (m *SurveyCellScanMutation) AddedArfcn() (r int, exists bool) {
 func (m *SurveyCellScanMutation) ClearArfcn() {
 	m.arfcn = nil
 	m.addarfcn = nil
-	m.clearedFields[surveycellscan.FieldArfcn] = true
+	m.clearedFields[surveycellscan.FieldArfcn] = struct{}{}
 }
 
 // ArfcnCleared returns if the field arfcn was cleared in this mutation.
 func (m *SurveyCellScanMutation) ArfcnCleared() bool {
-	return m.clearedFields[surveycellscan.FieldArfcn]
+	_, ok := m.clearedFields[surveycellscan.FieldArfcn]
+	return ok
 }
 
 // ResetArfcn reset all changes of the arfcn field.
@@ -21051,12 +21348,13 @@ func (m *SurveyCellScanMutation) PhysicalCellID() (r string, exists bool) {
 // ClearPhysicalCellID clears the value of physical_cell_id.
 func (m *SurveyCellScanMutation) ClearPhysicalCellID() {
 	m.physical_cell_id = nil
-	m.clearedFields[surveycellscan.FieldPhysicalCellID] = true
+	m.clearedFields[surveycellscan.FieldPhysicalCellID] = struct{}{}
 }
 
 // PhysicalCellIDCleared returns if the field physical_cell_id was cleared in this mutation.
 func (m *SurveyCellScanMutation) PhysicalCellIDCleared() bool {
-	return m.clearedFields[surveycellscan.FieldPhysicalCellID]
+	_, ok := m.clearedFields[surveycellscan.FieldPhysicalCellID]
+	return ok
 }
 
 // ResetPhysicalCellID reset all changes of the physical_cell_id field.
@@ -21082,12 +21380,13 @@ func (m *SurveyCellScanMutation) TrackingAreaCode() (r string, exists bool) {
 // ClearTrackingAreaCode clears the value of tracking_area_code.
 func (m *SurveyCellScanMutation) ClearTrackingAreaCode() {
 	m.tracking_area_code = nil
-	m.clearedFields[surveycellscan.FieldTrackingAreaCode] = true
+	m.clearedFields[surveycellscan.FieldTrackingAreaCode] = struct{}{}
 }
 
 // TrackingAreaCodeCleared returns if the field tracking_area_code was cleared in this mutation.
 func (m *SurveyCellScanMutation) TrackingAreaCodeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldTrackingAreaCode]
+	_, ok := m.clearedFields[surveycellscan.FieldTrackingAreaCode]
+	return ok
 }
 
 // ResetTrackingAreaCode reset all changes of the tracking_area_code field.
@@ -21133,12 +21432,13 @@ func (m *SurveyCellScanMutation) AddedTimingAdvance() (r int, exists bool) {
 func (m *SurveyCellScanMutation) ClearTimingAdvance() {
 	m.timing_advance = nil
 	m.addtiming_advance = nil
-	m.clearedFields[surveycellscan.FieldTimingAdvance] = true
+	m.clearedFields[surveycellscan.FieldTimingAdvance] = struct{}{}
 }
 
 // TimingAdvanceCleared returns if the field timing_advance was cleared in this mutation.
 func (m *SurveyCellScanMutation) TimingAdvanceCleared() bool {
-	return m.clearedFields[surveycellscan.FieldTimingAdvance]
+	_, ok := m.clearedFields[surveycellscan.FieldTimingAdvance]
+	return ok
 }
 
 // ResetTimingAdvance reset all changes of the timing_advance field.
@@ -21185,12 +21485,13 @@ func (m *SurveyCellScanMutation) AddedEarfcn() (r int, exists bool) {
 func (m *SurveyCellScanMutation) ClearEarfcn() {
 	m.earfcn = nil
 	m.addearfcn = nil
-	m.clearedFields[surveycellscan.FieldEarfcn] = true
+	m.clearedFields[surveycellscan.FieldEarfcn] = struct{}{}
 }
 
 // EarfcnCleared returns if the field earfcn was cleared in this mutation.
 func (m *SurveyCellScanMutation) EarfcnCleared() bool {
-	return m.clearedFields[surveycellscan.FieldEarfcn]
+	_, ok := m.clearedFields[surveycellscan.FieldEarfcn]
+	return ok
 }
 
 // ResetEarfcn reset all changes of the earfcn field.
@@ -21237,12 +21538,13 @@ func (m *SurveyCellScanMutation) AddedUarfcn() (r int, exists bool) {
 func (m *SurveyCellScanMutation) ClearUarfcn() {
 	m.uarfcn = nil
 	m.adduarfcn = nil
-	m.clearedFields[surveycellscan.FieldUarfcn] = true
+	m.clearedFields[surveycellscan.FieldUarfcn] = struct{}{}
 }
 
 // UarfcnCleared returns if the field uarfcn was cleared in this mutation.
 func (m *SurveyCellScanMutation) UarfcnCleared() bool {
-	return m.clearedFields[surveycellscan.FieldUarfcn]
+	_, ok := m.clearedFields[surveycellscan.FieldUarfcn]
+	return ok
 }
 
 // ResetUarfcn reset all changes of the uarfcn field.
@@ -21289,12 +21591,13 @@ func (m *SurveyCellScanMutation) AddedLatitude() (r float64, exists bool) {
 func (m *SurveyCellScanMutation) ClearLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
-	m.clearedFields[surveycellscan.FieldLatitude] = true
+	m.clearedFields[surveycellscan.FieldLatitude] = struct{}{}
 }
 
 // LatitudeCleared returns if the field latitude was cleared in this mutation.
 func (m *SurveyCellScanMutation) LatitudeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldLatitude]
+	_, ok := m.clearedFields[surveycellscan.FieldLatitude]
+	return ok
 }
 
 // ResetLatitude reset all changes of the latitude field.
@@ -21341,12 +21644,13 @@ func (m *SurveyCellScanMutation) AddedLongitude() (r float64, exists bool) {
 func (m *SurveyCellScanMutation) ClearLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
-	m.clearedFields[surveycellscan.FieldLongitude] = true
+	m.clearedFields[surveycellscan.FieldLongitude] = struct{}{}
 }
 
 // LongitudeCleared returns if the field longitude was cleared in this mutation.
 func (m *SurveyCellScanMutation) LongitudeCleared() bool {
-	return m.clearedFields[surveycellscan.FieldLongitude]
+	_, ok := m.clearedFields[surveycellscan.FieldLongitude]
+	return ok
 }
 
 // ResetLongitude reset all changes of the longitude field.
@@ -21847,58 +22151,58 @@ func (m *SurveyCellScanMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *SurveyCellScanMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[surveycellscan.FieldTimestamp] {
+	if m.FieldCleared(surveycellscan.FieldTimestamp) {
 		fields = append(fields, surveycellscan.FieldTimestamp)
 	}
-	if m.clearedFields[surveycellscan.FieldBaseStationID] {
+	if m.FieldCleared(surveycellscan.FieldBaseStationID) {
 		fields = append(fields, surveycellscan.FieldBaseStationID)
 	}
-	if m.clearedFields[surveycellscan.FieldNetworkID] {
+	if m.FieldCleared(surveycellscan.FieldNetworkID) {
 		fields = append(fields, surveycellscan.FieldNetworkID)
 	}
-	if m.clearedFields[surveycellscan.FieldSystemID] {
+	if m.FieldCleared(surveycellscan.FieldSystemID) {
 		fields = append(fields, surveycellscan.FieldSystemID)
 	}
-	if m.clearedFields[surveycellscan.FieldCellID] {
+	if m.FieldCleared(surveycellscan.FieldCellID) {
 		fields = append(fields, surveycellscan.FieldCellID)
 	}
-	if m.clearedFields[surveycellscan.FieldLocationAreaCode] {
+	if m.FieldCleared(surveycellscan.FieldLocationAreaCode) {
 		fields = append(fields, surveycellscan.FieldLocationAreaCode)
 	}
-	if m.clearedFields[surveycellscan.FieldMobileCountryCode] {
+	if m.FieldCleared(surveycellscan.FieldMobileCountryCode) {
 		fields = append(fields, surveycellscan.FieldMobileCountryCode)
 	}
-	if m.clearedFields[surveycellscan.FieldMobileNetworkCode] {
+	if m.FieldCleared(surveycellscan.FieldMobileNetworkCode) {
 		fields = append(fields, surveycellscan.FieldMobileNetworkCode)
 	}
-	if m.clearedFields[surveycellscan.FieldPrimaryScramblingCode] {
+	if m.FieldCleared(surveycellscan.FieldPrimaryScramblingCode) {
 		fields = append(fields, surveycellscan.FieldPrimaryScramblingCode)
 	}
-	if m.clearedFields[surveycellscan.FieldOperator] {
+	if m.FieldCleared(surveycellscan.FieldOperator) {
 		fields = append(fields, surveycellscan.FieldOperator)
 	}
-	if m.clearedFields[surveycellscan.FieldArfcn] {
+	if m.FieldCleared(surveycellscan.FieldArfcn) {
 		fields = append(fields, surveycellscan.FieldArfcn)
 	}
-	if m.clearedFields[surveycellscan.FieldPhysicalCellID] {
+	if m.FieldCleared(surveycellscan.FieldPhysicalCellID) {
 		fields = append(fields, surveycellscan.FieldPhysicalCellID)
 	}
-	if m.clearedFields[surveycellscan.FieldTrackingAreaCode] {
+	if m.FieldCleared(surveycellscan.FieldTrackingAreaCode) {
 		fields = append(fields, surveycellscan.FieldTrackingAreaCode)
 	}
-	if m.clearedFields[surveycellscan.FieldTimingAdvance] {
+	if m.FieldCleared(surveycellscan.FieldTimingAdvance) {
 		fields = append(fields, surveycellscan.FieldTimingAdvance)
 	}
-	if m.clearedFields[surveycellscan.FieldEarfcn] {
+	if m.FieldCleared(surveycellscan.FieldEarfcn) {
 		fields = append(fields, surveycellscan.FieldEarfcn)
 	}
-	if m.clearedFields[surveycellscan.FieldUarfcn] {
+	if m.FieldCleared(surveycellscan.FieldUarfcn) {
 		fields = append(fields, surveycellscan.FieldUarfcn)
 	}
-	if m.clearedFields[surveycellscan.FieldLatitude] {
+	if m.FieldCleared(surveycellscan.FieldLatitude) {
 		fields = append(fields, surveycellscan.FieldLatitude)
 	}
-	if m.clearedFields[surveycellscan.FieldLongitude] {
+	if m.FieldCleared(surveycellscan.FieldLongitude) {
 		fields = append(fields, surveycellscan.FieldLongitude)
 	}
 	return fields
@@ -21907,7 +22211,8 @@ func (m *SurveyCellScanMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *SurveyCellScanMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -22180,7 +22485,7 @@ type SurveyQuestionMutation struct {
 	int_data             *int
 	addint_data          *int
 	date_data            *time.Time
-	clearedFields        map[string]bool
+	clearedFields        map[string]struct{}
 	survey               *int
 	clearedsurvey        bool
 	wifi_scan            map[int]struct{}
@@ -22189,6 +22494,8 @@ type SurveyQuestionMutation struct {
 	removedcell_scan     map[int]struct{}
 	photo_data           map[int]struct{}
 	removedphoto_data    map[int]struct{}
+	images               map[int]struct{}
+	removedimages        map[int]struct{}
 }
 
 var _ ent.Mutation = (*SurveyQuestionMutation)(nil)
@@ -22199,7 +22506,7 @@ func newSurveyQuestionMutation(c config, op Op) *SurveyQuestionMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeSurveyQuestion,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -22286,12 +22593,13 @@ func (m *SurveyQuestionMutation) FormName() (r string, exists bool) {
 // ClearFormName clears the value of form_name.
 func (m *SurveyQuestionMutation) ClearFormName() {
 	m.form_name = nil
-	m.clearedFields[surveyquestion.FieldFormName] = true
+	m.clearedFields[surveyquestion.FieldFormName] = struct{}{}
 }
 
 // FormNameCleared returns if the field form_name was cleared in this mutation.
 func (m *SurveyQuestionMutation) FormNameCleared() bool {
-	return m.clearedFields[surveyquestion.FieldFormName]
+	_, ok := m.clearedFields[surveyquestion.FieldFormName]
+	return ok
 }
 
 // ResetFormName reset all changes of the form_name field.
@@ -22317,12 +22625,13 @@ func (m *SurveyQuestionMutation) FormDescription() (r string, exists bool) {
 // ClearFormDescription clears the value of form_description.
 func (m *SurveyQuestionMutation) ClearFormDescription() {
 	m.form_description = nil
-	m.clearedFields[surveyquestion.FieldFormDescription] = true
+	m.clearedFields[surveyquestion.FieldFormDescription] = struct{}{}
 }
 
 // FormDescriptionCleared returns if the field form_description was cleared in this mutation.
 func (m *SurveyQuestionMutation) FormDescriptionCleared() bool {
-	return m.clearedFields[surveyquestion.FieldFormDescription]
+	_, ok := m.clearedFields[surveyquestion.FieldFormDescription]
+	return ok
 }
 
 // ResetFormDescription reset all changes of the form_description field.
@@ -22387,12 +22696,13 @@ func (m *SurveyQuestionMutation) QuestionType() (r string, exists bool) {
 // ClearQuestionType clears the value of question_type.
 func (m *SurveyQuestionMutation) ClearQuestionType() {
 	m.question_type = nil
-	m.clearedFields[surveyquestion.FieldQuestionType] = true
+	m.clearedFields[surveyquestion.FieldQuestionType] = struct{}{}
 }
 
 // QuestionTypeCleared returns if the field question_type was cleared in this mutation.
 func (m *SurveyQuestionMutation) QuestionTypeCleared() bool {
-	return m.clearedFields[surveyquestion.FieldQuestionType]
+	_, ok := m.clearedFields[surveyquestion.FieldQuestionType]
+	return ok
 }
 
 // ResetQuestionType reset all changes of the question_type field.
@@ -22418,12 +22728,13 @@ func (m *SurveyQuestionMutation) QuestionFormat() (r string, exists bool) {
 // ClearQuestionFormat clears the value of question_format.
 func (m *SurveyQuestionMutation) ClearQuestionFormat() {
 	m.question_format = nil
-	m.clearedFields[surveyquestion.FieldQuestionFormat] = true
+	m.clearedFields[surveyquestion.FieldQuestionFormat] = struct{}{}
 }
 
 // QuestionFormatCleared returns if the field question_format was cleared in this mutation.
 func (m *SurveyQuestionMutation) QuestionFormatCleared() bool {
-	return m.clearedFields[surveyquestion.FieldQuestionFormat]
+	_, ok := m.clearedFields[surveyquestion.FieldQuestionFormat]
+	return ok
 }
 
 // ResetQuestionFormat reset all changes of the question_format field.
@@ -22449,12 +22760,13 @@ func (m *SurveyQuestionMutation) QuestionText() (r string, exists bool) {
 // ClearQuestionText clears the value of question_text.
 func (m *SurveyQuestionMutation) ClearQuestionText() {
 	m.question_text = nil
-	m.clearedFields[surveyquestion.FieldQuestionText] = true
+	m.clearedFields[surveyquestion.FieldQuestionText] = struct{}{}
 }
 
 // QuestionTextCleared returns if the field question_text was cleared in this mutation.
 func (m *SurveyQuestionMutation) QuestionTextCleared() bool {
-	return m.clearedFields[surveyquestion.FieldQuestionText]
+	_, ok := m.clearedFields[surveyquestion.FieldQuestionText]
+	return ok
 }
 
 // ResetQuestionText reset all changes of the question_text field.
@@ -22519,12 +22831,13 @@ func (m *SurveyQuestionMutation) BoolData() (r bool, exists bool) {
 // ClearBoolData clears the value of bool_data.
 func (m *SurveyQuestionMutation) ClearBoolData() {
 	m.bool_data = nil
-	m.clearedFields[surveyquestion.FieldBoolData] = true
+	m.clearedFields[surveyquestion.FieldBoolData] = struct{}{}
 }
 
 // BoolDataCleared returns if the field bool_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) BoolDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldBoolData]
+	_, ok := m.clearedFields[surveyquestion.FieldBoolData]
+	return ok
 }
 
 // ResetBoolData reset all changes of the bool_data field.
@@ -22550,12 +22863,13 @@ func (m *SurveyQuestionMutation) EmailData() (r string, exists bool) {
 // ClearEmailData clears the value of email_data.
 func (m *SurveyQuestionMutation) ClearEmailData() {
 	m.email_data = nil
-	m.clearedFields[surveyquestion.FieldEmailData] = true
+	m.clearedFields[surveyquestion.FieldEmailData] = struct{}{}
 }
 
 // EmailDataCleared returns if the field email_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) EmailDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldEmailData]
+	_, ok := m.clearedFields[surveyquestion.FieldEmailData]
+	return ok
 }
 
 // ResetEmailData reset all changes of the email_data field.
@@ -22601,12 +22915,13 @@ func (m *SurveyQuestionMutation) AddedLatitude() (r float64, exists bool) {
 func (m *SurveyQuestionMutation) ClearLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
-	m.clearedFields[surveyquestion.FieldLatitude] = true
+	m.clearedFields[surveyquestion.FieldLatitude] = struct{}{}
 }
 
 // LatitudeCleared returns if the field latitude was cleared in this mutation.
 func (m *SurveyQuestionMutation) LatitudeCleared() bool {
-	return m.clearedFields[surveyquestion.FieldLatitude]
+	_, ok := m.clearedFields[surveyquestion.FieldLatitude]
+	return ok
 }
 
 // ResetLatitude reset all changes of the latitude field.
@@ -22653,12 +22968,13 @@ func (m *SurveyQuestionMutation) AddedLongitude() (r float64, exists bool) {
 func (m *SurveyQuestionMutation) ClearLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
-	m.clearedFields[surveyquestion.FieldLongitude] = true
+	m.clearedFields[surveyquestion.FieldLongitude] = struct{}{}
 }
 
 // LongitudeCleared returns if the field longitude was cleared in this mutation.
 func (m *SurveyQuestionMutation) LongitudeCleared() bool {
-	return m.clearedFields[surveyquestion.FieldLongitude]
+	_, ok := m.clearedFields[surveyquestion.FieldLongitude]
+	return ok
 }
 
 // ResetLongitude reset all changes of the longitude field.
@@ -22705,12 +23021,13 @@ func (m *SurveyQuestionMutation) AddedLocationAccuracy() (r float64, exists bool
 func (m *SurveyQuestionMutation) ClearLocationAccuracy() {
 	m.location_accuracy = nil
 	m.addlocation_accuracy = nil
-	m.clearedFields[surveyquestion.FieldLocationAccuracy] = true
+	m.clearedFields[surveyquestion.FieldLocationAccuracy] = struct{}{}
 }
 
 // LocationAccuracyCleared returns if the field location_accuracy was cleared in this mutation.
 func (m *SurveyQuestionMutation) LocationAccuracyCleared() bool {
-	return m.clearedFields[surveyquestion.FieldLocationAccuracy]
+	_, ok := m.clearedFields[surveyquestion.FieldLocationAccuracy]
+	return ok
 }
 
 // ResetLocationAccuracy reset all changes of the location_accuracy field.
@@ -22757,12 +23074,13 @@ func (m *SurveyQuestionMutation) AddedAltitude() (r float64, exists bool) {
 func (m *SurveyQuestionMutation) ClearAltitude() {
 	m.altitude = nil
 	m.addaltitude = nil
-	m.clearedFields[surveyquestion.FieldAltitude] = true
+	m.clearedFields[surveyquestion.FieldAltitude] = struct{}{}
 }
 
 // AltitudeCleared returns if the field altitude was cleared in this mutation.
 func (m *SurveyQuestionMutation) AltitudeCleared() bool {
-	return m.clearedFields[surveyquestion.FieldAltitude]
+	_, ok := m.clearedFields[surveyquestion.FieldAltitude]
+	return ok
 }
 
 // ResetAltitude reset all changes of the altitude field.
@@ -22789,12 +23107,13 @@ func (m *SurveyQuestionMutation) PhoneData() (r string, exists bool) {
 // ClearPhoneData clears the value of phone_data.
 func (m *SurveyQuestionMutation) ClearPhoneData() {
 	m.phone_data = nil
-	m.clearedFields[surveyquestion.FieldPhoneData] = true
+	m.clearedFields[surveyquestion.FieldPhoneData] = struct{}{}
 }
 
 // PhoneDataCleared returns if the field phone_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) PhoneDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldPhoneData]
+	_, ok := m.clearedFields[surveyquestion.FieldPhoneData]
+	return ok
 }
 
 // ResetPhoneData reset all changes of the phone_data field.
@@ -22820,12 +23139,13 @@ func (m *SurveyQuestionMutation) TextData() (r string, exists bool) {
 // ClearTextData clears the value of text_data.
 func (m *SurveyQuestionMutation) ClearTextData() {
 	m.text_data = nil
-	m.clearedFields[surveyquestion.FieldTextData] = true
+	m.clearedFields[surveyquestion.FieldTextData] = struct{}{}
 }
 
 // TextDataCleared returns if the field text_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) TextDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldTextData]
+	_, ok := m.clearedFields[surveyquestion.FieldTextData]
+	return ok
 }
 
 // ResetTextData reset all changes of the text_data field.
@@ -22871,12 +23191,13 @@ func (m *SurveyQuestionMutation) AddedFloatData() (r float64, exists bool) {
 func (m *SurveyQuestionMutation) ClearFloatData() {
 	m.float_data = nil
 	m.addfloat_data = nil
-	m.clearedFields[surveyquestion.FieldFloatData] = true
+	m.clearedFields[surveyquestion.FieldFloatData] = struct{}{}
 }
 
 // FloatDataCleared returns if the field float_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) FloatDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldFloatData]
+	_, ok := m.clearedFields[surveyquestion.FieldFloatData]
+	return ok
 }
 
 // ResetFloatData reset all changes of the float_data field.
@@ -22923,12 +23244,13 @@ func (m *SurveyQuestionMutation) AddedIntData() (r int, exists bool) {
 func (m *SurveyQuestionMutation) ClearIntData() {
 	m.int_data = nil
 	m.addint_data = nil
-	m.clearedFields[surveyquestion.FieldIntData] = true
+	m.clearedFields[surveyquestion.FieldIntData] = struct{}{}
 }
 
 // IntDataCleared returns if the field int_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) IntDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldIntData]
+	_, ok := m.clearedFields[surveyquestion.FieldIntData]
+	return ok
 }
 
 // ResetIntData reset all changes of the int_data field.
@@ -22955,12 +23277,13 @@ func (m *SurveyQuestionMutation) DateData() (r time.Time, exists bool) {
 // ClearDateData clears the value of date_data.
 func (m *SurveyQuestionMutation) ClearDateData() {
 	m.date_data = nil
-	m.clearedFields[surveyquestion.FieldDateData] = true
+	m.clearedFields[surveyquestion.FieldDateData] = struct{}{}
 }
 
 // DateDataCleared returns if the field date_data was cleared in this mutation.
 func (m *SurveyQuestionMutation) DateDataCleared() bool {
-	return m.clearedFields[surveyquestion.FieldDateData]
+	_, ok := m.clearedFields[surveyquestion.FieldDateData]
+	return ok
 }
 
 // ResetDateData reset all changes of the date_data field.
@@ -23132,6 +23455,48 @@ func (m *SurveyQuestionMutation) PhotoDataIDs() (ids []int) {
 func (m *SurveyQuestionMutation) ResetPhotoData() {
 	m.photo_data = nil
 	m.removedphoto_data = nil
+}
+
+// AddImageIDs adds the images edge to File by ids.
+func (m *SurveyQuestionMutation) AddImageIDs(ids ...int) {
+	if m.images == nil {
+		m.images = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.images[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveImageIDs removes the images edge to File by ids.
+func (m *SurveyQuestionMutation) RemoveImageIDs(ids ...int) {
+	if m.removedimages == nil {
+		m.removedimages = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedimages[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedImages returns the removed ids of images.
+func (m *SurveyQuestionMutation) RemovedImagesIDs() (ids []int) {
+	for id := range m.removedimages {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ImagesIDs returns the images ids in the mutation.
+func (m *SurveyQuestionMutation) ImagesIDs() (ids []int) {
+	for id := range m.images {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetImages reset all changes of the images edge.
+func (m *SurveyQuestionMutation) ResetImages() {
+	m.images = nil
+	m.removedimages = nil
 }
 
 // Op returns the operation name.
@@ -23535,52 +23900,52 @@ func (m *SurveyQuestionMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *SurveyQuestionMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[surveyquestion.FieldFormName] {
+	if m.FieldCleared(surveyquestion.FieldFormName) {
 		fields = append(fields, surveyquestion.FieldFormName)
 	}
-	if m.clearedFields[surveyquestion.FieldFormDescription] {
+	if m.FieldCleared(surveyquestion.FieldFormDescription) {
 		fields = append(fields, surveyquestion.FieldFormDescription)
 	}
-	if m.clearedFields[surveyquestion.FieldQuestionType] {
+	if m.FieldCleared(surveyquestion.FieldQuestionType) {
 		fields = append(fields, surveyquestion.FieldQuestionType)
 	}
-	if m.clearedFields[surveyquestion.FieldQuestionFormat] {
+	if m.FieldCleared(surveyquestion.FieldQuestionFormat) {
 		fields = append(fields, surveyquestion.FieldQuestionFormat)
 	}
-	if m.clearedFields[surveyquestion.FieldQuestionText] {
+	if m.FieldCleared(surveyquestion.FieldQuestionText) {
 		fields = append(fields, surveyquestion.FieldQuestionText)
 	}
-	if m.clearedFields[surveyquestion.FieldBoolData] {
+	if m.FieldCleared(surveyquestion.FieldBoolData) {
 		fields = append(fields, surveyquestion.FieldBoolData)
 	}
-	if m.clearedFields[surveyquestion.FieldEmailData] {
+	if m.FieldCleared(surveyquestion.FieldEmailData) {
 		fields = append(fields, surveyquestion.FieldEmailData)
 	}
-	if m.clearedFields[surveyquestion.FieldLatitude] {
+	if m.FieldCleared(surveyquestion.FieldLatitude) {
 		fields = append(fields, surveyquestion.FieldLatitude)
 	}
-	if m.clearedFields[surveyquestion.FieldLongitude] {
+	if m.FieldCleared(surveyquestion.FieldLongitude) {
 		fields = append(fields, surveyquestion.FieldLongitude)
 	}
-	if m.clearedFields[surveyquestion.FieldLocationAccuracy] {
+	if m.FieldCleared(surveyquestion.FieldLocationAccuracy) {
 		fields = append(fields, surveyquestion.FieldLocationAccuracy)
 	}
-	if m.clearedFields[surveyquestion.FieldAltitude] {
+	if m.FieldCleared(surveyquestion.FieldAltitude) {
 		fields = append(fields, surveyquestion.FieldAltitude)
 	}
-	if m.clearedFields[surveyquestion.FieldPhoneData] {
+	if m.FieldCleared(surveyquestion.FieldPhoneData) {
 		fields = append(fields, surveyquestion.FieldPhoneData)
 	}
-	if m.clearedFields[surveyquestion.FieldTextData] {
+	if m.FieldCleared(surveyquestion.FieldTextData) {
 		fields = append(fields, surveyquestion.FieldTextData)
 	}
-	if m.clearedFields[surveyquestion.FieldFloatData] {
+	if m.FieldCleared(surveyquestion.FieldFloatData) {
 		fields = append(fields, surveyquestion.FieldFloatData)
 	}
-	if m.clearedFields[surveyquestion.FieldIntData] {
+	if m.FieldCleared(surveyquestion.FieldIntData) {
 		fields = append(fields, surveyquestion.FieldIntData)
 	}
-	if m.clearedFields[surveyquestion.FieldDateData] {
+	if m.FieldCleared(surveyquestion.FieldDateData) {
 		fields = append(fields, surveyquestion.FieldDateData)
 	}
 	return fields
@@ -23589,7 +23954,8 @@ func (m *SurveyQuestionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *SurveyQuestionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -23720,7 +24086,7 @@ func (m *SurveyQuestionMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *SurveyQuestionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.survey != nil {
 		edges = append(edges, surveyquestion.EdgeSurvey)
 	}
@@ -23732,6 +24098,9 @@ func (m *SurveyQuestionMutation) AddedEdges() []string {
 	}
 	if m.photo_data != nil {
 		edges = append(edges, surveyquestion.EdgePhotoData)
+	}
+	if m.images != nil {
+		edges = append(edges, surveyquestion.EdgeImages)
 	}
 	return edges
 }
@@ -23762,6 +24131,12 @@ func (m *SurveyQuestionMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case surveyquestion.EdgeImages:
+		ids := make([]ent.Value, 0, len(m.images))
+		for id := range m.images {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -23769,7 +24144,7 @@ func (m *SurveyQuestionMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *SurveyQuestionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removedwifi_scan != nil {
 		edges = append(edges, surveyquestion.EdgeWifiScan)
 	}
@@ -23778,6 +24153,9 @@ func (m *SurveyQuestionMutation) RemovedEdges() []string {
 	}
 	if m.removedphoto_data != nil {
 		edges = append(edges, surveyquestion.EdgePhotoData)
+	}
+	if m.removedimages != nil {
+		edges = append(edges, surveyquestion.EdgeImages)
 	}
 	return edges
 }
@@ -23804,6 +24182,12 @@ func (m *SurveyQuestionMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case surveyquestion.EdgeImages:
+		ids := make([]ent.Value, 0, len(m.removedimages))
+		for id := range m.removedimages {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -23811,7 +24195,7 @@ func (m *SurveyQuestionMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *SurveyQuestionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.clearedsurvey {
 		edges = append(edges, surveyquestion.EdgeSurvey)
 	}
@@ -23856,6 +24240,9 @@ func (m *SurveyQuestionMutation) ResetEdge(name string) error {
 	case surveyquestion.EdgePhotoData:
 		m.ResetPhotoData()
 		return nil
+	case surveyquestion.EdgeImages:
+		m.ResetImages()
+		return nil
 	}
 	return fmt.Errorf("unknown SurveyQuestion edge %s", name)
 }
@@ -23871,7 +24258,7 @@ type SurveyTemplateCategoryMutation struct {
 	update_time                      *time.Time
 	category_title                   *string
 	category_description             *string
-	clearedFields                    map[string]bool
+	clearedFields                    map[string]struct{}
 	survey_template_questions        map[int]struct{}
 	removedsurvey_template_questions map[int]struct{}
 }
@@ -23884,7 +24271,7 @@ func newSurveyTemplateCategoryMutation(c config, op Op) *SurveyTemplateCategoryM
 		config:        c,
 		op:            op,
 		typ:           TypeSurveyTemplateCategory,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -24149,7 +24536,8 @@ func (m *SurveyTemplateCategoryMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *SurveyTemplateCategoryMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -24276,7 +24664,7 @@ type SurveyTemplateQuestionMutation struct {
 	question_type        *string
 	index                *int
 	addindex             *int
-	clearedFields        map[string]bool
+	clearedFields        map[string]struct{}
 	category             *int
 	clearedcategory      bool
 }
@@ -24289,7 +24677,7 @@ func newSurveyTemplateQuestionMutation(c config, op Op) *SurveyTemplateQuestionM
 		config:        c,
 		op:            op,
 		typ:           TypeSurveyTemplateQuestion,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -24648,7 +25036,8 @@ func (m *SurveyTemplateQuestionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *SurveyTemplateQuestionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -24790,7 +25179,7 @@ type SurveyWiFiScanMutation struct {
 	addlatitude            *float64
 	longitude              *float64
 	addlongitude           *float64
-	clearedFields          map[string]bool
+	clearedFields          map[string]struct{}
 	survey_question        *int
 	clearedsurvey_question bool
 	location               *int
@@ -24805,7 +25194,7 @@ func newSurveyWiFiScanMutation(c config, op Op) *SurveyWiFiScanMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeSurveyWiFiScan,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -24892,12 +25281,13 @@ func (m *SurveyWiFiScanMutation) Ssid() (r string, exists bool) {
 // ClearSsid clears the value of ssid.
 func (m *SurveyWiFiScanMutation) ClearSsid() {
 	m.ssid = nil
-	m.clearedFields[surveywifiscan.FieldSsid] = true
+	m.clearedFields[surveywifiscan.FieldSsid] = struct{}{}
 }
 
 // SsidCleared returns if the field ssid was cleared in this mutation.
 func (m *SurveyWiFiScanMutation) SsidCleared() bool {
-	return m.clearedFields[surveywifiscan.FieldSsid]
+	_, ok := m.clearedFields[surveywifiscan.FieldSsid]
+	return ok
 }
 
 // ResetSsid reset all changes of the ssid field.
@@ -25039,12 +25429,13 @@ func (m *SurveyWiFiScanMutation) Band() (r string, exists bool) {
 // ClearBand clears the value of band.
 func (m *SurveyWiFiScanMutation) ClearBand() {
 	m.band = nil
-	m.clearedFields[surveywifiscan.FieldBand] = true
+	m.clearedFields[surveywifiscan.FieldBand] = struct{}{}
 }
 
 // BandCleared returns if the field band was cleared in this mutation.
 func (m *SurveyWiFiScanMutation) BandCleared() bool {
-	return m.clearedFields[surveywifiscan.FieldBand]
+	_, ok := m.clearedFields[surveywifiscan.FieldBand]
+	return ok
 }
 
 // ResetBand reset all changes of the band field.
@@ -25090,12 +25481,13 @@ func (m *SurveyWiFiScanMutation) AddedChannelWidth() (r int, exists bool) {
 func (m *SurveyWiFiScanMutation) ClearChannelWidth() {
 	m.channel_width = nil
 	m.addchannel_width = nil
-	m.clearedFields[surveywifiscan.FieldChannelWidth] = true
+	m.clearedFields[surveywifiscan.FieldChannelWidth] = struct{}{}
 }
 
 // ChannelWidthCleared returns if the field channel_width was cleared in this mutation.
 func (m *SurveyWiFiScanMutation) ChannelWidthCleared() bool {
-	return m.clearedFields[surveywifiscan.FieldChannelWidth]
+	_, ok := m.clearedFields[surveywifiscan.FieldChannelWidth]
+	return ok
 }
 
 // ResetChannelWidth reset all changes of the channel_width field.
@@ -25122,12 +25514,13 @@ func (m *SurveyWiFiScanMutation) Capabilities() (r string, exists bool) {
 // ClearCapabilities clears the value of capabilities.
 func (m *SurveyWiFiScanMutation) ClearCapabilities() {
 	m.capabilities = nil
-	m.clearedFields[surveywifiscan.FieldCapabilities] = true
+	m.clearedFields[surveywifiscan.FieldCapabilities] = struct{}{}
 }
 
 // CapabilitiesCleared returns if the field capabilities was cleared in this mutation.
 func (m *SurveyWiFiScanMutation) CapabilitiesCleared() bool {
-	return m.clearedFields[surveywifiscan.FieldCapabilities]
+	_, ok := m.clearedFields[surveywifiscan.FieldCapabilities]
+	return ok
 }
 
 // ResetCapabilities reset all changes of the capabilities field.
@@ -25212,12 +25605,13 @@ func (m *SurveyWiFiScanMutation) AddedLatitude() (r float64, exists bool) {
 func (m *SurveyWiFiScanMutation) ClearLatitude() {
 	m.latitude = nil
 	m.addlatitude = nil
-	m.clearedFields[surveywifiscan.FieldLatitude] = true
+	m.clearedFields[surveywifiscan.FieldLatitude] = struct{}{}
 }
 
 // LatitudeCleared returns if the field latitude was cleared in this mutation.
 func (m *SurveyWiFiScanMutation) LatitudeCleared() bool {
-	return m.clearedFields[surveywifiscan.FieldLatitude]
+	_, ok := m.clearedFields[surveywifiscan.FieldLatitude]
+	return ok
 }
 
 // ResetLatitude reset all changes of the latitude field.
@@ -25264,12 +25658,13 @@ func (m *SurveyWiFiScanMutation) AddedLongitude() (r float64, exists bool) {
 func (m *SurveyWiFiScanMutation) ClearLongitude() {
 	m.longitude = nil
 	m.addlongitude = nil
-	m.clearedFields[surveywifiscan.FieldLongitude] = true
+	m.clearedFields[surveywifiscan.FieldLongitude] = struct{}{}
 }
 
 // LongitudeCleared returns if the field longitude was cleared in this mutation.
 func (m *SurveyWiFiScanMutation) LongitudeCleared() bool {
-	return m.clearedFields[surveywifiscan.FieldLongitude]
+	_, ok := m.clearedFields[surveywifiscan.FieldLongitude]
+	return ok
 }
 
 // ResetLongitude reset all changes of the longitude field.
@@ -25650,22 +26045,22 @@ func (m *SurveyWiFiScanMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *SurveyWiFiScanMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[surveywifiscan.FieldSsid] {
+	if m.FieldCleared(surveywifiscan.FieldSsid) {
 		fields = append(fields, surveywifiscan.FieldSsid)
 	}
-	if m.clearedFields[surveywifiscan.FieldBand] {
+	if m.FieldCleared(surveywifiscan.FieldBand) {
 		fields = append(fields, surveywifiscan.FieldBand)
 	}
-	if m.clearedFields[surveywifiscan.FieldChannelWidth] {
+	if m.FieldCleared(surveywifiscan.FieldChannelWidth) {
 		fields = append(fields, surveywifiscan.FieldChannelWidth)
 	}
-	if m.clearedFields[surveywifiscan.FieldCapabilities] {
+	if m.FieldCleared(surveywifiscan.FieldCapabilities) {
 		fields = append(fields, surveywifiscan.FieldCapabilities)
 	}
-	if m.clearedFields[surveywifiscan.FieldLatitude] {
+	if m.FieldCleared(surveywifiscan.FieldLatitude) {
 		fields = append(fields, surveywifiscan.FieldLatitude)
 	}
-	if m.clearedFields[surveywifiscan.FieldLongitude] {
+	if m.FieldCleared(surveywifiscan.FieldLongitude) {
 		fields = append(fields, surveywifiscan.FieldLongitude)
 	}
 	return fields
@@ -25674,7 +26069,8 @@ func (m *SurveyWiFiScanMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *SurveyWiFiScanMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -25860,7 +26256,7 @@ type TechnicianMutation struct {
 	update_time        *time.Time
 	name               *string
 	email              *string
-	clearedFields      map[string]bool
+	clearedFields      map[string]struct{}
 	work_orders        map[int]struct{}
 	removedwork_orders map[int]struct{}
 }
@@ -25873,7 +26269,7 @@ func newTechnicianMutation(c config, op Op) *TechnicianMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeTechnician,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -26138,7 +26534,8 @@ func (m *TechnicianMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *TechnicianMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -26266,9 +26663,11 @@ type UserMutation struct {
 	email                *string
 	status               *user.Status
 	role                 *user.Role
-	clearedFields        map[string]bool
+	clearedFields        map[string]struct{}
 	profile_photo        *int
 	clearedprofile_photo bool
+	groups               map[int]struct{}
+	removedgroups        map[int]struct{}
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -26279,7 +26678,7 @@ func newUserMutation(c config, op Op) *UserMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeUser,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -26385,12 +26784,13 @@ func (m *UserMutation) FirstName() (r string, exists bool) {
 // ClearFirstName clears the value of first_name.
 func (m *UserMutation) ClearFirstName() {
 	m.first_name = nil
-	m.clearedFields[user.FieldFirstName] = true
+	m.clearedFields[user.FieldFirstName] = struct{}{}
 }
 
 // FirstNameCleared returns if the field first_name was cleared in this mutation.
 func (m *UserMutation) FirstNameCleared() bool {
-	return m.clearedFields[user.FieldFirstName]
+	_, ok := m.clearedFields[user.FieldFirstName]
+	return ok
 }
 
 // ResetFirstName reset all changes of the first_name field.
@@ -26416,12 +26816,13 @@ func (m *UserMutation) LastName() (r string, exists bool) {
 // ClearLastName clears the value of last_name.
 func (m *UserMutation) ClearLastName() {
 	m.last_name = nil
-	m.clearedFields[user.FieldLastName] = true
+	m.clearedFields[user.FieldLastName] = struct{}{}
 }
 
 // LastNameCleared returns if the field last_name was cleared in this mutation.
 func (m *UserMutation) LastNameCleared() bool {
-	return m.clearedFields[user.FieldLastName]
+	_, ok := m.clearedFields[user.FieldLastName]
+	return ok
 }
 
 // ResetLastName reset all changes of the last_name field.
@@ -26447,12 +26848,13 @@ func (m *UserMutation) Email() (r string, exists bool) {
 // ClearEmail clears the value of email.
 func (m *UserMutation) ClearEmail() {
 	m.email = nil
-	m.clearedFields[user.FieldEmail] = true
+	m.clearedFields[user.FieldEmail] = struct{}{}
 }
 
 // EmailCleared returns if the field email was cleared in this mutation.
 func (m *UserMutation) EmailCleared() bool {
-	return m.clearedFields[user.FieldEmail]
+	_, ok := m.clearedFields[user.FieldEmail]
+	return ok
 }
 
 // ResetEmail reset all changes of the email field.
@@ -26536,6 +26938,48 @@ func (m *UserMutation) ProfilePhotoIDs() (ids []int) {
 func (m *UserMutation) ResetProfilePhoto() {
 	m.profile_photo = nil
 	m.clearedprofile_photo = false
+}
+
+// AddGroupIDs adds the groups edge to UsersGroup by ids.
+func (m *UserMutation) AddGroupIDs(ids ...int) {
+	if m.groups == nil {
+		m.groups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.groups[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveGroupIDs removes the groups edge to UsersGroup by ids.
+func (m *UserMutation) RemoveGroupIDs(ids ...int) {
+	if m.removedgroups == nil {
+		m.removedgroups = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedgroups[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedGroups returns the removed ids of groups.
+func (m *UserMutation) RemovedGroupsIDs() (ids []int) {
+	for id := range m.removedgroups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// GroupsIDs returns the groups ids in the mutation.
+func (m *UserMutation) GroupsIDs() (ids []int) {
+	for id := range m.groups {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetGroups reset all changes of the groups edge.
+func (m *UserMutation) ResetGroups() {
+	m.groups = nil
+	m.removedgroups = nil
 }
 
 // Op returns the operation name.
@@ -26696,13 +27140,13 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *UserMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[user.FieldFirstName] {
+	if m.FieldCleared(user.FieldFirstName) {
 		fields = append(fields, user.FieldFirstName)
 	}
-	if m.clearedFields[user.FieldLastName] {
+	if m.FieldCleared(user.FieldLastName) {
 		fields = append(fields, user.FieldLastName)
 	}
-	if m.clearedFields[user.FieldEmail] {
+	if m.FieldCleared(user.FieldEmail) {
 		fields = append(fields, user.FieldEmail)
 	}
 	return fields
@@ -26711,7 +27155,8 @@ func (m *UserMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *UserMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -26767,9 +27212,12 @@ func (m *UserMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *UserMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.profile_photo != nil {
 		edges = append(edges, user.EdgeProfilePhoto)
+	}
+	if m.groups != nil {
+		edges = append(edges, user.EdgeGroups)
 	}
 	return edges
 }
@@ -26782,6 +27230,12 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile_photo; id != nil {
 			return []ent.Value{*id}
 		}
+	case user.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.groups))
+		for id := range m.groups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -26789,7 +27243,10 @@ func (m *UserMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *UserMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedgroups != nil {
+		edges = append(edges, user.EdgeGroups)
+	}
 	return edges
 }
 
@@ -26797,6 +27254,12 @@ func (m *UserMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
+	case user.EdgeGroups:
+		ids := make([]ent.Value, 0, len(m.removedgroups))
+		for id := range m.removedgroups {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
@@ -26804,7 +27267,7 @@ func (m *UserMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *UserMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedprofile_photo {
 		edges = append(edges, user.EdgeProfilePhoto)
 	}
@@ -26840,8 +27303,471 @@ func (m *UserMutation) ResetEdge(name string) error {
 	case user.EdgeProfilePhoto:
 		m.ResetProfilePhoto()
 		return nil
+	case user.EdgeGroups:
+		m.ResetGroups()
+		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)
+}
+
+// UsersGroupMutation represents an operation that mutate the UsersGroups
+// nodes in the graph.
+type UsersGroupMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	create_time    *time.Time
+	update_time    *time.Time
+	name           *string
+	description    *string
+	status         *usersgroup.Status
+	clearedFields  map[string]struct{}
+	members        map[int]struct{}
+	removedmembers map[int]struct{}
+}
+
+var _ ent.Mutation = (*UsersGroupMutation)(nil)
+
+// newUsersGroupMutation creates new mutation for $n.Name.
+func newUsersGroupMutation(c config, op Op) *UsersGroupMutation {
+	return &UsersGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeUsersGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m UsersGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m UsersGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *UsersGroupMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetCreateTime sets the create_time field.
+func (m *UsersGroupMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the create_time value in the mutation.
+func (m *UsersGroupMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCreateTime reset all changes of the create_time field.
+func (m *UsersGroupMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetUpdateTime sets the update_time field.
+func (m *UsersGroupMutation) SetUpdateTime(t time.Time) {
+	m.update_time = &t
+}
+
+// UpdateTime returns the update_time value in the mutation.
+func (m *UsersGroupMutation) UpdateTime() (r time.Time, exists bool) {
+	v := m.update_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetUpdateTime reset all changes of the update_time field.
+func (m *UsersGroupMutation) ResetUpdateTime() {
+	m.update_time = nil
+}
+
+// SetName sets the name field.
+func (m *UsersGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the name value in the mutation.
+func (m *UsersGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetName reset all changes of the name field.
+func (m *UsersGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the description field.
+func (m *UsersGroupMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the description value in the mutation.
+func (m *UsersGroupMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearDescription clears the value of description.
+func (m *UsersGroupMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[usersgroup.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the field description was cleared in this mutation.
+func (m *UsersGroupMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[usersgroup.FieldDescription]
+	return ok
+}
+
+// ResetDescription reset all changes of the description field.
+func (m *UsersGroupMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, usersgroup.FieldDescription)
+}
+
+// SetStatus sets the status field.
+func (m *UsersGroupMutation) SetStatus(u usersgroup.Status) {
+	m.status = &u
+}
+
+// Status returns the status value in the mutation.
+func (m *UsersGroupMutation) Status() (r usersgroup.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus reset all changes of the status field.
+func (m *UsersGroupMutation) ResetStatus() {
+	m.status = nil
+}
+
+// AddMemberIDs adds the members edge to User by ids.
+func (m *UsersGroupMutation) AddMemberIDs(ids ...int) {
+	if m.members == nil {
+		m.members = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.members[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveMemberIDs removes the members edge to User by ids.
+func (m *UsersGroupMutation) RemoveMemberIDs(ids ...int) {
+	if m.removedmembers == nil {
+		m.removedmembers = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedmembers[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedMembers returns the removed ids of members.
+func (m *UsersGroupMutation) RemovedMembersIDs() (ids []int) {
+	for id := range m.removedmembers {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// MembersIDs returns the members ids in the mutation.
+func (m *UsersGroupMutation) MembersIDs() (ids []int) {
+	for id := range m.members {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetMembers reset all changes of the members edge.
+func (m *UsersGroupMutation) ResetMembers() {
+	m.members = nil
+	m.removedmembers = nil
+}
+
+// Op returns the operation name.
+func (m *UsersGroupMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (UsersGroup).
+func (m *UsersGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *UsersGroupMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.create_time != nil {
+		fields = append(fields, usersgroup.FieldCreateTime)
+	}
+	if m.update_time != nil {
+		fields = append(fields, usersgroup.FieldUpdateTime)
+	}
+	if m.name != nil {
+		fields = append(fields, usersgroup.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, usersgroup.FieldDescription)
+	}
+	if m.status != nil {
+		fields = append(fields, usersgroup.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *UsersGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case usersgroup.FieldCreateTime:
+		return m.CreateTime()
+	case usersgroup.FieldUpdateTime:
+		return m.UpdateTime()
+	case usersgroup.FieldName:
+		return m.Name()
+	case usersgroup.FieldDescription:
+		return m.Description()
+	case usersgroup.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *UsersGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case usersgroup.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case usersgroup.FieldUpdateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdateTime(v)
+		return nil
+	case usersgroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case usersgroup.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case usersgroup.FieldStatus:
+		v, ok := value.(usersgroup.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *UsersGroupMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *UsersGroupMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *UsersGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UsersGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *UsersGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(usersgroup.FieldDescription) {
+		fields = append(fields, usersgroup.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *UsersGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *UsersGroupMutation) ClearField(name string) error {
+	switch name {
+	case usersgroup.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *UsersGroupMutation) ResetField(name string) error {
+	switch name {
+	case usersgroup.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case usersgroup.FieldUpdateTime:
+		m.ResetUpdateTime()
+		return nil
+	case usersgroup.FieldName:
+		m.ResetName()
+		return nil
+	case usersgroup.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case usersgroup.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *UsersGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.members != nil {
+		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *UsersGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case usersgroup.EdgeMembers:
+		ids := make([]ent.Value, 0, len(m.members))
+		for id := range m.members {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *UsersGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedmembers != nil {
+		edges = append(edges, usersgroup.EdgeMembers)
+	}
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *UsersGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case usersgroup.EdgeMembers:
+		ids := make([]ent.Value, 0, len(m.removedmembers))
+		for id := range m.removedmembers {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *UsersGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *UsersGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *UsersGroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown UsersGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *UsersGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case usersgroup.EdgeMembers:
+		m.ResetMembers()
+		return nil
+	}
+	return fmt.Errorf("unknown UsersGroup edge %s", name)
 }
 
 // WorkOrderMutation represents an operation that mutate the WorkOrders
@@ -26862,7 +27788,7 @@ type WorkOrderMutation struct {
 	index                        *int
 	addindex                     *int
 	close_date                   *time.Time
-	clearedFields                map[string]bool
+	clearedFields                map[string]struct{}
 	_type                        *int
 	cleared_type                 bool
 	equipment                    map[int]struct{}
@@ -26901,7 +27827,7 @@ func newWorkOrderMutation(c config, op Op) *WorkOrderMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeWorkOrder,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -27045,12 +27971,13 @@ func (m *WorkOrderMutation) Description() (r string, exists bool) {
 // ClearDescription clears the value of description.
 func (m *WorkOrderMutation) ClearDescription() {
 	m.description = nil
-	m.clearedFields[workorder.FieldDescription] = true
+	m.clearedFields[workorder.FieldDescription] = struct{}{}
 }
 
 // DescriptionCleared returns if the field description was cleared in this mutation.
 func (m *WorkOrderMutation) DescriptionCleared() bool {
-	return m.clearedFields[workorder.FieldDescription]
+	_, ok := m.clearedFields[workorder.FieldDescription]
+	return ok
 }
 
 // ResetDescription reset all changes of the description field.
@@ -27076,12 +28003,13 @@ func (m *WorkOrderMutation) InstallDate() (r time.Time, exists bool) {
 // ClearInstallDate clears the value of install_date.
 func (m *WorkOrderMutation) ClearInstallDate() {
 	m.install_date = nil
-	m.clearedFields[workorder.FieldInstallDate] = true
+	m.clearedFields[workorder.FieldInstallDate] = struct{}{}
 }
 
 // InstallDateCleared returns if the field install_date was cleared in this mutation.
 func (m *WorkOrderMutation) InstallDateCleared() bool {
-	return m.clearedFields[workorder.FieldInstallDate]
+	_, ok := m.clearedFields[workorder.FieldInstallDate]
+	return ok
 }
 
 // ResetInstallDate reset all changes of the install_date field.
@@ -27146,12 +28074,13 @@ func (m *WorkOrderMutation) AddedIndex() (r int, exists bool) {
 func (m *WorkOrderMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[workorder.FieldIndex] = true
+	m.clearedFields[workorder.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *WorkOrderMutation) IndexCleared() bool {
-	return m.clearedFields[workorder.FieldIndex]
+	_, ok := m.clearedFields[workorder.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -27178,12 +28107,13 @@ func (m *WorkOrderMutation) CloseDate() (r time.Time, exists bool) {
 // ClearCloseDate clears the value of close_date.
 func (m *WorkOrderMutation) ClearCloseDate() {
 	m.close_date = nil
-	m.clearedFields[workorder.FieldCloseDate] = true
+	m.clearedFields[workorder.FieldCloseDate] = struct{}{}
 }
 
 // CloseDateCleared returns if the field close_date was cleared in this mutation.
 func (m *WorkOrderMutation) CloseDateCleared() bool {
-	return m.clearedFields[workorder.FieldCloseDate]
+	_, ok := m.clearedFields[workorder.FieldCloseDate]
+	return ok
 }
 
 // ResetCloseDate reset all changes of the close_date field.
@@ -27959,16 +28889,16 @@ func (m *WorkOrderMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *WorkOrderMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[workorder.FieldDescription] {
+	if m.FieldCleared(workorder.FieldDescription) {
 		fields = append(fields, workorder.FieldDescription)
 	}
-	if m.clearedFields[workorder.FieldInstallDate] {
+	if m.FieldCleared(workorder.FieldInstallDate) {
 		fields = append(fields, workorder.FieldInstallDate)
 	}
-	if m.clearedFields[workorder.FieldIndex] {
+	if m.FieldCleared(workorder.FieldIndex) {
 		fields = append(fields, workorder.FieldIndex)
 	}
-	if m.clearedFields[workorder.FieldCloseDate] {
+	if m.FieldCleared(workorder.FieldCloseDate) {
 		fields = append(fields, workorder.FieldCloseDate)
 	}
 	return fields
@@ -27977,7 +28907,8 @@ func (m *WorkOrderMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *WorkOrderMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -28388,7 +29319,7 @@ type WorkOrderDefinitionMutation struct {
 	update_time         *time.Time
 	index               *int
 	addindex            *int
-	clearedFields       map[string]bool
+	clearedFields       map[string]struct{}
 	_type               *int
 	cleared_type        bool
 	project_type        *int
@@ -28403,7 +29334,7 @@ func newWorkOrderDefinitionMutation(c config, op Op) *WorkOrderDefinitionMutatio
 		config:        c,
 		op:            op,
 		typ:           TypeWorkOrderDefinition,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -28510,12 +29441,13 @@ func (m *WorkOrderDefinitionMutation) AddedIndex() (r int, exists bool) {
 func (m *WorkOrderDefinitionMutation) ClearIndex() {
 	m.index = nil
 	m.addindex = nil
-	m.clearedFields[workorderdefinition.FieldIndex] = true
+	m.clearedFields[workorderdefinition.FieldIndex] = struct{}{}
 }
 
 // IndexCleared returns if the field index was cleared in this mutation.
 func (m *WorkOrderDefinitionMutation) IndexCleared() bool {
-	return m.clearedFields[workorderdefinition.FieldIndex]
+	_, ok := m.clearedFields[workorderdefinition.FieldIndex]
+	return ok
 }
 
 // ResetIndex reset all changes of the index field.
@@ -28716,7 +29648,7 @@ func (m *WorkOrderDefinitionMutation) AddField(name string, value ent.Value) err
 // during this mutation.
 func (m *WorkOrderDefinitionMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[workorderdefinition.FieldIndex] {
+	if m.FieldCleared(workorderdefinition.FieldIndex) {
 		fields = append(fields, workorderdefinition.FieldIndex)
 	}
 	return fields
@@ -28725,7 +29657,8 @@ func (m *WorkOrderDefinitionMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *WorkOrderDefinitionMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an
@@ -28866,7 +29799,7 @@ type WorkOrderTypeMutation struct {
 	update_time                   *time.Time
 	name                          *string
 	description                   *string
-	clearedFields                 map[string]bool
+	clearedFields                 map[string]struct{}
 	work_orders                   map[int]struct{}
 	removedwork_orders            map[int]struct{}
 	property_types                map[int]struct{}
@@ -28887,7 +29820,7 @@ func newWorkOrderTypeMutation(c config, op Op) *WorkOrderTypeMutation {
 		config:        c,
 		op:            op,
 		typ:           TypeWorkOrderType,
-		clearedFields: make(map[string]bool),
+		clearedFields: make(map[string]struct{}),
 	}
 }
 
@@ -28993,12 +29926,13 @@ func (m *WorkOrderTypeMutation) Description() (r string, exists bool) {
 // ClearDescription clears the value of description.
 func (m *WorkOrderTypeMutation) ClearDescription() {
 	m.description = nil
-	m.clearedFields[workordertype.FieldDescription] = true
+	m.clearedFields[workordertype.FieldDescription] = struct{}{}
 }
 
 // DescriptionCleared returns if the field description was cleared in this mutation.
 func (m *WorkOrderTypeMutation) DescriptionCleared() bool {
-	return m.clearedFields[workordertype.FieldDescription]
+	_, ok := m.clearedFields[workordertype.FieldDescription]
+	return ok
 }
 
 // ResetDescription reset all changes of the description field.
@@ -29327,7 +30261,7 @@ func (m *WorkOrderTypeMutation) AddField(name string, value ent.Value) error {
 // during this mutation.
 func (m *WorkOrderTypeMutation) ClearedFields() []string {
 	var fields []string
-	if m.clearedFields[workordertype.FieldDescription] {
+	if m.FieldCleared(workordertype.FieldDescription) {
 		fields = append(fields, workordertype.FieldDescription)
 	}
 	return fields
@@ -29336,7 +30270,8 @@ func (m *WorkOrderTypeMutation) ClearedFields() []string {
 // FieldCleared returns a boolean indicates if this field was
 // cleared in this mutation.
 func (m *WorkOrderTypeMutation) FieldCleared(name string) bool {
-	return m.clearedFields[name]
+	_, ok := m.clearedFields[name]
+	return ok
 }
 
 // ClearField clears the value for the given name. It returns an

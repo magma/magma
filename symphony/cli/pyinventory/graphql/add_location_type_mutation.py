@@ -15,6 +15,19 @@ from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeF
 from .add_location_type_input import AddLocationTypeInput
 
 
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
+  addLocationType(input: $input) {
+    id
+    name
+    propertyTypes {
+      ...PropertyTypeFragment
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class AddLocationTypeMutation(DataClassJsonMixin):
     @dataclass
@@ -33,23 +46,10 @@ class AddLocationTypeMutation(DataClassJsonMixin):
 
     data: AddLocationTypeMutationData
 
-    __QUERY__: str = PropertyTypeFragmentQuery + """
-    mutation AddLocationTypeMutation($input: AddLocationTypeInput!) {
-  addLocationType(input: $input) {
-    id
-    name
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddLocationTypeInput) -> AddLocationTypeMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

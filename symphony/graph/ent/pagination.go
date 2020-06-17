@@ -53,6 +53,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -3598,6 +3599,98 @@ func (u *UserQuery) collectConnectionFields(ctx context.Context) *UserQuery {
 		u = u.collectField(graphql.GetRequestContext(ctx), *field)
 	}
 	return u
+}
+
+// UsersGroupEdge is the edge representation of UsersGroup.
+type UsersGroupEdge struct {
+	Node   *UsersGroup `json:"node"`
+	Cursor Cursor      `json:"cursor"`
+}
+
+// UsersGroupConnection is the connection containing edges to UsersGroup.
+type UsersGroupConnection struct {
+	Edges    []*UsersGroupEdge `json:"edges"`
+	PageInfo PageInfo          `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to UsersGroup.
+func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*UsersGroupConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &UsersGroupConnection{
+				Edges: []*UsersGroupEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &UsersGroupConnection{
+				Edges: []*UsersGroupEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		ug = ug.Where(usersgroup.IDGT(after.ID))
+	}
+	if before != nil {
+		ug = ug.Where(usersgroup.IDLT(before.ID))
+	}
+	if first != nil {
+		ug = ug.Order(Asc(usersgroup.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		ug = ug.Order(Desc(usersgroup.FieldID)).Limit(*last + 1)
+	}
+	ug = ug.collectConnectionFields(ctx)
+
+	nodes, err := ug.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &UsersGroupConnection{
+			Edges: []*UsersGroupEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn UsersGroupConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*UsersGroupEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &UsersGroupEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (ug *UsersGroupQuery) collectConnectionFields(ctx context.Context) *UsersGroupQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		ug = ug.collectField(graphql.GetRequestContext(ctx), *field)
+	}
+	return ug
 }
 
 // WorkOrderEdge is the edge representation of WorkOrder.

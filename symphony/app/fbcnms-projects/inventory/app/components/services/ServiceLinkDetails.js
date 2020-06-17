@@ -12,8 +12,8 @@ import type {Link} from '../../common/Equipment';
 
 import ActiveEquipmentIcon from '@fbcnms/ui/icons/ActiveEquipmentIcon';
 import EquipmentIcon from '@fbcnms/ui/icons/EquipmentIcon';
+import OptionsPopoverButton from '../OptionsPopoverButton';
 import React from 'react';
-import TableRowOptionsButton from '../TableRowOptionsButton';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
@@ -133,7 +133,7 @@ const ServiceLinkDetails = (props: Props) => {
         </div>
       </div>
 
-      <TableRowOptionsButton
+      <OptionsPopoverButton
         options={[
           {
             caption: 'Remove Link',

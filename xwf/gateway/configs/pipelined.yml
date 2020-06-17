@@ -27,9 +27,9 @@ log_level: INFO
 # the same order as the list. Cloud managed services will be initialized
 # after these static services.
 static_services: [
+  'xwf_passthru',
   'tunnel_learn',
   'vlan_learn',
-  'ryu_rest_service',
   'startup_flows',
 ]
 
@@ -117,7 +117,7 @@ monitored_ifaces: ['cwag_br0',
 clean_restart: true
 
 # Information for cwf check quota servers
-quota_check_ip: '192.168.128.99'
+quota_check_ip: '192.0.0.1'
 has_quota_port: 51115
 no_quota_port: 51125
 

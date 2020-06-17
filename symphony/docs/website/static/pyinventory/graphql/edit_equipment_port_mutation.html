@@ -38,25 +38,27 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.edit_equipment_port_mutation.EditEquipmentPortMutation.EditEquipmentPortMutationData" href="#pyinventory.graphql.edit_equipment_port_mutation.EditEquipmentPortMutation.EditEquipmentPortMutationData">EditEquipmentPortMutation.EditEquipmentPortMutationData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EditEquipmentPortMutation(data: pyinventory.graphql.edit_equipment_port_mutation.EditEquipmentPortMutation.EditEquipmentPortMutationData, <strong>QUERY</strong>: str = '\n
-mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {\n
-editEquipmentPort(input: $input) {\n
-id\n
-properties {\n
-id\n
-propertyType {\n
+<section class="desc"><p>EditEquipmentPortMutation(data: pyinventory.graphql.edit_equipment_port_mutation.EditEquipmentPortMutation.EditEquipmentPortMutationData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
 id\n
 name\n
 type\n
 index\n
+category\n
 stringValue\n
 intValue\n
 booleanValue\n
 floatValue\n
 latitudeValue\n
 longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
 isEditable\n
 isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\nfragment PropertyFragment on Property {\n
+id\n
+propertyType {\n
+&hellip;PropertyTypeFragment\n
 }\n
 stringValue\n
 intValue\n
@@ -65,7 +67,12 @@ booleanValue\n
 latitudeValue\n
 longitudeValue\n
 rangeFromValue\n
-rangeToValue\n
+rangeToValue\n}\n\n\n
+mutation EditEquipmentPortMutation($input: EditEquipmentPortInput!) {\n
+editEquipmentPort(input: $input) {\n
+id\n
+properties {\n
+&hellip;PropertyFragment\n
 }\n
 definition {\n
 id\n

@@ -272,6 +272,59 @@ func (srv *PCRFDiamServer) AssertExpectations(ctx context.Context, void *orcprot
 	return &protos.GxCreditControlResult{Results: results, Errors: errs}, nil
 }
 
+// AbortSession call for a subscriber
+// Initiate a Abort session request and provide the response
+func (srv *PCRFDiamServer) AbortSession(
+	ctx context.Context,
+	req *protos.PolicyAbortSessionRequest,
+) (*protos.PolicyAbortSessionResponse, error) {
+	glog.V(1).Infof("AbortSession: imsi %s abortCause %v", req.GetImsi(), req.GetCause())
+	account, ok := srv.subscribers[req.Imsi]
+	if !ok {
+		return nil, fmt.Errorf("Could not find imsi %s", req.Imsi)
+	}
+	if account.CurrentState == nil {
+		return nil, fmt.Errorf("Credit client State unknown for imsi %s", req.Imsi)
+	}
+
+	var asaHandler diam.HandlerFunc
+	resp := make(chan *gx.PolicyAbortSessionResponse)
+	asaHandler = func(conn diam.Conn, msg *diam.Message) {
+		var asa gx.PolicyAbortSessionResponse
+		if err := msg.Unmarshal(&asa); err != nil {
+			glog.Errorf("Received unparseable ASA over Gx, %s\n%s", err, msg)
+			return
+		}
+		glog.V(2).Infof("Received ASA \n%s", msg)
+		resp <- &gx.PolicyAbortSessionResponse{SessionID: asa.SessionID, ResultCode: asa.ResultCode}
+	}
+	srv.mux.Handle(diam.ASA, asaHandler)
+	sendASR(account.CurrentState, srv.mux.Settings())
+	select {
+	case asa := <-resp:
+		return &protos.PolicyAbortSessionResponse{SessionId: diameter.DecodeSessionID(asa.SessionID), ResultCode: asa.ResultCode}, nil
+	case <-time.After(10 * time.Second):
+		return nil, fmt.Errorf("No ASA received")
+	}
+}
+
+func sendASR(state *SubscriberSessionState, cfg *sm.Settings) error {
+	meta, ok := smpeer.FromContext(state.Connection.Context())
+	if !ok {
+		return fmt.Errorf("peer metadata unavailable")
+	}
+	m := diameter.NewProxiableRequest(diam.AbortSession, diam.GX_CHARGING_CONTROL_APP_ID, nil)
+	m.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(state.SessionID))
+	m.NewAVP(avp.OriginHost, avp.Mbit, 0, cfg.OriginHost)
+	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, cfg.OriginRealm)
+	m.NewAVP(avp.DestinationRealm, avp.Mbit, 0, meta.OriginRealm)
+	m.NewAVP(avp.DestinationHost, avp.Mbit, 0, meta.OriginHost)
+	fmt.Printf("Sending Abort Session to %s\n%s", state.Connection.RemoteAddr(), m)
+	glog.V(2).Infof("Sending Abort Session to %s\n%s", state.Connection.RemoteAddr(), m)
+	_, err := m.WriteTo(state.Connection)
+	return err
+}
+
 // ReAuth call for a subscriber
 // Initiate a RAR requenst and handle a response
 func (srv *PCRFDiamServer) ReAuth(
@@ -329,7 +382,8 @@ func sendRAR(state *SubscriberSessionState, target *protos.PolicyReAuthTarget, c
 				ruleInstalls.GetRuleNames(),
 				ruleInstalls.GetRuleBaseNames(),
 				ruleInstalls.GetRuleDefinitions(),
-			)...,
+				nil,
+				nil)...,
 		)
 	}
 	// Construct AVPs for Rules to Remove

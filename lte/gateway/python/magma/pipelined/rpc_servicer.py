@@ -216,6 +216,23 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
     # --------------------------
+    # IPFIX App
+    # --------------------------
+
+    def UpdateIPFIXFlow(self, request, context):
+        """
+        Update IPFIX sampling record
+        """
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            # Install trace flow
+            self._loop.call_soon_threadsafe(
+                self._ipfix_app.add_ue_sample_flow, request.sid.id,
+                request.msisdn, request.ap_mac_addr, request.ap_name)
+
+        resp = FlowResponse()
+        return resp
+
+    # --------------------------
     # DPI App
     # --------------------------
 

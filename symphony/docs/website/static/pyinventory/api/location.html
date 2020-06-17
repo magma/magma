@@ -272,6 +272,20 @@ location = client.get_location([('Site', 'Bletchley Park')])
 location = client.get_location_documents(location=location)
 </code></pre></section>
 </dd>
+<dt id="pyinventory.api.location.get_locations"><code class="name flex">
+<span>def <span class="ident">get_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a>]</span>
+</code></dt>
+<dd>
+<section class="desc"><p>This function returns all existing locations</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>List</code>[ <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location"><code>Location</code></a> ]</dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>all_locations = client.get_locations()
+</code></pre></section>
+</dd>
 <dt id="pyinventory.api.location.move_location"><code class="name flex">
 <span>def <span class="ident">move_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.consts.Location" href="../consts.html#pyinventory.consts.Location">Location</a></span>
 </code></dt>
@@ -328,6 +342,7 @@ moved_location = client.move_locatoin(
 <li><code><a title="pyinventory.api.location.get_location_by_external_id" href="#pyinventory.api.location.get_location_by_external_id">get_location_by_external_id</a></code></li>
 <li><code><a title="pyinventory.api.location.get_location_children" href="#pyinventory.api.location.get_location_children">get_location_children</a></code></li>
 <li><code><a title="pyinventory.api.location.get_location_documents" href="#pyinventory.api.location.get_location_documents">get_location_documents</a></code></li>
+<li><code><a title="pyinventory.api.location.get_locations" href="#pyinventory.api.location.get_locations">get_locations</a></code></li>
 <li><code><a title="pyinventory.api.location.move_location" href="#pyinventory.api.location.move_location">move_location</a></code></li>
 </ul>
 </li>

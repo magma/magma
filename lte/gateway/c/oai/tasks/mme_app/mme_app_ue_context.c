@@ -37,8 +37,6 @@
 #include "3gpp_23.003.h"
 #include "3gpp_36.401.h"
 
-static mme_ue_s1ap_id_t mme_app_ue_s1ap_id_generator = 1;
-
 /**
  * @brief mme_app_convert_imsi_to_imsi_mme: converts the imsi_t struct to the imsi mme struct
  * @param imsi_dst
@@ -138,9 +136,10 @@ uint64_t mme_app_imsi_to_u64(mme_app_imsi_t imsi_src)
   return uint_imsi;
 }
 
-mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(void)
+mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(mme_ue_s1ap_id_t*
+    mme_app_ue_s1ap_id_generator_p)
 {
   mme_ue_s1ap_id_t tmp = 0;
-  tmp = __sync_fetch_and_add(&mme_app_ue_s1ap_id_generator, 1);
+  tmp = __sync_fetch_and_add(mme_app_ue_s1ap_id_generator_p, 1);
   return tmp;
 }

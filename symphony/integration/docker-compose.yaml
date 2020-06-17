@@ -39,8 +39,7 @@ services:
       MYSQL_USER: root
       MYSQL_PASS: root
       FB_TEST_USER: fbuser@fb.com
-      USER_GRAFANA_HOSTNAME: user-grafana
-      USER_GRAFANA_PORT: 3000
+      USER_GRAFANA_ADDRESS: host.docker.internal:3000
     networks:
       - public
       - private
@@ -88,6 +87,8 @@ services:
     healthcheck:
       test: curl -If localhost/healthz/liveness
     restart: on-failure
+    ports:
+      - 8083:443
 
   migrate:
     image: integration_graph

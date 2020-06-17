@@ -235,8 +235,8 @@ func (ltu *LocationTypeUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = ltu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(ltu.hooks); i > 0; i-- {
-			mut = ltu.hooks[i-1](mut)
+		for i := len(ltu.hooks) - 1; i >= 0; i-- {
+			mut = ltu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ltu.mutation); err != nil {
 			return 0, err
@@ -686,8 +686,8 @@ func (ltuo *LocationTypeUpdateOne) Save(ctx context.Context) (*LocationType, err
 			node, err = ltuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ltuo.hooks); i > 0; i-- {
-			mut = ltuo.hooks[i-1](mut)
+		for i := len(ltuo.hooks) - 1; i >= 0; i-- {
+			mut = ltuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ltuo.mutation); err != nil {
 			return nil, err

@@ -122,6 +122,24 @@ func getPCRFClient() (*pcrfClient, error) {
 	}, err
 }
 
+func sendPolicyReAuthRequest(target *fegprotos.PolicyReAuthTarget) (*fegprotos.PolicyReAuthAnswer, error) {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.ReAuth(context.Background(), target)
+	return raa, err
+}
+
+func sendPolicyAbortSession(target *fegprotos.PolicyAbortSessionRequest) (*fegprotos.PolicyAbortSessionResponse, error) {
+	cli, err := getPCRFClient()
+	if err != nil {
+		return nil, err
+	}
+	raa, err := cli.AbortSession(context.Background(), target)
+	return raa, err
+}
+
 // addSubscriber tries to add this subscriber to the PCRF server.
 // Input: The subscriber data which will be added.
 func addSubscriberToPCRF(sub *lteprotos.SubscriberID) error {
@@ -157,35 +175,6 @@ func addPCRFUsageMonitors(monitorInfo *fegprotos.UsageMonitorConfiguration) erro
 		return err
 	}
 	_, err = cli.SetUsageMonitors(context.Background(), monitorInfo)
-	return err
-}
-
-/**  ========== OCS Helpers ========== **/
-// getOCSClient is a utility function to an RPC connection to a
-// remote OCS service.
-func getOCSClient() (*ocsClient, error) {
-	var conn *grpc.ClientConn
-	var err error
-	conn, err = registry.GetConnection(MockOCSRemote)
-	if err != nil {
-		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
-		glog.Error(errMsg)
-		return nil, errors.New(errMsg)
-	}
-	return &ocsClient{
-		fegprotos.NewMockOCSClient(conn),
-		conn,
-	}, err
-}
-
-// setNewOCSConfig tries to override the default ocs settings
-// Input: ocsConfig data
-func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
-	cli, err := getOCSClient()
-	if err != nil {
-		return err
-	}
-	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
 	return err
 }
 
@@ -233,6 +222,35 @@ func getAssertExpectationsResult() ([]*fegprotos.ExpectationResult, []*fegprotos
 		return nil, nil, err
 	}
 	return res.Results, res.Errors, nil
+}
+
+/**  ========== OCS Helpers ========== **/
+// getOCSClient is a utility function to an RPC connection to a
+// remote OCS service.
+func getOCSClient() (*ocsClient, error) {
+	var conn *grpc.ClientConn
+	var err error
+	conn, err = registry.GetConnection(MockOCSRemote)
+	if err != nil {
+		errMsg := fmt.Sprintf("PCRF client initialization error: %s", err)
+		glog.Error(errMsg)
+		return nil, errors.New(errMsg)
+	}
+	return &ocsClient{
+		fegprotos.NewMockOCSClient(conn),
+		conn,
+	}, err
+}
+
+// setNewOCSConfig tries to override the default ocs settings
+// Input: ocsConfig data
+func setNewOCSConfig(ocsConfig *fegprotos.OCSConfig) error {
+	cli, err := getOCSClient()
+	if err != nil {
+		return err
+	}
+	_, err = cli.SetOCSSettings(context.Background(), ocsConfig)
+	return err
 }
 
 // addSubscriber tries to add this subscriber to the OCS server.

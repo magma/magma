@@ -11,49 +11,35 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as EquipmentPortTypeFragmentQuery
 from .add_equipment_port_type_input import AddEquipmentPortTypeInput
 
+
+QUERY: List[str] = EquipmentPortTypeFragmentQuery + ["""
+mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
+  addEquipmentPortType(input: $input) {
+    ...EquipmentPortTypeFragment
+  }
+}
+
+"""]
 
 @dataclass
 class AddEquipmentPortTypeMutation(DataClassJsonMixin):
     @dataclass
     class AddEquipmentPortTypeMutationData(DataClassJsonMixin):
         @dataclass
-        class EquipmentPortType(DataClassJsonMixin):
-            @dataclass
-            class PropertyType(PropertyTypeFragment):
-                pass
-
-            id: str
-            name: str
-            propertyTypes: List[PropertyType]
-            linkPropertyTypes: List[PropertyType]
+        class EquipmentPortType(EquipmentPortTypeFragment):
+            pass
 
         addEquipmentPortType: EquipmentPortType
 
     data: AddEquipmentPortTypeMutationData
-
-    __QUERY__: str = PropertyTypeFragmentQuery + """
-    mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
-  addEquipmentPortType(input: $input) {
-    id
-    name
-    propertyTypes {
-      ...PropertyTypeFragment
-    }
-    linkPropertyTypes {
-      ...PropertyTypeFragment
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddEquipmentPortTypeInput) -> AddEquipmentPortTypeMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

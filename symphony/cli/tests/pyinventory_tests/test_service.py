@@ -4,39 +4,37 @@
 # license that can be found in the LICENSE file.
 
 
-from pyinventory.api.customer import add_customer, delete_customer, get_all_customers
+from pyinventory import InventoryClient
+from pyinventory.api.customer import add_customer
 from pyinventory.api.equipment import add_equipment
-from pyinventory.api.equipment_type import (
-    add_equipment_type,
-    delete_equipment_type_with_equipments,
-)
+from pyinventory.api.equipment_type import add_equipment_type
 from pyinventory.api.link import add_link, get_port
 from pyinventory.api.location import add_location
-from pyinventory.api.location_type import (
-    add_location_type,
-    delete_location_type_with_locations,
-)
-from pyinventory.api.port_type import (
-    add_equipment_port_type,
-    delete_equipment_port_type,
-)
+from pyinventory.api.location_type import add_location_type
+from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.api.service import (
     add_service,
     add_service_endpoint,
     add_service_type,
-    delete_service_type_with_services,
     get_service,
 )
 from pyinventory.consts import PropertyDefinition
 from pyinventory.graphql.property_kind_enum import PropertyKind
 from pyinventory.graphql.service_endpoint_role_enum import ServiceEndpointRole
 
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils.base_test import BaseTest
 
 
 class TestService(BaseTest):
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
+
     def setUp(self) -> None:
-        self.port_type1 = add_equipment_port_type(
+        super().setUp()
+        add_equipment_port_type(
             self.client,
             name="port type 1",
             properties=[
@@ -56,56 +54,27 @@ class TestService(BaseTest):
                 )
             ],
         )
-        self.service_types_created = []
-        self.service_types_created.append(
-            add_service_type(
-                client=self.client,
-                name="Internet Access",
-                hasCustomer=True,
-                properties=[
-                    ("Service Package", "string", "Public 5G", True),
-                    ("Address Family", "string", None, True),
-                ],
-            )
+        add_service_type(
+            client=self.client,
+            name="Internet Access",
+            hasCustomer=True,
+            properties=[
+                ("Service Package", "string", "Public 5G", True),
+                ("Address Family", "string", None, True),
+            ],
         )
-        self.location_types_created = []
-        self.location_types_created.append(
-            add_location_type(
-                client=self.client,
-                name="Room",
-                properties=[("Contact", "email", None, True)],
-            )
+        add_location_type(
+            client=self.client,
+            name="Room",
+            properties=[("Contact", "email", None, True)],
         )
-        self.equipment_types_created = []
-        self.equipment_types_created.append(
-            add_equipment_type(
-                client=self.client,
-                name="Tp-Link T1600G",
-                category="Router",
-                properties=[("IP", "string", None, True)],
-                ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
-                position_list=[],
-            )
-        )
-
-    def tearDown(self) -> None:
-        for equipment_type in self.equipment_types_created:
-            delete_equipment_type_with_equipments(
-                client=self.client, equipment_type=equipment_type
-            )
-        for location_type in self.location_types_created:
-            delete_location_type_with_locations(
-                client=self.client, location_type=location_type
-            )
-        for service_type in self.service_types_created:
-            delete_service_type_with_services(
-                client=self.client, service_type=service_type
-            )
-        customers = get_all_customers(self.client)
-        for customer in customers:
-            delete_customer(self.client, customer)
-        delete_equipment_port_type(
-            client=self.client, equipment_port_type_id=self.port_type1.id
+        add_equipment_type(
+            client=self.client,
+            name="Tp-Link T1600G",
+            category="Router",
+            properties=[("IP", "string", None, True)],
+            ports_dict={"Port 1": "port type 1", "Port 2": "port type 1"},
+            position_list=[],
         )
 
     def test_service_created(self) -> None:

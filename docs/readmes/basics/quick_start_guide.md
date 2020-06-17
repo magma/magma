@@ -16,8 +16,9 @@ register your local access gateway with your local cloud for management.
 
 We will be spinning up a virtual machine and some docker containers for this
 full setup, so you'll probably want to do this on a system with at least 8GB
-of memory. Our development VM's are in the 192.168.80.0/24 address space, so
-make sure that you don't have anything running which hijacks that (e.g. VPN).
+of memory. Our development VM's are in the 192.168.60.0/24, 192.168.128.0/24 and
+192.168.129.0/24 address spaces, so make sure that you don't have anything
+running which hijacks those (e.g. VPN).
 
 In the following steps, note the prefix in terminal commands. `HOST` means to
 run the indicated command on your host machine, and `MAGMA-VM` on the `magma`
@@ -40,6 +41,10 @@ HOST [magma/lte/gateway]$ vagrant up magma
 
 This will take a few minutes to spin up the VM. While that runs, switch over
 to...
+
+**Note**: If you are looking to test/develop the LTE features of AGW, without
+cloud based network management, you can skip the rest of this guide and try the
+[S1AP integration tests](../lte/s1ap_tests.md) now.
 
 ### Terminal Tab 2: Build Orchestrator
 

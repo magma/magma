@@ -11,46 +11,35 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQuery
 from .add_equipment_input import AddEquipmentInput
 
+
+QUERY: List[str] = EquipmentFragmentQuery + ["""
+mutation AddEquipmentMutation($input: AddEquipmentInput!) {
+  addEquipment(input: $input) {
+    ...EquipmentFragment
+  }
+}
+
+"""]
 
 @dataclass
 class AddEquipmentMutation(DataClassJsonMixin):
     @dataclass
     class AddEquipmentMutationData(DataClassJsonMixin):
         @dataclass
-        class Equipment(DataClassJsonMixin):
-            @dataclass
-            class EquipmentType(DataClassJsonMixin):
-                id: str
-                name: str
-
-            id: str
-            name: str
-            equipmentType: EquipmentType
+        class Equipment(EquipmentFragment):
+            pass
 
         addEquipment: Equipment
 
     data: AddEquipmentMutationData
-
-    __QUERY__: str = """
-    mutation AddEquipmentMutation($input: AddEquipmentInput!) {
-  addEquipment(input: $input) {
-    id
-    name
-    equipmentType {
-      id
-      name
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddEquipmentInput) -> AddEquipmentMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

@@ -17,7 +17,6 @@ import type {WithStyles} from '@material-ui/core';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Card from '@material-ui/core/Card';
-import EditIcon from '@material-ui/icons/Edit';
 import ErrorMessage from '@fbcnms/ui/components/ErrorMessage';
 import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import InventoryQueryRenderer from '../../components/InventoryQueryRenderer';
@@ -32,7 +31,8 @@ import LocationSiteSurveyTab from './LocationSiteSurveyTab';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import fbt from 'fbt';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'react-relay';
 import {withSnackbar} from 'notistack';
@@ -84,7 +84,7 @@ const styles = theme => ({
   locationNameHeader: {
     display: 'flex',
     alignItems: 'center',
-    padding: '0px 24px',
+    padding: '0px 8px',
     marginBottom: '16px',
     '&>:not(:last-child)': {
       marginRight: '8px',
@@ -208,7 +208,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
           }
 
           return (
-            <FormValidationContextProvider>
+            <FormContextProvider>
               <div className={classes.root}>
                 <div className={classes.cardHeader}>
                   <div className={classes.locationNameHeader}>
@@ -221,11 +221,8 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                       onLocationRemoved={onLocationRemoved}
                     />
                     <FormAction>
-                      <Button
-                        variant="text"
-                        skin="primary"
-                        onClick={this.props.onEdit}>
-                        <EditIcon />
+                      <Button onClick={this.props.onEdit}>
+                        <fbt desc="">Edit Location</fbt>
                       </Button>
                     </FormAction>
                   </div>
@@ -312,7 +309,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                   )}
                 </div>
               </div>
-            </FormValidationContextProvider>
+            </FormContextProvider>
           );
         }}
       />

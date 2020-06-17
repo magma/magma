@@ -8,78 +8,114 @@
  * @format
  */
 
-import type {EditUser} from '@fbcnms/ui/components/auth/EditUserDialog';
+import type {ShortUser} from '../../common/EntUtils';
 import type {Suggestion} from '@fbcnms/ui/components/Typeahead';
+import type {UserTypeahead_userQueryResponse} from './__generated__/UserTypeahead_userQuery.graphql';
 
 import * as React from 'react';
+import RelayEnvironment from '../../common/RelayEnvironment.js';
 import Typeahead from '@fbcnms/ui/components/Typeahead';
-import axios from 'axios';
+import {debounce} from 'lodash';
+import {fetchQuery, graphql} from 'relay-runtime';
+
+const userTypeaheadQuery = graphql`
+  query UserTypeahead_userQuery($filters: [UserFilterInput!]!) {
+    userSearch(limit: 10, filters: $filters) {
+      users {
+        id
+        email
+      }
+    }
+  }
+`;
+
+const USER_SEARCH_DEBOUNCE_TIMEOUT_MS = 200;
+const DEBOUNCE_CONFIG = {
+  trailing: true,
+  leading: true,
+};
 
 type Props = {
   className?: string,
   required?: boolean,
   headline?: string,
-  selectedUser?: ?string,
+  selectedUser?: ?ShortUser,
   margin?: ?string,
-  onUserSelection: (projectId: ?string) => void,
+  onUserSelection: (?ShortUser) => void,
 };
 
 type State = {
-  suggestions: Array<Suggestion>,
-  users: Array<EditUser>,
+  userSuggestions: Array<Suggestion>,
 };
 
 class UserTypeahead extends React.Component<Props, State> {
   state = {
-    suggestions: [],
-    users: [],
+    userSuggestions: [],
   };
-  componentDidMount() {
-    axios
-      .get('/user/list/')
-      .then(response => this.setState({users: response.data.users}));
-  }
+
+  debounceUserFetchSuggestions = debounce(
+    (searchTerm: string) => this.fetchNewUserSuggestions(searchTerm),
+    USER_SEARCH_DEBOUNCE_TIMEOUT_MS,
+    DEBOUNCE_CONFIG,
+  );
 
   fetchNewUserSuggestions = (searchTerm: string) => {
-    const searchTermLC = searchTerm.toLowerCase();
-    const users = this.state.users;
-    const userEmails = users
-      .map(e => e.email)
-      .filter(e => e.toLowerCase().includes(searchTermLC));
-    const suggestions = userEmails.map((e, i) => ({
-      name: e,
-      entityId: String(i),
-      entityType: '',
-      type: '',
-    }));
-
-    this.setState({
-      suggestions,
+    fetchQuery(RelayEnvironment, userTypeaheadQuery, {
+      filters: [
+        {
+          filterType: 'USER_NAME',
+          operator: 'CONTAINS',
+          stringValue: searchTerm,
+        },
+      ],
+    }).then((response: ?UserTypeahead_userQueryResponse) => {
+      if (!response || !response.userSearch) {
+        return;
+      }
+      this.setState({
+        userSuggestions: response.userSearch.users.filter(Boolean).map(e => ({
+          name: e.email,
+          entityId: e.id,
+          entityType: '',
+          type: 'user',
+        })),
+      });
     });
   };
+
+  onUserSuggestionsFetchRequested = (searchTerm: string) => {
+    this.debounceUserFetchSuggestions(searchTerm);
+  };
+
   render() {
-    const {selectedUser, headline, required, className} = this.props;
-    const {suggestions} = this.state;
+    const {
+      selectedUser,
+      headline,
+      required,
+      className,
+      onUserSelection,
+    } = this.props;
+    const {userSuggestions} = this.state;
     return (
       <div className={className}>
         <Typeahead
           margin={this.props.margin}
           required={!!required}
-          suggestions={suggestions}
-          onSuggestionsFetchRequested={this.fetchNewUserSuggestions}
+          suggestions={userSuggestions}
+          onSuggestionsFetchRequested={this.onUserSuggestionsFetchRequested}
           onEntitySelected={suggestion =>
-            this.props.onUserSelection(suggestion.name)
+            onUserSelection({id: suggestion.entityId, email: suggestion.name})
           }
           onEntriesRequested={() => {}}
-          onSuggestionsClearRequested={() => this.props.onUserSelection('')}
+          onSuggestionsClearRequested={() => onUserSelection(null)}
           placeholder={headline}
           value={
             selectedUser
               ? {
-                  name: selectedUser,
-                  entityId: '1',
+                  name: selectedUser.email,
+                  entityId: selectedUser.id,
                   entityType: '',
-                  type: '',
+                  type: 'user',
                 }
               : null
           }

@@ -68,6 +68,53 @@ commands:
           retry << parameters.command >>
 
 jobs:
+  integ-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          name: Install tools
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y openvpn
+      - run:
+          name: Configure and start VPN client
+          command: |
+            echo $OVPN_CONF | base64 -d - > ciworker.conf
+            sudo mv ciworker.conf /etc/openvpn/client.conf
+            sudo service openvpn@client restart
+      - run:
+          name: Decode and set secrets
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            echo $NODE_PKEY | base64 -d - > ci_node.pem
+            chmod 0400 ci_node.pem
+            echo $API_CERT | base64 -d - > ci_operator.pfx
+            openssl pkcs12 -in ci_operator.pfx -nocerts -out ci_operator.key.pem -nodes -passin pass:
+            openssl pkcs12 -in ci_operator.pfx -nokeys -out ci_operator.pem -passin pass:
+
+            echo $PROD_ROOTCA | base64 -d - > rootCA.pem
+            echo $PROD_CONTROL_PROXY | base64 -d - > control_proxy.yml
+
+            echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
+            echo export AWS_ACCESS_KEY_ID="$(printenv DEPLOY_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
+            echo export AWS_SECRET_ACCESS_KEY="$(printenv DEPLOY_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
+      - run:
+          name: Select python 3.7.0
+          command: pyenv global 3.7.0
+      - run:
+          name: Install python prerequisites
+          command: pip3 install fabric3 jsonpickle requests PyYAML awscli
+      # sleep 10 just in case the vpn client takes time to spin up
+      - run:
+          name: Run remote integ test
+          command: |
+            sleep 10
+            cd ${MAGMA_ROOT}/circleci
+            fab lte integ_test:branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1}
+
   feg-precommit:
     docker:
       - image: circleci/golang:1.13-stretch-node-browsers-legacy
@@ -433,6 +480,12 @@ jobs:
 
 workflows:
   version: 2.1
+
+  # Disabling this job until we spin up more worker capacity
+  #magma-lte:
+#    jobs:
+#      - integ-test:
+#          <<: *only_master
 
   magma:
     jobs:

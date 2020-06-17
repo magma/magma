@@ -115,8 +115,8 @@ func (arc *ActionsRuleCreate) Save(ctx context.Context) (*ActionsRule, error) {
 			node, err = arc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(arc.hooks); i > 0; i-- {
-			mut = arc.hooks[i-1](mut)
+		for i := len(arc.hooks) - 1; i >= 0; i-- {
+			mut = arc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, arc.mutation); err != nil {
 			return nil, err

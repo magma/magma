@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7b975cbb1dfebb7976f45ccbffd74b78
+ * @relayHash 66b41c0ae3e2c8343f40f20e0f7d0e42
  */
 
 /* eslint-disable */
@@ -23,6 +23,7 @@ export type ServiceTypeCreateData = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,
@@ -63,6 +64,8 @@ export type AddServiceTypeMutationResponse = {|
       +isEditable: ?boolean,
       +isInstanceProperty: ?boolean,
       +isMandatory: ?boolean,
+      +category: ?string,
+      +isDeleted: ?boolean,
     |}>,
     +numberOfServices: number,
   |}
@@ -97,6 +100,8 @@ mutation AddServiceTypeMutation(
       isEditable
       isInstanceProperty
       isMandatory
+      category
+      isDeleted
     }
     numberOfServices
   }
@@ -245,6 +250,20 @@ v3 = [
             "name": "isMandatory",
             "args": null,
             "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "category",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "isDeleted",
+            "args": null,
+            "storageKey": null
           }
         ]
       },
@@ -278,7 +297,7 @@ return {
     "operationKind": "mutation",
     "name": "AddServiceTypeMutation",
     "id": null,
-    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n    }\n    numberOfServices\n  }\n}\n",
+    "text": "mutation AddServiceTypeMutation(\n  $data: ServiceTypeCreateData!\n) {\n  addServiceType(data: $data) {\n    id\n    name\n    propertyTypes {\n      id\n      name\n      type\n      index\n      stringValue\n      intValue\n      booleanValue\n      floatValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n      isEditable\n      isInstanceProperty\n      isMandatory\n      category\n      isDeleted\n    }\n    numberOfServices\n  }\n}\n",
     "metadata": {}
   }
 };

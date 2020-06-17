@@ -102,6 +102,7 @@ message PipelineD {
       uint32 port = 2;
     }
     IPDRExportDst ipdr_export_dst = 10;
+    repeated string li_imsis = 11;
     // DEPRECATED
     // repeated string apps = 4;
 }
@@ -221,4 +222,12 @@ message SubscriberDB {
 message LighttpD {
     orc8r.LogLevel log_level = 1;
     bool enable_caching = 2;
+}
+
+//------------------------------------------------------------------------------
+// MonitorD configs
+//------------------------------------------------------------------------------
+message MonitorD {
+    orc8r.LogLevel log_level = 1;
+    int32 polling_interval = 60;
 }

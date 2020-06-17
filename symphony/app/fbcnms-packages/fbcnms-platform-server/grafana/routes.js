@@ -18,6 +18,7 @@ import Client from './GrafanaAPI';
 import GrafanaErrorMessage from './GrafanaErrorMessage';
 import {
   makeGrafanaUsername,
+  syncDashboards,
   syncDatasource,
   syncGrafanaUser,
   syncTenants,
@@ -28,9 +29,8 @@ import type {Task} from './handlers';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
 const GRAFANA_PROTOCOL = 'http';
-const GRAFANA_HOST = process.env.USER_GRAFANA_HOSTNAME ?? 'user-grafana';
-const GRAFANA_PORT = process.env.USER_GRAFANA_PORT ?? '3000';
-const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_HOST}:${GRAFANA_PORT}`;
+const GRAFANA_ADDRESS = process.env.USER_GRAFANA_ADDRESS ?? 'user-grafana:3000';
+const GRAFANA_URL = `${GRAFANA_PROTOCOL}://${GRAFANA_ADDRESS}`;
 
 const AUTH_PROXY_HEADER = 'X-WEBAUTH-USER';
 
@@ -64,6 +64,12 @@ const syncGrafana = () => {
         tasksCompleted,
         tenantsRes.errorTask,
       );
+    }
+    // Create Dashboards
+    const dbRes = await syncDashboards(grafanaAdminClient, req);
+    tasksCompleted.push(...dbRes.completedTasks);
+    if (dbRes.errorTask) {
+      return await displayErrorMessage(res, tasksCompleted, dbRes.errorTask);
     }
     return next();
   };

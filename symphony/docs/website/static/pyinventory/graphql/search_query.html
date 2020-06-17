@@ -45,7 +45,7 @@ $after: Cursor\n
 $first: Int = 10\n
 $before: Cursor\n
 $last: Int\n) {\n
-searchForEntity(\n
+searchForNode(\n
 name: $name\n
 after: $after\n
 first: $first\n
@@ -54,10 +54,15 @@ last: $last\n
 ) {\n
 edges {\n
 node {\n
-entityId\n
-entityType\n
+typename: __typename\n
+&hellip; on Location {\n
+id\n
+externalId\n
 name\n
-type\n
+locationType {\n
+name\n
+}\n
+}\n
 }\n
 }\n
 }\n}\n\n
@@ -71,7 +76,7 @@ type\n
 <dl>
 <dt id="pyinventory.graphql.search_query.SearchQuery.SearchQueryData"><code class="name">var <span class="ident">SearchQueryData</span></code></dt>
 <dd>
-<section class="desc"><p>SearchQueryData(searchForEntity: pyinventory.graphql.search_query.SearchQuery.SearchQueryData.SearchEntriesConnection)</p></section>
+<section class="desc"><p>SearchQueryData(searchForNode: pyinventory.graphql.search_query.SearchQuery.SearchQueryData.SearchNodesConnection)</p></section>
 </dd>
 </dl>
 <h3>Static methods</h3>

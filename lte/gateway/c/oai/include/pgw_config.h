@@ -54,7 +54,7 @@
 
 #define PGW_CONFIG_STRING_IP_ADDRESS_POOL "IP_ADDRESS_POOL"
 #define PGW_CONFIG_STRING_IPV4_ADDRESS_LIST "IPV4_LIST"
-#define PGW_CONFIG_STRING_IPV4_PREFIX_DELIMITER '/'
+#define PGW_CONFIG_STRING_IPV4_ADDRESS_RANGE_DELIMITER '-'
 #define PGW_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
 #define PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
@@ -83,7 +83,6 @@
 
 // may be more
 #define PGW_MAX_ALLOCATED_PDN_ADDRESSES 1024
-#define PGW_NUM_UE_POOL_MAX 16
 
 typedef struct pgw_config_s {
   /* Reader/writer lock for this configuration */
@@ -111,9 +110,15 @@ typedef struct pgw_config_s {
   bool masquerade_SGI;
 
   int num_ue_pool;
-  uint8_t ue_pool_mask[PGW_NUM_UE_POOL_MAX];
-  struct in_addr ue_pool_addr[PGW_NUM_UE_POOL_MAX];
+#define PGW_NUM_UE_POOL_MAX 2
+  struct in_addr ue_pool_range_low[PGW_NUM_UE_POOL_MAX];
+  struct in_addr ue_pool_range_high[PGW_NUM_UE_POOL_MAX];
 
+  struct in_addr ue_pool_network[PGW_NUM_UE_POOL_MAX]; // computed from config
+  struct in_addr ue_pool_netmask[PGW_NUM_UE_POOL_MAX]; // computed from config
+  // computed from config, UE IP adresses that matches
+  // ue_pool_network[]/ue_pool_netmask[] but do not match ue_pool_range_low[] -
+  // ue_pool_range_high[]
   bool force_push_pco;
   uint16_t ue_mtu;
   bool relay_enabled;

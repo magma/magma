@@ -45,5 +45,7 @@ func (User) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("profile_photo", File.Type).
 			Unique(),
+		edge.From("groups", UsersGroup.Type).
+			Ref("members"),
 	}
 }

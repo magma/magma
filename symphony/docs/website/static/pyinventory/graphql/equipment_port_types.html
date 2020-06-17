@@ -38,7 +38,24 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData" href="#pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData">EquipmentPortTypesQuery.EquipmentPortTypesQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentPortTypesQuery(data: pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData, <strong>QUERY</strong>: str = '\n
+<section class="desc"><p>EquipmentPortTypesQuery(data: pyinventory.graphql.equipment_port_types.EquipmentPortTypesQuery.EquipmentPortTypesQueryData, <strong>QUERY</strong>: str = '\nfragment PropertyTypeFragment on PropertyType {\n
+id\n
+name\n
+type\n
+index\n
+category\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
+isEditable\n
+isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\n
 query EquipmentPortTypesQuery {\n
 equipmentPortTypes {\n
 edges {\n
@@ -46,32 +63,10 @@ node {\n
 id\n
 name\n
 propertyTypes {\n
-id\n
-name\n
-type\n
-index\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-isEditable\n
-isInstanceProperty\n
+&hellip;PropertyTypeFragment\n
 }\n
 linkPropertyTypes {\n
-id\n
-name\n
-type\n
-index\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-isEditable\n
-isInstanceProperty\n
+&hellip;PropertyTypeFragment\n
 }\n
 }\n
 }\n

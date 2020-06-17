@@ -2,14 +2,7 @@ query LocationChildrenQuery($id: ID!) {
   location: node(id: $id) {
     ... on Location {
       children {
-        id
-        name
-        latitude
-        longitude
-        externalId
-        locationType {
-          name
-        }
+        ...LocationFragment
       }
     }
   }

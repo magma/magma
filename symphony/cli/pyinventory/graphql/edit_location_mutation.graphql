@@ -1,12 +1,5 @@
 mutation EditLocationMutation($input: EditLocationInput!) {
   editLocation(input: $input) {
-    id
-    name
-    latitude
-    longitude
-    externalId
-    locationType {
-      name
-    }
+    ...LocationFragment
   }
 }

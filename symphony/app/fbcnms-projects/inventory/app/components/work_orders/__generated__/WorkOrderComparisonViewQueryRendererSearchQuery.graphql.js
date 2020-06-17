@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ab22ca43e41b9d10e60de386fa9725b9
+ * @relayHash a23d4a8360be4b972388e622cf613fcc
  */
 
 /* eslint-disable */
@@ -19,7 +19,7 @@ type WorkOrdersMap_workOrders$ref = any;
 type WorkOrdersView_workOrder$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "equipment" | "float" | "gps_location" | "int" | "location" | "range" | "service" | "string" | "%future added value";
-export type WorkOrderFilterType = "LOCATION_INST" | "WORK_ORDER_ASSIGNEE" | "WORK_ORDER_CREATION_DATE" | "WORK_ORDER_INSTALL_DATE" | "WORK_ORDER_LOCATION_INST" | "WORK_ORDER_NAME" | "WORK_ORDER_OWNER" | "WORK_ORDER_PRIORITY" | "WORK_ORDER_STATUS" | "WORK_ORDER_TYPE" | "%future added value";
+export type WorkOrderFilterType = "LOCATION_INST" | "WORK_ORDER_ASSIGNED_TO" | "WORK_ORDER_ASSIGNEE" | "WORK_ORDER_CREATION_DATE" | "WORK_ORDER_INSTALL_DATE" | "WORK_ORDER_LOCATION_INST" | "WORK_ORDER_NAME" | "WORK_ORDER_OWNED_BY" | "WORK_ORDER_OWNER" | "WORK_ORDER_PRIORITY" | "WORK_ORDER_STATUS" | "WORK_ORDER_TYPE" | "%future added value";
 export type WorkOrderFilterInput = {|
   filterType: WorkOrderFilterType,
   operator: FilterOperator,
@@ -31,6 +31,7 @@ export type WorkOrderFilterInput = {|
 |};
 export type PropertyTypeInput = {|
   id?: ?string,
+  externalId?: ?string,
   name: string,
   type: PropertyKind,
   index?: ?number,
@@ -86,10 +87,16 @@ fragment WorkOrdersMap_workOrders on WorkOrder {
   id
   name
   description
-  ownerName
+  owner {
+    id
+    email
+  }
   status
   priority
-  assignee
+  assignedTo {
+    id
+    email
+  }
   installDate
   location {
     id
@@ -103,11 +110,17 @@ fragment WorkOrdersView_workOrder on WorkOrder {
   id
   name
   description
-  ownerName
+  owner {
+    id
+    email
+  }
   creationDate
   installDate
   status
-  assignee
+  assignedTo {
+    id
+    email
+  }
   location {
     id
     name
@@ -173,6 +186,16 @@ v4 = {
   "storageKey": null
 },
 v5 = [
+  (v3/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "email",
+    "args": null,
+    "storageKey": null
+  }
+],
+v6 = [
   (v3/*: any*/),
   (v4/*: any*/)
 ];
@@ -254,11 +277,14 @@ return {
                 "storageKey": null
               },
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "ownerName",
+                "name": "owner",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
+                "concreteType": "User",
+                "plural": false,
+                "selections": (v5/*: any*/)
               },
               {
                 "kind": "ScalarField",
@@ -282,11 +308,14 @@ return {
                 "storageKey": null
               },
               {
-                "kind": "ScalarField",
+                "kind": "LinkedField",
                 "alias": null,
-                "name": "assignee",
+                "name": "assignedTo",
+                "storageKey": null,
                 "args": null,
-                "storageKey": null
+                "concreteType": "User",
+                "plural": false,
+                "selections": (v5/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -323,7 +352,7 @@ return {
                 "args": null,
                 "concreteType": "WorkOrderType",
                 "plural": false,
-                "selections": (v5/*: any*/)
+                "selections": (v6/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -333,7 +362,7 @@ return {
                 "args": null,
                 "concreteType": "Project",
                 "plural": false,
-                "selections": (v5/*: any*/)
+                "selections": (v6/*: any*/)
               },
               {
                 "kind": "ScalarField",
@@ -359,7 +388,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrderComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    count\n    workOrders {\n      ...WorkOrdersView_workOrder\n      ...WorkOrdersMap_workOrders\n      id\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  status\n  priority\n  assignee\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  ownerName\n  creationDate\n  installDate\n  status\n  assignee\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
+    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrderSearch(limit: $limit, filters: $filters) {\n    count\n    workOrders {\n      ...WorkOrdersView_workOrder\n      ...WorkOrdersMap_workOrders\n      id\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  status\n  priority\n  assignedTo {\n    id\n    email\n  }\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  assignedTo {\n    id\n    email\n  }\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
     "metadata": {}
   }
 };

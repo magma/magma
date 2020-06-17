@@ -12,6 +12,26 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 
+QUERY: List[str] = ["""
+query LocationDocumentsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      files {
+        id
+        fileName
+        category
+      }
+      images {
+        id
+        fileName
+        category
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class LocationDocumentsQuery(DataClassJsonMixin):
     @dataclass
@@ -22,33 +42,19 @@ class LocationDocumentsQuery(DataClassJsonMixin):
             class File(DataClassJsonMixin):
                 id: str
                 fileName: str
-                category: Optional[str] = None
+                category: Optional[str]
 
             files: List[File]
+            images: List[File]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationDocumentsQueryData
-
-    __QUERY__: str = """
-    query LocationDocumentsQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      files {
-        id
-        fileName
-        category
-      }
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationDocumentsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

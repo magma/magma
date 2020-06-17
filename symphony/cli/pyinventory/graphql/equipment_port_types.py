@@ -11,7 +11,20 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
+from .equipment_port_type_fragment import EquipmentPortTypeFragment, QUERY as EquipmentPortTypeFragmentQuery
+
+QUERY: List[str] = EquipmentPortTypeFragmentQuery + ["""
+query EquipmentPortTypesQuery {
+  equipmentPortTypes {
+    edges {
+      node {
+        ...EquipmentPortTypeFragment
+      }
+    }
+  }
+}
+
+"""]
 
 @dataclass
 class EquipmentPortTypesQuery(DataClassJsonMixin):
@@ -22,17 +35,10 @@ class EquipmentPortTypesQuery(DataClassJsonMixin):
             @dataclass
             class EquipmentPortTypeEdge(DataClassJsonMixin):
                 @dataclass
-                class EquipmentPortType(DataClassJsonMixin):
-                    @dataclass
-                    class PropertyType(PropertyTypeFragment):
-                        pass
+                class EquipmentPortType(EquipmentPortTypeFragment):
+                    pass
 
-                    id: str
-                    name: str
-                    propertyTypes: List[PropertyType]
-                    linkPropertyTypes: List[PropertyType]
-
-                node: Optional[EquipmentPortType] = None
+                node: Optional[EquipmentPortType]
 
             edges: List[EquipmentPortTypeEdge]
 
@@ -40,30 +46,10 @@ class EquipmentPortTypesQuery(DataClassJsonMixin):
 
     data: EquipmentPortTypesQueryData
 
-    __QUERY__: str = PropertyTypeFragmentQuery + """
-    query EquipmentPortTypesQuery {
-  equipmentPortTypes {
-    edges {
-      node {
-        id
-        name
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
-        linkPropertyTypes {
-          ...PropertyTypeFragment
-        }
-      }
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient) -> EquipmentPortTypesQueryData:
         # fmt: off
         variables = {}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

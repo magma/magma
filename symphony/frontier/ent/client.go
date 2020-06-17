@@ -368,14 +368,16 @@ func (c *TokenClient) GetX(ctx context.Context, id int) *Token {
 // QueryUser queries the user edge of a Token.
 func (c *TokenClient) QueryUser(t *Token) *UserQuery {
 	query := &UserQuery{config: c.config}
-	id := t.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(token.Table, token.FieldID, id),
-		sqlgraph.To(user.Table, user.FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
-	)
-	query.sql = sqlgraph.Neighbors(t.driver.Dialect(), step)
-
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := t.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(token.Table, token.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, token.UserTable, token.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(t.driver.Dialect(), step)
+		return fromV, nil
+	}
 	return query
 }
 
@@ -465,14 +467,16 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 // QueryTokens queries the tokens edge of a User.
 func (c *UserClient) QueryTokens(u *User) *TokenQuery {
 	query := &TokenQuery{config: c.config}
-	id := u.ID
-	step := sqlgraph.NewStep(
-		sqlgraph.From(user.Table, user.FieldID, id),
-		sqlgraph.To(token.Table, token.FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, user.TokensTable, user.TokensColumn),
-	)
-	query.sql = sqlgraph.Neighbors(u.driver.Dialect(), step)
-
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(token.Table, token.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.TokensTable, user.TokensColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
 	return query
 }
 

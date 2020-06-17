@@ -25,8 +25,7 @@ import {Parse} from '../../prometheus/PromQLParser';
 import {SEVERITY} from '../../severity/Severity';
 import {useAlarmContext} from '../../AlarmContext';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useForm} from '../../hooks';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useForm, useRouter} from '@fbcnms/ui/hooks';
 
 import type {AlertConfig, Labels as LabelsMap} from '../../AlarmAPIType';
 import type {GenericRule, RuleEditorProps} from '../RuleInterface';

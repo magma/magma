@@ -78,7 +78,7 @@ class SymphonyClient(GraphqlClient):
         graphql_endpoint_address = self.address + INVENTORY_GRAPHQL_ENDPOINT
 
         self.session: Session = Session()
-        self.session.auth = HTTPBasicAuth(email, password)
+        auth = HTTPBasicAuth(email, password)
         verify_ssl = not is_local_host and not is_dev_mode
         self.session.verify = verify_ssl
         if not verify_ssl:
@@ -93,6 +93,7 @@ class SymphonyClient(GraphqlClient):
             graphql_endpoint_address,
             self.session,
             "Pyinventory/" + __version__,
+            auth,
             reporter,
         )
         self._verify_version_is_not_broken()
@@ -141,6 +142,9 @@ class SymphonyClient(GraphqlClient):
         return None
 
     def store_file(self, file_path: str, file_type: str, is_global: bool) -> str:
+        # TODO(T64504906): Remove after basic auth is enabled
+        if "x-csrf-token" not in self.session.headers:
+            self._login()
         sign_response = self.session.get(
             self.put_endpoint,
             params={"contentType": file_type},
@@ -157,6 +161,9 @@ class SymphonyClient(GraphqlClient):
         return sign_response["key"]
 
     def delete_file(self, key: str, is_global: bool) -> None:
+        # TODO(T64504906): Remove after basic auth is enabled
+        if "x-csrf-token" not in self.session.headers:
+            self._login()
         sign_response = self.session.delete(
             self.delete_endpoint.format(key),
             headers={"Is-Global": str(is_global)},
@@ -169,11 +176,13 @@ class SymphonyClient(GraphqlClient):
         response.raise_for_status()
 
     def post(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
+        # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
             self._login()
         return self.session.post("".join([self.address, url]), json=json)
 
     def put(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
+        # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
             self._login()
         return self.session.put("".join([self.address, url]), json=json)

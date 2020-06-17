@@ -19,17 +19,16 @@ from pyinventory.api.user import (
 from pyinventory.graphql.user_role_enum import UserRole
 from pyinventory.graphql.user_status_enum import UserStatus
 
+from .grpc.rpc_pb2_grpc import TenantServiceStub
 from .utils import init_client
 from .utils.base_test import BaseTest
-from .utils.constant import TEST_USER_EMAIL
 
 
 class TestUser(BaseTest):
-    def tearDown(self) -> None:
-        active_users = get_active_users(self.client)
-        for user in active_users:
-            if user.email != TEST_USER_EMAIL:
-                deactivate_user(self.client, user)
+    def __init__(
+        self, testName: str, client: InventoryClient, stub: TenantServiceStub
+    ) -> None:
+        super().__init__(testName, client, stub)
 
     @staticmethod
     def random_string(stringLength: int = 10) -> str:
@@ -52,7 +51,7 @@ class TestUser(BaseTest):
         new_password = self.random_string()
         u = add_user(self.client, user_name, user_name)
         edit_user(self.client, u, new_password, UserRole.OWNER)
-        client2 = InventoryClient(user_name, new_password, is_dev_mode=True)
+        client2 = init_client(user_name, new_password)
         active_users = get_active_users(client2)
         self.assertEqual(2, len(active_users))
 

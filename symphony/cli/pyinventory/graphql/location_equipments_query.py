@@ -11,6 +11,20 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQuery
+
+QUERY: List[str] = EquipmentFragmentQuery + ["""
+query LocationEquipmentsQuery($id: ID!) {
+  location: node(id: $id) {
+    ... on Location {
+      equipments {
+        ...EquipmentFragment
+      }
+    }
+  }
+}
+
+"""]
 
 @dataclass
 class LocationEquipmentsQuery(DataClassJsonMixin):
@@ -19,42 +33,19 @@ class LocationEquipmentsQuery(DataClassJsonMixin):
         @dataclass
         class Node(DataClassJsonMixin):
             @dataclass
-            class Equipment(DataClassJsonMixin):
-                @dataclass
-                class EquipmentType(DataClassJsonMixin):
-                    name: str
-
-                id: str
-                name: str
-                equipmentType: EquipmentType
+            class Equipment(EquipmentFragment):
+                pass
 
             equipments: List[Equipment]
 
-        location: Optional[Node] = None
+        location: Optional[Node]
 
     data: LocationEquipmentsQueryData
-
-    __QUERY__: str = """
-    query LocationEquipmentsQuery($id: ID!) {
-  location: node(id: $id) {
-    ... on Location {
-      equipments {
-        id
-        name
-        equipmentType {
-          name
-        }
-      }
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, id: str) -> LocationEquipmentsQueryData:
         # fmt: off
         variables = {"id": id}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

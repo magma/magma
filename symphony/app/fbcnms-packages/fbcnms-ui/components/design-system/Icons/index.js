@@ -11,6 +11,7 @@
 export {default as AddIcon} from './Actions/AddIcon';
 export {default as AssignIcon} from './Actions/AssignIcon';
 export {default as Bookmark} from './Actions/Bookmark';
+export {default as BookmarkFilled} from './Actions/BookmarkFilled';
 export {default as DeleteIcon} from './Actions/DeleteIcon';
 export {default as DownloadIcon} from './Actions/DownloadIcon';
 export {default as DuplicateIcon} from './Actions/DuplicateIcon';

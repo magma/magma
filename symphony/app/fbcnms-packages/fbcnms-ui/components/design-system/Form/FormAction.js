@@ -9,8 +9,8 @@
  */
 
 import * as React from 'react';
+import FormAlertsContext from '../Form/FormAlertsContext';
 import FormElementContext from './FormElementContext';
-import FormValidationContext from '../Form/FormValidationContext';
 import {useContext} from 'react';
 
 export type PermissionHandlingProps = {|
@@ -32,7 +32,7 @@ const FormAction = (props: Props) => {
     hideWhenDisabled = true,
   } = props;
 
-  const validationContext = useContext(FormValidationContext);
+  const validationContext = useContext(FormAlertsContext);
   const validationDisabling =
     validationContext.editLock.detected && !ignorePermissions;
   const disabled = disabledProp || validationDisabling;

@@ -173,6 +173,7 @@ const useStyles = makeStyles(_theme => ({
     background: 'none',
     padding: 0,
     height: '24px',
+    maxWidth: '100%',
     '&$primarySkin': {
       '&:not($disabled)': {
         '& $buttonText, $icon': {
@@ -253,6 +254,7 @@ const useStyles = makeStyles(_theme => ({
       cursor: 'default',
       '& $buttonText, $icon': {
         color: symphony.palette.disabled,
+        fill: symphony.palette.disabled,
       },
     },
   },
@@ -272,17 +274,20 @@ export type ButtonProps = {|
   skin?: ButtonSkin,
   variant?: ButtonVariant,
   disabled?: boolean,
+  tooltip?: string,
 |};
 
 export type Props = {
   className?: string,
   children: React.Node,
-  onClick?: void | (() => void | Promise<void>),
+  onClick?:
+    | void
+    | (void | ((SyntheticMouseEvent<HTMLElement>) => void | Promise<void>)),
+
   leftIcon?: SvgIcon,
   leftIconClass?: string,
   rightIcon?: SvgIcon,
   rightIconClass?: string,
-  tooltip?: string,
   ...ButtonProps,
 };
 
@@ -335,7 +340,11 @@ const Button = (props: Props, forwardedRef: TRefFor<HTMLButtonElement>) => {
           size="small"
         />
       ) : null}
-      <Text variant="body2" weight="medium" className={classes.buttonText}>
+      <Text
+        variant="body2"
+        weight="medium"
+        useEllipsis={true}
+        className={classes.buttonText}>
         {children}
       </Text>
       {RightIcon ? (

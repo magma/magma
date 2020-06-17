@@ -19,6 +19,7 @@ import InventoryConfigureHeader from '../InventoryConfigureHeader';
 import InventoryQueryRenderer from '../InventoryQueryRenderer';
 import React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
+import fbt from 'fbt';
 import withInventoryErrorBoundary from '../../common/withInventoryErrorBoundary';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {graphql} from 'relay-runtime';
@@ -107,7 +108,7 @@ class WorkOrderTypes extends React.Component<Props, State> {
                 subtitle="Create and manage reusable work orders."
                 actionButtons={[
                   {
-                    title: 'Add Work Order Template',
+                    title: `${fbt('Create Work Order Template', '')}`,
                     action: () => this.showAddEditWorkOrderTypeCard(null),
                   },
                 ]}

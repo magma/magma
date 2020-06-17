@@ -206,9 +206,9 @@ class S6AApplication(abc.Application):
             logging.error("Auth error for %s: %s", imsi, e)
         except SubscriberNotFoundError as e:
             S6A_AUTH_FAILURE_TOTAL.labels(
-                code=avp.ResultCode.DIAMETER_AUTHORIZATION_REJECTED).inc()
+                code=avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN).inc()
             resp = self._gen_response(
-                state_id, msg, avp.ResultCode.DIAMETER_AUTHORIZATION_REJECTED)
+                state_id, msg, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)
             logging.warning("Subscriber not found: %s", e)
 
         self.writer.send_msg(resp)

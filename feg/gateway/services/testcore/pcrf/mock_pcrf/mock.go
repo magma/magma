@@ -62,7 +62,10 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 		ruleInstallAVPs := toRuleInstallAVPs(
 			answer.RuleInstalls.GetRuleNames(),
 			answer.RuleInstalls.GetRuleBaseNames(),
-			answer.RuleInstalls.GetRuleDefinitions())
+			answer.RuleInstalls.GetRuleDefinitions(),
+			answer.RuleInstalls.ActivationTime,
+			answer.RuleInstalls.DeactivationTime,
+		)
 		avps = append(avps, ruleInstallAVPs...)
 	}
 	ruleRemovals := answer.GetRuleRemovals()
@@ -82,6 +85,14 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 			}
 			avps = append(avps, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
 		}
+	}
+	eventTriggers := answer.GetEventTriggers()
+	if eventTriggers != nil {
+		avps = append(avps, toEventTriggersAVPs(eventTriggers)...)
+	}
+	revalidationTime := answer.GetRevalidationTime()
+	if revalidationTime != nil {
+		avps = append(avps, toRevalidationTimeAVPs(revalidationTime))
 	}
 	return avps, answer.GetResultCode()
 }

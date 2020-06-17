@@ -4,18 +4,22 @@ title: S1AP Integration Tests
 hide_title: true
 ---
 # S1AP Integration Tests
-Current testing workflow for VM-only S1AP integration tests. We cover gateway-only tests, cloud-included tests, and some general notes.
+Current testing workflow for VM-only S1AP integration tests. We cover
+gateway-only tests and some general notes.
 
-Our VM-only tests use 2 to 4 Vagrant-managed VMs hosted on the local device (laptop):
+TODO: Update this document once integration tests with cloud are also supported
+
+Our VM-only tests use 3 Vagrant-managed VMs hosted on the local device (laptop):
 
 - *magma*, i.e. magma-dev or gateway
 - *magma_test*, i.e. s1ap_tester
-- *cloud*
-- *datastore*
+- *magma_trfserver*, i.e. an Iperf server to generate uplink/downlink traffic
 
 ## Gateway-only tests
 
-These tests use only the *magma* and *magma_test* VMs. The *magma_test* VM abstracts away the UE and eNodeB, while the *magma* VM acts as the gateway.
+These tests use all 3 VMs listed above. The *magma_test* VM abstracts away the
+UE and eNodeB, the *magma_trfserver* emulates the Internet, while the *magma* VM
+acts as the gateway between *magma_test* and *magma_trfserver*.
 
 ### Gateway VM setup
 
@@ -30,27 +34,20 @@ Spin up and provision the s1ap tester's VM, make, then make in the integ_tests d
 
 1. From `magma/lte/gateway` on the host machine: `vagrant up magma_test && vagrant ssh magma_test`
 1. Now in the *magma_test* VM:
-    1. cd `$MAGMA_ROOT/lte/gateway/python && make`
-    1. cd `$MAGMA_ROOT/lte/gateway/python/integ_tests && make`
-    1. `deactivate; magtivate`
-
-You will see "-bash: deactivate: command not found" if this is the first time
-you are compiling the tester code. It can be ignored.
+    1. `cd $MAGMA_ROOT/lte/gateway/python && make`
+    1. `cd integ_tests && make`
 
 ### Run tests
 
 From `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM, run
-either individual tests or the full suite of tests. A safe, non-flaky test to run is `s1aptests/test_attach_detach.py`.
-
-**Note**: after make-ing, run `deactivate; magtivate`. Make sure that you are "magtivate-d" before all tests (your command prompt will include `(python)`).
+either individual tests or the full suite of tests. A safe, non-flaky test to
+run is `s1aptests/test_attach_detach.py`.
 
 * Individual test(s): `make integ_test TESTS=<test(s)_to_run>`
 * All tests: `make integ_test`
 
 **Note**: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.
-
-To run the tests when upstreaming to OAI use the environment variable `TEST_OAI_UPSTREAM` from the *magma_test* vm. This will use OAI's HSS and disable our mobilityd e.g. `TEST_OAI_UPSTREAM make integ_test`
 
 ### Running uplink/downlink traffic tests
 
@@ -64,43 +61,133 @@ To run the tests when upstreaming to OAI use the environment variable `TEST_OAI_
 
 Running `make integ_test` in *magma_test* VM should succeed now.
 
-## Cloud-included
+## Testing stateless Access Gateway
 
-These tests mirror the gateway-only tests, except they make their calls to the cloud's REST API, rather than directly to the gateway over gRPC. For a given update made via the REST API (e.g. add a subscriber, update a mobility config), these tests poll the gateway over gRPC until the cloud and gateway responses match. Thus, these tests are much slower than the gateway-only tests since the gateway's polling mechanism is a bit slow.
+The Access Gateway by default runs a set of stateful services, which means that
+whenever the services are restarted, all previous state of UEs and eNodeBs, and
+they need to reconnect and re-register. Alternatively, we can switch the Access
+Gateway to be stateless, as shown below, so that all UE state is preserved
+across service restarts.
 
-These tests use all 4 VMs.
+Note that this is a feature in development, so some tests from the integ_test
+suite may not pass.
 
-**Note**. Cloud-included tests are currently only supported for `test_attach_detach.py`, but will and can easily be added for the rest of our suite of integration tests.
+All the tests below assume you have completed the Gateway Setup and Test VM
+Setup described above.
 
-### Gateway setup
+### Testing one stateless service
 
-Same as for gateway-only tests.
+#### Stateless MME
+This section describes how to test whether MME service is persisting state to Redis.
 
-### Magma_test setup
+On gateway VM:
 
-Same as for gateway-only tests.
+1. Disable Pipelined, Mobilityd, Sctpd and Sessiond from restarting when MME
+restarts.
 
-### Cloud setup
+ `cd /etc/systemd/system`
 
-Spin up and provision the *cloud* and *datastore* VMs, then make.
+ comment out the line `PartOf=magma@mme.service` from the following files
+ (you will need sudo privileges):
 
-1. From `magma/orc8r/cloud` on the host machine: `vagrant up datastore && vagrant up cloud && vagrant ssh cloud`
-1. Now in the *cloud* VM: `cd ~/magma/orc8r/cloud && make run`
+ magma@mobilityd.service, magma@pipelined.service, magma@sessiond.service and
+sctpd.service
 
-### Other setup
+ `sudo systemctl daemon-reload`
 
-From `magma/lte/gateway` on your host device run `fab s1ap_setup_cloud`
+1. In `/etc/magma/mme.yml`, set `use_stateless` to true
+1. Clean up all the state in redis: `redis-cli -p 6380 FLUSHALL`. This might
+throw a "Could not connect" error if magma@redis service is not running. Start
+the redis service with `sudo service magma@redis start` and then try again.
+1. `cd $MAGMA_ROOT/lte/gateway; make restart`
 
-Using the *cloud* VM requires a few extra steps, which are handled by the above [fab](http://www.fabfile.org/) command. In summary:
+On test VM:
+1. Basic attach/detach test where MME is restarted mid-way:
 
-- Tell the *magma* VM to use the *cloud* VM for its REST API calls (clean up previous prod certs if any)
-- Decrease the gateway's streamer timeout
+  `make integ_test TESTS=s1aptests/test_attach_detach_with_mme_restart.py`
 
-### Run tests
+1. Attach with uplink UDP traffic, where MME is restarted while UDP traffic is
+flowing:
 
-The integration tests are told to use the cloud by setting the environment variable `MAGMA_S1APTEST_USE_CLOUD` on the *magma_test* VM.
+ `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_mme_restart.py`
 
-So from `$MAGMA_ROOT/lte/gateway/python/integ_tests` on the *magma_test* VM run e.g. `MAGMA_S1APTEST_USE_CLOUD=1 make integ_test TESTS=s1aptests/test_attach_detach.py` to run a cloud-included version of `test_attach_detach`.
+ , make sure traffic server VM is running (as described in traffic tests above) and
+TCP checksum is disabled on all VMs.
+
+#### Stateless Mobilityd
+This section describes how to test whether Mobilityd service is persisting state to Redis.
+
+On gateway VM:
+
+1. Disable MME from restarting when Mobilityd restarts.
+
+ comment out the line `PartOf=magma@mobilityd.service` from the MME system
+service file `/etc/systemd/system/magma@mme.service` (you will need sudo privileges):
+
+ `sudo systemctl daemon-reload`
+
+1. In `/etc/magma/mobilityd.yml`, set `persist_to_redis` to `true`
+
+1. Clean up all the state in redis: `redis-cli -p 6380 FLUSHALL`. This might
+throw a "Could not connect" error if magma@redis service is not running. Start
+the redis service with `sudo service magma@redis start` and then try again.
+
+1. `cd $MAGMA_ROOT/lte/gateway; make restart`
+
+On test VM:
+1. `cd $MAGMA_ROOT/lte/gateway/python && make`
+1. `cd integ_tests && make`
+1. Basic attach/detach test where Mobilityd is restarted mid-way:
+
+ `make integ_test TESTS=s1aptests/test_attach_detach_with_mobilityd_restart.py`
+
+1. Test IP blocks are maintained across service restart
+
+ `make integ_test TESTS=s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py`
+
+#### Stateless Pipelined
+This section describes how to test whether Pipelined service is persisting state to Redis.
+
+On gateway VM:
+
+1. Disable MME from restarting when Pipelined restarts.
+
+ comment out the line `PartOf=magma@pipelined.service` from the MME system
+service file `/etc/systemd/system/magma@mme.service` (you will need sudo privileges):
+
+ `sudo systemctl daemon-reload`
+
+1. In `/etc/magma/pipelined.yml`, set `clean_restart` to `false`
+
+1. Clean up all the state in redis: `redis-cli -p 6380 FLUSHALL`. This might
+throw a "Could not connect" error if magma@redis service is not running. Start
+the redis service with `sudo service magma@redis start` and then try again.
+
+1. `cd $MAGMA_ROOT/lte/gateway; make restart`
+
+On test VM:
+1. `cd $MAGMA_ROOT/lte/gateway/python && make`
+1. `cd integ_tests && make`
+1. UDP traffic test where Pipelined is restarted mid-way:
+
+ `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py`
+
+
+### Testing stateless gateway with all services
+
+To test the gateway with all services being stateless,
+
+1. On gateway VM, follow steps 1 and 2 for each of Stateless MME, Mobilityd and Pipelined as
+listed above
+
+1. On test VM, you can run any of the test cases for individual service restarts
+listed above. Further, you can test attach with uplink UDP traffic, where
+multiple services are restarted while UDP traffic is flowing:
+
+ `make integ_test TESTS=s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py`
+
+ , make sure traffic server VM is running (as described in traffic tests above) and
+TCP checksum is disabled on all VMs.
 
 ## Notes
 

@@ -24,8 +24,6 @@ import PeopleIcon from '@material-ui/icons/People';
 import React, {useContext} from 'react';
 import SecuritySettings from '@fbcnms/magmalte/app/components/SecuritySettings';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-import Strings from '../../common/CommonStrings';
-import UserManaementView from '../admin/userManagement/UserManaementView';
 import UsersSettings from '@fbcnms/magmalte/app/components/UsersSettings';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -44,7 +42,6 @@ const useStyles = makeStyles(theme => ({
 
 function NavItems() {
   const relativeUrl = useRelativeUrl();
-  const appContext = useContext(AppContext);
   return (
     <>
       <NavListItem
@@ -67,13 +64,6 @@ function NavItems() {
         path={relativeUrl('/users')}
         icon={<PeopleIcon />}
       />
-      {appContext.isFeatureEnabled('user_management') ? (
-        <NavListItem
-          label={Strings.admin.users.viewHeader}
-          path={relativeUrl('/user_management')}
-          icon={<PeopleIcon />}
-        />
-      ) : null}
     </>
   );
 }
@@ -103,10 +93,6 @@ function Master() {
           <Route path={relativeUrl('/features')} component={Features} />
           <Route path={relativeUrl('/metrics')} component={CloudMetrics} />
           <Route path={relativeUrl('/users')} component={UsersSettings} />
-          <Route
-            path={relativeUrl('/user_management')}
-            component={UserManaementView}
-          />
           <Route
             path={relativeUrl('/settings')}
             render={() => (

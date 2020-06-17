@@ -8,20 +8,56 @@ import sys
 from unittest import TestLoader, TextTestRunner
 
 import pyinventory_tests
-from pyinventory_tests.utils.constant import TESTS_PATTERN, XML_OUTPUT_DIRECTORY
+from pyinventory_tests.utils.constant import (
+    TESTS_PATTERN,
+    XML_OUTPUT_DIRECTORY,
+    TestMode,
+)
 from xmlrunner import XMLTestRunner
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="test")
-    parser.add_argument("-p", "--pattern", default=TESTS_PATTERN)
-    parser.add_argument("-o", "--output", default=XML_OUTPUT_DIRECTORY)
-    parser.add_argument("-l", "--local", default=False, action="store_true")
+    parser.add_argument(
+        "-p",
+        "--pattern",
+        help="Filter of tests to run. Example: '*TestLocation*'",
+        default=TESTS_PATTERN,
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        help="Output path where to store xml result files",
+        default=XML_OUTPUT_DIRECTORY,
+    )
+    parser.add_argument(
+        "-l",
+        "--local",
+        help="Run against which tenant in local environment. Default: fb-test",
+        type=str,
+        const="fb-test",
+        default=None,
+        nargs="?",
+    )
+    # TODO(T64902729): Restore after support for cleaning production between tests
+    # parser.add_argument(
+    #     "-r",
+    #     "--remote",
+    #     help="Run against which tenant in production staging environment",
+    #     type=str,
+    #     default=None,
+    # )
 
     args = parser.parse_args()
 
-    pyinventory_tests.utils.RUN_LOCALLY = args.local
+    if args.local is not None:
+        pyinventory_tests.utils.TEST_MODE = TestMode.LOCAL
+        pyinventory_tests.utils.TENANT = args.local
+    # TODO(T64902729): Restore after support for cleaning production between tests
+    # elif args.remote is not None:
+    #     pyinventory_tests.utils.TEST_MODE = TestMode.REMOTE
+    #     pyinventory_tests.utils.TENANT = args.remote
 
     loader = TestLoader()
     loader.testNamePatterns = [args.pattern]

@@ -11,6 +11,20 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
+
+QUERY: List[str] = LocationFragmentQuery + ["""
+query GetLocationsQuery {
+  locations {
+    edges {
+      node {
+        ...LocationFragment
+      }
+    }
+  }
+}
+
+"""]
 
 @dataclass
 class GetLocationsQuery(DataClassJsonMixin):
@@ -21,50 +35,21 @@ class GetLocationsQuery(DataClassJsonMixin):
             @dataclass
             class LocationEdge(DataClassJsonMixin):
                 @dataclass
-                class Location(DataClassJsonMixin):
-                    @dataclass
-                    class LocationType(DataClassJsonMixin):
-                        name: str
+                class Location(LocationFragment):
+                    pass
 
-                    id: str
-                    name: str
-                    latitude: Number
-                    longitude: Number
-                    locationType: LocationType
-                    externalId: Optional[str] = None
-
-                node: Optional[Location] = None
+                node: Optional[Location]
 
             edges: List[LocationEdge]
 
-        locations: Optional[LocationConnection] = None
+        locations: Optional[LocationConnection]
 
     data: GetLocationsQueryData
-
-    __QUERY__: str = """
-    query GetLocationsQuery {
-  locations {
-    edges {
-      node {
-        id
-        name
-        latitude
-        longitude
-        externalId
-        locationType {
-          name
-        }
-      }
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient) -> GetLocationsQueryData:
         # fmt: off
         variables = {}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

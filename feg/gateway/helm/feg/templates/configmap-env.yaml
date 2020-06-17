@@ -19,4 +19,8 @@ data:
 {{ tuple "bin/_env.tpl" . | include "template" | indent 4 }}
   control_proxy.yml: |
 {{ tuple "bin/_control_proxy.yml.tpl" . | include "template" | indent 4 }}
+  bootstrap.sh: |
+{{ tuple "bin/_bootstrap.sh.tpl" . | include "template" | indent 4 }}
+  install_gateway.sh: |
+{{ tuple "bin/_install_gateway.sh.tpl" . | include "template" | indent 4 }}
 {{- end }}

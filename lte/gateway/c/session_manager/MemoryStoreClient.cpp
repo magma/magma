@@ -19,7 +19,7 @@ MemoryStoreClient::MemoryStoreClient(
   session_map_({}),
   rule_store_(rule_store) {}
 
-SessionMap MemoryStoreClient::read_sessions(std::vector<std::string> subscriber_ids)
+SessionMap MemoryStoreClient::read_sessions(std::set<std::string> subscriber_ids)
 {
   auto session_map = SessionMap{};
   for (const auto& subscriber_id : subscriber_ids) {

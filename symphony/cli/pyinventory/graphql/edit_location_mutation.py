@@ -11,50 +11,35 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .location_fragment import LocationFragment, QUERY as LocationFragmentQuery
 from .edit_location_input import EditLocationInput
 
+
+QUERY: List[str] = LocationFragmentQuery + ["""
+mutation EditLocationMutation($input: EditLocationInput!) {
+  editLocation(input: $input) {
+    ...LocationFragment
+  }
+}
+
+"""]
 
 @dataclass
 class EditLocationMutation(DataClassJsonMixin):
     @dataclass
     class EditLocationMutationData(DataClassJsonMixin):
         @dataclass
-        class Location(DataClassJsonMixin):
-            @dataclass
-            class LocationType(DataClassJsonMixin):
-                name: str
-
-            id: str
-            name: str
-            latitude: Number
-            longitude: Number
-            locationType: LocationType
-            externalId: Optional[str] = None
+        class Location(LocationFragment):
+            pass
 
         editLocation: Location
 
     data: EditLocationMutationData
-
-    __QUERY__: str = """
-    mutation EditLocationMutation($input: EditLocationInput!) {
-  editLocation(input: $input) {
-    id
-    name
-    latitude
-    longitude
-    externalId
-    locationType {
-      name
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditLocationInput) -> EditLocationMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

@@ -84,14 +84,15 @@ int s1ap_mme_itti_nas_uplink_ind(
   hashtable_uint64_ts_get(
     imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
 
-  OAILOG_INFO(
+  OAILOG_INFO_UE(
     LOG_S1AP,
+    imsi64,
     "Sending NAS Uplink indication to NAS_MME_APP, mme_ue_s1ap_id = (%u) \n",
     ue_id);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
   if (message_p == NULL) {
-    OAILOG_ERROR(
-      LOG_S1AP,
+    OAILOG_ERROR_UE(
+      LOG_S1AP, imsi64,
       "itti_alloc_new_message Failed for"
       " MME_APP_UPLINK_DATA_IND \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -131,8 +132,9 @@ int s1ap_mme_itti_nas_downlink_cnf(
     imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
   if (message_p == NULL) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
       "itti_alloc_new_message Failed for"
       " MME_APP_DOWNLINK_DATA_CNF \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -142,8 +144,9 @@ int s1ap_mme_itti_nas_downlink_cnf(
     MME_APP_DL_DATA_CNF(message_p).err_code = AS_SUCCESS;
   } else {
     MME_APP_DL_DATA_CNF(message_p).err_code = AS_FAILURE;
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
       "ERROR: Failed to send S1AP message to eNB. mme_ue_s1ap_id =  %d \n",
       ue_id);
   }
@@ -268,8 +271,9 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   OAILOG_FUNC_IN(LOG_S1AP);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
   if (message_p == NULL) {
-    OAILOG_ERROR(
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
       "itti_alloc_new_message Failed for"
       " MME_APP_DOWNLINK_DATA_REJ \n");
     OAILOG_FUNC_OUT(LOG_S1AP);
@@ -306,7 +310,7 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed");
+    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id = assoc_id;
@@ -322,8 +326,9 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   S1AP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities =
     integrity_algorithm_capabilities;
 
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
+    imsi64,
     "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n",
     mme_ue_s1ap_id);
 

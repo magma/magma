@@ -24,7 +24,6 @@ message BearerContext {
   uint32 qci = 5; // qci_t
 
   uint32 pdn_cx_id = 6; // pdn_cid_t
-  uint32 bearer_state = 7; // mme_app_bearer_state_t
   EsmEbrContext esm_ebr_context = 8;
   Fteid enb_fteid_s1u = 9;
 
@@ -155,4 +154,5 @@ message MmeNasState {
   uint32 nb_bearers_managed = 10;
   uint32 nb_ue_since_last_stat = 11; //TODO: remove
   uint32 nb_bearers_since_last_stat = 12; //TODO: remove
+  uint32 mme_app_ue_s1ap_id_generator = 20;
 }

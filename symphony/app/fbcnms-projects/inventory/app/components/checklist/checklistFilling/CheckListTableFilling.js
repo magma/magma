@@ -19,7 +19,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {CheckListItemIcons} from '../checkListCategory/CheckListItemConsts';
+import {CheckListItemConfigs} from '../checkListCategory/CheckListItemConsts';
 import {isChecklistItemDone} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
 
@@ -72,7 +72,11 @@ const CheckListTableFilling = ({items}: Props) => {
             key: 'item',
             title: <fbt desc="">Item</fbt>,
             render: row => {
-              const Icon = CheckListItemIcons[row.item.type];
+              const itemConfig = CheckListItemConfigs[row.item.type];
+              if (itemConfig == null) {
+                return null;
+              }
+              const Icon = itemConfig.icon;
               return (
                 <div className={classes.titleContainer}>
                   <Icon

@@ -13,6 +13,7 @@ import AppContext, {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import HubVersion from './HubVersion';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
 import React, {useContext} from 'react';
 import RouterIcon from '@material-ui/icons/Router';
@@ -58,6 +59,8 @@ function CreateServiceForm() {
         <Text variant="h5">Create a Service</Text>
       </div>
       <br />
+      <HubVersion />
+      <br />
       <Text>Service Name</Text>
       <TextInput />
       <br />
@@ -94,8 +97,9 @@ export default () => {
     <ApplicationMain>
       <AppContextProvider>
         <Switch>
+          <Route path={relativeUrl('/services')} component={Main} />
+          <Redirect exact from="/" to={relativeUrl('/hub')} />
           <Redirect exact from="/hub" to={relativeUrl('/services')} />
-          <Route path="/hub/services" component={Main} />
         </Switch>
       </AppContextProvider>
     </ApplicationMain>

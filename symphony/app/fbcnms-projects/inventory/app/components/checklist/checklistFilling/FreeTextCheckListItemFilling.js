@@ -8,17 +8,12 @@
  * @format
  */
 
-import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemFillingProps} from './CheckListItemFilling';
 
+import * as React from 'react';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
-import React from 'react';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
 import {makeStyles} from '@material-ui/styles';
-
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedChecklistItem: CheckListItem) => void,
-};
 
 const useStyles = makeStyles(() => ({
   textInput: {
@@ -26,7 +21,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const FreeTextCheckListItemFilling = ({item, onChange}: Props) => {
+const FreeTextCheckListItemFilling = ({
+  item,
+  onChange,
+}: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
 
   const _updateOnChange = newValue => {

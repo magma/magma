@@ -286,7 +286,7 @@ class S6AApplicationTests(unittest.TestCase):
 
         # Response result
         msg.append_avp(avp.AVP('Result-Code',
-            avp.ResultCode.DIAMETER_AUTHORIZATION_REJECTED))
+            avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN))
         # Encode response into buffer
         resp_buf = bytearray(msg.length)
         msg.encode(resp_buf, 0)

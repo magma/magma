@@ -40,9 +40,11 @@ type File struct {
 	StoreKey string `json:"store_key,omitempty"`
 	// Category holds the value of the "category" field.
 	Category                   string `json:"category,omitempty"`
+	check_list_item_files      *int
 	equipment_files            *int
 	location_files             *int
 	survey_question_photo_data *int
+	survey_question_images     *int
 	work_order_files           *int
 }
 
@@ -66,9 +68,11 @@ func (*File) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*File) fkValues() []interface{} {
 	return []interface{}{
+		&sql.NullInt64{}, // check_list_item_files
 		&sql.NullInt64{}, // equipment_files
 		&sql.NullInt64{}, // location_files
 		&sql.NullInt64{}, // survey_question_photo_data
+		&sql.NullInt64{}, // survey_question_images
 		&sql.NullInt64{}, // work_order_files
 	}
 }
@@ -138,24 +142,36 @@ func (f *File) assignValues(values ...interface{}) error {
 	values = values[10:]
 	if len(values) == len(file.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field check_list_item_files", value)
+		} else if value.Valid {
+			f.check_list_item_files = new(int)
+			*f.check_list_item_files = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field equipment_files", value)
 		} else if value.Valid {
 			f.equipment_files = new(int)
 			*f.equipment_files = int(value.Int64)
 		}
-		if value, ok := values[1].(*sql.NullInt64); !ok {
+		if value, ok := values[2].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field location_files", value)
 		} else if value.Valid {
 			f.location_files = new(int)
 			*f.location_files = int(value.Int64)
 		}
-		if value, ok := values[2].(*sql.NullInt64); !ok {
+		if value, ok := values[3].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field survey_question_photo_data", value)
 		} else if value.Valid {
 			f.survey_question_photo_data = new(int)
 			*f.survey_question_photo_data = int(value.Int64)
 		}
-		if value, ok := values[3].(*sql.NullInt64); !ok {
+		if value, ok := values[4].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field survey_question_images", value)
+		} else if value.Valid {
+			f.survey_question_images = new(int)
+			*f.survey_question_images = int(value.Int64)
+		}
+		if value, ok := values[5].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_files", value)
 		} else if value.Valid {
 			f.work_order_files = new(int)

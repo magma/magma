@@ -22,18 +22,17 @@ SessionStore::SessionStore(std::shared_ptr<StaticRuleStore> rule_store):
 
 SessionMap SessionStore::read_sessions(const SessionRead& req)
 {
-  // First allocate some request numbers
-  auto subscriber_ids = std::vector<std::string> {};
-  for (const auto& it : req) {
-    subscriber_ids.push_back(it.first);
-  }
-  auto session_map = store_client_.read_sessions(subscriber_ids);
-  auto session_map_2 = store_client_.read_sessions(subscriber_ids);
+  return store_client_.read_sessions(req);
+}
 
+SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req)
+{
+  auto session_map = store_client_.read_sessions(req);
+  auto session_map_2 = store_client_.read_sessions(req);
   // For all sessions of the subscriber, increment the request numbers
-  for (const auto& it : req) {
-    for (auto& session : session_map_2[it.first]) {
-      session->increment_request_number(it.second);
+  for (const std::string& imsi : req) {
+    for (auto& session : session_map_2[imsi]) {
+      session->increment_request_number(session->get_credit_key_count());
     }
   }
   store_client_.write_sessions(std::move(session_map_2));
@@ -53,21 +52,31 @@ bool SessionStore::create_sessions(
 bool SessionStore::update_sessions(const SessionUpdate& update_criteria)
 {
   // Read the current state
-  auto subscriber_ids = std::vector<std::string> {};
+  auto subscriber_ids = std::set<std::string> {};
   for (const auto& it : update_criteria) {
-    subscriber_ids.push_back(it.first);
+    subscriber_ids.insert(it.first);
   }
   auto session_map = store_client_.read_sessions(subscriber_ids);
 
   // Now attempt to modify the state
   for (auto& it : session_map) {
-    for (auto& session : it.second) {
+    auto it2 = it.second.begin();
+    while (it2 != it.second.end())
+    {
       auto updates = update_criteria.find(it.first)->second;
-      if (updates.find(session->get_session_id()) != updates.end()) {
-        if (!merge_into_session(session, updates[session->get_session_id()])) {
+      if (updates.find((*it2)->get_session_id()) != updates.end()) {
+        auto update = updates[(*it2)->get_session_id()];
+        if (!merge_into_session(*it2, update)) {
           return false;
         }
+        if (update.is_session_ended) {
+          // TODO: Instead of deleting from session_map, mark as ended and
+          //       no longer mark on read
+          it2 = it.second.erase(it2);
+          continue;
+        }
       }
+      ++it2;
     }
   }
   return store_client_.write_sessions(std::move(session_map));
@@ -132,6 +141,17 @@ bool SessionStore::merge_into_session(
       key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor));
   }
   return true;
+}
+
+SessionUpdate SessionStore::get_default_session_update(SessionMap& session_map)
+{
+  SessionUpdate update = {};
+  for (const auto &session_pair : session_map) {
+    for (const auto &session : session_pair.second) {
+      update[session_pair.first][session->get_session_id()] = get_default_update_criteria();
+    }
+  }
+  return update;
 }
 
 } // namespace lte

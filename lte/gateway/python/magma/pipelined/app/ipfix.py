@@ -6,6 +6,7 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import time
 import shlex
 import subprocess
 from typing import NamedTuple, Dict
@@ -79,7 +80,7 @@ class IPFIXController(MagmaController):
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
             cache_timeout=config_dict['ipfix']['cache_timeout'],
-            sampling_port=config_dict['ovs_uplink_port_name']
+            sampling_port=config_dict['ovs_gtp_port_number']
         )
 
     def initialize_on_connect(self, datapath: Datapath):
@@ -117,7 +118,9 @@ class IPFIXController(MagmaController):
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             output, err = p.communicate()
             err_str = err.decode('utf-8')
-            self.logger.error(err_str)
+            if err_str:
+                self.logger.error("Failed setting up ipfix sampling %s",
+                                  err_str)
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
 
@@ -165,16 +168,18 @@ class IPFIXController(MagmaController):
             apn_name (string): AP name
         """
         imsi_hex = hex(encode_imsi(imsi))
+        pdp_start_epoch = int(time.time())
         action_str = (
             'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
             'actions=sample(probability={},collector_set_id={},'
             'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
-            'apn_name=\\\"{}\\\", sampling_port={}),resubmit(,{})"'
+            'apn_name=\\\"{}\\\",pdp_start_epoch={},sampling_port={}),'
+            'resubmit(,{})"'
         ).format(
             self._bridge_name, self.tbl_num, flows.UE_FLOW_PRIORITY, imsi_hex,
             self.ipfix_config.probability, self.ipfix_config.collector_set_id,
             self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
-            apn_mac_addr.replace("-", ":"), msisdn, apn_name,
+            apn_mac_addr.replace("-", ":"), msisdn, apn_name, pdp_start_epoch,
             self.ipfix_config.sampling_port, self.next_main_table
         )
         try:

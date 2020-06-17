@@ -13,6 +13,23 @@ from dataclasses_json import DataClassJsonMixin
 
 from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
 
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
+query LocationTypesQuery {
+  locationTypes {
+    edges {
+      node {
+        id
+        name
+        propertyTypes {
+          ...PropertyTypeFragment
+        }
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class LocationTypesQuery(DataClassJsonMixin):
     @dataclass
@@ -31,35 +48,18 @@ class LocationTypesQuery(DataClassJsonMixin):
                     name: str
                     propertyTypes: List[PropertyType]
 
-                node: Optional[LocationType] = None
+                node: Optional[LocationType]
 
             edges: List[LocationTypeEdge]
 
-        locationTypes: Optional[LocationTypeConnection] = None
+        locationTypes: Optional[LocationTypeConnection]
 
     data: LocationTypesQueryData
-
-    __QUERY__: str = PropertyTypeFragmentQuery + """
-    query LocationTypesQuery {
-  locationTypes {
-    edges {
-      node {
-        id
-        name
-        propertyTypes {
-          ...PropertyTypeFragment
-        }
-      }
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient) -> LocationTypesQueryData:
         # fmt: off
         variables = {}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

@@ -8,6 +8,7 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -15,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/graph/ent/comment"
 	"github.com/facebookincubator/symphony/graph/ent/predicate"
+	"github.com/facebookincubator/symphony/graph/ent/user"
 )
 
 // CommentUpdate is the builder for updating Comment entities.
@@ -31,15 +33,26 @@ func (cu *CommentUpdate) Where(ps ...predicate.Comment) *CommentUpdate {
 	return cu
 }
 
-// SetAuthorName sets the author_name field.
-func (cu *CommentUpdate) SetAuthorName(s string) *CommentUpdate {
-	cu.mutation.SetAuthorName(s)
-	return cu
-}
-
 // SetText sets the text field.
 func (cu *CommentUpdate) SetText(s string) *CommentUpdate {
 	cu.mutation.SetText(s)
+	return cu
+}
+
+// SetAuthorID sets the author edge to User by id.
+func (cu *CommentUpdate) SetAuthorID(id int) *CommentUpdate {
+	cu.mutation.SetAuthorID(id)
+	return cu
+}
+
+// SetAuthor sets the author edge to User.
+func (cu *CommentUpdate) SetAuthor(u *User) *CommentUpdate {
+	return cu.SetAuthorID(u.ID)
+}
+
+// ClearAuthor clears the author edge to User.
+func (cu *CommentUpdate) ClearAuthor() *CommentUpdate {
+	cu.mutation.ClearAuthor()
 	return cu
 }
 
@@ -48,6 +61,10 @@ func (cu *CommentUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := cu.mutation.UpdateTime(); !ok {
 		v := comment.UpdateDefaultUpdateTime()
 		cu.mutation.SetUpdateTime(v)
+	}
+
+	if _, ok := cu.mutation.AuthorID(); cu.mutation.AuthorCleared() && !ok {
+		return 0, errors.New("ent: clearing a unique edge \"author\"")
 	}
 	var (
 		err      error
@@ -65,8 +82,8 @@ func (cu *CommentUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = cu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(cu.hooks); i > 0; i-- {
-			mut = cu.hooks[i-1](mut)
+		for i := len(cu.hooks) - 1; i >= 0; i-- {
+			mut = cu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cu.mutation); err != nil {
 			return 0, err
@@ -122,19 +139,47 @@ func (cu *CommentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: comment.FieldUpdateTime,
 		})
 	}
-	if value, ok := cu.mutation.AuthorName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: comment.FieldAuthorName,
-		})
-	}
 	if value, ok := cu.mutation.Text(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: comment.FieldText,
 		})
+	}
+	if cu.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -154,15 +199,26 @@ type CommentUpdateOne struct {
 	mutation *CommentMutation
 }
 
-// SetAuthorName sets the author_name field.
-func (cuo *CommentUpdateOne) SetAuthorName(s string) *CommentUpdateOne {
-	cuo.mutation.SetAuthorName(s)
-	return cuo
-}
-
 // SetText sets the text field.
 func (cuo *CommentUpdateOne) SetText(s string) *CommentUpdateOne {
 	cuo.mutation.SetText(s)
+	return cuo
+}
+
+// SetAuthorID sets the author edge to User by id.
+func (cuo *CommentUpdateOne) SetAuthorID(id int) *CommentUpdateOne {
+	cuo.mutation.SetAuthorID(id)
+	return cuo
+}
+
+// SetAuthor sets the author edge to User.
+func (cuo *CommentUpdateOne) SetAuthor(u *User) *CommentUpdateOne {
+	return cuo.SetAuthorID(u.ID)
+}
+
+// ClearAuthor clears the author edge to User.
+func (cuo *CommentUpdateOne) ClearAuthor() *CommentUpdateOne {
+	cuo.mutation.ClearAuthor()
 	return cuo
 }
 
@@ -171,6 +227,10 @@ func (cuo *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
 	if _, ok := cuo.mutation.UpdateTime(); !ok {
 		v := comment.UpdateDefaultUpdateTime()
 		cuo.mutation.SetUpdateTime(v)
+	}
+
+	if _, ok := cuo.mutation.AuthorID(); cuo.mutation.AuthorCleared() && !ok {
+		return nil, errors.New("ent: clearing a unique edge \"author\"")
 	}
 	var (
 		err  error
@@ -188,8 +248,8 @@ func (cuo *CommentUpdateOne) Save(ctx context.Context) (*Comment, error) {
 			node, err = cuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(cuo.hooks); i > 0; i-- {
-			mut = cuo.hooks[i-1](mut)
+		for i := len(cuo.hooks) - 1; i >= 0; i-- {
+			mut = cuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, cuo.mutation); err != nil {
 			return nil, err
@@ -243,19 +303,47 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (c *Comment, err error
 			Column: comment.FieldUpdateTime,
 		})
 	}
-	if value, ok := cuo.mutation.AuthorName(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
-			Value:  value,
-			Column: comment.FieldAuthorName,
-		})
-	}
 	if value, ok := cuo.mutation.Text(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Value:  value,
 			Column: comment.FieldText,
 		})
+	}
+	if cuo.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   comment.AuthorTable,
+			Columns: []string{comment.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: user.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	c = &Comment{config: cuo.config}
 	_spec.Assign = c.assignValues

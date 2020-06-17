@@ -19,6 +19,7 @@
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
+#include "SessionStore.h"
 #include "magma_logging.h"
 
 
@@ -32,6 +33,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     virtual void SetUp() {
         reporter = std::make_shared<MockSessionReporter>();
         auto rule_store = std::make_shared<StaticRuleStore>();
+        auto session_store = new SessionStore(rule_store);
         auto pipelined_client = std::make_shared<MockPipelinedClient>();
         auto directoryd_client = std::make_shared<MockDirectorydClient>();
         auto eventd_client = std::make_shared<MockEventdClient>();
@@ -49,8 +51,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
                 0);
         evb = folly::EventBaseManager::get()->getEventBase();
         local_enforcer->attachEventBase(evb);
-        session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-                local_enforcer, reporter.get(), directoryd_client);
+      session_map = SessionMap{};
+
+      session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
+        local_enforcer, reporter.get(), directoryd_client, session_map, *session_store);
     }
 
   protected:
@@ -59,6 +63,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     std::shared_ptr <LocalEnforcer> local_enforcer;
     SessionIDGenerator id_gen_;
     folly::EventBase *evb;
+    SessionMap session_map;
 };
 
 TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
@@ -84,7 +89,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
             .hardware_addr = hardware_addr_bytes,
             .radius_session_id = radius_session_id};
 
-    local_enforcer->init_session_credit(imsi, sid, cfg, response);
+    local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
 
     grpc::ServerContext create_context;
     request.mutable_sid()->set_id("IMSI1");
@@ -92,11 +97,15 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg)
     request.set_hardware_addr(hardware_addr_bytes);
     request.set_msisdn(msisdn);
     request.set_radius_session_id(radius_session_id);
+    request.set_apn("apn2"); // Update APN
 
     // Ensure session is not reported as its a duplicate
     EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
     session_manager->CreateSession(&create_context, &request, [this](
             grpc::Status status, LocalCreateSessionResponse response_out) {});
+    // Assert the internal session config is updated to the new one
+    EXPECT_FALSE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+    EXPECT_TRUE(local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
 }
 
 int main(int argc, char **argv)

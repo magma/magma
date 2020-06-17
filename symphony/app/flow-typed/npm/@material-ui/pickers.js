@@ -10,7 +10,7 @@ type KeyboardDatePickerProps = {
   inputVariant?: string,
   format?: string,
   margin?: string,
-  value?: string,
+  value?: string | Date,
   onChange?: Object => any,
   KeyboardButtonProps?: Object,
 };
@@ -26,6 +26,7 @@ declare module '@material-ui/pickers/MuiPickersUtilsProvider' {
 declare module '@material-ui/pickers' {
   declare module.exports: {
     KeyboardDatePicker: $Exports<'@material-ui/pickers/KeyboardDatePicker'>,
+    KeyboardTimePicker: $Exports<'@material-ui/pickers/KeyboardTimePicker'>,
     MuiPickersUtilsProvider: $Exports<
       '@material-ui/pickers/MuiPickersUtilsProvider',
     >,

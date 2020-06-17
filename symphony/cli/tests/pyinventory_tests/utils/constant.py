@@ -4,6 +4,7 @@
 # license that can be found in the LICENSE file.
 
 import os
+from enum import Enum
 from typing import Optional
 
 
@@ -13,4 +14,9 @@ TEST_USER_EMAIL = "fbuser@fb.com"
 PLATFORM_SERVER_HEALTH_CHECK_URL: str = os.getenv(
     "PLATFORM_SERVER_HEALTH_CHECK_URL", "http://platform-server/healthz"
 )
-RUN_LOCALLY = False
+
+
+class TestMode(Enum):
+    DEV = "dev"
+    LOCAL = "local"
+    REMOTE = "remote"

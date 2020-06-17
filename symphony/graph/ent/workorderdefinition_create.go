@@ -131,8 +131,8 @@ func (wodc *WorkOrderDefinitionCreate) Save(ctx context.Context) (*WorkOrderDefi
 			node, err = wodc.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(wodc.hooks); i > 0; i-- {
-			mut = wodc.hooks[i-1](mut)
+		for i := len(wodc.hooks) - 1; i >= 0; i-- {
+			mut = wodc.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, wodc.mutation); err != nil {
 			return nil, err

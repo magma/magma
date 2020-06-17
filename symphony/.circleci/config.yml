@@ -39,7 +39,7 @@ executors:
   golangci:
     parameters:
       tag:
-        default: v1.24
+        default: v1.23.8
         type: string
     docker:
       - image: golangci/golangci-lint:<<parameters.tag>>
@@ -469,6 +469,7 @@ jobs:
             testim --project "<<parameters.project>>" \
               --grid "<<parameters.grid>>" \
               --token "$<<parameters.token>>" \
+              --retries 3 \
               --report-file ~/test-results/testim.xml \
               --base-url testimio.staging.thesymphony.cloud/ \
               <<#parameters.options>><<parameters.options>><</parameters.options>>
@@ -553,7 +554,7 @@ workflows:
           <<: *onlymaster
     jobs:
       - tfdiff:
-          workspace: staging
+          workspace: default
           <<: *tfvardir
       - tfapply:
           name: staging/deploy

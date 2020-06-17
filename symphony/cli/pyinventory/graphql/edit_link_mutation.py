@@ -11,8 +11,24 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .property_fragment import PropertyFragment, QUERY as PropertyFragmentQuery
 from .edit_link_input import EditLinkInput
 
+
+QUERY: List[str] = PropertyFragmentQuery + ["""
+mutation EditLinkMutation($input: EditLinkInput!) {
+  editLink(input: $input) {
+    id
+    properties {
+      ...PropertyFragment
+    }
+    services {
+      id
+    }
+  }
+}
+
+"""]
 
 @dataclass
 class EditLinkMutation(DataClassJsonMixin):
@@ -21,32 +37,25 @@ class EditLinkMutation(DataClassJsonMixin):
         @dataclass
         class Link(DataClassJsonMixin):
             @dataclass
+            class Property(PropertyFragment):
+                pass
+
+            @dataclass
             class Service(DataClassJsonMixin):
                 id: str
 
             id: str
+            properties: List[Property]
             services: List[Service]
 
         editLink: Link
 
     data: EditLinkMutationData
 
-    __QUERY__: str = """
-    mutation EditLinkMutation($input: EditLinkInput!) {
-  editLink(input: $input) {
-    id
-    services {
-      id
-    }
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, input: EditLinkInput) -> EditLinkMutationData:
         # fmt: off
         variables = {"input": input}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

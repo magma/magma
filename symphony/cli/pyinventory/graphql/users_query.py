@@ -16,6 +16,23 @@ from .user_role_enum import UserRole
 from .user_status_enum import UserStatus
 
 
+QUERY: List[str] = ["""
+query UsersQuery {
+  users {
+    edges {
+      node {
+        id
+        authID
+        email
+        status
+        role
+      }
+    }
+  }
+}
+
+"""]
+
 @dataclass
 class UsersQuery(DataClassJsonMixin):
     @dataclass
@@ -32,35 +49,18 @@ class UsersQuery(DataClassJsonMixin):
                     status: UserStatus = enum_field(UserStatus)
                     role: UserRole = enum_field(UserRole)
 
-                node: Optional[User] = None
+                node: Optional[User]
 
             edges: List[UserEdge]
 
-        users: Optional[UserConnection] = None
+        users: Optional[UserConnection]
 
     data: UsersQueryData
-
-    __QUERY__: str = """
-    query UsersQuery {
-  users {
-    edges {
-      node {
-        id
-        authID
-        email
-        status
-        role
-      }
-    }
-  }
-}
-
-    """
 
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient) -> UsersQueryData:
         # fmt: off
         variables = {}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

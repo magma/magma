@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
@@ -89,7 +89,7 @@ def get_or_create_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -99,7 +99,7 @@ def get_or_create_equipment_type(
         Args:
             name (str): equipment name
             category (str): category name
-            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
             - str - type name
             - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
             "email", "gps_location", "equipment", "location", "service", "datetime_local"]
@@ -162,7 +162,7 @@ def add_equipment_type(
     client: SymphonyClient,
     name: str,
     category: str,
-    properties: List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
+    properties: Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]],
     ports_dict: Dict[str, str],
     position_list: List[str],
 ) -> EquipmentType:
@@ -171,7 +171,7 @@ def add_equipment_type(
         Args:
             name (str): equipment type name
             category (str): category name
-            properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
+            properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]): 
             - str - type name
             - str - enum["string", "int", "bool", "float", "date", "enum", "range", 
             "email", "gps_location", "equipment", "location", "service", "datetime_local"]
@@ -414,6 +414,7 @@ def delete_equipment_type_with_equipments(
             client,
             Equipment(
                 id=equipment.id,
+                external_id=equipment.externalId,
                 name=equipment.name,
                 equipment_type_name=equipment.equipmentType.name,
             ),

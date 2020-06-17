@@ -91,8 +91,8 @@ func (ecu *EquipmentCategoryUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = ecu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(ecu.hooks); i > 0; i-- {
-			mut = ecu.hooks[i-1](mut)
+		for i := len(ecu.hooks) - 1; i >= 0; i-- {
+			mut = ecu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ecu.mutation); err != nil {
 			return 0, err
@@ -270,8 +270,8 @@ func (ecuo *EquipmentCategoryUpdateOne) Save(ctx context.Context) (*EquipmentCat
 			node, err = ecuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ecuo.hooks); i > 0; i-- {
-			mut = ecuo.hooks[i-1](mut)
+		for i := len(ecuo.hooks) - 1; i >= 0; i-- {
+			mut = ecuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ecuo.mutation); err != nil {
 			return nil, err

@@ -9,11 +9,10 @@ of patent rights can be found in the PATENTS file in the same directory.
 Util module for executing multiple `ping` commands via subprocess.
 """
 
+import asyncio
 from collections import namedtuple
 
-import asyncio
 import re
-
 from magma.magmad.check import subprocess_workflow
 
 DEFAULT_NUM_PACKETS = 4
@@ -23,6 +22,8 @@ DEFAULT_TIMEOUT_SECS = 20
 PingCommandParams = namedtuple('PingCommandParams',
                                ['host_or_ip', 'num_packets', 'timeout_secs'])
 
+PingInterfaceCommandParams = namedtuple('PingInterfaceCommandParams',
+                               ['host_or_ip', 'num_packets', 'interface', 'timeout_secs'])
 
 PingCommandResult = namedtuple('PingCommandResult',
                                ['error', 'host_or_ip', 'num_packets', 'stats'])
@@ -86,10 +87,39 @@ def ping_async(ping_params, loop=None):
     )
 
 
+@asyncio.coroutine
+def ping_interface_async(ping_params, loop=None):
+    """
+    Execute ping commands asynchronously through specified interface.
+
+    Args:
+        ping_params ([PingCommandParams]): params for the pings to execute
+        loop: asyncio event loop (optional)
+
+    Returns:
+        [PingCommandResult]: stats from the executed ping commands
+    """
+    return subprocess_workflow.exec_and_parse_subprocesses_async(
+        ping_params,
+        _get_ping_command_interface_args_list,
+        parse_ping_output,
+        loop,
+    )
+
+
 def _get_ping_command_args_list(ping_param):
     return [
         'ping', ping_param.host_or_ip,
         '-c', str(ping_param.num_packets or DEFAULT_NUM_PACKETS),
+        '-w', str(ping_param.timeout_secs or DEFAULT_TIMEOUT_SECS),
+    ]
+
+
+def _get_ping_command_interface_args_list(ping_param):
+    return [
+        'ping', ping_param.host_or_ip,
+        '-c', str(ping_param.num_packets or DEFAULT_NUM_PACKETS),
+        '-I', str(ping_param.interface),
         '-w', str(ping_param.timeout_secs or DEFAULT_TIMEOUT_SECS),
     ]
 

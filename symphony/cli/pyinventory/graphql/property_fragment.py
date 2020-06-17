@@ -12,7 +12,7 @@ from typing import Any, Callable, List, Mapping, Optional
 from dataclasses_json import DataClassJsonMixin
 
 from .property_type_fragment import PropertyTypeFragment, QUERY as PropertyTypeFragmentQuery
-QUERY: str = PropertyTypeFragmentQuery + """
+QUERY: List[str] = PropertyTypeFragmentQuery + ["""
 fragment PropertyFragment on Property {
   id
   propertyType {
@@ -28,7 +28,7 @@ fragment PropertyFragment on Property {
   rangeToValue
 }
 
-"""
+"""]
 
 @dataclass
 class PropertyFragment(DataClassJsonMixin):
@@ -38,11 +38,11 @@ class PropertyFragment(DataClassJsonMixin):
 
     id: str
     propertyType: PropertyType
-    stringValue: Optional[str] = None
-    intValue: Optional[int] = None
-    floatValue: Optional[Number] = None
-    booleanValue: Optional[bool] = None
-    latitudeValue: Optional[Number] = None
-    longitudeValue: Optional[Number] = None
-    rangeFromValue: Optional[Number] = None
-    rangeToValue: Optional[Number] = None
+    stringValue: Optional[str]
+    intValue: Optional[int]
+    floatValue: Optional[Number]
+    booleanValue: Optional[bool]
+    latitudeValue: Optional[Number]
+    longitudeValue: Optional[Number]
+    rangeFromValue: Optional[Number]
+    rangeToValue: Optional[Number]

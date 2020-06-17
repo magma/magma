@@ -34,6 +34,7 @@ class SessionStoreTest : public ::testing::Test {
     imsi2 = "IMSI2";
     sid = id_gen_.gen_session_id(imsi);
     sid2 = id_gen_.gen_session_id(imsi2);
+    sid3 = id_gen_.gen_session_id(imsi2);
     monitoring_key = "mk1";
     monitoring_key2 = "mk2";
     rule_id_1 = "test_rule_1";
@@ -53,6 +54,7 @@ class SessionStoreTest : public ::testing::Test {
   }
 
   std::unique_ptr<SessionState> get_session(
+    std::string session_id,
     std::shared_ptr<StaticRuleStore> rule_store)
   {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
@@ -75,7 +77,7 @@ class SessionStoreTest : public ::testing::Test {
       .radius_session_id = radius_session_id};
     auto tgpp_context = TgppContext{};
     auto session = std::make_unique<SessionState>(
-      imsi, sid, core_session_id, cfg, *rule_store, tgpp_context);
+      imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
     return std::move(session);
   }
 
@@ -177,6 +179,7 @@ class SessionStoreTest : public ::testing::Test {
   std::string imsi2;
   std::string sid;
   std::string sid2;
+  std::string sid3;
   std::string monitoring_key;
   std::string monitoring_key2;
   std::string rule_id_1;
@@ -197,6 +200,10 @@ class SessionStoreTest : public ::testing::Test {
  * 7) Commit updates to SessionStore
  * 8) Read in session for IMSI1 again, and check that the update was successful
  * 9) Check request numbers again
+ * 10) Update request numbers again and check to see that they're updated
+ *     correctly still for multiple monitoring keys
+ * 11) Delete the session for IMSI1
+ * 12) Verify IMSI1 no longer has any sessions
  */
 TEST_F(SessionStoreTest, test_read_and_write)
 {
@@ -205,7 +212,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   auto session_store = new SessionStore(rule_store);
 
   // 2) Create bare-bones session for IMSI1
-  auto session = get_session(rule_store);
+  auto session = get_session(sid, rule_store);
   session->activate_static_rule(rule_id_3);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session->get_request_number(), 2);
@@ -228,9 +235,9 @@ TEST_F(SessionStoreTest, test_read_and_write)
   session_store->create_sessions(imsi, std::move(sessions));
 
   // 4) Read session for IMSI1 from SessionStore
-  auto read_req = SessionRead{};
-  read_req[imsi] = 5;
-  auto session_map = session_store->read_sessions(read_req);
+  SessionRead read_req = {};
+  read_req.insert(imsi);
+  auto session_map = session_store->read_sessions_for_reporting(read_req);
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
@@ -284,7 +291,53 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 9) Check request numbers again
   // This request number should increment in storage every time a read is done.
   // The incremented value is set by the read request to the storage interface.
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 7);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 3);
+
+  // 10) Read sessions for reporting to update request numbers for the session
+  // The request number should be incremented by 2 for the session, 1 for
+  // each monitoring key and charging key associated to it.
+  session_map = session_store->read_sessions_for_reporting(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  session_map = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 5);
+
+  // 11) Delete sessions for IMSI1
+  update_req = SessionUpdate{};
+  update_criteria = SessionStateUpdateCriteria{};
+  update_criteria.is_session_ended = true;
+  update_req[imsi][sid] = update_criteria;
+  session_store->update_sessions(update_req);
+
+  // 12) Verify that IMSI1 no longer has a session
+  session_map = session_store->read_sessions_for_reporting(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 0);
+}
+
+TEST_F(SessionStoreTest, test_get_default_session_update)
+{
+  // 1) Create a SessionMap with a few sessions
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  SessionMap session_map = {};
+  auto session1 = get_session(sid, rule_store);
+  auto session2 = get_session(sid2, rule_store);
+  auto session3 = get_session(sid3, rule_store);
+
+  session_map[imsi] = std::vector<std::unique_ptr<SessionState>>{};
+  session_map[imsi2] = std::vector<std::unique_ptr<SessionState>>{};
+
+  session_map[imsi].push_back(std::move(session1));
+  session_map[imsi2].push_back(std::move(session2));
+  session_map[imsi2].push_back(std::move(session3));
+
+  // 2) Build SessionUpdate
+  auto update = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(update.size(), 2);
+  EXPECT_EQ(update[imsi].size(), 1);
+  EXPECT_EQ(update[imsi2].size(), 2);
 }
 
 int main(int argc, char **argv)

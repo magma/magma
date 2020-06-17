@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4a460d55957cd1132935c5b1dffd2abd
+ * @relayHash d757437def42bf69a67505860c19c600
  */
 
 /* eslint-disable */
@@ -20,6 +20,7 @@ export type AddProjectInput = {|
   name: string,
   description?: ?string,
   creator?: ?string,
+  creatorId?: ?string,
   type: string,
   location?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
@@ -69,7 +70,10 @@ mutation AddProjectMutation(
 fragment ProjectsTableView_projects on Project {
   id
   name
-  creator
+  createdBy {
+    email
+    id
+  }
   location {
     id
     name
@@ -159,11 +163,23 @@ return {
           (v2/*: any*/),
           (v3/*: any*/),
           {
-            "kind": "ScalarField",
+            "kind": "LinkedField",
             "alias": null,
-            "name": "creator",
+            "name": "createdBy",
+            "storageKey": null,
             "args": null,
-            "storageKey": null
+            "concreteType": "User",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "email",
+                "args": null,
+                "storageKey": null
+              },
+              (v2/*: any*/)
+            ]
           },
           {
             "kind": "LinkedField",
@@ -193,7 +209,7 @@ return {
     "operationKind": "mutation",
     "name": "AddProjectMutation",
     "id": null,
-    "text": "mutation AddProjectMutation(\n  $input: AddProjectInput!\n) {\n  createProject(input: $input) {\n    ...ProjectsTableView_projects\n    id\n  }\n}\n\nfragment ProjectsTableView_projects on Project {\n  id\n  name\n  creator\n  location {\n    id\n    name\n  }\n  type {\n    id\n    name\n  }\n}\n",
+    "text": "mutation AddProjectMutation(\n  $input: AddProjectInput!\n) {\n  createProject(input: $input) {\n    ...ProjectsTableView_projects\n    id\n  }\n}\n\nfragment ProjectsTableView_projects on Project {\n  id\n  name\n  createdBy {\n    email\n    id\n  }\n  location {\n    id\n    name\n  }\n  type {\n    id\n    name\n  }\n}\n",
     "metadata": {}
   }
 };

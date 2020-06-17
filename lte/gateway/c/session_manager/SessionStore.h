@@ -24,9 +24,8 @@ namespace lte {
 typedef std::
   unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
     SessionMap;
-typedef std::function<void(SessionMap)> CallBackOnAccess;
 // Value int represents the request numbers needed for requests to PCRF
-typedef std::unordered_map<std::string, int> SessionRead;
+typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
   std::string,
   std::unordered_map<std::string, SessionStateUpdateCriteria>>
@@ -47,11 +46,23 @@ typedef std::unordered_map<
  */
 class SessionStore {
  public:
+  static SessionUpdate get_default_session_update(SessionMap& session_map);
+
   SessionStore(std::shared_ptr<StaticRuleStore> rule_store);
 
   /**
-   * Read the last written values for the rqeuested sessions through the
+   * Read the last written values for the requested sessions through the
    * storage interface.
+   * @param req
+   * @return Last written values for requested sessions. Returns an empty vector
+   *         for subscribers that do not have active sessions.
+   */
+  SessionMap read_sessions(const SessionRead& req);
+
+  /**
+   * Read the last written values for the requested sessions through the
+   * storage interface. This also modifies the request_numbers stored before
+   * returning the SessionMap to the caller.
    * NOTE: It is assumed that the correct number of request_numbers are
    *       reserved on each read_sessions call. If more requests are made to
    *       the OCS/PCRF than are requested, this can cause undefined behavior.
@@ -59,7 +70,7 @@ class SessionStore {
    * @return Last written values for requested sessions. Returns an empty vector
    *         for subscribers that do not have active sessions.
    */
-  SessionMap read_sessions(const SessionRead& req);
+  SessionMap read_sessions_for_reporting(const SessionRead& req);
 
   /**
    * Create sessions for a subscriber. Redundant creations will fail.
@@ -79,6 +90,7 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool update_sessions(const SessionUpdate& update_criteria);
+
 
  private:
   static bool merge_into_session(

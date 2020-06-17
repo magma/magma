@@ -35,9 +35,10 @@ import TextField from '@material-ui/core/TextField';
 import UserTypeahead from '../typeahead/UserTypeahead';
 import nullthrows from '@fbcnms/util/nullthrows';
 import update from 'immutability-helper';
-import {FormValidationContextProvider} from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import {FormContextProvider} from '../../common/FormContext';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
+import {getGraphError} from '../../common/EntUtils';
 import {getInitialPropertyFromType} from '../../common/PropertyType';
 import {sortPropertiesByIndex, toPropertyInput} from '../../common/Property';
 import {withRouter} from 'react-router-dom';
@@ -158,7 +159,7 @@ class AddProjectCard extends React.Component<Props, State> {
     const {properties} = project;
     return (
       <div className={classes.root}>
-        <FormValidationContextProvider>
+        <FormContextProvider>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>
               <Breadcrumbs
@@ -259,7 +260,7 @@ class AddProjectCard extends React.Component<Props, State> {
                       className={classes.input}
                       headline="Owner"
                       onUserSelection={user =>
-                        this._setProjectDetail('creator', user)
+                        this._setProjectDetail('creatorId', user?.id)
                       }
                       margin="dense"
                     />
@@ -268,7 +269,7 @@ class AddProjectCard extends React.Component<Props, State> {
               </Grid>
             </div>
           </div>
-        </FormValidationContextProvider>
+        </FormContextProvider>
       </div>
     );
   }
@@ -296,7 +297,7 @@ class AddProjectCard extends React.Component<Props, State> {
       type: projectType,
       name: projectType.name,
       description: projectType.description,
-      creator: '',
+      creatorId: null,
       location: null,
       properties: initialProps,
       workOrders: [],
@@ -305,14 +306,14 @@ class AddProjectCard extends React.Component<Props, State> {
   }
 
   _saveProject = () => {
-    const {name, description, creator, properties, type} = nullthrows(
+    const {name, description, creatorId, properties, type} = nullthrows(
       this.state.project,
     );
     const variables: AddProjectMutationVariables = {
       input: {
         name,
         description,
-        creator,
+        creatorId: creatorId,
         type: type?.id ?? '',
         properties: toPropertyInput(properties),
         location: this.state.locationId,
@@ -327,8 +328,8 @@ class AddProjectCard extends React.Component<Props, State> {
           this.props.history.push(this.props.match.url);
         }
       },
-      onError: () => {
-        this._enqueueError('Error saving work order');
+      onError: (error: Error) => {
+        this._enqueueError(getGraphError(error));
       },
     };
     ServerLogger.info(LogEvents.SAVE_PROJECT_BUTTON_CLICKED, {
@@ -345,7 +346,7 @@ class AddProjectCard extends React.Component<Props, State> {
     });
   };
 
-  _setProjectDetail = (key: 'name' | 'description' | 'creator', value) => {
+  _setProjectDetail = (key: 'name' | 'description' | 'creatorId', value) => {
     this.setState(prevState => {
       return {
         // $FlowFixMe Set state for each field

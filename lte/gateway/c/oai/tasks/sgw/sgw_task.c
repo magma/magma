@@ -67,28 +67,9 @@ static void* sgw_intertask_interface(void* args_p)
     itti_receive_msg(TASK_SPGW_APP, &received_message_p);
 
     imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-    OAILOG_DEBUG(
-      LOG_SPGW_APP,
-      "Received message with imsi: " IMSI_64_FMT,
-      imsi64);
-
     spgw_state_t* spgw_state = get_spgw_state(false);
 
     switch (ITTI_MSG_ID(received_message_p)) {
-      case GTPV1U_CREATE_TUNNEL_RESP: {
-        OAILOG_DEBUG(
-          LOG_SPGW_APP,
-          "Received teid for S1-U: %u and status: %s\n",
-          received_message_p->ittiMsg.gtpv1uCreateTunnelResp.S1u_teid,
-          received_message_p->ittiMsg.gtpv1uCreateTunnelResp.status == 0 ?
-            "Success" :
-            "Failure");
-        sgw_handle_gtpv1uCreateTunnelResp(
-          spgw_state,
-          &received_message_p->ittiMsg.gtpv1uCreateTunnelResp,
-          imsi64);
-      } break;
-
       case MESSAGE_TEST:
         OAILOG_DEBUG(LOG_SPGW_APP, "Received MESSAGE_TEST\n");
         break;
@@ -113,8 +94,8 @@ static void* sgw_intertask_interface(void* args_p)
 
       case S11_DELETE_SESSION_REQUEST: {
         sgw_handle_delete_session_request(
-          &received_message_p->ittiMsg.s11_delete_session_request,
-          imsi64);
+            spgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
+            imsi64);
       } break;
 
       case S11_MODIFY_BEARER_REQUEST: {
@@ -135,11 +116,6 @@ static void* sgw_intertask_interface(void* args_p)
            &received_message_p->ittiMsg.s11_suspend_notification, imsi64);
       } break;
 
-      case GTPV1U_UPDATE_TUNNEL_RESP: {
-        sgw_handle_gtpv1uUpdateTunnelResp(
-          &received_message_p->ittiMsg.gtpv1uUpdateTunnelResp, imsi64);
-      } break;
-
       case SGI_CREATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_created(
           spgw_state,
@@ -149,7 +125,8 @@ static void* sgw_intertask_interface(void* args_p)
 
       case SGI_UPDATE_ENDPOINT_RESPONSE: {
         sgw_handle_sgi_endpoint_updated(
-          &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
+            spgw_state,
+            &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
       } break;
 
       case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
@@ -162,8 +139,8 @@ static void* sgw_intertask_interface(void* args_p)
       case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
         //Handle Dedicated bearer deactivation Rsp from MME
         sgw_handle_nw_initiated_deactv_bearer_rsp(
-          &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp,
-          imsi64);
+            spgw_state,
+            &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
       } break;
 
       case GX_NW_INITIATED_ACTIVATE_BEARER_REQ: {
@@ -178,8 +155,9 @@ static void* sgw_intertask_interface(void* args_p)
           imsi64,
           &failed_cause);
         if (rc != RETURNok) {
-          OAILOG_ERROR(
+          OAILOG_ERROR_UE(
             LOG_SPGW_APP,
+            imsi64,
             "Send Create Bearer Failure Response to PCRF with cause :%d \n",
             failed_cause);
           // Send Reject to PCRF
@@ -196,11 +174,11 @@ static void* sgw_intertask_interface(void* args_p)
           &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
         if (rc != RETURNok) {
-          OAILOG_ERROR(
+          OAILOG_ERROR_UE(
             LOG_SPGW_APP,
-            "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ for imsi:%ld, "
-            "send bearer deactivation reject to SPGW service \n",
-            imsi64);
+            imsi64,
+            "Failed to handle NW_INITIATED_DEACTIVATE_BEARER_REQ, "
+            "send bearer deactivation reject to SPGW service \n");
           // TODO-Uncomment once implemented at PCRF
           /* rc = send_dedicated_bearer_deactv_rsp(invalid_bearer_id,REQUEST_REJECTED);
            */
@@ -253,7 +231,9 @@ int sgw_init(spgw_config_t* spgw_config_pP, bool persist_state)
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
     return RETURNerror;
   }
-
+#if (!SPGW_ENABLE_SESSIOND_AND_MOBILITYD)
+  pgw_ip_address_pool_init(spgw_state_p);
+#endif
   if (
     RETURNerror ==
     pgw_pcef_emulation_init(spgw_state_p, &spgw_config_pP->pgw_config)) {

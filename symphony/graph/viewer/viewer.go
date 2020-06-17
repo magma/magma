@@ -8,6 +8,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/facebookincubator/symphony/graph/ent"
 	"github.com/facebookincubator/symphony/graph/ent/user"
@@ -28,6 +29,8 @@ const (
 	UserHeader = "x-auth-user-email"
 	// RoleHeader is the http role header.
 	RoleHeader = "x-auth-user-role"
+	// FeaturesHeader is the http feature header.
+	FeaturesHeader = "x-auth-features"
 )
 
 // Attributes recorded on the span of the requests.
@@ -38,10 +41,6 @@ const (
 	UserAgentAttribute = "viewer.user_agent"
 )
 
-const (
-	UserIsDeactivatedError = "USER_IS_DEACTIVATED"
-)
-
 // The following tags are applied to context recorded by this package.
 var (
 	KeyTenant    = tag.MustNewKey(TenantAttribute)
@@ -50,16 +49,29 @@ var (
 	KeyUserAgent = tag.MustNewKey(UserAgentAttribute)
 )
 
+// FeatureSet holds the list of features of the viewer
+type FeatureSet map[string]struct{}
+
 // Viewer holds additional per request information.
 type Viewer struct {
-	Tenant string `json:"organization"`
-	User   string `json:"email"`
-	Role   string `json:"role"`
+	Tenant   string     `json:"organization"`
+	User     string     `json:"email"`
+	Role     string     `json:"role"`
+	Features FeatureSet `json:"-"`
 }
 
 type UserHandler struct {
 	Handler http.Handler
 	Logger  log.Logger
+}
+
+// NewFeatureSet create FeatureSet from a list of features.
+func NewFeatureSet(features ...string) FeatureSet {
+	set := make(FeatureSet, len(features))
+	for _, feature := range features {
+		set[feature] = struct{}{}
+	}
+	return set
 }
 
 // MarshalLogObject implements zapcore.ObjectMarshaler interface.
@@ -79,12 +91,22 @@ func (v *Viewer) traceAttrs() []trace.Attribute {
 }
 
 func (v *Viewer) tags(r *http.Request) []tag.Mutator {
+	var userAgent string
+	if parts := strings.SplitN(r.UserAgent(), " ", 2); len(parts) > 0 {
+		userAgent = parts[0]
+	}
 	return []tag.Mutator{
 		tag.Upsert(KeyTenant, v.Tenant),
 		tag.Upsert(KeyUser, v.User),
 		tag.Upsert(KeyRole, v.Role),
-		tag.Upsert(KeyUserAgent, r.UserAgent()),
+		tag.Upsert(KeyUserAgent, userAgent),
 	}
+}
+
+// Enabled check if feature is in FeatureSet.
+func (f FeatureSet) Enabled(feature string) bool {
+	_, ok := f[feature]
+	return ok
 }
 
 // WebSocketUpgradeHandler authenticates websocket upgrade requests.
@@ -149,9 +171,10 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 		}
 
 		v := &Viewer{
-			Tenant: tenant,
-			User:   r.Header.Get(UserHeader),
-			Role:   r.Header.Get(RoleHeader),
+			Tenant:   tenant,
+			User:     r.Header.Get(UserHeader),
+			Role:     r.Header.Get(RoleHeader),
+			Features: NewFeatureSet(strings.Split(r.Header.Get(FeaturesHeader), ",")...),
 		}
 
 		ctx := log.NewFieldsContext(r.Context(), zap.Object("viewer", v))
@@ -164,9 +187,6 @@ func TenancyHandler(h http.Handler, tenancy Tenancy) http.Handler {
 			if err != nil {
 				http.Error(w, "getting tenancy client", http.StatusServiceUnavailable)
 				return
-			}
-			if v.Role == "readonly" {
-				client = client.ReadOnly()
 			}
 			ctx = ent.NewContext(ctx, client)
 		}
@@ -198,7 +218,7 @@ func (h UserHandler) getOrCreateUser(ctx context.Context) (*ent.User, error) {
 		}
 		h.Logger.For(ctx).Info("New user created", zap.String("AuthID", v.User))
 	}
-	return u, nil
+	return u, err
 }
 
 // UserHandler adds users if request is from user that is not found.
@@ -213,7 +233,17 @@ func (h UserHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "user is deactivated", http.StatusForbidden)
 		return
 	}
-	h.Handler.ServeHTTP(w, r)
+	// TODO(T64743627): Stop checking read only
+	readOnly, err := IsUserReadOnly(ctx, u)
+	if err != nil {
+		http.Error(w, "check is read only", http.StatusServiceUnavailable)
+		return
+	}
+	if readOnly {
+		client := ent.FromContext(ctx).ReadOnly()
+		ctx = ent.NewContext(ctx, client)
+	}
+	h.Handler.ServeHTTP(w, r.WithContext(ctx))
 }
 
 type contextKey struct{}

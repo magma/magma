@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/orc8r/cloud/go/service/client"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/service/client"
 
 	"github.com/prometheus/client_model/go"
 )

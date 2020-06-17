@@ -8,6 +8,8 @@ import (
 	"context"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/viewer"
 )
 
@@ -15,4 +17,25 @@ type viewerResolver struct{}
 
 func (viewerResolver) User(ctx context.Context, obj *viewer.Viewer) (*ent.User, error) {
 	return viewer.UserFromContext(ctx)
+}
+
+func (viewerResolver) Permissions(ctx context.Context, obj *viewer.Viewer) (*models.PermissionSettings, error) {
+	u, err := viewer.UserFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	adminPolicy := models.AdministrativePolicy{
+		CanRead: u.Role == user.RoleADMIN || u.Role == user.RoleOWNER,
+	}
+	readOnly, err := viewer.IsUserReadOnly(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	res := models.PermissionSettings{
+		// TODO(T64743627): Deprecate CanWrite field
+		CanWrite:    !readOnly,
+		AdminPolicy: &adminPolicy,
+	}
+	return &res, nil
 }

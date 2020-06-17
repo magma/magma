@@ -50,7 +50,7 @@ const styles = {
     flexWrap: 'nowrap',
   },
   propertiesCard: {
-    padding: '20px 16px',
+    padding: '24px',
     height: '100%',
     flexGrow: 1,
     minWidth: '75%',

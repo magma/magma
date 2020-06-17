@@ -139,6 +139,7 @@ export default function EditUserDialog(props: Props) {
         {!props.ssoEnabled && (
           <>
             <TextField
+              autoComplete="off"
               name="password"
               label="Password"
               type="password"
@@ -147,6 +148,7 @@ export default function EditUserDialog(props: Props) {
               className={classes.input}
             />
             <TextField
+              autoComplete="off"
               name="confirm_password"
               label="Confirm Password"
               type="password"

@@ -14,6 +14,12 @@
 #    %> sudo python3 setup_pyinventory.py develop
 #    %> ./compile_graphql.sh
 
+directive @deprecatedInput(
+  name: String!
+  duplicateError: String!
+  newField: String
+) on INPUT_FIELD_DEFINITION
+
 enum UserStatus
   @goModel(
     model: "github.com/facebookincubator/symphony/graph/ent/user.Status"
@@ -38,13 +44,44 @@ type User implements Node {
   status: UserStatus!
   role: UserRole!
   profilePhoto: File
+  groups: [UsersGroup]!
+}
+
+enum UsersGroupStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/graph/ent/usersgroup.Status"
+  ) {
+  ACTIVE
+  DEACTIVATED
+}
+
+type UsersGroup implements Node {
+  id: ID!
+  name: String!
+  description: String
+  status: UsersGroupStatus!
+  members: [User!]!
+}
+
+type AdministrativePolicy {
+  canRead: Boolean!
+}
+
+type PermissionSettings {
+  canWrite: Boolean!
+  adminPolicy: AdministrativePolicy!
 }
 
 type Viewer
   @goModel(model: "github.com/facebookincubator/symphony/graph/viewer.Viewer") {
   tenant: String!
-  email: String! @goField(name: "user")
+  email: String!
+    @goField(name: "user")
+    @deprecated(
+      reason: "Use `Viewer.user.email` instead. Will be removed on 2020-05-01"
+    )
   user: User!
+  permissions: PermissionSettings!
 }
 
 """
@@ -123,6 +160,30 @@ input EditUserInput {
   lastName: String
   status: UserStatus
   role: UserRole
+}
+
+input UpdateUserGroupsInput {
+  id: ID!
+  addGroupIds: [ID!]!
+  removeGroupIds: [ID!]!
+}
+
+input AddUsersGroupInput {
+  name: String!
+  description: String
+}
+
+input EditUsersGroupInput {
+  id: ID!
+  name: String
+  description: String
+  status: UsersGroupStatus
+}
+
+input UpdateUsersGroupMembersInput {
+  id: ID!
+  addUserIds: [ID!]!
+  removeUserIds: [ID!]!
 }
 
 input AddLocationInput {
@@ -242,6 +303,10 @@ input AddImageInput {
 type Comment implements Node {
   id: ID!
   authorName: String!
+    @deprecated(
+      reason: "Use `Comment.author.email` instead. Will be removed on 2020-05-01"
+    )
+  author: User!
   text: String!
   createTime: Time!
 }
@@ -396,8 +461,20 @@ input AddWorkOrderInput {
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      name: "AddWorkOrderInput.ownerName"
+      duplicateError: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      name: "AddWorkOrderInput.assignee"
+      duplicateError: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus
   priority: WorkOrderPriority
@@ -408,8 +485,20 @@ input EditWorkOrderInput {
   name: String!
   description: String
   ownerName: String
+    @deprecatedInput(
+      newField: "ownerId"
+      name: "EditWorkOrderInput.ownerName"
+      duplicateError: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
+    )
+  ownerId: ID
   installDate: Time
   assignee: String
+    @deprecatedInput(
+      newField: "assigneeId"
+      name: "EditWorkOrderInput.assignee"
+      duplicateError: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
+    )
+  assigneeId: ID
   index: Int
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -418,6 +507,19 @@ input EditWorkOrderInput {
   checkList: [CheckListItemInput!]
   checkListCategories: [CheckListCategoryInput!]
   locationId: ID
+}
+
+input TechnicianCheckListItemInput {
+  id: ID!
+  selectedEnumValues: String
+  stringValue: String
+  checked: Boolean
+  yesNoResponse: YesNoResponse
+}
+
+input TechnicianWorkOrderUploadInput {
+  workOrderId: ID!
+  checklist: [TechnicianCheckListItemInput!]!
 }
 
 type EquipmentPortType implements Node {
@@ -756,6 +858,7 @@ enum PropertyKind {
 
 type PropertyType implements Node {
   id: ID!
+  externalId: String
   name: String!
   type: PropertyKind!
   index: Int
@@ -776,6 +879,7 @@ type PropertyType implements Node {
 
 input PropertyTypeInput {
   id: ID
+  externalId: String
   name: String!
   type: PropertyKind!
   index: Int
@@ -869,6 +973,7 @@ enum ImageEntity {
   SITE_SURVEY
   EQUIPMENT
   USER
+  CHECKLIST_ITEM
 }
 
 enum PropertyEntity {
@@ -926,10 +1031,17 @@ input WorkOrderDefinitionInput {
   type: ID!
 }
 
+enum YesNoResponse {
+  YES
+  NO
+}
+
 enum CheckListItemType {
   simple
   string
   enum
+  files
+  yes_no
 }
 
 enum CheckListItemEnumSelectionMode {
@@ -973,6 +1085,8 @@ type CheckListItem implements Node {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [File!]!
+  yesNoResponse: YesNoResponse
 }
 
 input CheckListCategoryInput {
@@ -993,6 +1107,8 @@ input CheckListItemInput {
   selectedEnumValues: String
   stringValue: String
   checked: Boolean
+  files: [FileInput!]
+  yesNoResponse: YesNoResponse
 }
 
 enum FilterEntity {
@@ -1066,9 +1182,17 @@ type WorkOrder implements Node {
   name: String!
   description: String
   ownerName: String!
+    @deprecated(
+      reason: "Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01"
+    )
+  owner: User!
   creationDate: Time!
   installDate: Time
   assignee: String
+    @deprecated(
+      reason: "Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01"
+    )
+  assignedTo: User
   index: Int!
   status: WorkOrderStatus!
   priority: WorkOrderPriority!
@@ -1103,6 +1227,20 @@ type UserConnection {
 }
 
 """
+A connection to a list of users groups.
+"""
+type UsersGroupConnection {
+  """
+  A list of users group type edges.
+  """
+  edges: [UsersGroupEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
 A work order type edge in a connection.
 """
 type UserEdge {
@@ -1110,6 +1248,20 @@ type UserEdge {
   The user type at the end of the edge.
   """
   node: User
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A work order type edge in a connection.
+"""
+type UsersGroupEdge {
+  """
+  The user type at the end of the edge.
+  """
+  node: UsersGroup
   """
   A cursor for use in pagination.
   """
@@ -1256,6 +1408,10 @@ type Project implements Node {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecated(
+      reason: "Use `Project.createdBy.email` instead. Will be removed on 2020-05-01"
+    )
+  createdBy: User
   type: ProjectType!
   location: Location
   workOrders: [WorkOrder!]!
@@ -1268,6 +1424,12 @@ input AddProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      name: "AddProjectInput.creator"
+      duplicateError: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1278,6 +1440,12 @@ input EditProjectInput {
   name: String! @length(min: 1)
   description: String
   creator: String
+    @deprecatedInput(
+      newField: "creatorId"
+      name: "EditProjectInput.creator"
+      duplicateError: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
+    )
+  creatorId: ID
   type: ID!
   location: ID
   properties: [PropertyInput!]
@@ -1300,6 +1468,7 @@ what type of equipment we filter about
 """
 enum EquipmentFilterType {
   EQUIP_INST_NAME
+  EQUIP_INST_EXTERNAL_ID
   PROPERTY
   LOCATION_INST
   EQUIPMENT_TYPE
@@ -1332,6 +1501,11 @@ type LocationSearchResult {
 
 type ServiceSearchResult {
   services: [Service]!
+  count: Int!
+}
+
+type UserSearchResult {
+  users: [User]!
   count: Int!
 }
 
@@ -1388,6 +1562,13 @@ enum ServiceFilterType {
   EQUIPMENT_IN_SERVICE
 }
 
+"""
+what filters should we apply on users
+"""
+enum UserFilterType {
+  USER_NAME
+}
+
 input PortFilterInput {
   filterType: PortFilterType!
   operator: FilterOperator!
@@ -1430,6 +1611,16 @@ input ServiceFilterInput {
   maxDepth: Int = 5
 }
 
+input UserFilterInput {
+  filterType: UserFilterType!
+  operator: FilterOperator!
+  stringValue: String
+  propertyValue: PropertyTypeInput
+  idSet: [ID!]
+  stringSet: [String!]
+  maxDepth: Int = 5
+}
+
 """
 what type of work order we filter about
 """
@@ -1437,10 +1628,18 @@ enum WorkOrderFilterType {
   WORK_ORDER_NAME
   WORK_ORDER_STATUS
   WORK_ORDER_OWNER
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_OWNED_BY` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
   WORK_ORDER_INSTALL_DATE
   WORK_ORDER_ASSIGNEE
+    @deprecated(
+      reason: "Use `WorkOrderFilterType.WORK_ORDER_ASSIGNED_TO` instead. Will be removed on 2020-05-01"
+    )
+  WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
@@ -1660,7 +1859,7 @@ type FloorPlanReferencePoint {
 }
 
 input FileInput {
-  id: ID!
+  id: ID
   fileName: String!
   sizeInBytes: Int
   modificationTime: Int
@@ -1721,6 +1920,7 @@ input SurveyQuestionResponse {
   photoData: FileInput
   wifiData: [SurveyWiFiScanData!]
   cellData: [SurveyCellScanData!]
+  imagesData: [FileInput!]
 }
 
 type SurveyQuestion implements Node {
@@ -1745,6 +1945,7 @@ type SurveyQuestion implements Node {
   photoData: File
   wifiData: [SurveyWiFiScan]
   cellData: [SurveyCellScan]
+  images: [File!]
 }
 
 enum SurveyQuestionType {
@@ -2006,9 +2207,9 @@ type Query {
   ): Node
   user(authID: String!): User
   location(id: ID!): Location
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationType(id: ID!): LocationType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   locationTypes(
     after: Cursor
     first: Int
@@ -2026,9 +2227,9 @@ type Query {
     last: Int
   ): LocationConnection
   equipment(id: ID!): Equipment
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentType(id: ID!): EquipmentType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   equipmentPortTypes(
     after: Cursor
     first: Int
@@ -2048,9 +2249,9 @@ type Query {
     last: Int
   ): EquipmentTypeConnection!
   service(id: ID!): Service
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceType(id: ID!): ServiceType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   serviceTypes(
     after: Cursor
     first: Int
@@ -2058,7 +2259,7 @@ type Query {
     last: Int
   ): ServiceTypeConnection
   workOrder(id: ID!): WorkOrder
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   workOrders(
     after: Cursor
     first: Int
@@ -2073,6 +2274,12 @@ type Query {
     last: Int
   ): WorkOrderTypeConnection
   users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  usersGroups(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+  ): UsersGroupConnection
   searchForEntity(
     name: String!
     after: Cursor
@@ -2081,7 +2288,7 @@ type Query {
     last: Int
   ): SearchEntriesConnection!
     @deprecated(
-      reason: "Use `searchForNode` instead. Will be removed on 1/5/2020"
+      reason: "Use `searchForNode` instead. Will be removed on 2020-05-01"
     )
   searchForNode(
     name: String!
@@ -2116,6 +2323,7 @@ type Query {
     filters: [ServiceFilterInput!]!
     limit: Int = 500
   ): ServiceSearchResult!
+  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -2126,7 +2334,7 @@ type Query {
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectType(id: ID!): ProjectType
-    @deprecated(reason: "Use `node` instead. Will be removed on 1/4/2020")
+    @deprecated(reason: "Use `node` instead. Will be removed on 2020-04-01")
   projectTypes(
     after: Cursor
     first: Int
@@ -2146,6 +2354,11 @@ type Query {
 
 type Mutation {
   editUser(input: EditUserInput!): User!
+  addUsersGroup(input: AddUsersGroupInput!): UsersGroup!
+  editUsersGroup(input: EditUsersGroupInput!): UsersGroup!
+  updateUserGroups(input: UpdateUserGroupsInput!): User!
+  updateUsersGroupMembers(input: UpdateUsersGroupMembersInput!): UsersGroup!
+  deleteUsersGroup(id: ID!): Boolean!
   createSurvey(data: SurveyCreateData!): ID!
   addLocation(input: AddLocationInput!): Location!
   editLocation(input: EditLocationInput!): Location!
@@ -2314,6 +2527,9 @@ type Mutation {
   editActionsRule(id: ID!, input: AddActionsRuleInput!): ActionsRule!
   removeActionsRule(id: ID!): Boolean!
   technicianWorkOrderCheckIn(workOrderId: ID!): WorkOrder!
+  technicianWorkOrderUploadData(
+    input: TechnicianWorkOrderUploadInput!
+  ): WorkOrder!
   addReportFilter(input: ReportFilterInput!): ReportFilter!
   editReportFilter(input: EditReportFilterInput!): ReportFilter!
   deleteReportFilter(id: ID!): Boolean!

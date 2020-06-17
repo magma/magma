@@ -15,15 +15,15 @@ import (
 )
 
 var (
-	// Allow may be returned by read/write rules to indicate that the policy
+	// Allow may be returned by rules to indicate that the policy
 	// evaluation should terminate with an allow decision.
 	Allow = errors.New("ent/privacy: allow rule")
 
-	// Deny may be returned by read/write rules to indicate that the policy
+	// Deny may be returned by rules to indicate that the policy
 	// evaluation should terminate with an deny decision.
 	Deny = errors.New("ent/privacy: deny rule")
 
-	// Skip may be returned by read/write rules to indicate that the policy
+	// Skip may be returned by rules to indicate that the policy
 	// evaluation should continue to the next rule.
 	Skip = errors.New("ent/privacy: skip rule")
 )
@@ -44,19 +44,20 @@ func Skipf(format string, a ...interface{}) error {
 }
 
 type (
-	// ReadPolicy combines multiple read rules into a single policy.
-	ReadPolicy []ReadRule
+	// QueryPolicy combines multiple query rules into a single policy.
+	QueryPolicy []QueryRule
 
-	// ReadRule defines the interface deciding whether a read is allowed.
-	ReadRule interface {
-		EvalRead(context.Context, ent.Value) error
+	// QueryRule defines the interface deciding whether a
+	// query is allowed and optionally modify it.
+	QueryRule interface {
+		EvalQuery(context.Context, ent.Query) error
 	}
 )
 
-// EvalRead evaluates a load against a read policy.
-func (policy ReadPolicy) EvalRead(ctx context.Context, v ent.Value) error {
+// EvalQuery evaluates a query against a query policy.
+func (policy QueryPolicy) EvalQuery(ctx context.Context, q ent.Query) error {
 	for _, rule := range policy {
-		switch err := rule.EvalRead(ctx, v); {
+		switch err := rule.EvalQuery(ctx, q); {
 		case err == nil || errors.Is(err, Skip):
 		case errors.Is(err, Allow):
 			return nil
@@ -67,29 +68,30 @@ func (policy ReadPolicy) EvalRead(ctx context.Context, v ent.Value) error {
 	return nil
 }
 
-// ReadRuleFunc type is an adapter to allow the use of
-// ordinary functions as read rules.
-type ReadRuleFunc func(context.Context, ent.Value) error
+// QueryRuleFunc type is an adapter to allow the use of
+// ordinary functions as query rules.
+type QueryRuleFunc func(context.Context, ent.Query) error
 
-// Eval calls f(ctx, v).
-func (f ReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	return f(ctx, v)
+// Eval returns f(ctx, q).
+func (f QueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	return f(ctx, q)
 }
 
 type (
-	// WritePolicy combines multiple write rules into a single policy.
-	WritePolicy []WriteRule
+	// MutationPolicy combines multiple mutation rules into a single policy.
+	MutationPolicy []MutationRule
 
-	// WriteRule defines the interface deciding whether a write is allowed.
-	WriteRule interface {
-		EvalWrite(context.Context, ent.Mutation) error
+	// MutationRule defines the interface deciding whether a
+	// mutation is allowed and optionally modify it.
+	MutationRule interface {
+		EvalMutation(context.Context, ent.Mutation) error
 	}
 )
 
-// EvalWrite evaluates a mutation against a write policy.
-func (policy WritePolicy) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation evaluates a mutation against a mutation policy.
+func (policy MutationPolicy) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	for _, rule := range policy {
-		switch err := rule.EvalWrite(ctx, m); {
+		switch err := rule.EvalMutation(ctx, m); {
 		case err == nil || errors.Is(err, Skip):
 		case errors.Is(err, Allow):
 			return nil
@@ -100,1030 +102,1054 @@ func (policy WritePolicy) EvalWrite(ctx context.Context, m ent.Mutation) error {
 	return nil
 }
 
-// WriteRuleFunc type is an adapter to allow the use of
-// ordinary functions as write rules.
-type WriteRuleFunc func(context.Context, ent.Mutation) error
+// MutationRuleFunc type is an adapter to allow the use of
+// ordinary functions as mutation rules.
+type MutationRuleFunc func(context.Context, ent.Mutation) error
 
-// Eval calls f(ctx, m).
-func (f WriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation returns f(ctx, m).
+func (f MutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	return f(ctx, m)
 }
 
-// Policy groups read and write policies.
+// Policy groups query and mutation policies.
 type Policy struct {
-	Read  ReadPolicy
-	Write WritePolicy
+	Query    QueryPolicy
+	Mutation MutationPolicy
 }
 
-// EvalRead forwards evaluation to read policy.
-func (policy Policy) EvalRead(ctx context.Context, v ent.Value) error {
-	return policy.Read.EvalRead(ctx, v)
+// EvalQuery forwards evaluation to query policy.
+func (policy Policy) EvalQuery(ctx context.Context, q ent.Query) error {
+	return policy.Query.EvalQuery(ctx, q)
 }
 
-// EvalWrite forwards evaluation to write policy.
-func (policy Policy) EvalWrite(ctx context.Context, m ent.Mutation) error {
-	return policy.Write.EvalWrite(ctx, m)
+// EvalMutation forwards evaluation to mutation policy.
+func (policy Policy) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	return policy.Mutation.EvalMutation(ctx, m)
 }
 
-// ReadWriteRule is the interface that groups read and write rules.
-type ReadWriteRule interface {
-	ReadRule
-	WriteRule
+// QueryMutationRule is the interface that groups query and mutation rules.
+type QueryMutationRule interface {
+	QueryRule
+	MutationRule
 }
 
-// AlwaysAllowRule returns a read/write rule that returns an allow decision.
-func AlwaysAllowRule() ReadWriteRule {
+// AlwaysAllowRule returns a rule that returns an allow decision.
+func AlwaysAllowRule() QueryMutationRule {
 	return fixedDecisionRule{Allow}
 }
 
-// AlwaysDenyRule returns a read/write rule that returns a deny decision.
-func AlwaysDenyRule() ReadWriteRule {
+// AlwaysDenyRule returns a rule that returns a deny decision.
+func AlwaysDenyRule() QueryMutationRule {
 	return fixedDecisionRule{Deny}
 }
 
 type fixedDecisionRule struct{ err error }
 
-func (f fixedDecisionRule) EvalRead(context.Context, ent.Value) error     { return f.err }
-func (f fixedDecisionRule) EvalWrite(context.Context, ent.Mutation) error { return f.err }
+func (f fixedDecisionRule) EvalQuery(context.Context, ent.Query) error       { return f.err }
+func (f fixedDecisionRule) EvalMutation(context.Context, ent.Mutation) error { return f.err }
 
-// The ActionsRuleReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ActionsRuleReadRuleFunc func(context.Context, *ent.ActionsRule) error
+// The ActionsRuleQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ActionsRuleQueryRuleFunc func(context.Context, *ent.ActionsRuleQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ActionsRuleReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.ActionsRule); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ActionsRuleQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ActionsRuleQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.ActionsRule", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ActionsRuleQuery", q)
 }
 
-// The ActionsRuleWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ActionsRuleWriteRuleFunc func(context.Context, *ent.ActionsRuleMutation) error
+// The ActionsRuleMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ActionsRuleMutationRuleFunc func(context.Context, *ent.ActionsRuleMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ActionsRuleWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ActionsRuleMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ActionsRuleMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ActionsRuleMutation", m)
 }
 
-// The CheckListCategoryReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type CheckListCategoryReadRuleFunc func(context.Context, *ent.CheckListCategory) error
+// The CheckListCategoryQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CheckListCategoryQueryRuleFunc func(context.Context, *ent.CheckListCategoryQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f CheckListCategoryReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.CheckListCategory); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f CheckListCategoryQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CheckListCategoryQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.CheckListCategory", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CheckListCategoryQuery", q)
 }
 
-// The CheckListCategoryWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type CheckListCategoryWriteRuleFunc func(context.Context, *ent.CheckListCategoryMutation) error
+// The CheckListCategoryMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CheckListCategoryMutationRuleFunc func(context.Context, *ent.CheckListCategoryMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f CheckListCategoryWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f CheckListCategoryMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.CheckListCategoryMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CheckListCategoryMutation", m)
 }
 
-// The CheckListItemReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type CheckListItemReadRuleFunc func(context.Context, *ent.CheckListItem) error
+// The CheckListItemQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CheckListItemQueryRuleFunc func(context.Context, *ent.CheckListItemQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f CheckListItemReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.CheckListItem); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f CheckListItemQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CheckListItemQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.CheckListItem", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CheckListItemQuery", q)
 }
 
-// The CheckListItemWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type CheckListItemWriteRuleFunc func(context.Context, *ent.CheckListItemMutation) error
+// The CheckListItemMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CheckListItemMutationRuleFunc func(context.Context, *ent.CheckListItemMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f CheckListItemWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f CheckListItemMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.CheckListItemMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CheckListItemMutation", m)
 }
 
-// The CheckListItemDefinitionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type CheckListItemDefinitionReadRuleFunc func(context.Context, *ent.CheckListItemDefinition) error
+// The CheckListItemDefinitionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CheckListItemDefinitionQueryRuleFunc func(context.Context, *ent.CheckListItemDefinitionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f CheckListItemDefinitionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.CheckListItemDefinition); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f CheckListItemDefinitionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CheckListItemDefinitionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.CheckListItemDefinition", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CheckListItemDefinitionQuery", q)
 }
 
-// The CheckListItemDefinitionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type CheckListItemDefinitionWriteRuleFunc func(context.Context, *ent.CheckListItemDefinitionMutation) error
+// The CheckListItemDefinitionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CheckListItemDefinitionMutationRuleFunc func(context.Context, *ent.CheckListItemDefinitionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f CheckListItemDefinitionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f CheckListItemDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.CheckListItemDefinitionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CheckListItemDefinitionMutation", m)
 }
 
-// The CommentReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type CommentReadRuleFunc func(context.Context, *ent.Comment) error
+// The CommentQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CommentQueryRuleFunc func(context.Context, *ent.CommentQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f CommentReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Comment); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f CommentQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CommentQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Comment", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CommentQuery", q)
 }
 
-// The CommentWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type CommentWriteRuleFunc func(context.Context, *ent.CommentMutation) error
+// The CommentMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CommentMutationRuleFunc func(context.Context, *ent.CommentMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f CommentWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f CommentMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.CommentMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CommentMutation", m)
 }
 
-// The CustomerReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type CustomerReadRuleFunc func(context.Context, *ent.Customer) error
+// The CustomerQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type CustomerQueryRuleFunc func(context.Context, *ent.CustomerQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f CustomerReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Customer); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f CustomerQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.CustomerQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Customer", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.CustomerQuery", q)
 }
 
-// The CustomerWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type CustomerWriteRuleFunc func(context.Context, *ent.CustomerMutation) error
+// The CustomerMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type CustomerMutationRuleFunc func(context.Context, *ent.CustomerMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f CustomerWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f CustomerMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.CustomerMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.CustomerMutation", m)
 }
 
-// The EquipmentReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentReadRuleFunc func(context.Context, *ent.Equipment) error
+// The EquipmentQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentQueryRuleFunc func(context.Context, *ent.EquipmentQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Equipment); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Equipment", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentQuery", q)
 }
 
-// The EquipmentWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentWriteRuleFunc func(context.Context, *ent.EquipmentMutation) error
+// The EquipmentMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentMutationRuleFunc func(context.Context, *ent.EquipmentMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentMutation", m)
 }
 
-// The EquipmentCategoryReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentCategoryReadRuleFunc func(context.Context, *ent.EquipmentCategory) error
+// The EquipmentCategoryQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentCategoryQueryRuleFunc func(context.Context, *ent.EquipmentCategoryQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentCategoryReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentCategory); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentCategoryQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentCategoryQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentCategory", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentCategoryQuery", q)
 }
 
-// The EquipmentCategoryWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentCategoryWriteRuleFunc func(context.Context, *ent.EquipmentCategoryMutation) error
+// The EquipmentCategoryMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentCategoryMutationRuleFunc func(context.Context, *ent.EquipmentCategoryMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentCategoryWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentCategoryMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentCategoryMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentCategoryMutation", m)
 }
 
-// The EquipmentPortReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentPortReadRuleFunc func(context.Context, *ent.EquipmentPort) error
+// The EquipmentPortQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentPortQueryRuleFunc func(context.Context, *ent.EquipmentPortQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentPortReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentPort); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentPortQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentPortQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentPort", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentPortQuery", q)
 }
 
-// The EquipmentPortWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentPortWriteRuleFunc func(context.Context, *ent.EquipmentPortMutation) error
+// The EquipmentPortMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentPortMutationRuleFunc func(context.Context, *ent.EquipmentPortMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentPortWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentPortMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentPortMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentPortMutation", m)
 }
 
-// The EquipmentPortDefinitionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentPortDefinitionReadRuleFunc func(context.Context, *ent.EquipmentPortDefinition) error
+// The EquipmentPortDefinitionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentPortDefinitionQueryRuleFunc func(context.Context, *ent.EquipmentPortDefinitionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentPortDefinitionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentPortDefinition); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentPortDefinitionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentPortDefinitionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentPortDefinition", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentPortDefinitionQuery", q)
 }
 
-// The EquipmentPortDefinitionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentPortDefinitionWriteRuleFunc func(context.Context, *ent.EquipmentPortDefinitionMutation) error
+// The EquipmentPortDefinitionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentPortDefinitionMutationRuleFunc func(context.Context, *ent.EquipmentPortDefinitionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentPortDefinitionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentPortDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentPortDefinitionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentPortDefinitionMutation", m)
 }
 
-// The EquipmentPortTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentPortTypeReadRuleFunc func(context.Context, *ent.EquipmentPortType) error
+// The EquipmentPortTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentPortTypeQueryRuleFunc func(context.Context, *ent.EquipmentPortTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentPortTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentPortType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentPortTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentPortTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentPortType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentPortTypeQuery", q)
 }
 
-// The EquipmentPortTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentPortTypeWriteRuleFunc func(context.Context, *ent.EquipmentPortTypeMutation) error
+// The EquipmentPortTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentPortTypeMutationRuleFunc func(context.Context, *ent.EquipmentPortTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentPortTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentPortTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentPortTypeMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentPortTypeMutation", m)
 }
 
-// The EquipmentPositionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentPositionReadRuleFunc func(context.Context, *ent.EquipmentPosition) error
+// The EquipmentPositionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentPositionQueryRuleFunc func(context.Context, *ent.EquipmentPositionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentPositionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentPosition); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentPositionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentPositionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentPosition", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentPositionQuery", q)
 }
 
-// The EquipmentPositionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentPositionWriteRuleFunc func(context.Context, *ent.EquipmentPositionMutation) error
+// The EquipmentPositionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentPositionMutationRuleFunc func(context.Context, *ent.EquipmentPositionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentPositionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentPositionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentPositionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentPositionMutation", m)
 }
 
-// The EquipmentPositionDefinitionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentPositionDefinitionReadRuleFunc func(context.Context, *ent.EquipmentPositionDefinition) error
+// The EquipmentPositionDefinitionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentPositionDefinitionQueryRuleFunc func(context.Context, *ent.EquipmentPositionDefinitionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentPositionDefinitionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentPositionDefinition); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentPositionDefinitionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentPositionDefinitionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentPositionDefinition", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentPositionDefinitionQuery", q)
 }
 
-// The EquipmentPositionDefinitionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentPositionDefinitionWriteRuleFunc func(context.Context, *ent.EquipmentPositionDefinitionMutation) error
+// The EquipmentPositionDefinitionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentPositionDefinitionMutationRuleFunc func(context.Context, *ent.EquipmentPositionDefinitionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentPositionDefinitionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentPositionDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentPositionDefinitionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentPositionDefinitionMutation", m)
 }
 
-// The EquipmentTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type EquipmentTypeReadRuleFunc func(context.Context, *ent.EquipmentType) error
+// The EquipmentTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type EquipmentTypeQueryRuleFunc func(context.Context, *ent.EquipmentTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f EquipmentTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.EquipmentType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f EquipmentTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.EquipmentTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.EquipmentType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.EquipmentTypeQuery", q)
 }
 
-// The EquipmentTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type EquipmentTypeWriteRuleFunc func(context.Context, *ent.EquipmentTypeMutation) error
+// The EquipmentTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type EquipmentTypeMutationRuleFunc func(context.Context, *ent.EquipmentTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f EquipmentTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f EquipmentTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.EquipmentTypeMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.EquipmentTypeMutation", m)
 }
 
-// The FileReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type FileReadRuleFunc func(context.Context, *ent.File) error
+// The FileQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type FileQueryRuleFunc func(context.Context, *ent.FileQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f FileReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.File); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f FileQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.FileQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.File", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.FileQuery", q)
 }
 
-// The FileWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type FileWriteRuleFunc func(context.Context, *ent.FileMutation) error
+// The FileMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type FileMutationRuleFunc func(context.Context, *ent.FileMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f FileWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f FileMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.FileMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.FileMutation", m)
 }
 
-// The FloorPlanReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type FloorPlanReadRuleFunc func(context.Context, *ent.FloorPlan) error
+// The FloorPlanQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type FloorPlanQueryRuleFunc func(context.Context, *ent.FloorPlanQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f FloorPlanReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.FloorPlan); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f FloorPlanQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.FloorPlanQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.FloorPlan", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.FloorPlanQuery", q)
 }
 
-// The FloorPlanWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type FloorPlanWriteRuleFunc func(context.Context, *ent.FloorPlanMutation) error
+// The FloorPlanMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type FloorPlanMutationRuleFunc func(context.Context, *ent.FloorPlanMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f FloorPlanWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f FloorPlanMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.FloorPlanMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.FloorPlanMutation", m)
 }
 
-// The FloorPlanReferencePointReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type FloorPlanReferencePointReadRuleFunc func(context.Context, *ent.FloorPlanReferencePoint) error
+// The FloorPlanReferencePointQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type FloorPlanReferencePointQueryRuleFunc func(context.Context, *ent.FloorPlanReferencePointQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f FloorPlanReferencePointReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.FloorPlanReferencePoint); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f FloorPlanReferencePointQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.FloorPlanReferencePointQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.FloorPlanReferencePoint", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.FloorPlanReferencePointQuery", q)
 }
 
-// The FloorPlanReferencePointWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type FloorPlanReferencePointWriteRuleFunc func(context.Context, *ent.FloorPlanReferencePointMutation) error
+// The FloorPlanReferencePointMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type FloorPlanReferencePointMutationRuleFunc func(context.Context, *ent.FloorPlanReferencePointMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f FloorPlanReferencePointWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f FloorPlanReferencePointMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.FloorPlanReferencePointMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.FloorPlanReferencePointMutation", m)
 }
 
-// The FloorPlanScaleReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type FloorPlanScaleReadRuleFunc func(context.Context, *ent.FloorPlanScale) error
+// The FloorPlanScaleQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type FloorPlanScaleQueryRuleFunc func(context.Context, *ent.FloorPlanScaleQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f FloorPlanScaleReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.FloorPlanScale); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f FloorPlanScaleQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.FloorPlanScaleQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.FloorPlanScale", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.FloorPlanScaleQuery", q)
 }
 
-// The FloorPlanScaleWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type FloorPlanScaleWriteRuleFunc func(context.Context, *ent.FloorPlanScaleMutation) error
+// The FloorPlanScaleMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type FloorPlanScaleMutationRuleFunc func(context.Context, *ent.FloorPlanScaleMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f FloorPlanScaleWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f FloorPlanScaleMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.FloorPlanScaleMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.FloorPlanScaleMutation", m)
 }
 
-// The HyperlinkReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type HyperlinkReadRuleFunc func(context.Context, *ent.Hyperlink) error
+// The HyperlinkQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type HyperlinkQueryRuleFunc func(context.Context, *ent.HyperlinkQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f HyperlinkReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Hyperlink); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f HyperlinkQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.HyperlinkQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Hyperlink", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.HyperlinkQuery", q)
 }
 
-// The HyperlinkWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type HyperlinkWriteRuleFunc func(context.Context, *ent.HyperlinkMutation) error
+// The HyperlinkMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type HyperlinkMutationRuleFunc func(context.Context, *ent.HyperlinkMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f HyperlinkWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f HyperlinkMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.HyperlinkMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.HyperlinkMutation", m)
 }
 
-// The LinkReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type LinkReadRuleFunc func(context.Context, *ent.Link) error
+// The LinkQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type LinkQueryRuleFunc func(context.Context, *ent.LinkQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f LinkReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Link); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f LinkQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.LinkQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Link", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.LinkQuery", q)
 }
 
-// The LinkWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type LinkWriteRuleFunc func(context.Context, *ent.LinkMutation) error
+// The LinkMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type LinkMutationRuleFunc func(context.Context, *ent.LinkMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f LinkWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f LinkMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.LinkMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.LinkMutation", m)
 }
 
-// The LocationReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type LocationReadRuleFunc func(context.Context, *ent.Location) error
+// The LocationQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type LocationQueryRuleFunc func(context.Context, *ent.LocationQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f LocationReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Location); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f LocationQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.LocationQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Location", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.LocationQuery", q)
 }
 
-// The LocationWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type LocationWriteRuleFunc func(context.Context, *ent.LocationMutation) error
+// The LocationMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type LocationMutationRuleFunc func(context.Context, *ent.LocationMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f LocationWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f LocationMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.LocationMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.LocationMutation", m)
 }
 
-// The LocationTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type LocationTypeReadRuleFunc func(context.Context, *ent.LocationType) error
+// The LocationTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type LocationTypeQueryRuleFunc func(context.Context, *ent.LocationTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f LocationTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.LocationType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f LocationTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.LocationTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.LocationType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.LocationTypeQuery", q)
 }
 
-// The LocationTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type LocationTypeWriteRuleFunc func(context.Context, *ent.LocationTypeMutation) error
+// The LocationTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type LocationTypeMutationRuleFunc func(context.Context, *ent.LocationTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f LocationTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f LocationTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.LocationTypeMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.LocationTypeMutation", m)
 }
 
-// The ProjectReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ProjectReadRuleFunc func(context.Context, *ent.Project) error
+// The ProjectQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ProjectQueryRuleFunc func(context.Context, *ent.ProjectQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ProjectReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Project); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ProjectQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ProjectQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Project", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ProjectQuery", q)
 }
 
-// The ProjectWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ProjectWriteRuleFunc func(context.Context, *ent.ProjectMutation) error
+// The ProjectMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ProjectMutationRuleFunc func(context.Context, *ent.ProjectMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ProjectWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ProjectMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ProjectMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ProjectMutation", m)
 }
 
-// The ProjectTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ProjectTypeReadRuleFunc func(context.Context, *ent.ProjectType) error
+// The ProjectTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ProjectTypeQueryRuleFunc func(context.Context, *ent.ProjectTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ProjectTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.ProjectType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ProjectTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ProjectTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.ProjectType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ProjectTypeQuery", q)
 }
 
-// The ProjectTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ProjectTypeWriteRuleFunc func(context.Context, *ent.ProjectTypeMutation) error
+// The ProjectTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ProjectTypeMutationRuleFunc func(context.Context, *ent.ProjectTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ProjectTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ProjectTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ProjectTypeMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ProjectTypeMutation", m)
 }
 
-// The PropertyReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type PropertyReadRuleFunc func(context.Context, *ent.Property) error
+// The PropertyQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type PropertyQueryRuleFunc func(context.Context, *ent.PropertyQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f PropertyReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Property); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f PropertyQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PropertyQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Property", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.PropertyQuery", q)
 }
 
-// The PropertyWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type PropertyWriteRuleFunc func(context.Context, *ent.PropertyMutation) error
+// The PropertyMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type PropertyMutationRuleFunc func(context.Context, *ent.PropertyMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f PropertyWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f PropertyMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.PropertyMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.PropertyMutation", m)
 }
 
-// The PropertyTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type PropertyTypeReadRuleFunc func(context.Context, *ent.PropertyType) error
+// The PropertyTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type PropertyTypeQueryRuleFunc func(context.Context, *ent.PropertyTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f PropertyTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.PropertyType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f PropertyTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.PropertyTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.PropertyType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.PropertyTypeQuery", q)
 }
 
-// The PropertyTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type PropertyTypeWriteRuleFunc func(context.Context, *ent.PropertyTypeMutation) error
+// The PropertyTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type PropertyTypeMutationRuleFunc func(context.Context, *ent.PropertyTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f PropertyTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f PropertyTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.PropertyTypeMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.PropertyTypeMutation", m)
 }
 
-// The ReportFilterReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ReportFilterReadRuleFunc func(context.Context, *ent.ReportFilter) error
+// The ReportFilterQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ReportFilterQueryRuleFunc func(context.Context, *ent.ReportFilterQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ReportFilterReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.ReportFilter); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ReportFilterQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ReportFilterQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.ReportFilter", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ReportFilterQuery", q)
 }
 
-// The ReportFilterWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ReportFilterWriteRuleFunc func(context.Context, *ent.ReportFilterMutation) error
+// The ReportFilterMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ReportFilterMutationRuleFunc func(context.Context, *ent.ReportFilterMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ReportFilterWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ReportFilterMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ReportFilterMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ReportFilterMutation", m)
 }
 
-// The ServiceReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ServiceReadRuleFunc func(context.Context, *ent.Service) error
+// The ServiceQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ServiceQueryRuleFunc func(context.Context, *ent.ServiceQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ServiceReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Service); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ServiceQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ServiceQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Service", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ServiceQuery", q)
 }
 
-// The ServiceWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ServiceWriteRuleFunc func(context.Context, *ent.ServiceMutation) error
+// The ServiceMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ServiceMutationRuleFunc func(context.Context, *ent.ServiceMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ServiceWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ServiceMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ServiceMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ServiceMutation", m)
 }
 
-// The ServiceEndpointReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ServiceEndpointReadRuleFunc func(context.Context, *ent.ServiceEndpoint) error
+// The ServiceEndpointQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ServiceEndpointQueryRuleFunc func(context.Context, *ent.ServiceEndpointQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ServiceEndpointReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.ServiceEndpoint); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ServiceEndpointQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ServiceEndpointQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.ServiceEndpoint", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ServiceEndpointQuery", q)
 }
 
-// The ServiceEndpointWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ServiceEndpointWriteRuleFunc func(context.Context, *ent.ServiceEndpointMutation) error
+// The ServiceEndpointMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ServiceEndpointMutationRuleFunc func(context.Context, *ent.ServiceEndpointMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ServiceEndpointWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ServiceEndpointMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ServiceEndpointMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ServiceEndpointMutation", m)
 }
 
-// The ServiceTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type ServiceTypeReadRuleFunc func(context.Context, *ent.ServiceType) error
+// The ServiceTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type ServiceTypeQueryRuleFunc func(context.Context, *ent.ServiceTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f ServiceTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.ServiceType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f ServiceTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.ServiceTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.ServiceType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.ServiceTypeQuery", q)
 }
 
-// The ServiceTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type ServiceTypeWriteRuleFunc func(context.Context, *ent.ServiceTypeMutation) error
+// The ServiceTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type ServiceTypeMutationRuleFunc func(context.Context, *ent.ServiceTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f ServiceTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f ServiceTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.ServiceTypeMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.ServiceTypeMutation", m)
 }
 
-// The SurveyReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type SurveyReadRuleFunc func(context.Context, *ent.Survey) error
+// The SurveyQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SurveyQueryRuleFunc func(context.Context, *ent.SurveyQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f SurveyReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Survey); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f SurveyQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SurveyQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Survey", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SurveyQuery", q)
 }
 
-// The SurveyWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type SurveyWriteRuleFunc func(context.Context, *ent.SurveyMutation) error
+// The SurveyMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SurveyMutationRuleFunc func(context.Context, *ent.SurveyMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f SurveyWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f SurveyMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.SurveyMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyMutation", m)
 }
 
-// The SurveyCellScanReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type SurveyCellScanReadRuleFunc func(context.Context, *ent.SurveyCellScan) error
+// The SurveyCellScanQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SurveyCellScanQueryRuleFunc func(context.Context, *ent.SurveyCellScanQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f SurveyCellScanReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.SurveyCellScan); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f SurveyCellScanQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SurveyCellScanQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.SurveyCellScan", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SurveyCellScanQuery", q)
 }
 
-// The SurveyCellScanWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type SurveyCellScanWriteRuleFunc func(context.Context, *ent.SurveyCellScanMutation) error
+// The SurveyCellScanMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SurveyCellScanMutationRuleFunc func(context.Context, *ent.SurveyCellScanMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f SurveyCellScanWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f SurveyCellScanMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.SurveyCellScanMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyCellScanMutation", m)
 }
 
-// The SurveyQuestionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type SurveyQuestionReadRuleFunc func(context.Context, *ent.SurveyQuestion) error
+// The SurveyQuestionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SurveyQuestionQueryRuleFunc func(context.Context, *ent.SurveyQuestionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f SurveyQuestionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.SurveyQuestion); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f SurveyQuestionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SurveyQuestionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.SurveyQuestion", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SurveyQuestionQuery", q)
 }
 
-// The SurveyQuestionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type SurveyQuestionWriteRuleFunc func(context.Context, *ent.SurveyQuestionMutation) error
+// The SurveyQuestionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SurveyQuestionMutationRuleFunc func(context.Context, *ent.SurveyQuestionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f SurveyQuestionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f SurveyQuestionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.SurveyQuestionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyQuestionMutation", m)
 }
 
-// The SurveyTemplateCategoryReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type SurveyTemplateCategoryReadRuleFunc func(context.Context, *ent.SurveyTemplateCategory) error
+// The SurveyTemplateCategoryQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SurveyTemplateCategoryQueryRuleFunc func(context.Context, *ent.SurveyTemplateCategoryQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f SurveyTemplateCategoryReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.SurveyTemplateCategory); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f SurveyTemplateCategoryQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SurveyTemplateCategoryQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.SurveyTemplateCategory", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SurveyTemplateCategoryQuery", q)
 }
 
-// The SurveyTemplateCategoryWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type SurveyTemplateCategoryWriteRuleFunc func(context.Context, *ent.SurveyTemplateCategoryMutation) error
+// The SurveyTemplateCategoryMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SurveyTemplateCategoryMutationRuleFunc func(context.Context, *ent.SurveyTemplateCategoryMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f SurveyTemplateCategoryWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f SurveyTemplateCategoryMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.SurveyTemplateCategoryMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyTemplateCategoryMutation", m)
 }
 
-// The SurveyTemplateQuestionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type SurveyTemplateQuestionReadRuleFunc func(context.Context, *ent.SurveyTemplateQuestion) error
+// The SurveyTemplateQuestionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SurveyTemplateQuestionQueryRuleFunc func(context.Context, *ent.SurveyTemplateQuestionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f SurveyTemplateQuestionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.SurveyTemplateQuestion); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f SurveyTemplateQuestionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SurveyTemplateQuestionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.SurveyTemplateQuestion", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SurveyTemplateQuestionQuery", q)
 }
 
-// The SurveyTemplateQuestionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type SurveyTemplateQuestionWriteRuleFunc func(context.Context, *ent.SurveyTemplateQuestionMutation) error
+// The SurveyTemplateQuestionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SurveyTemplateQuestionMutationRuleFunc func(context.Context, *ent.SurveyTemplateQuestionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f SurveyTemplateQuestionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f SurveyTemplateQuestionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.SurveyTemplateQuestionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyTemplateQuestionMutation", m)
 }
 
-// The SurveyWiFiScanReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type SurveyWiFiScanReadRuleFunc func(context.Context, *ent.SurveyWiFiScan) error
+// The SurveyWiFiScanQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type SurveyWiFiScanQueryRuleFunc func(context.Context, *ent.SurveyWiFiScanQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f SurveyWiFiScanReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.SurveyWiFiScan); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f SurveyWiFiScanQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.SurveyWiFiScanQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.SurveyWiFiScan", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.SurveyWiFiScanQuery", q)
 }
 
-// The SurveyWiFiScanWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type SurveyWiFiScanWriteRuleFunc func(context.Context, *ent.SurveyWiFiScanMutation) error
+// The SurveyWiFiScanMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type SurveyWiFiScanMutationRuleFunc func(context.Context, *ent.SurveyWiFiScanMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f SurveyWiFiScanWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f SurveyWiFiScanMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.SurveyWiFiScanMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.SurveyWiFiScanMutation", m)
 }
 
-// The TechnicianReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type TechnicianReadRuleFunc func(context.Context, *ent.Technician) error
+// The TechnicianQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type TechnicianQueryRuleFunc func(context.Context, *ent.TechnicianQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f TechnicianReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.Technician); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f TechnicianQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.TechnicianQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.Technician", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.TechnicianQuery", q)
 }
 
-// The TechnicianWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type TechnicianWriteRuleFunc func(context.Context, *ent.TechnicianMutation) error
+// The TechnicianMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type TechnicianMutationRuleFunc func(context.Context, *ent.TechnicianMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f TechnicianWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f TechnicianMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.TechnicianMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.TechnicianMutation", m)
 }
 
-// The UserReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type UserReadRuleFunc func(context.Context, *ent.User) error
+// The UserQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type UserQueryRuleFunc func(context.Context, *ent.UserQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f UserReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.User); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f UserQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.UserQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.User", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.UserQuery", q)
 }
 
-// The UserWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type UserWriteRuleFunc func(context.Context, *ent.UserMutation) error
+// The UserMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type UserMutationRuleFunc func(context.Context, *ent.UserMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f UserWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f UserMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.UserMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UserMutation", m)
 }
 
-// The WorkOrderReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type WorkOrderReadRuleFunc func(context.Context, *ent.WorkOrder) error
+// The UsersGroupQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type UsersGroupQueryRuleFunc func(context.Context, *ent.UsersGroupQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f WorkOrderReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.WorkOrder); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f UsersGroupQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.UsersGroupQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.WorkOrder", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.UsersGroupQuery", q)
 }
 
-// The WorkOrderWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type WorkOrderWriteRuleFunc func(context.Context, *ent.WorkOrderMutation) error
+// The UsersGroupMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type UsersGroupMutationRuleFunc func(context.Context, *ent.UsersGroupMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f WorkOrderWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f UsersGroupMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.UsersGroupMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.UsersGroupMutation", m)
+}
+
+// The WorkOrderQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type WorkOrderQueryRuleFunc func(context.Context, *ent.WorkOrderQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f WorkOrderQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.WorkOrderQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.WorkOrderQuery", q)
+}
+
+// The WorkOrderMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type WorkOrderMutationRuleFunc func(context.Context, *ent.WorkOrderMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f WorkOrderMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.WorkOrderMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.WorkOrderMutation", m)
 }
 
-// The WorkOrderDefinitionReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type WorkOrderDefinitionReadRuleFunc func(context.Context, *ent.WorkOrderDefinition) error
+// The WorkOrderDefinitionQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type WorkOrderDefinitionQueryRuleFunc func(context.Context, *ent.WorkOrderDefinitionQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f WorkOrderDefinitionReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.WorkOrderDefinition); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f WorkOrderDefinitionQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.WorkOrderDefinitionQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.WorkOrderDefinition", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.WorkOrderDefinitionQuery", q)
 }
 
-// The WorkOrderDefinitionWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type WorkOrderDefinitionWriteRuleFunc func(context.Context, *ent.WorkOrderDefinitionMutation) error
+// The WorkOrderDefinitionMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type WorkOrderDefinitionMutationRuleFunc func(context.Context, *ent.WorkOrderDefinitionMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f WorkOrderDefinitionWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f WorkOrderDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.WorkOrderDefinitionMutation); ok {
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.WorkOrderDefinitionMutation", m)
 }
 
-// The WorkOrderTypeReadRuleFunc type is an adapter to allow the use of ordinary
-// functions as a read rule.
-type WorkOrderTypeReadRuleFunc func(context.Context, *ent.WorkOrderType) error
+// The WorkOrderTypeQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type WorkOrderTypeQueryRuleFunc func(context.Context, *ent.WorkOrderTypeQuery) error
 
-// EvalRead calls f(ctx, v).
-func (f WorkOrderTypeReadRuleFunc) EvalRead(ctx context.Context, v ent.Value) error {
-	if v, ok := v.(*ent.WorkOrderType); ok {
-		return f(ctx, v)
+// EvalQuery return f(ctx, q).
+func (f WorkOrderTypeQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.WorkOrderTypeQuery); ok {
+		return f(ctx, q)
 	}
-	return Denyf("ent/privacy: unexpected value type %T, expect *ent.WorkOrderType", v)
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.WorkOrderTypeQuery", q)
 }
 
-// The WorkOrderTypeWriteRuleFunc type is an adapter to allow the use of ordinary
-// functions as a write rule.
-type WorkOrderTypeWriteRuleFunc func(context.Context, *ent.WorkOrderTypeMutation) error
+// The WorkOrderTypeMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type WorkOrderTypeMutationRuleFunc func(context.Context, *ent.WorkOrderTypeMutation) error
 
-// EvalWrite calls f(ctx, m).
-func (f WorkOrderTypeWriteRuleFunc) EvalWrite(ctx context.Context, m ent.Mutation) error {
+// EvalMutation calls f(ctx, m).
+func (f WorkOrderTypeMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
 	if m, ok := m.(*ent.WorkOrderTypeMutation); ok {
 		return f(ctx, m)
 	}

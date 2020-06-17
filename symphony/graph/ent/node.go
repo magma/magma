@@ -53,6 +53,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/ent/surveywifiscan"
 	"github.com/facebookincubator/symphony/graph/ent/technician"
 	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/usersgroup"
 	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
@@ -205,8 +206,8 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     cli.ID,
 		Type:   "CheckListItem",
-		Fields: make([]*Field, 9),
-		Edges:  make([]*Edge, 1),
+		Fields: make([]*Field, 10),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(cli.Title); err != nil {
@@ -273,22 +274,41 @@ func (cli *CheckListItem) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "SelectedEnumValues",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(cli.HelpText); err != nil {
+	if buf, err = json.Marshal(cli.YesNoVal); err != nil {
 		return nil, err
 	}
 	node.Fields[8] = &Field{
+		Type:  "checklistitem.YesNoVal",
+		Name:  "YesNoVal",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(cli.HelpText); err != nil {
+		return nil, err
+	}
+	node.Fields[9] = &Field{
 		Type:  "string",
 		Name:  "HelpText",
 		Value: string(buf),
 	}
 	var ids []int
+	ids, err = cli.QueryFiles().
+		Select(file.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "File",
+		Name: "Files",
+	}
 	ids, err = cli.QueryWorkOrder().
 		Select(workorder.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[0] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "WorkOrder",
 		Name: "WorkOrder",
@@ -379,8 +399,8 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     c.ID,
 		Type:   "Comment",
-		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 0),
+		Fields: make([]*Field, 3),
+		Edges:  make([]*Edge, 1),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(c.CreateTime); err != nil {
@@ -399,21 +419,25 @@ func (c *Comment) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "UpdateTime",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(c.AuthorName); err != nil {
+	if buf, err = json.Marshal(c.Text); err != nil {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
 		Type:  "string",
-		Name:  "AuthorName",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(c.Text); err != nil {
-		return nil, err
-	}
-	node.Fields[3] = &Field{
-		Type:  "string",
 		Name:  "Text",
 		Value: string(buf),
+	}
+	var ids []int
+	ids, err = c.QueryAuthor().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Author",
 	}
 	return node, nil
 }
@@ -2283,7 +2307,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     pt.ID,
 		Type:   "PropertyType",
-		Fields: make([]*Field, 18),
+		Fields: make([]*Field, 19),
 		Edges:  make([]*Edge, 8),
 	}
 	var buf []byte
@@ -2319,10 +2343,18 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "Name",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(pt.Index); err != nil {
+	if buf, err = json.Marshal(pt.ExternalID); err != nil {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
+		Type:  "string",
+		Name:  "ExternalID",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(pt.Index); err != nil {
+		return nil, err
+	}
+	node.Fields[5] = &Field{
 		Type:  "int",
 		Name:  "Index",
 		Value: string(buf),
@@ -2330,7 +2362,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Category); err != nil {
 		return nil, err
 	}
-	node.Fields[5] = &Field{
+	node.Fields[6] = &Field{
 		Type:  "string",
 		Name:  "Category",
 		Value: string(buf),
@@ -2338,7 +2370,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.IntVal); err != nil {
 		return nil, err
 	}
-	node.Fields[6] = &Field{
+	node.Fields[7] = &Field{
 		Type:  "int",
 		Name:  "IntVal",
 		Value: string(buf),
@@ -2346,7 +2378,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.BoolVal); err != nil {
 		return nil, err
 	}
-	node.Fields[7] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "bool",
 		Name:  "BoolVal",
 		Value: string(buf),
@@ -2354,7 +2386,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.FloatVal); err != nil {
 		return nil, err
 	}
-	node.Fields[8] = &Field{
+	node.Fields[9] = &Field{
 		Type:  "float64",
 		Name:  "FloatVal",
 		Value: string(buf),
@@ -2362,7 +2394,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.LatitudeVal); err != nil {
 		return nil, err
 	}
-	node.Fields[9] = &Field{
+	node.Fields[10] = &Field{
 		Type:  "float64",
 		Name:  "LatitudeVal",
 		Value: string(buf),
@@ -2370,7 +2402,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.LongitudeVal); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[11] = &Field{
 		Type:  "float64",
 		Name:  "LongitudeVal",
 		Value: string(buf),
@@ -2378,7 +2410,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.StringVal); err != nil {
 		return nil, err
 	}
-	node.Fields[11] = &Field{
+	node.Fields[12] = &Field{
 		Type:  "string",
 		Name:  "StringVal",
 		Value: string(buf),
@@ -2386,7 +2418,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.RangeFromVal); err != nil {
 		return nil, err
 	}
-	node.Fields[12] = &Field{
+	node.Fields[13] = &Field{
 		Type:  "float64",
 		Name:  "RangeFromVal",
 		Value: string(buf),
@@ -2394,7 +2426,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.RangeToVal); err != nil {
 		return nil, err
 	}
-	node.Fields[13] = &Field{
+	node.Fields[14] = &Field{
 		Type:  "float64",
 		Name:  "RangeToVal",
 		Value: string(buf),
@@ -2402,7 +2434,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.IsInstanceProperty); err != nil {
 		return nil, err
 	}
-	node.Fields[14] = &Field{
+	node.Fields[15] = &Field{
 		Type:  "bool",
 		Name:  "IsInstanceProperty",
 		Value: string(buf),
@@ -2410,7 +2442,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Editable); err != nil {
 		return nil, err
 	}
-	node.Fields[15] = &Field{
+	node.Fields[16] = &Field{
 		Type:  "bool",
 		Name:  "Editable",
 		Value: string(buf),
@@ -2418,7 +2450,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Mandatory); err != nil {
 		return nil, err
 	}
-	node.Fields[16] = &Field{
+	node.Fields[17] = &Field{
 		Type:  "bool",
 		Name:  "Mandatory",
 		Value: string(buf),
@@ -2426,7 +2458,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(pt.Deleted); err != nil {
 		return nil, err
 	}
-	node.Fields[17] = &Field{
+	node.Fields[18] = &Field{
 		Type:  "bool",
 		Name:  "Deleted",
 		Value: string(buf),
@@ -3135,7 +3167,7 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 		ID:     sq.ID,
 		Type:   "SurveyQuestion",
 		Fields: make([]*Field, 20),
-		Edges:  make([]*Edge, 4),
+		Edges:  make([]*Edge, 5),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(sq.CreateTime); err != nil {
@@ -3342,6 +3374,17 @@ func (sq *SurveyQuestion) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "File",
 		Name: "PhotoData",
+	}
+	ids, err = sq.QueryImages().
+		Select(file.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[4] = &Edge{
+		IDs:  ids,
+		Type: "File",
+		Name: "Images",
 	}
 	return node, nil
 }
@@ -3670,7 +3713,7 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		ID:     u.ID,
 		Type:   "User",
 		Fields: make([]*Field, 8),
-		Edges:  make([]*Edge, 1),
+		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(u.CreateTime); err != nil {
@@ -3748,6 +3791,80 @@ func (u *User) Node(ctx context.Context) (node *Node, err error) {
 		IDs:  ids,
 		Type: "File",
 		Name: "ProfilePhoto",
+	}
+	ids, err = u.QueryGroups().
+		Select(usersgroup.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "UsersGroup",
+		Name: "Groups",
+	}
+	return node, nil
+}
+
+func (ug *UsersGroup) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     ug.ID,
+		Type:   "UsersGroup",
+		Fields: make([]*Field, 5),
+		Edges:  make([]*Edge, 1),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(ug.CreateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "time.Time",
+		Name:  "CreateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.UpdateTime); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "time.Time",
+		Name:  "UpdateTime",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[2] = &Field{
+		Type:  "string",
+		Name:  "Name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[3] = &Field{
+		Type:  "string",
+		Name:  "Description",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(ug.Status); err != nil {
+		return nil, err
+	}
+	node.Fields[4] = &Field{
+		Type:  "usersgroup.Status",
+		Name:  "Status",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = ug.QueryMembers().
+		Select(user.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "User",
+		Name: "Members",
 	}
 	return node, nil
 }
@@ -4514,6 +4631,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.User.Query().
 			Where(user.ID(id)).
 			CollectFields(ctx, "User").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case usersgroup.Table:
+		n, err := c.UsersGroup.Query().
+			Where(usersgroup.ID(id)).
+			CollectFields(ctx, "UsersGroup").
 			Only(ctx)
 		if err != nil {
 			return nil, err

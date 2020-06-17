@@ -293,8 +293,8 @@ func (ec *EquipmentCreate) Save(ctx context.Context) (*Equipment, error) {
 			node, err = ec.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(ec.hooks); i > 0; i-- {
-			mut = ec.hooks[i-1](mut)
+		for i := len(ec.hooks) - 1; i >= 0; i-- {
+			mut = ec.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ec.mutation); err != nil {
 			return nil, err

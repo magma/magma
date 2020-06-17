@@ -77,7 +77,7 @@ const ProjectWorkOrdersList = (props: Props) => {
               <TableCell>
                 {formatMultiSelectValue(statusValues, row.status)}
               </TableCell>
-              <TableCell>{row.ownerName}</TableCell>
+              <TableCell>{row.owner?.email}</TableCell>
               <TableCell>
                 {formatMultiSelectValue(priorityValues, row.priority)}
               </TableCell>
@@ -109,7 +109,10 @@ export default createFragmentContainer(ProjectWorkOrdersList, {
       }
       name
       description
-      ownerName
+      owner {
+        id
+        email
+      }
       creationDate
       installDate
       status

@@ -54,7 +54,8 @@ class CreditPool {
     DynamicRuleStore *dynamic_rules,
     std::vector<UpdateRequestType> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria& update_criteria) = 0;
+    SessionStateUpdateCriteria& update_criteria,
+    const bool force_update) = 0;
 
   /**
    * get_termination_updates gets updates from all credits in the pool at the
@@ -85,6 +86,8 @@ class CreditPool {
   virtual void merge_credit_update(
     const KeyType &key,
     const SessionCreditUpdateCriteria &credit_update) = 0;
+
+  virtual uint32_t get_credit_key_count() const = 0;
 };
 
 /**
@@ -121,7 +124,8 @@ class ChargingCreditPool :
     DynamicRuleStore *dynamic_rules,
     std::vector<CreditUsage> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA) override;
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) const override;
@@ -144,6 +148,8 @@ class ChargingCreditPool :
   void merge_credit_update(
     const CreditKey &key,
     const SessionCreditUpdateCriteria &credit_update) override;
+
+  uint32_t get_credit_key_count() const override;
 
   ChargingReAuthAnswer::Result reauth_key(
     const CreditKey &charging_key,
@@ -223,7 +229,8 @@ class UsageMonitoringCreditPool :
     DynamicRuleStore *dynamic_rules,
     std::vector<UsageMonitorUpdate> *updates_out,
     std::vector<std::unique_ptr<ServiceAction>> *actions_out,
-    SessionStateUpdateCriteria& _ = UNUSED_UPDATE_CRITERIA) override;
+    SessionStateUpdateCriteria& update_criteria = UNUSED_UPDATE_CRITERIA,
+    const bool force_update = false) override;
 
   bool get_termination_updates(
     SessionTerminateRequest *termination_out) const override;
@@ -246,6 +253,8 @@ class UsageMonitoringCreditPool :
   void merge_credit_update(
     const std::string &key,
     const SessionCreditUpdateCriteria &credit_update) override;
+
+  uint32_t get_credit_key_count() const override;
 
   std::unique_ptr<std::string> get_session_level_key();
 

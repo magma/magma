@@ -124,6 +124,9 @@ type Technician func(*sql.Selector)
 // User is the predicate function for user builders.
 type User func(*sql.Selector)
 
+// UsersGroup is the predicate function for usersgroup builders.
+type UsersGroup func(*sql.Selector)
+
 // WorkOrder is the predicate function for workorder builders.
 type WorkOrder func(*sql.Selector)
 

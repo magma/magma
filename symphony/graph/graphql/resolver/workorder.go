@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"github.com/facebookincubator/symphony/graph/ent"
+	"github.com/facebookincubator/symphony/graph/ent/checklistitem"
 	"github.com/facebookincubator/symphony/graph/ent/equipment"
 	"github.com/facebookincubator/symphony/graph/ent/file"
 	"github.com/facebookincubator/symphony/graph/ent/link"
 	"github.com/facebookincubator/symphony/graph/ent/property"
 	"github.com/facebookincubator/symphony/graph/ent/propertytype"
-	"github.com/facebookincubator/symphony/graph/ent/user"
+	"github.com/facebookincubator/symphony/graph/ent/workorder"
 	"github.com/facebookincubator/symphony/graph/ent/workordertype"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
@@ -137,12 +138,28 @@ func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (str
 	return owner.Email, nil
 }
 
+func (workOrderResolver) Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
+	o, err := obj.QueryOwner().Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying owner: %w", err)
+	}
+	return o, nil
+}
+
 func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error) {
 	assignee, err := obj.QueryAssignee().Only(ctx)
 	if err != nil {
 		return nil, ent.MaskNotFound(err)
 	}
 	return &assignee.Email, nil
+}
+
+func (workOrderResolver) AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
+	a, err := obj.QueryAssignee().Only(ctx)
+	if err != nil && !ent.IsNotFound(err) {
+		return nil, fmt.Errorf("querying assignee: %w", err)
+	}
+	return a, nil
 }
 
 func (r mutationResolver) AddWorkOrder(
@@ -162,6 +179,10 @@ func (r mutationResolver) internalAddWorkOrder(
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
 	}
+	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
+	if err != nil {
+		return nil, err
+	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
 		SetName(input.Name).
@@ -170,7 +191,8 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
 		SetCreationDate(time.Now()).
-		SetNillableIndex(input.Index)
+		SetNillableIndex(input.Index).
+		SetNillableAssigneeID(assigneeID)
 	if input.Status != nil {
 		mutation.SetStatus(input.Status.String())
 		if *input.Status == models.WorkOrderStatusDone {
@@ -180,24 +202,19 @@ func (r mutationResolver) internalAddWorkOrder(
 	if input.Priority != nil {
 		mutation.SetPriority(input.Priority.String())
 	}
-	if input.Assignee != nil && *input.Assignee != "" {
-		assigneeID, err := c.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		} else {
-			mutation = mutation.SetAssigneeID(assigneeID)
-		}
-	}
-	var owner *ent.User
-	if input.OwnerName != nil && *input.OwnerName != "" {
-		owner, err = c.User.Query().Where(user.AuthID(*input.OwnerName)).Only(ctx)
-	} else {
-		owner, err = viewer.UserFromContext(ctx)
-	}
+	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
 	if err != nil {
-		return nil, fmt.Errorf("fetching own user: %w", err)
+		return nil, err
 	}
-	mutation = mutation.SetOwner(owner)
+	if ownerID != nil {
+		mutation = mutation.SetOwnerID(*ownerID)
+	} else {
+		owner, err := viewer.UserFromContext(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("fetching own user: %w", err)
+		}
+		mutation = mutation.SetOwner(owner)
+	}
 	for _, clInput := range input.CheckListCategories {
 		checkListCategory, err := r.createOrUpdateCheckListCategory(ctx, clInput)
 		if err != nil {
@@ -235,9 +252,7 @@ func (r mutationResolver) internalAddWorkOrder(
 	return wo, nil
 }
 
-func (r mutationResolver) EditWorkOrder(
-	ctx context.Context, input models.EditWorkOrderInput,
-) (*ent.WorkOrder, error) {
+func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWorkOrderInput) (*ent.WorkOrder, error) {
 	client := r.ClientFrom(ctx)
 	wo, err := client.WorkOrder.Get(ctx, input.ID)
 	if err != nil {
@@ -250,19 +265,22 @@ func (r mutationResolver) EditWorkOrder(
 		SetStatus(input.Status.String()).
 		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)
-	if input.OwnerName != nil && *input.OwnerName != "" {
-		ownerID, err := client.User.Query().Where(user.AuthID(*input.OwnerName)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching owner user: %w", err)
-		}
-		mutation = mutation.SetOwnerID(ownerID)
+
+	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
+	if err != nil {
+		return nil, err
 	}
-	if input.Assignee != nil && *input.Assignee != "" {
-		assigneeID, err := client.User.Query().Where(user.AuthID(*input.Assignee)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		}
-		mutation = mutation.SetAssigneeID(assigneeID)
+	if assigneeID != nil {
+		mutation.SetAssigneeID(*assigneeID)
+	} else {
+		mutation.ClearAssignee()
+	}
+	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
+	if err != nil {
+		return nil, err
+	}
+	if ownerID != nil {
+		mutation.SetOwnerID(*ownerID)
 	}
 	if input.Status == models.WorkOrderStatusDone {
 		mutation.SetCloseDate(time.Now())
@@ -426,8 +444,11 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 	if input.EnumSelectionMode != nil {
 		selectionMode = pointer.ToString(input.EnumSelectionMode.String())
 	}
+
+	var cli *ent.CheckListItem
+	var err error
 	if input.ID == nil {
-		cli, err := cl.Create().
+		cli, err = cl.Create().
 			SetTitle(input.Title).
 			SetType(input.Type.String()).
 			SetNillableIndex(input.Index).
@@ -437,27 +458,147 @@ func (r mutationResolver) createOrUpdateCheckListItem(
 			SetNillableStringVal(input.StringValue).
 			SetNillableEnumSelectionMode(selectionMode).
 			SetNillableSelectedEnumValues(input.SelectedEnumValues).
+			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(input.YesNoResponse)).
 			Save(ctx)
 		if err != nil {
 			return nil, errors.Wrap(err, "creating check list item")
 		}
-		return cli, nil
+	} else {
+		cli, err = cl.UpdateOneID(*input.ID).
+			SetTitle(input.Title).
+			SetType(input.Type.String()).
+			SetNillableIndex(input.Index).
+			SetNillableEnumValues(input.EnumValues).
+			SetNillableHelpText(input.HelpText).
+			SetNillableChecked(input.Checked).
+			SetNillableStringVal(input.StringValue).
+			SetNillableEnumSelectionMode(selectionMode).
+			SetNillableSelectedEnumValues(input.SelectedEnumValues).
+			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(input.YesNoResponse)).
+			Save(ctx)
 	}
-	cli, err := cl.UpdateOneID(*input.ID).
-		SetTitle(input.Title).
-		SetType(input.Type.String()).
-		SetNillableIndex(input.Index).
-		SetNillableEnumValues(input.EnumValues).
-		SetNillableHelpText(input.HelpText).
-		SetNillableChecked(input.Checked).
-		SetNillableStringVal(input.StringValue).
-		SetNillableEnumSelectionMode(selectionMode).
-		SetNillableSelectedEnumValues(input.SelectedEnumValues).
-		Save(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "updating check list item")
 	}
-	return cli, nil
+
+	return r.createOrUpdateCheckListItemFiles(ctx, cli, input.Files)
+}
+
+func toIDSet(ids []int) map[int]bool {
+	idSet := make(map[int]bool, len(ids))
+	for _, id := range ids {
+		idSet[id] = true
+	}
+	return idSet
+}
+
+func (r mutationResolver) deleteRemovedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, currentFileIDs []int, inputFileIDs []int) (*ent.CheckListItem, map[int]bool, error) {
+	client := r.ClientFrom(ctx)
+	_, deletedFileIDs := resolverutil.GetDifferenceBetweenSlices(currentFileIDs, inputFileIDs)
+	deletedIDSet := toIDSet(deletedFileIDs)
+
+	for _, fileID := range deletedFileIDs {
+		err := client.File.DeleteOneID(fileID).Exec(ctx)
+		if err != nil {
+			return nil, nil, fmt.Errorf("deleting checklist file: file=%q: %w", fileID, err)
+		}
+	}
+
+	item, err := client.CheckListItem.UpdateOne(item).RemoveFileIDs(deletedFileIDs...).Save(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("removing checklist files, item: %q: %w", item, err)
+	}
+
+	return item, deletedIDSet, nil
+}
+
+func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
+	client := r.ClientFrom(ctx)
+	var addedFiles []*ent.File
+	for _, input := range fileInputs {
+		if input.ID != nil {
+			continue
+		}
+		f, err := r.createImage(
+			ctx,
+			&models.AddImageInput{
+				ImgKey:   input.StoreKey,
+				FileName: input.FileName,
+				FileSize: func() int {
+					if input.SizeInBytes != nil {
+						return *input.SizeInBytes
+					}
+					return 0
+				}(),
+				Modified:    time.Now(),
+				ContentType: models.FileTypeFile.String(),
+			},
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		addedFiles = append(addedFiles, f)
+	}
+
+	if len(addedFiles) > 0 {
+		if item, err := client.CheckListItem.
+			UpdateOne(item).
+			AddFiles(addedFiles...).
+			Save(ctx); err != nil {
+			return nil, fmt.Errorf("adding checklist file item=%q %w", item.ID, err)
+		}
+	}
+
+	return item, nil
+}
+
+func (r mutationResolver) createOrUpdateCheckListItemFiles(ctx context.Context, item *ent.CheckListItem, fileInputs []*models.FileInput) (*ent.CheckListItem, error) {
+	client := r.ClientFrom(ctx)
+	currentFileIDs, err := client.CheckListItem.QueryFiles(item).IDs(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying checklist files, item=%q: %w", item.ID, err)
+	}
+	inputFileIDs := make([]int, 0, len(fileInputs))
+	for _, fileInput := range fileInputs {
+		if fileInput.ID == nil {
+			continue
+		}
+		inputFileIDs = append(inputFileIDs, *fileInput.ID)
+	}
+
+	item, deletedIDSet, err := r.deleteRemovedCheckListItemFiles(ctx, item, currentFileIDs, inputFileIDs)
+	if err != nil {
+		return nil, fmt.Errorf("deleting checklist files, item=%q: %w", item.ID, err)
+	}
+
+	item, err = r.createAddedCheckListItemFiles(ctx, item, fileInputs)
+	if err != nil {
+		return nil, fmt.Errorf("creating checklist files, item=%q: %w", item.ID, err)
+	}
+
+	for _, input := range fileInputs {
+		if input.ID == nil {
+			continue
+		}
+		if _, ok := deletedIDSet[*input.ID]; ok {
+			continue
+		}
+
+		existingFile, err := client.File.Get(ctx, *input.ID)
+		if err != nil {
+			return nil, fmt.Errorf("querying file: file=%q: %w", *input.ID, err)
+		}
+		if existingFile.Name == input.FileName {
+			continue
+		}
+		_, err = client.File.UpdateOne(existingFile).SetName(input.FileName).SetModifiedAt(time.Now()).Save(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("updating file name: file=%q: %w", existingFile.ID, err)
+		}
+	}
+
+	return item, nil
 }
 
 func (r mutationResolver) AddWorkOrderType(
@@ -616,4 +757,73 @@ func (r mutationResolver) RemoveWorkOrderType(ctx context.Context, id int) (int,
 		logger.Error("cannot delete work order type", zap.Error(err))
 		return id, fmt.Errorf("deleting work order type: %w", err)
 	}
+}
+
+func convertYesNoResponseToYesNoVal(response *models.YesNoResponse) *checklistitem.YesNoVal {
+	if response == nil {
+		return nil
+	}
+	yesNoVal := checklistitem.YesNoVal(*response)
+	err := checklistitem.YesNoValValidator(yesNoVal)
+	if err != nil {
+		return nil
+	}
+	return &yesNoVal
+}
+
+func (r mutationResolver) TechnicianWorkOrderUploadData(ctx context.Context, input models.TechnicianWorkOrderUploadInput) (*ent.WorkOrder, error) {
+	client := r.ClientFrom(ctx)
+
+	wo, err := client.WorkOrder.Query().Where(workorder.ID(input.WorkOrderID)).WithAssignee().Only(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("querying work order %q: err %w", input.WorkOrderID, err)
+	}
+
+	user := r.Me(ctx).User
+	assignee, err := wo.Edges.AssigneeOrErr()
+	if err != nil || assignee == nil {
+		return nil, fmt.Errorf(
+			"work order %q is not assigned to a technician: err %w",
+			input.WorkOrderID,
+			err,
+		)
+	}
+
+	if assignee.Email != user {
+		return nil, fmt.Errorf(
+			"mismatch between work order %q assginee %q and technician %q: err %w",
+			input.WorkOrderID,
+			wo.Edges.Assignee.Email,
+			user,
+			err,
+		)
+	}
+
+	for _, clInput := range input.Checklist {
+		_, err := client.CheckListItem.
+			UpdateOneID(clInput.ID).
+			SetNillableChecked(clInput.Checked).
+			SetNillableStringVal(clInput.StringValue).
+			SetNillableSelectedEnumValues(clInput.SelectedEnumValues).
+			SetNillableYesNoVal(convertYesNoResponseToYesNoVal(clInput.YesNoResponse)).
+			Save(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("updating checklist item %q: err %w", clInput.ID, err)
+		}
+	}
+
+	if _, err = r.AddComment(ctx, models.CommentInput{
+		EntityType: models.CommentEntityWorkOrder,
+		ID:         input.WorkOrderID,
+		Text:       r.Me(ctx).User + " uploaded data",
+	}); err != nil {
+		return nil, fmt.Errorf("adding technician uploaded data comment: %w", err)
+	}
+
+	return client.WorkOrder.
+		Query().
+		Where(workorder.ID(input.WorkOrderID)).
+		WithComments().
+		WithCheckListCategories().
+		WithCheckListItems().Only(ctx)
 }

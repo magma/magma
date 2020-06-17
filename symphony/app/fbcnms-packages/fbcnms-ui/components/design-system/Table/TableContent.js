@@ -9,16 +9,19 @@
  */
 
 import type {TRefFor} from '@fbcnms/ui/components/design-system/types/TRefFor.flow.js';
-import type {TableColumnType, TableRowDataType} from './Table';
+import type {TableColumnType} from './TableHeader';
+import type {TableRowDataType} from './Table';
 
 import * as React from 'react';
 import TableRowCheckbox from './TableRowCheckbox';
 import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
+import {TABLE_SORT_ORDER, useTable} from './TableContext';
 import {makeStyles} from '@material-ui/styles';
+import {sortMixed} from '../../../utils/displayUtils';
+import {useEffect, useState} from 'react';
 import {useSelection} from './TableSelectionContext';
-import {useTable} from './TableContext';
 import {useTableCommonStyles} from './TableCommons';
 
 const useStyles = makeStyles(() => ({
@@ -33,7 +36,14 @@ const useStyles = makeStyles(() => ({
     },
     '&$hoverHighlighting:hover': {
       cursor: 'pointer',
-      backgroundColor: symphony.palette.D10,
+      '&$border': {
+        backgroundColor: symphony.palette.D10,
+      },
+      '&$bands': {
+        '& #column0 $textualCell': {
+          color: symphony.palette.primary,
+        },
+      },
       '& $checkBox': {
         opacity: 1,
       },
@@ -41,7 +51,9 @@ const useStyles = makeStyles(() => ({
   },
   activeRow: {
     borderLeft: `2px solid ${symphony.palette.primary}`,
-    backgroundColor: symphony.palette.D10,
+    '&:not($bands)': {
+      backgroundColor: symphony.palette.D10,
+    },
   },
   bands: {},
   border: {},
@@ -51,9 +63,15 @@ const useStyles = makeStyles(() => ({
     width: '28px',
     paddingLeft: '12px',
   },
+  textualCell: {},
 }));
 
-export type RowsSeparationTypes = 'bands' | 'border' | 'none';
+export const ROW_SEPARATOR_TYPES = {
+  bands: 'bands',
+  border: 'border',
+  none: 'none',
+};
+export type RowsSeparationTypes = $Keys<typeof ROW_SEPARATOR_TYPES>;
 
 type Props<T> = {
   data: Array<TableRowDataType<T>>,
@@ -70,17 +88,45 @@ const TableContent = <T>(props: Props<T>) => {
     columns,
     dataRowClassName,
     cellClassName,
-    rowsSeparator = 'bands',
+    rowsSeparator = ROW_SEPARATOR_TYPES.bands,
     fwdRef,
   } = props;
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {showSelection} = useTable();
+  const {settings} = useTable();
   const {activeId, setActiveId} = useSelection();
+
+  const [sortedData, setSortedData] = useState<Array<TableRowDataType<T>>>([]);
+
+  useEffect(() => {
+    const sortSettings = settings.sort;
+    if (sortSettings == null) {
+      return setSortedData(data);
+    }
+    const sortingColumn = columns.find(
+      col => col.key == sortSettings.columnKey,
+    );
+    if (sortingColumn == null || sortingColumn.getSortingValue == null) {
+      return setSortedData(data);
+    }
+
+    const getSortingValue = sortingColumn.getSortingValue;
+    const sortingFactor =
+      sortSettings.order === TABLE_SORT_ORDER.ascending ? 1 : -1;
+    setSortedData(
+      data
+        .slice()
+        .sort(
+          (row1, row2) =>
+            sortMixed(getSortingValue(row1), getSortingValue(row2)) *
+            sortingFactor,
+        ),
+    );
+  }, [columns, data, settings.sort]);
 
   return (
     <tbody ref={fwdRef}>
-      {data.map((d, rowIndex) => {
+      {sortedData.map((d, rowIndex) => {
         const rowId = d.key ?? rowIndex;
         return (
           <tr
@@ -97,11 +143,11 @@ const TableContent = <T>(props: Props<T>) => {
               dataRowClassName,
               classes[rowsSeparator],
               {
-                [classes.hoverHighlighting]: showSelection,
+                [classes.hoverHighlighting]: settings.clickableRows,
                 [classes.activeRow]: rowId === activeId,
               },
             )}>
-            {showSelection && (
+            {settings.showSelection && (
               <td className={classes.checkBox}>
                 <TableRowCheckbox id={rowId} />
               </td>
@@ -111,16 +157,18 @@ const TableContent = <T>(props: Props<T>) => {
               return (
                 <td
                   key={`col_${colIndex}_${d.key ?? rowIndex}`}
+                  id={`column${colIndex}`}
                   className={classNames(
                     commonClasses.cell,
                     col.className,
                     cellClassName,
                   )}>
-                  {typeof renderedCol === 'string' ? (
-                    <Text variant="body2">{renderedCol}</Text>
-                  ) : (
-                    renderedCol
-                  )}
+                  <Text
+                    className={classes.textualCell}
+                    useEllipsis={true}
+                    variant="body2">
+                    {renderedCol}
+                  </Text>
                 </td>
               );
             })}

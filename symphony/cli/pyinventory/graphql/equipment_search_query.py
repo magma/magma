@@ -11,8 +11,21 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
+from .equipment_fragment import EquipmentFragment, QUERY as EquipmentFragmentQuery
 from .equipment_filter_input import EquipmentFilterInput
 
+
+QUERY: List[str] = EquipmentFragmentQuery + ["""
+query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
+  equipmentSearch(filters: $filters, limit: $limit) {
+    equipment {
+      ...EquipmentFragment
+    }
+    count
+  }
+}
+
+"""]
 
 @dataclass
 class EquipmentSearchQuery(DataClassJsonMixin):
@@ -21,15 +34,8 @@ class EquipmentSearchQuery(DataClassJsonMixin):
         @dataclass
         class EquipmentSearchResult(DataClassJsonMixin):
             @dataclass
-            class Equipment(DataClassJsonMixin):
-                @dataclass
-                class EquipmentType(DataClassJsonMixin):
-                    id: str
-                    name: str
-
-                id: str
-                name: str
-                equipmentType: EquipmentType
+            class Equipment(EquipmentFragment):
+                pass
 
             equipment: List[Equipment]
             count: int
@@ -38,27 +44,10 @@ class EquipmentSearchQuery(DataClassJsonMixin):
 
     data: EquipmentSearchQueryData
 
-    __QUERY__: str = """
-    query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
-  equipmentSearch(filters: $filters, limit: $limit) {
-    equipment {
-      id
-      name
-      equipmentType {
-        id
-        name
-      }
-    }
-    count
-  }
-}
-
-    """
-
     @classmethod
     # fmt: off
     def execute(cls, client: GraphqlClient, filters: List[EquipmentFilterInput] = [], limit: Optional[int] = None) -> EquipmentSearchQueryData:
         # fmt: off
         variables = {"filters": filters, "limit": limit}
-        response_text = client.call(cls.__QUERY__, variables=variables)
+        response_text = client.call(''.join(set(QUERY)), variables=variables)
         return cls.from_json(response_text).data

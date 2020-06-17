@@ -38,7 +38,32 @@
 <span>(</span><span>data: <a title="pyinventory.graphql.equipment_types_query.EquipmentTypesQuery.EquipmentTypesQueryData" href="#pyinventory.graphql.equipment_types_query.EquipmentTypesQuery.EquipmentTypesQueryData">EquipmentTypesQuery.EquipmentTypesQueryData</a>)</span>
 </code></dt>
 <dd>
-<section class="desc"><p>EquipmentTypesQuery(data: pyinventory.graphql.equipment_types_query.EquipmentTypesQuery.EquipmentTypesQueryData, <strong>QUERY</strong>: str = '\n
+<section class="desc"><p>EquipmentTypesQuery(data: pyinventory.graphql.equipment_types_query.EquipmentTypesQuery.EquipmentTypesQueryData, <strong>QUERY</strong>: str = '\nfragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {\n
+id\n
+name\n
+index\n
+visibleLabel\n}\n\n\nfragment EquipmentPositionDefinitionFragment on EquipmentPositionDefinition {\n
+id\n
+name\n
+index\n
+visibleLabel\n}\n\n\nfragment PropertyTypeFragment on PropertyType {\n
+id\n
+name\n
+type\n
+index\n
+category\n
+stringValue\n
+intValue\n
+booleanValue\n
+floatValue\n
+latitudeValue\n
+longitudeValue\n
+rangeFromValue\n
+rangeToValue\n
+isEditable\n
+isInstanceProperty\n
+isMandatory\n
+isDeleted\n}\n\n\n
 query EquipmentTypesQuery {\n
 equipmentTypes {\n
 edges {\n
@@ -47,30 +72,13 @@ id\n
 name\n
 category\n
 propertyTypes {\n
-id\n
-name\n
-type\n
-index\n
-stringValue\n
-intValue\n
-booleanValue\n
-floatValue\n
-latitudeValue\n
-longitudeValue\n
-isEditable\n
-isInstanceProperty\n
+&hellip;PropertyTypeFragment\n
 }\n
 positionDefinitions {\n
-id\n
-name\n
-index\n
-visibleLabel\n
+&hellip;EquipmentPositionDefinitionFragment\n
 }\n
 portDefinitions {\n
-id\n
-name\n
-index\n
-visibleLabel\n
+&hellip;EquipmentPortDefinitionFragment\n
 }\n
 }\n
 }\n

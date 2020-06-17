@@ -31,16 +31,16 @@ extern "C" {
 
 namespace {
 constexpr char MME_NAS_STATE_KEY[] = "mme_nas_state";
-const int NUM_MAX_UE_HTBL_LISTS = 6;
+const int NUM_MAX_UE_HTBL_LISTS    = 6;
 constexpr char UE_ID_UE_CTXT_TABLE_NAME[] =
-  "mme_app_mme_ue_s1ap_id_ue_context_htbl";
+    "mme_app_mme_ue_s1ap_id_ue_context_htbl";
 constexpr char IMSI_UE_ID_TABLE_NAME[] = "mme_app_imsi_ue_context_htbl";
-constexpr char TUN_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
+constexpr char TUN_UE_ID_TABLE_NAME[]  = "mme_app_tun11_ue_context_htbl";
 constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
 constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
-  "mme_app_enb_ue_s1ap_id_ue_context_htbl";
+    "mme_app_enb_ue_s1ap_id_ue_context_htbl";
 constexpr char MME_TASK_NAME[] = "MME";
-} // namespace
+}  // namespace
 
 namespace magma {
 namespace lte {
@@ -49,33 +49,27 @@ namespace lte {
  * Getter function for singleton instance of the MmeNasStateManager class,
  * guaranteed to be thread-safe and initialized only once
  */
-MmeNasStateManager& MmeNasStateManager::getInstance()
-{
+MmeNasStateManager& MmeNasStateManager::getInstance() {
   static MmeNasStateManager instance;
   return instance;
 }
 
 // Constructor for MME NAS state object
-MmeNasStateManager::MmeNasStateManager():
-  max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS),
-  mme_statistic_timer_(10)
-{
-}
+MmeNasStateManager::MmeNasStateManager()
+    : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS), mme_statistic_timer_(10) {}
 
 // Destructor for MME NAS state object
-MmeNasStateManager::~MmeNasStateManager()
-{
+MmeNasStateManager::~MmeNasStateManager() {
   free_state();
 }
 
-int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p)
-{
+int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
   persist_state_enabled = mme_config_p->use_stateless;
-  max_ue_htbl_lists_ = mme_config_p->max_ues;
-  mme_statistic_timer_ = mme_config_p->mme_statistic_timer;
-  log_task = LOG_MME_APP;
-  task_name = MME_TASK_NAME;
-  table_key = MME_NAS_STATE_KEY;
+  max_ue_htbl_lists_    = mme_config_p->max_ues;
+  mme_statistic_timer_  = mme_config_p->mme_statistic_timer;
+  log_task              = LOG_MME_APP;
+  task_name             = MME_TASK_NAME;
+  table_key             = MME_NAS_STATE_KEY;
 
   // Allocate the local mme state
   create_state();
@@ -93,14 +87,12 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p)
  * data store when initialize_state is called and get_state just returns the
  * pointer to that structure.
  */
-mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db)
-{
+mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db) {
   AssertFatal(
-    is_initialized,
-    "Calling get_state without initializing state manager");
+      is_initialized, "Calling get_state without initializing state manager");
   AssertFatal(state_cache_p, "mme_nas_state is NULL");
   OAILOG_DEBUG(
-    LOG_MME_APP, "Inside get_state with read_from_db %d", read_from_db);
+      LOG_MME_APP, "Inside get_state with read_from_db %d", read_from_db);
 
   state_dirty = true;
   if (persist_state_enabled && read_from_db) {
@@ -112,6 +104,7 @@ mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db)
     create_hashtables();
     // read the state from data store
     int rc = read_state_from_db();
+    read_ue_state_from_db();
     AssertFatal(state_cache_p, "mme_nas_state is NULL");
   }
   return state_cache_p;
@@ -119,8 +112,7 @@ mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db)
 
 // This is a helper function for debugging. If the state manager needs to clear
 // the state in the data store, it can call this function to delete the key.
-void MmeNasStateManager::clear_db_state()
-{
+void MmeNasStateManager::clear_db_state() {
   OAILOG_DEBUG(LOG_MME_APP, "Clearing state in data store");
   std::vector<std::string> keys_to_del;
   keys_to_del.emplace_back(MME_NAS_STATE_KEY);
@@ -132,92 +124,83 @@ void MmeNasStateManager::clear_db_state()
 }
 
 // Initialize state that is non-persistent, e.g. timers
-void MmeNasStateManager::mme_nas_state_init_local_state()
-{
+void MmeNasStateManager::mme_nas_state_init_local_state() {
   // create statistic timer locally
   state_cache_p->statistic_timer_period = mme_statistic_timer_;
 
   // Request for periodic timer to print statistics in debug mode
-  if (
-    timer_setup(
-      mme_statistic_timer_,
-      0,
-      TASK_MME_APP,
-      INSTANCE_DEFAULT,
-      TIMER_PERIODIC,
-      nullptr,
-      0,
-      &(state_cache_p->statistic_timer_id)) < 0) {
+  if (timer_setup(
+          mme_statistic_timer_, 0, TASK_MME_APP, INSTANCE_DEFAULT,
+          TIMER_PERIODIC, nullptr, 0,
+          &(state_cache_p->statistic_timer_id)) < 0) {
     OAILOG_ERROR(
-      LOG_MME_APP,
-      "Failed to request new timer for statistics with %ds "
-      "of periocidity\n",
-      mme_statistic_timer_);
+        LOG_MME_APP,
+        "Failed to request new timer for statistics with %ds "
+        "of periocidity\n",
+        mme_statistic_timer_);
     state_cache_p->statistic_timer_id = 0;
   }
 }
 
 // Create the hashtables for MME NAS state
-void MmeNasStateManager::create_hashtables()
-{
+void MmeNasStateManager::create_hashtables() {
   bstring b = bfromcstr(IMSI_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl =
-    hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
+      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   btrunc(b, 0);
   bassigncstr(b, TUN_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.tun11_ue_context_htbl =
-    hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
+      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   AssertFatal(
-    sizeof(uintptr_t) >= sizeof(uint64_t),
-    "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");
+      sizeof(uintptr_t) >= sizeof(uint64_t),
+      "Problem with mme_ue_s1ap_id_ue_context_htbl in MME_APP");
   btrunc(b, 0);
   bassigncstr(b, UE_ID_UE_CTXT_TABLE_NAME);
   state_imsi_ht = hashtable_ts_create(
-    max_ue_htbl_lists_, nullptr, mme_app_state_free_ue_context, b);
+      max_ue_htbl_lists_, nullptr, mme_app_state_free_ue_context, b);
   btrunc(b, 0);
   bassigncstr(b, ENB_UE_ID_MME_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl =
-    hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
+      hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, b);
   btrunc(b, 0);
   bassigncstr(b, GUTI_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.guti_ue_context_htbl =
-    obj_hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr, b);
+      obj_hashtable_uint64_ts_create(max_ue_htbl_lists_, nullptr, nullptr, b);
   bdestroy_wrapper(&b);
 }
 
 // Initialize memory for MME state before reading from data-store
-void MmeNasStateManager::create_state()
-{
+void MmeNasStateManager::create_state() {
   state_cache_p = (mme_app_desc_t*) calloc(1, sizeof(mme_app_desc_t));
   if (!state_cache_p) {
     return;
   }
+  state_cache_p->mme_app_ue_s1ap_id_generator = 1;
+
   create_hashtables();
   // Initialize the local timers, which are non-persistent
   mme_nas_state_init_local_state();
 }
 
 // Delete the hashtables for MME NAS state
-void MmeNasStateManager::clear_mme_nas_hashtables()
-{
+void MmeNasStateManager::clear_mme_nas_hashtables() {
   if (!state_cache_p) {
     return;
   }
 
   hashtable_ts_destroy(state_imsi_ht);
   hashtable_uint64_ts_destroy(
-    state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);
+      state_cache_p->mme_ue_contexts.imsi_mme_ue_id_htbl);
   hashtable_uint64_ts_destroy(
-    state_cache_p->mme_ue_contexts.tun11_ue_context_htbl);
+      state_cache_p->mme_ue_contexts.tun11_ue_context_htbl);
   hashtable_uint64_ts_destroy(
-    state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
+      state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl);
   obj_hashtable_uint64_ts_destroy(
-    state_cache_p->mme_ue_contexts.guti_ue_context_htbl);
+      state_cache_p->mme_ue_contexts.guti_ue_context_htbl);
 }
 
 // Free the memory allocated to state pointer
-void MmeNasStateManager::free_state()
-{
+void MmeNasStateManager::free_state() {
   if (!state_cache_p) {
     return;
   }
@@ -227,30 +210,29 @@ void MmeNasStateManager::free_state()
   state_cache_p = nullptr;
 }
 
-int MmeNasStateManager::read_ue_state_from_db()
-{
+int MmeNasStateManager::read_ue_state_from_db() {
   if (persist_state_enabled) {
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
     for (const auto& key : keys) {
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
       UeContext ue_proto = UeContext();
       auto* ue_context =
-        (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
+          (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
       if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
         return RETURNerror;
       }
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_ts_insert(
-        state_imsi_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
+          state_imsi_ht, ue_context->mme_ue_s1ap_id, (void*) ue_context);
       OAILOG_DEBUG(
-        log_task,
-        "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
-        ue_context->mme_ue_s1ap_id);
+          log_task,
+          "Inserted UE state with key mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT,
+          ue_context->mme_ue_s1ap_id);
     }
   }
   return RETURNok;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

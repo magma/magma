@@ -107,8 +107,8 @@ func (tu *TechnicianUpdate) Save(ctx context.Context) (int, error) {
 			affected, err = tu.sqlSave(ctx)
 			return affected, err
 		})
-		for i := len(tu.hooks); i > 0; i-- {
-			mut = tu.hooks[i-1](mut)
+		for i := len(tu.hooks) - 1; i >= 0; i-- {
+			mut = tu.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, tu.mutation); err != nil {
 			return 0, err
@@ -309,8 +309,8 @@ func (tuo *TechnicianUpdateOne) Save(ctx context.Context) (*Technician, error) {
 			node, err = tuo.sqlSave(ctx)
 			return node, err
 		})
-		for i := len(tuo.hooks); i > 0; i-- {
-			mut = tuo.hooks[i-1](mut)
+		for i := len(tuo.hooks) - 1; i >= 0; i-- {
+			mut = tuo.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, tuo.mutation); err != nil {
 			return nil, err

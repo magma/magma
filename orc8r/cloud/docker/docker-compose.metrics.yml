@@ -58,21 +58,12 @@ services:
       - '-multitenant-label=networkID'
     restart: always
 
-  grafana:
-    build:
-      context: $PWD/../../../orc8r
-      dockerfile: $PWD/grafana/Dockerfile
-    environment:
-      - PROMETHEUS_HOST=prometheus
-      - PROMETHEUS_PORT=9090
-    ports:
-      - 3000:3000/tcp
-    restart: always
-
   user-grafana:
     image: grafana/grafana:6.6.2
     volumes:
       - userGrafanaData:/var/lib/grafana
+    ports:
+      - 3000:3000/tcp
     environment:
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_USERS_AUTO_ASSIGN_ORG=false
@@ -80,6 +71,7 @@ services:
       - GF_AUTH_PROXY_HEADER_NAME=X-WEBAUTH-USER
       - GF_AUTH_PROXY_HEADER_PROPERTY=username
       - GF_AUTH_PROXY_AUTO_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=/grafana
     restart: always
 
 volumes:

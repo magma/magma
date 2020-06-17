@@ -36,7 +36,7 @@ type woTestType struct {
 
 func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) woTestType {
 	prepareData(ctx, t, r)
-	viewertest.CreateUserEnt(ctx, r.client, "tester2@example.com")
+	u2 := viewertest.CreateUserEnt(ctx, r.client, "tester2@example.com")
 
 	// Add templates
 	typInput1 := models.AddWorkOrderTypeInput{
@@ -82,11 +82,14 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 	}
 	projTyp, _ := r.Mutation().CreateProjectType(ctx, projTypeInput)
 
+	u, err := viewer.UserFromContext(ctx)
+	require.NoError(t, err)
+
 	// Add instances
 	projInput := models.AddProjectInput{
-		Name:    "Project 1",
-		Creator: pointer.ToString("tester@example.com"),
-		Type:    projTyp.ID,
+		Name:      "Project 1",
+		CreatorID: &u.ID,
+		Type:      projTyp.ID,
 	}
 	proj, _ := r.Mutation().CreateProject(ctx, projInput)
 
@@ -108,9 +111,9 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 				StringValue:    pointer.ToString("string2"),
 			},
 		},
-		Assignee: pointer.ToString("tester@example.com"),
-		Status:   &st,
-		Priority: &prio,
+		AssigneeID: &u.ID,
+		Status:     &st,
+		Priority:   &prio,
 	}
 	wo1, _ := r.Mutation().AddWorkOrder(ctx, woInput1)
 
@@ -131,9 +134,9 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 				BooleanValue:   pointer.ToBool(true),
 			},
 		},
-		Assignee: pointer.ToString("tester2@example.com"),
-		Status:   &st,
-		Priority: &prio,
+		AssigneeID: &u2.ID,
+		Status:     &st,
+		Priority:   &prio,
 	}
 	wo2, _ := r.Mutation().AddWorkOrder(ctx, woInput2)
 	/*

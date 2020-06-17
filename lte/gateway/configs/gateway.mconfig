@@ -59,8 +59,9 @@
         "DPI",
         "ENFORCEMENT"
        ],
-       "allowedGrePeers": [
-       ]
+      "allowedGrePeers": [
+       ],
+      "liImsis": []
     },
     "subscriberdb": {
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
@@ -102,6 +103,11 @@
       "throttleRate": 1000,
       "throttleWindow": 5,
       "throttleInterval": "1m"
+    },
+     "monitord": {
+      "@type": "type.googleapis.com/magma.mconfig.MonitorD",
+      "logLevel": "INFO",
+      "pollingInterval": 60
     }
   }
 }

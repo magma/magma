@@ -19,6 +19,7 @@
     "express-http-proxy": "^1.5.1",
     "express-session": "^1.15.6",
     "express-ws": "^2.0.0",
+    "grafana-dash-gen": "^3.1.0",
     "http-proxy-middleware": "^0.21.0",
     "https-proxy-agent": "^2.2.1",
     "immutability-helper": "^2.9.0",

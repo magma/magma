@@ -8,21 +8,17 @@
  * @format
  */
 
-import type {CheckListItem} from '../checkListCategory/ChecklistItemsDialogMutateState';
+import type {CheckListItemFillingProps} from './CheckListItemFilling';
 import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
 
-import FormValidationContext from '@fbcnms/ui/components/design-system/Form/FormValidationContext';
+import * as React from 'react';
 import MultiSelect from '@fbcnms/ui/components/design-system/Select/MultiSelect';
-import React, {useContext, useMemo} from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import fbt from 'fbt';
 import {enumStringToArray} from '../ChecklistUtils';
 import {makeStyles} from '@material-ui/styles';
-
-type Props = {
-  item: CheckListItem,
-  onChange?: (updatedChecklistItem: CheckListItem) => void,
-};
+import {useFormContext} from '../../../common/FormContext';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   select: {
@@ -30,9 +26,12 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const MultipleChoiceCheckListItemFilling = ({item, onChange}: Props) => {
+const MultipleChoiceCheckListItemFilling = ({
+  item,
+  onChange,
+}: CheckListItemFillingProps): React.Node => {
   const classes = useStyles();
-  const validationContext = useContext(FormValidationContext);
+  const form = useFormContext();
   const enumArrayToOptions = (enumString: ?string) =>
     enumStringToArray(enumString).map(v => ({
       key: v,
@@ -71,7 +70,7 @@ const MultipleChoiceCheckListItemFilling = ({item, onChange}: Props) => {
           : null
       }
       onChange={value => updateOnChange(value)}
-      disabled={validationContext.editLock.detected}
+      disabled={form.alerts.editLock.detected}
     />
   ) : (
     <MultiSelect
@@ -89,7 +88,7 @@ const MultipleChoiceCheckListItemFilling = ({item, onChange}: Props) => {
         );
       }}
       selectedValues={selectedValues}
-      disabled={validationContext.editLock.detected}
+      disabled={form.alerts.editLock.detected}
     />
   );
 };

@@ -11,7 +11,7 @@ from typing import Any, Callable, List, Mapping, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-QUERY: str = """
+QUERY: List[str] = ["""
 fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
   id
   name
@@ -19,11 +19,11 @@ fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
   visibleLabel
 }
 
-"""
+"""]
 
 @dataclass
 class EquipmentPortDefinitionFragment(DataClassJsonMixin):
     id: str
     name: str
-    index: Optional[int] = None
-    visibleLabel: Optional[str] = None
+    index: Optional[int]
+    visibleLabel: Optional[str]

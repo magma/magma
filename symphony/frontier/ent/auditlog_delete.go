@@ -49,8 +49,8 @@ func (ald *AuditLogDelete) Exec(ctx context.Context) (int, error) {
 			affected, err = ald.sqlExec(ctx)
 			return affected, err
 		})
-		for i := len(ald.hooks); i > 0; i-- {
-			mut = ald.hooks[i-1](mut)
+		for i := len(ald.hooks) - 1; i >= 0; i-- {
+			mut = ald.hooks[i](mut)
 		}
 		if _, err := mut.Mutate(ctx, ald.mutation); err != nil {
 			return 0, err
