@@ -51,8 +51,22 @@ services:
     depends_on:
       - mysql
       - nats
+      - async
     healthcheck: &healthcheck
       test: curl -If localhost/healthz/liveness
+    restart: on-failure
+
+  async:
+    build:
+      context: ..
+      dockerfile: async/Dockerfile
+    env_file:
+      - conf/async.env
+      - conf/log.env
+    depends_on:
+      - mysql
+      - nats
+    healthcheck: *healthcheck
     restart: on-failure
 
   store:

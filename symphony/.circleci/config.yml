@@ -664,6 +664,7 @@ workflows:
             - graph/publish
             - store/publish
             - front/publish
+            - async/publish
           <<: *onlymaster
       - promote-images: &promote
           requires:
