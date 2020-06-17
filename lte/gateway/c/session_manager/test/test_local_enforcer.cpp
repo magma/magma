@@ -167,12 +167,6 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
   create_credit_update_response("IMSI1", 1, 1024, credits->Add());
 
   EXPECT_CALL(*pipelined_client,
-              add_ue_mac_flow(testing::_, testing::_, testing::_, testing::_,
-                              testing::_, testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-
-  EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(0),
                                        CheckCount(0)))
       .Times(1)
@@ -1578,16 +1572,12 @@ TEST_F(LocalEnforcerTest, test_pipelined_lte_setup) {
 
 TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
   insert_static_rule(1, "", "rule1");
-
+  int epoch = 145;
   CreateSessionResponse response;
+  SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
+
   auto credits = response.mutable_credits();
   create_credit_update_response("IMSI1", 1, 1024, credits->Add());
-
-  EXPECT_CALL(*pipelined_client,
-              add_ue_mac_flow(testing::_, testing::_, "msisdn",
-                              "03-21-00-02-00-20", "Magma", testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
 
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
@@ -1598,31 +1588,58 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
 
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
                                       test_cwf_cfg, response);
+
+  std::vector<std::string> ue_mac_addrs = {"00:00:00:00:00:02"};
+  std::vector<std::string> msisdns = {"msisdn"};
+  std::vector<std::string> apn_mac_addrs = {"03-21-00-02-00-20"};
+  std::vector<std::string> apn_names = {"Magma"};
+
+  EXPECT_CALL(*pipelined_client,
+              setup_cwf(testing::_, testing::_,
+                        ue_mac_addrs, msisdns, apn_mac_addrs,
+                        apn_names, epoch, testing::_)
+                        )
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->setup(session_map, epoch,
+                        [](Status status, SetupFlowsResult resp) {});
 }
 
 TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
   insert_static_rule(1, "", "rule1");
-
+  int epoch = 145;
   CreateSessionResponse response;
+  SessionUpdate session_update = SessionStore::get_default_session_update(session_map);
+
   auto credits = response.mutable_credits();
   create_credit_update_response("IMSI1", 1, 1024, credits->Add());
 
-  EXPECT_CALL(*pipelined_client,
-              add_ue_mac_flow(testing::_, testing::_, "msisdn_test", "",
-                              "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay",
-                              testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
-  test_cwf_cfg.mac_addr = "00:00:00:00:00:00";
-  test_cwf_cfg.radius_session_id = "1234567";
+  test_cwf_cfg.mac_addr = "00:00:00:00:00:02";
+  test_cwf_cfg.radius_session_id = "5555";
   test_cwf_cfg.apn = "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay";
-  test_cwf_cfg.msisdn = "msisdn_test";
+  test_cwf_cfg.msisdn = "msisdn";
 
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
                                       test_cwf_cfg, response);
+
+  std::vector<std::string> ue_mac_addrs = {"00:00:00:00:00:02"};
+  std::vector<std::string> msisdns = {"msisdn"};
+  std::vector<std::string> apn_mac_addrs = {""};
+  std::vector<std::string> apn_names = {"03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay"};
+
+  EXPECT_CALL(*pipelined_client,
+              setup_cwf(testing::_, testing::_,
+                        ue_mac_addrs, msisdns, apn_mac_addrs,
+                        apn_names, epoch, testing::_)
+  )
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->setup(session_map, epoch,
+                        [](Status status, SetupFlowsResult resp) {});
 }
 
 int main(int argc, char **argv) {

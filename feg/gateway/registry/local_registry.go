@@ -34,6 +34,7 @@ const (
 	RADIUSD       = "RADIUSD"
 	RADIUS        = "RADIUS"
 	REDIS         = "REDIS"
+	PIPELINED     = "PIPELINED"
 	MOCK_VLR      = "MOCK_VLR"
 	MOCK_OCS      = "MOCK_OCS"
 	MOCK_OCS2     = "MOCK_OCS2"
@@ -85,6 +86,7 @@ func init() {
 	addLocalService(SWX_PROXY, 9110)
 	addLocalService(RADIUSD, 9115)
 	addLocalService(HLR_PROXY, 9116)
+	addLocalService(PIPELINED, 9117)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)
