@@ -54,6 +54,7 @@ const useStyles = makeStyles(() => ({
   footer: {
     display: 'flex',
     flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   cancelButton: {
     marginRight: '8px',
