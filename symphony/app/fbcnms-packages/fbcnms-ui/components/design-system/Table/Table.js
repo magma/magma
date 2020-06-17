@@ -89,6 +89,9 @@ const useStyles = makeStyles(() => ({
 export type TableRowDataType<T> = $ReadOnly<{|
   key?: string,
   alwaysShowOnTop?: ?boolean,
+  className?: ?string,
+  disabled?: ?boolean,
+  tooltip?: ?string,
   ...T,
 |}>;
 
