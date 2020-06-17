@@ -161,9 +161,9 @@ input LocationCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
   ) {
-  create: LocationPermissionRuleInput
+  create: BasicPermissionRuleInput
   update: LocationPermissionRuleInput
-  delete: LocationPermissionRuleInput
+  delete: BasicPermissionRuleInput
 }
 
 type AdministrativePolicy
@@ -214,11 +214,11 @@ input WorkforceCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
   ) {
-  create: WorkforcePermissionRuleInput
-  update: WorkforcePermissionRuleInput
-  delete: WorkforcePermissionRuleInput
-  assign: WorkforcePermissionRuleInput
-  transferOwnership: WorkforcePermissionRuleInput
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+  assign: BasicPermissionRuleInput
+  transferOwnership: BasicPermissionRuleInput
 }
 
 type WorkforcePolicy

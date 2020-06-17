@@ -601,11 +601,19 @@ export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput: (
   ?WorkforceCUDPermissions,
 ) => WorkforceCUDInput = (rule: ?WorkforceCUDPermissions) => {
   return {
-    create: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.create),
-    update: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.update),
-    delete: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.delete),
-    assign: wfPermissionPolicyBasicRule2wfPermissionRuleInput(rule?.assign),
-    transferOwnership: wfPermissionPolicyBasicRule2wfPermissionRuleInput(
+    create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule?.create,
+    ),
+    update: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule?.update,
+    ),
+    delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule?.delete,
+    ),
+    assign: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule?.assign,
+    ),
+    transferOwnership: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       rule?.transferOwnership,
     ),
   };

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 916d22a932ddb494d426606ae1d8094e
+ * @relayHash e9ad090fdfd9bec255b3047f2ccf40cc
  */
 
 /* eslint-disable */
@@ -37,9 +37,9 @@ export type BasicPermissionRuleInput = {|
   isAllowed: PermissionValue
 |};
 export type LocationCUDInput = {|
-  create?: ?LocationPermissionRuleInput,
+  create?: ?BasicPermissionRuleInput,
   update?: ?LocationPermissionRuleInput,
-  delete?: ?LocationPermissionRuleInput,
+  delete?: ?BasicPermissionRuleInput,
 |};
 export type LocationPermissionRuleInput = {|
   isAllowed: PermissionValue,
@@ -61,11 +61,11 @@ export type WorkforcePermissionRuleInput = {|
   workOrderTypeIds?: ?$ReadOnlyArray<string>,
 |};
 export type WorkforceCUDInput = {|
-  create?: ?WorkforcePermissionRuleInput,
-  update?: ?WorkforcePermissionRuleInput,
-  delete?: ?WorkforcePermissionRuleInput,
-  assign?: ?WorkforcePermissionRuleInput,
-  transferOwnership?: ?WorkforcePermissionRuleInput,
+  create?: ?BasicPermissionRuleInput,
+  update?: ?BasicPermissionRuleInput,
+  delete?: ?BasicPermissionRuleInput,
+  assign?: ?BasicPermissionRuleInput,
+  transferOwnership?: ?BasicPermissionRuleInput,
 |};
 export type AddPermissionsPolicyMutationVariables = {|
   input: AddPermissionsPolicyInput
