@@ -41,6 +41,8 @@ class RestartHandler {
  private:
   void terminate_previous_session(
       const std::string& sid, const std::string& session_id);
+  bool populate_sessions_to_terminate_with_retries();
+  bool launch_threads_to_terminate_with_retries();
 
  private:
   SessionStore& session_store_;
@@ -48,6 +50,7 @@ class RestartHandler {
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client_;
   SessionReporter* reporter_;
+  std::mutex sessions_to_terminate_lock_; // mutex to guard add/remove access to sessions_to_terminate
   std::unordered_map<std::string, std::string> sessions_to_terminate_;
   static const uint max_cleanup_retries_;
   static const uint rpc_retry_interval_s_;
