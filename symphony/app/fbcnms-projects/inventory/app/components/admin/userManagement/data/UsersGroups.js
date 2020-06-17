@@ -104,6 +104,35 @@ export function editGroup(
           description: newGroupValue.description,
           status: newGroupValue.status,
           members: newGroupValue.members.map(m => m.id),
+          policies: newGroupValue.policies.map(p => p.id),
+        },
+      },
+      callbacks,
+    );
+  });
+}
+
+export function editGroupPolicies(
+  id: string,
+  policiesIDs: $ReadOnlyArray<string>,
+): Promise<EditUsersGroupMutationResponse> {
+  return new Promise<EditUsersGroupMutationResponse>((resolve, reject) => {
+    const callbacks: MutationCallbacks<EditUsersGroupMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve(response);
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+    EditUsersGroupMutation(
+      {
+        input: {
+          id,
+          policies: policiesIDs,
         },
       },
       callbacks,

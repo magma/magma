@@ -89,7 +89,7 @@ function PermissionsGroupCard(props: Props) {
   );
 
   useEffect(() => {
-    if (isOnNewGroup) {
+    if (isOnNewGroup || group != null) {
       return;
     }
     if (fetchedGroup == null) {
@@ -105,9 +105,6 @@ function PermissionsGroupCard(props: Props) {
         );
       }
       redirectToGroupsView();
-    }
-    if (fetchedGroup?.id == group?.id) {
-      return;
     }
     setGroup(fetchedGroup);
   }, [
@@ -211,7 +208,7 @@ function PermissionsGroupCard(props: Props) {
             className={classNames(classes.container, classes.vertical)}>
             <PermissionsGroupDetailsPane group={group} onChange={setGroup} />
             {userManagementDevMode ? (
-              <PermissionsGroupPoliciesPane group={group} />
+              <PermissionsGroupPoliciesPane group={group} onChange={setGroup} />
             ) : null}
           </Grid>
           <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>

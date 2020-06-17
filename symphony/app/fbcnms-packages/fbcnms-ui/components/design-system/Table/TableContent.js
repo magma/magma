@@ -62,6 +62,7 @@ const useStyles = makeStyles(() => ({
   hoverHighlighting: {},
   checkBox: {
     width: '28px',
+    paddingTop: '7px',
     paddingLeft: '12px',
   },
   textualCell: {},
@@ -172,6 +173,7 @@ const TableContent = <T>(props: Props<T>) => {
                       cellClassName,
                     )}>
                     <Text
+                      color="inherit"
                       className={classes.textualCell}
                       useEllipsis={true}
                       variant="body2">

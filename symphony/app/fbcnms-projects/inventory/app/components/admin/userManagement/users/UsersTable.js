@@ -65,7 +65,9 @@ function UsersTable() {
 
   const users = useUsers();
   const usersTableData = useMemo(() => users.map(user2UserTableRow), [users]);
-  const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
+  const [selectedUserIds, setSelectedUserIds] = useState<
+    $ReadOnlyArray<TableRowId>,
+  >([]);
 
   const userRow2UserRole = useCallback(
     userRow =>

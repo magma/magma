@@ -43,7 +43,7 @@ import {graphql} from 'relay-runtime';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 
 export type PermissionsPolicyBase = OptionalRefTypeWrapper<policies_base>;
-type PermissionsPolicyRaw = OptionalRefTypeWrapper<policies>;
+export type PermissionsPolicyRaw = OptionalRefTypeWrapper<policies>;
 export type PermissionsPolicy = $ReadOnly<{|
   ...PermissionsPolicyRaw,
   type: PolicyTypes,
@@ -318,6 +318,28 @@ export function wrapRawPermissionsPolicies(
   rawPolicies: $ReadOnlyArray<PermissionsPolicyRaw | PermissionsPolicyBase>,
 ): Array<PermissionsPolicy> {
   return rawPolicies.map(policy => response2PermissionsPolicy(policy));
+}
+
+function permissionsPolicy2PermissionsPolicyBase(
+  policy: PermissionsPolicy,
+): PermissionsPolicyBase {
+  const {
+    type: _type,
+    groups: _groups,
+    inventoryRules: _inventoryRules,
+    workforceRules: _workforceRules,
+    isSystemDefault: _isSystemDefault,
+    ...rawPolicy
+  } = policy;
+  return rawPolicy;
+}
+
+export function unwrapPermissionsPolicies(
+  policies: $ReadOnlyArray<PermissionsPolicy>,
+): $ReadOnlyArray<PermissionsPolicyBase> {
+  return policies.map(policy =>
+    permissionsPolicy2PermissionsPolicyBase(policy),
+  );
 }
 
 export const EMPTY_POLICY = {

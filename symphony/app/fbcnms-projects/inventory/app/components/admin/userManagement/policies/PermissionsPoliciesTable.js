@@ -12,12 +12,14 @@ import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {
   TableDesignProps,
   TableRowDataType,
+  TableSelectionProps,
 } from '@fbcnms/ui/components/design-system/Table/Table';
 
 import * as React from 'react';
 import LockIcon from '@fbcnms/ui/components/design-system/Icons/Indications/LockIcon';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
@@ -38,7 +40,9 @@ const useStyles = makeStyles(() => ({
   nameCell: {
     display: 'flex',
     alignItems: 'center',
-    fill: symphony.palette.D700,
+    '&:not($disabled)': {
+      fill: symphony.palette.D700,
+    },
     '&>:not(:first-child)': {
       marginLeft: '8px',
     },
@@ -47,11 +51,14 @@ const useStyles = makeStyles(() => ({
     textDecoration: 'underline',
     marginRight: '4px',
   },
+  disabled: {},
 }));
 
 type PolicyTableRow = TableRowDataType<PermissionsPolicy>;
 
-const policy2PolicyTableRow: PermissionsPolicy => PolicyTableRow = policy => ({
+const policy2PolicyTableRow: (
+  PermissionsPolicy | PolicyTableRow,
+) => PolicyTableRow = policy => ({
   key: policy.id,
   ...policy,
   alwaysShowOnTop: policy.isSystemDefault,
@@ -72,14 +79,15 @@ const getPolicyType = (PolicyRow: PolicyTableRow) => {
 };
 
 type Props = $ReadOnly<{|
-  policies: $ReadOnlyArray<PermissionsPolicy>,
+  policies: $ReadOnlyArray<PermissionsPolicy> | $ReadOnlyArray<PolicyTableRow>,
   onPolicySelected?: ?(string) => void,
   showGroupsColumn?: ?boolean,
+  ...TableSelectionProps,
   ...TableDesignProps,
 |}>;
 
 export default function PermissionsPoliciesTable(props: Props) {
-  const {policies, onPolicySelected, showGroupsColumn, ...tableDesign} = props;
+  const {policies, onPolicySelected, showGroupsColumn, ...tableProps} = props;
   const policiesTable = useMemo(() => policies.map(policy2PolicyTableRow), [
     policies,
   ]);
@@ -97,7 +105,10 @@ export default function PermissionsPoliciesTable(props: Props) {
         ),
         getSortingValue: PolicyRow => PolicyRow.name,
         render: PolicyRow => (
-          <div className={classes.nameCell}>
+          <div
+            className={classNames(classes.nameCell, {
+              [classes.disabled]: PolicyRow.disabled,
+            })}>
             {PolicyRow.isSystemDefault && <LockIcon color="inherit" />}
             <span>{PolicyRow.name}</span>
           </div>
@@ -114,7 +125,10 @@ export default function PermissionsPoliciesTable(props: Props) {
         render: PolicyRow => (
           <>
             {PolicyRow.isSystemDefault && (
-              <Text variant="body2" className={classes.defaultPolicyPrefix}>
+              <Text
+                variant="body2"
+                color="inherit"
+                className={classes.defaultPolicyPrefix}>
                 {SYSTEM_DEFAULT_POLICY_PREFIX}:
               </Text>
             )}
@@ -156,6 +170,7 @@ export default function PermissionsPoliciesTable(props: Props) {
     return cols;
   }, [
     classes.defaultPolicyPrefix,
+    classes.disabled,
     classes.nameCell,
     classes.narrowColumn,
     classes.wideColumn,
@@ -165,13 +180,14 @@ export default function PermissionsPoliciesTable(props: Props) {
   return (
     <Table
       data={policiesTable}
-      onActiveRowIdChanged={policyId => {
-        if (policyId != null && onPolicySelected != null) {
-          onPolicySelected(`${policyId}`);
-        }
-      }}
+      onActiveRowIdChanged={
+        onPolicySelected != null
+          ? policyId =>
+              (policyId != null && onPolicySelected(`${policyId}`)) || undefined
+          : undefined
+      }
       columns={columns}
-      {...tableDesign}
+      {...tableProps}
     />
   );
 }
