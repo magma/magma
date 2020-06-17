@@ -88,7 +88,8 @@ module.exports.overrides = [
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
       'fbcnms-projects/platform-server/**/*.js',
-      'fbcnms-projects/workflows/**/*.js',
+      'fbcnms-projects/workflows-proxy/**/*.js',
+      'fbcnms-projects/workflows-wasm-workers/**/*.js',
       'scripts/fb/fbt/*.js',
     ],
     rules: {
