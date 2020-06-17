@@ -41,7 +41,7 @@ import {
 import {FormContextProvider} from '../../../../common/FormContext';
 import {NEW_DIALOG_PARAM, POLICY_TYPES} from '../utils/UserManagementUtils';
 import {PERMISSION_POLICIES_VIEW_NAME} from './PermissionsPoliciesView';
-import {SYSTEM_DEFAULT_POLICY_PREFIX} from './PermissionsPoliciesView';
+import {SYSTEM_DEFAULT_POLICY_PREFIX} from './PermissionsPoliciesTable';
 import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
