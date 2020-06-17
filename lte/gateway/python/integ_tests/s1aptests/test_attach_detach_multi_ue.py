@@ -25,7 +25,7 @@ class TestAttachDetachMultiUe(unittest.TestCase):
     def test_attach_detach_multi_ue(self):
         """ Same as attach detach but for 32 UEs """
         ue_ids = []
-        num_ues = 32
+        num_ues = 250
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req

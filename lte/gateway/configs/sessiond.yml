@@ -7,7 +7,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-log_level: INFO
+log_level: DEBUG 
 rule_update_inteval_sec: 1
 
 # Session manager will report the usage when the usage is greater than
