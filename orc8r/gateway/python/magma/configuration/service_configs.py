@@ -37,7 +37,7 @@ def load_override_config(service_name: str) -> Any:
     override_file_name = _override_file_name(service_name)
     if os.path.isfile(override_file_name):
         return _load_yaml_file(override_file_name)
-    return {}
+    return None
 
 
 def save_override_config(service_name: str, cfg: Any):
