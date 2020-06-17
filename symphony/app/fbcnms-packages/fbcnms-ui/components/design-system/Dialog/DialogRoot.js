@@ -66,7 +66,8 @@ type Props = $ReadOnly<{|
   className?: string,
 |}>;
 
-const DialogBase = ({children, className, hidden = false, onClose}: Props) => {
+function DialogRoot(props: Props) {
+  const {children, className, hidden = false, onClose} = props;
   const classes = useStyles();
   return (
     <Portal target={document.body}>
@@ -80,6 +81,6 @@ const DialogBase = ({children, className, hidden = false, onClose}: Props) => {
       </div>
     </Portal>
   );
-};
+}
 
-export default DialogBase;
+export default DialogRoot;
