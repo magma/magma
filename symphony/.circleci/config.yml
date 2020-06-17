@@ -603,10 +603,12 @@ workflows:
           requires:
             - flowtest
       - npm-publish-alarms:
+          context: symphony
           requires:
             - yarntest
       - docker-publish:
           name: graph/publish
+          context: symphony
           dockerfile: graph/Dockerfile
           image: graph
           requires: &dpreq
@@ -615,24 +617,28 @@ workflows:
           <<: *onlymaster
       - docker-publish:
           name: store/publish
+          context: symphony
           dockerfile: store/Dockerfile
           image: store
           requires: *dpreq
           <<: *onlymaster
       - docker-publish:
           name: async/publish
+          context: symphony
           dockerfile: async/Dockerfile
           image: async
           requires: *dpreq
           <<: *onlymaster
       - docker-publish:
           name: docs/publish
+          context: symphony
           path: docs
           image: docs
           requires: *dpreq
           <<: *onlymaster
       - docker-publish:
           name: front/publish
+          context: symphony
           dockerfile: fbcnms-projects/platform-server/Dockerfile.prod
           path: app
           image: front
@@ -640,6 +646,7 @@ workflows:
           <<: *onlymaster
       - docker-publish:
           name: storybook/publish
+          context: symphony
           dockerfile: fbcnms-projects/storybook/Dockerfile
           path: app
           image: storybook
@@ -647,6 +654,7 @@ workflows:
           <<: *onlymaster
       - docker-publish:
           name: jobrunner/publish
+          context: symphony
           dockerfile: jobrunner/Dockerfile
           image: jobrunner
           requires: *dpreq
@@ -657,6 +665,7 @@ workflows:
           name: integration/pr
           <<: *onlypr
       - integration:
+          context: symphony
           pull_images: true
           extra_build_args: --pull
           compose_file: integration/docker-compose.ci.yaml
@@ -667,6 +676,7 @@ workflows:
             - async/publish
           <<: *onlymaster
       - promote-images: &promote
+          context: symphony
           requires:
             - integration
             - docs/publish
@@ -676,6 +686,7 @@ workflows:
           <<: *onlymaster
       - artifactory/upload:
           name: upload-charts
+          context: symphony
           build-steps:
             - helm-install
             - run: mkdir /tmp/helm-charts
@@ -699,10 +710,12 @@ workflows:
     jobs:
       - tfdiff:
           workspace: default
+          context: symphony
           <<: *tfvardir
       - tfapply:
           name: staging/deploy
           workspace: staging
+          context: symphony
           after_checkout:
             - tfprepare: &tfprepare
                 <<: *tfvardir
@@ -710,6 +723,7 @@ workflows:
           requires:
             - tfdiff
       - testim:
+          context: symphony
           before_test:
             - run:
                 name: Check testim blocker
@@ -722,6 +736,7 @@ workflows:
       - tfapply:
           name: production/deploy
           workspace: default
+          context: symphony
           after_checkout:
             - tfprepare: *tfprepare
           requires:
