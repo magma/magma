@@ -204,7 +204,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Log("Finished Authenticating UE" )
+	tr.t.Log("Finished Authenticating UE")
 	return radiusP, nil
 }
 
@@ -225,14 +225,6 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 	}
 	tr.t.Log("Finished Discconnecting UE")
 	return radiusP, nil
-}
-
-// ResetUESeq reset sequence for a UE allowing multiple authentication.
-//
-func (tr *TestRunner) ResetUESeq(ue *cwfprotos.UEConfig) error {
-	fmt.Printf("************************* Reset Ue Sequence for IMSI: %v\n", ue.Imsi)
-	ue.Seq--
-	return uesim.AddUE(ue)
 }
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
