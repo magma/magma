@@ -9,14 +9,18 @@
  * @format
  */
 
-import type {EntsMap} from '../../../../common/EntUtils';
-import type {GroupSearchContextQueryResponse} from './search/__generated__/GroupSearchContextQuery.graphql';
+import type {
+  EntsMap,
+  OptionalRefTypeWrapper,
+} from '../../../../common/EntUtils';
 import type {
   UserManagementContextQueryResponse,
   UserRole,
   UserStatus,
   UsersGroupStatus,
 } from '../__generated__/UserManagementContextQuery.graphql';
+import type {UserManagementUtils_user} from './__generated__/UserManagementUtils_user.graphql';
+import type {UserManagementUtils_user_base} from './__generated__/UserManagementUtils_user_base.graphql';
 
 import fbt from 'fbt';
 import {ent2EntsMap} from '../../../../common/EntUtils';
@@ -31,11 +35,6 @@ graphql`
     email
     status
     role
-    profilePhoto {
-      id
-      fileName
-      storeKey
-    }
   }
 `;
 
@@ -250,25 +249,8 @@ export const EMPLOYMENT_TYPES: KeyValueEnum<string> = {
 
 export type EmploymentType = $Keys<typeof EMPLOYMENT_TYPES>;
 
-export type UserGroups = {|
-  +id: string,
-  +name: string,
-|};
-
-export type User = {|
-  id: string,
-  authID: string,
-  firstName: string,
-  lastName: string,
-  role: UserRole,
-  status: UserStatus,
-  photoId?: string,
-  employmentType?: EmploymentType,
-  employeeID?: string,
-  jobTitle?: string,
-  phoneNumber?: string,
-  groups: $ReadOnlyArray<?UserGroups>,
-|};
+export type UserBase = OptionalRefTypeWrapper<UserManagementUtils_user_base>;
+export type User = OptionalRefTypeWrapper<UserManagementUtils_user>;
 
 export const PermissionValues = {
   YES: 'YES',
@@ -301,18 +283,6 @@ export const POLICY_TYPES: KeyValueEnum<PolicyTypes> = {
   },
 };
 
-export type UserPermissionsGroupMember = $ReadOnly<{|
-  +id: string,
-  +authID: string,
-|}>;
-export type UserPermissionsGroup = $ReadOnly<{|
-  id: string,
-  name: string,
-  description: string,
-  status: UsersGroupStatus,
-  members: $ReadOnlyArray<UserPermissionsGroupMember>,
-  memberUsers: $ReadOnlyArray<User>,
-|}>;
 type UsersReponsePart = $ElementType<
   UserManagementContextQueryResponse,
   'users',
@@ -325,36 +295,18 @@ type UserNodeReponseFieldsPart = $ElementType<UsersEdgesResponsePart, number>;
 type UsersReponseFieldsPart = $NonMaybeType<
   $ElementType<$NonMaybeType<UserNodeReponseFieldsPart>, 'node'>,
 >;
-type GroupsReponsePart = $ElementType<
-  UserManagementContextQueryResponse,
-  'usersGroups',
->;
-type GroupsSearchReponsePart = $ElementType<
-  GroupSearchContextQueryResponse,
-  'usersGroupSearch',
->;
-type GroupsEdgesResponsePart = $ElementType<
-  $NonMaybeType<GroupsReponsePart>,
-  'edges',
->;
-type GroupNodeReponseFieldsPart = $ElementType<GroupsEdgesResponsePart, number>;
-type GroupReponseFieldsPart = $NonMaybeType<
-  $ElementType<$NonMaybeType<GroupNodeReponseFieldsPart>, 'node'>,
->;
-
-export type UsersGroup = GroupReponseFieldsPart;
 
 export const userResponse2User: UsersReponseFieldsPart => User = (
   userNode: UsersReponseFieldsPart,
 ) => ({
   id: userNode.id,
   authID: userNode.authID,
+  email: userNode.email,
   firstName: userNode.firstName,
   lastName: userNode.lastName,
   role: userNode.role,
   status: userNode.status,
   groups: /* userNode.groups ?? */ [],
-  photoId: userNode.profilePhoto?.id,
 });
 
 export const usersResponse2Users = (usersResponse: UsersReponsePart) =>
@@ -369,46 +321,5 @@ export const usersResponse2Users = (usersResponse: UsersReponsePart) =>
 export type UsersMap = EntsMap<User>;
 export const users2UsersMap = (users: Array<User>) => ent2EntsMap<User>(users);
 
-export const userFullName = (user: User) =>
+export const userFullName = (user: $Shape<User>) =>
   `${user.firstName} ${user.lastName}`.trim() || '_';
-
-export function groupResponse2Group(
-  usersMap?: ?UsersMap,
-): GroupReponseFieldsPart => UserPermissionsGroup {
-  return (groupResponse: GroupReponseFieldsPart) => ({
-    id: groupResponse.id,
-    name: groupResponse.name,
-    description: groupResponse.description || '',
-    status: groupResponse.status,
-    members: /* groupResponse.members*/ [],
-    memberUsers:
-      usersMap == null
-        ? []
-        : groupResponse.members
-            .map(member => usersMap.get(member.id))
-            .filter(Boolean),
-  });
-}
-
-export const groupsResponse2Groups = (
-  groupsResponse: GroupsReponsePart | GroupsSearchReponsePart,
-  usersMap?: ?UsersMap,
-) => {
-  if (groupsResponse == null) {
-    return [];
-  }
-  const resposeNodes =
-    groupsResponse.edges != null
-      ? groupsResponse?.edges.filter(Boolean).map(gr => gr.node)
-      : groupsResponse.usersGroups != null
-      ? groupsResponse.usersGroups
-      : [];
-
-  return resposeNodes
-    .filter(Boolean)
-    .map<UserPermissionsGroup>(groupResponse2Group(usersMap));
-};
-
-export type GroupsMap = EntsMap<UserPermissionsGroup>;
-export const groups2GroupsMap = (groups: Array<UserPermissionsGroup>) =>
-  ent2EntsMap<UserPermissionsGroup>(groups);

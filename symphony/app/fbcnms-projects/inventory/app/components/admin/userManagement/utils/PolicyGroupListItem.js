@@ -10,7 +10,7 @@
 
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {ToggleButtonDisplay} from './ListItem';
-import type {UsersGroup} from './UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import GroupIcon from '@fbcnms/ui/components/design-system/Icons/Indications/GroupIcon';

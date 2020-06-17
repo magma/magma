@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8a9416e2c44105d82d26b47955521be2
+ * @relayHash 78cfc3a4af1d16b79b1fe47e2ec01820
  */
 
 /* eslint-disable */
@@ -37,11 +37,6 @@ export type EditUserMutationResponse = {|
     +email: string,
     +status: UserStatus,
     +role: UserRole,
-    +profilePhoto: ?{|
-      +id: string,
-      +fileName: string,
-      +storeKey: ?string,
-    |},
     +groups: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
@@ -69,11 +64,6 @@ mutation EditUserMutation(
     email
     status
     role
-    profilePhoto {
-      id
-      fileName
-      storeKey
-    }
     groups {
       id
       name
@@ -163,32 +153,6 @@ v3 = [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "profilePhoto",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "File",
-        "plural": false,
-        "selections": [
-          (v1/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "fileName",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "storeKey",
-            "args": null,
-            "storageKey": null
-          }
-        ]
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
         "name": "groups",
         "storageKey": null,
         "args": null,
@@ -236,7 +200,7 @@ return {
     "operationKind": "mutation",
     "name": "EditUserMutation",
     "id": null,
-    "text": "mutation EditUserMutation(\n  $input: EditUserInput!\n) {\n  editUser(input: $input) {\n    id\n    authID\n    firstName\n    lastName\n    email\n    status\n    role\n    profilePhoto {\n      id\n      fileName\n      storeKey\n    }\n    groups {\n      id\n      name\n      description\n      status\n    }\n  }\n}\n",
+    "text": "mutation EditUserMutation(\n  $input: EditUserInput!\n) {\n  editUser(input: $input) {\n    id\n    authID\n    firstName\n    lastName\n    email\n    status\n    role\n    groups {\n      id\n      name\n      description\n      status\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

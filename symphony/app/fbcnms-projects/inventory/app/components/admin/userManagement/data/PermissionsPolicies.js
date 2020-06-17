@@ -24,12 +24,15 @@ import type {DeletePermissionsPolicyMutationResponse} from '../../../../mutation
 import type {EditPermissionsPolicyMutationResponse} from '../../../../mutations/__generated__/EditPermissionsPolicyMutation.graphql';
 import type {KeyValueEnum} from '../../../../common/EntUtils';
 import type {MutationCallbacks} from '../../../../mutations/MutationCallbacks.js';
+import type {OptionalRefTypeWrapper} from '../../../../common/EntUtils';
 import type {
   PermissionValue,
   PermissionsPoliciesQuery,
   PermissionsPoliciesQueryResponse,
 } from './__generated__/PermissionsPoliciesQuery.graphql';
 import type {PermissionsPoliciesSearchQuery} from './__generated__/PermissionsPoliciesSearchQuery.graphql';
+import type {UserManagementUtils_policies as policies} from '../utils/__generated__/UserManagementUtils_policies.graphql';
+import type {UserManagementUtils_policies_base as policies_base} from '../utils/__generated__/UserManagementUtils_policies_base.graphql';
 
 import AddPermissionsPolicyMutation from '../../../../mutations/AddPermissionsPolicyMutation';
 import DeletePermissionsPolicyMutation from '../../../../mutations/DeletePermissionsPolicyMutation';
@@ -39,23 +42,10 @@ import {getGraphError} from '../../../../common/EntUtils';
 import {graphql} from 'relay-runtime';
 import {useLazyLoadQuery} from 'react-relay/hooks';
 
-type PermissionsPoliciesReponsePart = $ElementType<
-  PermissionsPoliciesQueryResponse,
-  'permissionsPolicies',
->;
-type PoliciesEdgesResponsePart = $ElementType<
-  $NonMaybeType<PermissionsPoliciesReponsePart>,
-  'edges',
->;
-type PolicyNodeReponseFieldsPart = $ElementType<
-  PoliciesEdgesResponsePart,
-  number,
->;
-type PolicyReponseFieldsPart = $NonMaybeType<
-  $ElementType<$NonMaybeType<PolicyNodeReponseFieldsPart>, 'node'>,
->;
+export type PermissionsPolicyBase = OptionalRefTypeWrapper<policies_base>;
+type PermissionsPolicyRaw = OptionalRefTypeWrapper<policies>;
 export type PermissionsPolicy = $ReadOnly<{|
-  ...PolicyReponseFieldsPart,
+  ...PermissionsPolicyRaw,
   type: PolicyTypes,
   inventoryRules?: ?InventoryPolicy,
   workforceRules?: ?WorkforcePolicy,
@@ -312,7 +302,7 @@ export function permissionRuleValue2Bool(value: PermissionValue) {
 }
 
 function response2PermissionsPolicy(
-  policyResponse: PolicyReponseFieldsPart,
+  policyResponse: PermissionsPolicyRaw,
 ): PermissionsPolicy {
   const {__typename: type, ...policyRules} = policyResponse.policy;
   return {

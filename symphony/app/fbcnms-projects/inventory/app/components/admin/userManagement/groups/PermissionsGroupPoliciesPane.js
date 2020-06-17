@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
@@ -20,7 +20,7 @@ import {makeStyles} from '@material-ui/styles';
 const useStyles = makeStyles(() => ({}));
 
 type Props = {
-  group: UserPermissionsGroup,
+  group: UsersGroup,
   className?: ?string,
 };
 

@@ -9,13 +9,11 @@
  * @format
  */
 
-import type {GroupSearchContextQuery} from './__generated__/GroupSearchContextQuery.graphql';
-import type {UserPermissionsGroup} from '../UserManagementUtils';
-
 import RelayEnvironment from '../../../../../common/RelayEnvironment';
 import createSearchContext from './SearchContext';
 import {fetchQuery, graphql} from 'relay-runtime';
-import {groupsResponse2Groups} from '../UserManagementUtils';
+import type {GroupSearchContextQuery} from './__generated__/GroupSearchContextQuery.graphql';
+import type {UsersGroup} from '../../data/UsersGroups';
 
 const groupSearchQuery = graphql`
   query GroupSearchContextQuery($filters: [UsersGroupFilterInput!]!) {
@@ -36,14 +34,14 @@ const searchCallback = (searchTerm: string) =>
         stringValue: searchTerm,
       },
     ],
-  }).then(response => groupsResponse2Groups(response.usersGroupSearch));
+  }).then(response => response.usersGroupSearch.usersGroups.filter(Boolean));
 
 const {
   SearchContext: GroupSearchContext,
   SearchContextProvider,
   useSearchContext,
   useSearch,
-} = createSearchContext<UserPermissionsGroup>(searchCallback);
+} = createSearchContext<UsersGroup>(searchCallback);
 
 export const GroupSearchContextProvider = SearchContextProvider;
 export const useGroupSearchContext = useSearchContext;

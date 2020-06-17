@@ -38,6 +38,7 @@ import {useUserManagement} from '../UserManagementContext';
 const initialUserData: User = {
   id: generateTempId(),
   authID: '',
+  email: '',
   firstName: '',
   lastName: '',
   role: USER_ROLES.USER.key,
@@ -122,11 +123,11 @@ const NewUserDialog = ({onClose}: Props) => {
                           validationId="first_name"
                           label={`${fbt('First Name', '')}`}
                           value={user.firstName || ''}
-                          onValueChanged={newValue =>
-                            setUser(currentUser => {
-                              currentUser.firstName = newValue;
-                              return currentUser;
-                            })
+                          onValueChanged={firstName =>
+                            setUser(currentUser => ({
+                              ...currentUser,
+                              firstName,
+                            }))
                           }
                         />
                       </Grid>
@@ -135,11 +136,11 @@ const NewUserDialog = ({onClose}: Props) => {
                           validationId="last_name"
                           label={`${fbt('Last Name', '')}`}
                           value={user.lastName || ''}
-                          onValueChanged={newValue =>
-                            setUser(currentUser => {
-                              currentUser.lastName = newValue;
-                              return currentUser;
-                            })
+                          onValueChanged={lastName =>
+                            setUser(currentUser => ({
+                              ...currentUser,
+                              lastName,
+                            }))
                           }
                         />
                       </Grid>

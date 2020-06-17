@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {User} from '../utils/UserManagementUtils';
+import type {User, UserBase} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -54,7 +54,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = $ReadOnly<{
-  user: User,
+  user: User | UserBase,
   highlightName?: ?boolean,
   showPhoto?: ?boolean,
   showRole?: ?boolean,
@@ -75,15 +75,11 @@ export default function UserViewer(props: Props) {
     <div className={classNames(classes.root, className)}>
       {showPhoto ? (
         <div className={classes.photoContainer}>
-          {user.photoId ? (
-            user.photoId
-          ) : (
-            <Text variant="h5" color="light">
-              {`${user.firstName}${user.lastName}${user.authID}`
-                .charAt(0)
-                .toUpperCase()}
-            </Text>
-          )}
+          <Text variant="h5" color="light">
+            {`${user.firstName}${user.lastName}${user.authID}`
+              .charAt(0)
+              .toUpperCase()}
+          </Text>
         </div>
       ) : null}
       <div className={classes.details}>

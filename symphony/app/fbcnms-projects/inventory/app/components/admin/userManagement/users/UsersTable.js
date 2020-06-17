@@ -15,7 +15,6 @@ import type {
 import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserDetailsCard from './UserDetailsCard';
@@ -30,7 +29,6 @@ import {
 import {haveDifferentValues} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useContext} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory, useRouteMatch} from 'react-router-dom';
 import {useUserManagement} from '../UserManagementContext';
@@ -65,9 +63,6 @@ function UsersTable() {
   const classes = useStyles();
   const history = useHistory();
   const match = useRouteMatch();
-
-  const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
 
   const [usersTableData, setUsersTableData] = useState<UserTableData>([]);
   const {users, editUser} = useUserManagement();
@@ -129,38 +124,8 @@ function UsersTable() {
         ),
       },
     ];
-    if (userManagementDevMode) {
-      returnCols.push(
-        ...[
-          {
-            key: 'job_title',
-            title: (
-              <fbt desc="Job Title column header in users table">Job Title</fbt>
-            ),
-            getSortingValue: userRow => userRow.data.jobTitle ?? '',
-            render: userRow => userRow.data.jobTitle ?? '',
-          },
-          {
-            key: 'employment',
-            title: (
-              <fbt desc="Employment column header in users table">
-                Employment
-              </fbt>
-            ),
-            getSortingValue: userRow => userRow.data.employmentType ?? '',
-            render: userRow => userRow.data.employmentType ?? '',
-          },
-        ],
-      );
-    }
     return returnCols;
-  }, [
-    classes.nameColumn,
-    classes.field,
-    userRow2UserRole,
-    userManagementDevMode,
-    activeUserId,
-  ]);
+  }, [classes.nameColumn, classes.field, userRow2UserRole, activeUserId]);
 
   const enqueueSnackbar = useEnqueueSnackbar();
   const handleError = useCallback(

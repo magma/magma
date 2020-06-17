@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 import type {UsersGroupStatus} from '../__generated__/UserManagementContextQuery.graphql';
 
 import * as React from 'react';
@@ -38,8 +38,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = $ReadOnly<{
-  group: UserPermissionsGroup,
-  onChange: UserPermissionsGroup => void,
+  group: UsersGroup,
+  onChange: UsersGroup => void,
   className?: ?string,
 }>;
 

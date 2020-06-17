@@ -11,17 +11,10 @@
 
 // flowlint untyped-import:off
 
-import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
-import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
-import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
 import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
 import type {SelectorStoreUpdater} from 'relay-runtime';
-import type {
-  User,
-  UserPermissionsGroup,
-  UsersMap,
-} from './utils/UserManagementUtils';
+import type {User} from './utils/UserManagementUtils';
 import type {
   UserManagementContextQuery,
   UserRole,
@@ -29,10 +22,7 @@ import type {
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
 
 import * as React from 'react';
-import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
-import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
-import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import InventorySuspense from '../../../common/InventorySuspense';
 import RelayEnvironment from '../../../common/RelayEnvironment';
 import axios from 'axios';
@@ -42,10 +32,7 @@ import {LogEvents, ServerLogger} from '../../../common/LoggingUtils';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {
   USER_ROLES,
-  groupResponse2Group,
-  groupsResponse2Groups,
   userResponse2User,
-  users2UsersMap,
   usersResponse2Users,
 } from './utils/UserManagementUtils';
 import {getGraphError} from '../../../common/EntUtils';
@@ -84,10 +71,13 @@ const getUserEntIdByAuthID = authID => {
 };
 
 const setNewUserEntValues = (userEntId: string, userValues: User) => {
-  userValues.id = userEntId;
+  const mutatedUser = {
+    ...userValues,
+    id: userEntId,
+  };
   const addNewUserToStore = store => {
     const rootQuery = store.getRoot();
-    const newNode = store.get(userValues.id);
+    const newNode = store.get(mutatedUser.id);
     if (newNode == null) {
       return;
     }
@@ -106,7 +96,7 @@ const setNewUserEntValues = (userEntId: string, userValues: User) => {
     );
     ConnectionHandler.insertEdgeAfter(users, edge);
   };
-  return editUser(userValues, addNewUserToStore);
+  return editUser(mutatedUser, addNewUserToStore);
 };
 
 const addUser = (newUserValue: User, password: string) => {
@@ -188,122 +178,8 @@ const editUser = (newUserValue: User, updater?: SelectorStoreUpdater) => {
   });
 };
 
-const deleteGroup = (id: string) => {
-  return new Promise((resolve, reject) => {
-    const callbacks: MutationCallbacks<DeleteUsersGroupMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(getGraphError(errors[0]));
-        }
-        resolve();
-      },
-      onError: e => {
-        reject(getGraphError(e));
-      },
-    };
-    const removeGroupFromStore = store => {
-      const rootQuery = store.getRoot();
-      const groups = ConnectionHandler.getConnection(
-        rootQuery,
-        'UserManagementContext_usersGroups',
-      );
-      if (groups == null) {
-        return;
-      }
-      ConnectionHandler.deleteNode(groups, id);
-      store.delete(id);
-    };
-    DeleteUsersGroupMutation({id}, callbacks, removeGroupFromStore);
-  });
-};
-
-const editGroup = (usersMap: UsersMap) => (
-  newGroupValue: UserPermissionsGroup,
-) => {
-  return new Promise<UserPermissionsGroup>((resolve, reject) => {
-    const callbacks: MutationCallbacks<EditUsersGroupMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(getGraphError(errors[0]));
-        }
-        resolve(groupResponse2Group(usersMap)(response.editUsersGroup));
-      },
-      onError: e => {
-        reject(getGraphError(e));
-      },
-    };
-    EditUsersGroupMutation(
-      {
-        input: {
-          id: newGroupValue.id,
-          name: newGroupValue.name,
-          description: newGroupValue.description,
-          status: newGroupValue.status,
-          members: newGroupValue.members.map(m => m.id),
-        },
-      },
-      callbacks,
-    );
-  });
-};
-
-const addGroup = (usersMap: UsersMap) => (
-  newGroupValue: UserPermissionsGroup,
-) => {
-  return new Promise<UserPermissionsGroup>((resolve, reject) => {
-    const callbacks: MutationCallbacks<AddUsersGroupMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(getGraphError(errors[0]));
-        }
-        resolve(groupResponse2Group(usersMap)(response.addUsersGroup));
-      },
-      onError: e => {
-        reject(getGraphError(e));
-      },
-    };
-
-    const addNewGroupToStore = store => {
-      const rootQuery = store.getRoot();
-      // eslint-disable-next-line no-warning-comments
-      // $FlowFixMe (T62907961) Relay flow types
-      const newNode = store.getRootField('addUsersGroup');
-      if (newNode == null) {
-        return;
-      }
-      const groups = ConnectionHandler.getConnection(
-        rootQuery,
-        'UserManagementContext_usersGroups',
-      );
-      if (groups == null) {
-        return;
-      }
-      const edge = ConnectionHandler.createEdge(
-        store,
-        groups,
-        newNode,
-        'UsersGroupEdge',
-      );
-      ConnectionHandler.insertEdgeAfter(groups, edge);
-    };
-    AddUsersGroupMutation(
-      {
-        input: {
-          name: newGroupValue.name,
-          description: newGroupValue.description,
-          members: newGroupValue.members.map(m => m.id),
-        },
-      },
-      callbacks,
-      addNewGroupToStore,
-    );
-  });
-};
-
 type UserManagementContextValue = {
-  groups: Array<UserPermissionsGroup>,
   users: Array<User>,
-  usersMap: UsersMap,
   addUser: (user: User, password: string) => Promise<User>,
   editUser: (
     newUserValue: User,
@@ -314,24 +190,14 @@ type UserManagementContextValue = {
     currentPassword: string,
     newPassword: string,
   ) => Promise<void>,
-  addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
-  editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
-  deleteGroup: (id: string) => Promise<void>,
 };
 
-const emptyUsersMap = new Map<string, User>();
 const UserManagementContext = React.createContext<UserManagementContextValue>({
-  policies: [],
-  groups: [],
   users: [],
-  usersMap: emptyUsersMap,
   addUser,
   editUser,
   changeUserPassword,
   changeCurrentUserPassword,
-  addGroup: addGroup(emptyUsersMap),
-  editGroup: editGroup(emptyUsersMap),
-  deleteGroup,
 });
 
 type Props = {
@@ -347,40 +213,24 @@ const dataQuery = graphql`
         }
       }
     }
-    usersGroups(first: 500)
-      @connection(key: "UserManagementContext_usersGroups") {
-      edges {
-        node {
-          ...UserManagementUtils_group @relay(mask: false)
-        }
-      }
-    }
   }
 `;
 
 function ProviderWrap(props: Props) {
-  const providerValue = (users, groups, usersMap) => ({
-    groups,
+  const providerValue = users => ({
     users,
-    usersMap,
     addUser,
     editUser,
     changeUserPassword,
     changeCurrentUserPassword,
-    addGroup: addGroup(usersMap),
-    editGroup: editGroup(usersMap),
-    deleteGroup,
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);
 
   const users = usersResponse2Users(data.users);
-  const usersMap = users2UsersMap(users);
-  const groups = groupsResponse2Groups(data.usersGroups, usersMap);
 
   return (
-    <UserManagementContext.Provider
-      value={providerValue(users, groups, usersMap)}>
+    <UserManagementContext.Provider value={providerValue(users)}>
       {props.children}
     </UserManagementContext.Provider>
   );

@@ -8,8 +8,7 @@
  * @format
  */
 
-import type {EmploymentType, User} from '../utils/UserManagementUtils';
-import type {OptionProps} from '@fbcnms/ui/components/design-system/Select/SelectMenu';
+import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -20,7 +19,6 @@ import FormAction from '@fbcnms/ui/components/design-system/Form/FormAction';
 import FormField from '@fbcnms/ui/components/design-system/FormField/FormField';
 import FormFieldTextInput from '../utils/FormFieldTextInput';
 import Grid from '@material-ui/core/Grid';
-import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
@@ -131,18 +129,18 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const EMPLOYMENT_TYPE_OPTIONS: Array<OptionProps<EmploymentType>> = [
-  {
-    key: 'FullTime',
-    value: 'FullTime',
-    label: fbt('Full Time', ''),
-  },
-  {
-    key: 'Contructor',
-    value: 'Contructor',
-    label: fbt('Contructor', ''),
-  },
-];
+// const EMPLOYMENT_TYPE_OPTIONS: Array<OptionProps<EmploymentType>> = [
+//   {
+//     key: 'FullTime',
+//     value: 'FullTime',
+//     label: fbt('Full Time', ''),
+//   },
+//   {
+//     key: 'Contructor',
+//     value: 'Contructor',
+//     label: fbt('Contructor', ''),
+//   },
+// ];
 
 type Props = {
   user: User,
@@ -314,7 +312,7 @@ export default function UserProfilePane(props: Props) {
                       }
                     />
                   </Grid>
-                  {userManagementDevMode ? (
+                  {/* {userManagementDevMode ? (
                     <Grid item xs={12} sm={6} lg={6} xl={6}>
                       <FormFieldTextInput
                         key={`${user.id}_phone`}
@@ -329,7 +327,7 @@ export default function UserProfilePane(props: Props) {
                         }
                       />
                     </Grid>
-                  ) : null}
+                  ) : null} */}
                 </Grid>
               </div>
             </div>
@@ -419,69 +417,6 @@ export default function UserProfilePane(props: Props) {
               }
             }}
           />
-          {userManagementDevMode ? (
-            <div className={classes.section}>
-              <div className={classes.sectionHeader}>
-                <Text variant="subtitle1">
-                  <fbt desc="">Employment Information</fbt>
-                </Text>
-                <Text variant="subtitle2" color="gray">
-                  <fbt desc="">
-                    Up-to-date info makes it easier to manage teams and schedule
-                    work orders.
-                  </fbt>
-                </Text>
-              </div>
-              <div>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} lg={4} xl={4}>
-                    <FormFieldTextInput
-                      key={`${user.id}_job`}
-                      className={classes.field}
-                      label={`${fbt('Job Title', '')}`}
-                      value={user.jobTitle || ''}
-                      onValueChanged={jobTitle =>
-                        setUser({
-                          ...user,
-                          jobTitle,
-                        })
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} lg={4} xl={4}>
-                    <FormFieldTextInput
-                      key={`${user.id}_employee_id`}
-                      className={classes.field}
-                      label={`${fbt('Employee ID', '')}`}
-                      value={user.employeeID || ''}
-                      onValueChanged={employeeID =>
-                        setUser({
-                          ...user,
-                          employeeID,
-                        })
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} lg={4} xl={4}>
-                    <FormField
-                      className={classes.field}
-                      label={`${fbt('Employment Type', '')}`}>
-                      <Select
-                        options={EMPLOYMENT_TYPE_OPTIONS}
-                        selectedValue={user.employmentType}
-                        onChange={employmentType =>
-                          setUser({
-                            ...user,
-                            employmentType,
-                          })
-                        }
-                      />
-                    </FormField>
-                  </Grid>
-                </Grid>
-              </div>
-            </div>
-          ) : null}
         </div>
         <div className={classes.bottomBar}>
           <FormAction {...formButtonsDisablingProps}>

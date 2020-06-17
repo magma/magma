@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d258155e184ab54c8379b182a2d2433a
+ * @relayHash f491817fd67769e3619e9d585da2a146
  */
 
 /* eslint-disable */
@@ -65,11 +65,6 @@ export type UserSearchContextQueryResponse = {|
       +email: string,
       +status: UserStatus,
       +role: UserRole,
-      +profilePhoto: ?{|
-        +id: string,
-        +fileName: string,
-        +storeKey: ?string,
-      |},
       +groups: $ReadOnlyArray<?{|
         +id: string,
         +name: string,
@@ -99,11 +94,6 @@ query UserSearchContextQuery(
       email
       status
       role
-      profilePhoto {
-        id
-        fileName
-        storeKey
-      }
       groups {
         id
         name
@@ -203,32 +193,6 @@ v3 = [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "profilePhoto",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "File",
-            "plural": false,
-            "selections": [
-              (v1/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "fileName",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "storeKey",
-                "args": null,
-                "storageKey": null
-              }
-            ]
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
             "name": "groups",
             "storageKey": null,
             "args": null,
@@ -278,7 +242,7 @@ return {
     "operationKind": "query",
     "name": "UserSearchContextQuery",
     "id": null,
-    "text": "query UserSearchContextQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      profilePhoto {\n        id\n        fileName\n        storeKey\n      }\n      groups {\n        id\n        name\n        description\n        status\n      }\n    }\n  }\n}\n",
+    "text": "query UserSearchContextQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n        description\n        status\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

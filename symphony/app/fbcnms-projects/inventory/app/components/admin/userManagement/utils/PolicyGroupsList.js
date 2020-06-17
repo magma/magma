@@ -10,7 +10,7 @@
 
 import type {AssigenmentButtonProp} from './GroupMemberListItem';
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
-import type {UsersGroup} from './UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import List from './List';

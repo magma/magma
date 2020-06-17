@@ -8,9 +8,17 @@
  * @format
  */
 
-import shortid from 'shortid';
+import type {FragmentReference} from 'relay-runtime';
 
+import shortid from 'shortid';
 import {camelCase, startCase, toUpper} from 'lodash';
+
+type RefType = $ReadOnly<{|
+  $refType: FragmentReference,
+|}>;
+export type OptionalRefTypeWrapper<T> = $ReadOnly<{|
+  ...$Rest<T, RefType>,
+|}>;
 
 type EntWithID = $ReadOnly<{
   id?: ?string,
