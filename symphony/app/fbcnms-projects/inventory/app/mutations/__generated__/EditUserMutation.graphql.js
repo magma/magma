@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e242feec1d1d072c681d1860b24692d9
+ * @relayHash 8a9416e2c44105d82d26b47955521be2
  */
 
 /* eslint-disable */
@@ -17,6 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type UserRole = "ADMIN" | "OWNER" | "USER" | "%future added value";
 export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
+export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type EditUserInput = {|
   id: string,
   firstName?: ?string,
@@ -36,15 +37,17 @@ export type EditUserMutationResponse = {|
     +email: string,
     +status: UserStatus,
     +role: UserRole,
-    +groups: $ReadOnlyArray<?{|
-      +id: string,
-      +name: string,
-    |}>,
     +profilePhoto: ?{|
       +id: string,
       +fileName: string,
       +storeKey: ?string,
     |},
+    +groups: $ReadOnlyArray<?{|
+      +id: string,
+      +name: string,
+      +description: ?string,
+      +status: UsersGroupStatus,
+    |}>,
   |}
 |};
 export type EditUserMutation = {|
@@ -66,14 +69,16 @@ mutation EditUserMutation(
     email
     status
     role
-    groups {
-      id
-      name
-    }
     profilePhoto {
       id
       fileName
       storeKey
+    }
+    groups {
+      id
+      name
+      description
+      status
     }
   }
 }
@@ -95,7 +100,14 @@ v1 = {
   "args": null,
   "storageKey": null
 },
-v2 = [
+v2 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "status",
+  "args": null,
+  "storageKey": null
+},
+v3 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -140,38 +152,13 @@ v2 = [
         "args": null,
         "storageKey": null
       },
-      {
-        "kind": "ScalarField",
-        "alias": null,
-        "name": "status",
-        "args": null,
-        "storageKey": null
-      },
+      (v2/*: any*/),
       {
         "kind": "ScalarField",
         "alias": null,
         "name": "role",
         "args": null,
         "storageKey": null
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "groups",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "UsersGroup",
-        "plural": true,
-        "selections": [
-          (v1/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "name",
-            "args": null,
-            "storageKey": null
-          }
-        ]
       },
       {
         "kind": "LinkedField",
@@ -198,6 +185,33 @@ v2 = [
             "storageKey": null
           }
         ]
+      },
+      {
+        "kind": "LinkedField",
+        "alias": null,
+        "name": "groups",
+        "storageKey": null,
+        "args": null,
+        "concreteType": "UsersGroup",
+        "plural": true,
+        "selections": [
+          (v1/*: any*/),
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "name",
+            "args": null,
+            "storageKey": null
+          },
+          {
+            "kind": "ScalarField",
+            "alias": null,
+            "name": "description",
+            "args": null,
+            "storageKey": null
+          },
+          (v2/*: any*/)
+        ]
       }
     ]
   }
@@ -210,19 +224,19 @@ return {
     "type": "Mutation",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v2/*: any*/)
+    "selections": (v3/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "EditUserMutation",
     "argumentDefinitions": (v0/*: any*/),
-    "selections": (v2/*: any*/)
+    "selections": (v3/*: any*/)
   },
   "params": {
     "operationKind": "mutation",
     "name": "EditUserMutation",
     "id": null,
-    "text": "mutation EditUserMutation(\n  $input: EditUserInput!\n) {\n  editUser(input: $input) {\n    id\n    authID\n    firstName\n    lastName\n    email\n    status\n    role\n    groups {\n      id\n      name\n    }\n    profilePhoto {\n      id\n      fileName\n      storeKey\n    }\n  }\n}\n",
+    "text": "mutation EditUserMutation(\n  $input: EditUserInput!\n) {\n  editUser(input: $input) {\n    id\n    authID\n    firstName\n    lastName\n    email\n    status\n    role\n    profilePhoto {\n      id\n      fileName\n      storeKey\n    }\n    groups {\n      id\n      name\n      description\n      status\n    }\n  }\n}\n",
     "metadata": {}
   }
 };

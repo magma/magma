@@ -10,10 +10,7 @@
  */
 
 import type {GroupSearchContextQuery} from './__generated__/GroupSearchContextQuery.graphql';
-import type {
-  PermissionsPolicy,
-  UserPermissionsGroup,
-} from '../UserManagementUtils';
+import type {UserPermissionsGroup} from '../UserManagementUtils';
 
 import RelayEnvironment from '../../../../../common/RelayEnvironment';
 import createSearchContext from './SearchContext';
@@ -24,20 +21,13 @@ const groupSearchQuery = graphql`
   query GroupSearchContextQuery($filters: [UsersGroupFilterInput!]!) {
     usersGroupSearch(filters: $filters) {
       usersGroups {
-        id
-        name
-        description
-        status
-        members {
-          id
-          authID
-        }
+        ...UserManagementUtils_group @relay(mask: false)
       }
     }
   }
 `;
 
-const searchCallback = (searchTerm: string, _policy: ?PermissionsPolicy) =>
+const searchCallback = (searchTerm: string) =>
   fetchQuery<GroupSearchContextQuery>(RelayEnvironment, groupSearchQuery, {
     filters: [
       {

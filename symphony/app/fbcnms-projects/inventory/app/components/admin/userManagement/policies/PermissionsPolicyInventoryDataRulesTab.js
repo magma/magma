@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {InventoryPolicy} from '../utils/UserManagementUtils';
+import type {InventoryPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
@@ -19,7 +19,7 @@ import fbt from 'fbt';
 import {
   bool2PermissionRuleValue,
   permissionRuleValue2Bool,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 

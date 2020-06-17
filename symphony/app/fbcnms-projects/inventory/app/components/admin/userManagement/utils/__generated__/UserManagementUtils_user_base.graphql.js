@@ -16,11 +16,10 @@
 import type { ReaderFragment } from 'relay-runtime';
 export type UserRole = "ADMIN" | "OWNER" | "USER" | "%future added value";
 export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
-export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
-declare export opaque type UserManagementUtils_user$ref: FragmentReference;
-declare export opaque type UserManagementUtils_user$fragmentType: UserManagementUtils_user$ref;
-export type UserManagementUtils_user = {|
+declare export opaque type UserManagementUtils_user_base$ref: FragmentReference;
+declare export opaque type UserManagementUtils_user_base$fragmentType: UserManagementUtils_user_base$ref;
+export type UserManagementUtils_user_base = {|
   +id: string,
   +authID: string,
   +firstName: string,
@@ -33,18 +32,12 @@ export type UserManagementUtils_user = {|
     +fileName: string,
     +storeKey: ?string,
   |},
-  +groups: $ReadOnlyArray<?{|
-    +id: string,
-    +name: string,
-    +description: ?string,
-    +status: UsersGroupStatus,
-  |}>,
-  +$refType: UserManagementUtils_user$ref,
+  +$refType: UserManagementUtils_user_base$ref,
 |};
-export type UserManagementUtils_user$data = UserManagementUtils_user;
-export type UserManagementUtils_user$key = {
-  +$data?: UserManagementUtils_user$data,
-  +$fragmentRefs: UserManagementUtils_user$ref,
+export type UserManagementUtils_user_base$data = UserManagementUtils_user_base;
+export type UserManagementUtils_user_base$key = {
+  +$data?: UserManagementUtils_user_base$data,
+  +$fragmentRefs: UserManagementUtils_user_base$ref,
   ...
 };
 */
@@ -57,17 +50,10 @@ var v0 = {
   "name": "id",
   "args": null,
   "storageKey": null
-},
-v1 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "status",
-  "args": null,
-  "storageKey": null
 };
 return {
   "kind": "Fragment",
-  "name": "UserManagementUtils_user",
+  "name": "UserManagementUtils_user_base",
   "type": "User",
   "metadata": null,
   "argumentDefinitions": [],
@@ -101,7 +87,13 @@ return {
       "args": null,
       "storageKey": null
     },
-    (v1/*: any*/),
+    {
+      "kind": "ScalarField",
+      "alias": null,
+      "name": "status",
+      "args": null,
+      "storageKey": null
+    },
     {
       "kind": "ScalarField",
       "alias": null,
@@ -134,37 +126,10 @@ return {
           "storageKey": null
         }
       ]
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "groups",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "UsersGroup",
-      "plural": true,
-      "selections": [
-        (v0/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "name",
-          "args": null,
-          "storageKey": null
-        },
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "description",
-          "args": null,
-          "storageKey": null
-        },
-        (v1/*: any*/)
-      ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '913c168de5dbcc1d4c3b70ca9833c8d1';
+(node/*: any*/).hash = '000611b790e77c7f0108428db0dafd79';
 module.exports = node;

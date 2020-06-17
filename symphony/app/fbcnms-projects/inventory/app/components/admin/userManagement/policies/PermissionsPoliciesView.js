@@ -8,7 +8,9 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+// import type {PermissionsPoliciesViewQuery} from './__generated__/PermissionsPoliciesViewQuery.graphql';
+// import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
 
 import * as React from 'react';
@@ -19,9 +21,14 @@ import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
+// import {permissionsPoliciesResponse2PermissionsPolicies} from '../utils/UserManagementUtils';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
-import {useUserManagement} from '../UserManagementContext';
+// import {useState} from 'react';
+// import {useUserManagement} from '../UserManagementContext';
+// import {graphql} from 'relay-runtime';
+// import {useLazyLoadQuery} from 'react-relay/hooks';
+import {useMemo} from 'react';
+import {usePermissionsPolicies} from '../data/PermissionsPolicies';
 
 export const PERMISSION_POLICIES_VIEW_NAME = fbt(
   'Polices',
@@ -57,7 +64,6 @@ const useStyles = makeStyles(() => ({
 }));
 
 type PolicyTableRow = TableRowDataType<PermissionsPolicy>;
-type PolicyTableData = Array<PolicyTableRow>;
 
 const policy2PolicyTableRow: PermissionsPolicy => PolicyTableRow = policy => ({
   key: policy.id,
@@ -82,10 +88,11 @@ const getPolicyType = (PolicyRow: PolicyTableRow) => {
 export default function PermissionsPoliciesView() {
   const classes = useStyles();
   const {history} = useRouter();
-  const {policies} = useUserManagement();
-  const [policiesTable, _setPoliciesTable] = useState<PolicyTableData>(
-    policies.map(policy2PolicyTableRow),
-  );
+
+  const policies = usePermissionsPolicies();
+  const policiesTable = useMemo(() => policies.map(policy2PolicyTableRow), [
+    policies,
+  ]);
 
   const columns = [
     {

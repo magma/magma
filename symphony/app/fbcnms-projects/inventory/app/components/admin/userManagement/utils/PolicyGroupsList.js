@@ -9,17 +9,15 @@
  */
 
 import type {AssigenmentButtonProp} from './GroupMemberListItem';
-import type {
-  PermissionsPolicy,
-  UserPermissionsGroup,
-} from './UserManagementUtils';
+import type {PermissionsPolicy} from '../data/PermissionsPolicies';
+import type {UsersGroup} from './UserManagementUtils';
 
 import * as React from 'react';
 import List from './List';
 import PolicyGroupListItem from './PolicyGroupListItem';
 
 type Props = $ReadOnly<{|
-  groups: $ReadOnlyArray<UserPermissionsGroup>,
+  groups: $ReadOnlyArray<UsersGroup>,
   policy?: ?PermissionsPolicy,
   onChange: PermissionsPolicy => void,
   emptyState?: ?React.Node,

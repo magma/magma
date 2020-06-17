@@ -11,22 +11,17 @@
 
 // flowlint untyped-import:off
 
-import type {AddPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/AddPermissionsPolicyMutation.graphql';
 import type {AddUsersGroupMutationResponse} from '../../../mutations/__generated__/AddUsersGroupMutation.graphql';
-import type {DeletePermissionsPolicyMutationResponse} from '../../../mutations/__generated__/DeletePermissionsPolicyMutation.graphql';
 import type {DeleteUsersGroupMutationResponse} from '../../../mutations/__generated__/DeleteUsersGroupMutation.graphql';
-import type {EditPermissionsPolicyMutationResponse} from '../../../mutations/__generated__/EditPermissionsPolicyMutation.graphql';
 import type {EditUserMutationResponse} from '../../../mutations/__generated__/EditUserMutation.graphql';
 import type {EditUsersGroupMutationResponse} from '../../../mutations/__generated__/EditUsersGroupMutation.graphql';
+import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
+import type {SelectorStoreUpdater} from 'relay-runtime';
 import type {
-  GroupsMap,
-  PermissionsPolicy,
   User,
   UserPermissionsGroup,
   UsersMap,
 } from './utils/UserManagementUtils';
-import type {MutationCallbacks} from '../../../mutations/MutationCallbacks.js';
-import type {SelectorStoreUpdater} from 'relay-runtime';
 import type {
   UserManagementContextQuery,
   UserRole,
@@ -34,11 +29,8 @@ import type {
 import type {UserManagementContext_UserQuery} from './__generated__/UserManagementContext_UserQuery.graphql';
 
 import * as React from 'react';
-import AddPermissionsPolicyMutation from '../../../mutations/AddPermissionsPolicyMutation';
 import AddUsersGroupMutation from '../../../mutations/AddUsersGroupMutation';
-import DeletePermissionsPolicyMutation from '../../../mutations/DeletePermissionsPolicyMutation';
 import DeleteUsersGroupMutation from '../../../mutations/DeleteUsersGroupMutation';
-import EditPermissionsPolicyMutation from '../../../mutations/EditPermissionsPolicyMutation';
 import EditUserMutation from '../../../mutations/EditUserMutation';
 import EditUsersGroupMutation from '../../../mutations/EditUsersGroupMutation';
 import InventorySuspense from '../../../common/InventorySuspense';
@@ -51,11 +43,7 @@ import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {
   USER_ROLES,
   groupResponse2Group,
-  groups2GroupsMap,
   groupsResponse2Groups,
-  permissionsPoliciesResponse2PermissionsPolicies,
-  permissionsPolicy2PermissionsPolicyInput,
-  permissionsPolicyResponse2PermissionsPolicy,
   userResponse2User,
   users2UsersMap,
   usersResponse2Users,
@@ -312,121 +300,7 @@ const addGroup = (usersMap: UsersMap) => (
   });
 };
 
-const addPermissionsPolicy = (groupsMap: GroupsMap) => (
-  newPolicyValue: PermissionsPolicy,
-) => {
-  return new Promise<PermissionsPolicy>((resolve, reject) => {
-    const callbacks: MutationCallbacks<AddPermissionsPolicyMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(getGraphError(errors[0]));
-        }
-        resolve(
-          permissionsPolicyResponse2PermissionsPolicy(groupsMap)(
-            response.addPermissionsPolicy,
-          ),
-        );
-      },
-      onError: e => {
-        reject(getGraphError(e));
-      },
-    };
-
-    const addNewPolicyToStore = store => {
-      const rootQuery = store.getRoot();
-      const newNode = store.getRootField('addPermissionsPolicy');
-      if (newNode == null) {
-        return;
-      }
-      const policies = ConnectionHandler.getConnection(
-        rootQuery,
-        'UserManagementContext_permissionsPolicies',
-      );
-      if (policies == null) {
-        return;
-      }
-      const edge = ConnectionHandler.createEdge(
-        store,
-        policies,
-        newNode,
-        'PermisionsPolicyEdge',
-      );
-      ConnectionHandler.insertEdgeAfter(policies, edge);
-    };
-    AddPermissionsPolicyMutation(
-      {
-        input: permissionsPolicy2PermissionsPolicyInput(newPolicyValue),
-      },
-      callbacks,
-      addNewPolicyToStore,
-    );
-  });
-};
-
-const editPermissionsPolicy = (groupsMap: GroupsMap) => (
-  newPolicyValue: PermissionsPolicy,
-) => {
-  return new Promise<PermissionsPolicy>((resolve, reject) => {
-    type Callbacks = MutationCallbacks<EditPermissionsPolicyMutationResponse>;
-    const callbacks: Callbacks = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(getGraphError(errors[0]));
-        }
-        resolve(
-          permissionsPolicyResponse2PermissionsPolicy(groupsMap)(
-            response.editPermissionsPolicy,
-          ),
-        );
-      },
-      onError: e => {
-        reject(getGraphError(e));
-      },
-    };
-
-    EditPermissionsPolicyMutation(
-      {
-        input: {
-          id: newPolicyValue.id,
-          ...permissionsPolicy2PermissionsPolicyInput(newPolicyValue),
-        },
-      },
-      callbacks,
-    );
-  });
-};
-
-const deletePermissionsPolicy = (id: string) => {
-  return new Promise((resolve, reject) => {
-    const cbs: MutationCallbacks<DeletePermissionsPolicyMutationResponse> = {
-      onCompleted: (response, errors) => {
-        if (errors && errors[0]) {
-          reject(getGraphError(errors[0]));
-        }
-        resolve();
-      },
-      onError: e => {
-        reject(getGraphError(e));
-      },
-    };
-    const removePolicyFromStore = store => {
-      const rootQuery = store.getRoot();
-      const policies = ConnectionHandler.getConnection(
-        rootQuery,
-        'UserManagementContext_permissionsPolicies',
-      );
-      if (policies == null) {
-        return;
-      }
-      ConnectionHandler.deleteNode(policies, id);
-      store.delete(id);
-    };
-    DeletePermissionsPolicyMutation({id}, cbs, removePolicyFromStore);
-  });
-};
-
 type UserManagementContextValue = {
-  policies: Array<PermissionsPolicy>,
   groups: Array<UserPermissionsGroup>,
   users: Array<User>,
   usersMap: UsersMap,
@@ -443,13 +317,9 @@ type UserManagementContextValue = {
   addGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   editGroup: UserPermissionsGroup => Promise<UserPermissionsGroup>,
   deleteGroup: (id: string) => Promise<void>,
-  addPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
-  editPermissionsPolicy: PermissionsPolicy => Promise<PermissionsPolicy>,
-  deletePermissionsPolicy: (id: string) => Promise<void>,
 };
 
 const emptyUsersMap = new Map<string, User>();
-const emptyGroupsMap = new Map<string, UserPermissionsGroup>();
 const UserManagementContext = React.createContext<UserManagementContextValue>({
   policies: [],
   groups: [],
@@ -462,9 +332,6 @@ const UserManagementContext = React.createContext<UserManagementContextValue>({
   addGroup: addGroup(emptyUsersMap),
   editGroup: editGroup(emptyUsersMap),
   deleteGroup,
-  addPermissionsPolicy: addPermissionsPolicy(emptyGroupsMap),
-  editPermissionsPolicy: editPermissionsPolicy(emptyGroupsMap),
-  deletePermissionsPolicy,
 });
 
 type Props = {
@@ -488,20 +355,11 @@ const dataQuery = graphql`
         }
       }
     }
-    permissionsPolicies(first: 500)
-      @connection(key: "UserManagementContext_permissionsPolicies") {
-      edges {
-        node {
-          ...UserManagementUtils_policies @relay(mask: false)
-        }
-      }
-    }
   }
 `;
 
 function ProviderWrap(props: Props) {
-  const providerValue = (users, groups, policies, usersMap, groupsMap) => ({
-    policies,
+  const providerValue = (users, groups, usersMap) => ({
     groups,
     users,
     usersMap,
@@ -512,9 +370,6 @@ function ProviderWrap(props: Props) {
     addGroup: addGroup(usersMap),
     editGroup: editGroup(usersMap),
     deleteGroup,
-    addPermissionsPolicy: addPermissionsPolicy(groupsMap),
-    editPermissionsPolicy: editPermissionsPolicy(groupsMap),
-    deletePermissionsPolicy,
   });
 
   const data = useLazyLoadQuery<UserManagementContextQuery>(dataQuery);
@@ -522,15 +377,10 @@ function ProviderWrap(props: Props) {
   const users = usersResponse2Users(data.users);
   const usersMap = users2UsersMap(users);
   const groups = groupsResponse2Groups(data.usersGroups, usersMap);
-  const groupsMap = groups2GroupsMap(groups);
-  const policies = permissionsPoliciesResponse2PermissionsPolicies(
-    data.permissionsPolicies,
-    groupsMap,
-  );
 
   return (
     <UserManagementContext.Provider
-      value={providerValue(users, groups, policies, usersMap, groupsMap)}>
+      value={providerValue(users, groups, usersMap)}>
       {props.children}
     </UserManagementContext.Provider>
   );

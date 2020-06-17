@@ -22,22 +22,7 @@ const userSearchQuery = graphql`
   query UserSearchContextQuery($filters: [UserFilterInput!]!) {
     userSearch(filters: $filters) {
       users {
-        id
-        authID
-        firstName
-        lastName
-        email
-        status
-        role
-        groups {
-          id
-          name
-        }
-        profilePhoto {
-          id
-          fileName
-          storeKey
-        }
+        ...UserManagementUtils_user @relay(mask: false)
       }
     }
   }

@@ -125,3 +125,10 @@ export function ent2EntsMap<T: EntWithID>(ents: Array<T>): EntsMap<T> {
     ents.filter(ent => ent.id != null).map(ent => [ent.id || '', ent]),
   );
 }
+
+export type KeyValueEnum<TValues> = {
+  [key: TValues]: {
+    key: TValues,
+    value: string,
+  },
+};
