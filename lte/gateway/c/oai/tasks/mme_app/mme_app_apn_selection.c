@@ -35,11 +35,76 @@
 #include "mme_app_apn_selection.h"
 #include "emm_data.h"
 
+//------------------------------------------------------------------------------
+int select_pdn_type(struct apn_configuration_s *apn_config, esm_proc_pdn_type_t ue_selected_pdn_type, esm_cause_t *esm_cause)
+{
+
+  /* Overwrite apn_config->pdn_type based on the PDN type sent by UE and the PDN Type 
+   * received in subscription profile
+   */
+  OAILOG_ERROR(
+          LOG_MME_APP,
+          " Pruthvi<Before> UE requested PDN Type %d, subscribed PDN Type %d for UE " IMSI_64_FMT "\n",
+          ue_selected_pdn_type,
+          apn_config->pdn_type);
+
+  switch (ue_selected_pdn_type) {
+
+    case ESM_PDN_TYPE_IPV4:
+      if ((apn_config->pdn_type == IPv4_AND_v6) || (apn_config->pdn_type == IPv4_OR_v6)) {
+        apn_config->pdn_type = IPv4;
+      } else if (apn_config->pdn_type == IPv6) {
+        /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4 or IPv6,
+         * and either the requested PDN type or PDN type IPv4v6 are subscribed,
+         * the MME sets the PDN type as requested. Otherwise the PDN connection request is rejected
+         */ 
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      }
+      break;
+
+    case ESM_PDN_TYPE_IPV6:
+      if ((apn_config->pdn_type == IPv4_AND_v6) || (apn_config->pdn_type == IPv4_OR_v6)) {
+        apn_config->pdn_type = IPv6;
+      } else if (apn_config->pdn_type == IPv4) {
+        /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4 or IPv6,
+         * and either the requested PDN type or PDN type IPv4v6 are subscribed,
+         * the MME sets the PDN type as requested. Otherwise the PDN connection request is rejected
+         */ 
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      }
+
+      break;
+
+    case ESM_PDN_TYPE_IPV4V6:
+      if (apn_config->pdn_type == IPv4_OR_v6) {
+        apn_config->pdn_type = IPv4;
+      } else if (apn_config->pdn_type == IPv4) {
+         *esm_cause = ESM_CAUSE_PDN_TYPE_IPV4_ONLY_ALLOWED;
+      } else if (apn_config->pdn_type == IPv6) {
+        *esm_cause = ESM_CAUSE_PDN_TYPE_IPV6_ONLY_ALLOWED; 
+      }
+      break;
+
+    default:
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      break;
+  }
+  OAILOG_ERROR(
+          LOG_MME_APP,
+          " Pruthvi<After> UE requested PDN Type %d, subscribed PDN Type %d for UE " IMSI_64_FMT "\n",
+          ue_selected_pdn_type,
+          apn_config->pdn_type);
+
+
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);;
+}
 
 //------------------------------------------------------------------------------
 struct apn_configuration_s *mme_app_select_apn(
   ue_mm_context_t *const ue_context,
-  const_bstring const ue_selected_apn)
+  const_bstring const ue_selected_apn,
+  esm_proc_pdn_type_t ue_selected_pdn_type,
+  int *esm_cause)
 {
   context_identifier_t default_context_identifier =
     ue_context->apn_config_profile.context_identifier;
@@ -59,6 +124,12 @@ struct apn_configuration_s *mme_app_select_apn(
           ue_context->apn_config_profile.apn_configuration[index]
             .service_selection,
           ue_context->emm_context._imsi64);
+        // Select PDN Type
+        select_pdn_type(&ue_context->apn_config_profile.apn_configuration[index],
+          ue_selected_pdn_type, esm_cause);
+        if (*esm_cause == ESM_CAUSE_UNKNOWN_PDN_TYPE) {
+          return NULL;
+        } 
         return &ue_context->apn_config_profile.apn_configuration[index];
       }
     } else {
@@ -78,11 +149,17 @@ struct apn_configuration_s *mme_app_select_apn(
           ue_context->apn_config_profile.apn_configuration[index]
             .service_selection,
           ue_context->emm_context._imsi64);
+        // Select PDN Type
+        select_pdn_type(&ue_context->apn_config_profile.apn_configuration[index],
+          ue_selected_pdn_type, esm_cause);
+        if (*esm_cause == ESM_CAUSE_UNKNOWN_PDN_TYPE) {
+          return NULL;
+        } 
         return &ue_context->apn_config_profile.apn_configuration[index];
       }
     }
   }
-
+  *esm_cause = ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME;
   return NULL;
 }
 

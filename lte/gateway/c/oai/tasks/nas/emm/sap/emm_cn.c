@@ -206,7 +206,7 @@ static int _emm_cn_smc_fail(const emm_cn_smc_fail_t *msg)
 }
 
 //------------------------------------------------------------------------------
-void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
+void _handle_apn_mismatch(ue_mm_context_t *const ue_context, int esm_cause)
 {
   ESM_msg esm_msg = {.header = {0}};
   struct emm_context_s *emm_ctx = NULL;
@@ -221,7 +221,7 @@ void _handle_apn_mismatch(ue_mm_context_t *const ue_context)
   esm_send_pdn_connectivity_reject(
     emm_ctx->esm_ctx.esm_proc_data->pti,
     &esm_msg.pdn_connectivity_reject,
-    ESM_CAUSE_REQUESTED_APN_NOT_SUPPORTED_IN_CURRENT_RAT);
+    esm_cause);
 
   int size =
     esm_msg_encode(&esm_msg, emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
@@ -285,7 +285,8 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
   // Because NAS knows APN selected by UE if any
   // default APN selection
   struct apn_configuration_s *apn_config =
-    mme_app_select_apn(ue_mm_context, emm_ctx->esm_ctx.esm_proc_data->apn);
+    mme_app_select_apn(ue_mm_context, emm_ctx->esm_ctx.esm_proc_data->apn,
+    emm_ctx->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
 
   if (!apn_config) {
     /*
@@ -300,7 +301,7 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
      * provided by HSS or if we fail to select the APN provided
      * by HSS,send Attach Reject to UE
      */
-    _handle_apn_mismatch(ue_mm_context);
+    _handle_apn_mismatch(ue_mm_context, esm_cause);
     return RETURNerror;
   }
 
@@ -354,7 +355,7 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
       apn_config->context_identifier,
       emm_ctx->esm_ctx.esm_proc_data->request_type,
       emm_ctx->esm_ctx.esm_proc_data->apn,
-      emm_ctx->esm_ctx.esm_proc_data->pdn_type,
+      apn_config->pdn_type,
       emm_ctx->esm_ctx.esm_proc_data->pdn_addr,
       &emm_ctx->esm_ctx.esm_proc_data->bearer_qos,
       (emm_ctx->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
@@ -602,7 +603,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
     esm_pdn_type,
     msg_pP->pdn_addr,
     &qos,
-    ESM_CAUSE_SUCCESS);
+    ue_mm_context->pdn_contexts[pdn_cid]->esm_data.esm_cause);
   clear_protocol_configuration_options(&msg_pP->pco);
   if (rc != RETURNerror) {
     /*

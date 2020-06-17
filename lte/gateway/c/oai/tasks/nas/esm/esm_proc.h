@@ -130,7 +130,7 @@ int esm_proc_pdn_connectivity_request(
   const context_identifier_t context_identifier,
   const esm_proc_pdn_request_t request_type,
   const_bstring const apn,
-  esm_proc_pdn_type_t pdn_type,
+  pdn_type_t pdn_type,
   const_bstring const pdn_addr,
   bearer_qos_t *default_qos,
   protocol_configuration_options_t *const pco,

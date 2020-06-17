@@ -305,6 +305,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     _esm_data.conf.features,
     esm_data->pdn_type);
   emm_context->emm_cause = ESM_CAUSE_SUCCESS;
+#if 0
   switch (_esm_data.conf.features & (MME_API_IPV4 | MME_API_IPV6)) {
     case (MME_API_IPV4 | MME_API_IPV6):
       /*
@@ -346,13 +347,14 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         _esm_data.conf.features,
         ue_id);
   }
-
+#endif
   if (is_standalone) {
     ue_mm_context_t* ue_mm_context_p =
       mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     //Select APN
     struct apn_configuration_s* apn_config = mme_app_select_apn(
-      ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
+      ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn,
+      emm_context->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */
@@ -361,7 +363,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         LOG_NAS_ESM,
         "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
         ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
     }
 
     /* Find a free PDN Connection ID*/
@@ -389,7 +391,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       apn_config->context_identifier,
       emm_context->esm_ctx.esm_proc_data->request_type,
       esm_data->apn,
-      esm_data->pdn_type,
+      apn_config->pdn_type,
       esm_data->pdn_addr,
       &esm_data->bearer_qos,
       (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?

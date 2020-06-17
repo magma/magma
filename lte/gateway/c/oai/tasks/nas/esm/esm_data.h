@@ -45,6 +45,7 @@ Description Defines internal private data handled by EPS Session
 #include "tree.h"
 #include "3gpp_24.007.h"
 #include "mme_api.h"
+#include "EsmCause.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -156,6 +157,7 @@ typedef struct esm_pdn_s {
   int n_bearers;    /* Number of allocated EPS bearers;
              * default EPS bearer is defined at index 0 */
   esm_pt_state_e pt_state; // procedure transaction state
+  esm_cause_t esm_cause;
 } esm_pdn_t;
 
 struct esm_proc_data_s;
