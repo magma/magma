@@ -16,19 +16,12 @@ import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 
+import {CardTitleRow} from './layout/CardTitleRow';
 import {colors} from '../theme/default';
 import {GpsFixed} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
-  cardTitleRow: {
-    marginBottom: theme.spacing(1),
-    minHeight: '36px',
-  },
-  cardTitleIcon: {
-    fill: colors.primary.comet,
-    marginRight: theme.spacing(1),
-  },
   eventsTable: {
     marginTop: theme.spacing(4),
   },
@@ -40,10 +33,7 @@ export default function() {
   return (
     <>
       {/* TODO: Can come back and make this a reusable component for other cards */}
-      <Grid container xs={12} className={classes.cardTitleRow}>
-        <GpsFixed className={classes.cardTitleIcon} />
-        <Text variant="body1">Events (388)</Text>
-      </Grid>
+      <CardTitleRow icon={GpsFixed} label="Events (388)" />
       <Grid zeroMinWidth container alignItems="center" spacing={4}>
         <Grid item xs={12} md={6} alignItems="center">
           <Paper elevation={0}>

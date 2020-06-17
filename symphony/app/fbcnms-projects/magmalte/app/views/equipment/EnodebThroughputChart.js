@@ -18,20 +18,13 @@ import moment from 'moment';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {colors} from '../../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
-  cardTitleRow: {
-    marginBottom: theme.spacing(1),
-    minHeight: '36px',
-  },
-  cardTitleIcon: {
-    fill: colors.primary.comet,
-    marginRight: theme.spacing(1),
-  },
   dateTimeText: {
     color: colors.primary.comet,
   },
@@ -48,49 +41,51 @@ export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
 
-  return (
-    <>
-      <Grid container alignItems="center" className={classes.cardTitleRow}>
-        <Grid container xs={6}>
-          <DataUsageIcon className={classes.cardTitleIcon} />
-          <Text variant="body1">{props.title}</Text>
+  function Filter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Date
+          </Text>
         </Grid>
-        <Grid item xs={6} className={classes.dateFilters}>
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <Text variant="body3" className={classes.dateTimeText}>
-                Filter By Date
-              </Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="outlined"
-                inputVariant="outlined"
-                maxDate={endDate}
-                disableFuture
-                value={startDate}
-                onChange={setStartDate}
-              />
-            </Grid>
-            <Grid item>
-              <Text variant="body3" className={classes.dateTimeText}>
-                to
-              </Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="outlined"
-                inputVariant="outlined"
-                disableFuture
-                value={endDate}
-                onChange={setEndDate}
-              />
-            </Grid>
-          </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            maxDate={endDate}
+            disableFuture
+            value={startDate}
+            onChange={setStartDate}
+          />
+        </Grid>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            to
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            disableFuture
+            value={endDate}
+            onChange={setEndDate}
+          />
         </Grid>
       </Grid>
+    );
+  }
+
+  return (
+    <>
+      <CardTitleFilterRow
+        icon={DataUsageIcon}
+        label={props.title}
+        filter={Filter}
+      />
       <Card elevation={0}>
         <CardHeader
           title={<Text variant="body2">Frequency of {props.title}</Text>}

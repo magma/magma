@@ -72,7 +72,7 @@ const useStyles = makeStyles(theme => ({
   },
   listItemRoot: {
     '&$selectedListItem': {
-      backgroundColor: 'lime',
+      backgroundColor: colors.primary.concrete,
     },
     '&:not(:last-child)': {
       marginBottom: '8px',

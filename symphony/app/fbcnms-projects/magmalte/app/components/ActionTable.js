@@ -22,26 +22,16 @@ import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import Text from '../theme/design-system/Text';
 
+import {CardTitleRow} from './layout/CardTitleRow';
 import {colors} from '../theme/default';
 import {forwardRef} from 'react';
-import {makeStyles} from '@material-ui/styles';
-
-const useStyles = makeStyles(theme => ({
-  cardTitleRow: {
-    marginBottom: theme.spacing(1),
-    minHeight: '36px',
-  },
-  cardTitleIcon: {
-    fill: colors.primary.comet,
-    marginRight: theme.spacing(1),
-  },
-}));
 
 const tableIcons = {
   Export: forwardRef((props, ref) => <SaveAlt {...props} ref={ref} />),
@@ -108,7 +98,6 @@ export type ActionTableProps<T> = {
 };
 
 export default function ActionTable<T>(props: ActionTableProps<T>) {
-  const classes = useStyles();
   const [anchorEl, setAnchorEl] = useState(null);
   const actionTableJSX = [];
 
@@ -126,16 +115,10 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
-      <Grid
-        container
-        alignItems="center"
-        className={classes.cardTitleRow}
-        key="title">
-        <TitleIcon className={classes.cardTitleIcon} />
-        <Text variant="body1">
-          {props.title} ({props.data.length})
-        </Text>
-      </Grid>,
+      <CardTitleRow
+        icon={TitleIcon}
+        label={`${props.title} (${props.data.length})`}
+      />,
     );
   }
   if (props.menuItems) {
@@ -168,6 +151,9 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
       {actionTableJSX}
       {/* TODO: How do I modify this component??? Such as changine paper elevation, search placement (should be toggle open/closed), etc. */}
       <MaterialTable
+        components={{
+          Container: props => <Paper {...props} elevation={0} />,
+        }}
         title=""
         columns={props.columns}
         icons={tableIcons}

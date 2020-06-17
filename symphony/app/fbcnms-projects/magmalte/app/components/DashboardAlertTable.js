@@ -22,20 +22,9 @@ import Text from '../theme/design-system/Text';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {Alarm} from '@material-ui/icons';
+import {CardTitleRow} from './layout/CardTitleRow';
 import {colors} from '../theme/default';
-import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-
-const useStyles = makeStyles(theme => ({
-  cardTitleRow: {
-    marginBottom: theme.spacing(1),
-    minHeight: '36px',
-  },
-  cardTitleIcon: {
-    fill: colors.primary.comet,
-    marginRight: theme.spacing(1),
-  },
-}));
 
 type AlertTable = {[string]: Array<RowData>};
 
@@ -49,7 +38,6 @@ const severityMap: {[string]: Severity} = {
 };
 
 export default function() {
-  const classes = useStyles();
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
 
@@ -97,10 +85,7 @@ export default function() {
 
   return (
     <>
-      <Grid container alignItems="center" className={classes.cardTitleRow}>
-        <Alarm className={classes.cardTitleIcon} />
-        <Text variant="body1">Alerts ({alerts.length})</Text>
-      </Grid>
+      <CardTitleRow icon={Alarm} label={`Alerts (${alerts.length})`} />
       <TabbedTable data={data} />
     </>
   );

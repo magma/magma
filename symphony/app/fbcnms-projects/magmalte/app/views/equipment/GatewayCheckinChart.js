@@ -17,29 +17,19 @@ import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 import Text from '../../theme/design-system/Text';
-import {colors} from '../../theme/default';
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
-  cardTitleRow: {
-    marginBottom: theme.spacing(1),
-    minHeight: '36px',
-  },
-  cardTitleIcon: {
-    fill: colors.primary.comet,
-    marginRight: theme.spacing(1),
-  },
   dateTimeText: {
     color: colors.primary.comet,
   },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 150,
-  },
-  cardFilters: {
-    marginBottom: theme.spacing(1),
   },
 }));
 
@@ -78,38 +68,34 @@ export default function() {
       align: 'end',
     },
   };
-  return (
-    <>
-      <Grid container alignItems="center">
-        <Grid item xs={6}>
-          <Grid container alignItems="center" className={classes.cardTitleRow}>
-            <DataUsageIcon className={classes.cardTitleIcon} />
-            <Text variant="body1">Gateway Check-Ins</Text>
-          </Grid>
+
+  function Filter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Time
+          </Text>
         </Grid>
-        <Grid item xs={6}>
-          <Grid
-            container
-            justify="flex-end"
-            alignItems="center"
-            className={classes.cardFilters}
-            spacing={1}>
-            <Grid item>
-              <Text variant="body3" className={classes.dateTimeText}>
-                Filter By Time
-              </Text>
-            </Grid>
-            <Grid item>
-              <TimeRangeSelector
-                variant="outlined"
-                className={classes.formControl}
-                value={timeRange}
-                onChange={setTimeRange}
-              />
-            </Grid>
-          </Grid>
+        <Grid item>
+          <TimeRangeSelector
+            variant="outlined"
+            className={classes.formControl}
+            value={timeRange}
+            onChange={setTimeRange}
+          />
         </Grid>
       </Grid>
+    );
+  }
+
+  return (
+    <>
+      <CardTitleFilterRow
+        icon={DataUsageIcon}
+        label="Gateway Check-Ins"
+        filter={Filter}
+      />
       <Card elevation={0}>
         <CardHeader
           title={<Text variant="body2">{state.title}</Text>}
