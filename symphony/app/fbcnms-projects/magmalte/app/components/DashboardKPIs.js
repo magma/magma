@@ -32,7 +32,6 @@ export default function() {
 
   return (
     <>
-      {/* TODO: Can come back and make this a reusable component for other cards */}
       <CardTitleRow icon={GpsFixed} label="Events (388)" />
       <Grid zeroMinWidth container alignItems="center" spacing={4}>
         <Grid item xs={12} md={6} alignItems="center">
