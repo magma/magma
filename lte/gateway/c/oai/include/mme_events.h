@@ -33,6 +33,22 @@ extern "C" {
  */
 int event_client_init(void);
 
+/**
+ * Logs Attach successful event
+ * @param imsi
+ * @return response code
+ */
+int attach_successful(imsi64_t imsi64);
+
+/**
+ * Logs Detach successful event
+ * @param imsi
+ * @param action
+ * @return response code
+ */
+int detach_successful(imsi64_t imsi64, const char* action);
+
 #ifdef __cplusplus
 }
 #endif
+

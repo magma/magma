@@ -38,3 +38,9 @@ event_registry:
   disconnected_sync_rpc_stream:
     module: orc8r
     filename: magmad_events.v1.yml
+  attach_successful:
+    module: lte
+    filename: mme_events.v1.yml
+  detach_successful:
+    module: lte
+    filename: mme_events.v1.yml

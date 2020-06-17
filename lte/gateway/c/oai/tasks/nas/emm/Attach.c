@@ -58,16 +58,26 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "mme_events.h"
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
 #include "log.h"
 #include "nas_timer.h"
 #include "common_types.h"
+#include "conversions.h"
+#include "service303.h"
+#include "common_defs.h"
+#include "mme_app_state.h"
+#include "mme_app_defs.h"
+#include "nas_procedures.h"
+
 #include "3gpp_24.008.h"
 #include "3gpp_36.401.h"
-#include "conversions.h"
+#include "3gpp_23.003.h"
+#include "3gpp_24.301.h"
 #include "3gpp_requirements_24.301.h"
+
 #include "nas_message.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
@@ -77,27 +87,21 @@
 #include "esm_sapDef.h"
 #include "esm_sap.h"
 #include "emm_cause.h"
-#include "mme_config.h"
-#include "mme_app_itti_messaging.h"
-#include "service303.h"
-#include "common_ies.h"
-#include "3gpp_23.003.h"
-#include "3gpp_24.301.h"
-#include "AdditionalUpdateType.h"
-#include "EmmCause.h"
-#include "EpsNetworkFeatureSupport.h"
-#include "TrackingAreaIdentity.h"
-#include "TrackingAreaIdentityList.h"
-#include "common_defs.h"
 #include "emm_asDef.h"
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
 #include "emm_regDef.h"
 #include "esm_data.h"
-#include "mme_app_state.h"
-#include "nas_procedures.h"
-#include "dynamic_memory_check.h"
-#include "mme_app_defs.h"
+#include "mme_config.h"
+#include "mme_app_itti_messaging.h"
+#include "common_ies.h"
+
+#include "AdditionalUpdateType.h"
+#include "EmmCause.h"
+#include "EpsNetworkFeatureSupport.h"
+#include "TrackingAreaIdentity.h"
+#include "TrackingAreaIdentityList.h"
+
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -795,6 +799,7 @@ int emm_proc_attach_complete(
         ue_id);
       emm_proc_emm_informtion(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
+      attach_successful(ue_mm_context->emm_context._imsi64);
     }
   } else if (esm_sap.err != ESM_SAP_DISCARDED) {
     /*

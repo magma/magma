@@ -1,0 +1,24 @@
+
+---
+swagger: '2.0'
+
+info:
+  title: MME event definitions
+  description: These events occur in MME task
+  version: 1.0.0
+
+definitions:
+  attach_successful:
+    type: object
+    description: Used to track when UE attaches successfully
+    properties:
+      imsi:
+        type: string
+  detach_successful:
+    type: object
+    description: Used to track when UE detaches successfully
+    properties:
+      imsi:
+        type: string
+      action:
+        type: string
