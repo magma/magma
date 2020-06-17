@@ -12,10 +12,18 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/testcore/mock_driver"
 
 	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/golang/glog"
 )
+
+func (c ccrCredit) String() string {
+	unit := c.UsedServiceUnit
+	return fmt.Sprintf("RG=%v, Reason=%v Usage=(%v,%v,%v), Used-Service-Unit-Reason=%v",
+		c.RatingGroup, c.ReportingReason, unit.InputOctets, unit.OutputOctets, unit.TotalOctets, unit.ReportingReason)
+}
 
 // Here we wrap the protobuf definitions to easily define instance methods
 type GyExpectation struct {
@@ -46,8 +54,9 @@ func (e GyExpectation) DoesMatch(message interface{}) error {
 			return err
 		}
 	}
-	if !compareMsccAgainstExpected(ccr.MSCC, expected.GetMscc(), expected.GetUsageReportDelta()) {
-		return fmt.Errorf("For Request=%v, Expected: %v, Received: %v", actualPK, expected.GetMscc(), ccr.MSCC)
+	msccByKey := toActualCreditByKey(ccr.MSCC)
+	if !compareMsccAgainstExpected(msccByKey, expected.GetMscc(), expected.GetUsageReportDelta()) {
+		return fmt.Errorf("For Request=%v, Expected: %v, Received: %v", actualPK, expected.GetMscc(), msccByKey)
 	}
 	return nil
 }
@@ -69,14 +78,13 @@ func (answer GyAnswer) toAVPs() ([]*diam.AVP, uint32) {
 	return avps, answer.GetResultCode()
 }
 
-func compareMsccAgainstExpected(actualMscc []*ccrCredit, expectedMscc []*protos.MultipleServicesCreditControl, delta uint64) bool {
+func compareMsccAgainstExpected(actualMscc map[uint32]ccrCredit, expectedMscc []*protos.MultipleServicesCreditControl, delta uint64) bool {
 	if expectedMscc == nil {
 		return true
 	}
 	expectedCreditByKey := toExpectedCreditByKey(expectedMscc)
-	actualCreditByKey := toActualCreditByKey(actualMscc)
 	for rg, expectedCredit := range expectedCreditByKey {
-		actualCredit, exists := actualCreditByKey[rg]
+		actualCredit, exists := actualMscc[rg]
 		if !exists {
 			return false
 		}
@@ -84,6 +92,14 @@ func compareMsccAgainstExpected(actualMscc []*ccrCredit, expectedMscc []*protos.
 		expectedTotal := expectedCredit.UsedServiceUnit.TotalOctets
 		if !mock_driver.EqualWithinDelta(actualTotal, expectedTotal, delta) {
 			return false
+		}
+		switch gy.UsedCreditsType(expectedCredit.UpdateType) {
+		case gy.VALIDITY_TIMER_EXPIRED, gy.FINAL:
+			return expectedCredit.UpdateType == int32(actualCredit.ReportingReason)
+		case gy.QUOTA_EXHAUSTED:
+			return expectedCredit.UpdateType == int32(actualCredit.UsedServiceUnit.ReportingReason)
+		default:
+			return true
 		}
 	}
 	return true
@@ -97,10 +113,17 @@ func toExpectedCreditByKey(mscc []*protos.MultipleServicesCreditControl) map[uin
 	return msccByRG
 }
 
-func toActualCreditByKey(mscc []*ccrCredit) map[uint32]*ccrCredit {
-	msccByRG := map[uint32]*ccrCredit{}
+func toActualCreditByKey(mscc []*ccrCredit) map[uint32]ccrCredit {
+	msccByRG := map[uint32]ccrCredit{}
+	if mscc == nil {
+		return msccByRG
+	}
 	for _, credit := range mscc {
-		msccByRG[credit.RatingGroup] = credit
+		if credit == nil {
+			glog.Errorf("Received a nil MSCC... Skipping")
+			continue
+		}
+		msccByRG[credit.RatingGroup] = *credit
 	}
 	return msccByRG
 }

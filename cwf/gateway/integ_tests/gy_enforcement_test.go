@@ -20,6 +20,7 @@ import (
 	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
+	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -157,6 +158,57 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
+}
+
+func TestGyCreditValidityTime(t *testing.T) {
+	fmt.Println("\nRunning TestGyCreditValidityTime...")
+
+	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 5 * MegaBytes,
+		},
+		ValidityTime:  3, // seconds
+		IsFinalCredit: false,
+		ResultCode:    2001,
+	}
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	// We expect an update request with some usage update but not the full quota < 5MB
+	mscc := &fegprotos.MultipleServicesCreditControl{
+		RatingGroup:     1,
+		UsedServiceUnit: &fegprotos.Octets{TotalOctets: 500 * KiloBytes},
+		UpdateType:      int32(lteprotos.CreditUsage_VALIDITY_TIMER_EXPIRED),
+	}
+	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE).
+		SetMSCC(mscc).SetMSCCDelta(250 * KiloBytes)
+	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1}
+
+	// On unexpected requests, just return the default update answer
+	assert.NoError(t, setOCSExpectations(expectations, updateAnswer1))
+
+	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+	// Generate some traffic but not enough to trigger a quota update request
+	// We want the update type to be VALIDITY TIMER EXPIRED
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
+	_, err := tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	time.Sleep(time.Second * 5)
+	tr.AssertAllGyExpectationsMetNoError()
+	tr.DisconnectAndAssertSuccess(ue.GetImsi())
 }
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
