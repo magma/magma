@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 76ae6cff4692b4ce3f61b902604fcb7f
+ * @relayHash 0c4086de4f6cc617dfc26cfdcdcf1ff9
  */
 
 /* eslint-disable */
@@ -18,8 +18,8 @@ import type { ConcreteRequest } from 'relay-runtime';
 export type UserRole = "ADMIN" | "OWNER" | "USER" | "%future added value";
 export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
-export type UserManagementContextQueryVariables = {||};
-export type UserManagementContextQueryResponse = {|
+export type UsersQueryVariables = {||};
+export type UsersQueryResponse = {|
   +users: ?{|
     +edges: $ReadOnlyArray<{|
       +node: ?{|
@@ -40,15 +40,15 @@ export type UserManagementContextQueryResponse = {|
     |}>
   |}
 |};
-export type UserManagementContextQuery = {|
-  variables: UserManagementContextQueryVariables,
-  response: UserManagementContextQueryResponse,
+export type UsersQuery = {|
+  variables: UsersQueryVariables,
+  response: UsersQueryResponse,
 |};
 */
 
 
 /*
-query UserManagementContextQuery {
+query UsersQuery {
   users(first: 500) {
     edges {
       node {
@@ -230,7 +230,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "UserManagementContextQuery",
+    "name": "UsersQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": [],
@@ -238,7 +238,7 @@ return {
       {
         "kind": "LinkedField",
         "alias": "users",
-        "name": "__UserManagementContext_users_connection",
+        "name": "__Users_users_connection",
         "storageKey": null,
         "args": null,
         "concreteType": "UserConnection",
@@ -249,7 +249,7 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "UserManagementContextQuery",
+    "name": "UsersQuery",
     "argumentDefinitions": [],
     "selections": [
       {
@@ -268,16 +268,16 @@ return {
         "name": "users",
         "args": (v3/*: any*/),
         "handle": "connection",
-        "key": "UserManagementContext_users",
+        "key": "Users_users",
         "filters": null
       }
     ]
   },
   "params": {
     "operationKind": "query",
-    "name": "UserManagementContextQuery",
+    "name": "UsersQuery",
     "id": null,
-    "text": "query UserManagementContextQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n          description\n          status\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query UsersQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n          description\n          status\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -294,5 +294,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'b62abcdd192cb434b0b0057415a4be5c';
+(node/*: any*/).hash = '54d6b28dfd92b7fe7120702e142658a0';
 module.exports = node;

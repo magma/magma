@@ -9,21 +9,16 @@
  * @format
  */
 
-import type {
-  EntsMap,
-  OptionalRefTypeWrapper,
-} from '../../../../common/EntUtils';
-import type {
-  UserManagementContextQueryResponse,
-  UserRole,
-  UserStatus,
-  UsersGroupStatus,
-} from '../__generated__/UserManagementContextQuery.graphql';
+import type {OptionalRefTypeWrapper} from '../../../../common/EntUtils';
 import type {UserManagementUtils_user} from './__generated__/UserManagementUtils_user.graphql';
 import type {UserManagementUtils_user_base} from './__generated__/UserManagementUtils_user_base.graphql';
+import type {
+  UserRole,
+  UserStatus,
+} from './__generated__/UserManagementUtils_user.graphql';
+import type {UsersGroupStatus} from './__generated__/UserManagementUtils_group.graphql';
 
 import fbt from 'fbt';
-import {ent2EntsMap} from '../../../../common/EntUtils';
 import {graphql} from 'relay-runtime';
 
 graphql`
@@ -282,44 +277,6 @@ export const POLICY_TYPES: KeyValueEnum<PolicyTypes> = {
     value: `${fbt('Workforce', '')}`,
   },
 };
-
-type UsersReponsePart = $ElementType<
-  UserManagementContextQueryResponse,
-  'users',
->;
-type UsersEdgesResponsePart = $ElementType<
-  $NonMaybeType<UsersReponsePart>,
-  'edges',
->;
-type UserNodeReponseFieldsPart = $ElementType<UsersEdgesResponsePart, number>;
-type UsersReponseFieldsPart = $NonMaybeType<
-  $ElementType<$NonMaybeType<UserNodeReponseFieldsPart>, 'node'>,
->;
-
-export const userResponse2User: UsersReponseFieldsPart => User = (
-  userNode: UsersReponseFieldsPart,
-) => ({
-  id: userNode.id,
-  authID: userNode.authID,
-  email: userNode.email,
-  firstName: userNode.firstName,
-  lastName: userNode.lastName,
-  role: userNode.role,
-  status: userNode.status,
-  groups: /* userNode.groups ?? */ [],
-});
-
-export const usersResponse2Users = (usersResponse: UsersReponsePart) =>
-  usersResponse?.edges == null
-    ? []
-    : usersResponse?.edges
-        .filter(Boolean)
-        .map(ur => ur.node)
-        .filter(Boolean)
-        .map<User>(userResponse2User);
-
-export type UsersMap = EntsMap<User>;
-export const users2UsersMap = (users: Array<User>) => ent2EntsMap<User>(users);
 
 export const userFullName = (user: $Shape<User>) =>
   `${user.firstName} ${user.lastName}`.trim() || '_';

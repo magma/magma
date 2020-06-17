@@ -8,8 +8,6 @@
  * @format
  */
 
-// import type {PermissionsPoliciesViewQuery} from './__generated__/PermissionsPoliciesViewQuery.graphql';
-// import type {PermissionsPolicy} from '../utils/UserManagementUtils';
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
 
@@ -21,14 +19,9 @@ import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {POLICY_TYPES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
-// import {permissionsPoliciesResponse2PermissionsPolicies} from '../utils/UserManagementUtils';
-import {useRouter} from '@fbcnms/ui/hooks';
-// import {useState} from 'react';
-// import {useUserManagement} from '../UserManagementContext';
-// import {graphql} from 'relay-runtime';
-// import {useLazyLoadQuery} from 'react-relay/hooks';
 import {useMemo} from 'react';
 import {usePermissionsPolicies} from '../data/PermissionsPolicies';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 export const PERMISSION_POLICIES_VIEW_NAME = fbt(
   'Polices',

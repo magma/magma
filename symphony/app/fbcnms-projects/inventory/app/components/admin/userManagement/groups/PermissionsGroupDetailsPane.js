@@ -9,7 +9,7 @@
  */
 
 import type {UsersGroup} from '../data/UsersGroups';
-import type {UsersGroupStatus} from '../__generated__/UserManagementContextQuery.graphql';
+import type {UsersGroupStatus} from '../data/__generated__/PermissionsPoliciesSearchQuery.graphql';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';

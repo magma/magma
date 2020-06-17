@@ -16,8 +16,8 @@ import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
 import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useMemo} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 import {useUsersGroups} from '../data/UsersGroups';
 
 export const PERMISSION_GROUPS_VIEW_NAME = fbt(
@@ -38,7 +38,6 @@ const useStyles = makeStyles(() => ({
 }));
 
 type GroupTableRow = TableRowDataType<UsersGroup>;
-type GroupTableData = Array<GroupTableRow>;
 
 const group2GroupTableRow: (
   UsersGroup | GroupTableRow,
@@ -51,9 +50,7 @@ export default function PermissionsGroupsView() {
   const classes = useStyles();
   const {history} = useRouter();
   const groups = useUsersGroups();
-  const [groupsTable, _setGroupsTable] = useState<GroupTableData>(
-    groups.map(group2GroupTableRow),
-  );
+  const groupsTable = useMemo(() => groups.map(group2GroupTableRow), [groups]);
 
   const columns = [
     {

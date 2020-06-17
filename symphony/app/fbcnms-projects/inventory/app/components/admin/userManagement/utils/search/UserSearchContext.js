@@ -16,7 +16,6 @@ import RelayEnvironment from '../../../../../common/RelayEnvironment';
 import createSearchContext from './SearchContext';
 import {USER_STATUSES} from '../UserManagementUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
-import {userResponse2User} from '../UserManagementUtils';
 
 const userSearchQuery = graphql`
   query UserSearchContextQuery($filters: [UserFilterInput!]!) {
@@ -46,9 +45,7 @@ const searchCallback = (searchTerm: string) =>
     if (response?.userSearch == null) {
       return [];
     }
-    return response.userSearch.users.filter(Boolean).map(userNode => {
-      return userResponse2User(userNode);
-    });
+    return response.userSearch.users.filter(Boolean);
   });
 
 const {

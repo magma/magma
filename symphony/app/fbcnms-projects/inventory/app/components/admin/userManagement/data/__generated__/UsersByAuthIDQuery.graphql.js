@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 5291309aee4f30261773a31fbcff12e7
+ * @relayHash 6f056f173b0f862f6d7afb0d6f584c90
  */
 
 /* eslint-disable */
@@ -15,23 +15,23 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type UserManagementContext_UserQueryVariables = {|
+export type UsersByAuthIDQueryVariables = {|
   authID: string
 |};
-export type UserManagementContext_UserQueryResponse = {|
+export type UsersByAuthIDQueryResponse = {|
   +user: ?{|
     +id: string
   |}
 |};
-export type UserManagementContext_UserQuery = {|
-  variables: UserManagementContext_UserQueryVariables,
-  response: UserManagementContext_UserQueryResponse,
+export type UsersByAuthIDQuery = {|
+  variables: UsersByAuthIDQueryVariables,
+  response: UsersByAuthIDQueryResponse,
 |};
 */
 
 
 /*
-query UserManagementContext_UserQuery(
+query UsersByAuthIDQuery(
   $authID: String!
 ) {
   user(authID: $authID) {
@@ -79,7 +79,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "UserManagementContext_UserQuery",
+    "name": "UsersByAuthIDQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": (v0/*: any*/),
@@ -87,19 +87,19 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "UserManagementContext_UserQuery",
+    "name": "UsersByAuthIDQuery",
     "argumentDefinitions": (v0/*: any*/),
     "selections": (v1/*: any*/)
   },
   "params": {
     "operationKind": "query",
-    "name": "UserManagementContext_UserQuery",
+    "name": "UsersByAuthIDQuery",
     "id": null,
-    "text": "query UserManagementContext_UserQuery(\n  $authID: String!\n) {\n  user(authID: $authID) {\n    id\n  }\n}\n",
+    "text": "query UsersByAuthIDQuery(\n  $authID: String!\n) {\n  user(authID: $authID) {\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'f98277cf4d6a1afbf4e1b674bb2e2012';
+(node/*: any*/).hash = 'a242fdd9ce8fb33496aab66755ad0186';
 module.exports = node;

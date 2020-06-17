@@ -26,12 +26,12 @@ import {
   USER_STATUSES,
   userFullName,
 } from '../utils/UserManagementUtils';
+import {editUser, useUsers} from '../data/Users';
 import {haveDifferentValues} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory, useRouteMatch} from 'react-router-dom';
-import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -52,7 +52,6 @@ const useStyles = makeStyles(() => ({
 }));
 
 type UserTableRow = TableRowDataType<{|data: User|}>;
-type UserTableData = Array<UserTableRow>;
 
 const user2UserTableRow: User => UserTableRow = user => ({
   key: user.authID,
@@ -64,9 +63,8 @@ function UsersTable() {
   const history = useHistory();
   const match = useRouteMatch();
 
-  const [usersTableData, setUsersTableData] = useState<UserTableData>([]);
-  const {users, editUser} = useUserManagement();
-  useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
+  const users = useUsers();
+  const usersTableData = useMemo(() => users.map(user2UserTableRow), [users]);
   const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
 
   const userRow2UserRole = useCallback(
@@ -154,7 +152,7 @@ function UsersTable() {
         }}
       />
     );
-  }, [activeUserId, editUser, handleError, users]);
+  }, [activeUserId, handleError, users]);
 
   const navigateToUser = useCallback(
     userId => {
