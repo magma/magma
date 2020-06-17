@@ -302,15 +302,22 @@ export function permissionRuleValue2Bool(value: PermissionValue) {
 }
 
 function response2PermissionsPolicy(
-  policyResponse: PermissionsPolicyRaw,
+  policyResponse: PermissionsPolicyRaw | PermissionsPolicyBase,
 ): PermissionsPolicy {
   const {__typename: type, ...policyRules} = policyResponse.policy;
   return {
+    groups: [],
     ...policyResponse,
     type,
     inventoryRules: tryGettingInventoryPolicy(policyRules),
     workforceRules: tryGettingWorkforcePolicy(policyRules),
   };
+}
+
+export function wrapRawPermissionsPolicies(
+  rawPolicies: $ReadOnlyArray<PermissionsPolicyRaw | PermissionsPolicyBase>,
+): Array<PermissionsPolicy> {
+  return rawPolicies.map(policy => response2PermissionsPolicy(policy));
 }
 
 export const EMPTY_POLICY = {
@@ -319,12 +326,11 @@ export const EMPTY_POLICY = {
 
 function response2PermissionsPolicies(
   policiesResponse: PermissionsPoliciesQueryResponse,
-): $ReadOnlyArray<PermissionsPolicy> {
+): Array<PermissionsPolicy> {
   const policiesData = policiesResponse.permissionsPolicies?.edges || [];
-  const policies = policiesData
-    .map(p => p.node)
-    .filter(Boolean)
-    .map(node => response2PermissionsPolicy(node));
+  const policies = wrapRawPermissionsPolicies(
+    policiesData.map(p => p.node).filter(Boolean),
+  );
 
   policies.unshift({
     id: 'system_workorder',

@@ -9,7 +9,10 @@
  */
 
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
-import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
+import type {
+  TableDesignProps,
+  TableRowDataType,
+} from '@fbcnms/ui/components/design-system/Table/Table';
 
 import * as React from 'react';
 import LockIcon from '@fbcnms/ui/components/design-system/Icons/Indications/LockIcon';
@@ -71,78 +74,93 @@ const getPolicyType = (PolicyRow: PolicyTableRow) => {
 type Props = $ReadOnly<{|
   policies: $ReadOnlyArray<PermissionsPolicy>,
   onPolicySelected?: ?(string) => void,
+  showGroupsColumn?: ?boolean,
+  ...TableDesignProps,
 |}>;
 
 export default function PermissionsPoliciesTable(props: Props) {
-  const {policies, onPolicySelected} = props;
+  const {policies, onPolicySelected, showGroupsColumn, ...tableDesign} = props;
   const policiesTable = useMemo(() => policies.map(policy2PolicyTableRow), [
     policies,
   ]);
 
   const classes = useStyles();
 
-  const columns = [
-    {
-      key: 'name',
-      title: (
-        <fbt desc="Policy Name column header in permission policies table">
-          Policy Name
-        </fbt>
-      ),
-      getSortingValue: PolicyRow => PolicyRow.name,
-      render: PolicyRow => (
-        <div className={classes.nameCell}>
-          {PolicyRow.isSystemDefault && <LockIcon color="inherit" />}
-          <span>{PolicyRow.name}</span>
-        </div>
-      ),
-    },
-    {
-      key: 'description',
-      title: (
-        <fbt desc="Description column header in permission policies table">
-          Description
-        </fbt>
-      ),
-      getSortingValue: PolicyRow => PolicyRow.description,
-      render: PolicyRow => (
-        <>
-          {PolicyRow.isSystemDefault && (
-            <Text variant="body2" className={classes.defaultPolicyPrefix}>
-              {SYSTEM_DEFAULT_POLICY_PREFIX}:
-            </Text>
-          )}
-          {PolicyRow.description}
-        </>
-      ),
-      titleClassName: classes.wideColumn,
-      className: classes.wideColumn,
-    },
-    {
-      key: 'type',
-      title: (
-        <fbt desc="Policy Type column header in permission policies table">
-          Policy Type
-        </fbt>
-      ),
-      getSortingValue: getPolicyType,
-      render: getPolicyType,
-      titleClassName: classes.narrowColumn,
-      className: classes.narrowColumn,
-    },
-    {
-      key: 'groups',
-      title: (
-        <fbt desc="Gropus Applied column header in permission groups table">
-          Groups Applied
-        </fbt>
-      ),
-      getSortingValue: getPolicyUsersCount,
-      render: getPolicyUsersCount,
-      titleClassName: classes.narrowColumn,
-      className: classes.narrowColumn,
-    },
-  ];
+  const columns = useMemo(() => {
+    const cols = [
+      {
+        key: 'name',
+        title: (
+          <fbt desc="Policy Name column header in permission policies table">
+            Policy Name
+          </fbt>
+        ),
+        getSortingValue: PolicyRow => PolicyRow.name,
+        render: PolicyRow => (
+          <div className={classes.nameCell}>
+            {PolicyRow.isSystemDefault && <LockIcon color="inherit" />}
+            <span>{PolicyRow.name}</span>
+          </div>
+        ),
+      },
+      {
+        key: 'description',
+        title: (
+          <fbt desc="Description column header in permission policies table">
+            Description
+          </fbt>
+        ),
+        getSortingValue: PolicyRow => PolicyRow.description,
+        render: PolicyRow => (
+          <>
+            {PolicyRow.isSystemDefault && (
+              <Text variant="body2" className={classes.defaultPolicyPrefix}>
+                {SYSTEM_DEFAULT_POLICY_PREFIX}:
+              </Text>
+            )}
+            {PolicyRow.description}
+          </>
+        ),
+        titleClassName: classes.wideColumn,
+        className: classes.wideColumn,
+      },
+      {
+        key: 'type',
+        title: (
+          <fbt desc="Policy Type column header in permission policies table">
+            Policy Type
+          </fbt>
+        ),
+        getSortingValue: getPolicyType,
+        render: getPolicyType,
+        titleClassName: classes.narrowColumn,
+        className: classes.narrowColumn,
+      },
+    ];
+
+    if (showGroupsColumn !== false) {
+      cols.push({
+        key: 'groups',
+        title: (
+          <fbt desc="Groups Applied column header in permission groups table">
+            Groups Applied
+          </fbt>
+        ),
+        getSortingValue: getPolicyUsersCount,
+        render: getPolicyUsersCount,
+        titleClassName: classes.narrowColumn,
+        className: classes.narrowColumn,
+      });
+    }
+
+    return cols;
+  }, [
+    classes.defaultPolicyPrefix,
+    classes.nameCell,
+    classes.narrowColumn,
+    classes.wideColumn,
+    showGroupsColumn,
+  ]);
 
   return (
     <Table
@@ -153,6 +171,7 @@ export default function PermissionsPoliciesTable(props: Props) {
         }
       }}
       columns={columns}
+      {...tableDesign}
     />
   );
 }

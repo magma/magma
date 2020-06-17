@@ -110,6 +110,13 @@ export const TABLE_VARIANT_TYPES = {
 };
 export type TableVariantTypes = $Keys<typeof TABLE_VARIANT_TYPES>;
 
+export type TableDesignProps = $ReadOnly<{|
+  showSelection?: boolean,
+  className?: string,
+  variant?: TableVariantTypes,
+  dataRowsSeparator?: RowsSeparationTypes,
+  dataRowClassName?: string,
+|}>;
 /*
   detailsCard:
     When passed, will be shown on as part of the table content.
@@ -120,16 +127,12 @@ type Props<T> = $ReadOnly<{|
   ...TableHeaderData<T>,
   data: $ReadOnlyArray<TableRowDataType<T>>,
   sortSettings?: ?TableSortSettings,
-  showSelection?: boolean,
-  className?: string,
-  variant?: TableVariantTypes,
-  dataRowsSeparator?: RowsSeparationTypes,
-  dataRowClassName?: string,
   selectedIds?: Array<TableRowId>,
   onSelectionChanged?: SelectionCallbackType,
   activeRowId?: NullableTableRowId,
   onActiveRowIdChanged?: ActiveCallbackType,
   detailsCard?: ?React.Node,
+  ...TableDesignProps,
 |}>;
 
 const Table = <T>(props: Props<T>) => {

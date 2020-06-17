@@ -12,28 +12,47 @@ import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
-import ViewHeader from '@fbcnms/ui/components/design-system/View/ViewHeader';
-import classNames from 'classnames';
+import PermissionsPoliciesTable from '../policies/PermissionsPoliciesTable';
+import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
-import {makeStyles} from '@material-ui/styles';
+import {ROW_SEPARATOR_TYPES} from '@fbcnms/ui/components/design-system/Table/TableContent';
+import {TABLE_VARIANT_TYPES} from '@fbcnms/ui/components/design-system/Table/Table';
+import {useMemo} from 'react';
+import {wrapRawPermissionsPolicies} from '../data/PermissionsPolicies';
 
-const useStyles = makeStyles(() => ({}));
-
-type Props = {
+type Props = $ReadOnly<{|
   group: UsersGroup,
   className?: ?string,
-};
+|}>;
 
 export default function PermissionsGroupPoliciesPane({
   group,
   className,
 }: Props) {
-  const classes = useStyles();
+  const policies = useMemo(() => wrapRawPermissionsPolicies(group.policies), [
+    group.policies,
+  ]);
 
   return (
-    <Card className={classNames(classes.root, className)} margins="none">
-      <ViewHeader title={<fbt desc="">Policies</fbt>} />
-      {group.name} Policies
+    <Card className={className} margins="none">
+      <ViewContainer
+        header={{
+          title: <fbt desc="">Policies</fbt>,
+          subtitle: (
+            <fbt desc="">
+              Add policies to apply them on members in this group.
+            </fbt>
+          ),
+        }}>
+        {policies.length > 0 ? (
+          <PermissionsPoliciesTable
+            policies={policies}
+            showGroupsColumn={false}
+            variant={TABLE_VARIANT_TYPES.embedded}
+            dataRowsSeparator={ROW_SEPARATOR_TYPES.border}
+          />
+        ) : null}
+      </ViewContainer>
     </Card>
   );
 }
