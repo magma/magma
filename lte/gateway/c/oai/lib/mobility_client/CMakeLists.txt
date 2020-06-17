@@ -48,9 +48,10 @@ target_link_libraries(LIB_MOBILITY_CLIENT
         COMMON
         LIB_BSTR
         LIB_PCEF
+        ${ASYNC_GRPC} ${SERVICE_REGISTRY}
 )
 
 target_include_directories(LIB_MOBILITY_CLIENT PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-    ASYNC_GRPC COMMON
+    ASYNC_GRPC COMMON SERVICE_REGISTRY
 )
