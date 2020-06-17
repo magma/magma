@@ -106,7 +106,7 @@ const ActivityPost = (props: Props) => {
                 {activity.changedField.toLowerCase()}
               </span>
             </fbt:param>
-            to be{' '}
+            to{' '}
             <fbt:param name="new value">
               {genActivityValueComponent(newVal)}
             </fbt:param>
@@ -115,6 +115,24 @@ const ActivityPost = (props: Props) => {
       );
     }
     if (newVal === '') {
+      if (oldValNode && oldValNode?.__typename === 'User') {
+        return (
+          <span>
+            <fbt desc="">
+              removed{' '}
+              <fbt:param name="old value">
+                {genActivityValueComponent(oldVal)}
+              </fbt:param>
+              as an
+              <fbt:param name="changed field">
+                <span className={classes.fieldName}>
+                  {activity.changedField.toLowerCase()}
+                </span>
+              </fbt:param>
+            </fbt>
+          </span>
+        );
+      }
       return (
         <span>
           <fbt desc="">
