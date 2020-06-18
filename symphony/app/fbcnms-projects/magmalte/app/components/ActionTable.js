@@ -149,7 +149,6 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   return (
     <>
       {actionTableJSX}
-      {/* TODO: How do I modify this component??? Such as changine paper elevation, search placement (should be toggle open/closed), etc. */}
       <MaterialTable
         components={{
           Container: props => <Paper {...props} elevation={0} />,
