@@ -585,13 +585,10 @@ void SessionState::insert_gy_dynamic_rule(
                  <<" (gy dynamic rule), but it already existed";
     return;
   }
-  update_criteria.gy_dynamic_rules_to_install.push_back(rule);
   rule_lifetimes_[rule.id()] = lifetime;
   gy_dynamic_rules_.insert_rule(rule);
-  update_criteria.dynamic_rules_to_install.push_back(rule);
+  update_criteria.gy_dynamic_rules_to_install.push_back(rule);
   update_criteria.new_rule_lifetimes[rule.id()] = lifetime;
-
-
 }
 
 void SessionState::activate_static_rule(
