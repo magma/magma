@@ -1,0 +1,180 @@
+{
+  "updateTime": 1591954707133,
+  "name": "Equipment sample workflow",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "Add location type",
+      "taskReferenceName": "add_locType",
+      "inputParameters": {
+        "server": "${workflow.input.server}",
+        "user": "${workflow.input.user}",
+        "tenant": "${workflow.input.tenant}",
+        "role": "${workflow.input.role}",
+        "mutation": "mutation addLocationType { addLocationType(input: {name:\"${workflow.input.locationTypeName}\"}) { id } }"
+      },
+      "type": "SUB_WORKFLOW",
+      "startDelay": 0,
+      "subWorkflowParam": {
+        "name": "GraphQL mutation",
+        "version": 1
+      },
+      "optional": false,
+      "asyncComplete": false
+    },
+    {
+      "name": "Add root location",
+      "taskReferenceName": "add_loc",
+      "inputParameters": {
+        "server": "${workflow.input.server}",
+        "user": "${workflow.input.user}",
+        "tenant": "${workflow.input.tenant}",
+        "role": "${workflow.input.role}",
+        "mutation": "mutation addLocation { addLocation(input:{type: \"${add_locType.output.data.addLocationType.id}\", name: \"${workflow.input.locationName}\"}) { id } }"
+      },
+      "type": "SUB_WORKFLOW",
+      "startDelay": 0,
+      "subWorkflowParam": {
+        "name": "GraphQL mutation",
+        "version": 1
+      },
+      "optional": false,
+      "asyncComplete": false
+    },
+    {
+      "name": "Add equipment type",
+      "taskReferenceName": "create_eq_type",
+      "inputParameters": {
+        "server": "${workflow.input.server}",
+        "user": "${workflow.input.user}",
+        "tenant": "${workflow.input.tenant}",
+        "role": "${workflow.input.role}",
+        "mutation": "mutation addEquipmentType { addEquipmentType( input: { name: \"${workflow.input.eqTypeName}\", properties: [{ name: \"a\", type: string }] } ) { id name } }",
+        "eqTypeName": "${workflow.input.eqTypeName}"
+      },
+      "type": "SUB_WORKFLOW",
+      "startDelay": 0,
+      "subWorkflowParam": {
+        "name": "GraphQL mutation",
+        "version": 1
+      },
+      "optional": false,
+      "asyncComplete": false
+    },
+    {
+      "name": "List equipment types",
+      "taskReferenceName": "list_eq_types",
+      "inputParameters": {
+        "server": "${workflow.input.server}",
+        "tenant": "${workflow.input.tenant}",
+        "role": "${workflow.input.role}"
+      },
+      "type": "SUB_WORKFLOW",
+      "startDelay": 0,
+      "subWorkflowParam": {
+        "name": "List equipment types",
+        "version": 1
+      },
+      "optional": false,
+      "asyncComplete": false
+    },
+    {
+      "name": "Find_eqType_id",
+      "taskReferenceName": "find_eq_type_id",
+      "inputParameters": {
+        "lambdaValue": "${list_eq_types.output.data}",
+        "scriptExpression": "var edges = $.lambdaValue.equipmentTypes.edges;\nfor (var edge in edges) {\n  if (edges[edge].node.name === $.eqTypeName) {\n    return edges[edge].node.id\n  }\n}\n\nreturn \"UNKNOWN\"",
+        "eqTypeName": "${workflow.input.eqTypeName}"
+      },
+      "type": "LAMBDA",
+      "startDelay": 0,
+      "optional": false,
+      "asyncComplete": false
+    },
+    {
+      "name": "decisionTask",
+      "taskReferenceName": "decisionTaskRef_D1AZ",
+      "inputParameters": {
+        "param": "${find_eq_type_id.output.result}"
+      },
+      "type": "DECISION",
+      "caseValueParam": "param",
+      "decisionCases": {
+        "UNKNOWN": [
+          {
+            "name": "TERMINATE_TASK",
+            "taskReferenceName": "terminateTaskRef_4804",
+            "inputParameters": {
+              "terminationStatus": "FAILED",
+              "workflowOutput": "Error finding equipment type id"
+            },
+            "type": "TERMINATE",
+            "startDelay": 0,
+            "optional": false,
+            "asyncComplete": false
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "Add equipment instance",
+          "taskReferenceName": "add_eq_instance",
+          "inputParameters": {
+            "server": "${workflow.input.server}",
+            "user": "${workflow.input.user}",
+            "tenant": "${workflow.input.tenant}",
+            "role": "${workflow.input.role}",
+            "mutation": "mutation addEquipment { addEquipment( input: { name: \"${workflow.input.eqInstanceName}\", type: \"${find_eq_type_id.output.result}\", location: \"${add_loc.output.data.addLocation.id}\"} ) { id name } }"
+          },
+          "type": "SUB_WORKFLOW",
+          "startDelay": 0,
+          "subWorkflowParam": {
+            "name": "GraphQL mutation",
+            "version": 1
+          },
+          "optional": false,
+          "asyncComplete": false
+        },
+        {
+          "name": "Search equipment by name",
+          "taskReferenceName": "find_created_eq",
+          "inputParameters": {
+            "server": "${workflow.input.server}",
+            "tenant": "${workflow.input.tenant}",
+            "role": "${workflow.input.role}",
+            "instanceName": "${workflow.input.eqInstanceName}"
+          },
+          "type": "SUB_WORKFLOW",
+          "startDelay": 0,
+          "subWorkflowParam": {
+            "name": "Search equipment by name",
+            "version": 1
+          },
+          "optional": false,
+          "asyncComplete": false
+        }
+      ],
+      "startDelay": 0,
+      "optional": false,
+      "asyncComplete": false
+    }
+  ],
+  "inputParameters": [
+    "role[][OWNER]",
+    "server[][integration_graph_1]",
+    "user[][fbuser@fb.com]",
+    "tenant[][fb-test]",
+    "eqTypeName[][eqType5]",
+    "eqInstanceName[][eqInstance44]",
+    "locationTypeName[][LocationType1]",
+    "locationName[][Root1]"
+  ],
+  "outputParameters": {
+    "data": "${find_created_eq.output.data}"
+  },
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": false,
+  "hasSchedule": false,
+  "expectedScheduleName": "Equipment sample workflow:1"
+}

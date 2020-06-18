@@ -673,6 +673,7 @@ export default withRouter(
                 fileType
                 storeKey
                 category
+                annotation
               }
               cellData {
                 id

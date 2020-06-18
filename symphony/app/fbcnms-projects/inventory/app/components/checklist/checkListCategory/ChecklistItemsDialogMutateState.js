@@ -54,6 +54,7 @@ export type CheckListItemFile = $ReadOnly<{|
   sizeInBytes?: number,
   modificationTime?: number,
   uploadTime?: number,
+  annotation?: ?string,
 |}>;
 
 export type CheckListItemPendingFile = $ReadOnly<{|

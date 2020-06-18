@@ -369,7 +369,6 @@ int sgw_config_parse_file(sgw_config_t *config_pP)
     }
 #endif
   }
-
   config_destroy(&cfg);
   return RETURNok;
 }

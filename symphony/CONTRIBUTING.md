@@ -21,6 +21,7 @@ to make sure your `git` environment and GitHub account is configured properly.
 4. Ensure the test suite passes and the code lints.
 5. For more information about symphony integration environment, see: [integration/README](https://github.com/facebookincubator/symphony/tree/master/integration).
 6. Commit your changes.
+   - In order to **pull current changes from GitHub** before committing, run: `git pull --rebase --autostash`.
    - Use `git status` and `git diff` to check the working tree status (or install [GitHub for desktop](https://desktop.github.com/) and [GitHub for CLI](https://cli.github.com/)).
    - Use `git add <files...>` to add specific ignored files, or `git add .` to add all files.
    - Use `git commit` to commit your changes (or `git commit -m "commit message` as a shortcut).

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 93ba24ec9b3c86e0ca7104b1fcc0e3d3
+ * @relayHash a6d0a187f66037c90225ff738c3f494f
  */
 
 /* eslint-disable */
@@ -16,47 +16,9 @@
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
 export type PermissionValue = "BY_CONDITION" | "NO" | "YES" | "%future added value";
-export type UserRole = "ADMIN" | "OWNER" | "USER" | "%future added value";
-export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
-export type UserManagementContextQueryVariables = {||};
-export type UserManagementContextQueryResponse = {|
-  +users: ?{|
-    +edges: $ReadOnlyArray<{|
-      +node: ?{|
-        +id: string,
-        +authID: string,
-        +firstName: string,
-        +lastName: string,
-        +email: string,
-        +status: UserStatus,
-        +role: UserRole,
-        +groups: $ReadOnlyArray<?{|
-          +id: string,
-          +name: string,
-        |}>,
-        +profilePhoto: ?{|
-          +id: string,
-          +fileName: string,
-          +storeKey: ?string,
-        |},
-      |}
-    |}>
-  |},
-  +usersGroups: ?{|
-    +edges: $ReadOnlyArray<{|
-      +node: ?{|
-        +id: string,
-        +name: string,
-        +description: ?string,
-        +status: UsersGroupStatus,
-        +members: $ReadOnlyArray<{|
-          +id: string,
-          +authID: string,
-        |}>,
-      |}
-    |}>
-  |},
+export type PermissionsPoliciesViewQueryVariables = {||};
+export type PermissionsPoliciesViewQueryResponse = {|
   +permissionsPolicies: ?{|
     +edges: $ReadOnlyArray<{|
       +node: ?{|
@@ -174,69 +136,24 @@ export type UserManagementContextQueryResponse = {|
           +__typename: "%other"
         |},
         +groups: $ReadOnlyArray<{|
-          +id: string
+          +id: string,
+          +name: string,
+          +description: ?string,
+          +status: UsersGroupStatus,
         |}>,
       |}
     |}>
-  |},
+  |}
 |};
-export type UserManagementContextQuery = {|
-  variables: UserManagementContextQueryVariables,
-  response: UserManagementContextQueryResponse,
+export type PermissionsPoliciesViewQuery = {|
+  variables: PermissionsPoliciesViewQueryVariables,
+  response: PermissionsPoliciesViewQueryResponse,
 |};
 */
 
 
 /*
-query UserManagementContextQuery {
-  users(first: 500) {
-    edges {
-      node {
-        id
-        authID
-        firstName
-        lastName
-        email
-        status
-        role
-        groups {
-          id
-          name
-        }
-        profilePhoto {
-          id
-          fileName
-          storeKey
-        }
-        __typename
-      }
-      cursor
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-  }
-  usersGroups(first: 500) {
-    edges {
-      node {
-        id
-        name
-        description
-        status
-        members {
-          id
-          authID
-        }
-        __typename
-      }
-      cursor
-    }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-  }
+query PermissionsPoliciesViewQuery {
   permissionsPolicies(first: 500) {
     edges {
       node {
@@ -353,6 +270,9 @@ query UserManagementContextQuery {
         }
         groups {
           id
+          name
+          description
+          status
         }
         __typename
       }
@@ -377,212 +297,25 @@ var v0 = {
 v1 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "authID",
+  "name": "name",
   "args": null,
   "storageKey": null
 },
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "status",
+  "name": "description",
   "args": null,
   "storageKey": null
 },
 v3 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "name",
-  "args": null,
-  "storageKey": null
-},
-v4 = {
-  "kind": "ScalarField",
-  "alias": null,
   "name": "__typename",
   "args": null,
   "storageKey": null
 },
-v5 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "cursor",
-  "args": null,
-  "storageKey": null
-},
-v6 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "pageInfo",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "PageInfo",
-  "plural": false,
-  "selections": [
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "endCursor",
-      "args": null,
-      "storageKey": null
-    },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "hasNextPage",
-      "args": null,
-      "storageKey": null
-    }
-  ]
-},
-v7 = [
-  {
-    "kind": "LinkedField",
-    "alias": null,
-    "name": "edges",
-    "storageKey": null,
-    "args": null,
-    "concreteType": "UserEdge",
-    "plural": true,
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "node",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "User",
-        "plural": false,
-        "selections": [
-          (v0/*: any*/),
-          (v1/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "firstName",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "lastName",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "email",
-            "args": null,
-            "storageKey": null
-          },
-          (v2/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "role",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "groups",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "UsersGroup",
-            "plural": true,
-            "selections": [
-              (v0/*: any*/),
-              (v3/*: any*/)
-            ]
-          },
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "profilePhoto",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "File",
-            "plural": false,
-            "selections": [
-              (v0/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "fileName",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "storeKey",
-                "args": null,
-                "storageKey": null
-              }
-            ]
-          },
-          (v4/*: any*/)
-        ]
-      },
-      (v5/*: any*/)
-    ]
-  },
-  (v6/*: any*/)
-],
-v8 = {
-  "kind": "ScalarField",
-  "alias": null,
-  "name": "description",
-  "args": null,
-  "storageKey": null
-},
-v9 = [
-  {
-    "kind": "LinkedField",
-    "alias": null,
-    "name": "edges",
-    "storageKey": null,
-    "args": null,
-    "concreteType": "UsersGroupEdge",
-    "plural": true,
-    "selections": [
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "node",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "UsersGroup",
-        "plural": false,
-        "selections": [
-          (v0/*: any*/),
-          (v3/*: any*/),
-          (v8/*: any*/),
-          (v2/*: any*/),
-          {
-            "kind": "LinkedField",
-            "alias": null,
-            "name": "members",
-            "storageKey": null,
-            "args": null,
-            "concreteType": "User",
-            "plural": true,
-            "selections": [
-              (v0/*: any*/),
-              (v1/*: any*/)
-            ]
-          },
-          (v4/*: any*/)
-        ]
-      },
-      (v5/*: any*/)
-    ]
-  },
-  (v6/*: any*/)
-],
-v10 = [
+v4 = [
   {
     "kind": "ScalarField",
     "alias": null,
@@ -591,7 +324,7 @@ v10 = [
     "storageKey": null
   }
 ],
-v11 = [
+v5 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -600,7 +333,7 @@ v11 = [
     "args": null,
     "concreteType": "BasicPermissionRule",
     "plural": false,
-    "selections": (v10/*: any*/)
+    "selections": (v4/*: any*/)
   },
   {
     "kind": "LinkedField",
@@ -610,7 +343,7 @@ v11 = [
     "args": null,
     "concreteType": "BasicPermissionRule",
     "plural": false,
-    "selections": (v10/*: any*/)
+    "selections": (v4/*: any*/)
   },
   {
     "kind": "LinkedField",
@@ -620,10 +353,10 @@ v11 = [
     "args": null,
     "concreteType": "BasicPermissionRule",
     "plural": false,
-    "selections": (v10/*: any*/)
+    "selections": (v4/*: any*/)
   }
 ],
-v12 = [
+v6 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -643,8 +376,8 @@ v12 = [
         "plural": false,
         "selections": [
           (v0/*: any*/),
-          (v3/*: any*/),
-          (v8/*: any*/),
+          (v1/*: any*/),
+          (v2/*: any*/),
           {
             "kind": "ScalarField",
             "alias": null,
@@ -661,7 +394,7 @@ v12 = [
             "concreteType": null,
             "plural": false,
             "selections": [
-              (v4/*: any*/),
+              (v3/*: any*/),
               {
                 "kind": "InlineFragment",
                 "type": "InventoryPolicy",
@@ -674,7 +407,7 @@ v12 = [
                     "args": null,
                     "concreteType": "BasicPermissionRule",
                     "plural": false,
-                    "selections": (v10/*: any*/)
+                    "selections": (v4/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -693,7 +426,7 @@ v12 = [
                         "args": null,
                         "concreteType": "LocationPermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       },
                       {
                         "kind": "LinkedField",
@@ -703,7 +436,7 @@ v12 = [
                         "args": null,
                         "concreteType": "LocationPermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       },
                       {
                         "kind": "LinkedField",
@@ -713,7 +446,7 @@ v12 = [
                         "args": null,
                         "concreteType": "LocationPermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       }
                     ]
                   },
@@ -725,7 +458,7 @@ v12 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v11/*: any*/)
+                    "selections": (v5/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -735,7 +468,7 @@ v12 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v11/*: any*/)
+                    "selections": (v5/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -745,7 +478,7 @@ v12 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v11/*: any*/)
+                    "selections": (v5/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -755,7 +488,7 @@ v12 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v11/*: any*/)
+                    "selections": (v5/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -765,7 +498,7 @@ v12 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v11/*: any*/)
+                    "selections": (v5/*: any*/)
                   }
                 ]
               },
@@ -781,7 +514,7 @@ v12 = [
                     "args": null,
                     "concreteType": "WorkforcePermissionRule",
                     "plural": false,
-                    "selections": (v10/*: any*/)
+                    "selections": (v4/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -791,7 +524,7 @@ v12 = [
                     "args": null,
                     "concreteType": "CUD",
                     "plural": false,
-                    "selections": (v11/*: any*/)
+                    "selections": (v5/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -810,7 +543,7 @@ v12 = [
                         "args": null,
                         "concreteType": "WorkforcePermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       },
                       {
                         "kind": "LinkedField",
@@ -820,7 +553,7 @@ v12 = [
                         "args": null,
                         "concreteType": "WorkforcePermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       },
                       {
                         "kind": "LinkedField",
@@ -830,7 +563,7 @@ v12 = [
                         "args": null,
                         "concreteType": "WorkforcePermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       },
                       {
                         "kind": "LinkedField",
@@ -840,7 +573,7 @@ v12 = [
                         "args": null,
                         "concreteType": "WorkforcePermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       },
                       {
                         "kind": "LinkedField",
@@ -850,7 +583,7 @@ v12 = [
                         "args": null,
                         "concreteType": "WorkforcePermissionRule",
                         "plural": false,
-                        "selections": (v10/*: any*/)
+                        "selections": (v4/*: any*/)
                       }
                     ]
                   }
@@ -867,18 +600,57 @@ v12 = [
             "concreteType": "UsersGroup",
             "plural": true,
             "selections": [
-              (v0/*: any*/)
+              (v0/*: any*/),
+              (v1/*: any*/),
+              (v2/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "status",
+                "args": null,
+                "storageKey": null
+              }
             ]
           },
-          (v4/*: any*/)
+          (v3/*: any*/)
         ]
       },
-      (v5/*: any*/)
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "cursor",
+        "args": null,
+        "storageKey": null
+      }
     ]
   },
-  (v6/*: any*/)
+  {
+    "kind": "LinkedField",
+    "alias": null,
+    "name": "pageInfo",
+    "storageKey": null,
+    "args": null,
+    "concreteType": "PageInfo",
+    "plural": false,
+    "selections": [
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "endCursor",
+        "args": null,
+        "storageKey": null
+      },
+      {
+        "kind": "ScalarField",
+        "alias": null,
+        "name": "hasNextPage",
+        "args": null,
+        "storageKey": null
+      }
+    ]
+  }
 ],
-v13 = [
+v7 = [
   {
     "kind": "Literal",
     "name": "first",
@@ -889,130 +661,56 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "UserManagementContextQuery",
+    "name": "PermissionsPoliciesViewQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": [],
     "selections": [
       {
         "kind": "LinkedField",
-        "alias": "users",
-        "name": "__UserManagementContext_users_connection",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "UserConnection",
-        "plural": false,
-        "selections": (v7/*: any*/)
-      },
-      {
-        "kind": "LinkedField",
-        "alias": "usersGroups",
-        "name": "__UserManagementContext_usersGroups_connection",
-        "storageKey": null,
-        "args": null,
-        "concreteType": "UsersGroupConnection",
-        "plural": false,
-        "selections": (v9/*: any*/)
-      },
-      {
-        "kind": "LinkedField",
         "alias": "permissionsPolicies",
-        "name": "__UserManagementContext_permissionsPolicies_connection",
+        "name": "__PermissionsPoliciesView_permissionsPolicies_connection",
         "storageKey": null,
         "args": null,
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
-        "selections": (v12/*: any*/)
+        "selections": (v6/*: any*/)
       }
     ]
   },
   "operation": {
     "kind": "Operation",
-    "name": "UserManagementContextQuery",
+    "name": "PermissionsPoliciesViewQuery",
     "argumentDefinitions": [],
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "users",
-        "storageKey": "users(first:500)",
-        "args": (v13/*: any*/),
-        "concreteType": "UserConnection",
-        "plural": false,
-        "selections": (v7/*: any*/)
-      },
-      {
-        "kind": "LinkedHandle",
-        "alias": null,
-        "name": "users",
-        "args": (v13/*: any*/),
-        "handle": "connection",
-        "key": "UserManagementContext_users",
-        "filters": null
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
-        "name": "usersGroups",
-        "storageKey": "usersGroups(first:500)",
-        "args": (v13/*: any*/),
-        "concreteType": "UsersGroupConnection",
-        "plural": false,
-        "selections": (v9/*: any*/)
-      },
-      {
-        "kind": "LinkedHandle",
-        "alias": null,
-        "name": "usersGroups",
-        "args": (v13/*: any*/),
-        "handle": "connection",
-        "key": "UserManagementContext_usersGroups",
-        "filters": null
-      },
-      {
-        "kind": "LinkedField",
-        "alias": null,
         "name": "permissionsPolicies",
         "storageKey": "permissionsPolicies(first:500)",
-        "args": (v13/*: any*/),
+        "args": (v7/*: any*/),
         "concreteType": "PermissionsPolicyConnection",
         "plural": false,
-        "selections": (v12/*: any*/)
+        "selections": (v6/*: any*/)
       },
       {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "permissionsPolicies",
-        "args": (v13/*: any*/),
+        "args": (v7/*: any*/),
         "handle": "connection",
-        "key": "UserManagementContext_permissionsPolicies",
+        "key": "PermissionsPoliciesView_permissionsPolicies",
         "filters": null
       }
     ]
   },
   "params": {
     "operationKind": "query",
-    "name": "UserManagementContextQuery",
+    "name": "PermissionsPoliciesViewQuery",
     "id": null,
-    "text": "query UserManagementContextQuery {\n  users(first: 500) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n        }\n        profilePhoto {\n          id\n          fileName\n          storeKey\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  usersGroups(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        status\n        members {\n          id\n          authID\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n  permissionsPolicies(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        isGlobal\n        policy {\n          __typename\n          ... on InventoryPolicy {\n            read {\n              isAllowed\n            }\n            location {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            equipment {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            equipmentType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            locationType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            portType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            serviceType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n          }\n          ... on WorkforcePolicy {\n            read {\n              isAllowed\n            }\n            templates {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            data {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n              assign {\n                isAllowed\n              }\n              transferOwnership {\n                isAllowed\n              }\n            }\n          }\n        }\n        groups {\n          id\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query PermissionsPoliciesViewQuery {\n  permissionsPolicies(first: 500) {\n    edges {\n      node {\n        id\n        name\n        description\n        isGlobal\n        policy {\n          __typename\n          ... on InventoryPolicy {\n            read {\n              isAllowed\n            }\n            location {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            equipment {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            equipmentType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            locationType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            portType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            serviceType {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n          }\n          ... on WorkforcePolicy {\n            read {\n              isAllowed\n            }\n            templates {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n            }\n            data {\n              create {\n                isAllowed\n              }\n              update {\n                isAllowed\n              }\n              delete {\n                isAllowed\n              }\n              assign {\n                isAllowed\n              }\n              transferOwnership {\n                isAllowed\n              }\n            }\n          }\n        }\n        groups {\n          id\n          name\n          description\n          status\n        }\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
-        {
-          "count": null,
-          "cursor": null,
-          "direction": "forward",
-          "path": [
-            "users"
-          ]
-        },
-        {
-          "count": null,
-          "cursor": null,
-          "direction": "forward",
-          "path": [
-            "usersGroups"
-          ]
-        },
         {
           "count": null,
           "cursor": null,
@@ -1027,5 +725,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1a226bb3d905d40260ec1cf9b5ac4f1f';
+(node/*: any*/).hash = '8de464be5a9f9dd8d8dfa8b5d60e6e78';
 module.exports = node;

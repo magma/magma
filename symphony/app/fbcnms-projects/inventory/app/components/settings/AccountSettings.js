@@ -8,8 +8,8 @@
  * @format
  */
 
+import type {AccountSettings_UserQuery} from './__generated__/AccountSettings_UserQuery.graphql';
 import type {User} from '../admin/userManagement/utils/UserManagementUtils';
-import type {UserManagementContext_UserQuery} from '../admin/userManagement/__generated__/UserManagementContext_UserQuery.graphql';
 
 import * as React from 'react';
 import InventorySuspense from '../../common/InventorySuspense';
@@ -17,7 +17,6 @@ import UserAccountPane from '../admin/userManagement/users/UserAccountPane';
 import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContainer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {UserManagementContextProvider} from '../admin/userManagement/UserManagementContext';
 import {graphql, useLazyLoadQuery} from 'react-relay/hooks';
 import {makeStyles} from '@material-ui/styles';
 import {useMainContext} from '../MainContext';
@@ -26,22 +25,7 @@ const userQuery = graphql`
   query AccountSettings_UserQuery($id: ID!) {
     node(id: $id) {
       ... on User {
-        id
-        authID
-        firstName
-        lastName
-        email
-        status
-        role
-        groups {
-          id
-          name
-        }
-        profilePhoto {
-          id
-          fileName
-          storeKey
-        }
+        ...UserManagementUtils_user @relay(mask: false)
       }
     }
   }
@@ -64,10 +48,9 @@ function UserAccountWrapper() {
 
   const loggedInUserID = mainContext.me?.user?.id;
 
-  const userData = useLazyLoadQuery<UserManagementContext_UserQuery>(
-    userQuery,
-    {id: loggedInUserID},
-  );
+  const userData = useLazyLoadQuery<AccountSettings_UserQuery>(userQuery, {
+    id: loggedInUserID,
+  });
 
   const loggedInUser: User = userData?.node;
 
@@ -90,10 +73,8 @@ function UserAccountWrapper() {
 
 export default function AccountSettings() {
   return (
-    <InventorySuspense>
-      <UserManagementContextProvider>
-        <UserAccountWrapper />
-      </UserManagementContextProvider>
+    <InventorySuspense isTopLevel={true}>
+      <UserAccountWrapper />
     </InventorySuspense>
   );
 }

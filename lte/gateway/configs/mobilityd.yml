@@ -7,7 +7,7 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 persist_to_redis: false
 redis_port: 6380
 allocator_type: ip_pool

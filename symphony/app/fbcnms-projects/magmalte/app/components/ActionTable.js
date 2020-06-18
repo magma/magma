@@ -89,7 +89,7 @@ export type ActionQuery = {
 
 export type ActionTableProps<T> = {
   titleIcon?: ComponentType<SvgIconExports>,
-  title: string,
+  title?: string,
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
   menuItems?: Array<ActionMenuItems>,

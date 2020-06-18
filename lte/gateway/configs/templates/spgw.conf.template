@@ -75,4 +75,5 @@ P-GW =
     FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS = "no";                           # STRING, {"yes", "no"}.
     UE_MTU                                    = 1400         # MTU - (extended GTPv1 hdr(16 Bytes) + UDP hdr(8) -IPv4(20) hdr + additonal bytes(56)) INTEGER
     RELAY_ENABLED                             = "{{ relay_enabled }}";
+    ENABLE_NAT                                = "{{ enable_nat }}"
 };

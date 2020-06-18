@@ -7426,9 +7426,9 @@ input LocationCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
   ) {
-  create: LocationPermissionRuleInput
+  create: BasicPermissionRuleInput
   update: LocationPermissionRuleInput
-  delete: LocationPermissionRuleInput
+  delete: BasicPermissionRuleInput
 }
 
 type AdministrativePolicy
@@ -7479,11 +7479,11 @@ input WorkforceCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
   ) {
-  create: WorkforcePermissionRuleInput
-  update: WorkforcePermissionRuleInput
-  delete: WorkforcePermissionRuleInput
-  assign: WorkforcePermissionRuleInput
-  transferOwnership: WorkforcePermissionRuleInput
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+  assign: BasicPermissionRuleInput
+  transferOwnership: BasicPermissionRuleInput
 }
 
 type WorkforcePolicy
@@ -7757,7 +7757,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
-  annotation: String 
+  annotation: String
 }
 
 type Comment implements Node {
@@ -41206,7 +41206,7 @@ func (ec *executionContext) unmarshalInputLocationCUDInput(ctx context.Context, 
 		switch k {
 		case "create":
 			var err error
-			it.Create, err = ec.unmarshalOLocationPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐLocationPermissionRuleInput(ctx, v)
+			it.Create, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41218,7 +41218,7 @@ func (ec *executionContext) unmarshalInputLocationCUDInput(ctx context.Context, 
 			}
 		case "delete":
 			var err error
-			it.Delete, err = ec.unmarshalOLocationPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐLocationPermissionRuleInput(ctx, v)
+			it.Delete, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42856,31 +42856,31 @@ func (ec *executionContext) unmarshalInputWorkforceCUDInput(ctx context.Context,
 		switch k {
 		case "create":
 			var err error
-			it.Create, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Create, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "update":
 			var err error
-			it.Update, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Update, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "delete":
 			var err error
-			it.Delete, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Delete, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "assign":
 			var err error
-			it.Assign, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Assign, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "transferOwnership":
 			var err error
-			it.TransferOwnership, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.TransferOwnership, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}

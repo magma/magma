@@ -13,7 +13,7 @@ add_library(SESSIOND_TEST_LIB
 target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER gmock_main pthread rt)
 
 foreach(session_test session_credit local_enforcer cloud_reporter
-        session_manager_handler sessiond_integ session_state credit_pool
+        session_manager_handler sessiond_integ session_state
         session_store store_client stored_state proxy_responder_handler
         metering_reporter local_enforcer_wallet_exhaust)
   add_executable(${session_test}_test test_${session_test}.cpp)

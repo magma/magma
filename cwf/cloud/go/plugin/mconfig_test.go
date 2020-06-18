@@ -119,10 +119,10 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"health": &cwfmconfig.CwfGatewayHealthConfig{
-			CpuUtilThresholdPct: 0.9,
-			MemUtilThresholdPct: 0.8,
-			GreProbeInterval:    5,
-			IcmpProbePktCount:   3,
+			CpuUtilThresholdPct: 0,
+			MemUtilThresholdPct: 0,
+			GreProbeInterval:    0,
+			IcmpProbePktCount:   0,
 			GrePeers: []*cwfmconfig.CwfGatewayHealthConfigGrePeer{
 				{Ip: "1.2.3.4/24"},
 				{Ip: "1.1.1.1/24"},
@@ -164,11 +164,5 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 	IPDRExportDst: &models.IPDRExportDst{
 		IP:   "192.168.128.88",
 		Port: 2040,
-	},
-	GatewayHealthConfigs: &models.GatewayHealthConfigs{
-		CPUUtilThresholdPct:  0.9,
-		MemUtilThresholdPct:  0.8,
-		GreProbeIntervalSecs: 5,
-		IcmpProbePktCount:    3,
 	},
 }

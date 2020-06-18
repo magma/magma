@@ -8,9 +8,17 @@
  * @format
  */
 
-import shortid from 'shortid';
+import type {FragmentReference} from 'relay-runtime';
 
+import shortid from 'shortid';
 import {camelCase, startCase, toUpper} from 'lodash';
+
+type RefType = $ReadOnly<{|
+  $refType: FragmentReference,
+|}>;
+export type OptionalRefTypeWrapper<T> = $ReadOnly<{|
+  ...$Rest<T, RefType>,
+|}>;
 
 type EntWithID = $ReadOnly<{
   id?: ?string,
@@ -125,3 +133,10 @@ export function ent2EntsMap<T: EntWithID>(ents: Array<T>): EntsMap<T> {
     ents.filter(ent => ent.id != null).map(ent => [ent.id || '', ent]),
   );
 }
+
+export type KeyValueEnum<TValues> = {
+  [key: TValues]: {
+    key: TValues,
+    value: string,
+  },
+};

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[[ -z "${CTRL_IP}" ]] && CtrlIP="$(getent hosts ofproxy | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
+
 # Copy files to /etc/magma it must be here and not in dockerfile because the volume
 # are shared and may be taint on the local host
 cp cwf/gateway/configs/* /etc/magma/
@@ -17,7 +19,7 @@ mv xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server xwf/gateway/deploy/roles
 sed '/^INTERFACESv6/s/^/#/' xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server.back > xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server
 
 # run XWF install ansible here
-ANSIBLE_CONFIG=cwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="$(getent hosts ofproxy | awk '{ print $1 }')" xwf/gateway/deploy/xwf.yml -i "localhost," -c local -v
+ANSIBLE_CONFIG=cwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP}" xwf/gateway/deploy/xwf.yml -i "localhost," -c local -v
 
 # run DNS server
 dnsmasq

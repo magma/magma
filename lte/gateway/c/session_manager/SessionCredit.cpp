@@ -346,6 +346,7 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
   return usage;
 }
 
+// Todo Return Proto CreditUsage
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
   if (reauth_state_ == REAUTH_REQUIRED) {

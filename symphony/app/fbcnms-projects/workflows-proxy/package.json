@@ -1,5 +1,5 @@
 {
-  "name": "workflows",
+  "name": "workflows-proxy",
   "version": "1.0.0",
   "main": "index.js",
   "author": "Ken Garber <kengarber@fb.com>",

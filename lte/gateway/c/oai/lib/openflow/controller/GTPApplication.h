@@ -36,7 +36,8 @@ class GTPApplication : public Application {
   GTPApplication(
     const std::string& uplink_mac,
     uint32_t gtp_port_num,
-    uint32_t mtr_port_num);
+    uint32_t mtr_port_num,
+    uint32_t uplink_port_num);
 
  private:
   /**
@@ -136,6 +137,8 @@ class GTPApplication : public Application {
    * Initialising with 1
    */
   const uint64_t cookie = 1;
+
+  const uint32_t uplink_port_num_;
 };
 
 } // namespace openflow

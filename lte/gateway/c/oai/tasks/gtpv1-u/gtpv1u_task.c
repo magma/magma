@@ -75,11 +75,17 @@ int gtpv1u_init(
     return -1;
   }
 
-  rv = get_ip_block(&netaddr, &netmask);
-  if (rv != 0) {
-    OAILOG_CRITICAL(
-      LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd\n");
-    return -1;
+  if (spgw_config->pgw_config.enable_nat) {
+    rv = get_ip_block(&netaddr, &netmask);
+    if (rv != 0) {
+        OAILOG_CRITICAL(
+          LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd\n");
+        return -1;
+    }
+  } else {
+    // Allow All IPs in Non-NAT case.
+    netaddr.s_addr = INADDR_ANY;
+    netmask = 0;
   }
 
   // Init GTP device, using the same MTU as SGi.

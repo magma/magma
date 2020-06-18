@@ -10,14 +10,28 @@
 
 import * as React from 'react';
 import LoadingIndicator from './LoadingIndicator';
+import RelayEnvironment from './RelayEnvironment';
+import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {Suspense} from 'react';
 
 type Props = $ReadOnly<{|
   children: React.Node,
+  isTopLevel?: ?boolean,
 |}>;
 
-const InventorySuspense = ({children}: Props) => {
-  return <Suspense fallback={<LoadingIndicator />}>{children}</Suspense>;
+const InventorySuspense = (props: Props) => {
+  const {children, isTopLevel} = props;
+  const suspense = (
+    <Suspense fallback={<LoadingIndicator />}>{children}</Suspense>
+  );
+  if (isTopLevel) {
+    return (
+      <RelayEnvironmentProvider environment={RelayEnvironment}>
+        {suspense}
+      </RelayEnvironmentProvider>
+    );
+  }
+  return suspense;
 };
 
 export default InventorySuspense;

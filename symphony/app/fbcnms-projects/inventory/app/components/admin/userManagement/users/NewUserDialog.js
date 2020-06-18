@@ -29,15 +29,16 @@ import UserRoleAndStatusPane from './UserRoleAndStatusPane';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {USER_ROLES, USER_STATUSES} from '../utils/UserManagementUtils';
+import {addUser} from '../data/Users';
 import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
-import {useUserManagement} from '../UserManagementContext';
 
 const initialUserData: User = {
   id: generateTempId(),
   authID: '',
+  email: '',
   firstName: '',
   lastName: '',
   role: USER_ROLES.USER.key,
@@ -68,7 +69,6 @@ type Props = $ReadOnly<{|
 
 const NewUserDialog = ({onClose}: Props) => {
   const classes = useStyles();
-  const userManagegemtContext = useUserManagement();
   const [creatingUser, setCreatingUser] = useState(false);
   const [user, setUser] = useState<User>({...initialUserData});
   const [password, setPassword] = useState('');
@@ -79,10 +79,9 @@ const NewUserDialog = ({onClose}: Props) => {
     enqueueSnackbar(error.response?.data?.error || error, {variant: 'error'});
   };
 
-  const addUser = () => {
+  const callAddUser = () => {
     setCreatingUser(true);
-    userManagegemtContext
-      .addUser(user, password)
+    addUser(user, password)
       .finally(() => setCreatingUser(false))
       .then(newUser => {
         onClose(newUser);
@@ -122,11 +121,11 @@ const NewUserDialog = ({onClose}: Props) => {
                           validationId="first_name"
                           label={`${fbt('First Name', '')}`}
                           value={user.firstName || ''}
-                          onValueChanged={newValue =>
-                            setUser(currentUser => {
-                              currentUser.firstName = newValue;
-                              return currentUser;
-                            })
+                          onValueChanged={firstName =>
+                            setUser(currentUser => ({
+                              ...currentUser,
+                              firstName,
+                            }))
                           }
                         />
                       </Grid>
@@ -135,11 +134,11 @@ const NewUserDialog = ({onClose}: Props) => {
                           validationId="last_name"
                           label={`${fbt('Last Name', '')}`}
                           value={user.lastName || ''}
-                          onValueChanged={newValue =>
-                            setUser(currentUser => {
-                              currentUser.lastName = newValue;
-                              return currentUser;
-                            })
+                          onValueChanged={lastName =>
+                            setUser(currentUser => ({
+                              ...currentUser,
+                              lastName,
+                            }))
                           }
                         />
                       </Grid>
@@ -169,7 +168,7 @@ const NewUserDialog = ({onClose}: Props) => {
                     </Button>
                   </FormAction>
                   <FormAction disableOnFromError={true} disabled={creatingUser}>
-                    <Button onClick={addUser}>
+                    <Button onClick={callAddUser}>
                       {Strings.common.saveButton}
                     </Button>
                   </FormAction>
