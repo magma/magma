@@ -81,8 +81,9 @@ class DiagramBuilder extends Component {
     });
 
     http.get(conductorApiUrlPrefix + "/metadata/taskdefs").then((res) => {
+      // global tasks are handled in SidemenuRight
       this.props.storeTasks(
-        res.result?.sort((a, b) => a.name.localeCompare(b.name)) || []
+        res.result?.filter(item => item.name.indexOf('GLOBAL___') != 0).sort((a, b) => a.name.localeCompare(b.name)) || []
       );
     });
 
