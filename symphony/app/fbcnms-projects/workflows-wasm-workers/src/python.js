@@ -15,7 +15,7 @@ import {executeWasmer} from './wasmer.js';
 const pythonBinPath = process.env.PYTHON_PATH || 'wasm/python/bin/python.wasm';
 const pythonLibPath = process.env.PYTHON_LIB_PATH || 'wasm/python/lib';
 
-export async function executePython(script, args) {
+export async function executePython(script: string, args: string[]) {
   const preamble = `
 argv = ${argsToJsonArray(args)};
 import sys

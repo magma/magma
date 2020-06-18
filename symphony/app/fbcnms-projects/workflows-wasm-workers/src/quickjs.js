@@ -14,7 +14,7 @@ import {executeWasmer} from './wasmer.js';
 
 const quickJsPath = process.env.QUICKJS_PATH || 'wasm/quickjs/quickjs.wasm';
 
-export async function executeQuickJs(script, args) {
+export async function executeQuickJs(script: string, args: string[]) {
   const preamble = `
 const argv = ${argsToJsonArray(args)};
 console.error = function(...args) { std.err.puts(args.join(' '));std.err.puts('\\n'); }

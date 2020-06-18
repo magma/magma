@@ -12,10 +12,20 @@ import logging from '@fbcnms/logging';
 const logger = logging.getLogger(module);
 
 const wasmerPath = process.env.WASMER_PATH || '/root/.wasmer/bin/wasmer';
-const maximumWasmerTimeoutMillis = process.env.MAX_WASMER_TIMEOUT_MS || 10000;
+const maximumWasmerTimeoutMillis: number =
+  parseInt(process.env.MAX_WASMER_TIMEOUT_MS) || 10000;
 
-export function executeWasmer(wasmerArgs, stdin) {
-  return new Promise((resolve, reject) => {
+type WasmerError = {
+  stdout: string,
+  stderr: string,
+  cause: child_process$Error,
+  code: number | string | null,
+  killed?: boolean,
+  signal?: string | null,
+};
+
+export function executeWasmer(wasmerArgs: string[], stdin: ?string) {
+  return new Promise<{stdout: string, stderr: string}>((resolve, reject) => {
     logger.info('executeWasmer', {wasmerArgs, stdin});
 
     const options = {
@@ -26,16 +36,23 @@ export function executeWasmer(wasmerArgs, stdin) {
       wasmerPath,
       wasmerArgs,
       options,
-      (error, stdout, stderr) => {
+      (error: ?child_process$Error, stdout, stderr) => {
         if (error) {
           logger.error('Rejecting execution', {error});
-          reject({stdout, stderr, ...error});
+          const wasmerError: WasmerError = {
+            stdout: stdout.toString(),
+            stderr: stderr.toString(),
+            code: error.code,
+            killed: error.killed,
+            signal: error.signal,
+            cause: error,
+          };
+          reject(wasmerError);
         }
-        resolve({stdout, stderr});
+        resolve({stdout: stdout.toString(), stderr: stderr.toString()});
       },
     );
     if (stdin != null) {
-      child.stdin.setEncoding('utf-8');
       child.stdin.write(stdin);
       child.stdin.end();
     }

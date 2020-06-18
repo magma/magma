@@ -8,15 +8,21 @@
  * @format
  */
 
-export function argsToJsonArray(args) {
+export function argsToJsonArray(args: string[] | string | {}): string {
+  let argsArray: string[];
   if (!Array.isArray(args)) {
+    let argString: string;
     if (typeof args !== 'string') {
       // serialize it to a string
-      args = JSON.stringify(args);
+      argString = JSON.stringify(args) || '';
+    } else {
+      argString = args;
     }
-    args = [args];
+    argsArray = [argString];
+  } else {
+    argsArray = args.slice();
   }
   // 0-th argument is the program name
-  args.unshift('script');
-  return JSON.stringify(args);
+  argsArray.unshift('script');
+  return JSON.stringify(argsArray);
 }
