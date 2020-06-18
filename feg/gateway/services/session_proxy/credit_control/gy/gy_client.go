@@ -47,9 +47,10 @@ type ChargingReAuthHandler func(request *ChargingReAuthRequest) *ChargingReAuthA
 // GyClient holds the relevant state for sending and receiving diameter calls
 // over Gy
 type GyClient struct {
-	diamClient   *diameter.Client
-	serverCfg    *diameter.DiameterServerConfig
-	globalConfig *GyGlobalConfig
+	diamClient      *diameter.Client
+	serverCfg       *diameter.DiameterServerConfig
+	globalConfig    *GyGlobalConfig
+	sessionIdPrefix string
 }
 
 type GyGlobalConfig struct {
@@ -85,10 +86,15 @@ func NewConnectedGyClient(
 			true,
 			credit_control.NewASRHandler(diamClient, cloudRegistry))
 	}
+	sidPrefix := diamClient.OriginRealm()
+	if len(diamClient.ProductName()) > 0 {
+		sidPrefix = sidPrefix + "." + diamClient.ProductName()
+	}
 	return &GyClient{
-		diamClient:   diamClient,
-		serverCfg:    serverCfg,
-		globalConfig: globalConfig,
+		diamClient:      diamClient,
+		serverCfg:       serverCfg,
+		globalConfig:    globalConfig,
+		sessionIdPrefix: sidPrefix,
 	}
 }
 
@@ -269,7 +275,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginRealm(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gyClient.sessionIdPrefix, request.SessionID))))
 
 	return m, nil
 }

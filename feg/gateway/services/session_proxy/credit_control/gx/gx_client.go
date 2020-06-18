@@ -53,6 +53,7 @@ type GxClient struct {
 	dontUseEUIIpIfEmpty    bool // Disable using MAC derived EUI-64 IPv6 address for CCR if IP is not provided
 	framedIpv4AddrRequired bool // PCRF requires FramedIpv4Addr to be included
 	globalConfig           *GxGlobalConfig
+	sessionIdPrefix        string
 }
 
 type GxGlobalConfig struct {
@@ -68,7 +69,11 @@ func NewConnectedGxClient(
 	gxGlobalConfig *GxGlobalConfig,
 ) *GxClient {
 	diamClient.RegisterAnswerHandlerForAppID(diam.CreditControl, diam.GX_CHARGING_CONTROL_APP_ID, ccaHandler)
-	registerReAuthHandler(reAuthHandler, diamClient)
+	sidPrefix := diamClient.OriginRealm()
+	if len(diamClient.ProductName()) > 0 {
+		sidPrefix = sidPrefix + "." + diamClient.ProductName()
+	}
+	registerReAuthHandler(reAuthHandler, diamClient, sidPrefix)
 	if cloudRegistry != nil {
 		diamClient.RegisterHandler(
 			diam.AbortSession,
@@ -83,6 +88,7 @@ func NewConnectedGxClient(
 		dontUseEUIIpIfEmpty:    *disableEUIIpIfEmpty || util.IsTruthyEnv(DisableEUIIPv6IfNoIPEnv),
 		framedIpv4AddrRequired: util.IsTruthyEnv(FramedIPv4AddrRequiredEnv),
 		globalConfig:           gxGlobalConfig,
+		sessionIdPrefix:        sidPrefix,
 	}
 
 }
@@ -152,8 +158,8 @@ func (gxClient *GxClient) DisableConnections(period time.Duration) {
 	gxClient.diamClient.DisableConnectionCreation(period)
 }
 
-// Register reauth request handler
-func registerReAuthHandler(reAuthHandler PolicyReAuthHandler, diamClient *diameter.Client) {
+// Register re-auth request handler
+func registerReAuthHandler(reAuthHandler PolicyReAuthHandler, diamClient *diameter.Client, sidPrefix string) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
 		rar := &PolicyReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
@@ -162,7 +168,7 @@ func registerReAuthHandler(reAuthHandler PolicyReAuthHandler, diamClient *diamet
 		}
 		go func() {
 			raa := reAuthHandler(rar)
-			raaMsg := createReAuthAnswerMessage(message, raa, diamClient)
+			raaMsg := createReAuthAnswerMessage(message, raa, sidPrefix)
 			raaMsg = diamClient.AddOriginAVPsToMessage(raaMsg)
 			_, err := raaMsg.WriteToWithRetry(conn, diamClient.Retries())
 			if err != nil {
@@ -177,14 +183,14 @@ func registerReAuthHandler(reAuthHandler PolicyReAuthHandler, diamClient *diamet
 }
 
 func createReAuthAnswerMessage(
-	requestMsg *diam.Message, answer *PolicyReAuthAnswer, diamClient *diameter.Client) *diam.Message {
+	requestMsg *diam.Message, answer *PolicyReAuthAnswer, sidPrefix string) *diam.Message {
 	ret := requestMsg.Answer(answer.ResultCode)
 	ret.InsertAVP(
 		diam.NewAVP(
 			avp.SessionID,
 			avp.Mbit,
 			0,
-			datatype.UTF8String(diameter.EncodeSessionID(diamClient.OriginRealm(), answer.SessionID))))
+			datatype.UTF8String(diameter.EncodeSessionID(sidPrefix, answer.SessionID))))
 	return ret
 }
 
@@ -264,7 +270,7 @@ func (gxClient *GxClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gxClient.diamClient.OriginRealm(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gxClient.sessionIdPrefix, request.SessionID))))
 
 	return m, nil
 }

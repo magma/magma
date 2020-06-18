@@ -72,6 +72,14 @@ func (c *Client) OriginStateID() uint32 {
 	return 0
 }
 
+// ProductName returns client's config Diameter Product Name
+func (c *Client) ProductName() string {
+	if c != nil && c.cfg != nil && len(c.cfg.ProductName) > 0 {
+		return c.cfg.ProductName
+	}
+	return ""
+}
+
 // ServiceContextId returns client's config ServiceContextId
 func (c *Client) ServiceContextId() string {
 	if c != nil && c.cfg != nil && len(c.cfg.ServiceContextId) > 0 {
