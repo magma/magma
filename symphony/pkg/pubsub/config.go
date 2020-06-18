@@ -6,19 +6,16 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 
 	"github.com/google/wire"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
-type URL string
-
 // Config configures this package.
 type Config struct {
-	pubURL URL
-	subURL URL
+	PubURL *url.URL
+	SubURL *url.URL
 }
 
 // AddFlagsVar adds the flags used by this package to the Kingpin application.
@@ -26,32 +23,18 @@ func AddFlagsVar(a *kingpin.Application, config *Config) {
 	a.Flag("event.pub-url", "events pub url").
 		Envar("EVENT_PUB_URL").
 		Default("mem://events").
-		SetValue(&config.pubURL)
+		URLVar(&config.PubURL)
 	a.Flag("event.sub-url", "events sub url").
 		Envar("EVENT_SUB_URL").
 		Default("mem://events").
-		SetValue(&config.subURL)
+		URLVar(&config.SubURL)
 }
 
-// String returns the textual representation of a config.
-func (u URL) String() string {
-	return string(u)
-}
-
-// Set updates the value of the config.
-func (u *URL) Set(v string) error {
-	if _, err := url.Parse(v); err != nil {
-		return fmt.Errorf("parsing url: %w", err)
-	}
-	*u = URL(v)
-	return nil
-}
-
-func newConfig(url string) Config {
-	return Config{
-		pubURL: URL(url),
-		subURL: URL(url),
-	}
+// AddFlags adds the flags used by this package to the Kingpin application.
+func AddFlags(a *kingpin.Application) *Config {
+	config := &Config{}
+	AddFlagsVar(a, config)
+	return config
 }
 
 // Set is a wire provider that provides an emitter/subscriber
@@ -65,7 +48,7 @@ var Set = wire.NewSet(
 
 // ProvideEmitter providers emitter from config.
 func ProvideEmitter(ctx context.Context, cfg Config) (*TopicEmitter, func(), error) {
-	emitter, err := NewTopicEmitter(ctx, cfg.pubURL.String())
+	emitter, err := NewTopicEmitter(ctx, cfg.PubURL.String())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -74,5 +57,5 @@ func ProvideEmitter(ctx context.Context, cfg Config) (*TopicEmitter, func(), err
 
 // ProvideEmitter providers subscriber from config.
 func ProvideSubscriber(cfg Config) URLSubscriber {
-	return NewURLSubscriber(cfg.subURL.String())
+	return NewURLSubscriber(cfg.SubURL.String())
 }
