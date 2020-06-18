@@ -42,12 +42,6 @@ int select_pdn_type(struct apn_configuration_s *apn_config, esm_proc_pdn_type_t 
   /* Overwrite apn_config->pdn_type based on the PDN type sent by UE and the PDN Type 
    * received in subscription profile
    */
-  OAILOG_ERROR(
-          LOG_MME_APP,
-          " Pruthvi<Before> UE requested PDN Type %d, subscribed PDN Type %d for UE " IMSI_64_FMT "\n",
-          ue_selected_pdn_type,
-          apn_config->pdn_type);
-
   switch (ue_selected_pdn_type) {
 
     case ESM_PDN_TYPE_IPV4:
@@ -57,7 +51,15 @@ int select_pdn_type(struct apn_configuration_s *apn_config, esm_proc_pdn_type_t 
         /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4 or IPv6,
          * and either the requested PDN type or PDN type IPv4v6 are subscribed,
          * the MME sets the PDN type as requested. Otherwise the PDN connection request is rejected
-         */ 
+         */
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          " Sending PDN Connectivity Reject with cause ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+          " UE requested PDN Type %d, subscribed PDN Type %d \n",
+          ue_selected_pdn_type,
+          apn_config->pdn_type);
+
+        *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
       break;
@@ -69,7 +71,15 @@ int select_pdn_type(struct apn_configuration_s *apn_config, esm_proc_pdn_type_t 
         /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4 or IPv6,
          * and either the requested PDN type or PDN type IPv4v6 are subscribed,
          * the MME sets the PDN type as requested. Otherwise the PDN connection request is rejected
-         */ 
+         */
+        OAILOG_ERROR(
+          LOG_MME_APP,
+          " Sending PDN Connectivity Reject with cause ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+          " UE requested PDN Type %d, subscribed PDN Type %d \n",
+          ue_selected_pdn_type,
+          apn_config->pdn_type);
+
+        *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
 
@@ -89,12 +99,6 @@ int select_pdn_type(struct apn_configuration_s *apn_config, esm_proc_pdn_type_t 
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       break;
   }
-  OAILOG_ERROR(
-          LOG_MME_APP,
-          " Pruthvi<After> UE requested PDN Type %d, subscribed PDN Type %d for UE " IMSI_64_FMT "\n",
-          ue_selected_pdn_type,
-          apn_config->pdn_type);
-
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);;
 }

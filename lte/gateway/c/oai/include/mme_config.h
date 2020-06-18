@@ -67,7 +67,6 @@
 #define MME_CONFIG_STRING_RELATIVE_CAPACITY "RELATIVE_CAPACITY"
 #define MME_CONFIG_STRING_STATISTIC_TIMER "MME_STATISTIC_TIMER"
 
-#define MME_CONFIG_STRING_IP_CAPABILITY "IP_CAPABILITY"
 #define MME_CONFIG_STRING_USE_STATELESS "USE_STATELESS"
 #define MME_CONFIG_STRING_FULL_NETWORK_NAME "FULL_NETWORK_NAME"
 #define MME_CONFIG_STRING_SHORT_NETWORK_NAME "SHORT_NETWORK_NAME"
@@ -278,7 +277,6 @@ typedef struct mme_config_s {
 
   uint32_t mme_statistic_timer;
 
-  bstring ip_capability;
   bstring non_eps_service_control;
 
   uint8_t unauthenticated_imsi_supported;

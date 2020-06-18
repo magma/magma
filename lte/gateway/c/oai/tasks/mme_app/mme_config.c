@@ -523,13 +523,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
 
     if ((config_setting_lookup_string(
           setting_mme,
-          MME_CONFIG_STRING_IP_CAPABILITY,
-          (const char **) &astring))) {
-      config_pP->ip_capability = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_string(
-          setting_mme,
           MME_CONFIG_STRING_USE_STATELESS,
           (const char **) &astring))) {
       config_pP->use_stateless = parse_bool(astring);
@@ -1320,10 +1313,6 @@ void mme_config_display(mme_config_t *config_pP)
     LOG_CONFIG,
     "- Statistics timer .....................: %u (seconds)\n\n",
     config_pP->mme_statistic_timer);
-  OAILOG_INFO(
-    LOG_CONFIG,
-    "- IP Capability ........................: %s\n\n",
-    bdata(config_pP->ip_capability));
   OAILOG_INFO(
     LOG_CONFIG,
     "- Use Stateless ........................: %s\n\n",

@@ -315,18 +315,6 @@ int mme_api_get_emm_config(
 int mme_api_get_esm_config(mme_api_esm_config_t *config)
 {
   OAILOG_FUNC_IN(LOG_NAS);
-
-  if (strcmp((const char *) mme_config.ip_capability->data, "IPV4") == 0) {
-    config->features = MME_API_IPV4;
-  } else if (
-    strcmp((const char *) mme_config.ip_capability->data, "IPV6") == 0) {
-    config->features = MME_API_IPV6;
-  } else if (
-    strcmp((const char *) mme_config.ip_capability->data, "IPV4V6") == 0) {
-    config->features = MME_API_IPV4 | MME_API_IPV6;
-  } else {
-    config->features = 0;
-  }
   if (
     strcmp((const char *) mme_config.non_eps_service_control->data, "SMS") ==
     0) {
