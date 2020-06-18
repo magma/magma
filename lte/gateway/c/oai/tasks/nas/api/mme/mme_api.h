@@ -227,4 +227,16 @@ void mme_ue_context_update_ue_sgs_neaf(
     pLMN1.mnc_digit2 = pLMN2.mnc_digit2;                                       \
     pLMN1.mnc_digit3 = pLMN2.mnc_digit3;                                       \
   } while (0)
+
+#define PRINT_GUTI(gUTI_p)                                                     \
+  do {                                                                         \
+    OAILOG_DEBUG(                                                              \
+        LOG_MME_APP,                                                           \
+        "mcc-1: %x mcc-2: %x mcc-3: %x mnc-1: %x mnc-2: %x mnc-3: %x"          \
+        " mme_group_id: %x mme_code: %x m_tmsi: %x \n",                        \
+        gUTI_p->gummei.plmn.mcc_digit1, gUTI_p->gummei.plmn.mcc_digit2,        \
+        gUTI_p->gummei.plmn.mcc_digit3, gUTI_p->gummei.plmn.mnc_digit1,        \
+        gUTI_p->gummei.plmn.mnc_digit2, gUTI_p->gummei.plmn.mnc_digit3,        \
+        gUTI_p->gummei.mme_gid, gUTI_p->gummei.mme_code, gUTI_p->m_tmsi);      \
+  } while (0)
 #endif /* FILE_MME_API_SEEN*/
