@@ -14,6 +14,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
@@ -32,6 +33,7 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
+const CHART_TITLE = 'Data Usage';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -162,9 +164,14 @@ function Overview(props: {subscriberInfo: subscriber}) {
           </Grid>
         </Grid>
         <Grid item xs={12}>
-          <Paper>
-            <div className={classes.contentPlaceholder}>Data Usage Chart</div>
-          </Paper>
+          <DateTimeMetricChart
+            title={CHART_TITLE}
+            queries={[
+              `ue_traffic{imsi="${props.subscriberInfo.id}",direction="down"}`,
+              `ue_traffic{imsi="${props.subscriberInfo.id}",direction="up"}`,
+            ]}
+            legendLabels={['Download', 'Upload']}
+          />
         </Grid>
         <Grid item xs={12}>
           <Paper>

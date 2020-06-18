@@ -21,13 +21,13 @@ import moment from 'moment';
 import {DateTimePicker} from '@material-ui/pickers';
 import {useState} from 'react';
 
-export type EnbThroughputChartProps = {
+export type DateTimeMetricChartProps = {
   title: string,
   queries: Array<string>,
   legendLabels: Array<string>,
 };
 
-export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
+export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
 
