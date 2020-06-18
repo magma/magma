@@ -148,4 +148,16 @@ async function init() {
   }
 }
 
-init();
+async function initWithRetry() {
+  // auto reconnect is not supported by conductor-client,
+  // retry on error here
+  try {
+    await init();
+    return;
+  } catch (error) {
+    console.error('Got error, reconnecting', {error});
+    setTimeout(initWithRetry, 1000);
+  }
+}
+
+initWithRetry();
