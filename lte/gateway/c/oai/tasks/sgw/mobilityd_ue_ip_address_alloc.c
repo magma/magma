@@ -44,6 +44,23 @@ int release_ue_ipv4_address(
   return release_ipv4_address(imsi, apn, addr);
 }
 
+int release_ue_ipv6_address(
+  const char* imsi,
+  const char* apn,
+  struct in6_addr* addr)
+{
+  increment_counter(
+    "ue_pdn_connection",
+    1,
+    2,
+    "pdn_type",
+    "ipv6",
+    "result",
+    "ip_address_released");
+  // Release IP address back to PGW IP Address allocator
+  return release_ipv6_address(imsi, apn, addr);
+}
+
 int get_ip_block(struct in_addr *netaddr, uint32_t *netmask)
 {
   int rv;

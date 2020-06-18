@@ -41,4 +41,9 @@ int release_ue_ipv4_address(const char *imsi,
 
 int get_ip_block(struct in_addr *netaddr, uint32_t *netmask);
 
+int release_ue_ipv6_address(const char *imsi,
+                            const char *apn,
+                            struct in6_addr *addr);
+
+
 #endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */

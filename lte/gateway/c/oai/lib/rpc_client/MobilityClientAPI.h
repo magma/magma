@@ -164,6 +164,22 @@ int release_ipv4_address(
   const struct in_addr* addr);
 
 /*
+ * Release an allocated IP address.
+ *
+ * The released IP address is put into a tombstone state, and recycled
+ * periodically.
+ *
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param addr: IP address to release in "host byte order"
+ * @return 0 on success
+ * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
+ */
+int release_ipv6_address(
+  const char* subscriber_id,
+  const char* apn,
+  const struct in6_addr* addr);
+
+/*
  * Get the allocated IPv4 address for a subscriber
  * @param subscriber_id: IMSI string
  * @param addr (out): contains the allocated IPv4 address for the subscriber

@@ -577,3 +577,13 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_statu
   return sgi_create_endpoint_resp;
 }
 
+int release_ipv6_address(const char *subscriber_id, const char *apn,
+                         const struct in6_addr* addr)
+{
+  int status = 0;
+  // Uncomment once IPv6 is implemented at Mobilityd
+  /*status = MobilityServiceClient::getInstance().ReleaseIPv6Address(
+    subscriber_id, apn, *addr);*/
+  return status;
+}
+
