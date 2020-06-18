@@ -606,6 +606,7 @@ workflows:
           context: symphony
           requires:
             - yarntest
+          <<: *onlymaster
       - docker-publish:
           name: graph/publish
           context: symphony
