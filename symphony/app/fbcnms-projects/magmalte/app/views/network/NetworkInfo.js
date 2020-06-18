@@ -29,15 +29,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 export default function NetworkInfo({readOnly}: {readOnly: boolean}) {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
-  const [networkInfo, setNetworkInfo] = useState<network>({
-    id: '',
-    name: '',
-    description: '',
-    dns: {
-      enable_caching: false,
-      local_ttl: 0,
-    },
-  });
+  const [networkInfo, setNetworkInfo] = useState<network>({});
   const [networkType, setNetworkType] = useState('');
 
   const {isLoading} = useMagmaAPI(
@@ -53,6 +45,10 @@ export default function NetworkInfo({readOnly}: {readOnly: boolean}) {
 
   if (isLoading) {
     return <LoadingFiller />;
+  }
+
+  if (Object.keys(networkInfo).length === 0) {
+    return null;
   }
 
   return (

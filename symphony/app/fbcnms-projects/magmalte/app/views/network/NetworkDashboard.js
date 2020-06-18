@@ -13,7 +13,9 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
+import NetworkRanConfig from './NetworkRanConfig';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
@@ -139,20 +141,16 @@ function NetworkDashboardInternal() {
 
         <Grid container item xs={6} spacing={3}>
           <Grid item xs={12}>
-            <NetworkInfo readOnly={false} />
+            <NetworkInfo readOnly={true} />
           </Grid>
           <Grid item xs={12}>
-            <Paper>
-              <div className={classes.contentPlaceholder}>RAN</div>
-            </Paper>
+            <NetworkRanConfig readOnly={true} />
           </Grid>
         </Grid>
 
         <Grid container item xs={6} spacing={3}>
           <Grid item xs={12}>
-            <Paper>
-              <div className={classes.contentPlaceholder}>EPC</div>
-            </Paper>
+            <NetworkEpc readOnly={true} />
           </Grid>
         </Grid>
       </Grid>
