@@ -10,7 +10,7 @@ Currently supports two task types: `GLOBAL___js` and `GLOBAL___py`.
 * `args` - arguments to the script. To use workflow input: `${workflow.input.enter_your_name}`
 To read from previous task: `${some_task_ref.output.result}`
 * `outputIsJson` - if set to `true`, output will be interpreted as JSON. Otherwise interpreted as plaintext.
-* `script` - script to be executed
+* `scriptExpression` - script to be executed
 
 ## Javascript engine
 Task `GLOBAL___js` uses [QuickJs](https://bellard.org/quickjs/) engine, compiled to wasm [(demo)](https://wapm.io/package/quickjs).
@@ -75,7 +75,7 @@ ${CONDUCTOR_API}/metadata/workflow -d @- << 'EOF'
             "inputParameters": {
                 "args": "${workflow.input.enter_your_name}",
                 "outputIsJson": "true",
-                "script": "import json;print(json.dumps({'name': argv[1]}));eprint('logging from python');"
+                "scriptExpression": "import json\nprint(json.dumps({'name': argv[1]}))\neprint('logging from python')"
             },
             "type": "SIMPLE",
             "startDelay": 0,
@@ -88,7 +88,7 @@ ${CONDUCTOR_API}/metadata/workflow -d @- << 'EOF'
             "inputParameters": {
                 "args": "${create_json_ref.output.result}",
                 "outputIsJson": "true",
-                "script": "let json=JSON.parse(argv[1]); json.name_length = json.name.length; console.log(JSON.stringify(json)); console.error('logging from js');"
+                "scriptExpression": "let json=JSON.parse(argv[1]);\njson.name_length = json.name.length;\nconsole.log(JSON.stringify(json));\nconsole.error('logging from js');"
             },
             "type": "SIMPLE",
             "startDelay": 0,

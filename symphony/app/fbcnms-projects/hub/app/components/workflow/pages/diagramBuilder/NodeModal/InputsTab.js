@@ -11,6 +11,7 @@
 import AceEditor from 'react-ace';
 
 import 'ace-builds/src-noconflict/mode-javascript';
+import 'ace-builds/src-noconflict/mode-python';
 import 'ace-builds/src-noconflict/theme-tomorrow';
 import 'react-dropdown/style.css';
 import Dropdown from 'react-dropdown';
@@ -27,6 +28,14 @@ const SELECTFIELD_OPTIONS = {
 };
 
 const InputsTab = props => {
+
+  const getEditorLanguage = () => {
+    if (props.name==='GLOBAL___py') {
+      return 'python';
+    }
+    return 'javascript';
+  }
+
   const [customParam, setCustomParam] = useState('');
   const textFieldParams = [];
 
@@ -102,7 +111,7 @@ const InputsTab = props => {
         <Form.Group>
           <Form.Label>{entry[0]}</Form.Label>
           <AceEditor
-            mode="javascript"
+            mode={getEditorLanguage()}
             theme="tomorrow"
             width="100%"
             height="300px"

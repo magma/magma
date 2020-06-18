@@ -67,9 +67,9 @@ async function checkAndRegister(wasmSuffix, healthCheckFn, executeFn) {
     const inputData = data.inputData;
     const args = inputData.args;
     const outputIsJson = inputData.outputIsJson === 'true';
-    const script = inputData.script;
+    const scriptExpression = inputData.scriptExpression;
     try {
-      const {stdout, stderr} = await executeFn(script, args);
+      const {stdout, stderr} = await executeFn(scriptExpression, args);
       await createTaskResult(
         outputIsJson,
         {result: stdout},
