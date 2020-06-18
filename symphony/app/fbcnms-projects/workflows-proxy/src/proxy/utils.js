@@ -42,7 +42,6 @@ const SYSTEM_TASK_TYPES: Array<string> = [
   'EXCLUSIVE_JOIN',
   'WAIT',
   'DYNAMIC',
-  'LAMBDA',
   'TERMINATE',
   'KAFKA_PUBLISH',
   'DO_WHILE',
