@@ -302,6 +302,13 @@ export class WorkflowDiagram {
       case "wait":
         node = this.placeWaitNode(task, points.x, points.y);
         break;
+      case "js":
+        node = this.placeJsNode(task, points.x, points.y);
+        break;
+      case "py":
+        node = this.placePyNode(task, points.x, points.y);
+        break;
+
       default:
         break;
     }
@@ -458,6 +465,18 @@ export class WorkflowDiagram {
 
   placeWaitNode = (task, x, y) => {
     let node = new DefaultNodeModel(task.name, nodeColors.waitTask, task);
+    node.setPosition(x, y);
+    return node;
+  };
+
+  placeJsNode = (task, x, y) => {
+    let node = new DefaultNodeModel('JS Lambda', nodeColors.lambdaTask, task);
+    node.setPosition(x, y);
+    return node;
+  };
+
+  placePyNode = (task, x, y) => {
+    let node = new DefaultNodeModel('PY Lambda', nodeColors.lambdaTask, task);
     node.setPosition(x, y);
     return node;
   };
@@ -775,7 +794,14 @@ export class WorkflowDiagram {
       case "SIMPLE":
       case "SUB_WORKFLOW": {
         const { x, y } = this.calculatePosition(branchX, branchY);
-        const node = this.placeDefaultNode(task, x, y);
+        let node;
+        if (task.type == "SIMPLE" && task.name == 'GLOBAL___js') {
+          node = this.placeJsNode(task, x, y);
+        } else if (task.type == "SIMPLE" && task.name == 'GLOBAL___py') {
+            node = this.placePyNode(task, x, y);
+          } else {
+          node = this.placeDefaultNode(task, x, y);
+        }
         this.diagramModel.addNode(node);
         break;
       }
