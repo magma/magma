@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 
-#include <devmand/Diff.h>
+#include <devmand/utils/Diff.h>
 
 #include <list>
 #include <set>

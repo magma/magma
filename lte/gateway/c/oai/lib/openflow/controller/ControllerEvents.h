@@ -39,6 +39,8 @@ enum ControllerEventType {
   EVENT_DELETE_GTP_TUNNEL,
   EVENT_DISCARD_DATA_ON_GTP_TUNNEL,
   EVENT_FORWARD_DATA_ON_GTP_TUNNEL,
+  EVENT_ADD_PAGING_RULE,
+  EVENT_DELETE_PAGING_RULE,
 };
 
 /**
@@ -160,7 +162,8 @@ class AddGTPTunnelEvent : public ExternalEvent {
     const uint32_t in_tei,
     const uint32_t out_tei,
     const char *imsi,
-    const struct ipv4flow_dl *dl_flow);
+    const struct ipv4flow_dl *dl_flow,
+    const uint32_t dl_flow_precedence);
 
   AddGTPTunnelEvent(
     const struct in_addr ue_ip,
@@ -176,6 +179,7 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const std::string &get_imsi() const;
   const bool is_dl_flow_valid() const;
   const struct ipv4flow_dl &get_dl_flow() const;
+  const uint32_t get_dl_flow_precedence() const;
 
  private:
   const struct in_addr ue_ip_;
@@ -185,6 +189,7 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const std::string imsi_;
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
+  const uint32_t dl_flow_precedence_;
 };
 
 /*
@@ -223,7 +228,8 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
     const struct in_addr ue_ip,
     const uint32_t in_tei,
     const ControllerEventType event_type,
-    const struct ipv4flow_dl *dl_flow);
+    const struct ipv4flow_dl *dl_flow,
+    const uint32_t dl_flow_precedence);
   HandleDataOnGTPTunnelEvent(
     const struct in_addr ue_ip,
     const uint32_t in_tei,
@@ -233,12 +239,42 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
   const struct ipv4flow_dl &get_dl_flow() const;
+  const uint32_t get_dl_flow_precedence() const;
 
  private:
   const struct in_addr ue_ip_;
   const uint32_t in_tei_;
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
+  const uint32_t dl_flow_precedence_;
 };
 
-} // namespace openflow
+/*
+ * Event triggered by SPGW to support UE paging when
+ * S1 is released (i.e., UE is in IDLE mode)
+ */
+class AddPagingRuleEvent : public ExternalEvent {
+ public:
+  AddPagingRuleEvent(const struct in_addr ue_ip);
+
+  const struct in_addr& get_ue_ip() const;
+
+ private:
+  const struct in_addr ue_ip_;
+};
+
+/*
+ * Event triggered by SPGW to stop UE paging when
+ * UE is detached
+ */
+class DeletePagingRuleEvent : public ExternalEvent {
+ public:
+  DeletePagingRuleEvent(const struct in_addr ue_ip);
+
+  const struct in_addr& get_ue_ip() const;
+
+ private:
+  const struct in_addr ue_ip_;
+};
+
+}  // namespace openflow

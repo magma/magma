@@ -10,9 +10,15 @@
 #include <map>
 #include <string>
 
+#include <folly/dynamic.h>
+
+#include <devmand/devices/Id.h>
+
 namespace devmand {
 
-using UnifiedView = std::map<std::string, std::string>;
+// TODO convert this to ydk?
+using YangModelBundle = folly::dynamic;
+using UnifiedView = std::map<devices::Id, YangModelBundle>;
 using SharedUnifiedView = folly::Synchronized<UnifiedView>;
 
 } // namespace devmand

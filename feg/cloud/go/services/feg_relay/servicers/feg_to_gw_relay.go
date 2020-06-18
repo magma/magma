@@ -13,16 +13,18 @@ import (
 	"fmt"
 	"strings"
 
+	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/directoryd"
+	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
-
-	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 )
 
 // FegToGwRelayServer is a server serving requests from FeG to Access Gateway
@@ -34,17 +36,24 @@ func NewFegToGwRelayServer() (*FegToGwRelayServer, error) {
 	return &FegToGwRelayServer{}, nil
 }
 
-func getHwIDFromIMSI(imsi string) (string, error) {
+func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
+	gw := protos.GetClientGateway(ctx)
 	// directoryd prefixes imsi with "IMSI" when updating the location
 	if !strings.HasPrefix(imsi, "IMSI") {
 		imsi = fmt.Sprintf("IMSI%s", imsi)
 	}
-	hwId, err := directoryd.GetHardwareIdByIMSI(imsi)
+	servedIds, err := getFegServedIds(gw.GetNetworkId())
 	if err != nil {
-		return hwId, err
+		return "", err
 	}
-	glog.V(2).Infof("IMSI to send is %v\n", imsi)
-	return hwId, nil
+	for _, nid := range servedIds {
+		hwId, err := directoryd.GetHWIDForIMSI(nid, imsi)
+		if err == nil && len(hwId) != 0 {
+			glog.V(2).Infof("IMSI to send is %v\n", imsi)
+			return hwId, nil
+		}
+	}
+	return "", fmt.Errorf("could not find gateway location for IMSI: %s", imsi)
 }
 
 func validateFegContext(ctx context.Context) error {
@@ -68,7 +77,7 @@ func getGWSGSServiceConnCtx(ctx context.Context, imsi string) (*grpc.ClientConn,
 	if err := validateFegContext(ctx); err != nil {
 		return nil, nil, err
 	}
-	hwId, err := getHwIDFromIMSI(imsi)
+	hwId, err := getHwIDFromIMSI(ctx, imsi)
 	if err != nil {
 		errorStr := fmt.Sprintf(
 			"unable to get HwID from IMSI %v. err: %v\n",
@@ -111,4 +120,19 @@ func getAllGWSGSServiceConnCtx(ctx context.Context) ([]*grpc.ClientConn, []conte
 	}
 
 	return connList, ctxList, nil
+}
+
+func getFegServedIds(networkId string) ([]string, error) {
+	if len(networkId) == 0 {
+		return []string{}, fmt.Errorf("Empty networkID provided.")
+	}
+	fegCfg, err := configurator.LoadNetworkConfig(networkId, feg.FegNetworkType)
+	if err != nil || fegCfg == nil {
+		return []string{}, fmt.Errorf("unable to retrieve config for federation network: %s", networkId)
+	}
+	networkFegConfigs, ok := fegCfg.(*models.NetworkFederationConfigs)
+	if !ok || networkFegConfigs == nil {
+		return []string{}, fmt.Errorf("invalid federation network config found for network: %s", networkId)
+	}
+	return networkFegConfigs.ServedNetworkIds, nil
 }

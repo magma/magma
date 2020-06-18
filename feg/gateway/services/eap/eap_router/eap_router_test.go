@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package main_test
 
 import (
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -87,6 +88,7 @@ func newTestEapClient(t *testing.T, addr string) testEapServiceClient {
 
 // TestEapAkaConcurent tests EAP AKA Provider
 func TestEapAkaConcurent(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -124,7 +126,7 @@ func TestEAPPeerNak(t *testing.T) {
 	failureEAP := []byte{4, 237, 0, 4}
 	akaPrimeIdentity := eap.NewPacket(
 		eap.ResponseCode, 236,
-		append([]byte{eap_client.EapMethodIdentity}, []byte("6001010000000091@wlan.mnc001.mcc001.3gppnetwork.org")...))
+		append([]byte{eap.MethodIdentity}, []byte("6001010000000091@wlan.mnc001.mcc001.3gppnetwork.org")...))
 	permIdReq := []byte{0x01, 237, 0x00, 0x0c, 0x17, 0x05, 0x00, 0x00, 0x0a, 0x01, 0x00, 0x00}
 	akaPrimeNak := []byte{0x02, 237, 0x00, 0x06, 0x03, 50}
 	akaAkaPrimeNak := []byte{0x02, 236, 0x00, 0x07, 0x03, 50, 23}
@@ -169,6 +171,7 @@ func TestEAPPeerNak(t *testing.T) {
 }
 
 func TestEAPAkaWrongPlmnId(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.NoUseSwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -204,6 +207,7 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 }
 
 func TestEAPAkaPlmnId5(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -240,6 +244,7 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 }
 
 func TestEAPAkaPlmnId6(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

@@ -19,6 +19,7 @@ func NewDefaultNetworkFederationConfigs() *NetworkFederationConfigs {
 		S6a:              newDefaultS6a(),
 		ServedNetworkIds: newDefaultServedNetworkIds(),
 		Swx:              newDefaultSwx(),
+		Csfb:             newDefaultCsfb(),
 	}
 }
 
@@ -43,6 +44,7 @@ func NewDefaultGatewayFederationConfig() *GatewayFederationConfigs {
 		S6a:              newDefaultS6a(),
 		ServedNetworkIds: newDefaultServedNetworkIds(),
 		Swx:              newDefaultSwx(),
+		Csfb:             newDefaultCsfb(),
 	}
 }
 
@@ -75,15 +77,17 @@ func newDefaultEapAka() *EapAka {
 
 func newDefaultGx() *Gx {
 	return &Gx{
-		Server: newDefaultDiameterClientConfigs(),
+		Server:       newDefaultDiameterClientConfigs(),
+		OverwriteApn: "",
 	}
 }
 
 func newDefaultGy() *Gy {
 	initMethod := uint32(float32(1))
 	return &Gy{
-		InitMethod: &initMethod,
-		Server:     newDefaultDiameterClientConfigs(),
+		InitMethod:   &initMethod,
+		Server:       newDefaultDiameterClientConfigs(),
+		OverwriteApn: "",
 	}
 }
 
@@ -164,6 +168,14 @@ func newDefaultSwx() *Swx {
 		RegisterOnAuth:        false,
 		Server:                newDefaultDiameterClientConfigs(),
 		VerifyAuthorization:   false,
+	}
+}
+
+func newDefaultCsfb() *Csfb {
+	return &Csfb{
+		Client: &SctpClientConfigs{
+			LocalAddress:  "foo.bar.com:5555",
+			ServerAddress: ":56789"},
 	}
 }
 

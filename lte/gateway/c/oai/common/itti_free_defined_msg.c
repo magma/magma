@@ -35,12 +35,11 @@
 #include "itti_free_defined_msg.h"
 #include "async_system_messages_types.h"
 #include "ip_forward_messages_types.h"
-#include "nas_messages_types.h"
 #include "s11_messages_types.h"
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
-void itti_free_msg_content(MessageDef *const message_p)
+void itti_free_msg_content(MessageDef* const message_p)
 {
   switch (ITTI_MSG_ID(message_p)) {
     case ASYNC_SYSTEM_COMMAND: {
@@ -77,7 +76,17 @@ void itti_free_msg_content(MessageDef *const message_p)
       // DO nothing
       break;
 
-    case MME_APP_CONNECTION_ESTABLISHMENT_CNF: break;
+    case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
+      itti_mme_app_connection_establishment_cnf_t mme_app_est_cnf = {0};
+      mme_app_est_cnf = message_p->ittiMsg.mme_app_connection_establishment_cnf;
+      for (uint8_t index = 0; index < BEARERS_PER_UE; index++) {
+        bdestroy_wrapper(&mme_app_est_cnf.nas_pdu[index]);
+      }
+      for (uint8_t index = 0; index < mme_app_est_cnf.no_of_e_rabs; index++) {
+        bdestroy_wrapper(&(mme_app_est_cnf.transport_layer_address[index]));
+      }
+      bdestroy_wrapper(&mme_app_est_cnf.ue_radio_capability);
+    } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_RSP: break;
 
@@ -85,68 +94,11 @@ void itti_free_msg_content(MessageDef *const message_p)
       // DO nothing
       break;
 
-    case NAS_PDN_CONNECTIVITY_REQ: {
-      clear_protocol_configuration_options(
-        &message_p->ittiMsg.nas_pdn_connectivity_req.pco);
-      bdestroy_wrapper(&message_p->ittiMsg.nas_pdn_connectivity_req.apn);
-      bdestroy_wrapper(&message_p->ittiMsg.nas_pdn_connectivity_req.pdn_addr);
+    case MME_APP_UPLINK_DATA_IND:
+      bdestroy_wrapper(&message_p->ittiMsg.mme_app_ul_data_ind.nas_msg);
       AssertFatal(
-        NULL == message_p->ittiMsg.nas_pdn_connectivity_req.pdn_addr,
+        NULL == message_p->ittiMsg.mme_app_ul_data_ind.nas_msg,
         "TODO clean pointer");
-    } break;
-
-    case NAS_CONNECTION_ESTABLISHMENT_CNF:
-      bdestroy_wrapper(&message_p->ittiMsg.nas_conn_est_cnf.nas_msg);
-      AssertFatal(
-        NULL == message_p->ittiMsg.nas_conn_est_cnf.nas_msg,
-        "TODO clean pointer");
-      break;
-
-    case NAS_CONNECTION_RELEASE_IND:
-      // DO nothing
-      break;
-
-    case NAS_UPLINK_DATA_IND:
-      bdestroy_wrapper(&message_p->ittiMsg.nas_ul_data_ind.nas_msg);
-      AssertFatal(
-        NULL == message_p->ittiMsg.nas_ul_data_ind.nas_msg,
-        "TODO clean pointer");
-      break;
-
-    case NAS_DOWNLINK_DATA_REQ:
-      bdestroy_wrapper(&message_p->ittiMsg.nas_dl_data_req.nas_msg);
-      AssertFatal(
-        NULL == message_p->ittiMsg.nas_dl_data_req.nas_msg,
-        "TODO clean pointer");
-      break;
-
-    case NAS_DOWNLINK_DATA_CNF:
-      // DO nothing
-      break;
-
-    case NAS_DOWNLINK_DATA_REJ:
-      bdestroy_wrapper(&message_p->ittiMsg.nas_dl_data_rej.nas_msg);
-      AssertFatal(
-        NULL == message_p->ittiMsg.nas_dl_data_rej.nas_msg,
-        "TODO clean pointer");
-      break;
-
-    case NAS_AUTHENTICATION_PARAM_REQ:
-    case NAS_DETACH_REQ:
-      // DO nothing
-      break;
-
-    case NAS_PDN_CONNECTIVITY_RSP: {
-      clear_protocol_configuration_options(
-        &message_p->ittiMsg.nas_pdn_connectivity_rsp.pco);
-      bdestroy_wrapper(&message_p->ittiMsg.nas_pdn_connectivity_rsp.pdn_addr);
-      AssertFatal(
-        NULL == message_p->ittiMsg.nas_pdn_connectivity_rsp.pdn_addr,
-        "TODO clean pointer");
-    } break;
-
-    case NAS_PDN_CONNECTIVITY_FAIL:
-      // DO nothing
       break;
 
     case S11_CREATE_SESSION_REQUEST: {
@@ -199,18 +151,37 @@ void itti_free_msg_content(MessageDef *const message_p)
 
     case S1AP_UE_CAPABILITIES_IND:
     case S1AP_ENB_DEREGISTERED_IND:
-    case S1AP_DEREGISTER_UE_REQ:
     case S1AP_UE_CONTEXT_RELEASE_REQ:
     case S1AP_UE_CONTEXT_RELEASE_COMMAND:
     case S1AP_UE_CONTEXT_RELEASE_COMPLETE:
       // DO nothing
       break;
-
+    case S1AP_E_RAB_REL_CMD:
+      bdestroy_wrapper(&message_p->ittiMsg.s1ap_e_rab_rel_cmd.nas_pdu);
+      break;
+    case S1AP_E_RAB_SETUP_REQ:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.s1ap_e_rab_setup_req.e_rab_to_be_setup_list
+               .item[0]
+               .transport_layer_address);
+      bdestroy_wrapper(
+          &message_p->ittiMsg.s1ap_e_rab_setup_req.e_rab_to_be_setup_list
+               .item[0]
+               .nas_pdu);
+      break;
+    case S1AP_NAS_DL_DATA_REQ:
+      bdestroy_wrapper(&message_p->ittiMsg.s1ap_nas_dl_data_req.nas_msg);
+      break;
     case S6A_UPDATE_LOCATION_REQ:
     case S6A_UPDATE_LOCATION_ANS:
     case S6A_AUTH_INFO_REQ:
     case S6A_AUTH_INFO_ANS:
       // DO nothing
+      break;
+
+    case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP:
+      free_wrapper(
+          (void**) &message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp.lbi);
       break;
 
     case SCTP_INIT_MSG:

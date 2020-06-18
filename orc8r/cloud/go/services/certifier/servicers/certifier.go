@@ -17,14 +17,14 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/datastore"
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/security/cert"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
+	"magma/orc8r/cloud/go/services/certifier/storage"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/cert"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
@@ -38,7 +38,7 @@ var (
 
 func init() {
 	NumTrialsForSn = 1
-	CollectGarbageAfter = time.Duration(time.Hour * 24)
+	CollectGarbageAfter = time.Hour * 24
 }
 
 type CAInfo struct {
@@ -47,11 +47,11 @@ type CAInfo struct {
 }
 
 type CertifierServer struct {
-	store datastore.Api
+	store storage.CertifierStorage
 	CAs   map[protos.CertType]*CAInfo
 }
 
-func NewCertifierServer(store datastore.Api, CAs map[protos.CertType]*CAInfo) (srv *CertifierServer, err error) {
+func NewCertifierServer(store storage.CertifierStorage, CAs map[protos.CertType]*CAInfo) (srv *CertifierServer, err error) {
 	srv = new(CertifierServer)
 	srv.store = store
 	if CAs == nil {
@@ -64,7 +64,7 @@ func NewCertifierServer(store datastore.Api, CAs map[protos.CertType]*CAInfo) (s
 	return srv, nil
 }
 
-func generateSerialNumber(store datastore.Api, tableName string) (sn *big.Int, err error) {
+func generateSerialNumber(store storage.CertifierStorage) (sn *big.Int, err error) {
 	limit := new(big.Int).Lsh(big.NewInt(1), 128)
 
 	for i := 0; i < NumTrialsForSn; i++ {
@@ -72,7 +72,7 @@ func generateSerialNumber(store datastore.Api, tableName string) (sn *big.Int, e
 		if err != nil {
 			return nil, fmt.Errorf("Failed to generate serial number: %s", err)
 		}
-		_, _, err := store.Get(tableName, cert.SerialToString(sn))
+		_, err := store.GetCertInfo(cert.SerialToString(sn))
 		if err != nil {
 			return sn, nil
 		}
@@ -165,18 +165,11 @@ func checkOrOverwriteCN(csr *x509.CertificateRequest, csrMsg *protos.CSR) error 
 }
 
 func (srv *CertifierServer) getCertInfo(sn string) (*certprotos.CertificateInfo, error) {
-	certInfo := &certprotos.CertificateInfo{}
-	marshalledCertInfo, _, err := srv.store.Get(CERTIFICATE_INFO_TABLE, sn)
+	certInfo, err := srv.store.GetCertInfo(sn)
 	if err != nil {
-		return certInfo, status.Errorf(
-			codes.NotFound, "Failed to load certificate: %s", err)
+		return &certprotos.CertificateInfo{}, status.Errorf(codes.NotFound, "Failed to load certificate: %s", err)
 	}
-	err = proto.Unmarshal(marshalledCertInfo, certInfo)
-	if err != nil {
-		err = status.Errorf(
-			codes.Internal, "Failed to unmarshal certificate record: %s", err)
-	}
-	return certInfo, err
+	return certInfo, nil
 }
 
 // Verify that the certificate is signed by our CA
@@ -221,7 +214,7 @@ func (srv *CertifierServer) GetCA(ctx context.Context, getCAReqMsg *certprotos.G
 
 func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *protos.CSR) (*protos.Certificate, error) {
 
-	sn, err := generateSerialNumber(srv.store, CERTIFICATE_INFO_TABLE)
+	sn, err := generateSerialNumber(srv.store)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Error generating serial number: %s", err)
 	}
@@ -250,21 +243,15 @@ func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *prot
 	notAfterProto, _ := ptypes.TimestampProto(notAfter)
 
 	// create CertificateInfo
-	certInfo := certprotos.CertificateInfo{
+	certInfo := &certprotos.CertificateInfo{
 		Id:        csrMsg.Id,
 		CertType:  csrMsg.CertType,
 		NotBefore: notBeforeProto,
 		NotAfter:  notAfterProto,
 	}
-	// marshal
-	marshaledCertInfo, err := proto.Marshal(&certInfo)
-	if err != nil {
-		return nil, status.Errorf(codes.Aborted,
-			"Marshalling error in CertificateInfo: %s", err)
-	}
 	// add to table
 	snString := cert.SerialToString(sn)
-	err = srv.store.Put(CERTIFICATE_INFO_TABLE, snString, marshaledCertInfo)
+	err = srv.store.PutCertInfo(snString, certInfo)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Error adding CertificateInfo: %s", err)
 	}
@@ -286,13 +273,11 @@ func (srv *CertifierServer) GetIdentity(
 	if snMsg != nil {
 		certSN = strings.TrimLeft(snMsg.Sn, "0")
 	}
-	marshalledCertInfo, _, err := srv.store.Get(CERTIFICATE_INFO_TABLE, certSN)
+	certInfo, err := srv.store.GetCertInfo(certSN)
 	if err != nil {
 		return &certprotos.CertificateInfo{}, status.Errorf(
 			codes.NotFound, "Certificate with serial number '%s' is not found", certSN)
 	}
-	certInfo := &certprotos.CertificateInfo{}
-	proto.Unmarshal(marshalledCertInfo, certInfo)
 
 	// check timestamp
 	notBefore, _ := ptypes.Timestamp(certInfo.NotBefore)
@@ -316,11 +301,11 @@ func (srv *CertifierServer) RevokeCertificate(
 	if snMsg != nil {
 		certSN = strings.TrimLeft(snMsg.Sn, "0")
 	}
-	_, _, err := srv.store.Get(CERTIFICATE_INFO_TABLE, certSN)
+	_, err := srv.store.GetCertInfo(certSN)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "Cannot find certificate with SN: %s", certSN)
 	}
-	err = srv.store.Delete(CERTIFICATE_INFO_TABLE, certSN)
+	err = srv.store.DeleteCertInfo(certSN)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Failed to delete certificate: %s", err)
 	}
@@ -345,7 +330,7 @@ func (srv *CertifierServer) AddCertificate(ctx context.Context, req *certprotos.
 			codes.InvalidArgument, "%s for Certificate SN %s", err, snStr)
 	}
 	// Check if a certificate with the same SN is already there
-	_, _, err = srv.store.Get(CERTIFICATE_INFO_TABLE, snStr)
+	_, err = srv.store.GetCertInfo(snStr)
 	if err == nil {
 		return res, status.Errorf(
 			codes.AlreadyExists, "Certificate SN %s already exists", snStr)
@@ -353,20 +338,14 @@ func (srv *CertifierServer) AddCertificate(ctx context.Context, req *certprotos.
 	// create CertificateInfo
 	notBeforeProto, _ := ptypes.TimestampProto(x509Cert.NotBefore)
 	notAfterProto, _ := ptypes.TimestampProto(x509Cert.NotAfter)
-	certInfo := certprotos.CertificateInfo{
+	certInfo := &certprotos.CertificateInfo{
 		Id:        req.Id,
 		CertType:  req.CertType,
 		NotBefore: notBeforeProto,
 		NotAfter:  notAfterProto,
 	}
-	// marshal
-	marshaledCertInfo, err := proto.Marshal(&certInfo)
-	if err != nil {
-		return res, status.Errorf(codes.Aborted,
-			"Marshalling error in CertificateInfo: %s", err)
-	}
 	// add to table
-	err = srv.store.Put(CERTIFICATE_INFO_TABLE, snStr, marshaledCertInfo)
+	err = srv.store.PutCertInfo(snStr, certInfo)
 	if err != nil {
 		return res,
 			status.Errorf(codes.Internal, "Error adding CertificateInfo: %s", err)
@@ -400,9 +379,8 @@ func (srv *CertifierServer) FindCertificates(ctx context.Context, id *protos.Ide
 
 // Returns serial numbers of all certificates in the table
 func (srv *CertifierServer) ListCertificates(ctx context.Context, void *protos.Void) (*certprotos.SerialNumbers, error) {
-
 	res := &certprotos.SerialNumbers{}
-	snList, err := srv.store.ListKeys(CERTIFICATE_INFO_TABLE)
+	snList, err := srv.store.ListSerialNumbers()
 	if err != nil {
 		return res, status.Errorf(
 			codes.Internal, "Failed to get certificate serial numbers: %s", err)
@@ -414,67 +392,46 @@ func (srv *CertifierServer) ListCertificates(ctx context.Context, void *protos.V
 // GetAll returns all Certificates Records
 func (srv *CertifierServer) GetAll(context.Context, *protos.Void) (*certprotos.CertificateInfoMap, error) {
 	res := &certprotos.CertificateInfoMap{Certificates: map[string]*certprotos.CertificateInfo{}}
-	snList, err := srv.store.ListKeys(CERTIFICATE_INFO_TABLE)
+	certInfos, err := srv.store.GetAllCertInfo()
 	if err != nil {
-		return res, status.Errorf(
-			codes.Internal, "Failed to list all certificates: %v", err)
+		return res, status.Errorf(codes.Internal, "Failed to get all certificates: %v", err)
 	}
-	infoValues, err := srv.store.GetMany(CERTIFICATE_INFO_TABLE, snList)
-	for sn, val := range infoValues {
-		certInfo := &certprotos.CertificateInfo{}
-		err = proto.Unmarshal(val.Value, certInfo)
-		if err != nil {
-			status.Errorf(
-				codes.Internal,
-				"Failed to unmarshal certificate with serial number %s: %v",
-				sn, err)
-			return res, err
-		}
-		res.Certificates[sn] = certInfo
-	}
+	res.Certificates = certInfos
 	return res, nil
 }
 
 func (srv *CertifierServer) CollectGarbage(ctx context.Context, void *protos.Void) (*protos.Void, error) {
-	res := &protos.Void{}
-	snList, err := srv.ListCertificates(ctx, void)
+	count, err := srv.CollectGarbageImpl(ctx)
+	glog.Infof("purged %d expired certificates", count)
+	return &protos.Void{}, err
+}
+
+func (srv *CertifierServer) CollectGarbageImpl(ctx context.Context) (int, error) {
+	snList, err := srv.ListCertificates(ctx, &protos.Void{})
 	if err != nil {
-		return res, err
+		return 0, err
 	}
-	var errorList = []struct {
-		sn  string
-		err error
-	}{}
+	var multiErr *errors.Multi
 	count := 0
 	for _, sn := range snList.Sns {
 		certInfo, err := srv.getCertInfo(sn)
 		if err != nil {
-			return res, err
+			multiErr.AddFmt(err, "'%s' get info error:", sn)
 		}
 		notAfter, _ := ptypes.Timestamp(certInfo.NotAfter)
 		notAfter = notAfter.Add(CollectGarbageAfter)
 		if time.Now().UTC().After(notAfter) {
-			err = srv.store.Delete(CERTIFICATE_INFO_TABLE, sn)
+			err = srv.store.DeleteCertInfo(sn)
 			if err != nil {
-				errorList = append(errorList, struct {
-					sn  string
-					err error
-				}{sn, err})
+				multiErr.AddFmt(err, "'%s' delete error:", sn)
 			} else {
 				count += 1
 			}
 		}
 	}
-	if count > 0 {
-		glog.V(2).Infof("Removed %d stale certificates", count)
+	if multiErr.AsError() != nil {
+		glog.Errorf("Failed to delete certificate[s]: %v", multiErr)
+		return count, status.Error(codes.Internal, multiErr.Error())
 	}
-	if len(errorList) > 0 {
-		msg := "Failed to delete certificate[s]:"
-		for _, e := range errorList {
-			msg += fmt.Sprintf(" %s -> %v;", e.sn, e.err)
-		}
-		glog.Error(msg)
-		return res, status.Errorf(codes.Internal, msg)
-	}
-	return res, nil
+	return count, nil
 }

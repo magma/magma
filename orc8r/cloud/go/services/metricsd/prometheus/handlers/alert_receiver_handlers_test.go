@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 
 	"github.com/labstack/echo"
-	"github.com/prometheus/alertmanager/config"
+	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,14 +38,14 @@ var (
 
 	testWebhookURL, _ = url.Parse(webhookURL)
 	testWebhookConfig = config.WebhookConfig{
-		NotifierConfig: config.NotifierConfig{
+		NotifierConfig: amconfig.NotifierConfig{
 			VSendResolved: true,
 		},
-		URL: &config.URL{
+		URL: &amconfig.URL{
 			URL: testWebhookURL,
 		},
 	}
-	testSlackConfig = receivers.SlackConfig{
+	testSlackConfig = config.SlackConfig{
 		APIURL: slackURL,
 	}
 )

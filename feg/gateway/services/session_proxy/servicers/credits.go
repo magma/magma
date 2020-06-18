@@ -11,10 +11,10 @@ package servicers
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/policydb"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/metrics"
@@ -78,16 +78,16 @@ func getCCRInitRequest(
 		GcID:          pReq.GcId,
 		Qos:           qos,
 		Type:          credit_control.CRTInit,
+		RatType:       gy.GetRATType(pReq.GetRatType()),
 	}
 }
 
-// getCCRInitialUpdateRequest creates the first update requess to send to the
+// getCCRInitialUpdateRequest creates the first update request to send to the
 // OCS when a session is established.
 func getCCRInitialCreditRequest(
 	imsi string,
 	pReq *protos.CreateSessionRequest,
-	keys []uint32,
-	initMethod gy.InitMethod,
+	keys []policydb.ChargingKey,
 ) *gy.CreditControlRequest {
 	var msgType credit_control.CreditRequestType
 	var qos *gy.QosRequestInfo
@@ -99,18 +99,19 @@ func getCCRInitialCreditRequest(
 		}
 	}
 
-	if initMethod == gy.PerKeyInit {
-		msgType = credit_control.CRTInit
-	} else {
-		msgType = credit_control.CRTUpdate
-	}
+	msgType = credit_control.CRTInit
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
-		usedCredits = append(usedCredits, &gy.UsedCredits{RatingGroup: key})
+		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
+		if key.ServiceIdTracking {
+			sid := key.ServiceIdentifier
+			uc.ServiceIdentifier = &sid
+		}
+		usedCredits = append(usedCredits, uc)
 	}
 	return &gy.CreditControlRequest{
 		SessionID:     pReq.SessionId,
-		RequestNumber: 1,
+		RequestNumber: 0,
 		IMSI:          imsi,
 		UeIPV4:        pReq.UeIpv4,
 		SpgwIPV4:      pReq.SpgwIpv4,
@@ -123,6 +124,7 @@ func getCCRInitialCreditRequest(
 		Qos:           qos,
 		Credits:       usedCredits,
 		Type:          msgType,
+		RatType:       gy.GetRATType(pReq.GetRatType()),
 	}
 }
 
@@ -187,7 +189,7 @@ loop:
 				metrics.GyResultCodes.WithLabelValues(strconv.FormatUint(uint64(ans.ResultCode), 10)).Inc()
 				metrics.UpdateGyRecentRequestMetrics(nil)
 				key := credit_control.GetRequestKey(credit_control.Gy, ans.SessionID, ans.RequestNumber)
-				newResponse := getSingleCreditResponsesFromCCA(ans, requestMap[key])
+				newResponse := getSingleCreditResponseFromCCA(ans, requestMap[key])
 				responses = append(responses, newResponse)
 				// satisfied request, remove
 				delete(requestMap, key)
@@ -237,23 +239,27 @@ func addMissingResponses(
 	leftoverRequests map[credit_control.RequestKey]*gy.CreditControlRequest,
 ) []*protos.CreditUpdateResponse {
 	for _, ccr := range leftoverRequests {
-		responses = append(responses, &protos.CreditUpdateResponse{
+		resp := &protos.CreditUpdateResponse{
 			Success:     false,
-			Sid:         addSidPrefix(ccr.IMSI),
+			Sid:         credit_control.AddIMSIPrefix(ccr.IMSI),
 			ChargingKey: ccr.Credits[0].RatingGroup,
-		})
+		}
+		if ccr.Credits[0].ServiceIdentifier != nil {
+			resp.ServiceIdentifier = &protos.ServiceIdentifier{Value: *ccr.Credits[0].ServiceIdentifier}
+		}
+		responses = append(responses, resp)
 		metrics.UpdateGyRecentRequestMetrics(fmt.Errorf("Gy update failure"))
 	}
 	return responses
 }
 
-// getSingleCreditResponsesFromCCA creates a CreditUpdateResponse proto from a CCA
-func getSingleCreditResponsesFromCCA(
+// getSingleCreditResponseFromCCA creates a CreditUpdateResponse proto from a CCA
+func getSingleCreditResponseFromCCA(
 	answer *gy.CreditControlAnswer,
 	request *gy.CreditControlRequest,
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
-	imsi := addSidPrefix(request.IMSI)
+	imsi := credit_control.AddIMSIPrefix(request.IMSI)
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
 			Success: false,
@@ -262,31 +268,49 @@ func getSingleCreditResponsesFromCCA(
 	}
 	receivedCredit := answer.Credits[0]
 	msccSuccess := receivedCredit.ResultCode == diameter.SuccessCode || receivedCredit.ResultCode == 0 // 0: not set
-	return &protos.CreditUpdateResponse{
+	tgppCtx := request.TgppCtx
+	if len(answer.OriginHost) > 0 {
+		if tgppCtx == nil {
+			tgppCtx = new(protos.TgppContext)
+		}
+		tgppCtx.GyDestHost = answer.OriginHost
+	}
+	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
+		TgppCtx:     tgppCtx,
+		ResultCode:  answer.ResultCode,
 	}
+
+	if receivedCredit.ServiceIdentifier != nil {
+		res.ServiceIdentifier = &protos.ServiceIdentifier{Value: *receivedCredit.ServiceIdentifier}
+	}
+	return res
 }
 
-func getInitialCreditResponsesFromCCA(
-	answer *gy.CreditControlAnswer,
-	request *gy.CreditControlRequest,
-) []*protos.CreditUpdateResponse {
-	if answer.ResultCode != diameter.SuccessCode {
-		glog.Errorf("unsuccessful result code %d for init request for %s", answer.ResultCode, request.IMSI)
-		return []*protos.CreditUpdateResponse{}
-	}
+func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *gy.CreditControlAnswer) []*protos.CreditUpdateResponse {
 	responses := make([]*protos.CreditUpdateResponse, 0, len(answer.Credits))
+	tgppCtx := request.TgppCtx
+	if len(answer.OriginHost) > 0 {
+		if tgppCtx == nil {
+			tgppCtx = new(protos.TgppContext)
+		}
+		tgppCtx.GyDestHost = answer.OriginHost
+	}
 	for _, credit := range answer.Credits {
 		success := credit.ResultCode == diameter.SuccessCode || credit.ResultCode == 0
 		response := &protos.CreditUpdateResponse{
 			Success:     success,
-			Sid:         addSidPrefix(request.IMSI),
+			Sid:         credit_control.AddIMSIPrefix(request.IMSI),
 			ChargingKey: credit.RatingGroup,
 			Credit:      getSingleChargingCreditFromCCA(credit),
 			ResultCode:  credit.ResultCode,
+			TgppCtx:     tgppCtx,
+		}
+		if credit.ServiceIdentifier != nil {
+			response.ServiceIdentifier = &protos.ServiceIdentifier{Value: *credit.ServiceIdentifier}
 		}
 		responses = append(responses, response)
 	}
@@ -315,7 +339,7 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 		requests = append(requests, &gy.CreditControlRequest{
 			SessionID:     update.SessionId,
 			RequestNumber: update.RequestNumber,
-			IMSI:          removeSidPrefix(update.Sid),
+			IMSI:          credit_control.RemoveIMSIPrefix(update.Sid),
 			Msisdn:        update.Msisdn,
 			UeIPV4:        update.UeIpv4,
 			SpgwIPV4:      update.SpgwIpv4,
@@ -331,6 +355,8 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 				TotalOctets:  update.Usage.BytesTx + update.Usage.BytesRx,
 				Type:         gy.UsedCreditsType(update.Usage.Type),
 			}},
+			RatType: gy.GetRATType(update.GetRatType()),
+			TgppCtx: update.GetTgppCtx(),
 		})
 	}
 	return requests
@@ -340,17 +366,11 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *gy.CreditControlRequest {
 	usedCredits := make([]*gy.UsedCredits, 0, len(termination.CreditUsages))
 	for _, usage := range termination.CreditUsages {
-		usedCredits = append(usedCredits, &gy.UsedCredits{
-			RatingGroup:  usage.ChargingKey,
-			InputOctets:  usage.BytesTx, // transmit == input
-			OutputOctets: usage.BytesRx, // receive == output
-			TotalOctets:  usage.BytesTx + usage.BytesRx,
-			Type:         gy.UsedCreditsType(usage.Type),
-		})
+		usedCredits = append(usedCredits, (&gy.UsedCredits{}).FromCreditUsage(usage))
 	}
 	return &gy.CreditControlRequest{
 		SessionID:     termination.SessionId,
-		IMSI:          removeSidPrefix(termination.Sid),
+		IMSI:          credit_control.RemoveIMSIPrefix(termination.Sid),
 		Apn:           termination.Apn,
 		RequestNumber: termination.RequestNumber,
 		Credits:       usedCredits,
@@ -361,13 +381,33 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 		PlmnID:        termination.PlmnId,
 		UserLocation:  termination.UserLocation,
 		Type:          credit_control.CRTTerminate,
+		RatType:       gy.GetRATType(termination.GetRatType()),
+		TgppCtx:       termination.GetTgppCtx(),
 	}
 }
 
-func removeSidPrefix(imsi string) string {
-	return strings.TrimPrefix(imsi, "IMSI")
-}
+func validateGyCCAIMSCC(gyCCAInit *gy.CreditControlAnswer) error {
+	/* Here we need to go through the result codes within MSCC received */
 
-func addSidPrefix(imsi string) string {
-	return "IMSI" + imsi
+	for _, credit := range gyCCAInit.Credits {
+		switch credit.ResultCode {
+		case diameter.SuccessCode:
+			{
+				glog.V(2).Infof("MSCC Avp Result code %v for Rating group %v",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		case diameter.DiameterCreditLimitReached:
+			{
+				glog.V(2).Infof("MSCC Avp Result code %v for Rating group %v. Subscriber out of credit on OCS",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		default:
+			{
+				return fmt.Errorf(
+					"Received unsuccessful result code from OCS, ResultCode: %d, Rating Group: %d",
+					credit.ResultCode, credit.RatingGroup)
+			}
+		}
+	}
+	return nil
 }

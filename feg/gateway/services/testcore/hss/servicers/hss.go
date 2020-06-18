@@ -16,13 +16,13 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
-	"github.com/fiorix/go-diameter/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"golang.org/x/net/context"
 )
 
@@ -114,9 +114,9 @@ func (srv *HomeSubscriberServer) DeregisterSubscriber(ctx context.Context, req *
 }
 
 // Start begins the server and blocks, listening to the network
-// Input: a channel to signal when the server is started
+// Input: a channel to signal when the server is started & return the local server address string
 // Output: error if the server could not be started
-func (srv *HomeSubscriberServer) Start(started chan struct{}) error {
+func (srv *HomeSubscriberServer) Start(started chan string) error {
 	serverCfg := srv.Config.Server
 	settings := &sm.Settings{
 		OriginHost:       datatype.DiameterIdentity(serverCfg.DestHost),
@@ -171,13 +171,11 @@ func (srv *HomeSubscriberServer) Start(started chan struct{}) error {
 	if err != nil {
 		return err
 	}
-	// If the port is 0 or not specified, overwriting the config allows the
-	// chosen port to be known by the application.
-	serverCfg.Address = listener.Addr().String()
+	localAddress := listener.Addr().String()
 	if cap(started) > len(started) {
-		started <- struct{}{}
+		started <- localAddress
 	} else {
-		go func() { started <- struct{}{} }() // non-buffered/full chan -> use a dedicated routine, it may block
+		go func() { started <- localAddress }() // non-buffered/full chan -> use a dedicated routine, it may block
 	}
 	return server.Serve(listener)
 }

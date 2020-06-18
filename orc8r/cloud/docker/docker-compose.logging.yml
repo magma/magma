@@ -1,0 +1,27 @@
+#  Copyright (c) Facebook, Inc. and its affiliates.
+#  All rights reserved.
+#
+#  This source code is licensed under the BSD-style license found in the
+#  LICENSE file in the root directory of this source tree.
+
+
+# This docker-compose file only exists so we can have a hook to build the
+# deployment-specific fluentd containers
+version: "3.7"
+
+services:
+  fluentd-forward:
+    build: ./fluentd_forward
+    container_name: fluentd-forward
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    restart: always
+
+  fluentd-daemon:
+    build: ./fluentd_daemon
+    container_name: fluentd-daemon
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+    restart: always

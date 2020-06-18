@@ -7,6 +7,11 @@ services:
       context: /tmp/magma_orc8r_build
       dockerfile: $PWD/proxy/Dockerfile
 
+  nginx:
+    build:
+      context: /tmp/magma_orc8r_build
+      dockerfile: $PWD/nginx/Dockerfile
+
   controller:
     build:
       # Use the temporary context created by the build.py script
@@ -22,3 +27,14 @@ services:
       target: base
     entrypoint: /bin/bash -lc
     command: ['echo Hello World!']
+
+  # Test instance of psql
+  postgres_test:
+    image: postgres
+    ports:
+      - 5433:5432/tcp
+    environment:
+      POSTGRES_USER: magma_test
+      POSTGRES_PASSWORD: magma_test
+      POSTGRES_DB: magma_test
+    restart: always

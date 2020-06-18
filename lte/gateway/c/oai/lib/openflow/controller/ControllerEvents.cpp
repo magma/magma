@@ -28,259 +28,216 @@ using namespace fluid_msg;
 namespace openflow {
 
 ControllerEvent::ControllerEvent(
-  fluid_base::OFConnection *ofconn,
-  const ControllerEventType type):
-  ofconn_(ofconn),
-  type_(type)
-{
-}
+    fluid_base::OFConnection* ofconn, const ControllerEventType type)
+    : ofconn_(ofconn), type_(type) {}
 
-const ControllerEventType ControllerEvent::get_type() const
-{
+const ControllerEventType ControllerEvent::get_type() const {
   return type_;
 }
 
-fluid_base::OFConnection *ControllerEvent::get_connection() const
-{
+fluid_base::OFConnection* ControllerEvent::get_connection() const {
   return ofconn_;
 }
 
 DataEvent::DataEvent(
-  fluid_base::OFConnection *ofconn,
-  fluid_base::OFHandler &ofhandler,
-  const void *data,
-  const size_t len,
-  const ControllerEventType type):
-  ControllerEvent(ofconn, type),
-  ofhandler_(ofhandler),
-  data_(static_cast<const uint8_t *>(data)),
-  len_(len)
-{
+    fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+    const void* data, const size_t len, const ControllerEventType type)
+    : ControllerEvent(ofconn, type),
+      ofhandler_(ofhandler),
+      data_(static_cast<const uint8_t*>(data)),
+      len_(len) {}
+
+DataEvent::~DataEvent() {
+  ofhandler_.free_data(const_cast<uint8_t*>(data_));
 }
 
-DataEvent::~DataEvent()
-{
-  ofhandler_.free_data(const_cast<uint8_t *>(data_));
-}
-
-const uint8_t *DataEvent::get_data() const
-{
+const uint8_t* DataEvent::get_data() const {
   return data_;
 }
 
-const size_t DataEvent::get_length() const
-{
+const size_t DataEvent::get_length() const {
   return len_;
 }
 
 PacketInEvent::PacketInEvent(
-  fluid_base::OFConnection *ofconn,
-  fluid_base::OFHandler &ofhandler,
-  const void *data,
-  const size_t len):
-  DataEvent(ofconn, ofhandler, data, len, EVENT_PACKET_IN)
-{
-}
+    fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+    const void* data, const size_t len)
+    : DataEvent(ofconn, ofhandler, data, len, EVENT_PACKET_IN) {}
 
 SwitchUpEvent::SwitchUpEvent(
-  fluid_base::OFConnection *ofconn,
-  fluid_base::OFHandler &ofhandler,
-  const void *data,
-  const size_t len):
-  DataEvent(ofconn, ofhandler, data, len, EVENT_SWITCH_UP)
-{
-}
+    fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
+    const void* data, const size_t len)
+    : DataEvent(ofconn, ofhandler, data, len, EVENT_SWITCH_UP) {}
 
-SwitchDownEvent::SwitchDownEvent(fluid_base::OFConnection *ofconn):
-  ControllerEvent(ofconn, EVENT_SWITCH_DOWN)
-{
-}
+SwitchDownEvent::SwitchDownEvent(fluid_base::OFConnection* ofconn)
+    : ControllerEvent(ofconn, EVENT_SWITCH_DOWN) {}
 
 ErrorEvent::ErrorEvent(
-  fluid_base::OFConnection *ofconn,
-  const struct ofp_error_msg *error_msg):
-  error_type_(ntohs(error_msg->type)),
-  error_code_(ntohs(error_msg->code)),
-  ControllerEvent(ofconn, EVENT_ERROR)
-{
-}
+    fluid_base::OFConnection* ofconn, const struct ofp_error_msg* error_msg)
+    : error_type_(ntohs(error_msg->type)),
+      error_code_(ntohs(error_msg->code)),
+      ControllerEvent(ofconn, EVENT_ERROR) {}
 
-const uint16_t ErrorEvent::get_error_type() const
-{
+const uint16_t ErrorEvent::get_error_type() const {
   return error_type_;
 }
 
-const uint16_t ErrorEvent::get_error_code() const
-{
+const uint16_t ErrorEvent::get_error_code() const {
   return error_code_;
 }
 
-ExternalEvent::ExternalEvent(const ControllerEventType type):
-  ControllerEvent(NULL, type)
-{
-}
+ExternalEvent::ExternalEvent(const ControllerEventType type)
+    : ControllerEvent(NULL, type) {}
 
-void ExternalEvent::set_of_connection(fluid_base::OFConnection *ofconn)
-{
+void ExternalEvent::set_of_connection(fluid_base::OFConnection* ofconn) {
   ofconn_ = ofconn;
 }
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const struct in_addr enb_ip,
-    const uint32_t in_tei,
-    const uint32_t out_tei,
-    const char *imsi):
-  ue_ip_(ue_ip),
-  enb_ip_(enb_ip),
-  in_tei_(in_tei),
-  out_tei_(out_tei),
-  imsi_(imsi),
-  dl_flow_valid_(false),
-  dl_flow_(),
-  ExternalEvent(EVENT_ADD_GTP_TUNNEL)
-{
-}
+    const struct in_addr ue_ip, const struct in_addr enb_ip,
+    const uint32_t in_tei, const uint32_t out_tei, const char* imsi)
+    : ue_ip_(ue_ip),
+      enb_ip_(enb_ip),
+      in_tei_(in_tei),
+      out_tei_(out_tei),
+      imsi_(imsi),
+      dl_flow_valid_(false),
+      dl_flow_(),
+      dl_flow_precedence_(DEFAULT_PRECEDENCE),
+      ExternalEvent(EVENT_ADD_GTP_TUNNEL) {}
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const struct in_addr enb_ip,
-    const uint32_t in_tei,
-    const uint32_t out_tei,
-    const char *imsi,
-    const struct ipv4flow_dl *dl_flow):
-  ue_ip_(ue_ip),
-  enb_ip_(enb_ip),
-  in_tei_(in_tei),
-  out_tei_(out_tei),
-  imsi_(imsi),
-  dl_flow_valid_(true),
-  dl_flow_(*dl_flow),
-  ExternalEvent(EVENT_ADD_GTP_TUNNEL)
-{
-}
+    const struct in_addr ue_ip, const struct in_addr enb_ip,
+    const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+    const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence)
+    : ue_ip_(ue_ip),
+      enb_ip_(enb_ip),
+      in_tei_(in_tei),
+      out_tei_(out_tei),
+      imsi_(imsi),
+      dl_flow_valid_(true),
+      dl_flow_(*dl_flow),
+      dl_flow_precedence_(dl_flow_precedence),
+      ExternalEvent(EVENT_ADD_GTP_TUNNEL) {}
 
-const struct in_addr &AddGTPTunnelEvent::get_ue_ip() const
-{
+const struct in_addr& AddGTPTunnelEvent::get_ue_ip() const {
   return ue_ip_;
 }
 
-const struct in_addr &AddGTPTunnelEvent::get_enb_ip() const
-{
+const struct in_addr& AddGTPTunnelEvent::get_enb_ip() const {
   return enb_ip_;
 }
 
-const uint32_t AddGTPTunnelEvent::get_in_tei() const
-{
+const uint32_t AddGTPTunnelEvent::get_in_tei() const {
   return in_tei_;
 }
 
-const uint32_t AddGTPTunnelEvent::get_out_tei() const
-{
+const uint32_t AddGTPTunnelEvent::get_out_tei() const {
   return out_tei_;
 }
 
-const std::string &AddGTPTunnelEvent::get_imsi() const
-{
+const std::string& AddGTPTunnelEvent::get_imsi() const {
   return imsi_;
 }
 
-const bool AddGTPTunnelEvent::is_dl_flow_valid() const
-{
+const bool AddGTPTunnelEvent::is_dl_flow_valid() const {
   return dl_flow_valid_;
 }
 
-const struct ipv4flow_dl &AddGTPTunnelEvent::get_dl_flow() const
-{
+const struct ipv4flow_dl& AddGTPTunnelEvent::get_dl_flow() const {
   return dl_flow_;
 }
 
-DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei,
-    const struct ipv4flow_dl *dl_flow):
-  ue_ip_(ue_ip),
-  in_tei_(in_tei),
-  dl_flow_valid_(true),
-  dl_flow_(*dl_flow),
-  ExternalEvent(EVENT_DELETE_GTP_TUNNEL)
-{
+const uint32_t AddGTPTunnelEvent::get_dl_flow_precedence() const {
+  return dl_flow_precedence_;
 }
 
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei):
-  ue_ip_(ue_ip),
-  in_tei_(in_tei),
-  dl_flow_valid_(false),
-  dl_flow_(),
-  ExternalEvent(EVENT_DELETE_GTP_TUNNEL)
-{
-}
+    const struct in_addr ue_ip, const uint32_t in_tei,
+    const struct ipv4flow_dl* dl_flow)
+    : ue_ip_(ue_ip),
+      in_tei_(in_tei),
+      dl_flow_valid_(true),
+      dl_flow_(*dl_flow),
+      ExternalEvent(EVENT_DELETE_GTP_TUNNEL) {}
 
-const struct in_addr &DeleteGTPTunnelEvent::get_ue_ip() const
-{
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip, const uint32_t in_tei)
+    : ue_ip_(ue_ip),
+      in_tei_(in_tei),
+      dl_flow_valid_(false),
+      dl_flow_(),
+      ExternalEvent(EVENT_DELETE_GTP_TUNNEL) {}
+
+const struct in_addr& DeleteGTPTunnelEvent::get_ue_ip() const {
   return ue_ip_;
 }
 
-const uint32_t DeleteGTPTunnelEvent::get_in_tei() const
-{
+const uint32_t DeleteGTPTunnelEvent::get_in_tei() const {
   return in_tei_;
 }
 
-const bool DeleteGTPTunnelEvent::is_dl_flow_valid() const
-{
+const bool DeleteGTPTunnelEvent::is_dl_flow_valid() const {
   return dl_flow_valid_;
 }
 
-const struct ipv4flow_dl &DeleteGTPTunnelEvent::get_dl_flow() const
-{
+const struct ipv4flow_dl& DeleteGTPTunnelEvent::get_dl_flow() const {
   return dl_flow_;
 }
 
 HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei,
-    const ControllerEventType event_type,
-    const struct ipv4flow_dl *dl_flow):
-  ue_ip_(ue_ip),
-  in_tei_(in_tei),
-  dl_flow_valid_(true),
-  dl_flow_(*dl_flow),
-  ExternalEvent(event_type)
-{
-}
+    const struct in_addr ue_ip, const uint32_t in_tei,
+    const ControllerEventType event_type, const struct ipv4flow_dl* dl_flow,
+    const uint32_t dl_flow_precedence)
+    : ue_ip_(ue_ip),
+      in_tei_(in_tei),
+      dl_flow_valid_(true),
+      dl_flow_(*dl_flow),
+      dl_flow_precedence_(dl_flow_precedence),
+      ExternalEvent(event_type) {}
 
 HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
-    const struct in_addr ue_ip,
-    const uint32_t in_tei,
-    const ControllerEventType event_type):
-  ue_ip_(ue_ip),
-  in_tei_(in_tei),
-  dl_flow_valid_(false),
-  dl_flow_(),
-  ExternalEvent(event_type)
-{
-}
+    const struct in_addr ue_ip, const uint32_t in_tei,
+    const ControllerEventType event_type)
+    : ue_ip_(ue_ip),
+      in_tei_(in_tei),
+      dl_flow_valid_(false),
+      dl_flow_(),
+      dl_flow_precedence_(DEFAULT_PRECEDENCE),
+      ExternalEvent(event_type) {}
 
-const struct in_addr &HandleDataOnGTPTunnelEvent::get_ue_ip() const
-{
+const struct in_addr& HandleDataOnGTPTunnelEvent::get_ue_ip() const {
   return ue_ip_;
 }
 
-const uint32_t HandleDataOnGTPTunnelEvent::get_in_tei() const
-{
+const uint32_t HandleDataOnGTPTunnelEvent::get_in_tei() const {
   return in_tei_;
 }
 
-const bool HandleDataOnGTPTunnelEvent::is_dl_flow_valid() const
-{
+const bool HandleDataOnGTPTunnelEvent::is_dl_flow_valid() const {
   return dl_flow_valid_;
 }
 
-const struct ipv4flow_dl &HandleDataOnGTPTunnelEvent::get_dl_flow() const
-{
+const struct ipv4flow_dl& HandleDataOnGTPTunnelEvent::get_dl_flow() const {
   return dl_flow_;
 }
 
-} // namespace openflow
+const uint32_t HandleDataOnGTPTunnelEvent::get_dl_flow_precedence() const {
+  return dl_flow_precedence_;
+}
+
+AddPagingRuleEvent::AddPagingRuleEvent(const struct in_addr ue_ip)
+    : ue_ip_(ue_ip), ExternalEvent(EVENT_ADD_PAGING_RULE) {}
+
+const struct in_addr& AddPagingRuleEvent::get_ue_ip() const {
+  return ue_ip_;
+}
+
+DeletePagingRuleEvent::DeletePagingRuleEvent(const struct in_addr ue_ip)
+    : ue_ip_(ue_ip), ExternalEvent(EVENT_DELETE_PAGING_RULE) {}
+
+const struct in_addr& DeletePagingRuleEvent::get_ue_ip() const {
+  return ue_ip_;
+}
+
+}  // namespace openflow

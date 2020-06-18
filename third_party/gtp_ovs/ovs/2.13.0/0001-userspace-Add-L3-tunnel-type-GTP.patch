@@ -1,0 +1,272 @@
+From 4aa0562d46602a6077847f02381faeb97c5d1ee5 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Mon, 24 Feb 2020 04:29:56 +0000
+Subject: [PATCH 1/8] userspace: Add L3 tunnel type GTP
+
+Userspace support for L3 vport type OVS_VPORT_TYPE_GTP
+
+Signed-off-by: Jiannan Ouyang <ouyangj@fb.com>
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ lib/dpif-netlink-rtnl.c      |  7 +++++++
+ lib/dpif-netlink.c           |  5 +++++
+ lib/netdev-vport.c           | 20 ++++++++++++++++++--
+ ofproto/ofproto-dpif-ipfix.c |  6 ++++++
+ ofproto/ofproto-dpif-sflow.c |  6 +++++-
+ ofproto/ofproto-dpif-xlate.c |  1 +
+ vswitchd/vswitch.xml         | 16 ++++++++++++++++
+ 7 files changed, 58 insertions(+), 3 deletions(-)
+
+diff --git a/lib/dpif-netlink-rtnl.c b/lib/dpif-netlink-rtnl.c
+index 582274c46..b369946f9 100644
+--- a/lib/dpif-netlink-rtnl.c
++++ b/lib/dpif-netlink-rtnl.c
+@@ -111,6 +111,8 @@ vport_type_to_kind(enum ovs_vport_type type,
+         } else {
+             return NULL;
+         }
++    case OVS_VPORT_TYPE_GTP:
++        return "gtp";
+     case OVS_VPORT_TYPE_NETDEV:
+     case OVS_VPORT_TYPE_INTERNAL:
+     case OVS_VPORT_TYPE_LISP:
+@@ -273,6 +275,9 @@ dpif_netlink_rtnl_verify(const struct netdev_tunnel_config *tnl_cfg,
+     case OVS_VPORT_TYPE_GENEVE:
+         err = dpif_netlink_rtnl_geneve_verify(tnl_cfg, kind, reply);
+         break;
++    case OVS_VPORT_TYPE_GTP:
++        err = EOPNOTSUPP;
++        break;
+     case OVS_VPORT_TYPE_NETDEV:
+     case OVS_VPORT_TYPE_INTERNAL:
+     case OVS_VPORT_TYPE_LISP:
+@@ -359,6 +364,7 @@ dpif_netlink_rtnl_create(const struct netdev_tunnel_config *tnl_cfg,
+     case OVS_VPORT_TYPE_LISP:
+     case OVS_VPORT_TYPE_STT:
+     case OVS_VPORT_TYPE_UNSPEC:
++    case OVS_VPORT_TYPE_GTP:
+     case __OVS_VPORT_TYPE_MAX:
+     default:
+         err = EOPNOTSUPP;
+@@ -467,6 +473,7 @@ dpif_netlink_rtnl_port_destroy(const char *name, const char *type)
+     case OVS_VPORT_TYPE_IP6ERSPAN:
+     case OVS_VPORT_TYPE_IP6GRE:
+         return dpif_netlink_rtnl_destroy(name);
++    case OVS_VPORT_TYPE_GTP:
+     case OVS_VPORT_TYPE_NETDEV:
+     case OVS_VPORT_TYPE_INTERNAL:
+     case OVS_VPORT_TYPE_LISP:
+diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
+index 6d9427b57..ba646d823 100644
+--- a/lib/dpif-netlink.c
++++ b/lib/dpif-netlink.c
+@@ -727,6 +727,9 @@ get_vport_type(const struct dpif_netlink_vport *vport)
+     case OVS_VPORT_TYPE_GRE:
+         return "gre";
+ 
++    case OVS_VPORT_TYPE_GTP:
++        return "gtp";
++
+     case OVS_VPORT_TYPE_VXLAN:
+         return "vxlan";
+ 
+@@ -778,6 +781,8 @@ netdev_to_ovs_vport_type(const char *type)
+         return OVS_VPORT_TYPE_IP6GRE;
+     } else if (!strcmp(type, "gre")) {
+         return OVS_VPORT_TYPE_GRE;
++    } else if (strstr(type, "gtp")) {
++        return OVS_VPORT_TYPE_GTP;
+     } else {
+         return OVS_VPORT_TYPE_UNSPEC;
+     }
+diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
+index b57d21ff8..b4a9b1942 100644
+--- a/lib/netdev-vport.c
++++ b/lib/netdev-vport.c
+@@ -55,6 +55,7 @@ VLOG_DEFINE_THIS_MODULE(netdev_vport);
+ 
+ #define GENEVE_DST_PORT 6081
+ #define VXLAN_DST_PORT 4789
++#define GTP_DST_PORT 2152
+ #define LISP_DST_PORT 4341
+ #define STT_DST_PORT 7471
+ 
+@@ -111,7 +112,8 @@ netdev_vport_needs_dst_port(const struct netdev *dev)
+ 
+     return (class->get_config == get_tunnel_config &&
+             (!strcmp("geneve", type) || !strcmp("vxlan", type) ||
+-             !strcmp("lisp", type) || !strcmp("stt", type)) );
++             !strcmp("gtp", type) || !strcmp("lisp", type) ||
++             !strcmp("stt", type)) );
+ }
+ 
+ const char *
+@@ -214,6 +216,8 @@ netdev_vport_construct(struct netdev *netdev_)
+         update_vxlan_global_cfg(netdev_, NULL, &dev->tnl_cfg);
+     } else if (!strcmp(type, "lisp")) {
+         dev->tnl_cfg.dst_port = port ? htons(port) : htons(LISP_DST_PORT);
++    } else if (!strcmp(type, "gtp")) {
++        dev->tnl_cfg.dst_port = htons(GTP_DST_PORT);
+     } else if (!strcmp(type, "stt")) {
+         dev->tnl_cfg.dst_port = port ? htons(port) : htons(STT_DST_PORT);
+     }
+@@ -426,7 +430,7 @@ static enum tunnel_layers
+ tunnel_supported_layers(const char *type,
+                         const struct netdev_tunnel_config *tnl_cfg)
+ {
+-    if (!strcmp(type, "lisp")) {
++    if (!strcmp(type, "lisp") || !strcmp(type, "gtp")) {
+         return TNL_L3;
+     } else if (!strcmp(type, "gre")) {
+         return TNL_L2 | TNL_L3;
+@@ -581,6 +585,10 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+         tnl_cfg.dst_port = htons(VXLAN_DST_PORT);
+     }
+ 
++    if (!strcmp(type, "gtp")) {
++        tnl_cfg.dst_port = htons(GTP_DST_PORT);
++    }
++
+     if (!strcmp(type, "lisp")) {
+         tnl_cfg.dst_port = htons(LISP_DST_PORT);
+     }
+@@ -906,6 +914,7 @@ get_tunnel_config(const struct netdev *dev, struct smap *args)
+ 
+         if ((!strcmp("geneve", type) && dst_port != GENEVE_DST_PORT) ||
+             (!strcmp("vxlan", type) && dst_port != VXLAN_DST_PORT) ||
++            (!strcmp("gtp", type) && dst_port != GTP_DST_PORT) ||
+             (!strcmp("lisp", type) && dst_port != LISP_DST_PORT) ||
+             (!strcmp("stt", type) && dst_port != STT_DST_PORT)) {
+             smap_add_format(args, "dst_port", "%d", dst_port);
+@@ -1192,6 +1201,13 @@ netdev_vport_tunnel_register(void)
+           },
+           {{NULL, NULL, 0, 0}}
+         },
++        { "gtp_sys",
++          {
++              TUNNEL_FUNCTIONS_COMMON,
++              .type = "gtp"
++          },
++          {{NULL, NULL, 0, 0}}
++        },
+         { "erspan_sys",
+           {
+               TUNNEL_FUNCTIONS_COMMON,
+diff --git a/ofproto/ofproto-dpif-ipfix.c b/ofproto/ofproto-dpif-ipfix.c
+index b413768ef..3ff48d391 100644
+--- a/ofproto/ofproto-dpif-ipfix.c
++++ b/ofproto/ofproto-dpif-ipfix.c
+@@ -88,6 +88,7 @@ enum dpif_ipfix_tunnel_type {
+     DPIF_IPFIX_TUNNEL_LISP = 0x03,
+     DPIF_IPFIX_TUNNEL_STT = 0x04,
+     DPIF_IPFIX_TUNNEL_GENEVE = 0x07,
++    DPIF_IPFIX_TUNNEL_GTP = 0x08,
+     NUM_DPIF_IPFIX_TUNNEL
+ };
+ 
+@@ -389,6 +390,7 @@ static uint8_t tunnel_protocol[NUM_DPIF_IPFIX_TUNNEL] = {
+     IPPROTO_TCP,    /* DPIF_IPFIX_TUNNEL_STT*/
+     0          ,    /* reserved */
+     IPPROTO_UDP,    /* DPIF_IPFIX_TUNNEL_GENEVE*/
++    IPPROTO_UDP,    /* DPIF_IPFIX_TUNNEL_GTP*/
+ };
+ 
+ OVS_PACKED(
+@@ -509,6 +511,7 @@ BUILD_ASSERT_DECL(sizeof(struct ipfix_data_record_aggregated_tcp) == 48);
+  * support tunnel key for:
+  * VxLAN: 24-bit VIN,
+  * GRE: 32-bit key,
++ * GTP: 32-bit key,
+  * LISP: 24-bit instance ID
+  * STT: 64-bit key
+  */
+@@ -807,6 +810,8 @@ dpif_ipfix_tunnel_type(const struct ofport *ofport)
+         return DPIF_IPFIX_TUNNEL_VXLAN;
+     } else if (strcmp(type, "lisp") == 0) {
+         return DPIF_IPFIX_TUNNEL_LISP;
++    } else if (strcmp(type, "gtp") == 0) {
++        return DPIF_IPFIX_TUNNEL_GTP;
+     } else if (strcmp(type, "geneve") == 0) {
+         return DPIF_IPFIX_TUNNEL_GENEVE;
+     } else if (strcmp(type, "stt") == 0) {
+@@ -822,6 +827,7 @@ dpif_ipfix_tunnel_key_length(enum dpif_ipfix_tunnel_type tunnel_type)
+ 
+     switch (tunnel_type) {
+         case DPIF_IPFIX_TUNNEL_GRE:
++        case DPIF_IPFIX_TUNNEL_GTP:
+             /* 32-bit key gre */
+             return 4;
+         case DPIF_IPFIX_TUNNEL_VXLAN:
+diff --git a/ofproto/ofproto-dpif-sflow.c b/ofproto/ofproto-dpif-sflow.c
+index f9ea47a2f..c71c247d0 100644
+--- a/ofproto/ofproto-dpif-sflow.c
++++ b/ofproto/ofproto-dpif-sflow.c
+@@ -61,7 +61,8 @@ enum dpif_sflow_tunnel_type {
+     DPIF_SFLOW_TUNNEL_VXLAN,
+     DPIF_SFLOW_TUNNEL_GRE,
+     DPIF_SFLOW_TUNNEL_LISP,
+-    DPIF_SFLOW_TUNNEL_GENEVE
++    DPIF_SFLOW_TUNNEL_GENEVE,
++    DPIF_SFLOW_TUNNEL_GTP
+ };
+ 
+ struct dpif_sflow_port {
+@@ -624,6 +625,8 @@ dpif_sflow_tunnel_type(struct ofport *ofport) {
+             return DPIF_SFLOW_TUNNEL_LISP;
+         } else if (strcmp(type, "geneve") == 0) {
+             return DPIF_SFLOW_TUNNEL_GENEVE;
++        } else if (strcmp(type, "gtp") == 0) {
++            return DPIF_SFLOW_TUNNEL_GTP;
+         }
+     }
+     return DPIF_SFLOW_TUNNEL_UNKNOWN;
+@@ -642,6 +645,7 @@ dpif_sflow_tunnel_proto(enum dpif_sflow_tunnel_type tunnel_type)
+ 
+     case DPIF_SFLOW_TUNNEL_VXLAN:
+     case DPIF_SFLOW_TUNNEL_LISP:
++    case DPIF_SFLOW_TUNNEL_GTP:
+     case DPIF_SFLOW_TUNNEL_GENEVE:
+         ipproto = IPPROTO_UDP;
+ 
+diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
+index 54cfbfbdf..0d3046a79 100644
+--- a/ofproto/ofproto-dpif-xlate.c
++++ b/ofproto/ofproto-dpif-xlate.c
+@@ -3565,6 +3565,7 @@ propagate_tunnel_data_to_flow(struct xlate_ctx *ctx, struct eth_addr dmac,
+         break;
+     case OVS_VPORT_TYPE_VXLAN:
+     case OVS_VPORT_TYPE_GENEVE:
++    case OVS_VPORT_TYPE_GTP:
+         nw_proto = IPPROTO_UDP;
+         break;
+     case OVS_VPORT_TYPE_LISP:
+diff --git a/vswitchd/vswitch.xml b/vswitchd/vswitch.xml
+index 3ddaaefda..2c2e7620a 100644
+--- a/vswitchd/vswitch.xml
++++ b/vswitchd/vswitch.xml
+@@ -2613,6 +2613,22 @@
+             </p>
+           </dd>
+ 
++          <dt><code>gtp</code></dt>
++          <dd>
++              GPRS Tunneling Protocol (GTP) is a group of IP-based communications
++              protocols used to carry general packet radio service (GPRS) within GSM,
++              UMTS and LTE networks. GTP-U is used for carrying user data within the GPRS
++              core network and between the radio access network and the core network.
++              The user data transported can be packets in any of IPv4, IPv6, or PPP
++              formats.
++
++              The protocol is documented at http://www.3gpp.org/DynaReport/29281.htm
++
++              Open vSwitch uses UDP destination port 2152. The source port used for
++              GTP traffic varies on a per-flow basis and is in the ephemeral port
++              range.
++          </dd>
++
+           <dt><code>stt</code></dt>
+           <dd>
+             The Stateless TCP Tunnel (STT) is particularly useful when tunnel
+-- 
+2.17.1
+

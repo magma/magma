@@ -10,6 +10,9 @@
 
 #include "ObjectMap.h"
 #include "magma_logging.h"
+#include <orc8r/protos/redis.pb.h>
+
+using magma::orc8r::RedisState;
 
 namespace magma {
 
@@ -23,7 +26,7 @@ public:
   RedisMap(
     std::shared_ptr<cpp_redis::client> client,
     const std::string& hash,
-    std::function<bool(const ObjectType&, std::string&)> serializer,
+    std::function<bool(const ObjectType&, std::string&, uint64_t&)> serializer,
     std::function<bool(const std::string&, ObjectType&)> deserializer)
     : client_(client),
       hash_(hash),
@@ -37,8 +40,15 @@ public:
   ObjectMapResult set(
       const std::string& key,
       const ObjectType& object) override {
+    uint64_t version;
+    auto res = this->get_version(key, version);
+    if (res != SUCCESS) {
+      MLOG(MERROR) << "Unable to get version for key successfully " << key;
+      return res;
+    }
     std::string value;
-    if (!serializer_(object, value)) {
+    auto new_version = version + (uint64_t) 1u;
+    if (!serializer_(object, value, new_version)) {
       MLOG(MERROR) << "Unable to serialize value for key " << key;
       return SERIALIZE_FAIL;
     }
@@ -118,7 +128,7 @@ public:
       }
       ObjectType obj;
       if (!deserializer_(value_reply.as_string(), obj)) {
-        MLOG(MERROR) << "Unable to deseralize value in map";
+        MLOG(MERROR) << "Unable to deserialize value in map";
         if (failed_keys != nullptr) failed_keys->push_back(key);
         continue;
       }
@@ -128,9 +138,53 @@ public:
   }
 
 private:
+  /*
+   * Return the version of the value for key *key*. Returns 0 if
+   * key is not in the map
+   */
+  ObjectMapResult get_version(const std::string& key, uint64_t& version) {
+    auto redis_state = RedisState();
+    auto res = this->get_redis_state(key, redis_state);
+    if (res == KEY_NOT_FOUND) {
+      version = (uint64_t) 0u;
+      return SUCCESS;
+    } else if (res != SUCCESS) {
+      return res;
+    }
+    version = redis_state.version();
+    return res;
+  }
+
+  /**
+   * Gets the RedisState result that stores the actual value we want
+   */
+  ObjectMapResult get_redis_state(
+      const std::string& key,
+      RedisState& redis_state) {
+    auto hget_future = client_->hget(hash_, key);
+    client_->sync_commit();
+    auto reply = hget_future.get();
+    if (reply.is_null()) {
+      // value just doesn't exist
+      return KEY_NOT_FOUND;
+    } else if (reply.is_error()) {
+      MLOG(MERROR) << "Unable to get value for key " << key;
+      return CLIENT_ERROR;
+    } else if (!reply.is_string()) {
+      MLOG(MERROR) << "Value was not string for key " << key;
+      return INCORRECT_VALUE_TYPE;
+    }
+    if (!redis_state.ParseFromString(reply.as_string())) {
+      MLOG(MERROR) << "Failed to deserialize key " << key
+                   << " with value " << reply.as_string();
+      return DESERIALIZE_FAIL;
+    }
+    return SUCCESS;
+  }
+
   std::shared_ptr<cpp_redis::client> client_;
   std::string hash_;
-  std::function<bool(const ObjectType&, std::string&)> serializer_;
+  std::function<bool(const ObjectType&, std::string&, uint64_t&)> serializer_;
   std::function<bool(const std::string&, ObjectType&)> deserializer_;
 };
 

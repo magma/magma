@@ -6,8 +6,8 @@
 // of patent rights can be found in the PATENTS file in the same directory.
 
 #include <arpa/inet.h>
-
 #include <folly/GLog.h>
+#include <random>
 
 #include <devmand/channels/ping/Channel.h>
 
@@ -16,28 +16,24 @@ namespace channels {
 namespace ping {
 
 Channel::Channel(Engine& engine_, folly::IPAddress target_)
-    : engine(engine_), target(target_) {}
+    : engine(engine_), target(target_), sequence(genRandomRequestId()) {}
 
 folly::Future<Rtt> Channel::ping() {
-  icmphdr hdr = makeIcmpPacket();
-
+  auto pkt = IcmpPacket(target, getSequence());
   LOG(INFO) << "Sending ping to " << target.str() << " with sequence "
-            << hdr.un.echo.sequence;
+            << pkt.getSequence();
+  return engine.ping(pkt);
+}
 
-  return engine.ping(hdr, target);
+RequestId Channel::genRandomRequestId() {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_int_distribution<uint16_t> dis(0, UINT16_MAX);
+  return dis(gen);
 }
 
 RequestId Channel::getSequence() {
   return ++sequence;
-}
-
-icmphdr Channel::makeIcmpPacket() {
-  icmphdr hdr{};
-  hdr.type = ICMP_ECHO;
-  // hdr.un.echo.id = 0;
-  hdr.un.echo.sequence = getSequence();
-  // hdr.checksum = 0; // Let the kernel fill in the checksum
-  return hdr;
 }
 
 } // namespace ping

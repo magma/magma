@@ -50,6 +50,13 @@ bootstrap_port: 443
 rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
 ```
 
+Then restart your services to pick up the config changes:
+
+```bash
+AGW$ sudo service magma@* stop
+AGW$ sudo service magma@magmad restart
+```
+
 ## Creating and Configuring Your Network
 
 Navigate to your NMS instance, https://nms.yourdomain.com, and log in with the

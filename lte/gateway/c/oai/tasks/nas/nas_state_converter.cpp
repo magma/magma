@@ -28,8 +28,6 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-#define PLMN_BYTES 6
-
 NasStateConverter::NasStateConverter() = default;
 NasStateConverter::~NasStateConverter() = default;
 
@@ -38,11 +36,11 @@ NasStateConverter::~NasStateConverter() = default;
 /*************************************************/
 
 void NasStateConverter::proto_to_guti(
-  const Guti& guti_proto,
+  const oai::Guti& guti_proto,
   guti_t* state_guti)
 {
-  strncpy(
-    (char*) &state_guti->gummei.plmn,
+  memcpy(
+    &state_guti->gummei.plmn,
     (guti_proto.plmn()).c_str(),
     sizeof(plmn_t));
   state_guti->gummei.mme_gid = guti_proto.mme_gid();
@@ -51,7 +49,7 @@ void NasStateConverter::proto_to_guti(
 }
 
 void NasStateConverter::proto_to_ecgi(
-  const Ecgi& ecgi_proto,
+  const oai::Ecgi& ecgi_proto,
   ecgi_t* state_ecgi)
 {
   strcpy((char*) &state_ecgi->plmn, ecgi_proto.plmn().c_str());
@@ -61,8 +59,8 @@ void NasStateConverter::proto_to_ecgi(
 }
 
 void NasStateConverter::partial_tai_list_to_proto(
-  partial_tai_list_t* state_partial_tai_list,
-  PartialTaiList* partial_tai_list_proto)
+  const partial_tai_list_t* state_partial_tai_list,
+  oai::PartialTaiList* partial_tai_list_proto)
 {
   partial_tai_list_proto->set_type_of_list(state_partial_tai_list->typeoflist);
   partial_tai_list_proto->set_number_of_elements(
@@ -71,57 +69,64 @@ void NasStateConverter::partial_tai_list_to_proto(
 }
 
 void NasStateConverter::tai_list_to_proto(
-  tai_list_t* state_tai_list,
-  TaiList* tai_list_proto)
+  const tai_list_t* state_tai_list,
+  oai::TaiList* tai_list_proto)
 {
   tai_list_proto->set_numberoflists(state_tai_list->numberoflists);
   //TODO
 }
 
 void NasStateConverter::proto_to_tai_list(
-  const TaiList& tai_list_proto,
+  const oai::TaiList& tai_list_proto,
   tai_list_t* state_tai_list)
 {
   state_tai_list->numberoflists = tai_list_proto.numberoflists();
   // TODO
 }
 
-void NasStateConverter::tai_to_proto(tai_t* state_tai, Tai* tai_proto)
+void NasStateConverter::tai_to_proto(const tai_t* state_tai, oai::Tai* tai_proto)
 {
+  OAILOG_DEBUG(
+      LOG_MME_APP,
+      "State PLMN " PLMN_FMT "to proto",
+      PLMN_ARG(state_tai));
   char plmn_array[PLMN_BYTES];
-  plmn_array[0] = (char) state_tai->mcc_digit2;
-  plmn_array[1] = (char) state_tai->mcc_digit1;
-  plmn_array[2] = (char) state_tai->mnc_digit3;
-  plmn_array[3] = (char) state_tai->mcc_digit3;
-  plmn_array[4] = (char) state_tai->mnc_digit2;
-  plmn_array[5] = (char) state_tai->mnc_digit1;
-
+  plmn_array[0] = (char)(state_tai->mcc_digit1 + ASCII_ZERO);
+  plmn_array[1] = (char)(state_tai->mcc_digit2 + ASCII_ZERO);
+  plmn_array[2] = (char)(state_tai->mcc_digit3 + ASCII_ZERO);
+  plmn_array[3] = (char)(state_tai->mnc_digit1 + ASCII_ZERO);
+  plmn_array[4] = (char)(state_tai->mnc_digit2 + ASCII_ZERO);
+  plmn_array[5] = (char)(state_tai->mnc_digit3 + ASCII_ZERO);
   tai_proto->set_mcc_mnc(plmn_array);
   tai_proto->set_tac(state_tai->tac);
 }
 
-void NasStateConverter::proto_to_tai(const Tai& tai_proto, tai_t* state_tai)
+void NasStateConverter::proto_to_tai(const oai::Tai& tai_proto, tai_t* state_tai)
 {
-  state_tai->mcc_digit2 = tai_proto.mcc_mnc()[0];
-  state_tai->mcc_digit1 = tai_proto.mcc_mnc()[1];
-  state_tai->mnc_digit3 = tai_proto.mcc_mnc()[2];
-  state_tai->mcc_digit3 = tai_proto.mcc_mnc()[3];
-  state_tai->mnc_digit2 = tai_proto.mcc_mnc()[4];
-  state_tai->mnc_digit1 = tai_proto.mcc_mnc()[5];
+  state_tai->mcc_digit1 = (int)(tai_proto.mcc_mnc()[0]) - ASCII_ZERO;
+  state_tai->mcc_digit2 = (int)(tai_proto.mcc_mnc()[1]) - ASCII_ZERO;
+  state_tai->mcc_digit3 = (int)(tai_proto.mcc_mnc()[2]) - ASCII_ZERO;
+  state_tai->mnc_digit1 = (int)(tai_proto.mcc_mnc()[3]) - ASCII_ZERO;
+  state_tai->mnc_digit2 = (int)(tai_proto.mcc_mnc()[4]) - ASCII_ZERO;
+  state_tai->mnc_digit3 = (int)(tai_proto.mcc_mnc()[5]) - ASCII_ZERO;
   state_tai->tac = tai_proto.tac();
+  OAILOG_DEBUG(
+      LOG_MME_APP,
+      "State PLMN " PLMN_FMT "from proto",
+      PLMN_ARG(state_tai));
 }
 
 /*************************************************/
 /*        ESM State <-> Proto                  */
 /*************************************************/
-void NasStateConverter::ambr_to_proto(ambr_t& state_ambr, Ambr* ambr_proto)
+void NasStateConverter::ambr_to_proto(const ambr_t& state_ambr, oai::Ambr* ambr_proto)
 {
   ambr_proto->set_br_ul(state_ambr.br_ul);
   ambr_proto->set_br_dl(state_ambr.br_dl);
 }
 
 void NasStateConverter::proto_to_ambr(
-  const Ambr& ambr_proto,
+  const oai::Ambr& ambr_proto,
   ambr_t* state_ambr)
 {
   state_ambr->br_ul = ambr_proto.br_ul();
@@ -129,8 +134,8 @@ void NasStateConverter::proto_to_ambr(
 }
 
 void NasStateConverter::bearer_qos_to_proto(
-  bearer_qos_t& state_bearer_qos,
-  BearerQos* bearer_qos_proto)
+  const bearer_qos_t& state_bearer_qos,
+  oai::BearerQos* bearer_qos_proto)
 {
   bearer_qos_proto->set_pci(state_bearer_qos.pci);
   bearer_qos_proto->set_pl(state_bearer_qos.pl);
@@ -141,7 +146,7 @@ void NasStateConverter::bearer_qos_to_proto(
 }
 
 void NasStateConverter::proto_to_bearer_qos(
-  const BearerQos& bearer_qos_proto,
+  const oai::BearerQos& bearer_qos_proto,
   bearer_qos_t* state_bearer_qos)
 {
   state_bearer_qos->pci = bearer_qos_proto.pci();
@@ -153,10 +158,12 @@ void NasStateConverter::proto_to_bearer_qos(
 }
 
 void NasStateConverter::pco_protocol_or_container_id_to_proto(
-  protocol_configuration_options_t& state_protocol_configuration_options,
-  ProtocolConfigurationOptions* protocol_configuration_options_proto)
+  const protocol_configuration_options_t& state_protocol_configuration_options,
+  oai::ProtocolConfigurationOptions* protocol_configuration_options_proto)
 {
-  for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
+  for (int i = 0;
+       i < state_protocol_configuration_options.num_protocol_or_container_id;
+       i++) {
     pco_protocol_or_container_id_t state_pco_protocol_or_container_id =
       state_protocol_configuration_options.protocol_or_container_ids[i];
     auto pco_protocol_or_container_id_proto =
@@ -166,15 +173,15 @@ void NasStateConverter::pco_protocol_or_container_id_to_proto(
     pco_protocol_or_container_id_proto->set_length(
       state_pco_protocol_or_container_id.length);
     if (state_pco_protocol_or_container_id.contents) {
-      pco_protocol_or_container_id_proto->set_contents(
-        (char*) state_pco_protocol_or_container_id.contents->data,
-        state_pco_protocol_or_container_id.contents->slen);
+      BSTRING_TO_STRING(
+        state_pco_protocol_or_container_id.contents,
+        pco_protocol_or_container_id_proto->mutable_contents());
     }
   }
 }
 
 void NasStateConverter::proto_to_pco_protocol_or_container_id(
-  const ProtocolConfigurationOptions& protocol_configuration_options_proto,
+  const oai::ProtocolConfigurationOptions& protocol_configuration_options_proto,
   protocol_configuration_options_t* state_protocol_configuration_options)
 {
   auto proto_pco_ids =
@@ -192,8 +199,8 @@ void NasStateConverter::proto_to_pco_protocol_or_container_id(
 }
 
 void NasStateConverter::protocol_configuration_options_to_proto(
-  protocol_configuration_options_t& state_protocol_configuration_options,
-  ProtocolConfigurationOptions* protocol_configuration_options_proto)
+  const protocol_configuration_options_t& state_protocol_configuration_options,
+  oai::ProtocolConfigurationOptions* protocol_configuration_options_proto)
 {
   protocol_configuration_options_proto->set_ext(
     state_protocol_configuration_options.ext);
@@ -208,7 +215,7 @@ void NasStateConverter::protocol_configuration_options_to_proto(
 }
 
 void NasStateConverter::proto_to_protocol_configuration_options(
-  const ProtocolConfigurationOptions& protocol_configuration_options_proto,
+  const oai::ProtocolConfigurationOptions& protocol_configuration_options_proto,
   protocol_configuration_options_t* state_protocol_configuration_options)
 {
   state_protocol_configuration_options->ext =
@@ -224,53 +231,56 @@ void NasStateConverter::proto_to_protocol_configuration_options(
 }
 
 void NasStateConverter::esm_proc_data_to_proto(
-  esm_proc_data_t* state_esm_proc_data,
-  EsmProcData* esm_proc_data_proto)
+  const esm_proc_data_t* state_esm_proc_data,
+  oai::EsmProcData* esm_proc_data_proto)
 {
+  OAILOG_DEBUG(LOG_NAS_ESM, "Writing esm proc data to proto");
   esm_proc_data_proto->set_pti(state_esm_proc_data->pti);
   esm_proc_data_proto->set_request_type(state_esm_proc_data->request_type);
   if (state_esm_proc_data->apn) {
-    esm_proc_data_proto->set_apn(
-      (char*) state_esm_proc_data->apn->data, state_esm_proc_data->apn->slen);
+    BSTRING_TO_STRING(
+      state_esm_proc_data->apn,
+      esm_proc_data_proto->mutable_apn());
   }
   esm_proc_data_proto->set_pdn_cid(state_esm_proc_data->pdn_cid);
   esm_proc_data_proto->set_pdn_type(state_esm_proc_data->pdn_type);
   if (state_esm_proc_data->pdn_addr) {
-    esm_proc_data_proto->set_pdn_addr(
-      (char*) state_esm_proc_data->pdn_addr->data,
-      state_esm_proc_data->pdn_addr->slen);
+    BSTRING_TO_STRING(
+      state_esm_proc_data->pdn_addr,
+      esm_proc_data_proto->mutable_pdn_addr());
   }
   bearer_qos_to_proto(
     state_esm_proc_data->bearer_qos, esm_proc_data_proto->mutable_bearer_qos());
-  /* TODO: SpgwStateConverter::traffic_flow_template_to_proto(
-    &state_esm_proc_data->tft, esm_proc_data_proto->mutable_tft());*/
   protocol_configuration_options_to_proto(
     state_esm_proc_data->pco, esm_proc_data_proto->mutable_pco());
 }
 
 void NasStateConverter::proto_to_esm_proc_data(
-  const EsmProcData& esm_proc_data_proto,
+  const oai::EsmProcData& esm_proc_data_proto,
   esm_proc_data_t* state_esm_proc_data)
 {
+  OAILOG_DEBUG(LOG_NAS_ESM, "Reading esm proc data from proto");
   state_esm_proc_data->pti = esm_proc_data_proto.pti();
   state_esm_proc_data->request_type = esm_proc_data_proto.request_type();
-  state_esm_proc_data->apn = bfromcstr(esm_proc_data_proto.apn().c_str());
+  if (!esm_proc_data_proto.apn().empty()) {
+    state_esm_proc_data->apn = bfromcstr(esm_proc_data_proto.apn().c_str());
+  }
   state_esm_proc_data->pdn_cid = esm_proc_data_proto.pdn_cid();
   state_esm_proc_data->pdn_type =
     (esm_proc_pdn_type_t) esm_proc_data_proto.pdn_type();
-  state_esm_proc_data->pdn_addr =
-    bfromcstr(esm_proc_data_proto.pdn_addr().c_str());
+  if (!esm_proc_data_proto.pdn_addr().empty()) {
+    state_esm_proc_data->pdn_addr =
+      bfromcstr(esm_proc_data_proto.pdn_addr().c_str());
+  }
   proto_to_bearer_qos(
     esm_proc_data_proto.bearer_qos(), &state_esm_proc_data->bearer_qos);
-  /* TODO: SpgwStateConverter::proto_to_traffic_flow_template(
-    esm_proc_data_proto.tft(), &state_esm_proc_data->tft);*/
   proto_to_protocol_configuration_options(
     esm_proc_data_proto.pco(), &state_esm_proc_data->pco);
 }
 
 void NasStateConverter::esm_context_to_proto(
-  esm_context_t* state_esm_context,
-  EsmContext* esm_context_proto)
+  const esm_context_t* state_esm_context,
+  oai::EsmContext* esm_context_proto)
 {
   esm_context_proto->set_n_active_ebrs(state_esm_context->n_active_ebrs);
   esm_context_proto->set_n_active_pdns(state_esm_context->n_active_pdns);
@@ -286,16 +296,17 @@ void NasStateConverter::esm_context_to_proto(
 }
 
 void NasStateConverter::proto_to_esm_context(
-  const EsmContext& esm_context_proto,
+  const oai::EsmContext& esm_context_proto,
   esm_context_t* state_esm_context)
 {
+  OAILOG_DEBUG(LOG_NAS_ESM, "Reading esm context from proto");
   state_esm_context->n_active_ebrs = esm_context_proto.n_active_ebrs();
   state_esm_context->n_active_pdns = esm_context_proto.n_active_pdns();
   state_esm_context->n_pdns = esm_context_proto.n_pdns();
   state_esm_context->is_emergency = esm_context_proto.is_emergency();
   if (esm_context_proto.has_esm_proc_data()) {
     state_esm_context->esm_proc_data =
-      (esm_proc_data_t*) calloc(1, sizeof(state_esm_context->esm_proc_data));
+      (esm_proc_data_t*) calloc(1, sizeof(*state_esm_context->esm_proc_data));
     proto_to_esm_proc_data(
       esm_context_proto.esm_proc_data(), state_esm_context->esm_proc_data);
   }
@@ -304,7 +315,7 @@ void NasStateConverter::proto_to_esm_context(
 
 void NasStateConverter::esm_ebr_context_to_proto(
   const esm_ebr_context_t& state_esm_ebr_context,
-  EsmEbrContext* esm_ebr_context_proto)
+  oai::EsmEbrContext* esm_ebr_context_proto)
 {
   esm_ebr_context_proto->set_status(state_esm_ebr_context.status);
   esm_ebr_context_proto->set_gbr_dl(state_esm_ebr_context.gbr_dl);
@@ -314,14 +325,16 @@ void NasStateConverter::esm_ebr_context_to_proto(
   /*TODO
    * SpgwStateConverter::traffic_flow_template_to_proto(state_esm_ebr_context.tft,
    * esm_ebr_context_proto->mutable_tft());*/
-  protocol_configuration_options_to_proto(
-    *state_esm_ebr_context.pco, esm_ebr_context_proto->mutable_pco());
+  if (state_esm_ebr_context.pco != nullptr) {
+    protocol_configuration_options_to_proto(
+      *state_esm_ebr_context.pco, esm_ebr_context_proto->mutable_pco());
+  }
   nas_timer_to_proto(
     state_esm_ebr_context.timer, esm_ebr_context_proto->mutable_timer());
 }
 
 void NasStateConverter::proto_to_esm_ebr_context(
-  const EsmEbrContext& esm_ebr_context_proto,
+  const oai::EsmEbrContext& esm_ebr_context_proto,
   esm_ebr_context_t* state_esm_ebr_context)
 {
   state_esm_ebr_context->status =
@@ -332,8 +345,10 @@ void NasStateConverter::proto_to_esm_ebr_context(
   state_esm_ebr_context->mbr_ul = esm_ebr_context_proto.mbr_ul();
   /* SpgwStateConverter::proto_to_traffic_flow_template(esm_ebr_context_proto.tft(),
    * &state_esm_ebr_context->tft);*/
-  proto_to_protocol_configuration_options(
-    esm_ebr_context_proto.pco(), state_esm_ebr_context->pco);
+  if (esm_ebr_context_proto.has_pco()) {
+    proto_to_protocol_configuration_options(
+      esm_ebr_context_proto.pco(), state_esm_ebr_context->pco);
+  }
   proto_to_nas_timer(
     esm_ebr_context_proto.timer(), &state_esm_ebr_context->timer);
 }
@@ -343,14 +358,14 @@ void NasStateConverter::proto_to_esm_ebr_context(
 /*************************************************/
 void NasStateConverter::nas_timer_to_proto(
   const nas_timer_t& state_nas_timer,
-  Timer* timer_proto)
+  oai::Timer* timer_proto)
 {
   timer_proto->set_id(state_nas_timer.id);
   timer_proto->set_sec(state_nas_timer.sec);
 }
 
 void NasStateConverter::proto_to_nas_timer(
-  const Timer& timer_proto,
+  const oai::Timer& timer_proto,
   nas_timer_t* state_nas_timer)
 {
   state_nas_timer->id = timer_proto.id();
@@ -358,8 +373,8 @@ void NasStateConverter::proto_to_nas_timer(
 }
 
 void NasStateConverter::ue_network_capability_to_proto(
-  ue_network_capability_t* state_ue_network_capability,
-  UeNetworkCapability* ue_network_capability_proto)
+  const ue_network_capability_t* state_ue_network_capability,
+  oai::UeNetworkCapability* ue_network_capability_proto)
 {
   ue_network_capability_proto->set_eea(state_ue_network_capability->eea);
   ue_network_capability_proto->set_eia(state_ue_network_capability->eia);
@@ -379,7 +394,7 @@ void NasStateConverter::ue_network_capability_to_proto(
 }
 
 void NasStateConverter::proto_to_ue_network_capability(
-  const UeNetworkCapability& ue_network_capability_proto,
+  const oai::UeNetworkCapability& ue_network_capability_proto,
   ue_network_capability_t* state_ue_network_capability)
 {
   state_ue_network_capability->eea = ue_network_capability_proto.eea();
@@ -400,29 +415,29 @@ void NasStateConverter::proto_to_ue_network_capability(
 }
 
 void NasStateConverter::classmark2_to_proto(
-  MobileStationClassmark2* state_MobileStationClassmark,
-  MobileStaClassmark2* mobile_station_classmark2_proto)
+  const MobileStationClassmark2* state_MobileStationClassmark,
+  oai::MobileStaClassmark2* mobile_station_classmark2_proto)
 {
   // TODO
 }
 
 void NasStateConverter::proto_to_classmark2(
-  const MobileStaClassmark2& mobile_sta_classmark2_proto,
+  const oai::MobileStaClassmark2& mobile_sta_classmark2_proto,
   MobileStationClassmark2* state_MobileStationClassmar)
 {
   // TODO
 }
 
 void NasStateConverter::voice_preference_to_proto(
-  voice_domain_preference_and_ue_usage_setting_t*
+  const voice_domain_preference_and_ue_usage_setting_t*
     state_voice_domain_preference_and_ue_usage_setting,
-  VoicePreference* voice_preference_proto)
+  oai::VoicePreference* voice_preference_proto)
 {
   // TODO
 }
 
 void NasStateConverter::proto_to_voice_preference(
-  const VoicePreference& voice_preference_proto,
+  const oai::VoicePreference& voice_preference_proto,
   voice_domain_preference_and_ue_usage_setting_t*
     state_voice_domain_preference_and_ue_usage_setting)
 {
@@ -430,8 +445,8 @@ void NasStateConverter::proto_to_voice_preference(
 }
 
 void NasStateConverter::nas_message_decode_status_to_proto(
-  nas_message_decode_status_t* state_nas_message_decode_status,
-  NasMsgDecodeStatus* nas_msg_decode_status_proto)
+  const nas_message_decode_status_t* state_nas_message_decode_status,
+  oai::NasMsgDecodeStatus* nas_msg_decode_status_proto)
 {
   nas_msg_decode_status_proto->set_integrity_protected_message(
     state_nas_message_decode_status->integrity_protected_message);
@@ -446,7 +461,7 @@ void NasStateConverter::nas_message_decode_status_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_message_decode_status(
-  const NasMsgDecodeStatus& nas_msg_decode_status_proto,
+  const oai::NasMsgDecodeStatus& nas_msg_decode_status_proto,
   nas_message_decode_status_t* state_nas_message_decode_status)
 {
   state_nas_message_decode_status->integrity_protected_message =
@@ -462,8 +477,8 @@ void NasStateConverter::proto_to_nas_message_decode_status(
 }
 
 void NasStateConverter::emm_attach_request_ies_to_proto(
-  emm_attach_request_ies_t* state_emm_attach_request_ies,
-  AttachRequestIes* attach_request_ies_proto)
+  const emm_attach_request_ies_t* state_emm_attach_request_ies,
+  oai::AttachRequestIes* attach_request_ies_proto)
 {
   attach_request_ies_proto->set_is_initial(
     state_emm_attach_request_ies->is_initial);
@@ -530,7 +545,7 @@ void NasStateConverter::emm_attach_request_ies_to_proto(
 }
 
 void NasStateConverter::proto_to_emm_attach_request_ies(
-  const AttachRequestIes& attach_request_ies_proto,
+  const oai::AttachRequestIes& attach_request_ies_proto,
   emm_attach_request_ies_t* state_emm_attach_request_ies)
 {
   state_emm_attach_request_ies->is_initial =
@@ -605,8 +620,8 @@ void NasStateConverter::proto_to_emm_attach_request_ies(
 }
 
 void NasStateConverter::nas_attach_proc_to_proto(
-  nas_emm_attach_proc_t* state_nas_attach_proc,
-  AttachProc* attach_proc_proto)
+  const nas_emm_attach_proc_t* state_nas_attach_proc,
+  oai::AttachProc* attach_proc_proto)
 {
   attach_proc_proto->set_attach_accept_sent(
     state_nas_attach_proc->attach_accept_sent);
@@ -637,7 +652,7 @@ void NasStateConverter::nas_attach_proc_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_emm_attach_proc(
-  const AttachProc& attach_proc_proto,
+  const oai::AttachProc& attach_proc_proto,
   nas_emm_attach_proc_t* state_nas_emm_attach_proc)
 {
   state_nas_emm_attach_proc->emm_spec_proc.emm_proc.base_proc.type =
@@ -669,8 +684,8 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
 }
 
 void NasStateConverter::emm_detach_request_ies_to_proto(
-  emm_detach_request_ies_t* state_emm_detach_request_ies,
-  DetachRequestIes* detach_request_ies_proto)
+  const emm_detach_request_ies_t* state_emm_detach_request_ies,
+  oai::DetachRequestIes* detach_request_ies_proto)
 {
   detach_request_ies_proto->set_type(state_emm_detach_request_ies->type);
   detach_request_ies_proto->set_switch_off(
@@ -695,7 +710,7 @@ void NasStateConverter::emm_detach_request_ies_to_proto(
 }
 
 void NasStateConverter::proto_to_emm_detach_request_ies(
-  const DetachRequestIes& detach_request_ies_proto,
+  const oai::DetachRequestIes& detach_request_ies_proto,
   emm_detach_request_ies_t* state_emm_detach_request_ies)
 {
   state_emm_detach_request_ies->type =
@@ -725,38 +740,38 @@ void NasStateConverter::proto_to_emm_detach_request_ies(
 }
 
 void NasStateConverter::emm_tau_request_ies_to_proto(
-  emm_tau_request_ies_t* state_emm_tau_request_ies,
-  TauRequestIes* tau_request_ies_proto)
+  const emm_tau_request_ies_t* state_emm_tau_request_ies,
+  oai::TauRequestIes* tau_request_ies_proto)
 {
   // TODO
 }
 
 void NasStateConverter::proto_to_emm_tau_request_ies(
-  const TauRequestIes& tau_request_ies_proto,
+  const oai::TauRequestIes& tau_request_ies_proto,
   emm_tau_request_ies_t* state_emm_tau_request_ies)
 {
   // TODO
 }
 
 void NasStateConverter::nas_emm_tau_proc_to_proto(
-  nas_emm_tau_proc_t* state_nas_emm_tau_proc,
-  NasTauProc* nas_tau_proc_proto)
+  const nas_emm_tau_proc_t* state_nas_emm_tau_proc,
+  oai::NasTauProc* nas_tau_proc_proto)
 {
   // TODO
 }
 
 void NasStateConverter::proto_to_nas_emm_tau_proc(
-  const NasTauProc& nas_tau_proc_proto,
+  const oai::NasTauProc& nas_tau_proc_proto,
   nas_emm_tau_proc_t* state_nas_emm_tau_proc)
 {
   // TODO
 }
 
 void NasStateConverter::nas_emm_auth_proc_to_proto(
-  nas_emm_auth_proc_t* state_nas_emm_auth_proc,
-  AuthProc* auth_proc_proto)
+  const nas_emm_auth_proc_t* state_nas_emm_auth_proc,
+  oai::AuthProc* auth_proc_proto)
 {
-  OAILOG_INFO(LOG_MME_APP, "Writing auth proc to proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Writing auth proc to proto");
   auth_proc_proto->Clear();
   auth_proc_proto->set_retransmission_count(
     state_nas_emm_auth_proc->retransmission_count);
@@ -783,10 +798,10 @@ void NasStateConverter::nas_emm_auth_proc_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_emm_auth_proc(
-  const AuthProc& auth_proc_proto,
+  const oai::AuthProc& auth_proc_proto,
   nas_emm_auth_proc_t* state_nas_emm_auth_proc)
 {
-  OAILOG_INFO(LOG_MME_APP, "Reading auth proc from proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Reading auth proc from proto");
   state_nas_emm_auth_proc->emm_com_proc.emm_proc.base_proc.type =
     NAS_PROC_TYPE_EMM;
   state_nas_emm_auth_proc->emm_com_proc.emm_proc.type =
@@ -800,12 +815,12 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
   state_nas_emm_auth_proc->is_cause_is_attach =
     auth_proc_proto.is_cause_is_attach();
   state_nas_emm_auth_proc->ksi = auth_proc_proto.ksi();
-  strncpy(
-    (char*) state_nas_emm_auth_proc->rand,
+  memcpy(
+    state_nas_emm_auth_proc->rand,
     auth_proc_proto.rand().c_str(),
     AUTH_RAND_SIZE);
-  strncpy(
-    (char*) state_nas_emm_auth_proc->autn,
+  memcpy(
+    state_nas_emm_auth_proc->autn,
     auth_proc_proto.autn().c_str(),
     AUTH_AUTN_SIZE);
 
@@ -826,10 +841,10 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
 }
 
 void NasStateConverter::nas_emm_smc_proc_to_proto(
-  nas_emm_smc_proc_t* state_nas_emm_smc_proc,
-  SmcProc* smc_proc_proto)
+  const nas_emm_smc_proc_t* state_nas_emm_smc_proc,
+  oai::SmcProc* smc_proc_proto)
 {
-  OAILOG_INFO(LOG_MME_APP, "Writing smc proc to proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Writing smc proc to proto");
   smc_proc_proto->set_ue_id(state_nas_emm_smc_proc->ue_id);
   smc_proc_proto->set_retransmission_count(
     state_nas_emm_smc_proc->retransmission_count);
@@ -858,10 +873,10 @@ void NasStateConverter::nas_emm_smc_proc_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_emm_smc_proc(
-  const SmcProc& smc_proc_proto,
+  const oai::SmcProc& smc_proc_proto,
   nas_emm_smc_proc_t* state_nas_emm_smc_proc)
 {
-  OAILOG_INFO(LOG_MME_APP, "Reading smc proc from proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Reading smc proc from proto");
   state_nas_emm_smc_proc->emm_com_proc.emm_proc.base_proc.type =
     NAS_PROC_TYPE_EMM;
   state_nas_emm_smc_proc->emm_com_proc.emm_proc.type = NAS_EMM_PROC_TYPE_COMMON;
@@ -897,8 +912,8 @@ void NasStateConverter::proto_to_nas_emm_smc_proc(
 }
 
 void NasStateConverter::nas_proc_mess_sign_to_proto(
-  nas_proc_mess_sign_t* state_nas_proc_mess_sign,
-  NasProcMessSign* nas_proc_mess_sign_proto)
+  const nas_proc_mess_sign_t* state_nas_proc_mess_sign,
+  oai::NasProcMessSign* nas_proc_mess_sign_proto)
 {
   nas_proc_mess_sign_proto->set_puid(state_nas_proc_mess_sign->puid);
   nas_proc_mess_sign_proto->set_digest(
@@ -910,7 +925,7 @@ void NasStateConverter::nas_proc_mess_sign_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_proc_mess_sign(
-  const NasProcMessSign& nas_proc_mess_sign_proto,
+  const oai::NasProcMessSign& nas_proc_mess_sign_proto,
   nas_proc_mess_sign_t* state_nas_proc_mess_sign)
 {
   state_nas_proc_mess_sign->puid = nas_proc_mess_sign_proto.puid();
@@ -925,15 +940,15 @@ void NasStateConverter::proto_to_nas_proc_mess_sign(
 }
 
 void NasStateConverter::nas_base_proc_to_proto(
-  nas_base_proc_t* base_proc_p,
-  NasBaseProc* base_proc_proto)
+  const nas_base_proc_t* base_proc_p,
+  oai::NasBaseProc* base_proc_proto)
 {
   base_proc_proto->set_nas_puid(base_proc_p->nas_puid);
   base_proc_proto->set_type(base_proc_p->type);
 }
 
 void NasStateConverter::proto_to_nas_base_proc(
-  const NasBaseProc& nas_base_proc_proto,
+  const oai::NasBaseProc& nas_base_proc_proto,
   nas_base_proc_t* state_nas_base_proc)
 {
   state_nas_base_proc->nas_puid = nas_base_proc_proto.nas_puid();
@@ -947,8 +962,8 @@ void NasStateConverter::proto_to_nas_base_proc(
 }
 
 void NasStateConverter::emm_proc_to_proto(
-  nas_emm_proc_t* emm_proc_p,
-  NasEmmProc* emm_proc_proto)
+  const nas_emm_proc_t* emm_proc_p,
+  oai::NasEmmProc* emm_proc_proto)
 {
   nas_base_proc_to_proto(
     &emm_proc_p->base_proc, emm_proc_proto->mutable_base_proc());
@@ -958,7 +973,7 @@ void NasStateConverter::emm_proc_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_emm_proc(
-  const NasEmmProc& nas_emm_proc_proto,
+  const oai::NasEmmProc& nas_emm_proc_proto,
   nas_emm_proc_t* state_nas_emm_proc)
 {
   proto_to_nas_base_proc(
@@ -972,15 +987,15 @@ void NasStateConverter::proto_to_nas_emm_proc(
 }
 
 void NasStateConverter::emm_specific_proc_to_proto(
-  nas_emm_specific_proc_t* state_emm_specific_proc,
-  NasEmmProcWithType* emm_proc_with_type)
+  const nas_emm_specific_proc_t* state_emm_specific_proc,
+  oai::NasEmmProcWithType* emm_proc_with_type)
 {
-  OAILOG_INFO(LOG_MME_APP, "Writing specific procs to proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Writing specific procs to proto");
   emm_proc_to_proto(
     &state_emm_specific_proc->emm_proc, emm_proc_with_type->mutable_emm_proc());
   switch (state_emm_specific_proc->type) {
     case EMM_SPEC_PROC_TYPE_ATTACH: {
-      OAILOG_INFO(LOG_MME_APP, "Writing attach proc to proto");
+      OAILOG_DEBUG(LOG_MME_APP, "Writing attach proc to proto");
       nas_attach_proc_to_proto(
         (nas_emm_attach_proc_t*) state_emm_specific_proc,
         emm_proc_with_type->mutable_attach_proc());
@@ -998,14 +1013,14 @@ void NasStateConverter::emm_specific_proc_to_proto(
 
 // This function allocated memory for any specific procedure stored
 void NasStateConverter::proto_to_emm_specific_proc(
-  const NasEmmProcWithType& proto_emm_proc_with_type,
+  const oai::NasEmmProcWithType& proto_emm_proc_with_type,
   emm_procedures_t* state_emm_procedures)
 {
-  OAILOG_INFO(LOG_MME_APP, "Reading specific procs from proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Reading specific procs from proto");
   // read attach or detach proc based on message type present
   switch (proto_emm_proc_with_type.MessageTypes_case()) {
-    case NasEmmProcWithType::kAttachProc: {
-      OAILOG_INFO(LOG_MME_APP, "Reading attach proc from proto");
+    case oai::NasEmmProcWithType::kAttachProc: {
+      OAILOG_DEBUG(LOG_MME_APP, "Reading attach proc from proto");
       state_emm_procedures->emm_specific_proc =
         (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_attach_proc_t));
       nas_emm_attach_proc_t* attach_proc =
@@ -1019,7 +1034,7 @@ void NasStateConverter::proto_to_emm_specific_proc(
         proto_emm_proc_with_type.attach_proc(), attach_proc);
       break;
     }
-    case NasEmmProcWithType::kDetachProc: {
+    case oai::NasEmmProcWithType::kDetachProc: {
       state_emm_procedures->emm_specific_proc =
         (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_detach_proc_t));
       nas_emm_detach_proc_t* detach_proc =
@@ -1037,14 +1052,14 @@ void NasStateConverter::proto_to_emm_specific_proc(
 }
 
 void NasStateConverter::emm_common_proc_to_proto(
-  emm_procedures_t* state_emm_procedures,
-  EmmProcedures* emm_procedures_proto)
+  const emm_procedures_t* state_emm_procedures,
+  oai::EmmProcedures* emm_procedures_proto)
 {
-  OAILOG_INFO(LOG_MME_APP, "Writing common procs to proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Writing common procs to proto");
   nas_emm_common_procedure_t* p1 =
     LIST_FIRST(&state_emm_procedures->emm_common_procs);
   while (p1) {
-    NasEmmProcWithType* nas_emm_proc_with_type_proto =
+    oai::NasEmmProcWithType* nas_emm_proc_with_type_proto =
       emm_procedures_proto->add_emm_common_proc();
     emm_proc_to_proto(
       &p1->proc->emm_proc, nas_emm_proc_with_type_proto->mutable_emm_proc());
@@ -1079,20 +1094,20 @@ void NasStateConverter::insert_proc_into_emm_common_procs(
 
   wrapper->proc = emm_com_proc;
   LIST_INSERT_HEAD(&state_emm_procedures->emm_common_procs, wrapper, entries);
-  OAILOG_INFO(LOG_NAS_EMM, "New COMMON PROC added from state\n");
+  OAILOG_DEBUG(LOG_NAS_EMM, "New COMMON PROC added from state\n");
 }
 
 void NasStateConverter::proto_to_emm_common_proc(
-  const EmmProcedures& emm_procedures_proto,
+  const oai::EmmProcedures& emm_procedures_proto,
   emm_context_t* state_emm_context)
 {
-  OAILOG_INFO(LOG_MME_APP, "Reading common procs from proto");
+  OAILOG_DEBUG(LOG_MME_APP, "Reading common procs from proto");
   auto proto_common_procs = emm_procedures_proto.emm_common_proc();
   for (auto ptr = proto_common_procs.begin(); ptr < proto_common_procs.end();
        ptr++) {
     switch (ptr->MessageTypes_case()) {
-      case NasEmmProcWithType::kAuthProc: {
-        OAILOG_INFO(LOG_NAS_EMM, "Inserting AUTH PROC from state\n");
+      case oai::NasEmmProcWithType::kAuthProc: {
+        OAILOG_DEBUG(LOG_NAS_EMM, "Inserting AUTH PROC from state\n");
         nas_emm_auth_proc_t* state_auth_proc =
           (nas_emm_auth_proc_t*) calloc(1, sizeof(*state_auth_proc));
         proto_to_nas_emm_proc(
@@ -1106,8 +1121,8 @@ void NasStateConverter::proto_to_emm_common_proc(
           state_emm_context->emm_procedures, &state_auth_proc->emm_com_proc);
         break;
       }
-      case NasEmmProcWithType::kSmcProc: {
-        OAILOG_INFO(LOG_NAS_EMM, "Inserting SMC PROC from state\n");
+      case oai::NasEmmProcWithType::kSmcProc: {
+        OAILOG_DEBUG(LOG_NAS_EMM, "Inserting SMC PROC from state\n");
         nas_emm_smc_proc_t* state_smc_proc =
           (nas_emm_smc_proc_t*) calloc(1, sizeof(*state_smc_proc));
         proto_to_nas_emm_proc(
@@ -1128,10 +1143,11 @@ void NasStateConverter::proto_to_emm_common_proc(
 
 void NasStateConverter::eutran_vectors_to_proto(
   eutran_vector_t** state_eutran_vector_array,
-  int num_vectors,
-  AuthInfoProc* auth_info_proc_proto)
+  uint8_t num_vectors,
+  oai::AuthInfoProc* auth_info_proc_proto)
 {
-  AuthVector* eutran_vector_proto = nullptr;
+  oai::AuthVector* eutran_vector_proto = nullptr;
+  OAILOG_DEBUG(LOG_NAS_EMM, "Writing %d eutran vectors", num_vectors);
   for (int i = 0; i < num_vectors; i++) {
     eutran_vector_proto = auth_info_proc_proto->add_vector();
     memcpy(
@@ -1154,7 +1170,7 @@ void NasStateConverter::eutran_vectors_to_proto(
 }
 
 void NasStateConverter::proto_to_eutran_vectors(
-  const AuthInfoProc& auth_info_proc_proto,
+  const oai::AuthInfoProc& auth_info_proc_proto,
   nas_auth_info_proc_t* state_nas_auth_info_proc)
 {
   auto proto_vectors = auth_info_proc_proto.vector();
@@ -1162,23 +1178,25 @@ void NasStateConverter::proto_to_eutran_vectors(
   for (auto ptr = proto_vectors.begin(); ptr < proto_vectors.end(); ptr++) {
     eutran_vector_t* this_vector =
       (eutran_vector_t*) calloc(1, sizeof(eutran_vector_t));
-    strncpy((char*) this_vector->kasme, ptr->kasme().c_str(), AUTH_KASME_SIZE);
-    strncpy((char*) this_vector->rand, ptr->rand().c_str(), AUTH_RAND_SIZE);
-    strncpy((char*) this_vector->autn, ptr->autn().c_str(), AUTH_AUTN_SIZE);
+    memcpy(this_vector->kasme, ptr->kasme().c_str(), AUTH_KASME_SIZE);
+    memcpy(this_vector->rand, ptr->rand().c_str(), AUTH_RAND_SIZE);
+    memcpy(this_vector->autn, ptr->autn().c_str(), AUTH_AUTN_SIZE);
     this_vector->xres.size = ptr->xres().length();
-    strncpy(
-      (char*) this_vector->xres.data,
+    memcpy(
+      this_vector->xres.data,
       ptr->xres().c_str(),
       this_vector->xres.size);
     state_nas_auth_info_proc->vector[i] = this_vector;
     i++;
   }
   state_nas_auth_info_proc->nb_vectors = i;
+  OAILOG_DEBUG(LOG_NAS_EMM, "Read %d eutran vectors",
+               state_nas_auth_info_proc->nb_vectors);
 }
 
 void NasStateConverter::nas_auth_info_proc_to_proto(
   nas_auth_info_proc_t* state_nas_auth_info_proc,
-  AuthInfoProc* auth_info_proc_proto)
+  oai::AuthInfoProc* auth_info_proc_proto)
 {
   auth_info_proc_proto->set_request_sent(
     state_nas_auth_info_proc->request_sent);
@@ -1195,7 +1213,7 @@ void NasStateConverter::nas_auth_info_proc_to_proto(
 }
 
 void NasStateConverter::proto_to_nas_auth_info_proc(
-  const AuthInfoProc& auth_info_proc_proto,
+  const oai::AuthInfoProc& auth_info_proc_proto,
   nas_auth_info_proc_t* state_nas_auth_info_proc)
 {
   state_nas_auth_info_proc->request_sent = auth_info_proc_proto.request_sent();
@@ -1210,22 +1228,25 @@ void NasStateConverter::proto_to_nas_auth_info_proc(
 }
 
 void NasStateConverter::nas_cn_procs_to_proto(
-  emm_procedures_t* state_emm_procedures,
-  EmmProcedures* emm_procedures_proto)
+  const emm_procedures_t* state_emm_procedures,
+  oai::EmmProcedures* emm_procedures_proto)
 {
+  OAILOG_DEBUG(LOG_NAS_EMM, "Writing cn procs to proto");
   nas_cn_procedure_t* p1 = LIST_FIRST(&state_emm_procedures->cn_procs);
   while (p1) {
-    NasCnProc* nas_cn_proc_proto = emm_procedures_proto->add_cn_proc();
+    oai::NasCnProc* nas_cn_proc_proto = emm_procedures_proto->add_cn_proc();
     nas_base_proc_to_proto(
       &p1->proc->base_proc, nas_cn_proc_proto->mutable_base_proc());
     switch (p1->proc->type) {
       case CN_PROC_AUTH_INFO: {
-        nas_auth_info_proc_t* state_auth_info_proc = (nas_auth_info_proc_t*) p1;
+        OAILOG_DEBUG(LOG_NAS_EMM, "Writing auth_info_proc to proto");
+        nas_auth_info_proc_t* state_auth_info_proc = (nas_auth_info_proc_t*)
+            p1->proc;
         nas_auth_info_proc_to_proto(
           state_auth_info_proc, nas_cn_proc_proto->mutable_auth_info_proc());
       } break;
       default:
-        OAILOG_INFO(
+        OAILOG_DEBUG(
           LOG_NAS,
           "EMM_CN: Unknown procedure type, cannot convert"
           "to proto");
@@ -1244,24 +1265,26 @@ void NasStateConverter::insert_proc_into_cn_procs(
   if (!wrapper) return;
   wrapper->proc = cn_proc;
   LIST_INSERT_HEAD(&state_emm_procedures->cn_procs, wrapper, entries);
-  OAILOG_TRACE(LOG_NAS_EMM, "New EMM_COMM_PROC_SMC\n");
+  OAILOG_DEBUG(LOG_NAS_EMM, "New EMM_COMM_PROC_SMC\n");
 }
 
 void NasStateConverter::proto_to_nas_cn_proc(
-  const EmmProcedures& emm_procedures_proto,
+  const oai::EmmProcedures& emm_procedures_proto,
   emm_procedures_t* state_emm_procedures)
 {
+  OAILOG_DEBUG(LOG_NAS_EMM, "Reading cn procs from proto");
   auto proto_cn_procs = emm_procedures_proto.cn_proc();
   for (auto ptr = proto_cn_procs.begin(); ptr < proto_cn_procs.end(); ptr++) {
     switch (ptr->MessageTypes_case()) {
-      case NasCnProc::kAuthInfoProc: {
+      case oai::NasCnProc::kAuthInfoProc: {
         nas_auth_info_proc_t* state_auth_info_proc =
           (nas_auth_info_proc_t*) calloc(1, sizeof(*state_auth_info_proc));
-        OAILOG_INFO(LOG_NAS_EMM, "Inserting AUTH INFO PROC from state\n");
+        OAILOG_DEBUG(LOG_NAS_EMM, "Inserting AUTH INFO PROC from state\n");
         proto_to_nas_base_proc(
           ptr->base_proc(), &state_auth_info_proc->cn_proc.base_proc);
         proto_to_nas_auth_info_proc(
           ptr->auth_info_proc(), state_auth_info_proc);
+        state_auth_info_proc->cn_proc.type = CN_PROC_AUTH_INFO;
         insert_proc_into_cn_procs(
           state_emm_procedures, &state_auth_info_proc->cn_proc);
       }
@@ -1271,11 +1294,11 @@ void NasStateConverter::proto_to_nas_cn_proc(
 }
 
 void NasStateConverter::mess_sign_array_to_proto(
-  emm_procedures_t* state_emm_procedures,
-  EmmProcedures* emm_procedures_proto)
+  const emm_procedures_t* state_emm_procedures,
+  oai::EmmProcedures* emm_procedures_proto)
 {
   for (int i = 0; i < MAX_NAS_PROC_MESS_SIGN; i++) {
-    NasProcMessSign* nas_proc_mess_sign_proto =
+    oai::NasProcMessSign* nas_proc_mess_sign_proto =
       emm_procedures_proto->add_nas_proc_mess_sign();
     nas_proc_mess_sign_to_proto(
       &state_emm_procedures->nas_proc_mess_sign[i], nas_proc_mess_sign_proto);
@@ -1283,7 +1306,7 @@ void NasStateConverter::mess_sign_array_to_proto(
 }
 
 void NasStateConverter::proto_to_mess_sign_array(
-  const EmmProcedures& emm_procedures_proto,
+  const oai::EmmProcedures& emm_procedures_proto,
   emm_procedures_t* state_emm_procedures)
 {
   int i = 0;
@@ -1298,8 +1321,8 @@ void NasStateConverter::proto_to_mess_sign_array(
 }
 
 void NasStateConverter::emm_procedures_to_proto(
-  emm_procedures_t* state_emm_procedures,
-  EmmProcedures* emm_procedures_proto)
+  const emm_procedures_t* state_emm_procedures,
+  oai::EmmProcedures* emm_procedures_proto)
 {
   if (state_emm_procedures->emm_specific_proc) {
     emm_specific_proc_to_proto(
@@ -1310,7 +1333,7 @@ void NasStateConverter::emm_procedures_to_proto(
 
   // cn_procs
   nas_cn_procs_to_proto(state_emm_procedures, emm_procedures_proto);
-  NasEmmProcWithType* emm_proc_with_type =
+  oai::NasEmmProcWithType* emm_proc_with_type =
     emm_procedures_proto->mutable_emm_con_mngt_proc();
 
   if (state_emm_procedures->emm_con_mngt_proc) {
@@ -1323,14 +1346,10 @@ void NasStateConverter::emm_procedures_to_proto(
     state_emm_procedures->nas_proc_mess_sign_next_location);
 
   mess_sign_array_to_proto(state_emm_procedures, emm_procedures_proto);
-  // temporarily storing the address in redis to make sure other state is
-  // passing correctly
-  emm_procedures_proto->set_pointer(
-    reinterpret_cast<uintptr_t>(state_emm_procedures));
 }
 
 void NasStateConverter::proto_to_emm_procedures(
-  const EmmProcedures& emm_procedures_proto,
+  const oai::EmmProcedures& emm_procedures_proto,
   emm_context_t* state_emm_context)
 {
   state_emm_context->emm_procedures =
@@ -1343,9 +1362,9 @@ void NasStateConverter::proto_to_emm_procedures(
   proto_to_emm_common_proc(emm_procedures_proto, state_emm_context);
   LIST_INIT(&state_emm_procedures->cn_procs);
   proto_to_nas_cn_proc(emm_procedures_proto, state_emm_procedures);
-  state_emm_procedures->emm_con_mngt_proc =
-    (nas_emm_con_mngt_proc_t*) calloc(1, sizeof(nas_emm_con_mngt_proc_t));
   if (emm_procedures_proto.has_emm_con_mngt_proc()) {
+    state_emm_procedures->emm_con_mngt_proc =
+      (nas_emm_con_mngt_proc_t*) calloc(1, sizeof(nas_emm_con_mngt_proc_t));
     proto_to_nas_emm_proc(
       emm_procedures_proto.emm_con_mngt_proc().emm_proc(),
       &state_emm_procedures->emm_con_mngt_proc->emm_proc);
@@ -1356,11 +1375,11 @@ void NasStateConverter::proto_to_emm_procedures(
 }
 
 void NasStateConverter::auth_vectors_to_proto(
-  auth_vector_t* state_auth_vector_array,
+  const auth_vector_t* state_auth_vector_array,
   int num_vectors,
-  EmmContext* emm_context_proto)
+  oai::EmmContext* emm_context_proto)
 {
-  AuthVector* auth_vector_proto = nullptr;
+  oai::AuthVector* auth_vector_proto = nullptr;
   for (int i = 0; i < num_vectors; i++) {
     auth_vector_proto = emm_context_proto->add_vector();
     auth_vector_proto->set_kasme(
@@ -1376,22 +1395,22 @@ void NasStateConverter::auth_vectors_to_proto(
 }
 
 int NasStateConverter::proto_to_auth_vectors(
-  const EmmContext& emm_context_proto,
+  const oai::EmmContext& emm_context_proto,
   auth_vector_t* state_auth_vector)
 {
   auto proto_vectors = emm_context_proto.vector();
   int i = 0;
   for (auto ptr = proto_vectors.begin(); ptr < proto_vectors.end(); ptr++) {
-    strncpy(
-      (char*) state_auth_vector[i].kasme,
+    memcpy(
+      state_auth_vector[i].kasme,
       ptr->kasme().c_str(),
       AUTH_KASME_SIZE);
-    strncpy(
-      (char*) state_auth_vector[i].rand, ptr->rand().c_str(), AUTH_RAND_SIZE);
-    strncpy(
-      (char*) state_auth_vector[i].autn, ptr->autn().c_str(), AUTH_AUTN_SIZE);
-    strncpy(
-      (char*) state_auth_vector[i].xres,
+    memcpy(
+      state_auth_vector[i].rand, ptr->rand().c_str(), AUTH_RAND_SIZE);
+    memcpy(
+      state_auth_vector[i].autn, ptr->autn().c_str(), AUTH_AUTN_SIZE);
+    memcpy(
+      state_auth_vector[i].xres,
       ptr->xres().c_str(),
       ptr->xres().length());
     i++;
@@ -1400,8 +1419,8 @@ int NasStateConverter::proto_to_auth_vectors(
 }
 
 void NasStateConverter::emm_security_context_to_proto(
-  emm_security_context_t* state_emm_security_context,
-  EmmSecurityContext* emm_security_context_proto)
+  const emm_security_context_t* state_emm_security_context,
+  oai::EmmSecurityContext* emm_security_context_proto)
 {
   emm_security_context_proto->set_sc_type(state_emm_security_context->sc_type);
   emm_security_context_proto->set_eksi(state_emm_security_context->eksi);
@@ -1413,17 +1432,17 @@ void NasStateConverter::emm_security_context_to_proto(
     state_emm_security_context->knas_int, AUTH_KNAS_INT_SIZE);
 
   // Count values
-  EmmSecurityContext_Count* dl_count_proto =
+  oai::EmmSecurityContext_Count* dl_count_proto =
     emm_security_context_proto->mutable_dl_count();
   dl_count_proto->set_spare(state_emm_security_context->dl_count.spare);
   dl_count_proto->set_overflow(state_emm_security_context->dl_count.overflow);
   dl_count_proto->set_seq_num(state_emm_security_context->dl_count.seq_num);
-  EmmSecurityContext_Count* ul_count_proto =
+  oai::EmmSecurityContext_Count* ul_count_proto =
     emm_security_context_proto->mutable_ul_count();
   ul_count_proto->set_spare(state_emm_security_context->ul_count.spare);
   ul_count_proto->set_overflow(state_emm_security_context->ul_count.overflow);
   ul_count_proto->set_seq_num(state_emm_security_context->ul_count.seq_num);
-  EmmSecurityContext_Count* kenb_ul_count_proto =
+  oai::EmmSecurityContext_Count* kenb_ul_count_proto =
     emm_security_context_proto->mutable_kenb_ul_count();
   kenb_ul_count_proto->set_spare(
     state_emm_security_context->kenb_ul_count.spare);
@@ -1435,7 +1454,7 @@ void NasStateConverter::emm_security_context_to_proto(
   // TODO convert capability to proto
 
   // Security algorithm
-  EmmSecurityContext_SelectedAlgorithms* selected_algorithms_proto =
+  oai::EmmSecurityContext_SelectedAlgorithms* selected_algorithms_proto =
     emm_security_context_proto->mutable_selected_algos();
   selected_algorithms_proto->set_encryption(
     state_emm_security_context->selected_algorithms.encryption);
@@ -1454,7 +1473,7 @@ void NasStateConverter::emm_security_context_to_proto(
 }
 
 void NasStateConverter::proto_to_emm_security_context(
-  const EmmSecurityContext& emm_security_context_proto,
+  const oai::EmmSecurityContext& emm_security_context_proto,
   emm_security_context_t* state_emm_security_context)
 {
   state_emm_security_context->sc_type =
@@ -1462,25 +1481,25 @@ void NasStateConverter::proto_to_emm_security_context(
   state_emm_security_context->eksi = emm_security_context_proto.eksi();
   state_emm_security_context->vector_index =
     emm_security_context_proto.vector_index();
-  strcpy(
-    (char*) state_emm_security_context->knas_enc,
-    emm_security_context_proto.knas_enc().c_str());
-  strcpy(
-    (char*) state_emm_security_context->knas_int,
-    emm_security_context_proto.knas_int().c_str());
+  memcpy(
+    state_emm_security_context->knas_enc,
+    emm_security_context_proto.knas_enc().c_str(), AUTH_KNAS_ENC_SIZE);
+  memcpy(
+    state_emm_security_context->knas_int,
+    emm_security_context_proto.knas_int().c_str(), AUTH_KNAS_INT_SIZE);
 
   // Count values
-  const EmmSecurityContext_Count& dl_count_proto =
+  const oai::EmmSecurityContext_Count& dl_count_proto =
     emm_security_context_proto.dl_count();
   state_emm_security_context->dl_count.spare = dl_count_proto.spare();
   state_emm_security_context->dl_count.overflow = dl_count_proto.overflow();
   state_emm_security_context->dl_count.seq_num = dl_count_proto.seq_num();
-  const EmmSecurityContext_Count& ul_count_proto =
+  const oai::EmmSecurityContext_Count& ul_count_proto =
     emm_security_context_proto.ul_count();
   state_emm_security_context->ul_count.spare = ul_count_proto.spare();
   state_emm_security_context->ul_count.overflow = ul_count_proto.overflow();
   state_emm_security_context->ul_count.seq_num = ul_count_proto.seq_num();
-  const EmmSecurityContext_Count& kenb_ul_count_proto =
+  const oai::EmmSecurityContext_Count& kenb_ul_count_proto =
     emm_security_context_proto.kenb_ul_count();
   state_emm_security_context->kenb_ul_count.spare = kenb_ul_count_proto.spare();
   state_emm_security_context->kenb_ul_count.overflow =
@@ -1491,7 +1510,7 @@ void NasStateConverter::proto_to_emm_security_context(
   // TODO read capability from proto
 
   // Security algorithm
-  const EmmSecurityContext_SelectedAlgorithms& selected_algorithms_proto =
+  const oai::EmmSecurityContext_SelectedAlgorithms& selected_algorithms_proto =
     emm_security_context_proto.selected_algos();
   state_emm_security_context->selected_algorithms.encryption =
     selected_algorithms_proto.encryption();
@@ -1503,16 +1522,16 @@ void NasStateConverter::proto_to_emm_security_context(
     emm_security_context_proto.direction_encode();
   state_emm_security_context->direction_decode =
     emm_security_context_proto.direction_decode();
-  strcpy(
-    (char*) state_emm_security_context->next_hop,
-    emm_security_context_proto.next_hop().c_str());
+  memcpy(
+    state_emm_security_context->next_hop,
+    emm_security_context_proto.next_hop().c_str(), AUTH_NEXT_HOP_SIZE);
   state_emm_security_context->next_hop_chaining_count =
     emm_security_context_proto.next_hop_chaining_count();
 }
 
 void NasStateConverter::emm_context_to_proto(
-  emm_context_t* state_emm_context,
-  EmmContext* emm_context_proto)
+  const emm_context_t* state_emm_context,
+  oai::EmmContext* emm_context_proto)
 {
   emm_context_proto->set_imsi64(state_emm_context->_imsi64);
   identity_tuple_to_proto<imsi_t>(
@@ -1528,7 +1547,6 @@ void NasStateConverter::emm_context_to_proto(
     &state_emm_context->_imeisv,
     emm_context_proto->mutable_imeisv(),
     IMEISV_BCD8_SIZE);
-  ecgi_to_proto(state_emm_context->ecgi, emm_context_proto->mutable_ecgi());
   emm_context_proto->set_emm_cause(state_emm_context->emm_cause);
   emm_context_proto->set_emm_fsm_state(state_emm_context->_emm_fsm_state);
   emm_context_proto->set_attach_type(state_emm_context->attach_type);
@@ -1585,7 +1603,7 @@ void NasStateConverter::emm_context_to_proto(
 }
 
 void NasStateConverter::proto_to_emm_context(
-  const EmmContext& emm_context_proto,
+  const oai::EmmContext& emm_context_proto,
   emm_context_t* state_emm_context)
 {
   state_emm_context->_imsi64 = emm_context_proto.imsi64();
@@ -1598,7 +1616,6 @@ void NasStateConverter::proto_to_emm_context(
   proto_to_identity_tuple<imeisv_t>(
     emm_context_proto.imeisv(), &state_emm_context->_imeisv, IMEISV_BCD8_SIZE);
 
-  proto_to_ecgi(emm_context_proto.ecgi(), &state_emm_context->ecgi);
   state_emm_context->emm_cause = emm_context_proto.emm_cause();
   state_emm_context->_emm_fsm_state =
     (emm_fsm_state_t) emm_context_proto.emm_fsm_state();
@@ -1612,10 +1629,15 @@ void NasStateConverter::proto_to_emm_context(
   nas_emm_auth_proc_t* auth_proc =
     get_nas_common_procedure_authentication(state_emm_context);
   if (auth_proc) {
-    OAILOG_INFO(
+    OAILOG_DEBUG(
       LOG_MME_APP,
-      "Found non-null auth proc with ue_id" RAND_FORMAT,
+      "Found non-null auth proc with RAND value " RAND_FORMAT,
       RAND_DISPLAY(auth_proc->rand));
+  }
+  nas_auth_info_proc_t* auth_info_proc =
+    get_nas_cn_procedure_auth_info(state_emm_context);
+  if (auth_info_proc) {
+    OAILOG_DEBUG(LOG_MME_APP, "Found non-null auth info proc");
   }
   state_emm_context->common_proc_mask = emm_context_proto.common_proc_mask();
   proto_to_esm_context(

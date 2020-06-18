@@ -1,0 +1,5 @@
+query UserQuery($authID: String!) {
+  user(authID: $authID) {
+    ...UserFragment
+  }
+}

@@ -15,7 +15,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/servicers"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )
@@ -31,10 +31,14 @@ func main() {
 		glog.Fatalf("Error creating Swx Proxy service: %s", err)
 	}
 
-	servicer, err := servicers.NewSwxProxy(servicers.GetSwxProxyConfig())
+	// Create servicers
+	servicer, err := servicers.NewSwxProxiesWithHealthAndDefaultMultiplexor(
+		servicers.GetSwxProxyConfig())
 	if err != nil {
 		glog.Fatalf("Failed to create SwxProxy: %v", err)
 	}
+
+	// Register services
 	protos.RegisterSwxProxyServer(srv.GrpcServer, servicer)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, servicer)
 

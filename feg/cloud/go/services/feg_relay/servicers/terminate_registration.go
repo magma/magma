@@ -33,7 +33,7 @@ func (srv *FegToGwRelayServer) TerminateRegistration(
 func (srv *FegToGwRelayServer) TerminateRegistrationUnverified(
 	ctx context.Context, req *protos.RegistrationTerminationRequest) (*protos.RegistrationAnswer, error) {
 
-	hwId, err := getHwIDFromIMSI(req.UserName)
+	hwId, err := getHwIDFromIMSI(ctx, req.UserName)
 	if err != nil {
 		errmsg := fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.GetUserName(), err)
 		log.Print(errmsg)

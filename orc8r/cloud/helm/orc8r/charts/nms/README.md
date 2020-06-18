@@ -20,7 +20,7 @@ This chart installs the magma NMS. The NMS is the UI for managing, configuring, 
 
 3. MySql Database created for NMS
 
-4. magmalte image ( build using Docker file https://github.com/facebookincubator/magma/blob/master/nms/fbcnms-projects/magmalte/Dockerfile )
+4. magmalte image ( build using Docker file https://github.com/facebookincubator/magma/blob/master/symphony/app/fbcnms-projects/magmalte/Dockerfile )
 
 
 

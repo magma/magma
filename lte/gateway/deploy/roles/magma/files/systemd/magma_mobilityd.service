@@ -13,6 +13,7 @@ Before=magma@mme.service
 Type=simple
 EnvironmentFile=/etc/environment
 ExecStart=/usr/bin/env python3 -m magma.mobilityd.main
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py mobilityd
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=mobilityd

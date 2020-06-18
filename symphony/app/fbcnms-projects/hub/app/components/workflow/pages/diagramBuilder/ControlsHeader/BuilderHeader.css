@@ -1,0 +1,26 @@
+.builder-header {
+  height: 50px;
+  color: white;
+  z-index: 110;
+  border-bottom: 0.01em solid rgba(0, 0, 0, 0.17);
+  background: linear-gradient(
+    -90deg,
+    rgba(0, 149, 255, 0.91) 0%,
+    rgb(0, 93, 167) 100%
+  );
+  box-shadow: 0 0 20px rgba(81, 81, 81, 0.8);
+}
+
+.builder-header img {
+  height: 30px;
+}
+
+.ui.basic.inverted.buttons .button:focus {
+  color: #fff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5) inset !important;
+  opacity: 0.9;
+}
+
+.ui.basic.inverted.buttons .button:hover {
+  box-shadow: 0 0 0 2px #ffffff inset !important;
+}

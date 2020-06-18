@@ -8,9 +8,16 @@
 syntax = "proto3";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 message Void {
+}
+
+// -------------------------------------------------------------------------------
+// Bytes is a special message type used to marshal & unmarshal unknown types as is
+// -------------------------------------------------------------------------------
+message Bytes {
+  bytes val = 1;
 }
 
 // --------------------------------------------------------------------------

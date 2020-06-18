@@ -1,0 +1,3 @@
+mutation RemoveEquipmentMutation($id: ID!, $workOrderId: ID) {
+  removeEquipment(id: $id, workOrderId: $workOrderId)
+}

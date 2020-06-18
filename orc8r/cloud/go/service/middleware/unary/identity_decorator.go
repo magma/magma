@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/prometheus/client_golang/prometheus"
@@ -28,9 +28,9 @@ import (
 	"google.golang.org/grpc/status"
 
 	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
+	"magma/orc8r/lib/go/protos"
 )
 
 // SetIdentityFromContext is an identity decorator implements Identity injector

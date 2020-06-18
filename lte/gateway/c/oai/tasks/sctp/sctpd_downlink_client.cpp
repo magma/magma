@@ -50,21 +50,28 @@ using magma::sctpd::SendDlRes;
 
 class SctpdDownlinkClient {
  public:
-  explicit SctpdDownlinkClient(std::shared_ptr<Channel> channel);
+  explicit SctpdDownlinkClient(
+    const std::shared_ptr<Channel>& channel,
+    bool force_restart);
 
-  int init(InitReq &req, InitRes *res);
-  int sendDl(SendDlReq &req, SendDlRes *res);
+  int init(InitReq& req, InitRes* res);
+  int sendDl(SendDlReq& req, SendDlRes* res);
+
+  bool should_force_restart = false;
 
  private:
   std::unique_ptr<SctpdDownlink::Stub> _stub;
 };
 
-SctpdDownlinkClient::SctpdDownlinkClient(std::shared_ptr<Channel> channel)
+SctpdDownlinkClient::SctpdDownlinkClient(
+  const std::shared_ptr<Channel>& channel,
+  bool force_restart)
 {
   _stub = SctpdDownlink::NewStub(channel);
+  should_force_restart = force_restart;
 }
 
-int SctpdDownlinkClient::init(InitReq &req, InitRes *res)
+int SctpdDownlinkClient::init(InitReq& req, InitRes* res)
 {
   assert(res != nullptr);
 
@@ -80,7 +87,7 @@ int SctpdDownlinkClient::init(InitReq &req, InitRes *res)
   return status.ok() ? 0 : -1;
 }
 
-int SctpdDownlinkClient::sendDl(SendDlReq &req, SendDlRes *res)
+int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res)
 {
   assert(res != nullptr);
 
@@ -107,15 +114,15 @@ using magma::sctpd::SendDlRes;
 
 std::unique_ptr<SctpdDownlinkClient> _client = nullptr;
 
-int init_sctpd_downlink_client()
+int init_sctpd_downlink_client(bool force_restart)
 {
   auto channel =
     grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
-  _client = std::make_unique<SctpdDownlinkClient>(channel);
+  _client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
 }
 
 // init
-int sctpd_init(sctp_init_t *init)
+int sctpd_init(sctp_init_t* init)
 {
   assert(init != nullptr);
 
@@ -149,7 +156,7 @@ int sctpd_init(sctp_init_t *init)
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
-  req.set_force_restart(true);
+  req.set_force_restart(_client->should_force_restart);
 
   auto rc = _client->init(req, &res);
   auto init_ok = res.result() == InitRes::INIT_OK;

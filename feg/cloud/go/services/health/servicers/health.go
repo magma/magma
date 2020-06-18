@@ -15,9 +15,11 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health/metrics"
 	"magma/feg/cloud/go/services/health/storage"
+	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -28,18 +30,17 @@ import (
 type HealthStatus int
 
 type HealthServer struct {
-	// healthStore is a datastore used to maintain health updates from gateways
-	healthStore storage.HealthStorage
-
-	// clusterStore is a datastore used to maintain cluster state, (i.e. which gateway is active)
-	clusterStore storage.ClusterStorage
+	store storage.HealthBlobstore
 }
 
-func NewHealthServer(healthStore storage.HealthStorage, clusterStore storage.ClusterStorage) *HealthServer {
-	return &HealthServer{
-		healthStore:  healthStore,
-		clusterStore: clusterStore,
+func NewHealthServer(factory blobstore.BlobStorageFactory) (*HealthServer, error) {
+	if factory == nil {
+		return nil, fmt.Errorf("Storage factory is nil")
 	}
+	store, err := storage.NewHealthBlobstore(factory)
+	return &HealthServer{
+		store,
+	}, err
 }
 
 type healthConfig struct {
@@ -58,7 +59,7 @@ func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewaySt
 	if len(req.GetNetworkId()) == 0 || len(req.GetLogicalId()) == 0 {
 		return nil, fmt.Errorf("Empty GatewayHealthRequest parameters provided")
 	}
-	gwHealthStats, err := srv.healthStore.GetHealth(req.NetworkId, req.LogicalId)
+	gwHealthStats, err := srv.store.GetHealth(req.NetworkId, req.LogicalId)
 	if err != nil {
 		return nil, fmt.Errorf("Get Health Error: '%s' for Gateway: %s", err, req.LogicalId)
 	}
@@ -75,7 +76,7 @@ func (srv *HealthServer) GetHealth(ctx context.Context, req *fegprotos.GatewaySt
 func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.HealthRequest) (*fegprotos.HealthResponse, error) {
 	healthResponse := &fegprotos.HealthResponse{
 		Action: fegprotos.HealthResponse_SYSTEM_DOWN,
-		Time:   uint64(time.Now().UnixNano()) / uint64(time.Millisecond),
+		Time:   uint64(clock.Now().UnixNano()) / uint64(time.Millisecond),
 	}
 	if req == nil {
 		return healthResponse, fmt.Errorf("Nil HealthRequest")
@@ -102,14 +103,13 @@ func (srv *HealthServer) UpdateHealth(ctx context.Context, req *fegprotos.Health
 		Health:        healthState,
 		HealthMessage: healthMsg,
 	}
-	err := srv.healthStore.UpdateHealth(networkID, logicalID, req.HealthStats)
+	err := srv.store.UpdateHealth(networkID, logicalID, req.HealthStats)
 	if err != nil {
 		healthResponse.Action = fegprotos.HealthResponse_NONE
 		errMsg := fmt.Errorf("Update Health Error: '%s' for Gateway: %s", err, gw)
 		glog.Error(errMsg)
 		return healthResponse, errMsg
 	}
-
 	// Get FeGs registered in configurator, then make a health decision based off of the
 	// the number of gateways, which gateway is active, and gateway health
 	magmadGatewayTypeVal := orc8r.MagmadGatewayType
@@ -150,7 +150,7 @@ func (srv *HealthServer) GetClusterState(ctx context.Context, req *fegprotos.Clu
 	if len(req.NetworkId) == 0 || len(req.ClusterId) == 0 {
 		return nil, fmt.Errorf("Empty ClusterStateRequest parameters provided")
 	}
-	clusterState, err := srv.clusterStore.GetClusterState(req.NetworkId, req.ClusterId)
+	clusterState, err := srv.store.GetClusterState(req.NetworkId, req.ClusterId)
 	if err != nil {
 		return nil, fmt.Errorf("Get Cluster State Error for networkID: %s, clusterID: %s; %s", req.NetworkId, req.ClusterId, err)
 	}
@@ -171,7 +171,7 @@ func (srv *HealthServer) analyzeDualFegState(
 		return fegprotos.HealthResponse_NONE, fmt.Errorf("Nil GatewayHealth provided")
 	}
 	// Get cluster state, initializing the active to the current gateway if the clusterState doesn't already exist
-	clusterState, err := srv.getClusterState(networkID, gatewayID)
+	clusterState, err := srv.store.GetClusterState(networkID, gatewayID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, fmt.Errorf(
 			"Error while trying to get clusterState for network: %s, gateway: %s; %s",
@@ -184,28 +184,29 @@ func (srv *HealthServer) analyzeDualFegState(
 
 	// Sanity check to ensure that the active gateway is registered in magmad
 	if !isActiveGatewayRegistered(activeID, clusterGateways) {
-		return srv.failover(networkID, gatewayID, activeID, gatewayID)
+		reason := "active is not registered"
+		return srv.failover(networkID, gatewayID, activeID, gatewayID, reason)
 	}
 
 	// We need to get the GatewayID and health for the other FeG in the cluster
 	otherGatewayID := getOtherGatewayID(gatewayID, clusterGateways)
-	otherGatewayHealth, err := srv.healthStore.GetHealth(networkID, otherGatewayID)
+	otherGatewayHealth, err := srv.store.GetHealth(networkID, otherGatewayID)
 	if err != nil {
 		glog.Errorf("Unable to retrieve health data for gateway: %s; %s", otherGatewayID, err)
 
 		// If we can't get the health data for the active, failover to standby
 		if otherGatewayID == activeID {
-			return srv.failover(networkID, gatewayID, activeID, gatewayID)
+			reason := "unable to get health of active"
+			return srv.failover(networkID, gatewayID, activeID, gatewayID, reason)
 		}
 		// If we can't get the health data for the standby, leave the active as is
 		return fegprotos.HealthResponse_SYSTEM_UP, nil
 	}
-
-	currentHealth, _, err := AnalyzeHealthStats(gatewayHealth, networkID)
+	currentHealth, currentHealthDescription, err := AnalyzeHealthStats(gatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
-	otherHealth, _, err := AnalyzeHealthStats(otherGatewayHealth, networkID)
+	otherHealth, otherHealthDescription, err := AnalyzeHealthStats(otherGatewayHealth, networkID)
 	if err != nil {
 		return fegprotos.HealthResponse_NONE, err
 	}
@@ -214,9 +215,9 @@ func (srv *HealthServer) analyzeDualFegState(
 
 	// Determine what to send back based off of health of active and standby, as well as where the request is from
 	if gatewayID == activeID {
-		return srv.determineAction(networkID, gatewayID, gatewayID, currentHealth, otherGatewayID, otherHealth)
+		return srv.determineAction(networkID, gatewayID, gatewayID, currentHealth, otherGatewayID, otherHealth, currentHealthDescription)
 	}
-	return srv.determineAction(networkID, gatewayID, otherGatewayID, otherHealth, gatewayID, currentHealth)
+	return srv.determineAction(networkID, gatewayID, otherGatewayID, otherHealth, gatewayID, currentHealth, otherHealthDescription)
 }
 
 // determineAction compares the health status of the two FeGs and determines
@@ -229,10 +230,11 @@ func (srv *HealthServer) determineAction(
 	activeHealth fegprotos.HealthStatus_HealthState,
 	standbyID string,
 	standbyHealth fegprotos.HealthStatus_HealthState,
+	activeHealthDesc string,
 ) (fegprotos.HealthResponse_RequestedAction, error) {
 	// Only failover if active is unhealthy and standby is healthy
 	if activeHealth == fegprotos.HealthStatus_UNHEALTHY && standbyHealth == fegprotos.HealthStatus_HEALTHY {
-		return srv.failover(networkID, standbyID, activeID, currentID)
+		return srv.failover(networkID, standbyID, activeID, currentID, activeHealthDesc)
 	}
 
 	// Otherwise, active stays UP and standby stays DOWN
@@ -249,11 +251,11 @@ func (srv *HealthServer) failover(
 	newActive string,
 	oldActive string,
 	currentID string,
+	reason string,
 ) (fegprotos.HealthResponse_RequestedAction, error) {
-	glog.V(2).Infof("Updating active for networkID: %s from: %s to: %s", networkID, oldActive, newActive)
-
+	glog.Infof("Failing over for network: %s from: %s to: %s; Reason: %s", networkID, oldActive, newActive, reason)
 	metrics.ActiveGatewayChanged.WithLabelValues(networkID).Inc()
-	err := srv.clusterStore.UpdateClusterState(networkID, networkID, newActive)
+	err := srv.store.UpdateClusterState(networkID, networkID, newActive)
 	if err != nil {
 		errMsg := fmt.Errorf(
 			"Unable to store updated cluster state for networkID %s from: %s to: %s ; %s",
@@ -276,23 +278,22 @@ func (srv *HealthServer) analyzeSingleFegState(
 	networkID string,
 	gatewayID string,
 ) (fegprotos.HealthResponse_RequestedAction, error) {
-	clusterState, err := srv.getClusterState(networkID, gatewayID)
+	clusterState, err := srv.store.GetClusterState(networkID, gatewayID)
 	if err != nil {
 		return fegprotos.HealthResponse_SYSTEM_UP, err
 	}
 	// If current gatewayID is listed as active, then stay ACTIVE regardless of health
 	if gatewayID == clusterState.ActiveGatewayLogicalId {
-		return fegprotos.HealthResponse_SYSTEM_UP, nil
+		return fegprotos.HealthResponse_SYSTEM_UP, err
 	}
-
 	// Otherwise there is a mismatch, and active needs to be updated
 	glog.V(2).Infof("Updating active for networkID: %s to: %s", networkID, gatewayID)
 
-	err = srv.clusterStore.UpdateClusterState(networkID, networkID, gatewayID)
+	err = srv.store.UpdateClusterState(networkID, networkID, gatewayID)
 	if err != nil {
 		return fegprotos.HealthResponse_SYSTEM_UP, err
 	}
-	return fegprotos.HealthResponse_SYSTEM_UP, err
+	return fegprotos.HealthResponse_SYSTEM_UP, nil
 }
 
 // AnalyzeHealthStats takes a HealthStats proto and determines if it is
@@ -305,7 +306,7 @@ func AnalyzeHealthStats(
 	if healthData == nil {
 		return fegprotos.HealthStatus_UNHEALTHY, "", fmt.Errorf("Nil HealthStats provided")
 	}
-	updateDelta := time.Now().Unix() - int64(healthData.Time)/1000
+	updateDelta := clock.Now().Unix() - int64(healthData.Time)/1000
 	if updateDelta > int64(config.staleUpdateThreshold) {
 		return fegprotos.HealthStatus_UNHEALTHY, "Health update is stale", nil
 	}
@@ -318,24 +319,6 @@ func AnalyzeHealthStats(
 		}
 	}
 	return fegprotos.HealthStatus_HEALTHY, "OK", nil
-}
-
-// getClusterState retrieves the stored clusterState for the provided networkID and logicalID
-// if the clusterState doesn't already exist in the cluster store, it is initialized, setting the
-// active to current gateway's logicalID
-func (srv *HealthServer) getClusterState(networkID string, logicalID string) (*fegprotos.ClusterState, error) {
-	clusterExists, err := srv.clusterStore.DoesKeyExist(networkID, networkID)
-	if err != nil {
-		return nil, err
-	}
-	if !clusterExists {
-		glog.V(2).Infof("Initializing clusterState for networkID: %s with active: %s", networkID, logicalID)
-		err = srv.clusterStore.UpdateClusterState(networkID, networkID, logicalID)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return srv.clusterStore.GetClusterState(networkID, networkID)
 }
 
 func isSystemHealthy(status *fegprotos.SystemHealthStats, config *healthConfig) bool {

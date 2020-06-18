@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	"strconv"
 
 	strfmt "github.com/go-openapi/strfmt"
 
@@ -23,8 +24,14 @@ type Gy struct {
 	// Enum: [1 2]
 	InitMethod *uint32 `json:"init_method,omitempty"`
 
+	// overwrite apn
+	OverwriteApn string `json:"overwrite_apn,omitempty"`
+
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
+
+	// servers
+	Servers []*DiameterClientConfigs `json:"servers"`
 }
 
 // Validate validates this gy
@@ -36,6 +43,10 @@ func (m *Gy) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateServer(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServers(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -92,6 +103,31 @@ func (m *Gy) validateServer(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Gy) validateServers(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Servers) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Servers); i++ {
+		if swag.IsZero(m.Servers[i]) { // not required
+			continue
+		}
+
+		if m.Servers[i] != nil {
+			if err := m.Servers[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil

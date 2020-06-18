@@ -9,7 +9,12 @@
   become: yes
   roles:
     - role: pkgrepo
+      tags:
+         - install
       vars:
         distribution: "bionic"
+        repo: "cwf-prod"
     - role: ovs
+      tags:
+         - install
     - role: cwag

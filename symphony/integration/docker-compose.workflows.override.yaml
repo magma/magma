@@ -1,0 +1,20 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+version: "3.7"
+services:
+  workflows:
+    command: yarn run start:dev
+    volumes:
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows-proxy/src:/app/fbcnms-projects/workflows-proxy/src
+    networks:
+      - private
+      - public
+    ports:
+      - 8088:80
+
+  workflows-wasm-worker:
+    command: yarn run start:dev
+    volumes:
+      - ${XPLAT_FBC_DIR}/fbcnms-projects/workflows-wasm-workers/src:/app/fbcnms-projects/workflows-wasm-workers/src

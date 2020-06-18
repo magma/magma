@@ -12,6 +12,8 @@
 
 #include <lte/protos/session_manager.grpc.pb.h>
 
+#include "CreditKey.h"
+
 namespace magma {
 using namespace lte;
 
@@ -46,9 +48,9 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction &set_rating_group(uint32_t rating_group)
+  ServiceAction &set_credit_key(const CreditKey &credit_key)
   {
-    rating_group_ = rating_group;
+    credit_key_ = credit_key;
     return *this;
   }
 
@@ -70,7 +72,7 @@ class ServiceAction {
    */
   const std::string &get_ip_addr() const { return *ip_addr_; }
 
-  uint32_t get_rating_group() const { return rating_group_; }
+  const CreditKey &get_credit_key() const { return credit_key_; }
 
   const std::vector<std::string> &get_rule_ids() const { return rule_ids_; }
 
@@ -95,7 +97,7 @@ class ServiceAction {
   ServiceActionType action_type_;
   std::unique_ptr<std::string> imsi_;
   std::unique_ptr<std::string> ip_addr_;
-  uint32_t rating_group_;
+  CreditKey credit_key_;
   std::vector<std::string> rule_ids_;
   std::vector<PolicyRule> rule_definitions_;
   std::unique_ptr<RedirectServer> redirect_server_;

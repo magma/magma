@@ -18,9 +18,9 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
+	configs "magma/gateway/mconfig"
 	"magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/service/config"
-	configs "magma/orc8r/gateway/mconfig"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -128,7 +128,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 		configMap := &config.ConfigMap{RawMap: rawMap}
 
 		// If auth_key is incorrect, skip subscriber
-		authKey, err := configMap.GetStringParam("auth_key")
+		authKey, err := configMap.GetString("auth_key")
 		if err != nil {
 			glog.Errorf("Could not add subscriber due to missing auth_key: %s", err)
 			continue
@@ -138,7 +138,7 @@ func GetConfiguredSubscribers() ([]*protos.SubscriberData, error) {
 			glog.Errorf("Could not add subscriber due to incorrect auth key format: %s", err)
 			continue
 		}
-		non3gppEnabled, err := configMap.GetBoolParam("non_3gpp_enabled")
+		non3gppEnabled, err := configMap.GetBool("non_3gpp_enabled")
 		if err != nil {
 			non3gppEnabled = true
 		}
@@ -154,14 +154,14 @@ func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool) *protos.
 			Msisdn:              msisdn,
 			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           &protos.APNConfiguration{},
+			ApnConfig:           []*protos.APNConfiguration{&protos.APNConfiguration{}},
 		}
 	} else {
 		non3gppProfile = &protos.Non3GPPUserProfile{
 			Msisdn:              msisdn,
 			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_BARRED,
 			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_DISABLE,
-			ApnConfig:           &protos.APNConfiguration{},
+			ApnConfig:           []*protos.APNConfiguration{&protos.APNConfiguration{}},
 		}
 	}
 	return &protos.SubscriberData{

@@ -1,0 +1,9 @@
+query CustomersQuery {
+  customers {
+    edges {
+      node {
+        ...CustomerFragment
+      }
+    }
+  }
+}

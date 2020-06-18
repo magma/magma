@@ -1,0 +1,16 @@
+[Unit]
+Description=TD Agent Bit
+Requires=network.target
+After=network.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/environment
+ExecStart=/opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_fluent_bit_config.py
+Restart=always
+RestartSec=5s
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target

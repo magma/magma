@@ -62,7 +62,6 @@
 #include "emm_data.h"
 #include "emm_sap.h"
 #include "secu_defs.h"
-#include "nas_itti_messaging.h"
 #include "service303.h"
 #include "EmmCommon.h"
 #include "3gpp_23.003.h"
@@ -79,6 +78,7 @@
 #include "nas_procedures.h"
 #include "nas/securityDef.h"
 #include "security_types.h"
+#include "mme_app_defs.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -418,9 +418,7 @@ int emm_proc_security_mode_complete(
   /*
    * Get the UE context
    */
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
@@ -483,26 +481,15 @@ int emm_proc_security_mode_complete(
       emm_ctx_set_attribute_valid(emm_ctx, EMM_CTXT_MEMBER_SECURITY);
       rc = emm_sap_send(&emm_sap);
     }
-    unlock_ue_contexts(ue_mm_context);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   } else {
-    OAILOG_ERROR(LOG_NAS_EMM, "EMM-PROC  - No EPS security context exists\n");
-    /*
-     * Notify EMM that the authentication procedure failed
-     */
-    emm_sap_t emm_sap = {0};
-    emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
-    emm_sap.u.emm_reg.ue_id = ue_id;
-    emm_sap.u.emm_reg.ctx = emm_ctx;
-    emm_sap.u.emm_reg.notify = true;
-    emm_sap.u.emm_reg.free_proc = true;
-    emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
-    emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-      smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-    rc = emm_sap_send(&emm_sap);
+    OAILOG_ERROR(
+      LOG_NAS_EMM,
+      "EMM-PROC  - No EPS security context exists. Ignoring the Security Mode "
+      "Complete message\n");
+    rc = RETURNerror;
   }
 
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -546,9 +533,7 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
    * Get the UE context
    */
 
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-    &mme_app_desc_p->mme_ue_contexts, ue_id);
+  ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
@@ -577,7 +562,7 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_ctx_set_security_type(emm_ctx, smc_proc->saved_sc_type);
 
     /*
-     * Notify EMM that the authentication procedure failed
+     * Notify EMM that the security mode procedure failed
      */
     emm_sap_t emm_sap = {0};
 
@@ -586,14 +571,13 @@ int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id)
     emm_sap.u.emm_reg.ue_id = ue_id;
     emm_sap.u.emm_reg.ctx = emm_ctx;
     emm_sap.u.emm_reg.notify = true;
-    emm_sap.u.emm_reg.free_proc = true;
+    emm_sap.u.emm_reg.free_proc = false;
     emm_sap.u.emm_reg.u.common.common_proc = &smc_proc->emm_com_proc;
     emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
       smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
     rc = emm_sap_send(&emm_sap);
   }
-  nas_itti_detach_req(ue_id);
-  unlock_ue_contexts(ue_mm_context);
+  mme_app_handle_detach_req(ue_id);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -759,9 +743,7 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
     emm_sap.u.emm_as.u.security.selected_eia = smc_proc->selected_eia;
     emm_sap.u.emm_as.u.security.imeisv_request = smc_proc->imeisv_request;
 
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, smc_proc->ue_id);
+    ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(smc_proc->ue_id);
     if (ue_mm_context) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {
@@ -801,7 +783,6 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
         emm_ctx);
     }
   }
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

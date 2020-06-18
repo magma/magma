@@ -1,0 +1,199 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "node" }}
+{{ $pkg := base $.Config.Package }}
+{{ template "header" $ }}
+
+import (
+	"github.com/facebookincubator/ent/dialect/sql"
+	"github.com/facebookincubator/ent/dialect/sql/schema"
+
+	"golang.org/x/sync/semaphore"
+)
+
+// Noder wraps the basic Node method.
+type Noder interface {
+	Node(context.Context) (*Node, error)
+}
+
+// Node in the graph.
+type Node struct {
+	ID 	   {{ $.IDType }} `json:"id,omitemty"` // node id.
+	Type   string   `json:"type,omitempty"`   // node type.
+	Fields []*Field `json:"fields,omitempty"` // node fields.
+	Edges  []*Edge  `json:"edges,omitempty"`  // node edges.
+}
+
+// Field of a node.
+type Field struct {
+	Type  string `json:"type,omitempty"`  // field type.
+	Name  string `json:"name,omitempty"`  // field name (as in struct).
+	Value string `json:"value,omitempty"` // stringified value.
+}
+
+// Edges between two nodes.
+type Edge struct {
+	Type string   `json:"type,omitempty"` // edge type.
+	Name string   `json:"name,omitempty"` // edge name.
+	IDs  []{{ $.IDType }} `json:"ids,omitempty"`  // node ids (where this edge point to).
+}
+
+{{/* loop over all types and add implement the Node interface. */}}
+{{ range $n := $.Nodes -}}
+	{{ $receiver := $n.Receiver }}
+	func ({{ $receiver }} *{{ $n.Name }}) Node(ctx context.Context) (node *Node, err error) {
+		node = &Node{
+			ID: {{ $receiver }}.ID,
+			Type: "{{ $n.Name }}",
+			Fields: make([]*Field, {{ len $n.Fields }}),
+			Edges: make([]*Edge, {{ len $n.Edges }}),
+		}
+		{{- with $n.Fields }}
+			var buf []byte
+			{{- range $i, $f := $n.Fields }}
+				if buf, err = json.Marshal({{ $receiver }}.{{ pascal $f.Name }}); err != nil {
+					return nil, err
+				}
+				node.Fields[{{ $i }}] = &Field{
+					Type:  "{{ $f.Type }}",
+					Name:  "{{ $f.Name }}",
+					Value: string(buf),
+				}
+			{{- end }}
+		{{- end }}
+		{{- with $n.Edges }}
+			var ids []{{ $.IDType }}
+			{{- range $i, $e := $n.Edges }}
+				ids, err = {{ $receiver }}.{{ print "Query" (pascal $e.Name) }}().
+					Select({{ $e.Type.Package }}.FieldID).
+					{{ pascal $.IDType.String }}s(ctx)
+				if err != nil {
+					return nil, err
+				}
+				node.Edges[{{ $i }}] = &Edge{
+					IDs: ids,
+					Type: "{{ $e.Type.Name }}",
+					Name: "{{ $e.Name }}",
+				}
+			{{- end }}
+		{{- end }}
+		return node, nil
+	}
+
+	func ({{ $receiver }} *{{ $n.Name }}Mutation) Node(ctx context.Context) (node *Node, err error) {
+		id, exists := {{ $receiver }}.ID()
+		if !exists {
+			return nil, nil
+		}
+		ent, err := {{ $receiver }}.Client().{{ $n.Name }}.Get(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		return ent.Node(ctx)
+	}
+{{ end }}
+
+{{/* add the node api to the client */}}
+
+func (c *Client) Node(ctx context.Context, id {{ $.IDType }}) (*Node, error) {
+	n, err := c.Noder(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return n.Node(ctx)
+}
+
+func (c *Client) Noder(ctx context.Context, id {{ $.IDType }}) (Noder, error) {
+	tables, err := c.tables.Load(ctx, c.driver)
+	if err != nil {
+		return nil, err
+	}
+	{{- if not $.IDType.Numeric }}
+		idv, err := strconv.Atoi(id)
+		if err != nil {
+			return nil, fmt.Errorf("%v: %w", err, &NotFoundError{"invalid/unknown"})
+		}
+		idx := idv/(1<<32 - 1)
+	{{- else }}
+		idx := id/(1<<32 - 1)
+	{{- end }}
+	if idx < 0 || idx >= len(tables) {
+		return nil, fmt.Errorf("cannot resolve table from id %v: %w", id, &NotFoundError{"invalid/unknown"})
+	}
+	return c.noder(ctx, tables[idx], id)
+}
+
+func (c *Client) noder(ctx context.Context, tbl string, id {{ $.IDType }}) (Noder, error) {
+	switch tbl {
+	{{- range $_, $n := $.Nodes }}
+	case {{ $n.Package }}.Table:
+		n, err := c.{{ $n.Name }}.Query().
+			Where({{ $n.Package }}.ID(id)).
+			{{- if hasTemplate "collection" }}
+			CollectFields(ctx, "{{ $n.Name }}").
+			{{- end }}
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	{{- end }}
+	default:
+		return nil, fmt.Errorf("cannot resolve noder from table %q: %w", tbl, &NotFoundError{"invalid/unknown"})
+	}
+}
+
+type (
+	tables struct {
+		once sync.Once
+		sem *semaphore.Weighted
+		value atomic.Value
+	}
+
+	querier interface {
+		Query(ctx context.Context, query string, args, v interface{}) error
+	}
+)
+
+func (t *tables) Load(ctx context.Context, querier querier) ([]string, error) {
+	if tables := t.value.Load(); tables != nil {
+		return tables.([]string), nil
+	}
+	t.once.Do(func() { t.sem = semaphore.NewWeighted(1) })
+	if err := t.sem.Acquire(ctx, 1); err != nil {
+		return nil, err
+	}
+	defer t.sem.Release(1)
+	if tables := t.value.Load(); tables != nil {
+		return tables.([]string), nil
+	}
+	tables, err := t.load(ctx, querier)
+	if err == nil {
+		t.value.Store(tables)
+	}
+	return tables, err
+}
+
+func (tables) load(ctx context.Context, querier querier) ([]string, error) {
+	rows := &sql.Rows{}
+	query, args := sql.Select("type").
+		From(sql.Table(schema.TypeTable)).
+		OrderBy(sql.Asc("id")).
+		Query()
+	if err := querier.Query(ctx, query, args, rows); err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var tables []string
+	return tables, sql.ScanSlice(rows, &tables)
+}
+{{ end }}
+
+{{ define "client/fields/additional" }}
+	// additional fields for node api
+	tables tables
+{{ end }}

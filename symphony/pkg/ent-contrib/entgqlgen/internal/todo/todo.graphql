@@ -1,0 +1,44 @@
+interface Node {
+  id: ID!
+}
+
+type Todo implements Node {
+  id: ID!
+  text: String!
+  parent: Todo
+  children: [Todo!]
+}
+
+input TodoInput {
+  text: String!
+  parent: ID
+}
+
+scalar Cursor
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+
+type TodoConnection {
+  pageInfo: PageInfo!
+  edges: [TodoEdge]
+}
+
+type TodoEdge {
+  node: Todo
+  cursor: Cursor!
+}
+
+type Query {
+  node(id: ID!): Node
+  todos(after: Cursor, first: Int, before: Cursor, last: Int): TodoConnection
+}
+
+type Mutation {
+  createTodo(todo: TodoInput!): Todo!
+  clearTodos: Int!
+}

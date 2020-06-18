@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"magma/feg/gateway/services/session_proxy/credit_control"
+	"magma/lte/cloud/go/protos"
 )
 
 type MonitoringLevel uint8
@@ -46,6 +47,10 @@ type CreditControlRequest struct {
 	Qos           *QosRequestInfo
 	UsageReports  []*UsageReport
 	HardwareAddr  []byte
+	IPCANType     credit_control.IPCANType
+	RATType       credit_control.RATType
+	TgppCtx       *protos.TgppContext
+	EventTrigger  EventTrigger
 }
 
 type QosRequestInfo struct {
@@ -62,15 +67,17 @@ type CreditControlAnswer struct {
 	ResultCode             uint32
 	ExperimentalResultCode uint32
 	SessionID              string
+	OriginHost             string
 	RequestNumber          uint32
 	RuleInstallAVP         []*RuleInstallAVP
+	RuleRemoveAVP          []*RuleRemoveAVP
 	UsageMonitors          []*UsageMonitoringInfo
 	EventTriggers          []EventTrigger
 	RevalidationTime       *time.Time
 }
 
 type UsageReport struct {
-	MonitoringKey string
+	MonitoringKey []byte
 	Level         MonitoringLevel
 	InputOctets   uint64
 	OutputOctets  uint64
@@ -101,11 +108,12 @@ type RuleDefinition struct {
 	RuleName            string               `avp:"Charging-Rule-Name"`
 	RatingGroup         *uint32              `avp:"Rating-Group"`
 	Precedence          uint32               `avp:"Precedence"`
-	MonitoringKey       *string              `avp:"Monitoring-Key"`
+	MonitoringKey       []byte               `avp:"Monitoring-Key"`
 	FlowDescriptions    []string             `avp:"Flow-Description"`
 	FlowInformations    []*FlowInformation   `avp:"Flow-Information"`
 	RedirectInformation *RedirectInformation `avp:"Redirect-Information"`
 	Qos                 *QosInformation      `avp:"QoS-Information"`
+	ServiceIdentifier   *uint32              `avp:"Service-Identifier"`
 }
 
 // QoS per service date flow message
@@ -134,7 +142,7 @@ type RuleRemoveAVP struct {
 }
 
 type UsageMonitoringInfo struct {
-	MonitoringKey      string                             `avp:"Monitoring-Key"`
+	MonitoringKey      []byte                             `avp:"Monitoring-Key"`
 	GrantedServiceUnit *credit_control.GrantedServiceUnit `avp:"Granted-Service-Unit"`
 	Level              MonitoringLevel                    `avp:"Usage-Monitoring-Level"`
 }
@@ -144,12 +152,14 @@ type CCADiameterMessage struct {
 	SessionID          string `avp:"Session-Id"`
 	RequestNumber      uint32 `avp:"CC-Request-Number"`
 	ResultCode         uint32 `avp:"Result-Code"`
+	OriginHost         string `avp:"Origin-Host"`
 	ExperimentalResult struct {
 		VendorId               uint32 `avp:"Vendor-Id"`
 		ExperimentalResultCode uint32 `avp:"Experimental-Result-Code"`
 	} `avp:"Experimental-Result"`
 	RequestType      uint32                 `avp:"CC-Request-Type"`
 	RuleInstalls     []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
+	RuleRemovals     []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
 	UsageMonitors    []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
 	EventTriggers    []EventTrigger         `avp:"Event-Trigger"`
 	RevalidationTime *time.Time             `avp:"Revalidation-Time"`
@@ -184,8 +194,9 @@ type CCADiameterMessage struct {
 //					*[ Proxy-Info ]
 //					*[ Route-Record ]
 //					*[ AVP ]
-type ReAuthRequest struct {
+type PolicyReAuthRequest struct {
 	SessionID        string                 `avp:"Session-Id"`
+	OriginHost       string                 `avp:"Origin-Host"`
 	RulesToRemove    []*RuleRemoveAVP       `avp:"Charging-Rule-Remove"`
 	RulesToInstall   []*RuleInstallAVP      `avp:"Charging-Rule-Install"`
 	Qos              *QosInformation        `avp:"QoS-Information"`
@@ -224,7 +235,7 @@ type ReAuthRequest struct {
 //					[ Failed-AVP ]
 //					*[ Proxy-Info ]
 //					*[ AVP ]
-type ReAuthAnswer struct {
+type PolicyReAuthAnswer struct {
 	SessionID   string                `avp:"Session-Id"`
 	ResultCode  uint32                `avp:"Result-Code"`
 	RuleReports []*ChargingRuleReport `avp:"Charging-Rule-Report"`

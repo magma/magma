@@ -12,18 +12,18 @@ package plugin
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
-	"magma/orc8r/cloud/go/service/serviceregistry"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
+	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/lib/go/service/serviceregistry"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin/handlers"
-	models2 "orc8r/devmand/cloud/go/plugin/models"
-	dmh "orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
+	"orc8r/devmand/cloud/go/plugin/models"
 )
 
 // DevmandOrchestratorPlugin is the orchestrator plugin for devmand
@@ -46,9 +46,8 @@ func (*DevmandOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 // GetSerdes gets the devmand serializers and deserializers
 func (*DevmandOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		configurator.NewNetworkEntityConfigSerde(devmand.DevmandGatewayType, &models.GatewayDevmandConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(devmand.DeviceType, &models.ManagedDevice{}),
-		configurator.NewNetworkEntityConfigSerde(devmand.SymphonyDeviceType, &models2.SymphonyDeviceConfig{}),
+		state.NewStateSerde(devmand.SymphonyDeviceStateType, &models.SymphonyDeviceState{}),
+		configurator.NewNetworkEntityConfigSerde(devmand.SymphonyDeviceType, &models.SymphonyDeviceConfig{}),
 	}
 }
 
@@ -66,7 +65,6 @@ func (*DevmandOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.Confi
 // GetObsidianHandlers gets the devmand obsidian handlers
 func (*DevmandOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		dmh.GetObsidianHandlers(),
 		handlers.GetHandlers(),
 	)
 }
@@ -74,4 +72,8 @@ func (*DevmandOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.Conf
 // GetStreamerProviders gets the stream providers
 func (*DevmandOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
 	return []providers.StreamProvider{}
+}
+
+func (*DevmandOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	return []indexer.Indexer{}
 }

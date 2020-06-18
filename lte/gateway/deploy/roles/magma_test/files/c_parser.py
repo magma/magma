@@ -391,7 +391,7 @@ def extract_structs(in_fname, out_fname):
 
 
 if __name__ == "__main__":
-    s1ap_hdr_path = os.path.join(os.environ['S1AP_ROOT'], 'bin')
+    s1ap_hdr_path = os.path.join(os.environ['S1AP_TESTER_ROOT'], 'bin')
     output_file = os.path.join(s1ap_hdr_path, OUT_FILE)
 
     _write_copyright(output_file)

@@ -8,11 +8,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 from magma.enodebd.logger import EnodebdLogger as logger
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from spyne.decorator import rpc
 from spyne.model.complex import ComplexModelBase
 from spyne.server.wsgi import WsgiMethodContext
 from spyne.service import ServiceBase
-from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+
 from . import models
 
 # Allow methods without 'self' as first input. Required by spyne
@@ -89,9 +90,7 @@ class AutoConfigServer(ServiceBase):
         else:
             logger.debug('Handling TR069 message.')
 
-        # The manager will route the request to the state machine handling
-        # the specific eNodeB.
-        req = cls.state_machine_manager.handle_tr069_message(ctx, message)
+        req = cls.__get_tr069_response_from_sm(ctx, message)
 
         # Log outgoing msg
         if hasattr(req, 'as_dict'):
@@ -111,6 +110,24 @@ class AutoConfigServer(ServiceBase):
         ctx.descriptor.out_message.Attributes.sub_name = req.__class__.__name__
         return cls._generate_acs_to_cpe_request_copy(req)
 
+    @classmethod
+    def __get_tr069_response_from_sm(
+            cls,
+            ctx: WsgiMethodContext,
+            message: ComplexModelBase,
+    ) -> ComplexModelBase:
+        # We want to blanket-catch all exceptions because a problem with one
+        # tr-069 session shouldn't tank the service for all other enodeB's
+        # being managed
+        try:
+            return cls.state_machine_manager.handle_tr069_message(ctx, message)
+        except Exception:   # pylint: disable=broad-except
+            logger.exception(
+                'Unexpected exception from state machine manager, returning '
+                'empty request',
+            )
+            return models.DummyInput()
+
     @staticmethod
     def _generate_acs_to_cpe_request_copy(request):
         """ Create an AcsToCpeRequests instance with all the appropriate
@@ -121,7 +138,7 @@ class AutoConfigServer(ServiceBase):
         for parameter in request.get_flat_type_info(request.__class__):
             try:
                 setattr(request_out, parameter, getattr(request, parameter))
-            except(AttributeError):
+            except AttributeError:
                 # Allow un-set parameters. If CPE can't handle this, it will
                 # respond with an error message
                 pass

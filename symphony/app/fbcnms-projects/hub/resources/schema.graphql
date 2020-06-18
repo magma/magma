@@ -1,0 +1,121 @@
+type AtrinetService {
+  serviceGlobalSettings: ServiceGlobalSettings!
+  customer: String!
+  operatorName: String!
+  modelName: String!
+  sites: [Site!]!
+}
+
+input AtrinetServiceInput {
+  serviceGlobalSettings: ServiceGlobalSettingsInput!
+  customer: String!
+  operatorName: String!
+  modelName: String!
+  sites: [SiteInput!]!
+}
+
+scalar Map
+
+type Mutation {
+  createService(input: NetworkServiceInput!): String!
+  deleteService(input: Int!): String!
+}
+
+type NetworkDevice {
+  ID: Int!
+  Name: String!
+  DeviceType: String!
+  Host: String!
+  AccessMethod: String!
+}
+
+input NetworkDeviceInput {
+  ID: Int!
+  Name: String!
+  DeviceType: String!
+  Host: String!
+  AccessMethod: String!
+}
+
+type NetworkService {
+  ID: Int!
+  ExternalID: Int
+  Customer: String
+  Name: String!
+  Model: NetworkServiceModel!
+  DeviceSites: [Site!]!
+  AdditionalParams: Map
+  Status: String!
+}
+
+input NetworkServiceInput {
+  ExternalID: Int
+  Customer: String!
+  Name: String!
+  Model: NetworkServiceModelInput!
+  DeviceSites: [SiteInput!]!
+  AdditionalParams: Map
+}
+
+type NetworkServiceModel {
+  Name: String!
+}
+
+input NetworkServiceModelInput {
+  Name: String!
+}
+
+type Query {
+  version: Version!
+  getServiceStatus(input: Int!): AtrinetService
+}
+
+type ServiceGlobalSettings {
+  name: String!
+  rollbackPolicy: String!
+  mode: String!
+  result: String!
+}
+
+input ServiceGlobalSettingsInput {
+  name: String!
+  rollbackPolicy: String!
+  mode: String!
+}
+
+type Site {
+  siteNumber: Int!
+  siteModelName: String!
+  deviceName: String!
+  deviceId: Int!
+  parameters: Map!
+  userPort: UserPort!
+  accessMethod: String!
+}
+
+input SiteInput {
+  siteNumber: Int!
+  siteModelName: String!
+  deviceName: String!
+  deviceId: Int!
+  parameters: Map!
+  userPort: UserPortInput!
+  accessMethod: String!
+}
+
+type UserPort {
+  id: Int!
+  name: String!
+}
+
+input UserPortInput {
+  id: Int!
+  name: String!
+}
+
+type Version {
+  major: Int!
+  minor: Int!
+  patch: Int!
+  string: String!
+}

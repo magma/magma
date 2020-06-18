@@ -12,87 +12,97 @@ import (
 	"time"
 
 	"magma/feg/gateway/policydb"
+	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
 )
 
-var eventTriggerConversionMap = map[EventTrigger]protos.EventTrigger{
-	RevalidationTimeout: protos.EventTrigger_REVALIDATION_TIMEOUT,
+func (ccr *CreditControlRequest) FromUsageMonitorUpdate(update *protos.UsageMonitoringUpdateRequest) *CreditControlRequest {
+	ccr.SessionID = update.SessionId
+	ccr.TgppCtx = update.GetTgppCtx()
+	ccr.RequestNumber = update.RequestNumber
+	ccr.Type = credit_control.CRTUpdate
+	ccr.IMSI = credit_control.RemoveIMSIPrefix(update.Sid)
+	ccr.IPAddr = update.UeIpv4
+	ccr.HardwareAddr = update.HardwareAddr
+	if update.EventTrigger == protos.EventTrigger_USAGE_REPORT {
+		ccr.UsageReports = []*UsageReport{(&UsageReport{}).FromUsageMonitorUpdate(update.Update)}
+	}
+	ccr.RATType = GetRATType(update.RatType)
+	ccr.IPCANType = GetIPCANType(update.RatType)
+	ccr.EventTrigger = EventTrigger(update.EventTrigger)
+	return ccr
+}
+
+func (qos *QosRequestInfo) FromProtos(pQos *protos.QosInformationRequest) *QosRequestInfo {
+	qos.ApnAggMaxBitRateDL = pQos.GetApnAmbrDl()
+	qos.ApnAggMaxBitRateUL = pQos.GetApnAmbrUl()
+	qos.QosClassIdentifier = pQos.GetQosClassId()
+	qos.PriLevel = pQos.GetPriorityLevel()
+	qos.PreCapability = pQos.GetPreemptionCapability()
+	qos.PreVulnerability = pQos.GetPreemptionVulnerability()
+	return qos
 }
 
 func (rd *RuleDefinition) ToProto() *protos.PolicyRule {
-	monitoringKey := ""
-	if rd.MonitoringKey != nil {
-		monitoringKey = *rd.MonitoringKey
-	}
-	var ratingGroup uint32 = 0
-	if rd.RatingGroup != nil {
-		ratingGroup = *rd.RatingGroup
-	}
-	flowList := getFlowList(rd.FlowDescriptions, rd.FlowInformations)
-
-	var qos *protos.FlowQos
-	if rd.Qos != nil {
-		qos = &protos.FlowQos{}
-		if rd.Qos.MaxReqBwUL != nil {
-			qos.MaxReqBwUl = *rd.Qos.MaxReqBwUL
-		}
-		if rd.Qos.MaxReqBwDL != nil {
-			qos.MaxReqBwDl = *rd.Qos.MaxReqBwDL
-		}
-		if rd.Qos.GbrDL != nil {
-			qos.GbrDl = *rd.Qos.GbrDL
-		}
-		if rd.Qos.GbrUL != nil {
-			qos.GbrUl = *rd.Qos.GbrUL
-		}
-		if rd.Qos.Qci != nil {
-			qos.Qci = protos.FlowQos_Qci(*rd.Qos.Qci)
-		}
-	}
-
 	return &protos.PolicyRule{
 		Id:            rd.RuleName,
-		RatingGroup:   ratingGroup,
-		MonitoringKey: monitoringKey,
+		RatingGroup:   swag.Uint32Value(rd.RatingGroup),
+		MonitoringKey: rd.MonitoringKey,
 		Priority:      rd.Precedence,
-		Redirect:      rd.getRedirectInfo(),
-		FlowList:      flowList,
-		Qos:           qos,
-		TrackingType:  rd.getTrackingType(),
+		Redirect:      rd.RedirectInformation.ToProto(),
+		FlowList:      rd.GetFlowList(),
+		Qos:           rd.Qos.ToProto(),
+		TrackingType:  rd.GetTrackingType(),
 	}
 }
 
-func (rd *RuleDefinition) getTrackingType() protos.PolicyRule_TrackingType {
-	if rd.MonitoringKey != nil && rd.RatingGroup != nil {
+func (q *QosInformation) ToProto() *protos.FlowQos {
+	var qos *protos.FlowQos
+	if q != nil {
+		qos = &protos.FlowQos{
+			MaxReqBwUl: swag.Uint32Value(q.MaxReqBwUL),
+			MaxReqBwDl: swag.Uint32Value(q.MaxReqBwDL),
+			GbrUl:      swag.Uint32Value(q.GbrUL),
+			GbrDl:      swag.Uint32Value(q.GbrDL),
+			Qci:        protos.FlowQos_Qci(swag.Uint32Value(q.Qci)),
+		}
+	}
+	return qos
+}
+
+func (rd *RuleDefinition) GetTrackingType() protos.PolicyRule_TrackingType {
+	monKeyPresent := len(rd.MonitoringKey) > 0
+	if monKeyPresent && rd.RatingGroup != nil {
 		return protos.PolicyRule_OCS_AND_PCRF
-	} else if rd.MonitoringKey != nil && rd.RatingGroup == nil {
+	} else if monKeyPresent && rd.RatingGroup == nil {
 		return protos.PolicyRule_ONLY_PCRF
-	} else if rd.MonitoringKey == nil && rd.RatingGroup != nil {
+	} else if (!monKeyPresent) && rd.RatingGroup != nil {
 		return protos.PolicyRule_ONLY_OCS
 	} else {
 		return protos.PolicyRule_NO_TRACKING
 	}
 }
 
-func (rd *RuleDefinition) getRedirectInfo() *protos.RedirectInformation {
-	if rd.RedirectInformation == nil {
-		return nil
+func (r *RedirectInformation) ToProto() *protos.RedirectInformation {
+	if r == nil {
+		return &protos.RedirectInformation{}
 	}
 	return &protos.RedirectInformation{
-		Support:       protos.RedirectInformation_Support(rd.RedirectInformation.RedirectSupport),
-		AddressType:   protos.RedirectInformation_AddressType(rd.RedirectInformation.RedirectAddressType),
-		ServerAddress: rd.RedirectInformation.RedirectServerAddress,
+		Support:       protos.RedirectInformation_Support(r.RedirectSupport),
+		AddressType:   protos.RedirectInformation_AddressType(r.RedirectAddressType),
+		ServerAddress: r.RedirectServerAddress,
 	}
 }
 
-func getFlowList(flowStrings []string, flowInfos []*FlowInformation) []*protos.FlowDescription {
-	allFlowStrings := flowStrings[:]
-	for _, info := range flowInfos {
+func (rd *RuleDefinition) GetFlowList() []*protos.FlowDescription {
+	allFlowStrings := rd.FlowDescriptions[:]
+	for _, info := range rd.FlowInformations {
 		allFlowStrings = append(allFlowStrings, info.FlowDescription)
 	}
 	var flowList []*protos.FlowDescription
@@ -107,7 +117,7 @@ func getFlowList(flowStrings []string, flowInfos []*FlowInformation) []*protos.F
 	return flowList
 }
 
-func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.PolicyDBClient) *protos.PolicyReAuthRequest {
+func (rar *PolicyReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.PolicyDBClient) *protos.PolicyReAuthRequest {
 	var rulesToRemove, baseNamesToRemove []string
 
 	for _, ruleRemove := range rar.RulesToRemove {
@@ -140,7 +150,7 @@ func (rar *ReAuthRequest) ToProto(imsi, sid string, policyDBClient policydb.Poli
 	}
 }
 
-func (raa *ReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuthAnswer) *ReAuthAnswer {
+func (raa *PolicyReAuthAnswer) FromProto(sessionID string, answer *protos.PolicyReAuthAnswer) *PolicyReAuthAnswer {
 	raa.SessionID = sessionID
 	raa.ResultCode = diam.Success
 	raa.RuleReports = make([]*ChargingRuleReport, 0, len(answer.FailedRules))
@@ -163,6 +173,14 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 		return nil
 	}
 	return protoTimestamp
+}
+
+func RuleIDsToProtosRuleInstalls(ruleIDs []string) []*protos.StaticRuleInstall {
+	ruleInstalls := make([]*protos.StaticRuleInstall, len(ruleIDs))
+	for idx, ruleID := range ruleIDs {
+		ruleInstalls[idx] = &protos.StaticRuleInstall{RuleId: ruleID}
+	}
+	return ruleInstalls
 }
 
 func ParseRuleInstallAVPs(
@@ -214,6 +232,17 @@ func ParseRuleInstallAVPs(
 	return staticRulesToInstall, dynamicRulesToInstall
 }
 
+func ParseRuleRemoveAVPs(policyDBClient policydb.PolicyDBClient, rulesToRemoveAVP []*RuleRemoveAVP) []string {
+	var ruleNames []string
+	for _, rule := range rulesToRemoveAVP {
+		ruleNames = append(ruleNames, rule.RuleNames...)
+		if len(rule.RuleBaseNames) > 0 {
+			ruleNames = append(ruleNames, policyDBClient.GetRuleIDsForBaseNames(rule.RuleBaseNames)...)
+		}
+	}
+	return ruleNames
+}
+
 func GetEventTriggersRelatedInfo(
 	eventTriggers []EventTrigger,
 	revalidationTime *time.Time,
@@ -221,12 +250,11 @@ func GetEventTriggersRelatedInfo(
 	protoEventTriggers := make([]protos.EventTrigger, 0, len(eventTriggers))
 	var protoRevalidationTime *timestamp.Timestamp
 	for _, eventTrigger := range eventTriggers {
-		if convertedEventTrigger, ok := eventTriggerConversionMap[eventTrigger]; ok {
-			protoEventTriggers = append(protoEventTriggers, convertedEventTrigger)
-			if eventTrigger == RevalidationTimeout {
-				protoRevalidationTime = ConvertToProtoTimestamp(revalidationTime)
-			}
-		} else {
+		switch eventTrigger {
+		case RevalidationTimeout:
+			protoRevalidationTime = ConvertToProtoTimestamp(revalidationTime)
+			protoEventTriggers = append(protoEventTriggers, protos.EventTrigger(eventTrigger))
+		default:
 			protoEventTriggers = append(protoEventTriggers, protos.EventTrigger_UNSUPPORTED)
 		}
 	}
@@ -238,7 +266,7 @@ func getUsageMonitoringCredits(usageMonitors []*UsageMonitoringInfo) []*protos.U
 	for _, monitor := range usageMonitors {
 		usageMonitoringCredits = append(
 			usageMonitoringCredits,
-			GetUsageMonitorCreditFromAVP(monitor),
+			monitor.ToUsageMonitoringCredit(),
 		)
 	}
 	return usageMonitoringCredits
@@ -248,16 +276,29 @@ func getQoSInfo(qosInfo *QosInformation) *protos.QoSInformation {
 	if qosInfo == nil {
 		return nil
 	}
-	return &protos.QoSInformation{
+	res := &protos.QoSInformation{
 		BearerId: qosInfo.BearerIdentifier,
-		Qci:      protos.QCI(*qosInfo.Qci),
 	}
+	if qosInfo.Qci != nil {
+		res.Qci = protos.QCI(*qosInfo.Qci)
+	}
+	return res
 }
 
-func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMonitoringCredit {
-	if monitor.GrantedServiceUnit == nil || (monitor.GrantedServiceUnit.TotalOctets == nil &&
-		monitor.GrantedServiceUnit.InputOctets == nil &&
-		monitor.GrantedServiceUnit.OutputOctets == nil) {
+func (report *UsageReport) FromUsageMonitorUpdate(update *protos.UsageMonitorUpdate) *UsageReport {
+	if update == nil {
+		return report
+	}
+	report.MonitoringKey = update.MonitoringKey
+	report.Level = MonitoringLevel(update.Level)
+	report.InputOctets = update.BytesTx
+	report.OutputOctets = update.BytesRx // receive == output
+	report.TotalOctets = update.BytesTx + update.BytesRx
+	return report
+}
+
+func (monitor *UsageMonitoringInfo) ToUsageMonitoringCredit() *protos.UsageMonitoringCredit {
+	if monitor.GrantedServiceUnit == nil || monitor.GrantedServiceUnit.IsEmpty() {
 		return &protos.UsageMonitoringCredit{
 			Action:        protos.UsageMonitoringCredit_DISABLE,
 			MonitoringKey: monitor.MonitoringKey,
@@ -270,5 +311,29 @@ func GetUsageMonitorCreditFromAVP(monitor *UsageMonitoringInfo) *protos.UsageMon
 			GrantedUnits:  monitor.GrantedServiceUnit.ToProto(),
 			Level:         protos.MonitoringLevel(monitor.Level),
 		}
+	}
+}
+
+func GetRATType(pRATType protos.RATType) credit_control.RATType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.RAT_EUTRAN
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.RAT_WLAN
+	default:
+		return credit_control.RAT_EUTRAN
+	}
+}
+
+// Since we don't specify the IP CAN type at session initialization, and we
+// only support WLAN and EUTRAN, we will infer the IP CAN type from RAT type.
+func GetIPCANType(pRATType protos.RATType) credit_control.IPCANType {
+	switch pRATType {
+	case protos.RATType_TGPP_LTE:
+		return credit_control.IPCAN_3GPP
+	case protos.RATType_TGPP_WLAN:
+		return credit_control.IPCAN_Non3GPP
+	default:
+		return credit_control.IPCAN_Non3GPP
 	}
 }

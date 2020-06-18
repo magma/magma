@@ -37,6 +37,7 @@ message S6aConfig {
 
 message GxConfig {
     DiamClientConfig server = 1;
+    repeated DiamClientConfig servers = 2;
 }
 
 enum GyInitMethod {
@@ -48,6 +49,7 @@ enum GyInitMethod {
 message GyConfig {
     DiamClientConfig server = 1;
     GyInitMethod init_method = 2;
+    repeated DiamClientConfig servers = 3;
 }
 
 message SwxConfig {
@@ -55,6 +57,7 @@ message SwxConfig {
     // After auth, verify Non-3GPP IP Access enabled
     bool verify_authorization = 2;
     uint32 CacheTTLSeconds = 3;
+    repeated DiamClientConfig servers = 4;
 }
 
 message HSSConfig {

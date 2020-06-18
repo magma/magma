@@ -1,0 +1,27 @@
+{
+  "wiki": {
+    "General": [
+      "team-processes",
+      "release-notes",
+      "permission-model"
+    ],
+    "Inventory": [
+      "inventory-intro",
+      "csv-upload",
+      "export",
+      "service-export"
+    ],
+    "Workforce": [
+      "workforce-intro"
+    ],
+    "Mobile App": [
+      "mobile-app-intro",
+      "mobile-app-flow"
+    ],
+    "API": [
+      "py-inventory",
+      "py-inventory-release-notes",
+      "graphql-breaking-changes"
+    ]
+  }
+}

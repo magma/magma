@@ -1,0 +1,35 @@
+---
+swagger: '2.0'
+
+info:
+  title: Event definitions
+  description: We use this for unit testing
+  version: 1.0.0
+
+definitions:
+  simple_event:
+    type: object
+    description: A simple event for unit testing
+    required:
+      - foo
+    additionalProperties: false
+    properties:
+      foo:
+        type: string
+      bar:
+        type: integer
+  array_and_object_event:
+    type: object
+    description: An event with more complex types for testing
+    properties:
+      an_array:
+        type: array
+        items:
+          type: string
+      an_object:
+        type: object
+        additionalProperties:
+          type: integer
+  null_event:
+    type: object
+    description: An event with no properties

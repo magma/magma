@@ -13,6 +13,7 @@ Before=magma@mme.service
 Type=simple
 EnvironmentFile=/etc/environment
 ExecStart=/usr/local/bin/sessiond
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py sessiond
 MemoryAccounting=yes
 StandardOutput=syslog
 StandardError=syslog

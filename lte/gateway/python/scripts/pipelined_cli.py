@@ -10,51 +10,33 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import argparse
-import binascii
 import errno
 from pprint import pprint
 import subprocess
 
-import re
 from magma.common.rpc_utils import grpc_wrapper
+from lte.protos.pipelined_pb2 import (
+    SubscriberQuotaUpdate,
+    UpdateSubscriberQuotaStateRequest,
+)
+from lte.protos.policydb_pb2 import RedirectInformation
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import Tables
+from magma.pipelined.qos.common import QosManager
 from orc8r.protos.common_pb2 import Void
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
     RuleModResult,
     UEMacFlowRequest,
+    RequestOriginType,
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
-
-
-# --------------------------
-# Metering App
-# --------------------------
-
-@grpc_wrapper
-def get_subscriber_metering_flows(client, _):
-    flow_table = client.GetSubscriberMeteringFlows(Void())
-    print(flow_table)
-
-
-def create_metering_parser(apps):
-    """
-    Creates the argparse subparser for the metering app
-    """
-    app = apps.add_parser('meter')
-    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
-
-    # Add subcommands
-    subcmd = subparsers.add_parser('dump_flows',
-                                   help='Prints all subscriber metering flows')
-    subcmd.set_defaults(func=get_subscriber_metering_flows)
 
 
 # --------------------------
@@ -65,7 +47,8 @@ def create_metering_parser(apps):
 def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(','))
+        rule_ids=args.rule_ids.split(','),
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.static_rule_results)
 
@@ -74,7 +57,8 @@ def activate_flows(client, args):
 def deactivate_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        rule_ids=args.rule_ids.split(',') if args.rule_ids else [])
+        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     client.DeactivateFlows(request)
 
 
@@ -92,9 +76,39 @@ def activate_dynamic_rule(client, args):
                 FlowDescription(match=FlowMatch(
                     ipv4_src=args.ipv4_dst, direction=FlowMatch.DOWNLINK)),
             ],
-        )])
+        )],
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
     _print_rule_mod_results(response.dynamic_rule_results)
+
+
+@grpc_wrapper
+def activate_gy_redirect(client, args):
+    request = ActivateFlowsRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
+        dynamic_rules=[PolicyRule(
+            id=args.rule_id,
+            priority=999,
+            flow_list=[],
+            redirect=RedirectInformation(
+                support=1,
+                address_type=2,
+                server_address=args.redirect_addr
+            )
+        )],
+        request_origin=RequestOriginType(type=RequestOriginType.GY))
+    response = client.ActivateFlows(request)
+    _print_rule_mod_results(response.dynamic_rule_results)
+
+
+@grpc_wrapper
+def deactivate_gy_flows(client, args):
+    request = DeactivateFlowsRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
+        request_origin=RequestOriginType(type=RequestOriginType.GY))
+    client.DeactivateFlows(request)
 
 
 def _print_rule_mod_results(results):
@@ -147,6 +161,21 @@ def create_enforcement_parser(apps):
                         type=int, default=0)
     subcmd.set_defaults(func=activate_dynamic_rule)
 
+    subcmd = subparsers.add_parser('activate_gy_redirect',
+                                   help='Activate gy final action redirect')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--rule_id', help='rule id to add', default='redirect')
+    subcmd.add_argument('--ipv4', help='Subscriber IP', default='172.16.22.53')
+    subcmd.add_argument('--redirect_addr', help='Webpage to redirect to',
+                        default='http://about.sha.ddih.org/')
+    subcmd.set_defaults(func=activate_gy_redirect)
+
+    subcmd = subparsers.add_parser('deactivate_gy_flows',
+                                   help='Deactivate gy flows')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
+    subcmd.set_defaults(func=deactivate_gy_flows)
+
     subcmd = subparsers.add_parser('display_flows',
                                    help='Display flows related to policy '
                                         'enforcement')
@@ -172,6 +201,17 @@ def add_ue_mac_flow(client, args):
         print("Error associating MAC to IMSI")
 
 
+@grpc_wrapper
+def delete_ue_mac_flow(client, args):
+    request = UEMacFlowRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac
+    )
+    res = client.DeleteUEMacFlow(request)
+    if res is None:
+        print("Error associating MAC to IMSI")
+
+
 def create_ue_mac_parser(apps):
     """
     Creates the argparse subparser for the MAC App
@@ -187,6 +227,49 @@ def create_ue_mac_parser(apps):
     subcmd.add_argument('--mac', help='UE MAC address',
                         default='5e:cc:cc:b1:49:ff')
     subcmd.set_defaults(func=add_ue_mac_flow)
+    # Delete subcommands
+    subcmd = subparsers.add_parser('delete_ue_mac_flow',
+                                   help='Delete flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--mac', help='UE MAC address',
+                        default='5e:cc:cc:b1:49:ff')
+    subcmd.set_defaults(func=delete_ue_mac_flow)
+
+
+# -------------
+# Check Quota APP
+# -------------
+
+@grpc_wrapper
+def update_quota(client, args):
+    update = SubscriberQuotaUpdate(
+        sid=SIDUtils.to_pb(args.imsi),
+        mac_addr=args.mac,
+        update_type=args.update_type
+    )
+    request = UpdateSubscriberQuotaStateRequest(updates=[update],)
+    res = client.UpdateSubscriberQuotaState(request)
+    if res is None:
+        print("Error updating check quota flows")
+
+
+def create_check_flows_parser(apps):
+    """
+    Creates the argparse subparser for the MAC App
+    """
+    app = apps.add_parser('check_quota')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    # Add subcommands
+    subcmd = subparsers.add_parser('update_quota',
+                                   help='Add flow to match UE MAC \
+                                   with a subscriber')
+    subcmd.add_argument('imsi', help='Subscriber ID')
+    subcmd.add_argument('mac', help='Subscriber mac')
+    subcmd.add_argument('update_type', type=int,
+                        help='0 - valid quota, 1 -no quota, 2 - terminate')
+    subcmd.set_defaults(func=update_quota)
 
 
 # --------------------------
@@ -234,7 +317,7 @@ def _display_flows(client, apps=None):
     response = client.GetAllTableAssignments(Void())
     table_assignments = {
         table_assignment.app_name:
-            Tables(main_table=table_assignment.main_table,
+            Tables(main_table=table_assignment.main_table, type=None,
                    scratch_tables=table_assignment.scratch_tables)
         for table_assignment in response.table_assignments}
     try:
@@ -285,6 +368,8 @@ def create_debug_parser(apps):
                              'flows. If not set, all flows will be printed.')
     subcmd.set_defaults(func=display_flows)
 
+    subcmd = subparsers.add_parser('qos', help='Debug Qos')
+    subcmd.set_defaults(func=QosManager.debug)
 
 # --------------------------
 # Pipelined base CLI
@@ -298,9 +383,9 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
-    create_metering_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
+    create_check_flows_parser(apps)
     create_debug_parser(apps)
     return parser
 

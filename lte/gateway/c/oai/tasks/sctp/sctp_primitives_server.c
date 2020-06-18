@@ -59,12 +59,12 @@ static void sctp_exit(void);
 sctp_config_t sctp_conf;
 
 //------------------------------------------------------------------------------
-static void *sctp_intertask_interface(__attribute__((unused)) void *args_p)
+static void* sctp_intertask_interface(__attribute__((unused)) void* args_p)
 {
   itti_mark_task_ready(TASK_SCTP);
 
   while (1) {
-    MessageDef *recv_msg;
+    MessageDef* recv_msg;
 
     itti_receive_msg(TASK_SCTP, &recv_msg);
 
@@ -80,7 +80,7 @@ static void *sctp_intertask_interface(__attribute__((unused)) void *args_p)
           Fatal("Failed to init sctpd\n");
         }
 
-        MessageDef *msg;
+        MessageDef* msg;
 
         msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
         SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
@@ -133,11 +133,11 @@ static void *sctp_intertask_interface(__attribute__((unused)) void *args_p)
   return NULL;
 }
 
-int sctp_init(const mme_config_t *mme_config_p)
+int sctp_init(const mme_config_t* mme_config_p)
 {
   OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface\n");
 
-  if (init_sctpd_downlink_client() < 0) {
+  if (init_sctpd_downlink_client(!mme_config.use_stateless) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to init sctpd downlink client\n");
   }
 

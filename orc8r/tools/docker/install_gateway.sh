@@ -13,7 +13,9 @@ set -e
 
 CWAG="cwag"
 FEG="feg"
+XWF="xwf"
 INSTALL_DIR="/tmp/magmagw_install"
+GIT_HASH="master"
 
 # TODO: Update docker-compose to stable version
 
@@ -26,15 +28,15 @@ echo "Setting working directory as: $DIR"
 cd "$DIR"
 
 if [ -z $1 ]; then
-  echo "Please supply a gateway type to install. Valid types are: ['$FEG', '$CWAG']"
+  echo "Please supply a gateway type to install. Valid types are: ['$FEG', '$CWAG', '$XWF']"
   exit
 fi
 
 GW_TYPE=$1
 echo "Setting gateway type as: '$GW_TYPE'"
 
-if [ "$GW_TYPE" != "$FEG" ] && [ "$GW_TYPE" != "$CWAG" ]; then
-  echo "Gateway type '$GW_TYPE' is not valid. Valid types are: ['$FEG', '$CWAG']"
+if [ "$GW_TYPE" != "$FEG" ] && [ "$GW_TYPE" != "$CWAG" ] && [ "$GW_TYPE" != "$XWF" ]; then
+  echo "Gateway type '$GW_TYPE' is not valid. Valid types are: ['$FEG', '$CWAG', '$XWF']"
   exit
 fi
 
@@ -62,20 +64,24 @@ mkdir -p "$INSTALL_DIR"
 MAGMA_GITHUB_URL="https://github.com/facebookincubator/magma.git"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
-
 source .env
+if [[ $IMAGE_VERSION == *"|"* ]]; then
+  GIT_HASH=$(cut -d'|' -f2 <<< "$IMAGE_VERSION")
+  IMAGE_VERSION=$(cut -d'|' -f1 <<< "$IMAGE_VERSION")
+fi
+
 if [ "$IMAGE_VERSION" != "latest" ]; then
-    git -C $INSTALL_DIR/magma checkout "$IMAGE_VERSION"
+    git -C $INSTALL_DIR/magma checkout "$GIT_HASH"
 fi
 
 # Ensure this script hasn't changed
 if ! cmp "$INSTALL_DIR"/magma/orc8r/tools/docker/install_gateway.sh install_gateway.sh; then
-    echo "This 'install_gateway.sh' script has changed..."
-    echo "Please copy this file from $INSTALL_DIR/magma/orc8r/tools/docker/install_gateway.sh and re-run"
-    exit
+   echo "This 'install_gateway.sh' script has changed..."
+   echo "Please copy this file from $INSTALL_DIR/magma/orc8r/tools/docker/install_gateway.sh and re-run"
+   exit
 fi
 
-if [ "$GW_TYPE" == "$CWAG" ]; then
+if [ "$GW_TYPE" == "$CWAG" ] || [ "$GW_TYPE" == "$XWF" ]; then
   MODULE_DIR="cwf"
 
   # Run CWAG ansible role to setup OVS
@@ -84,6 +90,13 @@ if [ "$GW_TYPE" == "$CWAG" ]; then
   apt-get update -y
   apt-get -y install ansible
   ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
+fi
+
+if [ "$GW_TYPE" == "$XWF" ]; then
+  MODULE_DIR="xwf"
+  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg \
+    ansible-playbook -e "xwf_ctrl_ip=$XWF_CTRL" \
+    "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/xwf.yml -i "localhost," -c local -v
 fi
 
 if [ "$GW_TYPE" == "$FEG" ]; then
@@ -127,6 +140,11 @@ mkdir -p /var/opt/magma/certs
 mkdir -p /etc/magma
 mkdir -p /var/opt/magma/docker
 
+#If this XWF installation copy the cwf config files as well
+if [ "$GW_TYPE" == "$XWF" ]; then
+  cp -TR "$INSTALL_DIR"/magma/cwf/gateway/configs /etc/magma
+fi
+
 # Copy default configs directory
 cp -TR "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/configs /etc/magma
 
@@ -147,12 +165,27 @@ cp .env /var/opt/magma/docker/
 cp recreate_services.sh /var/opt/magma/docker/
 cp recreate_services_cron /etc/cron.d/
 
+# Copy DPI docker files
+if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  MODULE_DIR="cwf"
+  mkdir -p "$SECRETS_VOLUME"
+  cp "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/docker/docker-compose-dpi.override.yml /var/opt/magma/docker/
+  cp "$DPI_LICENSE_NAME" "$SECRETS_VOLUME"
+fi
+
 cd /var/opt/magma/docker
 
-echo "Logging into docker registry at $DOCKER_REGISTRY"
-docker login "$DOCKER_REGISTRY"
+if [ ! -z "$DOCKER_USERNAME" ] && [ ! -z "$DOCKER_PASSWORD" ] && [ ! -z "$DOCKER_REGISTRY" ]; then
+ echo "Logging into docker registry at $DOCKER_REGISTRY"
+ docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD" "$DOCKER_REGISTRY"
+fi
 docker-compose pull
 docker-compose -f docker-compose.yml up -d
 
-echo "Installed successfully!!"
+# Pull and Run DPI container
+if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  docker-compose -f docker-compose-dpi.override.yml pull
+  docker-compose -f docker-compose-dpi.override.yml up -d
+fi
 
+echo "Installed successfully!!"

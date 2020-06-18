@@ -22,14 +22,6 @@ const (
 	descriptorRegExp = "(.+)\\s+(.+)\\s+(.+)\\s+from\\s+(.+)\\s+to\\s+(.+)"
 )
 
-type flowDescriptor struct {
-	action    string
-	direction string
-	proto     string
-	src       string
-	dst       string
-}
-
 type address struct {
 	ip   string
 	port uint32

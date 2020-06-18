@@ -1,0 +1,7 @@
+query ServiceDetailsQuery($id: ID!) {
+  service: node(id: $id) {
+    ... on Service {
+      ...ServiceFragment
+    }
+  }
+}

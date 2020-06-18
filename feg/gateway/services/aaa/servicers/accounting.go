@@ -10,13 +10,12 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"log"
+	"fmt"
 	"net"
 	"strings"
 	"time"
 
-	"magma/orc8r/gateway/directoryd"
-
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,7 +26,9 @@ import (
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/gateway/directoryd"
 	lte_protos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 type accountingService struct {
@@ -90,8 +91,9 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 	}
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 
-	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsIn()))
-	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), s.GetCtx().GetImsi()).Add(float64(ur.GetOctetsOut()))
+	imsi := metrics.DecorateIMSI(s.GetCtx().GetImsi())
+	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsIn()))
+	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsOut()))
 
 	return &protos.AcctResp{}, nil
 }
@@ -105,7 +107,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
 		// Log error and return OK, no need to stop accounting for already removed session
-		log.Printf("Accounting Stop: Session %s is not found", sid)
+		glog.Warningf("Accounting Stop: Session %s is not found", sid)
 		return &protos.AcctResp{}, nil
 	}
 
@@ -114,16 +116,25 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	apn := s.GetCtx().GetApn()
 	s.Unlock()
 
+	imsi := metrics.DecorateIMSI(sessionImsi)
 	var err error
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(makeSID(sessionImsi))
+		req := &lte_protos.LocalEndSessionRequest{
+			Sid: makeSID(imsi),
+			Apn: apn,
+		}
+		_, err = session_manager.EndSession(req)
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
+		metrics.EndSession.WithLabelValues(apn, imsi).Inc()
 	} else {
-		directoryd.RemoveIMSI(sessionImsi)
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: sessionImsi,
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
-	metrics.AcctStop.WithLabelValues(apn, sessionImsi)
+	metrics.AcctStop.WithLabelValues(apn, imsi)
 
 	return &protos.AcctResp{}, err
 }
@@ -141,6 +152,7 @@ func (srv *accountingService) CreateSession(
 	req := &lte_protos.LocalCreateSessionRequest{
 		Sid:             makeSID(aaaCtx.GetImsi()),
 		UeIpv4:          aaaCtx.GetIpAddr(),
+		Apn:             aaaCtx.GetApn(),
 		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
 		RatType:         lte_protos.RATType_TGPP_WLAN,
 		HardwareAddr:    mac,
@@ -173,7 +185,7 @@ func (srv *accountingService) TerminateSession(
 	apn := sctx.GetApn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, imsi)
+	metrics.SessionTerminate.WithLabelValues(apn, metrics.DecorateIMSI(imsi)).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
@@ -204,9 +216,17 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	var err, radErr error
 
 	if srv.config.GetAccountingEnabled() {
-		_, err = session_manager.EndSession(makeSID(aaaCtx.GetImsi()))
+		req := &lte_protos.LocalEndSessionRequest{
+			Sid: makeSID(aaaCtx.GetImsi()),
+			Apn: aaaCtx.GetApn(),
+		}
+		_, err = session_manager.EndSession(req)
+		metrics.EndSession.WithLabelValues(aaaCtx.GetApn(), metrics.DecorateIMSI(aaaCtx.GetImsi())).Inc()
 	} else {
-		directoryd.RemoveIMSI(aaaCtx.GetImsi())
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: aaaCtx.GetImsi(),
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
 
 	conn, radErr := registry.GetConnection(registry.RADIUS)
@@ -225,6 +245,24 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 		}
 	}
 	return err
+}
+
+// AddSessions is an "inbound" RPC from session manager to bulk add existing sessions
+func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.AddSessionsRequest) (*protos.AcctResp, error) {
+	failed := []string{}
+	for _, session := range sessions.GetSessions() {
+		if strings.HasPrefix(session.GetImsi(), imsiPrefix) {
+			session.Imsi = strings.TrimPrefix(session.GetImsi(), imsiPrefix)
+		}
+		_, err := srv.sessions.AddSession(session, srv.sessionTout, srv.timeoutSessionNotifier, true)
+		if err != nil {
+			failed = append(failed, session.GetImsi())
+		}
+	}
+	if len(failed) > 0 {
+		return &protos.AcctResp{}, fmt.Errorf("Unable to add the session for the following IMSIs: %v", failed)
+	}
+	return &protos.AcctResp{}, nil
 }
 
 func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {

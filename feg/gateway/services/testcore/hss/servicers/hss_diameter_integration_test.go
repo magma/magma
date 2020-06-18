@@ -17,12 +17,12 @@ import (
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	swx "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -128,13 +128,12 @@ func testDiameterMessage(t *testing.T, clientHandler diam.HandlerFunc, msg *diam
 func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	// Start s6a diameter server
 	result := make(chan error)
-	hss := test.NewTestHomeSubscriberServer(t)
-	serverCfg := hss.Config.Server
-	started := make(chan struct{})
+	hss := test_utils.NewTestHomeSubscriberServer(t)
+	started := make(chan string)
 	go func() {
 		err := hss.Start(started)
 		if err != nil {
-			fmt.Printf("getConnectionToTestHSS Error: %v for address: %s\n", err, serverCfg.Address)
+			fmt.Printf("getConnectionToTestHSS Error: %v for address: %s\n", err, hss.Config.Server.Address)
 			result <- err
 		}
 	}()
@@ -144,7 +143,10 @@ func getTestHSSDiameterServer(t *testing.T) *hss.HomeSubscriberServer {
 	case err := <-result:
 		assert.Fail(t, "%v", err)
 		return nil
-	case <-started:
+	case localAddr := <-started:
+		// Overwrite server address with actual local address in case, the test HSS was started
+		// without a configured port # (for example: 127.0.0.1:0)
+		hss.Config.Server.Address = localAddr
 	}
 	return hss
 }

@@ -15,6 +15,7 @@ from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
 logger = logging.getLogger(__name__)
 
 DEFAULT_PRIORITY = 10
+UE_FLOW_PRIORITY = 12
 PASSTHROUGH_PRIORITY = 15
 MINIMUM_PRIORITY = 0
 MAXIMUM_PRIORITY = 65535
@@ -59,7 +60,7 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
 def add_output_flow(datapath, table, match, actions=None, instructions=None,
                     priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
                     idle_timeout=0, hard_timeout=0, output_port=None,
-                    max_len=None):
+                    copy_table=None, max_len=None):
     """
     Add a flow to a table that sends the packet to the specified port
 
@@ -80,6 +81,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
+        copy_table (int): optional table to copy the packet to
         max_len (int): Max length to send to controller
 
     Raises:
@@ -90,7 +92,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        output_port=output_port, max_len=max_len)
+        copy_table=copy_table, output_port=output_port, max_len=max_len)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
@@ -226,7 +228,7 @@ def get_add_drop_flow_msg(datapath, table, match, actions=None,
 def get_add_output_flow_msg(datapath, table, match, actions=None,
                             instructions=None, priority=MINIMUM_PRIORITY,
                             cookie=0x0, idle_timeout=0, hard_timeout=0,
-                            output_port=None, max_len=None):
+                            output_port=None, copy_table=None, max_len=None):
     """
     Add a flow to a table that sends the packet to the specified port
 
@@ -246,6 +248,7 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
+        copy_table (int): optional table to copy the packet to
         max_len (int): Max length to send to controller
 
     Raises:
@@ -265,7 +268,8 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
     actions = actions + [
         output_action,
     ]
-
+    if copy_table:
+        actions.append(parser.NXActionResubmitTable(table_id=copy_table))
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
     ryu_match = parser.OFPMatch(**match.ryu_match)
@@ -314,8 +318,6 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
             register is reset on table resubmit so any load has no effect.
     """
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser
-
-    _check_resubmit_action(actions, parser)
 
     if actions is None:
         actions = []
@@ -407,6 +409,32 @@ def set_barrier(datapath):
     messages.send_msg(datapath, parser.OFPBarrierRequest(datapath))
 
 
+def get_delete_flow_msg(datapath, table, match, actions=None, instructions=None,
+                        **kwargs):
+    """
+    Get an delete flow message that deletes a specified flow
+
+    Args:
+        datapath (ryu.controller.controller.Datapath): Datapath to message.
+        table (int): Table number of the flow
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions of the flow.
+        instructions ([OFPInstruction]):
+            List of instructions of the flow.
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                          actions, instructions)
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    return parser.OFPFlowMod(datapath=datapath, command=ofproto.OFPFC_DELETE,
+                            match=ryu_match, instructions=inst,
+                            table_id=table, out_group=ofproto.OFPG_ANY,
+                            out_port=ofproto.OFPP_ANY,
+                            **kwargs)
+
+
 def delete_flow(datapath, table, match, actions=None, instructions=None,
                 retries=3, **kwargs):
     """
@@ -426,18 +454,9 @@ def delete_flow(datapath, table, match, actions=None, instructions=None,
     Raises:
         MagmaOFError: if the flow can't be deleted
     """
-    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
-    inst = __get_instructions_for_actions(ofproto, parser,
-                                          actions, instructions)
-    ryu_match = parser.OFPMatch(**match.ryu_match)
-
-    mod = parser.OFPFlowMod(datapath=datapath, command=ofproto.OFPFC_DELETE,
-                            match=ryu_match, instructions=inst,
-                            table_id=table, out_group=ofproto.OFPG_ANY,
-                            out_port=ofproto.OFPP_ANY,
-                            **kwargs)
-    logger.debug('flowmod: %s (table %s)', mod, table)
-    messages.send_msg(datapath, mod, retries=retries)
+    msg = get_delete_flow_msg(datapath, table, match, actions, instructions, **kwargs)
+    logger.debug('flowmod: %s (table %s)', msg, table)
+    messages.send_msg(datapath, msg, retries=retries)
 
 
 def delete_all_flows_from_table(datapath, table, retries=3):
@@ -458,13 +477,13 @@ def delete_all_flows_from_table(datapath, table, retries=3):
 
 def __get_instructions_for_actions(ofproto, ofproto_parser,
                                    actions, instructions):
-    if actions and len(actions) > 0:
-        return [
-            ofproto_parser.OFPInstructionActions(ofproto.OFPIT_APPLY_ACTIONS,
-                                                 actions),
-        ]
-    else:
-        return instructions or []
+    if instructions is None:
+        instructions = []
+
+    if actions:
+        instructions.append(ofproto_parser.OFPInstructionActions(
+            ofproto.OFPIT_APPLY_ACTIONS, actions))
+    return instructions
 
 
 def _check_scratch_reg_load(actions, parser):

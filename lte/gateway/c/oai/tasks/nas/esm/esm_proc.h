@@ -88,7 +88,6 @@ typedef struct esm_proc_data_s {
   esm_proc_pdn_type_t pdn_type;
   bstring pdn_addr;
   bearer_qos_t bearer_qos;
-  traffic_flow_template_t tft;
   protocol_configuration_options_t pco;
 } esm_proc_data_t;
 
@@ -176,15 +175,15 @@ int esm_proc_pdn_disconnect_reject(
  */
 
 int esm_proc_esm_information_request(
-  emm_context_t *const ue_context,
+  emm_context_t* const emm_context_p,
   const pti_t pti);
 
 int esm_proc_esm_information_response(
-  emm_context_t *ue_context,
+  emm_context_t* emm_context_p,
   pti_t pti,
   const_bstring const apn,
-  const protocol_configuration_options_t *const pco,
-  esm_cause_t *const esm_cause);
+  const protocol_configuration_options_t* const pco,
+  esm_cause_t* const esm_cause);
 
 /*
  * --------------------------------------------------------------------------
@@ -251,8 +250,7 @@ int esm_proc_dedicated_eps_bearer_context_accept(
   esm_cause_t *esm_cause);
 int esm_proc_dedicated_eps_bearer_context_reject(
   emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+  ebi_t ebi);
 
 /*
  * --------------------------------------------------------------------------
@@ -260,12 +258,12 @@ int esm_proc_dedicated_eps_bearer_context_reject(
  * --------------------------------------------------------------------------
  */
 int esm_proc_eps_bearer_context_deactivate(
-  emm_context_t *const ue_context,
+  emm_context_t* const emm_context_p,
   const bool is_local,
   const ebi_t ebi,
-  pdn_cid_t *pid,
-  int *const bidx,
-  esm_cause_t *const esm_cause);
+  pdn_cid_t* pid,
+  int* const bidx,
+  esm_cause_t* const esm_cause);
 int esm_proc_eps_bearer_context_deactivate_request(
   const bool is_standalone,
   emm_context_t *const emm_context,

@@ -23,6 +23,11 @@ x-generic-service: &service
   restart: always
   network_mode: host
 
+# Generic python anchor to avoid repetition for orc8r python services
+x-orc8r-service: &pyservice
+  <<: *service
+  image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+
 x-feg-goservice: &feggoservice
   <<: *service
   image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
@@ -32,7 +37,6 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
 
-  # TODO: Remove this override once GRE tun_dst logic is added to pipelined
   pipelined:
     privileged: true
     volumes:
@@ -47,9 +51,26 @@ services:
       - /var/run/openvswitch:/var/run/openvswitch
     command: >
       sh -c "/usr/bin/ovs-vsctl --if-exists del-port cwag_br0 gre0 &&
-        /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=192.168.70.102 options:key=5001 &&
+        /usr/bin/ovs-vsctl --if-exists del-br uplink_br0 &&
+        /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 cwag_patch &&
+        /usr/bin/ovs-vsctl --if-exists del-port cwag_br0 eth2 &&
+        /usr/bin/ovs-vsctl --may-exist add-port cwag_br0 gre0 -- set interface gre0 ofport_request=32768 type=gre options:remote_ip=flow &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
-        python3 -m magma.pipelined.main"
+        python3.5 -m magma.pipelined.main"
+
+  sessiond:
+    volumes:
+      - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
+      - /var/opt/magma/cores:/var/opt/magma/cores
+    ulimits:
+      core: -1
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
+    command: >
+      sh -c "mkdir -p /var/opt/magma/cores &&
+        sysctl -w kernel.core_pattern=/var/opt/magma/cores/core.%e.%t &&
+        /usr/local/bin/sessiond"
 
   swx_proxy:
     <<: *feggoservice
@@ -64,7 +85,11 @@ services:
     depends_on:
       - pcrf
       - ocs
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
+      - pcrf2
+      - ocs2
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=2
 
   hss:
     <<: *feggoservice
@@ -74,11 +99,62 @@ services:
   pcrf:
     <<: *feggoservice
     container_name: pcrf
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/pcrf -logtostderr=true -v=0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/pcrf -logtostderr=true -v=2
 
   ocs:
     <<: *feggoservice
     container_name: ocs
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=2
 
+  pcrf2:
+    <<: *feggoservice
+    container_name: pcrf2
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/pcrf -logtostderr=true -v=0 -servernumber=2
 
+  ocs2:
+    <<: *feggoservice
+    container_name: ocs2
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/ocs -logtostderr=true -v=0 -servernumber=2
+
+  redis:
+    <<: *pyservice
+    container_name: redis
+    volumes:
+      - ../integ_tests/redis.conf:/var/opt/magma/redis.conf
+    command: >
+      /bin/bash -c "/usr/bin/redis-server /var/opt/magma/redis.conf --daemonize no &&
+             /usr/bin/redis-cli shutdown"
+
+  control_proxy:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+    command: >
+      sh -c "/usr/local/bin/generate_nghttpx_config.py &&
+             /usr/bin/env nghttpx --insecure --conf /var/opt/magma/tmp/nghttpx.conf"
+
+  magmad:
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+
+  uesim:
+    <<: *service
+    container_name: uesim
+    image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0
+
+  ingress:
+    <<: *service
+    container_name: ingress
+    image: ${DOCKER_REGISTRY}nginx:${IMAGE_VERSION}
+    extra_hosts:
+      - controller.magma.test:127.0.0.1
+      - bootstrapper-controller.magma.test:127.0.0.1
+      - session-proxy.magma.test:127.0.0.1
+      - sessiond.magma.test:127.0.0.1
+      - aaa-server.magma.test:127.0.0.1
+      - directoryd.magma.test:127.0.0.1
+    volumes:
+      - ../integ_tests/nginx.conf:/etc/nginx/nginx.conf:ro
+    command: /usr/sbin/nginx -g "daemon off;"

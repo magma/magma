@@ -6,11 +6,11 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import collections.abc as collections_abc
 from copy import deepcopy
 import redis
+from redis.lock import Lock
 import redis_collections
-from typing import Dict
+from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
 
 from magma.common.redis.serializers import RedisSerde
 from orc8r.protos.redis_pb2 import RedisState
@@ -20,6 +20,7 @@ from orc8r.protos.redis_pb2 import RedisState
 # privately scoped, the method replacement is encouraged in the library's
 # docs: http://redis-collections.readthedocs.io/en/stable/usage-notes.html
 
+T = TypeVar('T')
 
 class RedisList(redis_collections.List):
     """
@@ -187,85 +188,112 @@ class RedisHashDict(redis_collections.DefaultDict):
         return proto_wrapper.version
 
 
-class RedisFlatDict(collections_abc.MutableMapping):
+class RedisFlatDict(MutableMapping[str, T]):
     """
     Dict-like interface serializing elements to a Redis datastore. This
     dict stores key directly (i.e. without a hashmap).
     """
 
-    def __init__(self, client: redis.Redis, serdes: Dict[str, RedisSerde]):
+    def __init__(self, client: redis.Redis, serde: RedisSerde[T]):
         """
         Args:
             client (redis.Redis): Redis client object
-            serdes (): RedisSerdes for each type of object that can be stored
+            serde (): RedisSerde for de/serializing the object stored
         """
         super().__init__()
         self.redis = client
-        self.serdes = serdes
+        self.serde = serde
+        self.redis_type = serde.redis_type
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of items in the dictionary."""
-        return len(self.redis.keys())
+        return len(self.keys())
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         """Return an iterator over the keys of the dictionary."""
-        for k in self.redis.keys():
+        type_pattern = "*:" + self.redis_type
+        for k in self.redis.keys(pattern=type_pattern):
             try:
-                yield k.decode('utf-8')
+                deserialized_key = k.decode('utf-8')
+                split_key = deserialized_key.split(":", 1)
             except AttributeError:
-                yield k
+                split_key = k.split(":", 1)
+            if self.is_garbage(split_key[0]):
+                continue
+            yield split_key[0]
 
-    def __contains__(self, key):
-        """Return ``True`` if *key* is present, else ``False``."""
-        return bool(self.redis.exists(key))
-
-    def __getitem__(self, key):
-        """Return the item of dictionary with key *key*. Raises a
-        :exc:`KeyError` if key is not in the map.
+    def __contains__(self, key: str) -> bool:
+        """Return ``True`` if *key* is present and not garbage,
+        else ``False``.
         """
-        if ':' not in key:
-            raise ValueError('key must be of format <id>:<type>')
-        serde = self._get_serde(key)
-        serialized_value = self.redis.get(key)
+        composite_key = self._make_composite_key(key)
+        return bool(self.redis.exists(composite_key)) and \
+               not self.is_garbage(key)
+
+    def __getitem__(self, key: str) -> T:
+        """Return the item of dictionary with key *key:type*. Raises a
+        :exc:`KeyError` if *key:type* is not in the map or the object is
+        garbage
+        """
+        if ':' in key:
+            raise ValueError("Key %s cannot contain ':' char" % key)
+        composite_key = self._make_composite_key(key)
+        serialized_value = self.redis.get(composite_key)
         if serialized_value is None:
-            raise KeyError(key)
+            raise KeyError(composite_key)
 
-        value = serde.deserialize(serialized_value)
-        return value
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(serialized_value)
+        if proto_wrapper.is_garbage:
+            raise KeyError("Key %s is garbage" % key)
 
-    def __setitem__(self, key, value):
-        """Set ``d[key]`` to *value*."""
-        if ':' not in key:
-            raise ValueError('key must be of format <id>:<type>')
-        serde = self._get_serde(key)
-        version = self._get_version(key)
-        serialized_value = serde.serialize(value, version + 1)
+        return self.serde.deserialize(serialized_value)
 
-        self.redis.set(key, serialized_value)
+    def __setitem__(self, key: str, value: T) -> Any:
+        """Set ``d[key:type]`` to *value*."""
+        if ':' in key:
+            raise ValueError("Key %s cannot contain ':' char" % key)
+        version = self.get_version(key)
+        serialized_value = self.serde.serialize(value, version + 1)
+        composite_key = self._make_composite_key(key)
+        return self.redis.set(composite_key, serialized_value)
 
-        return self.redis.get(key)
-
-    def __delitem__(self, key):
-        """Remove ``d[key]`` from dictionary.
-        Raises a :func:`KeyError` if *key* is not in the map.
+    def __delitem__(self, key: str) -> int:
+        """Remove ``d[key:type]`` from dictionary.
+        Raises a :func:`KeyError` if *key:type* is not in the map.
         """
-        deleted_count = self.redis.delete(key)
+        if ':' in key:
+            raise ValueError("Key %s cannot contain ':' char" % key)
+        composite_key = self._make_composite_key(key)
+        deleted_count = self.redis.delete(composite_key)
         if not deleted_count:
-            raise KeyError(key)
+            raise KeyError(composite_key)
+        return deleted_count
 
-    def clear(self):
+    def get(self, key: str) -> Optional[T]:
+        """Get ``d[key:type]`` from dictionary.
+        Returns None if *key:type* is not in the map
+        """
+        try:
+            return self.__getitem__(key)
+        except (KeyError, ValueError):
+            return None
+
+    def clear(self) -> None:
+        """
+        Clear all keys in the dictionary. Objects are immediately deleted
+        (i.e. not garbage collected)
+        """
         for key in self.keys():
-            self.redis.delete(key)
+            composite_key = self._make_composite_key(key)
+            self.redis.delete(composite_key)
 
-    def get_version(self, idval, typeval):
-        """Return the version of the value for key *key*. Returns 0 if
+    def get_version(self, key: str) -> int:
+        """Return the version of the value for key *key:type*. Returns 0 if
         key is not in the map
         """
-        flat_key = idval + ":" + typeval
-        return self._get_version(flat_key)
-
-    def _get_version(self, key):
-        value = self.redis.get(key)
+        composite_key = self._make_composite_key(key)
+        value = self.redis.get(composite_key)
         if value is None:
             return 0
 
@@ -273,14 +301,70 @@ class RedisFlatDict(collections_abc.MutableMapping):
         proto_wrapper.ParseFromString(value)
         return proto_wrapper.version
 
-    def _get_serde(self, key):
-        parsed_key = key.split(':')
-        if len(parsed_key) != 2:
-            raise ValueError("Dictionary key must be of format <id>:<type>")
-        typeval = parsed_key[1]
+    def keys(self) -> List[str]:
+        """Return a copy of the dictionary's list of keys
+        Note: for redis *key:type* key is returned
+        """
+        return list(self.__iter__())
 
-        if typeval not in self.serdes:
-            raise ValueError("Dictionary is not configured for object type:"
-                             " %s" % typeval)
+    def mark_as_garbage(self, key: str) -> Any:
+        """Mark ``d[key:type]`` for garbage collection
+        Raises a KeyError if *key:type* is not in the map.
+        """
+        composite_key = self._make_composite_key(key)
+        value = self.redis.get(composite_key)
+        if value is None:
+            raise KeyError(composite_key)
 
-        return self.serdes[typeval]
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(value)
+        proto_wrapper.is_garbage = True
+        garbage_serialized = proto_wrapper.SerializeToString()
+        return self.redis.set(composite_key, garbage_serialized)
+
+    def is_garbage(self, key: str) -> bool:
+        """Return if d[key:type] has been marked for garbage collection.
+        Raises a KeyError if *key:type* is not in the map.
+        """
+        composite_key = self._make_composite_key(key)
+        value = self.redis.get(composite_key)
+        if value is None:
+            raise KeyError(composite_key)
+
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(value)
+        return proto_wrapper.is_garbage
+
+    def garbage_keys(self) -> List[str]:
+        """Return a copy of the dictionary's list of keys that are garbage
+        Note: for redis *key:type* key is returned
+        """
+        garbage_keys = []
+        type_pattern = "*:" + self.redis_type
+        for k in self.redis.keys(pattern=type_pattern):
+            try:
+                deserialized_key = k.decode('utf-8')
+                split_key = deserialized_key.split(":", 1)
+            except AttributeError:
+                split_key = k.split(":", 1)
+            if not self.is_garbage(split_key[0]):
+                continue
+            garbage_keys.append(split_key[0])
+        return garbage_keys
+
+    def delete_garbage(self, key) -> bool:
+        """Remove ``d[key:type]`` from dictionary iff the object is garbage
+        Returns False if *key:type* is not in the map
+        """
+        if not self.is_garbage(key):
+            return False
+        count = self.__delitem__(key)
+        return count > 0
+
+    def lock(self, key: str) -> Lock:
+        """Lock the dictionary for key *key*"""
+        lock_key = self._make_composite_key(key) + ":lock"
+        return self.redis.lock(lock_key)
+
+    def _make_composite_key(self, key):
+        return key + ":" + self.redis_type

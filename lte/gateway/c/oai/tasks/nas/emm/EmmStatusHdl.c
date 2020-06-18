@@ -116,10 +116,7 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
   emm_sap.u.emm_as.u.status.emm_cause = emm_cause;
   emm_sap.u.emm_as.u.status.ue_id = ue_id;
   emm_sap.u.emm_as.u.status.guti = NULL;
-  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t *ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(&mme_app_desc_p->mme_ue_contexts,
-        ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     ctx = &ue_mm_context->emm_context;
     if (ctx) {
@@ -132,7 +129,6 @@ int emm_proc_status(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause)
    */
   emm_as_set_security_data(&emm_sap.u.emm_as.u.status.sctx, sctx, false, true);
   rc = emm_sap_send(&emm_sap);
-  unlock_ue_contexts(ue_mm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

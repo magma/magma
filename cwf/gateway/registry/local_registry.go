@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
-	platform_registry "magma/orc8r/cloud/go/registry"
+	platform_registry "magma/orc8r/lib/go/registry"
 
 	"google.golang.org/grpc"
 )
@@ -17,8 +17,9 @@ import (
 const (
 	ModuleName = "cwf"
 
-	UeSim   = "UESIM"
-	Radiusd = "RADIUSD"
+	GatewayHealth = "HEALTH"
+	UeSim         = "UESIM"
+	Radiusd       = "RADIUSD"
 )
 
 // Add a new service.
@@ -44,5 +45,6 @@ func addLocalService(serviceType string, port int) {
 
 func init() {
 	addLocalService(UeSim, 10101)
+	addLocalService(GatewayHealth, 9107)
 	addLocalService(Radiusd, 10102)
 }

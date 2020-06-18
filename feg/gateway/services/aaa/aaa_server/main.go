@@ -10,8 +10,9 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"log"
+	"flag"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 
 	fegprotos "magma/feg/cloud/go/protos"
@@ -20,9 +21,9 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
 	"magma/feg/gateway/services/aaa/store"
+	managed_configs "magma/gateway/mconfig"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/orc8r/cloud/go/service"
-	managed_configs "magma/orc8r/gateway/mconfig"
+	"magma/orc8r/lib/go/service"
 )
 
 const (
@@ -31,18 +32,20 @@ const (
 )
 
 func main() {
+	flag.Parse() // for glog
+
 	// Create a shared Session Table
 	sessions := store.NewMemorySessionTable()
 
 	// Create the EAP AKA Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.AAA_SERVER)
 	if err != nil {
-		log.Fatalf("Error creating AAA service: %s", err)
+		glog.Fatalf("Error creating AAA service: %s", err)
 	}
 	aaaConfigs := &mconfig.AAAConfig{}
 	err = managed_configs.GetServiceConfigs(AAAServiceName, aaaConfigs)
 	if err != nil {
-		log.Printf("Error getting AAA Server service configs: %s", err)
+		glog.Warningf("Error getting AAA Server service configs: %s", err)
 		aaaConfigs = nil
 	}
 	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
@@ -53,9 +56,9 @@ func main() {
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
-	log.Printf("Starting AAA Service v%s.", Version)
+	glog.Infof("Starting AAA Service v%s.", Version)
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running AAA service: %s", err)
+		glog.Fatalf("Error running AAA service: %s", err)
 	}
 }

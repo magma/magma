@@ -1,10 +1,12 @@
-# Copyright (c) 2018-present, Facebook, Inc.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+{{/*
+Copyright (c) 2018-present, Facebook, Inc.
+All rights reserved.
 
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree. An additional grant
+of patent rights can be found in the PATENTS file in the same directory.
+*/}}
+{{- if .Values.proxy.service.enabled }}
 {{ $serviceType := .Values.proxy.service.type }}
 apiVersion: v1
 kind: Service
@@ -16,10 +18,11 @@ metadata:
     {{- with .Values.proxy.service.labels }}
 {{ toYaml . | indent 4 }}
     {{- end }}
-  {{- with .Values.proxy.service.annotations }}
+  {{- if or .Values.proxy.service.annotations .Values.proxy.service.extraAnnotations.proxy }}
   annotations:
-{{ toYaml . | indent 4 }}
-  {{- end }}
+{{ with .Values.proxy.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
+{{ with .Values.proxy.service.extraAnnotations.proxy }}{{ toYaml . | indent 4 }}{{ end }}
+  {{- end}}
 spec:
   selector:
     app.kubernetes.io/component: proxy
@@ -53,3 +56,4 @@ spec:
   {{- end }}
   {{- end -}}
 {{- end -}}
+{{- end }}

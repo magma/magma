@@ -1,0 +1,240 @@
+{
+  "$schema": "../../../pyworkforce/survey_schema.json",
+  "translations": {
+    "Form": "Forma",
+    "Question": "Pregunta",
+    "Answer": "Respuesta",
+    "Yes": "Sí",
+    "No": "No"
+  },
+  "categories": [
+    {
+      "categoryName": "Default",
+      "forms": [
+        {
+          "formTitle": "Name and position of the local authority",
+          "questions": [
+            {
+              "questionName": "Complete name",
+              "questionType": "TEXT"
+            },
+            {
+              "questionName": "Position",
+              "questionType": "TEXT"
+            },
+            {
+              "questionName": "Phone",
+              "questionType": "PHONE"
+            },
+            {
+              "questionName": "E-mail",
+              "questionType": "EMAIL"
+            }
+          ]
+        },
+        {
+          "formTitle": "Availability of Materials",
+          "formDescription": "Is there availability of construction materials and logistical support in the town at a distance of less than 1 hour of travel?",
+          "questions": [
+            {
+              "questionName": "Material",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Cement",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Gravel",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Construction Iron",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Food",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Lodging",
+              "questionType": "BOOL"
+            }
+          ]
+        },
+        {
+          "formTitle": "Rainy Season",
+          "questions": [
+            {
+              "questionName": "From",
+              "questionType": "TEXT",
+              "options": [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+              ]
+            },
+            {
+              "questionName": "Up to",
+              "questionType": "TEXT",
+              "options": [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December"
+              ]
+            }
+          ]
+        },
+        {
+          "formTitle": "It has coverage of other operators",
+          "questions": [
+            {
+              "questionName": "Movistar",
+              "questionType": "TEXT",
+              "options": ["2G", "3G", "4G", "Nothing"]
+            },
+            {
+              "questionName": "Entel",
+              "questionType": "TEXT",
+              "options": ["2G", "3G", "4G", "Nothing"]
+            },
+            {
+              "questionName": "Clear",
+              "questionType": "TEXT",
+              "options": ["2G", "3G", "4G", "Nothing"]
+            },
+            {
+              "questionName": "Bitel",
+              "questionType": "TEXT",
+              "options": ["2G", "3G", "4G", "Nothing"]
+            },
+            {
+              "questionName": "Satellite Telephony",
+              "questionType": "TEXT",
+              "options": ["2G", "3G", "4G", "Nothing"]
+            },
+            {
+              "questionName": "Cable operator data",
+              "questionType": "TEXT",
+              "questionDescription": "Representative, telephone, etc."
+            }
+          ]
+        },
+        {
+          "formTitle": "institutions present",
+          "questions": [
+            {
+              "questionName": "church",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Communal center",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Center or Health post",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "National bank",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Main square",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Police station PNP",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Municipality",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "School",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "Others:",
+              "questionType": "TEXT"
+            }
+          ]
+        },
+        {
+          "formTitle": "other information",
+          "questions": [
+            {
+              "questionName": "Antenna Location",
+              "questionType": "COORDS"
+            },
+            {
+              "questionName": "altitude",
+              "questionType": "FLOAT"
+            },
+            {
+              "questionName": "Number of poles",
+              "questionType": "INTEGER"
+            },
+            {
+              "questionName": "Installation date",
+              "questionType": "DATE"
+            }
+          ]
+        },
+        {
+          "formTitle": "Check dependency",
+          "questions": [
+            {
+              "questionName": "Has money",
+              "questionType": "BOOL"
+            },
+            {
+              "questionName": "What to buy ?",
+              "questionType": "TEXT",
+              "dependsOn": {
+                "name": "Money",
+                "questionName": "Has money",
+                "compare": "=",
+                "value": true
+              }
+            },
+            {
+              "questionName": "Age Group",
+              "questionType": "TEXT",
+              "options": ["Child", "Adult"]
+            },
+            {
+              "questionName": "Want candy ?",
+              "questionType": "BOOL",
+              "dependsOn": {
+                "name": "Child",
+                "questionName": "Age Group",
+                "compare": "=",
+                "value": "Child"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

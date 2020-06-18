@@ -12,29 +12,54 @@ import (
 	"fmt"
 
 	"magma/feg/gateway/object_store"
-	"magma/feg/gateway/registry"
-	"magma/feg/gateway/streamer"
+	"magma/gateway/service_registry"
+	"magma/gateway/streamer"
 	"magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
 )
 
+// ChargingKey defines a reporting key for a charging rule
+// the key could be the policy RatingGroup or RatingGroup and Service Identity combo
+type ChargingKey struct {
+	RatingGroup       uint32
+	ServiceIdTracking bool
+	ServiceIdentifier uint32
+}
+
+func (k ChargingKey) String() string {
+	return fmt.Sprintf("ChargingKey: RatingGroup = %d, ServiceIdTracking = %v, ServiceIdentifier = %d",
+		k.RatingGroup, k.ServiceIdTracking, k.ServiceIdentifier)
+}
+
 // PolicyDBClient defines interactions with the stored policy rules
 type PolicyDBClient interface {
-	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) ([]uint32, error)
+	GetChargingKeysForRules(ruleIDs []string, ruleDefs []*protos.PolicyRule) []ChargingKey
 	GetPolicyRuleByID(id string) (*protos.PolicyRule, error)
 	GetRuleIDsForBaseNames(baseNames []string) []string
+	// This gets a list of rules that should be active for all subscribers in the network
+	GetOmnipresentRules() ([]string, []string)
 }
 
 // RedisPolicyDBClient is a policy client that loads policies from Redis
 type RedisPolicyDBClient struct {
-	PolicyMap      object_store.ObjectMap
-	BaseNameMap    object_store.ObjectMap
-	StreamerClient streamer.Client
+	PolicyMap        object_store.ObjectMap
+	BaseNameMap      object_store.ObjectMap
+	OmnipresentRules object_store.ObjectMap
+	StreamerClient   streamer.Client
+}
+
+// CreateChargingKey creates & returns ChargingKey from a given policy
+func CreateChargingKey(rule *protos.PolicyRule) ChargingKey {
+	sid := rule.GetServiceIdentifier()
+	return ChargingKey{
+		RatingGroup:       rule.GetRatingGroup(),
+		ServiceIdTracking: sid != nil,
+		ServiceIdentifier: sid.GetValue()}
 }
 
 // NewRedisPolicyDBClient creates a new RedisPolicyDBClient
-func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, error) {
+func NewRedisPolicyDBClient(reg service_registry.GatewayRegistry) (*RedisPolicyDBClient, error) {
 	redisClient, err := object_store.NewRedisClient()
 	if err != nil {
 		return nil, err
@@ -43,19 +68,26 @@ func NewRedisPolicyDBClient(reg registry.CloudRegistry) (*RedisPolicyDBClient, e
 		PolicyMap: object_store.NewRedisMap(
 			redisClient,
 			"policydb:rules",
-			getProtoSerializer(),
-			getPolicyDeserializer(),
+			GetPolicySerializer(),
+			GetPolicyDeserializer(),
 		),
 		BaseNameMap: object_store.NewRedisMap(
 			redisClient,
 			"policydb:base_names",
-			getProtoSerializer(),
-			getBaseNameDeserializer(),
+			GetBaseNameSerializer(),
+			GetBaseNameDeserializer(),
+		),
+		OmnipresentRules: object_store.NewRedisMap(
+			redisClient,
+			"policydb:omnipresent_rules",
+			GetRuleMappingSerializer(),
+			GetRuleMappingDeserializer(),
 		),
 		StreamerClient: streamer.NewStreamerClient(reg),
 	}
-	client.StreamerClient.AddListener(NewBaseNameStreamListener(client.BaseNameMap))
-	client.StreamerClient.AddListener(NewPolicyDBStreamListener(client.PolicyMap))
+	go client.StreamerClient.Stream(NewBaseNameStreamListener(client.BaseNameMap))
+	go client.StreamerClient.Stream(NewPolicyDBStreamListener(client.PolicyMap))
+	go client.StreamerClient.Stream(NewOmnipresentRulesListener(client.OmnipresentRules))
 	return client, nil
 }
 
@@ -74,31 +106,42 @@ func (client *RedisPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyR
 
 // GetChargingKeysForRules retrieves the charging keys associated with the given
 // rule names from redis.
-func (client *RedisPolicyDBClient) GetChargingKeysForRules(
-	ruleIDs []string,
-	ruleDefs []*protos.PolicyRule,
-) ([]uint32, error) {
-	keys := []uint32{}
-	for _, id := range ruleIDs {
+func (client *RedisPolicyDBClient) GetChargingKeysForRules(staticRuleIDs []string, dynamicRuleDefs []*protos.PolicyRule) []ChargingKey {
+	keys := []ChargingKey{}
+	for _, id := range staticRuleIDs {
 		policy, err := client.GetPolicyRuleByID(id)
 		if err != nil {
 			glog.Errorf("Unable to get rating group for policy %s: %s", id, err)
 			continue
 		}
 		if needsCharging(policy) {
-			keys = append(keys, policy.RatingGroup)
+			keys = append(keys, CreateChargingKey(policy))
 		}
 	}
-	for _, policy := range ruleDefs {
+	for _, policy := range dynamicRuleDefs {
 		if needsCharging(policy) {
-			keys = append(keys, policy.RatingGroup)
+			keys = append(keys, CreateChargingKey(policy))
 		}
 	}
-	return keys, nil
+	return keys
 }
 
-func needsCharging(rule *protos.PolicyRule) bool {
-	return rule.TrackingType == protos.PolicyRule_ONLY_OCS || rule.TrackingType == protos.PolicyRule_OCS_AND_PCRF
+func (client *RedisPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
+	assignmentMap, err := client.OmnipresentRules.GetAll()
+	if err != nil {
+		glog.Errorf("Failed to lookup OmnipresentRules: %v", err)
+		return []string{}, []string{}
+	}
+	// there should at most be one entry
+	for _, setRaw := range assignmentMap {
+		assignedRules, ok := setRaw.(*protos.AssignedPolicies)
+		if !ok {
+			glog.Errorf("Could not cast object to *protos.AssignedPolicies")
+			return []string{}, []string{}
+		}
+		return assignedRules.AssignedPolicies, assignedRules.AssignedBaseNames
+	}
+	return []string{}, []string{}
 }
 
 // GetRuleIDsForBaseNames gets the policy rule ids for given charging rule base names.
@@ -119,4 +162,8 @@ func (client *RedisPolicyDBClient) GetRuleIDsForBaseNames(baseNames []string) []
 		policyIDs = append(policyIDs, nameSet.GetRuleNames()...)
 	}
 	return policyIDs
+}
+
+func needsCharging(rule *protos.PolicyRule) bool {
+	return rule.TrackingType == protos.PolicyRule_ONLY_OCS || rule.TrackingType == protos.PolicyRule_OCS_AND_PCRF
 }

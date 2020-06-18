@@ -139,6 +139,11 @@ class RyuForwardFlowArgsBuilder():
                               "value": Direction.IN}
         return self
 
+    def set_eth_match(self, eth_src, eth_dst):
+        self._match_kwargs['eth_src'] = eth_src
+        self._match_kwargs['eth_dst'] = eth_dst
+        return self
+
     def _create_subscriber_ip_requests(self):
         """
         Generates ryu requests for subscriber flows
@@ -163,6 +168,10 @@ class RyuForwardFlowArgsBuilder():
             "actions": self._reg_sets + [self._dlink_action]
         })
         return [uplink, downlink]
+
+    def set_eth_type_ip(self):
+        self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
+        return self
 
     def _set_subscriber_match(self, sub_info):
         """ Sets up match/action for subscriber flows """

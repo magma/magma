@@ -10,9 +10,9 @@
 
 #include <devmand/Application.h>
 #include <devmand/Config.h>
-#include <devmand/FileUtils.h>
-#include <devmand/StringUtils.h>
 #include <devmand/magma/DevConf.h>
+#include <devmand/utils/FileUtils.h>
+#include <devmand/utils/StringUtils.h>
 
 namespace devmand {
 namespace magma {
@@ -21,12 +21,42 @@ static constexpr const char* ymlExt = ".yml";
 static constexpr const char* yamlExt = ".yaml";
 static constexpr const char* mconfigExt = ".mconfig";
 
+static folly::dynamic parsePluginConfigFromYaml(
+    const std::string& deviceConfigurationFile) {
+  try {
+    YAML::Node devicesFile = YAML::LoadFile(deviceConfigurationFile);
+    const YAML::Node& pluginConfigYamlNode = devicesFile["pluginConfig"];
+    if (pluginConfigYamlNode.IsScalar()) {
+      const string& filename = pluginConfigYamlNode.as<std::string>();
+      LOG(INFO) << "Loading plugin config file: " << filename;
+      string pluginConfigContent = FileUtils::readContents(filename);
+      return folly::parseJson(pluginConfigContent);
+    } else {
+      LOG(INFO) << "Not loading plugin config file";
+    }
+  } catch (const YAML::Exception& e) {
+    LOG(ERROR) << "Bad devices file " << deviceConfigurationFile << " "
+               << e.what();
+  }
+  return folly::dynamic::object();
+}
+
+static folly::dynamic loadPluginConfig(
+    const std::experimental::filesystem::path deviceConfigurationFile,
+    ConfigFileMode mode) {
+  if (mode == ConfigFileMode::Yaml) {
+    return parsePluginConfigFromYaml(deviceConfigurationFile.native());
+  }
+  return folly::dynamic::object();
+}
+
 DevConf::DevConf(
     folly::EventBase& eventBase,
     const std::string& _deviceConfigurationFile)
     : watcher(eventBase),
       deviceConfigurationFile(_deviceConfigurationFile),
-      mode(getConfigFileMode(deviceConfigurationFile.native())) {}
+      mode(getConfigFileMode(deviceConfigurationFile.native())),
+      pluginConfig(loadPluginConfig(deviceConfigurationFile, mode)) {}
 
 void DevConf::enable() {
   // this could go out of scope so handle with a weak ptr.
@@ -69,9 +99,10 @@ bool DevConf::isDeviceConfFileModifyEvent(FileWatchEvent watchEvent) const {
 }
 
 void DevConf::handleFileWatchEvent(FileWatchEvent watchEvent) {
-  LOG(INFO) << "Handling file watch event "
-            << static_cast<int>(watchEvent.event) << " on '"
-            << watchEvent.filename << "'";
+  // TODO make this debug level
+  // LOG(INFO) << "Handling file watch event "
+  //          << static_cast<int>(watchEvent.event) << " on '"
+  //          << watchEvent.filename << "'";
 
   if (isDeviceConfDirModifyEvent(watchEvent) or
       isDeviceConfFileModifyEvent(watchEvent)) {
@@ -125,6 +156,7 @@ cartography::DeviceConfigs DevConf::parseYamlDeviceConfigs(
       deviceConfig.id = device["id"].as<std::string>();
       deviceConfig.platform = device["platform"].as<std::string>();
       deviceConfig.ip = device["ip"].as<std::string>();
+      deviceConfig.readonly = device["readonly"].as<bool>();
 
       if (device["yangConfig"]) {
         deviceConfig.yangConfig =
@@ -183,14 +215,22 @@ static void populateOtherChannelConfig(
     cartography::DeviceConfig& deviceConfig,
     const folly::dynamic& device) {
   auto* channel = device.get_ptr("otherChannel");
+  bool isCli = false;
   if (channel != nullptr) {
     if (channel->isObject()) {
       cartography::ChannelConfig channelConfig;
       for (auto&& kv : (*channel)["channelProps"].items()) {
         channelConfig.kvPairs.emplace(
             kv.first.asString(), kv.second.asString());
+        if (kv.first.asString() == "cname") {
+          isCli = kv.second.asString() == "cli";
+        }
       }
-      deviceConfig.channelConfigs.emplace("other", channelConfig);
+      if (isCli) {
+        deviceConfig.channelConfigs.emplace("cli", channelConfig);
+      } else {
+        deviceConfig.channelConfigs.emplace("other", channelConfig);
+      }
     }
   }
 }
@@ -208,6 +248,10 @@ cartography::DeviceConfigs DevConf::parseMconfigDeviceConfigs(
         deviceConfig.id = device.first.asString();
         deviceConfig.platform = device.second["platform"].asString();
         deviceConfig.ip = device.second["host"].asString();
+        if (device.second.get_ptr("readonly") != nullptr) {
+          // TODO make this term configurable
+          deviceConfig.readonly = device.second["readonly"].asBool();
+        }
         if (device.second.get_ptr("deviceConfig") != nullptr) {
           deviceConfig.yangConfig = device.second["deviceConfig"].asString();
         }
@@ -244,6 +288,10 @@ cartography::DeviceConfigs DevConf::parseMconfigDeviceConfigs(
                << e.what();
   }
   return newDeviceConfigs;
+}
+
+folly::dynamic DevConf::getPluginConfig() {
+  return pluginConfig;
 }
 
 } // namespace magma

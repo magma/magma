@@ -16,6 +16,7 @@ build_status=${PIPESTATUS[0]}
 docker_registry=${SYMPHONY_DOCKER_REGISTRY:="facebookconnectivity-southpoll-dev-docker.jfrog.io"}
 if [ "$build_status" -eq 0 ]; then
   docker rm -f devmand
+  # TODO see if we can use the docker compose file to run this
   docker run -it --cap-add NET_RAW --cap-add NET_ADMIN --cap-add SYS_PTRACE \
       --name devmand \
       -v "$(realpath ../):/cache/devmand/repo:ro" \

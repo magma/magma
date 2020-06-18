@@ -46,6 +46,9 @@ if (NOT FUZZ)
   set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS} -g -DMALLOC_CHECK_=3  -DDEBUG_IS_ON -O1")
   set(CMAKE_EXE_LINKER_FLAGS_DEBUG  "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fsanitize=address")
 
+  set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_IS_ON=1")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG_IS_ON=1")
+
   # Add Gcov flags
   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
   # Add gcov linker flags
@@ -60,7 +63,7 @@ endif (NOT FUZZ)
 ################################################################
 # Set proto directory for state proto definitions
 ################################################################
-set(STATE_PROTO_DIR ${PROJECT_SOURCE_DIR}/protos)
+set(STATE_PROTO_DIR $ENV{MAGMA_ROOT}/lte/protos/oai)
 
 ################################################################
 # S1AP LAYER OPTIONS

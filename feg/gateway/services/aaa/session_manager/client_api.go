@@ -12,8 +12,8 @@ package session_manager
 import (
 	"errors"
 	"fmt"
-	"log"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
@@ -30,7 +30,7 @@ func getSessionManagerClient() (*sessionManagerClient, error) {
 	conn, err := registry.GetConnection(registry.SESSION_MANAGER)
 	if err != nil {
 		errMsg := fmt.Sprintf("Local SessionManager client initialization error: %s", err)
-		log.Printf(errMsg)
+		glog.Error(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	return &sessionManagerClient{protos.NewLocalSessionManagerClient(conn)}, err
@@ -59,9 +59,9 @@ func CreateSession(in *protos.LocalCreateSessionRequest) (*protos.LocalCreateSes
 	return cli.CreateSession(context.Background(), in)
 }
 
-func EndSession(in *protos.SubscriberID) (*protos.LocalEndSessionResponse, error) {
+func EndSession(in *protos.LocalEndSessionRequest) (*protos.LocalEndSessionResponse, error) {
 	if in == nil {
-		return nil, errors.New("Nil SubscriberID")
+		return nil, errors.New("Nil LocalEndSessionRequest")
 	}
 	cli, err := getSessionManagerClient()
 	if err != nil {

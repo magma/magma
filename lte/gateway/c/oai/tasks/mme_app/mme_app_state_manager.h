@@ -25,8 +25,7 @@ extern "C" {
 #include "mme_config.h"
 }
 
-#include <cpp_redis/cpp_redis>
-
+#include <state_manager.h>
 #include "mme_app_state_converter.h"
 #include "ServiceConfigLoader.h"
 
@@ -38,7 +37,9 @@ namespace lte {
  * and freeing state structs, and writing/reading state to db.
  */
 
-class MmeNasStateManager {
+class MmeNasStateManager : public StateManager<
+                               mme_app_desc_t, ue_mm_context_t, oai::MmeNasState,
+                               oai::UeContext, MmeNasStateConverter> {
  public:
   /**
    * Returns an instance of MmeNasStateManager, guaranteed to be thread safe and
@@ -50,20 +51,24 @@ class MmeNasStateManager {
   int initialize_state(const mme_config_t* mme_config_p);
 
   /**
-   * Write MME NAS state to redis. This function locks the in-memory state
-   * structure to maintain thread-safety between MME and NAS task
+   * Retrieve the state pointer from state manager. The read_from_db flag is a
+   * debug flag; if set to true, the state is loaded from the data store on
+   * every get.
    */
-  void write_state_to_db();
+  mme_app_desc_t* get_state(bool read_from_db) override;
 
-  // Retrieve the state pointer from state manager
-  mme_app_desc_t* get_mme_nas_state(bool read_from_db);
+  /**
+   * Release the memory for MME NAS state and destroy the read-write lock. This
+   * is only called when task terminates
+   */
 
-  // Release the memory for MME NAS state, when task terminates
-  void free_in_memory_mme_nas_state();
+  void free_state() override;
+
+  int read_ue_state_from_db() override;
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.
-   * Making them public for better debugging logging.
+   * Making them public for better debugging/logging.
    */
   MmeNasStateManager(MmeNasStateManager const&) = delete;
   MmeNasStateManager& operator=(MmeNasStateManager const&) = delete;
@@ -75,33 +80,27 @@ class MmeNasStateManager {
   // Destructor for MME NAS state manager
   ~MmeNasStateManager();
 
-  // flag to assert if singleton instance has been initialized
-  bool is_initialized_;
-  mme_app_desc_t* mme_nas_state_p_; // TODO: convert to unique_ptr
-  bool persist_state_;
-  std::unique_ptr<cpp_redis::client> mme_nas_db_client_;
   int max_ue_htbl_lists_;
   uint32_t mme_statistic_timer_;
-  bool mme_nas_state_dirty_; // TODO: convert this to version numbers
 
   // Initialize state that is non-persistent, e.g. mutex locks and timers
-  void mme_nas_state_init_local_state(mme_app_desc_t* state_p);
+  void mme_nas_state_init_local_state();
 
-  // Establish connection with the data store
-  int initialize_db_connection();
+  // Create in-memory hashtables for MME NAS state
+  void create_hashtables();
 
-  /**
-   * Read MME NAS state from redis. This function locks the in-memory state
-   * structure to maintain thread-safety between MME and NAS task
-   */
-  int read_state_from_db();
+  // Write an empty value to data store, if needed for debugging
+  void clear_db_state();
 
   /**
    * Initialize memory for MME state before reading from data-store, the state
    * manager owns the memory allocated for MME state and frees it when the
    * task terminates
    */
-  mme_app_desc_t* create_mme_nas_state();
+  void create_state() override;
+
+  // Clean-up the in-memory hashtables
+  void clear_mme_nas_hashtables();
 };
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

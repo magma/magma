@@ -207,6 +207,11 @@ else
 fi
 
 ###############################################################################
+# TODO make this a cmd line arg
+HOST_PUBLIC_ADDRESS=$(curl -s -4 h.facebook.com/diagnostics | \
+    grep HTTP_TFB_ORIG_CLIENT_IP | cut -d " " -f2)
+
+###############################################################################
 cat << EOF > docker-compose.override.yml
 version: '3.7'
 services:
@@ -217,7 +222,10 @@ services:
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
       - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}
+      - LOG_CLOUD_ADDRESS=${LOG_CLOUD_ADDRESS}
+      - LOG_CLOUD_PORT=${LOG_CLOUD_PORT}
       - DEVICE_CONFIG_FILE=/var/opt/magma/configs/gateway.mconfig
+      - HOST_PUBLIC_ADDRESS=${HOST_PUBLIC_ADDRESS}
 EOF
 
 ###############################################################################

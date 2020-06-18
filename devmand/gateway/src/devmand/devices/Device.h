@@ -14,12 +14,12 @@
 #include <folly/dynamic.h>
 #include <folly/futures/Future.h>
 
-#include <devmand/ErrorQueue.h>
 #include <devmand/UnifiedView.h>
-#include <devmand/YangUtils.h>
 #include <devmand/cartography/DeviceConfig.h>
+#include <devmand/devices/Datastore.h>
 #include <devmand/devices/Id.h>
-#include <devmand/devices/State.h>
+#include <devmand/error/ErrorQueue.h>
+#include <devmand/utils/YangUtils.h>
 
 namespace devmand {
 
@@ -29,11 +29,12 @@ namespace devices {
 
 enum class DeviceConfigType { YangJson, NativeConfigJson };
 
-class Device {
+// Loosely modeled on RFC 8342
+class Device : public std::enable_shared_from_this<Device> {
  public:
-  Device(Application& application, const Id& id_);
+  Device(Application& application, const Id& id_, bool readonly_);
   Device() = delete;
-  virtual ~Device() = default;
+  virtual ~Device();
   Device(const Device&) = delete;
   Device& operator=(const Device&) = delete;
   Device(Device&&) = delete;
@@ -43,7 +44,7 @@ class Device {
   /* This function returns in the future the state representing the device.
    * This state is a folly dynamic which can be serialized as json structured
    * by a yang datamodel. */
-  virtual std::shared_ptr<State> getState() = 0;
+  virtual std::shared_ptr<Datastore> getOperationalDatastore() = 0;
 
   /* This function asynchronously modifies the shared unified view (the common
    * way of looking at and operating on the network) with the state provided by
@@ -53,14 +54,15 @@ class Device {
   Id getId() const;
 
   /*
-   * Given a string config this method parses the config and passing it on
-   * to the correct handler to apply the config.
+   * Save the config to the running datastore..
    *
    * TODO provide a path to signal errors
    */
-  void applyConfig(const std::string& config);
+  void setRunningDatastore(const std::string& config);
 
   virtual DeviceConfigType getDeviceConfigType() const;
+
+  void tryToApplyRunningDatastore();
 
  protected:
   /*
@@ -68,7 +70,7 @@ class Device {
    * by the json overload of apply config. This is normally what users will
    * implement.
    */
-  virtual void setConfig(const folly::dynamic& config) = 0;
+  virtual void setIntendedDatastore(const folly::dynamic& config) = 0;
 
   /*
    * Inherited method to override in device instances. This is called by the
@@ -80,10 +82,19 @@ class Device {
 
   folly::dynamic lookup(const YangPath& path) const;
 
+  folly::dynamic getIntendedDatastore() const;
+
+ private:
+  bool isReadonly() const;
+
  protected:
   Application& app;
   Id id;
-  folly::dynamic lastConfig;
+  const bool readonly;
+  folly::dynamic runningDatastore;
+  folly::dynamic intendedDatastore;
+  folly::dynamic operationalDatastore;
+  // TODO std::map<std::string, Platform> platforms;
 };
 
 } // namespace devices

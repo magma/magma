@@ -13,11 +13,14 @@ import (
 	"sort"
 	"strconv"
 
-	"magma/orc8r/cloud/go/metrics"
+	"magma/orc8r/lib/go/metrics"
+	"magma/orc8r/lib/go/protos"
 
 	dto "github.com/prometheus/client_model/go"
 )
 
+// Sample is a flattened version of a metric providing a single name-value
+// pairing, with accompanying metadata and labels.
 type Sample struct {
 	name        string
 	value       string
@@ -67,23 +70,23 @@ func (s *Sample) TimestampMs() int64 {
 
 // GetSamplesForMetrics takes a Metric protobuf and extracts Samples from them
 // since there may be multiple Samples per a single Metric instance
-func GetSamplesForMetrics(metricAndContext MetricAndContext, metric *dto.Metric) []Sample {
+func GetSamplesForMetrics(metricAndContext *protos.MetricAndContext, metric *dto.Metric) []Sample {
 	context := metricAndContext.Context
 	family := metricAndContext.Family
 	var entity string
 	labels := metric.Label
 
-	switch additionalCtx := metricAndContext.Context.AdditionalContext.(type) {
-	case *CloudMetricContext:
-		entity = fmt.Sprintf("cloud.%s", additionalCtx.CloudHost)
-	case *GatewayMetricContext:
-		entity = fmt.Sprintf("%s.%s", additionalCtx.NetworkID, additionalCtx.GatewayID)
-	case *PushedMetricContext:
+	switch additionalCtx := metricAndContext.Context.GetMetricOriginContext().(type) {
+	case *protos.MetricContext_CloudMetric:
+		entity = fmt.Sprintf("cloud.%s", additionalCtx.CloudMetric.CloudHost)
+	case *protos.MetricContext_GatewayMetric:
+		entity = fmt.Sprintf("%s.%s", additionalCtx.GatewayMetric.NetworkId, additionalCtx.GatewayMetric.GatewayId)
+	case *protos.MetricContext_PushedMetric:
 		gatewayID := popLabel(&labels, metrics.GatewayLabelName)
 		if gatewayID == "" {
-			entity = additionalCtx.NetworkID
+			entity = additionalCtx.PushedMetric.NetworkId
 		} else {
-			entity = fmt.Sprintf("%s.%s", additionalCtx.NetworkID, gatewayID)
+			entity = fmt.Sprintf("%s.%s", additionalCtx.PushedMetric.NetworkId, gatewayID)
 		}
 	}
 

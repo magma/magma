@@ -6,16 +6,16 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
 import unittest
 import warnings
 from concurrent.futures import Future
 
+from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.inout import INGRESS, EGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder, \
-    UDPPacketBuilder, ARPPacketBuilder
+    UDPPacketBuilder, ARPPacketBuilder, DHCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
     TestSetup,
@@ -34,6 +34,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     FlowTest,
     SnapshotVerifier,
 )
+from ryu.lib import hub
 
 
 class UEMacAddressTest(unittest.TestCase):
@@ -44,7 +45,10 @@ class UEMacAddressTest(unittest.TestCase):
     BRIDGE_IP = '192.168.130.1'
 
     @classmethod
-    def setUpClass(cls):
+    @unittest.mock.patch('netifaces.ifaddresses',
+                return_value=[[{'addr': '00:aa:bb:cc:dd:ee'}]])
+    @unittest.mock.patch('netifaces.AF_LINK', 0)
+    def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps
 
@@ -54,7 +58,7 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([], include_ue_mac=True)
+        cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
         cls._tbl_num = cls.service_manager.get_table_num(
             UEMacAddressController.APP_NAME)
         cls._ingress_tbl_num = cls.service_manager.get_table_num(INGRESS)
@@ -65,22 +69,37 @@ class UEMacAddressTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.InOut,
+                  PipelinedController.Arp,
                   PipelinedController.UEMac,
-                  PipelinedController.Testing],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.InOut:
                     inout_controller_reference,
+                PipelinedController.Arp:
+                    Future(),
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
+                'setup_type': 'CWF',
+                'allow_unknown_arps': False,
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
+                'internal_ip_subnet': '192.168.0.0/16',
                 'ovs_gtp_port_number': 32768,
+                'virtual_interface': 'testing_br',
+                'local_ue_eth_addr': False,
+                'quota_check_ip': '1.2.3.4',
+                'clean_restart': True,
             },
-            mconfig=None,
+            mconfig=PipelineD(
+                ue_ip_block="192.168.128.0/24",
+            ),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
@@ -103,6 +122,8 @@ class UEMacAddressTest(unittest.TestCase):
         """
         imsi_1 = 'IMSI010000000088888'
         other_mac = '5e:cc:cc:b1:aa:aa'
+        cli_ip = '1.1.1.1'
+        server_ip = '151.42.41.122'
 
         # Add subscriber with UE MAC address """
         self.ue_mac_controller.add_ue_mac_flow(imsi_1, self.UE_MAC_1)
@@ -114,10 +135,12 @@ class UEMacAddressTest(unittest.TestCase):
         downlink_packet1 = EtherPacketBuilder() \
             .set_ether_layer(self.UE_MAC_1, other_mac) \
             .build()
-        dhcp_packet = UDPPacketBuilder() \
+        dhcp_packet = DHCPPacketBuilder() \
             .set_ether_layer(self.UE_MAC_1, other_mac) \
-            .set_ip_layer('151.42.41.122', '1.1.1.1') \
+            .set_ip_layer(server_ip, cli_ip) \
             .set_udp_layer(67, 68) \
+            .set_bootp_layer(2, cli_ip, server_ip, other_mac) \
+            .set_dhcp_layer([("message-type", "ack"), "end"]) \
             .build()
         dns_packet = UDPPacketBuilder() \
             .set_ether_layer(self.UE_MAC_1, other_mac) \
@@ -125,11 +148,11 @@ class UEMacAddressTest(unittest.TestCase):
             .set_udp_layer(53, 32795) \
             .build()
         arp_packet = ARPPacketBuilder() \
-            .set_arp_layer('151.42.41.122') \
+            .set_ether_layer(self.UE_MAC_1, other_mac) \
+            .set_arp_layer('1.1.1.1') \
             .set_arp_hwdst(self.UE_MAC_1) \
-            .set_arp_src(other_mac, '1.1.1.1') \
+            .set_arp_src(other_mac, '1.1.1.12') \
             .build()
-
 
         # Check if these flows were added (queries should return flows)
         flow_queries = [
@@ -138,27 +161,28 @@ class UEMacAddressTest(unittest.TestCase):
         ]
 
         # =========================== Verification ===========================
-        # Verify 9 flows installed for ue_mac table (3 pkts matched)
+        # Verify 3 flows installed for ue_mac table (3 pkts matched)
         #        4 flows installed for inout (3 pkts matched)
         #        2 flows installed (2 pkts matches)
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num,
-                                   self.testing_controller), 4, 9),
+                                   self.testing_controller), 4, 3),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
-                                   self.testing_controller), 4, 4),
+                                   self.testing_controller), 4, 2),
                 FlowTest(FlowQuery(self._egress_tbl_num,
                                    self.testing_controller), 3, 2),
-                FlowTest(flow_queries[0], 3, 4),
+                FlowTest(flow_queries[0], 4, 1),
             ], lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
         with flow_verifier, snapshot_verifier:
-            pkt_sender.send(downlink_packet1)
             pkt_sender.send(dhcp_packet)
+            pkt_sender.send(downlink_packet1)
             pkt_sender.send(dns_packet)
+            hub.sleep(3)
             pkt_sender.send(arp_packet)
 
         flow_verifier.verify()

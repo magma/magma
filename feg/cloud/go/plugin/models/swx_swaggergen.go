@@ -6,10 +6,13 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"strconv"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // Swx swx configuration
@@ -22,11 +25,17 @@ type Swx struct {
 	// derive unregister realm
 	DeriveUnregisterRealm bool `json:"derive_unregister_realm,omitempty"`
 
+	// hlr plmn ids
+	HlrPlmnIds []string `json:"hlr_plmn_ids"`
+
 	// register on auth
 	RegisterOnAuth bool `json:"register_on_auth,omitempty"`
 
 	// server
 	Server *DiameterClientConfigs `json:"server,omitempty"`
+
+	// servers
+	Servers []*DiameterClientConfigs `json:"servers"`
 
 	// verify authorization
 	VerifyAuthorization bool `json:"verify_authorization,omitempty"`
@@ -36,13 +45,46 @@ type Swx struct {
 func (m *Swx) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateHlrPlmnIds(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateServer(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServers(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *Swx) validateHlrPlmnIds(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HlrPlmnIds) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.HlrPlmnIds); i++ {
+
+		if err := validate.MinLength("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), 5); err != nil {
+			return err
+		}
+
+		if err := validate.MaxLength("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), 6); err != nil {
+			return err
+		}
+
+		if err := validate.Pattern("hlr_plmn_ids"+"."+strconv.Itoa(i), "body", string(m.HlrPlmnIds[i]), `^(\d{5,6})$`); err != nil {
+			return err
+		}
+
+	}
+
 	return nil
 }
 
@@ -59,6 +101,31 @@ func (m *Swx) validateServer(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Swx) validateServers(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Servers) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.Servers); i++ {
+		if swag.IsZero(m.Servers[i]) { // not required
+			continue
+		}
+
+		if m.Servers[i] != nil {
+			if err := m.Servers[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("servers" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
 	}
 
 	return nil

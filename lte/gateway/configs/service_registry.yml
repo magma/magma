@@ -20,9 +20,6 @@ services:
   mobilityd:
     ip_address: 127.0.0.1
     port: 60051
-  metering:
-    ip_address: 127.0.0.1
-    port: 60052
   enodebd:
     ip_address: 127.0.0.1
     port: 60055
@@ -35,9 +32,6 @@ services:
   pipelined:
     ip_address: 127.0.0.1
     port: 50063
-  s6a_service:
-    ip_address: 127.0.0.1
-    port: 50064
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
@@ -50,21 +44,30 @@ services:
   policydb:
     ip_address: 127.0.0.1
     port: 50068
-  sgs_service:
-    ip_address: 127.0.0.1
-    port: 50069
   vpnservice:
     ip_address: 127.0.0.1
     port: 50070
   redirectd:
     ip_address: 127.0.0.1
     port: 50071
-  captive_portal:
+  sgs_service:
     ip_address: 127.0.0.1
-    port: 50072
+    port: 50073
+  s6a_service:
+    ip_address: 127.0.0.1
+    port: 50073
   spgw_service:
     ip_address: 127.0.0.1
     port: 50073
   state:
     ip_address: 127.0.0.1
     port: 50074
+  eventd:
+    ip_address: 127.0.0.1
+    port: 50075
+  monitord:
+    ip_address: 127.0.0.1
+    port: 50076
+  dpid:
+    ip_address: 127.0.0.1
+    port: 50077

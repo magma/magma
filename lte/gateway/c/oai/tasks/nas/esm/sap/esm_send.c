@@ -343,7 +343,7 @@ int esm_send_activate_default_eps_bearer_context_request(
     msg->esmcause = esm_cause;
   }
 
-  if (pco) {
+  if (pco->num_protocol_or_container_id) {
     msg->presencemask |=
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
     copy_protocol_configuration_options(

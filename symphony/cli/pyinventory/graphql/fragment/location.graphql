@@ -1,0 +1,13 @@
+fragment LocationFragment on Location {
+  id
+  name
+  latitude
+  longitude
+  externalId
+  locationType {
+    name
+  }
+  properties {
+    ...PropertyFragment
+  }
+}

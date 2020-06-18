@@ -9,49 +9,29 @@
 package models
 
 import (
+	"encoding/base64"
 	"fmt"
-	"reflect"
 	"sort"
+	"time"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
+	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
 )
-
-func (m *LteNetwork) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-
-	var res []error
-	if err := m.Cellular.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-	if err := m.DNS.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-	if err := m.Features.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
 
 func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
 	return &LteNetwork{}
@@ -92,33 +72,36 @@ func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 		m.Cellular = cfg.(*NetworkCellularConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
-		m.DNS = cfg.(*models2.NetworkDNSConfig)
+		m.DNS = cfg.(*orc8rModels.NetworkDNSConfig)
 	}
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8rModels.NetworkFeatures)
+	}
+	if cfg := n.Configs[lte.NetworkSubscriberConfigType]; cfg != nil {
+		m.SubscriberConfig = cfg.(*NetworkSubscriberConfig)
 	}
 	return m
 }
 
 func (m *NetworkCellularConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, m), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, m), nil
 }
 
 func (m *NetworkCellularConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	return orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 }
 
 func (m FegNetworkID) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).FegNetworkID = m
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
 }
 
 func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -126,16 +109,16 @@ func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
 }
 
 func (m *NetworkEpcConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).Epc = m
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
 }
 
 func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -143,20 +126,68 @@ func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interfa
 }
 
 func (m *NetworkRanConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).Ran = m
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
 }
 
 func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := models2.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
 	if iCellularConfig == nil {
 		return nil
 	}
 	return iCellularConfig.(*NetworkCellularConfigs).Ran
+}
+
+func (m *NetworkSubscriberConfig) GetFromNetwork(network configurator.Network) interface{} {
+	res := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if res == nil {
+		return &NetworkSubscriberConfig{}
+	}
+	return res
+}
+
+func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, m), nil
+}
+
+func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		return RuleNames{}
+	}
+	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames
+}
+
+func (m *RuleNames) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		// allow update even not previously defined
+		iNetworkSubscriberConfig = &NetworkSubscriberConfig{}
+	}
+	iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideRuleNames = *m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, iNetworkSubscriberConfig), nil
+}
+
+func (m *BaseNames) GetFromNetwork(network configurator.Network) interface{} {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		return BaseNames{}
+	}
+	return iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames
+}
+
+func (m *BaseNames) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
+	if iNetworkSubscriberConfig == nil {
+		// allow update even not previously defined
+		iNetworkSubscriberConfig = &NetworkSubscriberConfig{}
+	}
+	iNetworkSubscriberConfig.(*NetworkSubscriberConfig).NetworkWideBaseNames = *m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, iNetworkSubscriberConfig), nil
 }
 
 func (m *LteGateway) ValidateModel() error {
@@ -165,11 +196,11 @@ func (m *LteGateway) ValidateModel() error {
 
 func (m *LteGateway) FromBackendModels(
 	magmadGateway, cellularGateway configurator.NetworkEntity,
-	device *models2.GatewayDevice,
-	status *models2.GatewayStatus,
+	device *orc8rModels.GatewayDevice,
+	status *orc8rModels.GatewayStatus,
 ) handlers.GatewayModel {
 	// delegate most of the fillin to magmad gateway struct
-	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 
@@ -206,8 +237,8 @@ func (m *MutableLteGateway) ValidateModel() error {
 	return nil
 }
 
-func (m *MutableLteGateway) GetMagmadGateway() *models2.MagmadGateway {
-	return &models2.MagmadGateway{
+func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
+	return &orc8rModels.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
 		ID:          m.ID,
@@ -396,6 +427,7 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
+	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
 		m.Config = ent.Config.(*EnodebConfiguration)
@@ -410,19 +442,41 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 
 func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
-		Key:       m.Serial,
-		NewName:   swag.String(m.Name),
-		NewConfig: m.Config,
+		Type:           lte.CellularEnodebType,
+		Key:            m.Serial,
+		NewName:        swag.String(m.Name),
+		NewDescription: swag.String(m.Description),
+		NewConfig:      m.Config,
 	}
 }
 
-func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity) *Subscriber {
-	m.ID = ent.Key
+func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByType map[string]state_types.State) *Subscriber {
+	m.ID = SubscriberID(ent.Key)
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"
 	if m.Lte.SubProfile == "" {
 		m.Lte.SubProfile = "default"
+	}
+	for _, tk := range ent.Associations {
+		if tk.Type == lte.ApnEntityType {
+			m.ActiveApns = append(m.ActiveApns, tk.Key)
+		}
+	}
+
+	if !funk.IsEmpty(statesByType) {
+		m.Monitoring = &SubscriberStatus{}
+	}
+
+	for stateType, stateVal := range statesByType {
+		switch stateType {
+		case lte.ICMPStateType:
+			reportedState := stateVal.ReportedState.(*IcmpStatus)
+			// reported time is unix timestamp in seconds, so divide ms by 1k
+			reportedState.LastReportedTime = int64(stateVal.TimeMs / uint64(time.Second/time.Millisecond))
+			m.Monitoring.Icmp = reportedState
+		default:
+			glog.Errorf("Loaded unrecognized subscriber state type %s", stateType)
+		}
 	}
 	return m
 }
@@ -435,7 +489,7 @@ func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
 		Type:         lte.BaseNameEntityType,
 		Key:          string(m.Name),
-		Associations: m.RuleNames.ToAssocs(),
+		Associations: m.getAssociations(),
 	}
 }
 
@@ -444,9 +498,28 @@ func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRec
 	for _, tk := range ent.Associations {
 		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
+		} else if tk.Type == lte.SubscriberEntityType {
+			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(tk.Key))
 		}
 	}
 	return m
+}
+
+func (m *BaseNameRecord) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:              lte.BaseNameEntityType,
+		Key:               string(m.Name),
+		AssociationsToSet: m.getAssociations(),
+	}
+}
+
+func (m *BaseNameRecord) getAssociations() []storage.TypeAndKey {
+	allAssocs := make([]storage.TypeAndKey, 0, len(m.RuleNames)+len(m.AssignedSubscribers))
+	allAssocs = append(allAssocs, m.RuleNames.ToAssocs()...)
+	for _, sid := range m.AssignedSubscribers {
+		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return allAssocs
 }
 
 func (m RuleNames) ToAssocs() []storage.TypeAndKey {
@@ -459,84 +532,194 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
-	return configurator.NetworkEntity{
+	ret := configurator.NetworkEntity{
 		Type:   lte.PolicyRuleEntityType,
-		Key:    *m.ID,
+		Key:    string(m.ID),
+		Config: m.getConfig(),
+	}
+	for _, sid := range m.AssignedSubscribers {
+		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return ret
+}
+
+func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
+	m.ID = PolicyID(ent.Key)
+	m.fillFromConfig(ent.Config)
+	for _, assoc := range ent.Associations {
+		if assoc.Type == lte.SubscriberEntityType {
+			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
+		}
+	}
+	return m
+}
+
+func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      lte.PolicyRuleEntityType,
+		Key:       string(m.ID),
+		NewConfig: m.getConfig(),
+	}
+	for _, sid := range m.AssignedSubscribers {
+		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return ret
+}
+
+func (m *PolicyRule) getConfig() *PolicyRuleConfig {
+	return &PolicyRuleConfig{
+		FlowList:       m.FlowList,
+		MonitoringKey:  m.MonitoringKey,
+		Priority:       m.Priority,
+		Qos:            m.Qos,
+		RatingGroup:    m.RatingGroup,
+		Redirect:       m.Redirect,
+		TrackingType:   m.TrackingType,
+		AppName:        m.AppName,
+		AppServiceType: m.AppServiceType,
+	}
+}
+
+func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
+	if entConfig == nil {
+		return m
+	}
+	cfg := entConfig.(*PolicyRuleConfig)
+	monKey := cfg.MonitoringKey
+	_, err := base64.StdEncoding.DecodeString(monKey)
+	if err != nil { // if not base64 - encode it for future use
+		monKey = base64.StdEncoding.EncodeToString([]byte(monKey))
+	}
+	m.FlowList = cfg.FlowList
+	m.MonitoringKey = monKey
+	m.Priority = cfg.Priority
+	m.Qos = cfg.Qos
+	m.RatingGroup = cfg.RatingGroup
+	m.Redirect = cfg.Redirect
+	m.TrackingType = cfg.TrackingType
+	m.AppName = cfg.AppName
+	m.AppServiceType = cfg.AppServiceType
+	return m
+}
+
+func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
+	var (
+		protoMKey = []byte{}
+		err       error
+	)
+	if len(m.MonitoringKey) > 0 {
+		if protoMKey, err = base64.StdEncoding.DecodeString(m.MonitoringKey); err != nil {
+			glog.Warningf("Can't decode Monitoring Key '%q' for rule ID '%s', will use as is. Err: %v",
+				m.MonitoringKey, id, err)
+			protoMKey = []byte(m.MonitoringKey)
+		}
+	}
+	rule := &protos.PolicyRule{
+		Id:             id,
+		Priority:       swag.Uint32Value(m.Priority),
+		RatingGroup:    m.RatingGroup,
+		MonitoringKey:  protoMKey,
+		TrackingType:   protos.PolicyRule_TrackingType(protos.PolicyRule_TrackingType_value[m.TrackingType]),
+		AppName:        protos.PolicyRule_AppName(protos.PolicyRule_AppName_value[m.AppName]),
+		AppServiceType: protos.PolicyRule_AppServiceType(protos.PolicyRule_AppServiceType_value[m.AppServiceType]),
+		HardTimeout:    0,
+	}
+	if m.Redirect != nil {
+		rule.Redirect = m.Redirect.ToProto()
+	}
+	if m.Qos != nil {
+		rule.Qos = m.Qos.ToProto()
+	}
+	if m.FlowList != nil {
+		flowList := make([]*protos.FlowDescription, 0, len(m.FlowList))
+		for _, flow := range m.FlowList {
+			flowList = append(flowList, flow.ToProto())
+		}
+		rule.FlowList = flowList
+	}
+	return rule
+}
+
+func (m *RedirectInformation) ToProto() *protos.RedirectInformation {
+	return &protos.RedirectInformation{
+		Support:       protos.RedirectInformation_Support(protos.RedirectInformation_Support_value[swag.StringValue(m.Support)]),
+		AddressType:   protos.RedirectInformation_AddressType(protos.RedirectInformation_AddressType_value[swag.StringValue(m.AddressType)]),
+		ServerAddress: swag.StringValue(m.ServerAddress),
+	}
+}
+
+func (m *FlowQos) ToProto() *protos.FlowQos {
+	return &protos.FlowQos{
+		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
+		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
+		// The following values haven't been exposed via the API yet
+		GbrUl: 0,
+		GbrDl: 0,
+		Qci:   0,
+		Arp:   nil,
+	}
+}
+
+func (m *FlowDescription) ToProto() *protos.FlowDescription {
+	flowDescription := &protos.FlowDescription{
+		Action: protos.FlowDescription_Action(protos.FlowDescription_Action_value[swag.StringValue(m.Action)]),
+	}
+	orc8rProtos.FillIn(m, flowDescription)
+
+	flowDescription.Match = &protos.FlowMatch{
+		Direction: protos.FlowMatch_Direction(protos.FlowMatch_Direction_value[swag.StringValue(m.Match.Direction)]),
+		IpProto:   protos.FlowMatch_IPProto(protos.FlowMatch_IPProto_value[*m.Match.IPProto]),
+	}
+	orc8rProtos.FillIn(m.Match, flowDescription.Match)
+	return flowDescription
+}
+
+func (m *RatingGroup) ToEntity() configurator.NetworkEntity {
+	ret := configurator.NetworkEntity{
+		Type:   lte.RatingGroupEntityType,
+		Key:    fmt.Sprint(uint32(m.ID)),
 		Config: m,
 	}
+	return ret
 }
 
-// PolicyRule's ToProto fills in passed protos.PolicyRule struct from
-// receiver's protos.PolicyRule
-func (policyRule *PolicyRule) ToProto(pfrm proto.Message) error {
-	flowRuleProto, ok := pfrm.(*protos.PolicyRule)
-	if !ok {
-		return fmt.Errorf(
-			"Invalid Destination Type %s, *protos.PolicyRule expected",
-			reflect.TypeOf(pfrm))
+func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) (*RatingGroup, error) {
+	ratingGroupID, err := swag.ConvertUint32(ent.Key)
+	if err != nil {
+		return nil, err
 	}
-	if policyRule != nil || flowRuleProto != nil {
-		orcprotos.FillIn(policyRule, flowRuleProto)
-		trackingVal, ok := protos.PolicyRule_TrackingType_value[policyRule.TrackingType]
-		if ok {
-			flowRuleProto.TrackingType = protos.PolicyRule_TrackingType(trackingVal)
-		}
-		if flowRuleProto.FlowList == nil {
-			flowRuleProto.FlowList = flowListToProto(policyRule.FlowList)
-		}
-		if policyRule.Redirect != nil {
-			flowRuleProto.Redirect = redirectInfoToProto(policyRule.Redirect)
-		}
-		if policyRule.Priority != nil {
-			flowRuleProto.Priority = *policyRule.Priority
-		}
-		flowRuleProto.Id = *policyRule.ID
-		flowRuleProto.MonitoringKey = policyRule.MonitoringKey
-		flowRuleProto.RatingGroup = policyRule.RatingGroup
-	}
-	return nil
+	m.ID = RatingGroupID(ratingGroupID)
+	m = ent.Config.(*RatingGroup)
+	return m, nil
 }
 
-func redirectInfoToProto(redirectModel *RedirectInformation) *protos.RedirectInformation {
-	redirectProto := &protos.RedirectInformation{}
-	supportVal, ok := protos.RedirectInformation_Support_value[*redirectModel.Support]
-	if ok {
-		redirectProto.Support = protos.RedirectInformation_Support(supportVal)
+func (m *MutableRatingGroup) ToEntityUpdateCriteria(id uint32) configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      lte.RatingGroupEntityType,
+		Key:       fmt.Sprint(id),
+		NewConfig: m.ToRatingGroup(id),
 	}
-	addrTypeVal, ok := protos.RedirectInformation_AddressType_value[*redirectModel.AddressType]
-	if ok {
-		redirectProto.AddressType = protos.RedirectInformation_AddressType(addrTypeVal)
-	}
-	if redirectModel.ServerAddress != nil {
-		redirectProto.ServerAddress = *redirectModel.ServerAddress
-	}
-	return redirectProto
+	return ret
 }
 
-// Fill protos.PolicyRule.FlowList From passed protos.PolicyRule.FlowList
-func flowListToProto(flowList []*FlowDescription) []*protos.FlowDescription {
-	var s []*protos.FlowDescription
-	for i, flow := range flowList {
-		s = append(s, new(protos.FlowDescription))
-		orcprotos.FillIn(flow, s[i])
-		match := flow.Match
-		orcprotos.FillIn(match, s[i].Match)
-		if match.IPProto != nil {
-			protoVal, ok := protos.FlowMatch_IPProto_value[*match.IPProto]
-			if ok {
-				s[i].Match.IpProto = protos.FlowMatch_IPProto(protoVal)
-			}
-		}
-		directionVal, ok := protos.FlowMatch_Direction_value[*match.Direction]
-		if ok {
-			s[i].Match.Direction = protos.FlowMatch_Direction(directionVal)
-		}
-		if flow.Action != nil {
-			actionVal, ok := protos.FlowDescription_Action_value[*flow.Action]
-			if ok {
-				s[i].Action = protos.FlowDescription_Action(actionVal)
-			}
-		}
-	}
-	return s
+func (m *MutableRatingGroup) ToRatingGroup(id uint32) *RatingGroup {
+	ratingGroup := &RatingGroup{}
+	ratingGroup.ID = RatingGroupID(id)
+	ratingGroup.LimitType = m.LimitType
+	return ratingGroup
+}
+
+func (m *Apn) FromBackendModels(ent configurator.NetworkEntity) *Apn {
+	m.ApnName = ApnName(ent.Key)
+	m.ApnConfiguration = ent.Config.(*ApnConfiguration)
+	return m
+}
+
+func (m ApnList) ToAssocs() []storage.TypeAndKey {
+	return funk.Map(
+		m,
+		func(rn string) storage.TypeAndKey {
+			return storage.TypeAndKey{Type: lte.ApnEntityType, Key: rn}
+		},
+	).([]storage.TypeAndKey)
 }

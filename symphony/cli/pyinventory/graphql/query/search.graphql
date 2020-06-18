@@ -1,0 +1,29 @@
+query SearchQuery(
+  $name: String!
+  $after: Cursor
+  $first: Int = 10
+  $before: Cursor
+  $last: Int
+) {
+  searchForNode(
+    name: $name
+    after: $after
+    first: $first
+    before: $before
+    last: $last
+  ) {
+    edges {
+      node {
+        typename: __typename
+        ... on Location {
+          id
+          externalId
+          name
+          locationType {
+            name
+          }
+        }
+      }
+    }
+  }
+}

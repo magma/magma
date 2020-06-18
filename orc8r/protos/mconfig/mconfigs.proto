@@ -10,7 +10,7 @@ syntax = "proto3";
 import "orc8r/protos/common.proto";
 
 package magma.mconfig;
-option go_package = "magma/orc8r/cloud/go/protos/mconfig";
+option go_package = "magma/orc8r/lib/go/protos/mconfig";
 
 // ===========================================================================
 // Service-specific configs
@@ -75,6 +75,13 @@ message MagmaD {
     repeated string dynamic_services = 10;
 }
 
+//------------------------------------------------------------------------------
+// EventD configs
+//------------------------------------------------------------------------------
+message EventD {
+    orc8r.LogLevel log_level = 1;
+}
+
 message DirectoryD {
     orc8r.LogLevel log_level = 1;
 }
@@ -91,4 +98,17 @@ message MetricsD {
 //------------------------------------------------------------------------------
 message State {
     orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// Fluent Bit configs
+//------------------------------------------------------------------------------
+message FluentBit {
+    map<string, string> extra_tags = 1;
+
+    uint32 throttle_rate = 10;
+    uint32 throttle_window = 11;
+    string throttle_interval = 12;
+
+    map<string, string> files_by_tag = 20;
 }

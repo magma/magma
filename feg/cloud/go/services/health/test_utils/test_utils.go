@@ -16,6 +16,7 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
+	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
@@ -38,12 +39,12 @@ func GetHealthyRequest() *protos.HealthRequest {
 	}
 
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
-	serviceStatsMap["S6A_PROXY"] = &serviceStats
+	serviceStatsMap["SWX_PROXY"] = &serviceStats
 	serviceStatsMap["SESSION_PROXY"] = &serviceStats
 
 	healthStats1 := &protos.HealthStats{
 		SystemStatus: &protos.SystemHealthStats{
-			Time:              uint64(time.Now().UnixNano()) / uint64(time.Millisecond),
+			Time:              uint64(clock.Now().UnixNano()) / uint64(time.Millisecond),
 			CpuUtilPct:        0.25,
 			MemAvailableBytes: 7500000000,
 			MemTotalBytes:     8000000000,
@@ -53,7 +54,7 @@ func GetHealthyRequest() *protos.HealthRequest {
 			Health:        protos.HealthStatus_HEALTHY,
 			HealthMessage: "OK",
 		},
-		Time: uint64(time.Now().UnixNano()) / uint64(time.Millisecond),
+		Time: uint64(clock.Now().UnixNano()) / uint64(time.Millisecond),
 	}
 	return &protos.HealthRequest{
 		HealthStats: healthStats1,
@@ -70,12 +71,12 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 	}
 
 	serviceStatsMap := make(map[string]*protos.ServiceHealthStats)
-	serviceStatsMap["S6A_PROXY"] = &serviceStats
+	serviceStatsMap["SWX_PROXY"] = &serviceStats
 	serviceStatsMap["SESSION_PROXY"] = &serviceStats
 
 	healthStats1 := &protos.HealthStats{
 		SystemStatus: &protos.SystemHealthStats{
-			Time:              uint64(time.Now().Unix()),
+			Time:              uint64(clock.Now().Unix()),
 			CpuUtilPct:        0.25,
 			MemAvailableBytes: 7500000000,
 			MemTotalBytes:     8000000000,
@@ -83,9 +84,9 @@ func GetUnhealthyRequest() *protos.HealthRequest {
 		ServiceStatus: serviceStatsMap,
 		Health: &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: "Service: S6A_PROXY unhealthy",
+			HealthMessage: "Service: SWX_PROXY unhealthy",
 		},
-		Time: uint64(time.Now().UnixNano()) / uint64(time.Millisecond),
+		Time: uint64(clock.Now().UnixNano()) / uint64(time.Millisecond),
 	}
 	return &protos.HealthRequest{
 		HealthStats: healthStats1,

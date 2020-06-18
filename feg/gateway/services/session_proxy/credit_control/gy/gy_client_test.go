@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
@@ -34,19 +34,23 @@ const (
 	validityTime   = 3600
 )
 
+var defaultLocalServerConfig = diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+	Addr:     "127.0.0.1:0",
+	Protocol: "tcp"},
+}
+
 // TestGyClient tests CCR init, update, and terminate messages using a fake
 // server
 func TestGyClient(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:0",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("")
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(), nil,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
 	)
 
 	// send init
@@ -58,16 +62,18 @@ func TestGyClient(t *testing.T) {
 		Credits:       nil,
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gy.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
 	log.Printf("Sending CCR-Init")
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gy.GetAnswer(done)
 	log.Printf("Received CCA-Init")
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, len(answer.Credits), 0)
+	assertReceivedAPNonOCS(t, ocs, ccrInit.Apn)
 
 	// send multiple updates
 	ccrUpdates := []*gy.CreditControlRequest{
@@ -98,7 +104,7 @@ func TestGyClient(t *testing.T) {
 	}
 
 	for _, update := range ccrUpdates {
-		assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, update))
+		assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, update))
 	}
 
 	for i := 0; i < 2; i++ {
@@ -122,7 +128,7 @@ func TestGyClient(t *testing.T) {
 			TotalOctets:  3072,
 		}},
 	}
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrTerminate))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrTerminate))
 	terminate := gy.GetAnswer(done)
 	assert.Equal(t, len(terminate.Credits), 0)
 	assert.Equal(t, ccrTerminate.SessionID, terminate.SessionID)
@@ -130,24 +136,60 @@ func TestGyClient(t *testing.T) {
 
 	// Connection disabling should cause CCR to fail
 	gyClient.DisableConnections(10 * time.Second)
-	assert.Error(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.Error(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	// CCR Success after enabling connections
 	gyClient.EnableConnections()
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+}
+
+// TestGyClient test different options on global configuration
+func TestGyClientWithGyGlobalConf(t *testing.T) {
+	serverConfig := defaultLocalServerConfig
+
+	clientConfig := getClientConfig()
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	seedAccountConfigurations(ocs)
+	overWriteApn := "gy.Apn.magma.com"
+	gyGlobalConfig := getGyGlobalConfig(overWriteApn)
+	gyClient := gy.NewGyClient(
+		clientConfig,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
+	)
+
+	// send init
+	ccrInit := &gy.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI1,
+		RequestNumber: 0,
+		Credits:       nil,
+		UeIPV4:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gy.Apn.magma.com",
+	}
+	done := make(chan interface{}, 1000)
+
+	log.Printf("Sending CCR-Init with custom global parameters")
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gy.GetAnswer(done)
+	log.Printf("Received CCA-Init")
+	assertReceivedAPNonOCS(t, ocs, overWriteApn)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+	assert.Equal(t, len(answer.Credits), 0)
 }
 
 func TestGyClientOutOfCredit(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:0",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("")
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(), nil,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
 	)
 
 	// send init
@@ -161,7 +203,7 @@ func TestGyClientOutOfCredit(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 	}
 	done := make(chan interface{}, 1000)
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	gy.GetAnswer(done)
 
 	// send request with (total credits - used credits) < max usage (final units)
@@ -178,7 +220,7 @@ func TestGyClientOutOfCredit(t *testing.T) {
 		}},
 	}
 
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrUpdate))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))
 	update := gy.GetAnswer(done)
 	assert.Equal(t, uint64(10), *update.Credits[0].GrantedUnits.TotalOctets)
 	assert.True(t, update.Credits[0].IsFinal)
@@ -186,16 +228,15 @@ func TestGyClientOutOfCredit(t *testing.T) {
 }
 
 func TestGyClientPerKeyInit(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:0",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("")
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(), nil,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
 	)
 
 	// send inits
@@ -227,7 +268,7 @@ func TestGyClientPerKeyInit(t *testing.T) {
 
 	log.Printf("Sending CCR-Updates")
 	for _, init := range ccrInits {
-		assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, init))
+		assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, init))
 	}
 
 	for i := 0; i < 2; i++ {
@@ -240,16 +281,15 @@ func TestGyClientPerKeyInit(t *testing.T) {
 }
 
 func TestGyClientMultipleCredits(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:0",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	serverConfig, _ = startServer(clientConfig, serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("")
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(), nil,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
 	)
 
 	// send inits
@@ -275,7 +315,7 @@ func TestGyClientMultipleCredits(t *testing.T) {
 	done := make(chan interface{}, 1000)
 
 	log.Printf("Sending CCR-Init")
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	ans := gy.GetAnswer(done)
 	assert.Equal(t, ans.SessionID, ccrInit.SessionID)
@@ -289,16 +329,15 @@ func TestGyClientMultipleCredits(t *testing.T) {
 }
 
 func TestGyReAuth(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3874",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	serverConfig, ocs := startServer(clientConfig, serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("")
 	gyClient := gy.NewGyClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
-		getReAuthHandler(), nil,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
 	)
 
 	// send one init to set user context in OCS
@@ -319,14 +358,14 @@ func TestGyReAuth(t *testing.T) {
 	done := make(chan interface{}, 1000)
 
 	log.Printf("Sending CCR-Init")
-	assert.NoError(t, gyClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	gy.GetAnswer(done)
 
 	// success reauth
 	var rg uint32 = 1
 	raa, err := ocs.ReAuth(
 		context.Background(),
-		&fegprotos.ReAuthTarget{Imsi: testIMSI1, RatingGroup: rg},
+		&fegprotos.ChargingReAuthTarget{Imsi: testIMSI1, RatingGroup: rg},
 	)
 	assert.NoError(t, err)
 	assert.Equal(t, sessionID, raa.SessionId)
@@ -342,11 +381,13 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
-func startServer(
-	client *diameter.DiameterClientConfig,
-	server *diameter.DiameterServerConfig,
-	initMethod gy.InitMethod,
-) (*diameter.DiameterServerConfig, *mock_ocs.OCSDiamServer) {
+func getGyGlobalConfig(ocsOverwriteApn string) *gy.GyGlobalConfig {
+	return &gy.GyGlobalConfig{
+		OCSOverwriteApn: ocsOverwriteApn,
+	}
+}
+
+func startServer(client *diameter.DiameterClientConfig, server *diameter.DiameterServerConfig, initMethod gy.InitMethod) *mock_ocs.OCSDiamServer {
 	serverStarted := make(chan struct{})
 	var ocs *mock_ocs.OCSDiamServer
 	go func() {
@@ -354,50 +395,11 @@ func startServer(
 		ocs = mock_ocs.NewOCSDiamServer(
 			client,
 			&mock_ocs.OCSConfig{
-				MaxUsageBytes: returnedOctets,
-				MaxUsageTime:  1000,
-				ValidityTime:  validityTime,
-				ServerConfig:  server,
-				GyInitMethod:  initMethod,
-			},
-		)
-		ctx := context.Background()
-		ocs.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI1})
-		ocs.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI2})
-		ocs.SetCredit(
-			ctx,
-			&fegprotos.CreditInfo{
-				Imsi:        testIMSI1,
-				ChargingKey: 1,
-				Volume:      1000000,
-				UnitType:    fegprotos.CreditInfo_Bytes,
-			},
-		)
-		ocs.SetCredit(
-			ctx,
-			&fegprotos.CreditInfo{
-				Imsi:        testIMSI1,
-				ChargingKey: 2,
-				Volume:      1000000,
-				UnitType:    fegprotos.CreditInfo_Bytes,
-			},
-		)
-		ocs.SetCredit(
-			ctx,
-			&fegprotos.CreditInfo{
-				Imsi:        testIMSI1,
-				ChargingKey: 3,
-				Volume:      1000000,
-				UnitType:    fegprotos.CreditInfo_Bytes,
-			},
-		)
-		ocs.SetCredit(
-			ctx,
-			&fegprotos.CreditInfo{
-				Imsi:        testIMSI2,
-				ChargingKey: 1,
-				Volume:      1000000,
-				UnitType:    fegprotos.CreditInfo_Bytes,
+				MaxUsageOctets: &fegprotos.Octets{TotalOctets: returnedOctets},
+				MaxUsageTime:   1000,
+				ValidityTime:   validityTime,
+				ServerConfig:   server,
+				GyInitMethod:   initMethod,
 			},
 		)
 		lis, err := ocs.StartListener()
@@ -406,6 +408,7 @@ func startServer(
 			return
 		}
 		server.Addr = lis.Addr().String()
+		log.Printf("Server Addr: %v", server.Addr)
 		serverStarted <- struct{}{}
 		err = ocs.Start(lis)
 		if err != nil {
@@ -415,14 +418,65 @@ func startServer(
 	}()
 	<-serverStarted
 	time.Sleep(time.Millisecond)
-	return server, ocs
+	return ocs
 }
 
-func getReAuthHandler() gy.ReAuthHandler {
-	return gy.ReAuthHandler(func(request *gy.ReAuthRequest) *gy.ReAuthAnswer {
-		return &gy.ReAuthAnswer{
+func getReAuthHandler() gy.ChargingReAuthHandler {
+	return func(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
+		return &gy.ChargingReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}
-	})
+	}
+}
+
+func seedAccountConfigurations(ocs *mock_ocs.OCSDiamServer) {
+	ctx := context.Background()
+	ocs.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI1})
+	ocs.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI2})
+	ocs.SetCredit(
+		ctx,
+		&fegprotos.CreditInfo{
+			Imsi:        testIMSI1,
+			ChargingKey: 1,
+			Volume:      &fegprotos.Octets{TotalOctets: 1000000},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+	ocs.SetCredit(
+		ctx,
+		&fegprotos.CreditInfo{
+			Imsi:        testIMSI1,
+			ChargingKey: 2,
+			Volume:      &fegprotos.Octets{TotalOctets: 1000000},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+	ocs.SetCredit(
+		ctx,
+		&fegprotos.CreditInfo{
+			Imsi:        testIMSI1,
+			ChargingKey: 3,
+			Volume:      &fegprotos.Octets{TotalOctets: 1000000},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+	ocs.SetCredit(
+		ctx,
+		&fegprotos.CreditInfo{
+			Imsi:        testIMSI2,
+			ChargingKey: 1,
+			Volume:      &fegprotos.Octets{TotalOctets: 1000000},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+}
+
+// assertReceivedAPNonOCS checks if the last received AVP contains the expected APN
+func assertReceivedAPNonOCS(t *testing.T, ocs *mock_ocs.OCSDiamServer, expectedAPN string) {
+	avpReceived, err := ocs.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("UTF8String{%s},Padding:0", expectedAPN), receivedAPN.Data.String())
 }

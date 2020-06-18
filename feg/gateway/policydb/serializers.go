@@ -12,18 +12,20 @@ import (
 	"fmt"
 
 	"magma/feg/gateway/object_store"
-	"magma/lte/cloud/go/protos"
+	lteProtos "magma/lte/cloud/go/protos"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 )
 
-func getProtoSerializer() object_store.Serializer {
+func getRedisStateSerializer(serializer object_store.Serializer) object_store.Serializer {
 	return func(object interface{}) (string, error) {
-		msg, ok := object.(proto.Message)
-		if !ok {
-			return "", fmt.Errorf("Could not cast object to protobuf")
+		serialized, err := serializer(object)
+		if err != nil {
+			return "", fmt.Errorf("Could not marshal message")
 		}
-		bytes, err := proto.Marshal(msg)
+		redisState := &orc8rProtos.RedisState{SerializedMsg: []byte(serialized), Version: 0}
+		bytes, err := proto.Marshal(redisState)
 		if err != nil {
 			return "", fmt.Errorf("Could not marshal message")
 		}
@@ -31,9 +33,36 @@ func getProtoSerializer() object_store.Serializer {
 	}
 }
 
-func getPolicyDeserializer() object_store.Deserializer {
+func getRedisStateDeserializer(deserializer object_store.Deserializer) object_store.Deserializer {
 	return func(serialized string) (interface{}, error) {
-		policyPtr := &protos.PolicyRule{}
+		redisStatePtr := &orc8rProtos.RedisState{}
+		bytes := []byte(serialized)
+		err := proto.Unmarshal(bytes, redisStatePtr)
+		if err != nil {
+			return nil, err
+		}
+		return deserializer(string(redisStatePtr.SerializedMsg))
+	}
+}
+
+func GetPolicySerializer() object_store.Serializer {
+	serializer := func(object interface{}) (string, error) {
+		policy, ok := object.(*lteProtos.PolicyRule)
+		if !ok {
+			return "", fmt.Errorf("Could not cast object to protobuf")
+		}
+		bytes, err := proto.Marshal(policy)
+		if err != nil {
+			return "", fmt.Errorf("Could not marshal message")
+		}
+		return string(bytes[:]), nil
+	}
+	return getRedisStateSerializer(serializer)
+}
+
+func GetPolicyDeserializer() object_store.Deserializer {
+	deserializer := func(serialized string) (interface{}, error) {
+		policyPtr := &lteProtos.PolicyRule{}
 		bytes := []byte(serialized)
 		err := proto.Unmarshal(bytes, policyPtr)
 		if err != nil {
@@ -41,11 +70,27 @@ func getPolicyDeserializer() object_store.Deserializer {
 		}
 		return policyPtr, nil
 	}
+	return getRedisStateDeserializer(deserializer)
 }
 
-func getBaseNameDeserializer() object_store.Deserializer {
-	return func(serialized string) (interface{}, error) {
-		setPtr := &protos.ChargingRuleNameSet{}
+func GetBaseNameSerializer() object_store.Serializer {
+	serializer := func(object interface{}) (string, error) {
+		setPtr, ok := object.(*lteProtos.ChargingRuleNameSet)
+		if !ok {
+			return "", fmt.Errorf("Could not cast object to protobuf")
+		}
+		bytes, err := proto.Marshal(setPtr)
+		if err != nil {
+			return "", fmt.Errorf("Could not marshal message")
+		}
+		return string(bytes[:]), nil
+	}
+	return getRedisStateSerializer(serializer)
+}
+
+func GetBaseNameDeserializer() object_store.Deserializer {
+	deserializer := func(serialized string) (interface{}, error) {
+		setPtr := &lteProtos.ChargingRuleNameSet{}
 		bytes := []byte(serialized)
 		err := proto.Unmarshal(bytes, setPtr)
 		if err != nil {
@@ -53,4 +98,33 @@ func getBaseNameDeserializer() object_store.Deserializer {
 		}
 		return setPtr, nil
 	}
+	return getRedisStateDeserializer(deserializer)
+}
+
+func GetRuleMappingSerializer() object_store.Serializer {
+	serializer := func(object interface{}) (string, error) {
+		setPtr, ok := object.(*lteProtos.AssignedPolicies)
+		if !ok {
+			return "", fmt.Errorf("Could not cast object to protobuf")
+		}
+		bytes, err := proto.Marshal(setPtr)
+		if err != nil {
+			return "", fmt.Errorf("Could not marshal message")
+		}
+		return string(bytes[:]), nil
+	}
+	return getRedisStateSerializer(serializer)
+}
+
+func GetRuleMappingDeserializer() object_store.Deserializer {
+	deserializer := func(serialized string) (interface{}, error) {
+		setPtr := &lteProtos.AssignedPolicies{}
+		bytes := []byte(serialized)
+		err := proto.Unmarshal(bytes, setPtr)
+		if err != nil {
+			return nil, err
+		}
+		return setPtr, nil
+	}
+	return getRedisStateDeserializer(deserializer)
 }

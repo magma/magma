@@ -19,7 +19,6 @@
  *      contact@openairinterface.org
  */
 
-
 /*! \file mme_app_sgs_status.c
    \brief Handles  SGSAP Status message
    \author
@@ -32,7 +31,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "assertions.h"
 #include "conversions.h"
 #include "log.h"
 #include "service303.h"
@@ -41,15 +39,16 @@
 #include "mme_app_ue_context.h"
 #include "3gpp_29.018.h"
 #include "mme_app_itti_messaging.h"
+#include "nas_proc.h"
 
 static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
-    ue_mm_context_t *ue_context_p);
+  ue_mm_context_t* ue_context_p);
 
 static void _mme_app_handle_sgs_status_for_eps_detach_ind(
-    ue_mm_context_t *ue_context_p);
+  ue_mm_context_t* ue_context_p);
 
 static void _mme_app_handle_sgs_status_for_loc_upd_req(
-    ue_mm_context_t *ue_context_p);
+  ue_mm_context_t* ue_context_p);
 
 /****************************************************************************
  **                                                                        **
@@ -196,39 +195,42 @@ int mme_app_handle_sgs_status_message(mme_app_desc_t *mme_app_desc_p,
  ***************************************************************************/
 
 static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
-    ue_mm_context_t *ue_context_p) {
-  OAILOG_FUNC_IN (LOG_MME_APP);
+  ue_mm_context_t* ue_context_p)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (ue_context_p->sgs_context) {
     //Send the S1AP NAS DL DATA REQ in case of IMSI or combined EPS/IMSI detach
-    if((ue_context_p->detach_type ==
-        SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-      (ue_context_p->detach_type ==
+    if (
+      (ue_context_p->sgs_detach_type ==
+       SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
+      (ue_context_p->sgs_detach_type ==
        SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
-      itti_send_msg_to_task (TASK_S1AP, INSTANCE_DEFAULT,
-                                  ue_context_p->sgs_context->message_p);
+      itti_send_msg_to_task(
+        TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
       ue_context_p->sgs_context->message_p = NULL;
       /*
        Notify S1AP to send UE Context Release Command to eNB or
        free s1 context locally,if the ue requested for combined EPS/IMSI detach
        if the ue is in idle state and requested for IMSI detach
       */
-      if((ue_context_p->detach_type ==
-          SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) ||
-         ((ue_context_p->detach_type ==
+      if (
+        (ue_context_p->sgs_detach_type ==
+         SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS) ||
+        ((ue_context_p->sgs_detach_type ==
           SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) &&
          (ue_context_p->ue_context_rel_cause ==
-          S1AP_RADIO_EUTRAN_GENERATED_REASON)))  {
-        mme_app_itti_ue_context_release (ue_context_p,
-                                         ue_context_p->ue_context_rel_cause);
+          S1AP_RADIO_EUTRAN_GENERATED_REASON))) {
+        mme_app_itti_ue_context_release(
+          ue_context_p, ue_context_p->ue_context_rel_cause);
         ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
       }
     }
     // Free the UE SGS context
-    mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
-                                        ue_context_p->imsi);
+    mme_app_ue_sgs_context_free_content(
+      ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
   }
-  OAILOG_FUNC_OUT (LOG_MME_APP);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 /****************************************************************************
@@ -281,13 +283,14 @@ static void _mme_app_handle_sgs_status_for_eps_detach_ind(
  ***************************************************************************/
 
 static void _mme_app_handle_sgs_status_for_loc_upd_req(
-    ue_mm_context_t *ue_context_p) {
-  OAILOG_FUNC_IN (LOG_MME_APP);
-  lai_t *lai = NULL;
+  ue_mm_context_t* ue_context_p)
+{
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  lai_t* lai = NULL;
 
-  mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
-                                      ue_context_p->imsi);
-  send_cs_domain_loc_updt_fail_to_nas(SGS_PROTOCOL_ERROR_UNSPECIFIED, lai,
-                                      ue_context_p->mme_ue_s1ap_id);
-  OAILOG_FUNC_OUT (LOG_MME_APP);
+  mme_app_ue_sgs_context_free_content(
+    ue_context_p->sgs_context, ue_context_p->emm_context._imsi64);
+  nas_proc_cs_domain_location_updt_fail(
+    SGS_PROTOCOL_ERROR_UNSPECIFIED, lai, ue_context_p->mme_ue_s1ap_id);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }

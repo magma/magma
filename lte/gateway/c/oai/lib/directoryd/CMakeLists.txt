@@ -16,14 +16,14 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(LIB_DIRECTORYD
   directoryd.cpp
-  DirectorydClient.cpp
+  GatewayDirectorydClient.cpp
   ${PROTO_SRCS}
   ${PROTO_HDRS}
   )
 
 target_link_libraries(LIB_DIRECTORYD
   grpc grpc++
-  LIB_RPC_CLIENT ${ASYNC_GRPC} ${SERVICE_REGISTRY}
+  LIB_MOBILITY_CLIENT ${ASYNC_GRPC} ${SERVICE_REGISTRY}
   ${CONFIG}
 )
 

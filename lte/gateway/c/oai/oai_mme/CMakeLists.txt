@@ -34,12 +34,9 @@ add_executable(mme
     ${PROJECT_SOURCE_DIR}/oai_mme/oai_mme.c
     ${PROJECT_SOURCE_DIR}/common/common_types.c
     ${PROJECT_SOURCE_DIR}/common/itti_free_defined_msg.c
-    ${PROJECT_SOURCE_DIR}/tasks/nas/nas_mme_task.c
     ${PROJECT_SOURCE_DIR}/tasks/service303/service303_task.c
     ${PROJECT_SOURCE_DIR}/tasks/service303/service303_mme_stats.c
-    ${PROJECT_SOURCE_DIR}/tasks/s6a_service/s6a_service_task.c
-    ${PROJECT_SOURCE_DIR}/tasks/sgs_service/sgs_service_task.c
-    ${PROJECT_SOURCE_DIR}/tasks/spgw_service/spgw_service_task.c
+    ${PROJECT_SOURCE_DIR}/tasks/grpc_service/grpc_service_task.c
 )
 
 target_link_libraries(mme
@@ -47,8 +44,8 @@ target_link_libraries(mme
         COMMON
         LIB_3GPP LIB_S1AP LIB_SECU LIB_DIRECTORYD LIB_SGS_CLIENT LIB_BSTR
         LIB_HASHTABLE LIB_S6A_PROXY
-        TASK_S1AP TASK_SCTP_SERVER TASK_SGS_SERVICE TASK_SGS
-        TASK_S6A TASK_MME_APP TASK_S6A_SERVICE TASK_SPGW_SERVICE TASK_NAS
+        TASK_S1AP TASK_SCTP_SERVER TASK_SGS
+        TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS
         ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
     ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}

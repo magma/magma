@@ -7,16 +7,17 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
-from typing import Any, Optional, List
+from typing import Any, List, Optional
+
 from magma.common.service import MagmaService
+from magma.enodebd.device_config.configuration_util import is_enb_registered
 from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.device_config.configuration_util import is_enb_registered
 from magma.enodebd.exceptions import UnrecognizedEnodebError
-from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.acs_state_utils import \
     get_device_name_from_inform
+from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.tr069 import models
 from spyne import ComplexModelBase
 from spyne.server.wsgi import WsgiMethodContext
@@ -91,6 +92,9 @@ class StateMachineManager:
         messages can be handled correctly.
         """
         enb_serial = self._parse_msg_for_serial(inform)
+        if enb_serial is None:
+            raise UnrecognizedEnodebError('eNB does not have serial number '
+                                          'under expected param path')
         if not is_enb_registered(self._service.mconfig, enb_serial):
             raise UnrecognizedEnodebError('eNB not registered to this Access '
                                           'Gateway (serial #%s)' % enb_serial)
@@ -111,11 +115,7 @@ class StateMachineManager:
         must detect this, and update its mapping of what serial/IP corresponds
         to which handler.
         """
-        if enb_serial is None:
-            # TR-069 message did not contain an eNodeB serial ID.
-            logger.error('Cannot associate null eNB serial to a an IP')
-            pass
-        elif self._ip_serial_mapping.has_ip(client_ip):
+        if self._ip_serial_mapping.has_ip(client_ip):
             # Same IP, different eNB connected
             prev_serial = self._ip_serial_mapping.get_serial(client_ip)
             if enb_serial != prev_serial:
@@ -140,13 +140,17 @@ class StateMachineManager:
             self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
             self._state_machine_by_ip[client_ip] = handler
 
-    def _parse_msg_for_serial(
-        self,
-        tr069_message: models.Inform,
-    ) -> Optional[str]:
+    @staticmethod
+    def _parse_msg_for_serial(tr069_message: models.Inform) -> Optional[str]:
         """ Return the eNodeB serial ID if it's found in the message """
         if not isinstance(tr069_message, models.Inform):
             return
+
+        # Mikrotik Intercell does not return serial in ParameterList
+        if hasattr(tr069_message, 'DeviceId') and \
+                hasattr(tr069_message.DeviceId, 'SerialNumber'):
+            return tr069_message.DeviceId.SerialNumber
+
         if not hasattr(tr069_message, 'ParameterList') or \
                 not hasattr(tr069_message.ParameterList, 'ParameterValueStruct'):
             return None
@@ -158,15 +162,15 @@ class StateMachineManager:
             value = param_value.Value.Data
             param_values_by_path[path] = value
 
-        if 'Device.DeviceInfo.SerialNumber' in param_values_by_path:
-            enb_serial = param_values_by_path['Device.DeviceInfo.SerialNumber']
-        else:
-            param_path = 'InternetGatewayDevice.DeviceInfo.SerialNumber'
-            enb_serial = param_values_by_path[param_path]
+        possible_sn_paths = ['Device.DeviceInfo.SerialNumber',
+                             'InternetGatewayDevice.DeviceInfo.SerialNumber']
+        for path in possible_sn_paths:
+            if path in param_values_by_path:
+                return param_values_by_path[path]
+        return None
 
-        return enb_serial
-
-    def _get_client_ip(self, ctx: WsgiMethodContext) -> str:
+    @staticmethod
+    def _get_client_ip(ctx: WsgiMethodContext) -> str:
         return ctx.transport.req_env.get("REMOTE_ADDR", "unknown")
 
     def _build_handler(

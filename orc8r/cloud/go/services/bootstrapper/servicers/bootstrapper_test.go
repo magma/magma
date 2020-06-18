@@ -15,27 +15,36 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"io/ioutil"
+	"net"
+	"os"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/emakeev/snowflake"
+	"github.com/go-openapi/strfmt"
+	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc/metadata"
+
+	"magma/gateway/config"
+	bootstrap_client "magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifierTestInit "magma/orc8r/cloud/go/services/certifier/test_init"
-	certifierTestUtils "magma/orc8r/cloud/go/services/certifier/test_utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
-
-	"github.com/go-openapi/strfmt"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc/metadata"
+	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/csr"
+	"magma/orc8r/lib/go/security/key"
 )
 
 const (
@@ -68,7 +77,7 @@ func testWithECHO(
 	response := &protos.Response_EchoResponse{
 		EchoResponse: &protos.Response_Echo{Response: challenge.Challenge},
 	}
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
@@ -117,7 +126,7 @@ func testWithRSA(
 	response := &protos.Response_RsaResponse{
 		RsaResponse: &protos.Response_RSA{Signature: signature},
 	}
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
@@ -165,7 +174,7 @@ func testWithECDSA(
 	response := &protos.Response_EcdsaResponse{
 		EcdsaResponse: &protos.Response_ECDSA{R: r.Bytes(), S: s.Bytes()},
 	}
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 	resp := protos.Response{
 		HwId:      &protos.AccessGatewayID{Id: testAgHwId},
@@ -176,6 +185,98 @@ func testWithECDSA(
 	cert, err := srv.RequestSign(ctx, &resp)
 	assert.NoError(t, err)
 	assert.NotNil(t, cert)
+}
+
+// Test with real GW bootstrapper
+func testWithGatewayBootstrapper(t *testing.T, networkId string) {
+	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, bootstrapper.ServiceName)
+	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
+	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
+
+	privateKey, err := key.GenerateKey("", 2048)
+	assert.NoError(t, err)
+
+	bootstrServer, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	assert.NoError(t, err)
+
+	protos.RegisterBootstrapperServer(srv.GrpcServer, bootstrServer)
+	srv.GrpcServer.RegisterService(protos.GetLegacyBootstrapperDesc(), bootstrServer)
+
+	go srv.RunTest(lis)
+
+	srvIp, srvPort, err := net.SplitHostPort(lis.Addr().String())
+	assert.NoError(t, err)
+	srvPortInt, err := strconv.Atoi(srvPort)
+	assert.NoError(t, err)
+	dir, err := ioutil.TempDir("", "magma_bst")
+	assert.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	completed := false
+	completedPtr := &completed
+	completeChan := make(chan interface{})
+	go func(t *testing.T) {
+		for i := range completeChan {
+			*completedPtr = true
+			switch u := i.(type) {
+			case bootstrap_client.BootstrapCompletion:
+				t.Logf("bootstrap comnpleted with result: %v", u.Result)
+				assert.NoError(t, err)
+			case struct{}:
+			default:
+				t.Errorf("unknown completion type: %T", u)
+			}
+		}
+	}(t)
+
+	config.OverwriteControlProxyConfigs(&config.ControlProxyCfg{
+		RootCaFile:           "",
+		GwCertFile:           dir + "/gateway.crt",
+		GwCertKeyFile:        dir + "/gateway.key",
+		BootstrapAddr:        srvIp,
+		BootstrapPort:        srvPortInt,
+		ProxyCloudConnection: true,
+	})
+
+	mdc := &config.MagmadCfg{}
+	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
+	config.OverwriteMagmadConfigs(mdc)
+
+	b := bootstrap_client.NewBootstrapper(completeChan)
+	err = b.Initialize()
+	assert.NoError(t, err)
+
+	uuid, err := snowflake.Get()
+	assert.NoError(t, err)
+	gwHwId := uuid.String()
+
+	ck, err := key.ReadKey(mdc.BootstrapConfig.ChallengeKey)
+	assert.NoError(t, err)
+	pubKey, err := x509.MarshalPKIXPublicKey(key.PublicKey(ck))
+	assert.NoError(t, err)
+	encodedPubKey := strfmt.Base64(pubKey)
+
+	configuratorTestUtils.RegisterGateway(
+		t,
+		networkId,
+		gwHwId,
+		&models.GatewayDevice{
+			HardwareID: gwHwId,
+			Key: &models.ChallengeKey{
+				KeyType: ecdsaType,
+				Key:     &encodedPubKey,
+			},
+		},
+	)
+
+	err = b.PeriodicCheck(time.Now())
+	assert.NoError(t, err)
+	completeChan <- struct{}{} // 'flush' the chan
+	assert.True(t, completed)
+
+	// reset configs
+	config.OverwriteMagmadConfigs(nil)
+	config.OverwriteControlProxyConfigs(nil)
 }
 
 func testNegative(
@@ -228,7 +329,7 @@ func testNegative(
 	r, s, err := ecdsa.Sign(rand.Reader, privateKey.(*ecdsa.PrivateKey), hashed[:])
 	assert.NoError(t, err)
 
-	csr, err := certifierTestUtils.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
+	csr, err := csr.CreateCSR(time.Duration(time.Hour*24*10), "cn", "cn")
 	assert.NoError(t, err)
 
 	// create response
@@ -323,4 +424,5 @@ func TestBootstrapperServer(t *testing.T) {
 		context.Background(),
 		metadata.Pairs("x-magma-client-cert-cn", "bla"))
 	testNegative(t, testNetworkID, srv, ctx)
+	testWithGatewayBootstrapper(t, testNetworkID)
 }

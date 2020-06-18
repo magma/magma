@@ -9,26 +9,26 @@ LICENSE file in the root directory of this source tree.
 package gy
 
 import (
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/relay"
+	"magma/gateway/service_registry"
 	"magma/lte/cloud/go/protos"
 )
 
 // GetGyReAuthHandler returns the default handler for RAR messages by relaying
 // them to the gateway, where session proxy will initiate a credit update and respond
 // with an RAA
-func GetGyReAuthHandler(cloudRegistry registry.CloudRegistry) ReAuthHandler {
-	return ReAuthHandler(func(request *ReAuthRequest) *ReAuthAnswer {
+func GetGyReAuthHandler(cloudRegistry service_registry.GatewayRegistry) ChargingReAuthHandler {
+	return ChargingReAuthHandler(func(request *ChargingReAuthRequest) *ChargingReAuthAnswer {
 		sid := diameter.DecodeSessionID(request.SessionID)
-		imsi, err := relay.GetIMSIFromSessionID(sid)
+		imsi, err := protos.GetIMSIwithPrefixFromSessionId(sid)
 		if err != nil {
 			glog.Errorf("Error retreiving IMSI from Session ID %s: %s", request.SessionID, err)
-			return &ReAuthAnswer{
+			return &ChargingReAuthAnswer{
 				SessionID:  request.SessionID,
 				ResultCode: diam.UnknownSessionID,
 			}
@@ -37,7 +37,7 @@ func GetGyReAuthHandler(cloudRegistry registry.CloudRegistry) ReAuthHandler {
 		client, err := relay.GetSessionProxyResponderClient(cloudRegistry)
 		if err != nil {
 			glog.Error(err)
-			return &ReAuthAnswer{SessionID: request.SessionID, ResultCode: diam.UnableToDeliver}
+			return &ChargingReAuthAnswer{SessionID: request.SessionID, ResultCode: diam.UnableToDeliver}
 		}
 		defer client.Close()
 
@@ -49,7 +49,7 @@ func GetGyReAuthHandler(cloudRegistry registry.CloudRegistry) ReAuthHandler {
 	})
 }
 
-func getGyReAuthRequestProto(diamReq *ReAuthRequest, imsi, sid string) *protos.ChargingReAuthRequest {
+func getGyReAuthRequestProto(diamReq *ChargingReAuthRequest, imsi, sid string) *protos.ChargingReAuthRequest {
 	protoReq := &protos.ChargingReAuthRequest{
 		SessionId: sid,
 		Sid:       imsi,
@@ -57,6 +57,9 @@ func getGyReAuthRequestProto(diamReq *ReAuthRequest, imsi, sid string) *protos.C
 	if diamReq.RatingGroup != nil {
 		protoReq.ChargingKey = *diamReq.RatingGroup
 		protoReq.Type = protos.ChargingReAuthRequest_SINGLE_SERVICE
+		if diamReq.ServiceIdentifier != nil {
+			protoReq.ServiceIdentifier = &protos.ServiceIdentifier{Value: *diamReq.ServiceIdentifier}
+		}
 	} else {
 		protoReq.ChargingKey = 0
 		protoReq.Type = protos.ChargingReAuthRequest_ENTIRE_SESSION
@@ -67,18 +70,18 @@ func getGyReAuthRequestProto(diamReq *ReAuthRequest, imsi, sid string) *protos.C
 func getGyReAuthAnswerDiamMsg(
 	sessionID string,
 	protoAns *protos.ChargingReAuthAnswer,
-) *ReAuthAnswer {
+) *ChargingReAuthAnswer {
 	var resultCode uint32
-	if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_INITIATED {
+	if protoAns.Result == protos.ReAuthResult_UPDATE_INITIATED {
 		resultCode = diam.LimitedSuccess
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED {
+	} else if protoAns.Result == protos.ReAuthResult_UPDATE_NOT_NEEDED {
 		resultCode = diam.Success
-	} else if protoAns.Result == protos.ChargingReAuthAnswer_SESSION_NOT_FOUND {
+	} else if protoAns.Result == protos.ReAuthResult_SESSION_NOT_FOUND {
 		resultCode = diam.UnknownSessionID
-	} else {
+	} else { // ReAuthResult_OTHER_FAILURE
 		resultCode = diam.UnableToComply
 	}
-	return &ReAuthAnswer{
+	return &ChargingReAuthAnswer{
 		SessionID:  sessionID,
 		ResultCode: resultCode,
 	}

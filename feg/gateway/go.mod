@@ -7,38 +7,43 @@
 module magma/feg/gateway
 
 replace (
-	github.com/fiorix/go-diameter => ./third-party/go/src/github.com/fiorix/go-diameter
+	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.7
 
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
-
+	magma/gateway => ../../orc8r/gateway/go
 	magma/lte/cloud/go => ../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../orc8r/cloud/go
-	magma/orc8r/gateway => ../../orc8r/gateway/go
+	magma/orc8r/lib/go => ../../orc8r/lib/go
+	magma/orc8r/lib/go/protos => ../../orc8r/lib/go/protos
 )
 
 require (
-	github.com/fiorix/go-diameter v3.0.3-0.20180924121357-70410bd9fce3+incompatible
+	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
+	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
+	github.com/go-openapi/swag v0.18.0
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/protobuf v1.2.0
-	github.com/gorilla/mux v1.6.2
-	github.com/ishidawataru/sctp v0.0.0-20180918013207-6e2cb1366111
-	github.com/prometheus/client_golang v0.9.3-0.20190127221311-3c4408c8b829
-	github.com/prometheus/client_model v0.0.0-20190115171406-56726106282f
-	github.com/prometheus/common v0.2.0
-	github.com/shirou/gopsutil v2.18.10+incompatible
-	github.com/stretchr/testify v1.3.0
-	golang.org/x/net v0.0.0-20190311183353-d8887717615a
-	google.golang.org/genproto v0.0.0-20190307195333-5fe7a883aa19
-	google.golang.org/grpc v1.19.0
+	github.com/golang/protobuf v1.3.3
+	github.com/ishidawataru/sctp v0.0.0-20190922091402-408ec287e38c
+	github.com/pkg/errors v0.8.1
+	github.com/prometheus/client_golang v1.5.1
+	github.com/prometheus/client_model v0.2.0
+	github.com/prometheus/common v0.9.1
+	github.com/shirou/gopsutil v2.20.3+incompatible
+	github.com/stretchr/testify v1.4.0
+	github.com/thoas/go-funk v0.4.0
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	google.golang.org/grpc v1.27.1
 
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
+	magma/gateway v0.0.0
 
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
-	magma/orc8r/gateway v0.0.0
+	magma/orc8r/lib/go v0.0.0
+	magma/orc8r/lib/go/protos v0.0.0
 )
 
 go 1.13

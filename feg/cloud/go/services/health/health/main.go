@@ -17,10 +17,12 @@ import (
 	"magma/feg/cloud/go/services/health"
 	"magma/feg/cloud/go/services/health/reporter"
 	"magma/feg/cloud/go/services/health/servicers"
-	"magma/feg/cloud/go/services/health/storage"
-	"magma/orc8r/cloud/go/datastore"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
+
+	"github.com/golang/glog"
 )
 
 const (
@@ -33,37 +35,22 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error creating service: %s", err)
 	}
-
-	// Init the Datastore
-	healthDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
+	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
 	if err != nil {
-		log.Fatalf("Failed to initialize datastore: %s", err)
+		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-
-	healthStore, err := storage.NewHealthStore(healthDatastore)
+	store := blobstore.NewEntStorage(health.DBTableName, db, sqorc.GetSqlBuilder())
+	err = store.InitializeFactory()
 	if err != nil {
-		log.Fatalf("Failed to initialize health store: %s", err)
+		glog.Fatalf("Error initializing health database: %s", err)
 	}
-
-	clusterDatastore, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
-	if err != nil {
-		log.Fatalf("Failed to initialize datastore: %s", err)
-	}
-	clusterStore, err := storage.NewClusterStore(clusterDatastore)
-	if err != nil {
-		log.Fatalf("Failed to initialize cluster store: %s", err)
-	}
-
 	// Add servicers to the service
-	healthServer := servicers.NewHealthServer(healthStore, clusterStore)
+	healthServer, err := servicers.NewHealthServer(store)
 	protos.RegisterHealthServer(srv.GrpcServer, healthServer)
 
 	// create a networkHealthStatusReporter to monitor and periodically log metrics
 	// on if all gateways in a network are unhealthy
-	healthStatusReporter, err := reporter.NewNetworkHealthStatusReporter(healthStore)
-	if err != nil {
-		log.Fatalf("NetworkHealthStatusReporter Initialization Error: %s\n", err)
-	}
+	healthStatusReporter := &reporter.NetworkHealthStatusReporter{}
 	go healthStatusReporter.ReportHealthStatus(NETWORK_HEALTH_STATUS_REPORT_INTERVAL)
 
 	// Run the service

@@ -6,28 +6,26 @@
     state: present
     line: "{{ item }}"
   with_items:
-    - TIP_REPO={{ tip_repo }}
-    - S1AP_ROOT={{ s1aptester_root }}
-    - S1AP_SRC={{ s1aptester_src }}
+    - S1AP_TESTER_ROOT={{ s1ap_tester_root }}
+    - S1AP_TESTER_SRC={{ s1ap_tester_src }}
     - GATEWAY_NAME={{ gateway_name }}
     - GATEWAY_IP={{ gateway_ip }}
     - GATEWAY_PORT={{ gateway_port }}
     - M2_HOME={{ mvn_dir }}
-    - SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
     - SWAGGER_SPEC={{ swagger_spec }}
     - SWAGGER_CODEGEN_OUTPUT={{ swagger_codegen_output }}
     - CODEGEN_ROOT={{ codegen_root }}
   when: full_provision
 
 - name: Set up S1AP tester build directory
-  file: path={{ s1aptester_root }}/bin state=directory recurse=yes
+  file: path={{ s1ap_tester_root }}/bin state=directory recurse=yes
   when: full_provision
 
 - name: Set a convenience function for starting the S1AP tester
   lineinfile: >
     dest=/home/{{ ansible_user }}/.bashrc
     state=present
-    line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
+    line="alias s1aptester='mkdir -p /tmp/fw; cd $S1AP_TESTER_ROOT; venvsudo LD_LIBRARY_PATH=$S1AP_TESTER_ROOT/bin PATH=$PATH:/sbin bin/testCntrlr'"
   when: full_provision
 
 - name: Add integ test scripts to path
@@ -41,14 +39,24 @@
     - build_s1_tester.sh
   when: full_provision
 
-- name: Install s1aptester code
-  shell: "{{ test_scripts }}/install_s1_tester.sh"
+- name: Clone s1aptester code
+  shell: "{{ test_scripts }}/clone_s1_tester.sh"
   args:
     executable: /bin/bash
   environment:
     MAGMA_ROOT: "{{ magma_root }}"
-    S1AP_SRC: "{{ s1aptester_src }}"
-    S1AP_ROOT: "{{ s1aptester_root }}"
+    S1AP_TESTER_SRC: "{{ s1ap_tester_src }}"
+    S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
+  when: full_provision
+
+- name: Build s1aptester code
+  shell: "{{ test_scripts }}/build_s1_tester.sh"
+  args:
+    executable: /bin/bash
+  environment:
+    MAGMA_ROOT: "{{ magma_root }}"
+    S1AP_TESTER_SRC: "{{ s1ap_tester_src }}"
+    S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
 # pip3 is busted on Debian Jessie so run in virtualenv.
@@ -64,76 +72,12 @@
 - name: Generate python types from C headers
   command: "/tmp/virtualenv/bin/python3.5 {{ test_scripts }}/c_parser.py"
   environment:
-    S1AP_ROOT: "{{ s1aptester_root }}"
+    S1AP_TESTER_ROOT: "{{ s1ap_tester_root }}"
   when: full_provision
 
 - name: Install MySQL client for OAI upstreaming
   become: yes
   apt: pkg=default-libmysqlclient-dev state=present update_cache=yes
-  when: preburn
-
-###############################################
-# Download, build, and generate swagger codegen
-###############################################
-
-- name: Clone swagger code-gen repo
-  become: yes
-  git:
-    repo: 'https://github.com/swagger-api/swagger-codegen'
-    dest: /home/{{ ansible_user }}/codegen
-    version: v2.2.3
-    force: yes
-  when: preburn
-
-# Maven surefix plugin is crashing because of a recent change in openjdk.
-# See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=911925
-# TODO(praveenr): revert maven surefire patch
-- name: Patch for maven surefire crash
-  become: yes
-  patch:
-    src: surefire.patch
-    dest: /home/{{ ansible_user }}/codegen/pom.xml
-  when: preburn
-
-- name: Setup build requirements for python sdk
-  become: yes
-  apt:
-    pkg: openjdk-8-jdk
-    state: present
-    update_cache: yes
-  when: preburn
-
-- name: Download maven
-  get_url:
-    url: "http://mirrors.ibiblio.org/apache/maven/maven-3/{{ mvn_version }}/binaries/apache-maven-{{ mvn_version }}-bin.tar.gz"
-    dest: "{{ mvn_dir }}-bin.tar.gz"
-    checksum: "sha1:{{ mvn_sha1 }}"
-  when: preburn
-
-- name: Unarchive maven
-  unarchive:
-    src: "{{ mvn_dir }}-bin.tar.gz"
-    dest: /var/tmp
-    remote_src: yes
-  when: preburn
-
-- name: Upload script to build swagger code-gen
-  become: yes
-  copy:
-    src: build_swagger_codegen.sh
-    dest: /home/{{ ansible_user }}/build_swagger_codegen.sh
-    mode: 0755
-  when: preburn
-
-- name: Build swagger code-gen
-  become: yes
-#  no_log: True
-  command: "/home/{{ ansible_user }}/build_swagger_codegen.sh"
-  args:
-    creates: "{{ swagger_codegen_jar }}"
-  environment:
-    M2_HOME: "{{ mvn_dir }}"
-    CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
 - name: Check whether swagger.yml exists

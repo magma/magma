@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
 
 	dto "github.com/prometheus/client_model/go"
 	"github.com/stretchr/testify/assert"
@@ -55,7 +55,7 @@ func TestNewCustomPushExporter(t *testing.T) {
 	addrs := []string{"http://prometheus-cache:9091", "prometheus-cache:9091", "https://prometheus-cache:9091"}
 	exp := NewCustomPushExporter(addrs).(*CustomPushExporter)
 	protocolMatch := regexp.MustCompile("(http|https)://")
-	for _, addr := range exp.pushAddresses {
+	for _, addr := range exp.servicer.pushAddresses {
 		assert.True(t, protocolMatch.MatchString(addr))
 	}
 }
@@ -70,8 +70,8 @@ func testSubmitGauge(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, totalMetricCount(&exp))
 
-	assert.Equal(t, len(exp.familiesByName), 1)
-	for _, fam := range exp.familiesByName {
+	assert.Equal(t, len(exp.servicer.familiesByName), 1)
+	for _, fam := range exp.servicer.familiesByName {
 		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
 		for _, metric := range fam.Metric {
 			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
@@ -90,8 +90,8 @@ func testSubmitCounter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, totalMetricCount(&exp))
 
-	assert.Equal(t, len(exp.familiesByName), 1)
-	for _, fam := range exp.familiesByName {
+	assert.Equal(t, len(exp.servicer.familiesByName), 1)
+	for _, fam := range exp.servicer.familiesByName {
 		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
 		for _, metric := range fam.Metric {
 			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
@@ -109,8 +109,8 @@ func testSubmitHistogram(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 10, totalMetricCount(&exp))
 
-	assert.Equal(t, len(exp.familiesByName), 3)
-	for name, fam := range exp.familiesByName {
+	assert.Equal(t, len(exp.servicer.familiesByName), 3)
+	for name, fam := range exp.servicer.familiesByName {
 		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
 		for _, metric := range fam.Metric {
 			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
@@ -131,8 +131,8 @@ func testSubmitSummary(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 6, totalMetricCount(&exp))
 
-	assert.Equal(t, len(exp.familiesByName), 3)
-	for name, fam := range exp.familiesByName {
+	assert.Equal(t, len(exp.servicer.familiesByName), 3)
+	for name, fam := range exp.servicer.familiesByName {
 		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
 		for _, metric := range fam.Metric {
 			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
@@ -153,8 +153,8 @@ func testSubmitUntyped(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, totalMetricCount(&exp))
 
-	assert.Equal(t, len(exp.familiesByName), 1)
-	for _, fam := range exp.familiesByName {
+	assert.Equal(t, len(exp.servicer.familiesByName), 1)
+	for _, fam := range exp.servicer.familiesByName {
 		assert.Equal(t, dto.MetricType_GAUGE, *fam.Type)
 		for _, metric := range fam.Metric {
 			assert.True(t, tests.HasLabel(metric.Label, "testLabel", "testValue"))
@@ -175,7 +175,7 @@ func testSubmitInvalidMetrics(t *testing.T) {
 
 	err := exp.Submit(metrics)
 	assert.NoError(t, err)
-	assert.Equal(t, len(exp.familiesByName), 0)
+	assert.Equal(t, len(exp.servicer.familiesByName), 0)
 }
 
 func testSubmitInvalidName(t *testing.T) {
@@ -199,8 +199,8 @@ func testInvalidName(t *testing.T, inputName, expectedName string) {
 
 	err := exp.Submit(metrics)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(exp.familiesByName))
-	for name := range exp.familiesByName {
+	assert.Equal(t, 1, len(exp.servicer.familiesByName))
+	for name := range exp.servicer.familiesByName {
 		assert.Equal(t, expectedName, name)
 	}
 }
@@ -221,8 +221,8 @@ func testSubmitInvalidLabel(t *testing.T) {
 
 	err := exp.Submit(metrics)
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(exp.familiesByName))
-	for _, fam := range exp.familiesByName {
+	assert.Equal(t, 1, len(exp.servicer.familiesByName))
+	for _, fam := range exp.servicer.familiesByName {
 		assert.Equal(t, 4, len(fam.Metric))
 	}
 
@@ -241,12 +241,12 @@ func testSubmitInvalidLabel(t *testing.T) {
 
 	err = exp.Submit(metrics)
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(exp.familiesByName))
+	assert.Equal(t, 0, len(exp.servicer.familiesByName))
 }
 
 func totalMetricCount(exp *CustomPushExporter) int {
 	total := 0
-	for _, fam := range exp.familiesByName {
+	for _, fam := range exp.servicer.familiesByName {
 		total += len(fam.Metric)
 	}
 	return total
@@ -263,8 +263,10 @@ func submitNewMetric(exp *CustomPushExporter, mtype dto.MetricType, ctx exporter
 
 func makeTestCustomPushExporter() CustomPushExporter {
 	return CustomPushExporter{
-		familiesByName: make(map[string]*dto.MetricFamily),
-		exportInterval: pushInterval,
-		pushAddresses:  []string{""},
+		servicer: &MetricsExporterServicer{
+			familiesByName: make(map[string]*dto.MetricFamily),
+			exportInterval: pushInterval,
+			pushAddresses:  []string{""},
+		},
 	}
 }

@@ -37,6 +37,7 @@
 #include "log.h"
 #include "assertions.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "spgw_config.h"
 
 void spgw_config_display(spgw_config_t *config_p);
@@ -71,6 +72,7 @@ static int spgw_config_process(spgw_config_t *config_pP)
 #define SPGW_NOT_SPLITTED 1
 #if SPGW_NOT_SPLITTED
   // fake split
+  bdestroy_wrapper(&config_pP->pgw_config.ipv4.if_name_S5_S8);
   config_pP->pgw_config.ipv4.if_name_S5_S8 =
     bstrcpy(config_pP->sgw_config.ipv4.if_name_S1u_S12_S4_up);
 #endif
@@ -234,4 +236,13 @@ int spgw_config_parse_opt_line(
    */
   spgw_config_display(spgw_config_p);
   return RETURNok;
+}
+
+void free_spgw_config(spgw_config_t* spgw_config_p)
+{
+  OAI_FPRINTF_INFO("Cleaning up SPGW configs");
+  free_pgw_config(&spgw_config_p->pgw_config);
+  bdestroy_wrapper(&spgw_config_p->config_file);
+  bdestroy_wrapper(&spgw_config_p->sgw_config.config_file);
+  bdestroy_wrapper(&spgw_config_p->pgw_config.config_file);
 }

@@ -40,6 +40,7 @@ var (
 	msisdn            string
 	apn               string
 	plmn              string
+	serverid          int
 )
 
 type cliConfig struct {
@@ -74,11 +75,12 @@ func init() {
 	flag.StringVar(&msisdn, "msisdn", "541123525401", "msisdn")
 	flag.StringVar(&apn, "apn", "TestMagma", "apn")
 	flag.StringVar(&plmn, "plmn", "72207", "PLMN ID")
+	flag.IntVar(&serverid, "serverid", 0, "Index of one of the configured servers")
 
 	// Flag help
 	allFlags := []string{"help", "imsi", "sid", "rating_groups", "used_credit", "ue_ip", "spgw_ip",
 		"commands", "wait", "addr", "network", "host", "realm", "product", "laddr", "dest_host", "dest_realm",
-		"msisdn", "apn", "plmn"}
+		"msisdn", "apn", "plmn", "serverid"}
 	flag.Usage = func() {
 		fmt.Println("Gx Client CLI for testing Gx Diameter CCR calls.")
 		fmt.Println("Usage:\n	gx_client_cli")
@@ -102,15 +104,19 @@ func main() {
 		os.Exit(0)
 	}
 
-	serverCfg := gy.GetOCSConfiguration()
+	// if no serviceid flag, serviceid will be 0. Config on pos 0 will be used
+	serverCfg := gy.GetOCSConfiguration()[serverid]
 	fmt.Printf("Server config: %+v\n", serverCfg)
 
-	clientCfg := gy.GetGyClientConfiguration()
+	clientCfg := gy.GetGyClientConfiguration()[serverid]
 	fmt.Printf("Client config: %+v\n", clientCfg)
+
+	gyGobalCfg := gy.GetGyGlobalConfig()
+	fmt.Printf("Gy global config: %+v\n", gyGobalCfg)
 
 	config := &cliConfig{
 		serverCfg:    serverCfg,
-		gyClient:     gy.NewGyClient(clientCfg, []*diameter.DiameterServerConfig{serverCfg}, handleReAuth, nil),
+		gyClient:     gy.NewGyClient(clientCfg, serverCfg, handleReAuth, nil, gyGobalCfg),
 		imsi:         imsi,
 		sessionID:    fmt.Sprintf("%s-%s", imsi, sid),
 		ueIP:         ueIP,
@@ -193,7 +199,7 @@ func sendCreditCall(config *cliConfig, requestType credit_control.CreditRequestT
 	}
 }
 
-func handleReAuth(request *gy.ReAuthRequest) *gy.ReAuthAnswer {
+func handleReAuth(request *gy.ChargingReAuthRequest) *gy.ChargingReAuthAnswer {
 	return nil
 }
 

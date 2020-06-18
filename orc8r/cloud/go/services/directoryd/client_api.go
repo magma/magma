@@ -6,104 +6,148 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// Package directoryd provides a client API for interacting with the
-// directory service, which manages the UE location information
 package directoryd
 
 import (
-	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
+	"context"
+	"fmt"
+
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/state"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
+	"github.com/pkg/errors"
 )
 
 const ServiceName = "DIRECTORYD"
 
-// Get a thin RPC client to the directory service.
-func GetDirectorydClient() (protos.DirectoryServiceClient, error) {
+//-------------------------------
+// Directoryd service client APIs
+//-------------------------------
+
+// getDirectorydClient returns an RPC connection to the directoryd service.
+func getDirectorydClient() (protos.DirectoryLookupClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {
-		initErr := errors.NewInitError(err, ServiceName)
+		initErr := merrors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewDirectoryServiceClient(conn), err
+	return protos.NewDirectoryLookupClient(conn), err
 }
 
-func GetHardwareIdByIMSI(imsi string) (string, error) {
-	return getLocation(protos.TableID_IMSI_TO_HWID, imsi)
-}
-
-func GetHostNameByIMSI(hwId string) (string, error) {
-	return getLocation(protos.TableID_HWID_TO_HOSTNAME, hwId)
-}
-
-func getLocation(tableId protos.TableID, recordId string) (string, error) {
-	client, err := GetDirectorydClient()
+// GetHostnameForHWID returns the hostname mapped to by hardware ID.
+// Derived state, stored in directoryd service.
+func GetHostnameForHWID(hwid string) (string, error) {
+	client, err := getDirectorydClient()
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	req := &protos.GetLocationRequest{
-		Table: tableId,
-		Id:    recordId,
-	}
-	ctx := context.Background()
-	record, err := client.GetLocation(ctx, req)
+	res, err := client.GetHostnameForHWID(context.Background(), &protos.GetHostnameForHWIDRequest{Hwid: hwid})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get hostname for hwid %s: %s", hwid, err)
 	}
-	return record.Location, nil
+
+	return res.Hostname, nil
 }
 
-func UpdateHardwareIdByIMSI(imsi string, hwId string) error {
-	return updateLocation(protos.TableID_IMSI_TO_HWID, imsi, hwId)
+// MapHWIDToHostname maps a single hwid to a hostname.
+// Derived state, stored in directoryd service.
+func MapHWIDToHostname(hwid, hostname string) error {
+	return MapHWIDsToHostnames(map[string]string{hwid: hostname})
 }
 
-func UpdateHostNameByHwId(hwId string, hostName string) error {
-	return updateLocation(protos.TableID_HWID_TO_HOSTNAME, hwId, hostName)
-}
-
-func updateLocation(tableId protos.TableID, recordId string, location string) error {
-	client, err := GetDirectorydClient()
+// MapHWIDsToHostnames maps {hwid -> hostname}.
+// Derived state, stored in directoryd service.
+func MapHWIDsToHostnames(hwidToHostname map[string]string) error {
+	client, err := getDirectorydClient()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	req := &protos.UpdateDirectoryLocationRequest{
-		Table:  tableId,
-		Id:     recordId,
-		Record: &protos.LocationRecord{Location: location},
-	}
-	ctx := context.Background()
-	_, err = client.UpdateLocation(ctx, req)
-	return err
-}
-
-func DeleteHardwareIdByIMSI(imsi string) error {
-	return deleteLocation(protos.TableID_IMSI_TO_HWID, imsi)
-}
-
-func DeleteHostNameByIMSI(hwId string) error {
-	return deleteLocation(protos.TableID_HWID_TO_HOSTNAME, hwId)
-}
-
-func deleteLocation(tableId protos.TableID, recordId string) error {
-	client, err := GetDirectorydClient()
+	_, err = client.MapHWIDsToHostnames(context.Background(), &protos.MapHWIDToHostnameRequest{HwidToHostname: hwidToHostname})
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to map hwids to hostnames %v: %s", hwidToHostname, err)
 	}
 
-	req := &protos.DeleteLocationRequest{
-		Table: tableId,
-		Id:    recordId,
-	}
-	ctx := context.Background()
-	_, err = client.DeleteLocation(ctx, req)
-	if err != nil {
-		return err
-	}
 	return nil
+}
+
+// GetIMSIForSessionID returns the IMSI mapped to by session ID.
+// Derived state, stored in directoryd service.
+// NOTE: this mapping is provided on a best-effort basis, meaning
+//	- a {session ID -> IMSI} mapping may be missing even though the IMSI has a session ID record
+//	- a {session ID -> IMSI} mapping may be stale
+func GetIMSIForSessionID(networkID, sessionID string) (string, error) {
+	client, err := getDirectorydClient()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get directoryd client")
+	}
+
+	res, err := client.GetIMSIForSessionID(context.Background(), &protos.GetIMSIForSessionIDRequest{
+		NetworkID: networkID,
+		SessionID: sessionID,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to get imsi for session ID %s under network ID %s: %s", sessionID, networkID, err)
+	}
+
+	return res.Imsi, nil
+}
+
+// MapSessionIDsToIMSIs maps {session ID -> IMSI}.
+// Derived state, stored in directoryd service.
+func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error {
+	client, err := getDirectorydClient()
+	if err != nil {
+		return errors.Wrap(err, "failed to get directoryd client")
+	}
+
+	_, err = client.MapSessionIDsToIMSIs(context.Background(), &protos.MapSessionIDToIMSIRequest{
+		NetworkID:       networkID,
+		SessionIDToIMSI: sessionIDToIMSI,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to map session IDs to IMSIs %v under network ID %s: %s", sessionIDToIMSI, networkID, err)
+	}
+
+	return nil
+}
+
+//--------------------------
+// State service client APIs
+//--------------------------
+
+// GetHWIDForIMSI returns the HWID mapped to by the IMSI.
+// Primary state, stored in state service.
+func GetHWIDForIMSI(networkID, imsi string) (string, error) {
+	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi)
+	if err != nil {
+		return "", err
+	}
+	record, ok := st.ReportedState.(*DirectoryRecord)
+	if !ok || len(record.LocationHistory) == 0 {
+		return "", fmt.Errorf("failed to convert reported state to DirectoryRecord for device id: %s", st.ReporterID)
+	}
+	return record.LocationHistory[0], nil
+}
+
+// GetSessionIDForIMSI returns the session ID mapped to by the IMSI.
+// Primary state, stored in state service.
+func GetSessionIDForIMSI(networkID, imsi string) (string, error) {
+	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi)
+	if err != nil {
+		return "", err
+	}
+
+	record, ok := st.ReportedState.(*DirectoryRecord)
+	if !ok {
+		return "", fmt.Errorf("failed to convert reported state to DirectoryRecord for device id: %s", st.ReporterID)
+	}
+
+	return record.GetSessionID()
 }

@@ -21,7 +21,6 @@ fi
 
 # Otherwise recreate containers with the new image
 cd /var/opt/magma/docker || exit
-/usr/local/bin/docker-compose up --force-recreate -d
-
+/usr/local/bin/docker-compose down && /usr/local/bin/docker-compose up -d
 # Remove all stopped containers and dangling images
 docker system prune -af

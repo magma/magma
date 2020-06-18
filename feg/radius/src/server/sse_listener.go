@@ -13,6 +13,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fbc/cwf/radius/config"
 	"fbc/cwf/radius/modules"
 	"fbc/cwf/radius/monitoring"
@@ -92,6 +93,14 @@ func (l *SSEListener) Init(
 		return err
 	}
 
+	if cfg.EventStreamURL == "" {
+		return errors.New("You must configure 'eventStreamURL' in 'extra' section")
+	}
+
+	if cfg.ResponseURL == "" {
+		return errors.New("You must configure 'responseURL' in 'extra' section")
+	}
+
 	l.Server = server
 	l.Logger = server.logger
 	l.Config = listenerConfig
@@ -119,6 +128,7 @@ func (l *SSEListener) ListenAndServe() error {
 	l.Logger.Info(
 		"Subscribing for CoA requests",
 		zap.String("sse_mac_address", l.Extra.SSEMacAddress),
+		zap.String("url", l.Extra.EventStreamURL),
 	)
 
 	req := http.Request{

@@ -10,18 +10,20 @@ package main
 
 import (
 	"flag"
-	"log"
+	"math/rand"
 	"time"
 
-	"magma/orc8r/cloud/go/datastore"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/security/cert"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
+	"magma/orc8r/cloud/go/services/certifier/storage"
 	"magma/orc8r/cloud/go/sqorc"
+	storage2 "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/security/cert"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -41,20 +43,26 @@ func main() {
 	// Create the service, flag will be parsed inside this function
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, certifier.ServiceName)
 	if err != nil {
-		log.Fatalf("Error creating service: %s", err)
+		glog.Fatalf("Error creating service: %s", err)
 	}
 
-	// Init the datastore
-	store, err := datastore.NewSqlDb(datastore.SQL_DRIVER, datastore.DATABASE_SOURCE, sqorc.GetSqlBuilder())
+	// Init storage
+	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
 	if err != nil {
-		log.Fatalf("Failed to initialize datastore: %s", err)
+		glog.Fatalf("Failed to connect to database: %s", err)
 	}
-	caMap := map[protos.CertType]*servicers.CAInfo{}
+	fact := blobstore.NewEntStorage(storage.CertifierTableBlobstore, db, sqorc.GetSqlBuilder())
+	err = fact.InitializeFactory()
+	if err != nil {
+		glog.Fatalf("Error initializing certifier database: %s", err)
+	}
+	store := storage.NewCertifierBlobstore(fact)
 
 	// Add servicers to the service
+	caMap := map[protos.CertType]*servicers.CAInfo{}
 	bootstrapCert, bootstrapPrivKey, err := cert.LoadCertAndPrivKey(*bootstrapCACertFile, *bootstrapCAKeyFile)
 	if err != nil {
-		log.Printf("ERROR: Failed to load bootstrap CA cert and key: %v", err)
+		glog.Infof("ERROR: Failed to load bootstrap CA cert and key: %v", err)
 	} else {
 		caMap[protos.CertType_DEFAULT] = &servicers.CAInfo{Cert: bootstrapCert, PrivKey: bootstrapPrivKey}
 	}
@@ -62,34 +70,42 @@ func main() {
 	if vpnErr != nil {
 		fmtstr := "ERROR: Failed to load VPN cert and key: %v"
 		if err != nil {
-			log.Fatalf(fmtstr, vpnErr)
+			glog.Fatalf(fmtstr, vpnErr)
 		} else {
-			log.Printf(fmtstr, vpnErr)
+			glog.Infof(fmtstr, vpnErr)
 		}
 	} else {
 		caMap[protos.CertType_VPN] = &servicers.CAInfo{Cert: vpnCert, PrivKey: vpnPrivKey}
 	}
+
+	// Register servicer
 	servicer, err := servicers.NewCertifierServer(store, caMap)
 	if err != nil {
-		log.Fatalf("Failed to create certifier server: %s", err)
+		glog.Fatalf("Failed to create certifier server: %s", err)
 	}
 	certprotos.RegisterCertifierServer(srv.GrpcServer, servicer)
 
 	// Start Garbage Collector Ticker
-	gc := time.Tick(time.Hour * time.Duration(*gcHours))
 	go func() {
-		for now := range gc {
-			log.Printf("%v - Removing Stale Certificates", now)
-			_, err := servicer.CollectGarbage(context.Background(), &protos.Void{})
+		rand.Seed(time.Now().UnixNano())
+		for {
+			// wait for *gcHours +/- rand(1/20 of *gcHours)
+			after := time.Hour * time.Duration(*gcHours)
+			tenth := (after / 10) + 1 // +1 to make sure, it's not 0
+			randomDelta := time.Duration(rand.Int63n(int64(tenth))) - tenth/2
+			<-time.After(after + randomDelta)
+			glog.Infof("removing stale certificates")
+			count, err := servicer.CollectGarbageImpl(context.Background())
 			if err != nil {
-				glog.Errorf("error collecting garbage for certifier: %s", err)
+				glog.Errorf("error collecting garbage for certifier: %v", err)
 			}
+			glog.Infof("removed %d stale certificates", count)
 		}
 	}()
 
 	// Run the service
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error running service: %s", err)
 	}
 }

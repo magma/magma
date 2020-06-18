@@ -30,7 +30,6 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 #include <string.h>
-
 #include "bstrlib.h"
 #include "log.h"
 #include "common_defs.h"
@@ -49,6 +48,10 @@ int pgw_pco_push_protocol_or_container_id(
   if (
     PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID <=
     pco->num_protocol_or_container_id) {
+    OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "Invalid num_protocol_or_container_id :%d within pco \n",
+      pco->num_protocol_or_container_id);
     return RETURNerror;
   }
   pco->protocol_or_container_ids[pco->num_protocol_or_container_id].id =
@@ -312,12 +315,71 @@ int pgw_process_pco_link_mtu_request(
 }
 
 //------------------------------------------------------------------------------
+int pgw_process_pco_pcscf_ipv4_address_req(
+    protocol_configuration_options_t* const pco_resp)
+{
+  if (!spgw_config.pgw_config.pcscf.ipv4_addr.s_addr) {
+    OAILOG_ERROR(
+        LOG_SPGW_APP,
+        "PCO_CI_P_CSCF_IPV4_ADDRESS not configured. Ignoring the containerID "
+        "\n");
+    return RETURNok;
+  }
+  pco_protocol_or_container_id_t poc_id_resp = {0};
+  in_addr_t pcscf_ipv4_addr = spgw_config.pgw_config.pcscf.ipv4_addr.s_addr;
+  uint8_t pcscf_ipv4_array[4];
+
+  OAILOG_DEBUG(
+      LOG_SPGW_APP, "PCO: Protocol identifier PCO_CI_P_CSCF_IPV4_ADDRESS \n");
+  poc_id_resp.id       = PCO_CI_P_CSCF_IPV4_ADDRESS;
+  poc_id_resp.length   = 4;
+  pcscf_ipv4_array[0]  = (uint8_t)(pcscf_ipv4_addr & 0x000000FF);
+  pcscf_ipv4_array[1]  = (uint8_t)((pcscf_ipv4_addr >> 8) & 0x000000FF);
+  pcscf_ipv4_array[2]  = (uint8_t)((pcscf_ipv4_addr >> 16) & 0x000000FF);
+  pcscf_ipv4_array[3]  = (uint8_t)((pcscf_ipv4_addr >> 24) & 0x000000FF);
+  poc_id_resp.contents = blk2bstr(pcscf_ipv4_array, sizeof(pcscf_ipv4_array));
+
+  return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
+}
+
+//------------------------------------------------------------------------------
+int pgw_process_pco_pcscf_ipv6_address_req(
+    protocol_configuration_options_t* const pco_resp)
+{
+  if (!strlen((char*) spgw_config.pgw_config.pcscf.ipv6_addr.s6_addr)) {
+    OAILOG_ERROR(
+        LOG_SPGW_APP,
+        "PCO_CI_P_CSCF_IPV6_ADDRESS not configured. Ignoring the containerID "
+        "\n");
+    // Send P-CSCF IPv4 address if configured
+    if (RETURNok != pgw_process_pco_pcscf_ipv4_address_req(pco_resp)) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP, "PCO_CI_P_CSCF_IPV4_ADDRESS not configured \n");
+    }
+    return RETURNok;
+  }
+  pco_protocol_or_container_id_t poc_id_resp = {0};
+  struct in6_addr pcscf_ipv6_addr = spgw_config.pgw_config.pcscf.ipv6_addr;
+
+  OAILOG_DEBUG(
+      LOG_SPGW_APP, "PCO: Protocol identifier PCO_CI_P_CSCF_IPV6_ADDRESS \n");
+  poc_id_resp.id     = PCO_CI_P_CSCF_IPV6_ADDRESS;
+  poc_id_resp.length = 16;
+  poc_id_resp.contents =
+      blk2bstr(pcscf_ipv6_addr.s6_addr, sizeof(pcscf_ipv6_addr.s6_addr));
+
+  return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
+}
+
+//------------------------------------------------------------------------------
 
 int pgw_process_pco_request(
   const protocol_configuration_options_t *const pco_req,
   protocol_configuration_options_t *pco_resp,
   protocol_configuration_options_ids_t *const pco_ids)
 {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  uint32_t rc = RETURNok;
   memset(pco_ids, 0, sizeof *pco_ids);
 
   switch (pco_req->configuration_protocol) {
@@ -339,13 +401,13 @@ int pgw_process_pco_request(
   for (int id = 0; id < pco_req->num_protocol_or_container_id; id++) {
     switch (pco_req->protocol_or_container_ids[id].id) {
       case PCO_PI_IPCP:
-        pgw_process_pco_request_ipcp(
+        rc = pgw_process_pco_request_ipcp(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->pi_ipcp = true;
         break;
 
       case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
-        pgw_process_pco_dns_server_request(
+        rc = pgw_process_pco_dns_server_request(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->ci_dns_server_ipv4_address_request = true;
         break;
@@ -357,9 +419,17 @@ int pgw_process_pco_request(
         break;
 
       case PCO_CI_IPV4_LINK_MTU_REQUEST:
-        pgw_process_pco_link_mtu_request(
+        rc = pgw_process_pco_link_mtu_request(
           pco_resp, &pco_req->protocol_or_container_ids[id]);
         pco_ids->ci_ipv4_link_mtu_request = true;
+        break;
+
+      case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
+        rc = pgw_process_pco_pcscf_ipv4_address_req(pco_resp);
+        break;
+
+      case PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST:
+        rc = pgw_process_pco_pcscf_ipv6_address_req(pco_resp);
         break;
 
       default:
@@ -379,5 +449,5 @@ int pgw_process_pco_request(
       pgw_process_pco_link_mtu_request(pco_resp, NULL);
     }
   }
-  return RETURNok;
+  return rc;
 }

@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strconv"
 	"time"
+	"unicode"
 )
 
 const (
@@ -20,6 +21,10 @@ const (
 	ParamRangeEnd   = "end"
 	ParamStepWidth  = "step"
 	ParamTime       = "time"
+
+	ParamMetric      = "metric"
+	ParamMatchTarget = "match_target"
+	ParamLimit       = "limit"
 
 	StatusSuccess = "success"
 )
@@ -53,6 +58,10 @@ func parseRFCTime(timeString string) (time.Time, error) {
 func ParseDuration(durationString, defaultDuration string) (time.Duration, error) {
 	if durationString == "" {
 		durationString = defaultDuration
+	}
+	// If last char is a digit, append 's' since number of seconds is assumed
+	if unicode.IsDigit(rune(durationString[len(durationString)-1])) {
+		durationString += "s"
 	}
 	return time.ParseDuration(durationString)
 }

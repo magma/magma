@@ -4,22 +4,41 @@
 // This source code is licensed under the BSD-style license found in the
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
+
 syntax = "proto3";
+package magma.orc8r;
 
 import "orc8r/protos/common.proto";
 import "orc8r/protos/service303.proto";
 
-package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 message StateID {
     string type = 1;
     string deviceID = 2;
 }
 
+// GetStatesRequest functions in two modes
+//  - ids is non-empty  -- normal Get
+//  - ids empty         -- Search with filters and load criteria
 message GetStatesRequest {
+    // networkID of the network containing desired state.
     string networkID = 1;
+
+    // ids for which to return corresponding state.
     repeated StateID ids = 2;
+
+    // typeFilter is an OR of all types specified.
+    // The service will return all states matching any of the specified types.
+    repeated string typeFilter = 10;
+
+    // idFilter is an OR of all device IDs specified.
+    // The service will return all states matching any of the specified IDs.
+    repeated string idFilter = 11;
+
+    // loadValues specifies whether state values should be loaded in
+    // addition to metadata.
+    bool loadValues = 12;
 }
 
 message GetStatesResponse {
@@ -59,8 +78,17 @@ message SyncStatesResponse {
 }
 
 service StateService {
+    // GetStates retrieves states from blobstorage.
     rpc GetStates (GetStatesRequest) returns (GetStatesResponse) {}
+
+    // ReportStates saves states into blobstorage.
     rpc ReportStates(ReportStatesRequest) returns (ReportStatesResponse) {}
+
+    // DeleteStates deletes states from blobstorage.
     rpc DeleteStates(DeleteStatesRequest) returns (Void) {}
+
+    // SyncStates retrieves states from blobstorage, compares their versions
+    // to the states included in the request, and returns the IDAndVersions
+    // that differ.
     rpc SyncStates(SyncStatesRequest) returns (SyncStatesResponse) {}
 }

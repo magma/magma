@@ -16,18 +16,18 @@ import (
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/feg/gateway/services/testcore/hss/storage"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewULA_MissingMandatoryAVP(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	m := diam.NewMessage(diam.UpdateLocation, diam.RequestFlag|diam.ProxiableFlag, diam.TGPP_S6A_APP_ID, 1, 1, dict.Default)
 	response, err := hss.NewULA(server, m)
 	assert.EqualError(t, err, "Missing IMSI in message")
@@ -41,7 +41,7 @@ func TestNewULA_MissingMandatoryAVP(t *testing.T) {
 
 func TestNewULA_UnknownSubscriber(t *testing.T) {
 	ulr := createULR("sub_unknown")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewULA(server, ulr)
 	assert.Exactly(t, err, storage.NewUnknownSubscriberError("sub_unknown"))
 
@@ -54,7 +54,7 @@ func TestNewULA_UnknownSubscriber(t *testing.T) {
 
 func TestNewULA_SuccessfulResponse(t *testing.T) {
 	ulr := createULR("sub1")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewULA(server, ulr)
 	assert.NoError(t, err)
 
@@ -70,7 +70,7 @@ func TestNewULA_SuccessfulResponse(t *testing.T) {
 
 func TestNewULA_NewSuccessfulULA(t *testing.T) {
 	ulr := createULR("sub1")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	profile := &mconfig.HSSConfig_SubscriptionProfile{
 		MaxUlBitRate: 123,
 		MaxDlBitRate: 456,
@@ -167,7 +167,7 @@ func TestValidateULR_MissingSessionID(t *testing.T) {
 
 func TestNewULA_RATTypeNotAllowed(t *testing.T) {
 	ulr := createULRExtended("sub1", 10)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewULA(server, ulr)
 	assert.EqualError(t, err, "RAT-Type not allowed: 10")
 

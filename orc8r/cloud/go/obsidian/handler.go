@@ -9,16 +9,14 @@
 package obsidian
 
 import (
-	"bytes"
+	"crypto/x509"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
+	"strconv"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/util"
 
 	"github.com/labstack/echo"
 	"google.golang.org/grpc"
@@ -39,17 +37,6 @@ type Handler struct {
 	Methods HttpMethod
 
 	HandlerFunc echo.HandlerFunc
-
-	// MigratedHandlerFunc specifies a second handler function for the
-	// configurator service migration. The implementation to use will be
-	// chosen by the value of the USE_NEW_HANDLERS environment variable -
-	// set to 1 to use new handler functions in all handlers.
-	MigratedHandlerFunc echo.HandlerFunc
-
-	// If set to true, MultiplexAfterMigration will always run both
-	// MigratedHandlerFunc and HandlerFunc in serial if the migration flag is
-	// set. Otherwise, only MigratedHandlerFunc will run.
-	MultiplexAfterMigration bool
 }
 
 const (
@@ -103,51 +90,7 @@ func register(registry handlerRegistry, handler Handler) error {
 	if registered {
 		return fmt.Errorf("HandlerFunc[s] already registered for path: %q", handler.Path)
 	}
-
-	wrappedHandlerFunc := func(c echo.Context) error {
-		migrated := os.Getenv(orc8r.UseConfiguratorEnv)
-		if migrated == "1" {
-			// If there's no migrated handler, we just run the normal one
-			if handler.MigratedHandlerFunc == nil {
-				return handler.HandlerFunc(c)
-			}
-
-			// echo's context.Bind uses up the request body's reader so the
-			// multiplexed handler will see an empty request body. We can read
-			// out the entire body here and overwrite the request's reader
-			// before each handler call.
-			bodyBytes, err := ioutil.ReadAll(c.Request().Body)
-			if err != nil {
-				return echo.NewHTTPError(http.StatusInternalServerError, "could not read request body")
-			}
-
-			clonedReader := ioutil.NopCloser(bytes.NewReader(bodyBytes))
-			c.Request().Body = clonedReader
-			err = handler.MigratedHandlerFunc(c)
-			if err != nil {
-				return err
-			}
-
-			if handler.MultiplexAfterMigration {
-				clonedReader := ioutil.NopCloser(bytes.NewReader(bodyBytes))
-				c.Request().Body = clonedReader
-				// we don't want the multiplexed legacy handler to write to
-				// the response
-				c.Response().Writer = &nopWriter{writer: c.Response().Writer}
-
-				err = handler.HandlerFunc(c)
-				if err != nil {
-					return err
-				}
-			}
-
-			return nil
-		} else {
-			return handler.HandlerFunc(c)
-		}
-	}
-	registry[handler.Path] = wrappedHandlerFunc
-
+	registry[handler.Path] = handler.HandlerFunc
 	return nil
 }
 
@@ -231,36 +174,30 @@ func CheckNetworkAccess(c echo.Context, networkId string) *echo.HTTPError {
 	if !TLS {
 		return nil
 	}
-	if c != nil {
-		if r := c.Request(); r != nil {
-			if len(r.TLS.PeerCertificates) > 0 {
-				var cert = r.TLS.PeerCertificates[0]
-				if cert != nil {
-					if cert.Subject.CommonName == wildcard ||
-						cert.Subject.CommonName == networkWildcard ||
-						cert.Subject.CommonName == networkId {
-						return nil
-					}
-					for _, san := range cert.DNSNames {
-						if san == wildcard ||
-							san == networkWildcard ||
-							san == networkId {
-							return nil
-						}
-					}
-					log.Printf(
-						"Client Cert %s is not authorized for network: %s",
-						util.FormatPkixSubject(&cert.Subject), networkId)
-					return echo.NewHTTPError(http.StatusForbidden,
-						"Client Certificate is not authorized")
-				}
-			}
+
+	cert := getCert(c)
+	if cert == nil {
+		log.Printf(fmt.Sprintf("Client Certificate With valid SANs is required for network: %s", networkId))
+		return echo.NewHTTPError(http.StatusForbidden, fmt.Sprintf("Client Certificate With valid SANs is required for network: %s", networkId))
+	}
+
+	if cert.Subject.CommonName == wildcard ||
+		cert.Subject.CommonName == networkWildcard ||
+		cert.Subject.CommonName == networkId {
+		return nil
+	}
+	for _, san := range cert.DNSNames {
+		if san == wildcard ||
+			san == networkWildcard ||
+			san == networkId {
+			return nil
 		}
 	}
-	log.Printf("Client Certificate With valid SANs is required for network: %s",
-		networkId)
+	log.Printf(
+		"Client Cert %s is not authorized for network: %s",
+		util.FormatPkixSubject(&cert.Subject), networkId)
 	return echo.NewHTTPError(http.StatusForbidden,
-		"Client Certificate With valid SANs is required")
+		"Client Certificate is not authorized")
 }
 
 func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
@@ -269,6 +206,56 @@ func GetNetworkId(c echo.Context) (string, *echo.HTTPError) {
 		return nid, NetworkIdHttpErr()
 	}
 	return nid, CheckNetworkAccess(c, nid)
+}
+
+func GetTenantID(c echo.Context) (int64, *echo.HTTPError) {
+	oid := c.Param("tenant_id")
+	if oid == "" {
+		return 0, TenantIdHttpErr()
+	}
+	intTenantID, err := strconv.ParseInt(oid, 10, 64)
+	if err != nil {
+		return 0, TenantIdHttpErr()
+	}
+	return intTenantID, CheckTenantAccess(c)
+}
+
+// CheckTenantAccess checks that the context has network wildcard access
+// i.e. is admin
+func CheckTenantAccess(c echo.Context) *echo.HTTPError {
+	if !TLS {
+		return nil
+	}
+
+	cert := getCert(c)
+	if cert == nil {
+		log.Printf("Client Certificate With valid SANs is required for tenant access")
+		return echo.NewHTTPError(http.StatusForbidden, "Client Certificate With valid SANs is required for tenant access")
+	}
+
+	if cert.Subject.CommonName == wildcard || cert.Subject.CommonName == networkWildcard {
+		return nil
+	}
+	for _, san := range cert.DNSNames {
+		if san == wildcard || san == networkWildcard {
+			return nil
+		}
+	}
+	log.Printf(
+		"Client Cert %s does not have wildcard access", util.FormatPkixSubject(&cert.Subject))
+	return echo.NewHTTPError(http.StatusForbidden,
+		"Client Certificate is not authorized")
+}
+
+func getCert(c echo.Context) *x509.Certificate {
+	if c == nil {
+		return nil
+	}
+	r := c.Request()
+	if r == nil || len(r.TLS.PeerCertificates) == 0 || r.TLS.PeerCertificates[0] == nil {
+		return nil
+	}
+	return r.TLS.PeerCertificates[0]
 }
 
 // DEPRECATED - use GetGatewayID, and use :gateway_id as path param
@@ -330,4 +317,8 @@ func GetOperatorId(c echo.Context) (string, *echo.HTTPError) {
 
 func NetworkIdHttpErr() *echo.HTTPError {
 	return HttpError(fmt.Errorf("Missing Network ID"), http.StatusBadRequest)
+}
+
+func TenantIdHttpErr() *echo.HTTPError {
+	return HttpError(fmt.Errorf("Missing Tenant ID"), http.StatusBadRequest)
 }

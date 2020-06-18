@@ -28,6 +28,6 @@
 
 - name: Add JFrog repo
   apt_repository:
-    repo: 'deb https://magma.jfrog.io/magma/list/dev/ {{ distribution }} main'
+    repo: 'deb https://facebookconnectivity.jfrog.io/artifactory/list/{{ repo }}/ {{ distribution }} main'
     update_cache: yes
     mode: 0644

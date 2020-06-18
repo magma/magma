@@ -80,7 +80,7 @@ class TrafficUtil(object):
     def _init_lib(self):
         ''' Initialize the trfgen library by loading in binary compiled from C
         '''
-        lib_path = os.environ['S1AP_ROOT']
+        lib_path = os.environ['S1AP_TESTER_ROOT']
         lib = os.path.join(lib_path, 'bin', TrafficUtil._trfgen_lib_name)
         os.chdir(lib_path)
         self._test_lib = ctypes.cdll.LoadLibrary(lib)

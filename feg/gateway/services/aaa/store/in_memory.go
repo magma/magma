@@ -11,12 +11,13 @@ package store
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 	"unsafe"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/metrics"
@@ -107,11 +108,12 @@ func (st *memSessionTable) AddSession(
 	imsi := pc.GetImsi()
 	s := &memSession{Context: pc, imsi: imsi}
 	st.rwl.Lock()
+	// Handle the case of old session with the same radius session ID
 	if oldSession, ok := st.sm[sid]; ok {
 		if len(overwrite) > 0 && overwrite[0] {
 			if oldSession != nil {
 				oldImsi := oldSession.imsi
-				log.Printf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
+				glog.Warningf("Session with SID: %s already exist, will overwrite. Old IMSI: %s, New IMSI: %s",
 					sid, oldImsi, imsi)
 
 				oldSession.StopTimeout()
@@ -127,16 +129,25 @@ func (st *memSessionTable) AddSession(
 			return oldSession, fmt.Errorf("Session with SID: %s already exist", sid)
 		}
 	}
-
+	// Handle the case of old session with the same IMSI and diferent radius session ID (roaming?)
+	if oldSessionId, ok := st.sids[imsi]; ok && oldSessionId != sid {
+		if oldImsiSession, ok := st.sm[oldSessionId]; ok {
+			if oldImsiSession != nil {
+				oldImsiSession.StopTimeout()
+			}
+			delete(st.sids, oldSessionId)
+			glog.Infof("old session with SID: %s found for IMSI: %s, will remove", oldSessionId, imsi)
+		}
+	}
 	st.sm[sid] = s
 	st.sids[imsi] = sid
 	apn := s.GetApn()
 	st.rwl.Unlock()
 
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
-
+	imsi = metrics.DecorateIMSI(imsi)
 	metrics.Sessions.WithLabelValues(apn, imsi, sid).Inc()
-	metrics.SessionStart.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
+	metrics.SessionStart.WithLabelValues(apn, imsi, sid).Inc()
 
 	return s, nil
 }
@@ -162,6 +173,19 @@ func (st *memSessionTable) FindSession(imsi string) (sid string) {
 	return sid
 }
 
+// GetSessionByImsi returns session corresponding to the given IMSI or nil if not found
+func (st *memSessionTable) GetSessionByImsi(imsi string) aaa.Session {
+	var s *memSession
+	if st != nil {
+		st.rwl.RLock()
+		if sid, ok := st.sids[imsi]; ok {
+			s, _ = st.sm[sid]
+		}
+		st.rwl.RUnlock()
+	}
+	return s
+}
+
 // RemoveSession - removes the session with the given SID and returns it
 func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 	if st != nil {
@@ -179,10 +203,11 @@ func (st *memSessionTable) RemoveSession(sid string) aaa.Session {
 			}
 		}
 		st.rwl.Unlock()
-		metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
-		metrics.SessionStop.WithLabelValues(apn, imsi, sid).SetToCurrentTime()
 		if found {
 			s.StopTimeout()
+			imsi = metrics.DecorateIMSI(imsi)
+			metrics.Sessions.WithLabelValues(apn, imsi, sid).Dec()
+			metrics.SessionStop.WithLabelValues(apn, imsi, sid).Inc()
 			return s
 		}
 	}
@@ -242,11 +267,11 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 			if ctx.notifyRoutine != nil {
 				notifyResult = ctx.notifyRoutine(s)
 			}
-			log.Printf(
+			glog.Infof(
 				"Timed out session '%s' for SessionId: %s; IMSI: %s; Identity: %s; MAC: %s; IP: %s; notify result: %v",
 				ctx.sidKey, s.GetSessionId(), s.GetImsi(), s.GetIdentity(), s.GetMacAddr(), s.GetIpAddr(), notifyResult)
 
-			metrics.SessionTimeouts.WithLabelValues(s.GetApn(), s.GetImsi()).Inc()
+			metrics.SessionTimeouts.WithLabelValues(s.GetApn(), metrics.DecorateIMSI(s.GetImsi())).Inc()
 		}
 	}
 }

@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator/storage"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -53,11 +53,11 @@ func RegisterMconfigBuilders(builders ...MconfigBuilder) {
 }
 
 func CreateMconfig(networkID string, gatewayID string, graph *storage.EntityGraph, network *storage.Network) (*protos.GatewayConfigs, error) {
-	nativeGraph, err := (EntityGraph{}).fromStorageProto(graph)
+	nativeGraph, err := (EntityGraph{}).FromStorageProto(graph)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert storage graph to native type")
 	}
-	nativeNW, err := (Network{}).fromStorageProto(network)
+	nativeNW, err := (Network{}).FromStorageProto(network)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to convert storage network to native type")
 	}
@@ -76,6 +76,7 @@ func CreateMconfig(networkID string, gatewayID string, graph *storage.EntityGrap
 	ret := &protos.GatewayConfigs{
 		Metadata: &protos.GatewayConfigsMetadata{
 			CreatedAt: uint64(time.Now().Unix()),
+			Digest:    &protos.GatewayConfigsDigest{},
 		},
 		ConfigsByKey: map[string]*any.Any{},
 	}
@@ -86,6 +87,11 @@ func CreateMconfig(networkID string, gatewayID string, graph *storage.EntityGrap
 		}
 		ret.ConfigsByKey[k] = a
 	}
+	digest, err := ret.GetMconfigDigest()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate digest of ConfigsByKey")
+	}
+	ret.Metadata.Digest.Md5HexDigest = digest
 
 	return ret, nil
 }

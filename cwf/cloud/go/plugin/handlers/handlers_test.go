@@ -19,6 +19,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	plugin3 "magma/feg/cloud/go/plugin"
 	models3 "magma/feg/cloud/go/plugin/models"
+	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -26,23 +27,31 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/directoryd"
+	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/net/context"
 )
 
 func TestCwfNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin4.LteOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin3.FegOrchestratorPlugin{})
 	test_init.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -53,6 +62,7 @@ func TestCwfNetworks(t *testing.T) {
 	deleteNetwork := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id", obsidian.DELETE).HandlerFunc
 	getNetworkFederationConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/federation", obsidian.GET).HandlerFunc
 	getCarrierWifiConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/carrier_wifi", obsidian.GET).HandlerFunc
+	getSubscriberDirectory := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/subscribers/:subscriber_id/directory_record", obsidian.GET).HandlerFunc
 
 	// Test ListNetworks
 	tc := tests.Test{
@@ -220,6 +230,45 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// setup fixtures in backend
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		},
+	)
+	assert.NoError(t, err)
+
+	seedCwfGateway(t)
+
+	reqRecord := &directoryd.DirectoryRecord{
+		LocationHistory: []string{"hw1"},
+		Identifiers: map[string]interface{}{
+			"mac_addr":  "aa:aa:aa:aa:aa:aa",
+			"ipv4_addr": "192.168.127.1",
+		},
+	}
+	expectedRecord := &models2.CwfSubscriberDirectoryRecord{
+		LocationHistory: []string{"hw1"},
+		MacAddr:         "aa:aa:aa:aa:aa:aa",
+		IPV4Addr:        "192.168.127.1",
+	}
+	subID := "IMSI123456"
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	reportSubscriberDirectoryRecord(t, ctx, subID, reqRecord)
+
+	// Test GetSubscriberDirectoryRecord
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/subscribers/IMSI123456/directory_record",
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", subID},
+		Handler:        getSubscriberDirectory,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedRecord),
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test DeleteNetwork
 	tc = tests.Test{
 		Method:         "DELETE",
@@ -247,7 +296,7 @@ func TestCwfGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 	test_init.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -255,14 +304,15 @@ func TestCwfGateways(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
 	listGateways := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.GET).HandlerFunc
 	getGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.GET).HandlerFunc
 	getCarrierWifiGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/carrier_wifi", obsidian.GET).HandlerFunc
 	updateCarrierWifiGatewayConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/carrier_wifi", obsidian.PUT).HandlerFunc
+	getCarrierWifiGatewayLiImsis := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/li_imsis", obsidian.GET).HandlerFunc
+	updateCarrierWifiGatewayLiImsis := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/li_imsis", obsidian.PUT).HandlerFunc
 	updateGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.PUT).HandlerFunc
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
-
+	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
 	seedCwfNetworks(t)
 
 	// setup fixtures in backend
@@ -285,7 +335,13 @@ func TestCwfGateways(t *testing.T) {
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1"},
+			},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.6,
+				MemUtilThresholdPct:  0.6,
 			},
 		},
 		Magmad: &models.MagmadGatewayConfigs{
@@ -321,7 +377,13 @@ func TestCwfGateways(t *testing.T) {
 			Name: "foobar", Description: "foo bar",
 			CarrierWifi: &models2.GatewayCwfConfigs{
 				AllowedGrePeers: models2.AllowedGrePeers{
-					{IP: "1.1.1.1", Key: swag.Uint32(123)},
+					{IP: "1.1.1.1"},
+				},
+				GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+					GreProbeIntervalSecs: 3,
+					IcmpProbePktCount:    5,
+					CPUUtilThresholdPct:  0.6,
+					MemUtilThresholdPct:  0.6,
 				},
 			},
 			Tier: "t1",
@@ -357,7 +419,13 @@ func TestCwfGateways(t *testing.T) {
 		Name: "foobar", Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
 			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+				{IP: "1.1.1.1"},
+			},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.6,
+				MemUtilThresholdPct:  0.6,
 			},
 		},
 		Tier: "t1",
@@ -392,10 +460,15 @@ func TestCwfGateways(t *testing.T) {
 		Name:        "newname",
 		Description: "bar baz",
 		CarrierWifi: &models2.GatewayCwfConfigs{
-			AllowedGrePeers: models2.AllowedGrePeers{
-				{IP: "1.1.1.1", Key: swag.Uint32(123)},
+			AllowedGrePeers: models2.AllowedGrePeers{{IP: "1.1.1.1"}},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.8,
+				MemUtilThresholdPct:  0.6,
 			},
 		},
+
 		Magmad: &models.MagmadGatewayConfigs{
 			AutoupgradeEnabled:      swag.Bool(true),
 			AutoupgradePollInterval: 300,
@@ -418,6 +491,7 @@ func TestCwfGateways(t *testing.T) {
 
 	expectedGet.Name = "newname"
 	expectedGet.Description = "bar baz"
+	expectedGet.CarrierWifi.GatewayHealthConfigs.CPUUtilThresholdPct = 0.8
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/cwf/n1/gateways/g1",
@@ -432,8 +506,84 @@ func TestCwfGateways(t *testing.T) {
 	// Test get gateway CarrierWifi config
 	expectedGwConfGet := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
-			{IP: "1.1.1.1", Key: swag.Uint32(123)},
+			{IP: "1.1.1.1"},
 		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 3,
+			IcmpProbePktCount:    5,
+			CPUUtilThresholdPct:  0.8,
+			MemUtilThresholdPct:  0.6,
+		},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        getCarrierWifiGatewayConfig,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: expectedGwConfGet,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test update gateway CarrierWifi config (invalid config)
+	badPayloadConf := &models2.GatewayCwfConfigs{
+		AllowedGrePeers: models2.AllowedGrePeers{
+			{IP: "2.2.2.2/24", Key: swag.Uint32(444)},
+			{IP: "2.2.2.2/24", Key: swag.Uint32(444)},
+		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 3,
+			IcmpProbePktCount:    5,
+			CPUUtilThresholdPct:  0.6,
+			MemUtilThresholdPct:  0.6,
+		},
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/cwf/n1/gateways/g1",
+		Handler:        updateCarrierWifiGatewayConfig,
+		Payload:        badPayloadConf,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 400,
+		ExpectedError:  "Found duplicate peer 2.2.2.2/24 with key 444",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test update gateway LiImsis config
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/cwf/n1/gateways/g1/li_imsis",
+		Handler:        updateCarrierWifiGatewayLiImsis,
+		Payload:        tests.JSONMarshaler([]string{"IMSI001010000000009"}),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1/li_imsis",
+		Handler:        getCarrierWifiGatewayLiImsis,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{"IMSI001010000000009"}),
+	}
+
+	// Test get gateway CarrierWifi config
+	expectedGwConfGet = &models2.GatewayCwfConfigs{
+		AllowedGrePeers: models2.AllowedGrePeers{
+			{IP: "1.1.1.1"},
+		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 3,
+			IcmpProbePktCount:    5,
+			CPUUtilThresholdPct:  0.8,
+			MemUtilThresholdPct:  0.6,
+		},
+		LiImsis: []string{"IMSI001010000000009"},
 	}
 	tc = tests.Test{
 		Method:         "GET",
@@ -449,11 +599,18 @@ func TestCwfGateways(t *testing.T) {
 	// Test update gateway CarrierWifi config
 	payloadConf := &models2.GatewayCwfConfigs{
 		AllowedGrePeers: models2.AllowedGrePeers{
-			{IP: "2.2.2.2", Key: swag.Uint32(321)},
+			{IP: "2.2.2.2/24", Key: swag.Uint32(321)},
+			{IP: "2.2.2.3/24", Key: swag.Uint32(321)},
+		},
+		GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+			GreProbeIntervalSecs: 0,
+			IcmpProbePktCount:    0,
+			CPUUtilThresholdPct:  1,
+			MemUtilThresholdPct:  1,
 		},
 	}
 	tc = tests.Test{
-		Method:         "GET",
+		Method:         "PUT",
 		URL:            "/magma/v1/cwf/n1/gateways/g1",
 		Handler:        updateCarrierWifiGatewayConfig,
 		Payload:        payloadConf,
@@ -546,4 +703,69 @@ func seedCwfNetworks(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
+}
+
+func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id string, req *directoryd.DirectoryRecord) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedRecord, err := serde.Serialize(state.SerdeDomain, orc8r.DirectoryRecordType, req)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     orc8r.DirectoryRecordType,
+			DeviceID: id,
+			Value:    serializedRecord,
+			Version:  1,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
+	)
+	assert.NoError(t, err)
+}
+
+func seedCwfGateway(t *testing.T) {
+	e := echo.New()
+	obsidianHandlers := handlers.GetHandlers()
+	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
+
+	payload := &models2.MutableCwfGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: "hw1",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          "g1",
+		Name:        "foobar",
+		Description: "foo bar",
+		CarrierWifi: &models2.GatewayCwfConfigs{
+			AllowedGrePeers: models2.AllowedGrePeers{
+				{IP: "1.1.1.1/24"},
+			},
+			GatewayHealthConfigs: &models2.GatewayHealthConfigs{
+				GreProbeIntervalSecs: 3,
+				IcmpProbePktCount:    5,
+				CPUUtilThresholdPct:  0.6,
+				MemUtilThresholdPct:  0.6,
+			},
+		},
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          5,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Tier: "t1",
+	}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/cwf/n1/gateways",
+		Handler:        createGateway,
+		Payload:        payload,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
 }

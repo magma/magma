@@ -10,10 +10,11 @@ package registry
 
 import (
 	"log"
-	platform_registry "magma/orc8r/cloud/go/registry"
-	"magma/orc8r/cloud/go/service/serviceregistry"
 
 	"google.golang.org/grpc"
+
+	platform_registry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/serviceregistry"
 )
 
 const (
@@ -23,6 +24,7 @@ const (
 	S6A_PROXY     = "S6A_PROXY"
 	SESSION_PROXY = "SESSION_PROXY"
 	SWX_PROXY     = "SWX_PROXY"
+	HLR_PROXY     = "HLR_PROXY"
 	HEALTH        = "HEALTH"
 	CSFB          = "CSFB"
 	FEG_HELLO     = "FEG_HELLO"
@@ -34,7 +36,9 @@ const (
 	REDIS         = "REDIS"
 	MOCK_VLR      = "MOCK_VLR"
 	MOCK_OCS      = "MOCK_OCS"
+	MOCK_OCS2     = "MOCK_OCS2"
 	MOCK_PCRF     = "MOCK_PCRF"
+	MOCK_PCRF2    = "MOCK_PCRF2"
 	MOCK_HSS      = "HSS"
 
 	SESSION_MANAGER = "SESSIOND"
@@ -43,25 +47,28 @@ const (
 // Add a new service.
 // If the service already exists, overwrites the service config.
 func AddService(serviceType, host string, port int) {
-	platform_registry.AddService(platform_registry.ServiceLocation{Name: serviceType, Host: host, Port: port})
+	fegRegistry.AddService(platform_registry.ServiceLocation{Name: serviceType, Host: host, Port: port})
 }
 
 // Returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
-	return platform_registry.GetServiceAddress(service)
+	return fegRegistry.GetServiceAddress(service)
 }
 
 // Provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
-	return platform_registry.GetConnection(service)
+	return fegRegistry.GetConnection(service)
 }
 
 func addLocalService(serviceType string, port int) {
 	AddService(serviceType, "localhost", port)
 }
 
+var fegRegistry = Get()
+
 func init() {
+
 	// Add default Local Service Locations
 	addLocalService(REDIS, 6380)
 
@@ -77,9 +84,12 @@ func init() {
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
 	addLocalService(RADIUSD, 9115)
+	addLocalService(HLR_PROXY, 9116)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)
+	addLocalService(MOCK_OCS2, 9205)
+	addLocalService(MOCK_PCRF2, 9206)
 	addLocalService(MOCK_VLR, 9203)
 	addLocalService(MOCK_HSS, 9204)
 
@@ -89,6 +99,6 @@ func init() {
 	if err != nil {
 		log.Printf("Error loading FeG service_registry.yml: %v", err)
 	} else if len(locations) > 0 {
-		platform_registry.AddServices(locations...)
+		fegRegistry.AddServices(locations...)
 	}
 }

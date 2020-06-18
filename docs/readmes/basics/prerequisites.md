@@ -17,16 +17,27 @@ Install the following tools:
 3. [VirtualBox](https://www.virtualbox.org/)
 3. [Vagrant](https://vagrantup.com)
 
+Replace `brew` with your OS-appropriate package manager as necessary, or see
+the [pyenv installation instructions](https://github.com/pyenv/pyenv#installation).
+
+```bash
+brew install pyenv
+
+# Replace .zshrc with your appropriate shell RC file
+# IMPORTANT: Use .bash_profile, not .bashrc for bash
+echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
+exec $SHELL
+pyenv install 3.7.3
+pyenv global 3.7.3
+
+pip3 install ansible fabric3 jsonpickle requests PyYAML
+vagrant plugin install vagrant-vbguest
+```
+
 If you are on MacOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
 
 ![Increasing docker engine resources](assets/docker-config.png)
-
-```bash
-brew install python3
-pip3 install ansible fabric3 jsonpickle requests PyYAML
-vagrant plugin install vagrant-vbguest
-```
 
 ## Build/Deploy Tooling
 
@@ -39,11 +50,31 @@ First, follow the previous section on developer tools. Then, install some
 additional prerequisite tools (replace `brew` with your OS-appropriate package
 manager as necessary):
 
-```console
-$ brew install aws-iam-authenticator kubernetes-cli kubernetes-helm python3 terraform
-$ pip3 install awscli
-$ aws configure
+```bash
+brew install aws-iam-authenticator boto3 kubernetes-cli kubernetes-helm terraform
+pip3 install awscli
+aws configure
 ```
+
+### Orchestrator and NMS
+
+Orchestrator deployment depends on the following components:
+
+1. An AWS account
+2. A Docker image repository (e.g. Docker Hub, JFrog)
+3. A Helm chart repository (e.g. JFrog, Github)*
+4. A registered domain for Orchestrator endpoints
+
+\* See https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7
+to set up a private Github repository as a Helm repository.
+
+We recommend deploying the Orchestrator cloud component of magma into AWS.
+Our open-source Terraform scripts target an AWS deployment environment, but if
+you are familiar with devops and are willing to roll your own, Orchestrator can
+run on any public/private cloud with a Kubernetes cluster available to use.
+The deployment documentation will assume an AWS deployment environment - if
+this is your first time using or deploying Orchestrator, we recommend that you
+follow this guide before attempting to deploy it elsewhere.
 
 Provide the access key ID and secret key for an administrator user in AWS
 (don't use the root user) when prompted by `aws configure`. Skip this step if
@@ -78,23 +109,3 @@ We currently have tested with the following EnodeB's:
 
 Support for other RAN hardware can be implemented inside the `enodebd` service
 on the AGW, but we recommend starting with one of these EnodeBs.
-
-### Orchestrator and NMS
-
-Orchestrator deployment depends on the following components:
-
-1. An AWS account
-2. A Docker image repository (e.g. Docker Hub, JFrog)
-3. A registered domain for Orchestrator endpoints
-
-We recommend deploying the Orchestrator cloud component of magma into AWS.
-Our open-source Terraform scripts target an AWS deployment environment, but if
-you are familiar with devops and are willing to roll your own, Orchestrator can
-run on any public/private cloud with a Kubernetes cluster available to use.
-The deployment documentation will assume an AWS deployment environment - if
-this is your first time using or deploying Orchestrator, we recommend that you
-follow this guide before attempting to deploy it elsewhere.
-
-You will also need a Docker image repository available to publish the various
-Orchestrator NMS containers to. We recommend using a private repository for
-this.

@@ -16,4 +16,5 @@ def get_default_client():
     Return a default redis client using the configured port in redis.yml
     """
     redis_port = get_service_config_value('redis', 'port', 6379)
-    return redis.Redis(host='localhost', port=redis_port)
+    redis_addr = get_service_config_value('redis', 'bind', 'localhost')
+    return redis.Redis(host=redis_addr, port=redis_port)

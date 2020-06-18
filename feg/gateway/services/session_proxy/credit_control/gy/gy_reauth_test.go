@@ -16,7 +16,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/relay/mocks"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -26,19 +26,19 @@ func TestReAuthRelay(t *testing.T) {
 	handler := gy.GetGyReAuthHandler(cloudRegistry)
 
 	var rg uint32 = 1
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_UPDATE_INITIATED, diam.LimitedSuccess)
-	assertReAuth(t, handler, sm, nil, protos.ChargingReAuthAnswer_UPDATE_INITIATED, diam.LimitedSuccess)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_UPDATE_NOT_NEEDED, diam.Success)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_SESSION_NOT_FOUND, diam.UnknownSessionID)
-	assertReAuth(t, handler, sm, &rg, protos.ChargingReAuthAnswer_OTHER_FAILURE, diam.UnableToComply)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_UPDATE_INITIATED, diam.LimitedSuccess)
+	assertReAuth(t, handler, sm, nil, protos.ReAuthResult_UPDATE_INITIATED, diam.LimitedSuccess)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_UPDATE_NOT_NEEDED, diam.Success)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_SESSION_NOT_FOUND, diam.UnknownSessionID)
+	assertReAuth(t, handler, sm, &rg, protos.ReAuthResult_OTHER_FAILURE, diam.UnableToComply)
 }
 
 func assertReAuth(
 	t *testing.T,
-	handler gy.ReAuthHandler,
+	handler gy.ChargingReAuthHandler,
 	sm *mocks.SessionProxyResponderServer,
 	ratingGroup *uint32,
-	protoResult protos.ChargingReAuthAnswer_Result,
+	protoResult protos.ReAuthResult,
 	expectedResultCode int,
 ) {
 	imsi := "IMSI000000000000001"
@@ -55,7 +55,7 @@ func assertReAuth(
 		&protos.ChargingReAuthAnswer{Result: protoResult},
 		nil,
 	).Once()
-	raa := handler(&gy.ReAuthRequest{SessionID: sessionID, RatingGroup: ratingGroup})
+	raa := handler(&gy.ChargingReAuthRequest{SessionID: sessionID, RatingGroup: ratingGroup})
 	sm.AssertExpectations(t)
 	assert.Equal(t, expectedResultCode, int(raa.ResultCode))
 	assert.Equal(t, sessionID, raa.SessionID)

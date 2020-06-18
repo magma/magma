@@ -11,40 +11,75 @@
 VAGRANTFILE_API_VERSION = "2"
 Vagrant.require_version ">=1.9.1"
 
+
+# Docker version: this will run a VM with docker installed so you can build the containers
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+  # Mount magma directory
+  config.vm.synced_folder "../..", "/home/vagrant/magma"
+
+  config.vm.define :feg, primary: true do |feg|
+    feg.vm.box = "generic/ubuntu1804"
+    feg.vm.box_version = "1.9.12"
+    feg.vbguest.auto_update = false
+    feg.vm.hostname = "magma-feg-dev"
+    feg.vm.network "private_network", ip:  "192.168.110.10", nic_type: "82540EM"
+    feg.vm.network "private_network", ip:  "192.168.120.10", nic_type: "82540EM"
+    feg.ssh.password = "vagrant"
+    feg.ssh.insert_key = true
+
+    feg.vm.provider "virtualbox" do |vb|
+      vb.name = "feg-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "2"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+    feg.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/feg.dev.docker.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.verbose = 'v'
+    end
+  end
+end
+
+# Baremetal Version: this will install feg into services (no docker). This is lightweight version
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.vm.synced_folder "../..", "/home/vagrant/magma"
 
-  config.vm.define :feg, primary: true do |feg|
-    feg.vm.box = "fbcmagma/magma_feg"
-    feg.vm.box_version = "1.0.1551298575"
-    feg.vm.hostname = "magma-feg-dev"
-    feg.vm.network "private_network", ip: "192.168.90.101"
-    feg.vm.network "private_network", ip: "192.168.80.101"
-    feg.vm.network "forwarded_port", guest: 9109, host: 9109
-    feg.vm.network "forwarded_port", guest: 1812, host: 1812, protocol: "udp"
+  config.vm.define :feg_bare, primary: true do |feg_bare|
+    feg_bare.vm.box = "fbcmagma/magma_feg"
+    feg_bare.vm.box_version = "1.0.1551298575"
+    feg_bare.vm.hostname = "magma-feg-dev-bare"
+    feg_bare.vbguest.auto_update = false
+    feg_bare.vm.network "private_network", ip: "192.168.90.101"
+    feg_bare.vm.network "private_network", ip: "192.168.80.101"
+    feg_bare.vm.network "forwarded_port", guest: 9109, host: 9109
+    feg_bare.vm.network "forwarded_port", guest: 1812, host: 1812, protocol: "udp"
 
-    feg.ssh.password = "vagrant"
-    feg.ssh.insert_key = true
+    feg_bare.ssh.password = "vagrant"
+    feg_bare.ssh.insert_key = true
 
     config.vm.provider "virtualbox" do |v|
       v.linked_clone = true
       v.memory = 1536
       v.cpus = 2
     end
-    feg.vm.provision "ansible" do |ansible|
+    feg_bare.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
-      ansible.playbook = "deploy/feg.dev.yml"
+      ansible.playbook = "deploy/feg.dev.bare.yml"
       ansible.limit = "all"
       ansible.verbose = true
     end
   end
 
-  config.vm.define :feg_prod, autostart: false do |feg_prod|
-    feg_prod.vm.box = "bento/ubuntu-16.04"
-    feg_prod.vm.hostname = "magma-feg-prod"
-    feg_prod.vm.network "private_network", ip: "192.168.91.10"
-    feg_prod.vm.network "private_network", ip: "192.168.81.100"
+  config.vm.define :feg_prod_bare, autostart: false do |feg_prod_bare|
+    feg_prod_bare.vm.box = "bento/ubuntu-16.04"
+    feg_prod_bare.vm.hostname = "magma-feg-prod"
+    feg_prod_bare.vbguest.auto_update = false
+    feg_prod_bare.vm.network "private_network", ip: "192.168.91.10"
+    feg_prod_bare.vm.network "private_network", ip: "192.168.81.100"
     config.vm.provider "virtualbox" do |v|
       v.customize ['modifyvm', :id, '--natnet1', '10.0.3.0/24']
       v.linked_clone = true
@@ -54,3 +89,5 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
 end
+
+

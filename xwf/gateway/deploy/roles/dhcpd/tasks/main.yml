@@ -1,0 +1,37 @@
+---
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+- name: Install isc-dhcp-server
+  apt:
+     state: present
+     pkg:
+       - isc-dhcp-server
+
+- name: Copy dhcpd configuration file
+  become: true
+  copy:
+    src: dhcpd.conf
+    dest: /etc/dhcp
+
+- name: Copy dhcpd default interface file
+  become: true
+  copy:
+    src: isc-dhcp-server
+    dest: /etc/default
+
+- name: Copy dhcpd service file
+  become: true
+  copy:
+    src: isc-dhcp-server.service
+    dest: /lib/systemd/system/
+
+- name: Start dhcpd
+  service:
+    name: isc-dhcp-server
+    state: started
+    enabled: yes
+    use: service
+  become: true

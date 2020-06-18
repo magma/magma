@@ -25,10 +25,10 @@
 
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
-#include "ProtocolConfigurationOptions.h"
+#include "oai::ProtocolConfigurationOptions.h"
 
 int decode_ProtocolConfigurationOptions(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
+  oai::ProtocolConfigurationOptions *protocolconfigurationoptions,
   const uint8_t iei,
   const uint8_t *const buffer,
   const uint32_t len)
@@ -61,7 +61,7 @@ int decode_ProtocolConfigurationOptions(
 }
 
 int encode_ProtocolConfigurationOptions(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
+  oai::ProtocolConfigurationOptions *protocolconfigurationoptions,
   uint8_t iei,
   uint8_t *buffer,
   uint32_t len)
@@ -94,7 +94,7 @@ int encode_ProtocolConfigurationOptions(
 }
 
 void dump_ProtocolConfigurationOptions_xml(
-  ProtocolConfigurationOptions *protocolconfigurationoptions,
+  oai::ProtocolConfigurationOptions *protocolconfigurationoptions,
   uint8_t iei)
 {
   int i;

@@ -31,7 +31,6 @@
 #include <string.h>
 #include <stdint.h>
 
-#include "assertions.h"
 #include "conversions.h"
 #include "log.h"
 #include "intertask_interface.h"
@@ -45,7 +44,6 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "mme_app_desc.h"
-#include "nas_messages_types.h"
 #include "sgs_messages_types.h"
 
 /****************************************************************************
@@ -61,16 +59,21 @@
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
-  itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
+int mme_app_handle_sgsap_paging_request(
+  mme_app_desc_t* mme_app_desc_p,
+  itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
 {
-  struct ue_mm_context_s *ue_context_p = NULL;
+  struct ue_mm_context_s* ue_context_p = NULL;
   int rc = RETURNok;
   sgs_fsm_t sgs_fsm;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  DevAssert(sgsap_paging_req_pP);
+  if (sgsap_paging_req_pP == NULL) {
+    OAILOG_ERROR(
+      LOG_MME_APP, "Invalid SGSAP Paging Request ITTI message received\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
 
   IMSI_STRING_TO_IMSI64(sgsap_paging_req_pP->imsi, &imsi64);
 
@@ -103,71 +106,21 @@ int mme_app_handle_sgsap_paging_request(mme_app_desc_t *mme_app_desc_p,
       SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE);
     increment_counter(
       "sgsap_paging_reject", 1, 1, "cause", "SGS context not created");
-    unlock_ue_contexts(ue_context_p);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  ue_context_p->sgs_context->sgsap_msg = (void *) sgsap_paging_req_pP;
+  ue_context_p->sgs_context->sgsap_msg = (void*) sgsap_paging_req_pP;
   sgs_fsm.primitive = _SGS_PAGING_REQUEST;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx = (void *) ue_context_p->sgs_context;
+  sgs_fsm.ctx = (void*) ue_context_p->sgs_context;
 
-  /* Invoke SGS FSM */
-  if (RETURNok != (rc = sgs_fsm_process(&sgs_fsm))) {
+  // Invoke SGS FSM
+  rc = sgs_fsm_process(&sgs_fsm);
+  if (rc != RETURNok) {
     OAILOG_WARNING(
       LOG_MME_APP,
       "Failed  to execute SGS State machine for ue_id :%u \n",
       ue_context_p->mme_ue_s1ap_id);
   }
   ue_context_p->sgs_context->sgsap_msg = NULL;
-  unlock_ue_contexts(ue_context_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    mme_app_notify_service_reject_to_nas()                        **
- **                                                                        **
- ** Description: As part of handling CSFB procedure, if ICS or UE context  **
- **      modification failed, indicate to NAS to send Service Reject to UE **
- **                                                                        **
- ** Inputs:  ue_id: UE identifier                                          **
- **          emm_casue: failed cause                                       **
- **          Failed_procedure: ICS/UE context modification                 **
- **                                                                        **
- ** Outputs:                                                               **
- **      Return:    RETURNok, RETURNerror                                  **
- **                                                                        **
- ***************************************************************************/
-
-int mme_app_notify_service_reject_to_nas(
-  mme_ue_s1ap_id_t ue_id,
-  uint8_t emm_cause,
-  uint8_t failed_procedure)
-{
-  int rc = RETURNok;
-  MessageDef *message_p = NULL;
-  itti_nas_notify_service_reject_t *itti_nas_notify_service_reject_p = NULL;
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO(
-    LOG_MME_APP,
-    " Ongoing Service request procedure failed,"
-    "send Notify Service Reject to NAS for ue_id :%u \n",
-    ue_id);
-  message_p = itti_alloc_new_message(TASK_MME_APP, NAS_NOTIFY_SERVICE_REJECT);
-  itti_nas_notify_service_reject_p =
-    &message_p->ittiMsg.nas_notify_service_reject;
-  memset(
-    (void *) itti_nas_notify_service_reject_p,
-    0,
-    sizeof(itti_nas_extended_service_req_t));
-
-  itti_nas_notify_service_reject_p->ue_id = ue_id;
-  itti_nas_notify_service_reject_p->emm_cause = emm_cause;
-  itti_nas_notify_service_reject_p->failed_procedure = failed_procedure;
-
-  OAILOG_INFO(
-    LOG_MME_APP, " Send Notify service reject to NAS for UE-id :%u \n", ue_id);
-  rc = itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
-
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

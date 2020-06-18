@@ -16,13 +16,11 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/registry"
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 )
-
-const ServiceName = "HEALTH"
 
 // getHealthClient is a utility function to get an RPC connection to the
 // Health service

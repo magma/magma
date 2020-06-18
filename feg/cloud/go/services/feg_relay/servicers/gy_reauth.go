@@ -22,16 +22,16 @@ func (srv *FegToGwRelayServer) ChargingReAuth(
 	req *protos.ChargingReAuthRequest,
 ) (*protos.ChargingReAuthAnswer, error) {
 	if err := validateFegContext(ctx); err != nil {
-		return &protos.ChargingReAuthAnswer{Result: protos.ChargingReAuthAnswer_OTHER_FAILURE}, err
+		return &protos.ChargingReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE}, err
 	}
-	hwID, err := getHwIDFromIMSI(req.Sid)
+	hwID, err := getHwIDFromIMSI(ctx, req.Sid)
 	if err != nil {
-		return &protos.ChargingReAuthAnswer{Result: protos.ChargingReAuthAnswer_SESSION_NOT_FOUND},
+		return &protos.ChargingReAuthAnswer{Result: protos.ReAuthResult_SESSION_NOT_FOUND},
 			fmt.Errorf("unable to get HwID from IMSI %v. err: %v", req.Sid, err)
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwSessiondService, hwID)
 	if err != nil {
-		return &protos.ChargingReAuthAnswer{Result: protos.ChargingReAuthAnswer_OTHER_FAILURE},
+		return &protos.ChargingReAuthAnswer{Result: protos.ReAuthResult_OTHER_FAILURE},
 			fmt.Errorf("unable to get connection to the gateway ID: %s", hwID)
 	}
 	return protos.NewSessionProxyResponderClient(conn).ChargingReAuth(ctx, req)

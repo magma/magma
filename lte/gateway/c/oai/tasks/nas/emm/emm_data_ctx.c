@@ -32,6 +32,7 @@
 #include "3gpp_24.301.h"
 #include "3gpp_24.008.h"
 #include "common_defs.h"
+#include "dynamic_memory_check.h"
 #include "mme_app_ue_context.h"
 #include "NasSecurityAlgorithms.h"
 #include "conversions.h"
@@ -214,8 +215,7 @@ inline void emm_ctx_set_valid_imsi(
 #endif
   mme_api_notify_imsi(
     (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id,
-    imsi64,
-    imsi->length);
+    imsi64);
 }
 
 //------------------------------------------------------------------------------
@@ -653,10 +653,8 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
     return;
   }
   nas_delete_all_emm_procedures(ctxt);
-  free(ctxt->esm_ctx.esm_proc_data);
-  if (ctxt->esm_msg) {
-    bdestroy(ctxt->esm_msg);
-  }
+  free_esm_context_content(&ctxt->esm_ctx);
+  bdestroy_wrapper(&ctxt->esm_msg);
 }
 
 //------------------------------------------------------------------------------
@@ -668,9 +666,8 @@ struct emm_context_s *emm_context_get(
 
   DevAssert(emm_data);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-    ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(
-      &mme_app_desc_p->mme_ue_contexts, ue_id);
+    ue_mm_context_t* ue_mm_context =
+      mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     if (ue_mm_context) {
       emm_context_p = &ue_mm_context->emm_context;
     }
@@ -739,16 +736,6 @@ struct emm_context_s *emm_context_get_by_guti(
 }
 
 //------------------------------------------------------------------------------
-int emm_context_unlock(struct emm_context_s *emm_context_p)
-{
-  if (emm_context_p) {
-    return unlock_ue_contexts(
-      PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context));
-  }
-  return RETURNerror;
-}
-
-//------------------------------------------------------------------------------
 void emm_data_context_remove_mobile_ids(
   emm_data_t *emm_data,
   struct emm_context_s *elm)
@@ -782,11 +769,11 @@ int emm_context_upsert_imsi(emm_data_t *emm_data, struct emm_context_s *elm)
 
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   h_rc = hashtable_uint64_ts_remove(
-    mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
+    mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
     (const hash_key_t) elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     h_rc = hashtable_uint64_ts_insert(
-      mme_app_desc_p->mme_ue_contexts.imsi_ue_context_htbl,
+      mme_app_desc_p->mme_ue_contexts.imsi_mme_ue_id_htbl,
       (const hash_key_t) elm->_imsi64,
       ue_id);
   } else {

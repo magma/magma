@@ -28,6 +28,7 @@ message DiamClientConfig {
     string dest_realm = 10; // server diameter realm
     string dest_host = 11; // server diameter host
     bool   disable_dest_host = 12; // don't include dest_host AVP in diameter requests
+    bool   overwrite_dest_host = 13; // overwrite dest_host AVP in diameter requests even if the message includes it
 }
 
 message DiamServerConfig {
@@ -49,6 +50,8 @@ message S6aConfig {
 
 message GxConfig {
     DiamClientConfig server = 1;
+    string OverwriteApn = 2;
+    repeated DiamClientConfig servers = 3;
 }
 
 enum GyInitMethod {
@@ -60,6 +63,8 @@ enum GyInitMethod {
 message GyConfig {
     DiamClientConfig server = 1;
     GyInitMethod init_method = 2;
+    string OverwriteApn = 3;
+    repeated DiamClientConfig servers = 4;
 }
 
 message SessionProxyConfig {
@@ -84,8 +89,13 @@ message SwxConfig {
     uint32 minimum_request_threshold = 6;
     // Flag to ensure that we send SAR with REGISTER following successful MAA
     bool register_on_auth = 7;
-    // // use returned maa.AAAServerName to derive Origin Realm from
+    // use returned maa.AAAServerName to derive Origin Realm from
     bool derive_unregister_realm = 8;
+    // PLMN IDs served by HLR
+    repeated string hlr_plmn_ids = 9;
+    // Server where SWx points to (can be one or more than one)
+    repeated DiamClientConfig servers = 10;
+
 }
 
 message EapAkaConfig {
@@ -153,3 +163,15 @@ message RadiusdConfig {
     // Hostname for prometheus metrics
     string radius_metrics_host = 4;
 }
+
+
+message SCTPClientConfig {
+    string server_address = 1; // server's host:port
+    string local_address = 2; // client's local address to bind socket to IP:port OR :port
+}
+
+message CsfbConfig {
+    orc8r.LogLevel log_level = 1;
+    SCTPClientConfig client = 2;
+}
+

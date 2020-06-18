@@ -12,17 +12,19 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
+	legacyProviders "magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
+	"magma/orc8r/cloud/go/pluginimpl/stream_providers"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mocks"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/streamer"
-	mconfigProvider "magma/orc8r/cloud/go/services/streamer/mconfig"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
 	"magma/orc8r/cloud/go/services/streamer/mconfig/test_protos"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamerTestInit "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/lib/go/definitions"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -35,7 +37,11 @@ import (
 func TestMconfigStreamer_Configurator(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	streamerTestInit.StartTestService(t)
-	_ = providers.RegisterStreamProvider(&mconfigProvider.ConfigProvider{})
+	legacyProviderFactory := legacyProviders.LegacyProviderFactory{}
+	legacyProvider := legacyProviderFactory.CreateLegacyProvider(
+		definitions.MconfigStreamName,
+		&stream_providers.BaseOrchestratorStreamProviderServicer{})
+	_ = providers.RegisterStreamProvider(legacyProvider)
 
 	// set up mock mconfig builders (legacy and new)
 	configurator.ClearMconfigBuilders(t)
@@ -65,9 +71,13 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	conn, err := registry.GetConnection(streamer.ServiceName)
 	assert.NoError(t, err)
 	grpcClient := protos.NewStreamerClient(conn)
+
+	// Make normal call for config updates
+	extraArgs := &protos.GatewayConfigsDigest{Md5HexDigest: "useless_digest"}
+	serializedExtraArgs, _ := ptypes.MarshalAny(extraArgs)
 	streamerClient, err := grpcClient.GetUpdates(
 		context.Background(),
-		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs"},
+		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
 	)
 	assert.NoError(t, err)
 
@@ -86,6 +96,20 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual.ConfigsByKey)
+
+	// Make optimized call for config updates--when passed config digest
+	// matches provider's digest, empty update batch is returned
+	extraArgs = &protos.GatewayConfigsDigest{Md5HexDigest: actual.Metadata.Digest.Md5HexDigest}
+	serializedExtraArgs, _ = ptypes.MarshalAny(extraArgs)
+	streamerClient, err = grpcClient.GetUpdates(
+		context.Background(),
+		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
+	)
+
+	actualMarshaled, err = streamerClient.Recv()
+	assert.NoError(t, err)
+	assert.Empty(t, actualMarshaled.Updates)
+
 	mockBuilder.AssertExpectations(t)
 }
 

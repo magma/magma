@@ -1,0 +1,24 @@
+# Copyright (c) 2018-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+
+dependencies:
+  - name: secrets
+    version: 0.1.4
+    repository: ""
+    condition: secrets.create
+  - name: metrics
+    version: 1.4.13
+    repository: ""
+    condition: metrics.enabled
+  - name: nms
+    version: 0.1.7
+    repository: ""
+    condition: nms.enabled
+  - name: logging
+    version: 0.1.10
+    repository: ""
+    condition: logging.enabled

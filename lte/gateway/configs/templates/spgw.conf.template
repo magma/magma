@@ -35,6 +35,7 @@ S-GW :
     {
       BRIDGE_NAME                          = "{{ ovs_bridge_name }}";
       GTP_PORT_NUM                         = {{ ovs_gtp_port_number }};
+      MTR_PORT_NUM                         = {{ ovs_mtr_port_number }};
       UPLINK_PORT_NUM                      = {{ ovs_uplink_port_number }};
       UPLINK_MAC                           = "{{ ovs_uplink_mac }}";
     };
@@ -67,9 +68,12 @@ P-GW =
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    P_CSCF_IPV4_ADDRESS = "172.27.23.150";
+    P_CSCF_IPV6_ADDRESS = "2a12:577:9941:f99c:0002:0001:c731:f114";
 
     # Non standard feature, normally should be set to "no", but you may need to set to yes for UE that do not explicitly request a PDN address through NAS signalling
     FORCE_PUSH_PROTOCOL_CONFIGURATION_OPTIONS = "no";                           # STRING, {"yes", "no"}.
     UE_MTU                                    = 1400         # MTU - (extended GTPv1 hdr(16 Bytes) + UDP hdr(8) -IPv4(20) hdr + additonal bytes(56)) INTEGER
     RELAY_ENABLED                             = "{{ relay_enabled }}";
+    ENABLE_NAT                                = "{{ enable_nat }}"
 };

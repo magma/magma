@@ -17,6 +17,7 @@ import (
 	"fbc/cwf/radius/modules/eap/packet"
 	"fbc/lib/go/radius"
 	"fbc/lib/go/radius/rfc2865"
+	"fbc/lib/go/radius/rfc2866"
 	"fbc/lib/go/radius/rfc2869"
 	"magma/feg/gateway/services/eap"
 
@@ -25,70 +26,73 @@ import (
 
 // todo Replace constants with configurable fields
 const (
-	Auth            = "\x73\xea\x5e\xdf\x10\x25\x45\x3b\x21\x15\xdb\xc2\xa9\x8a\x7c\x99"
-	CalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
+	Auth = "\x73\xea\x5e\xdf\x10\x25\x45\x3b\x21\x15\xdb\xc2\xa9\x8a\x7c\x99"
 )
 
 // HandleRadius routes the Radius packet to the UE with the specified imsi.
-func (srv *UESimServer) HandleRadius(imsi string, p radius.Packet) (radius.Packet, error) {
+func (srv *UESimServer) HandleRadius(imsi string, calledStationID string, p *radius.Packet) (*radius.Packet, error) {
 	// todo Validate the packet. (Requires keeping state)
 
 	// Extract EAP packet.
-	eapMessage, err := packet.NewPacketFromRadius(&p)
+	eapMessage, err := packet.NewPacketFromRadius(p)
 	if err != nil {
 		err = errors.Wrap(err, "Error extracting EAP message from Radius packet")
-		return radius.Packet{}, err
+		return nil, err
 	}
 	eapBytes, err := eapMessage.Bytes()
 	if err != nil {
 		err = errors.Wrap(err, "Error converting EAP packet to bytes")
-		return radius.Packet{}, err
+		return nil, err
 	}
 
 	// Get the specified UE from the blobstore.
 	ue, err := getUE(srv.store, imsi)
 	if err != nil {
-		return radius.Packet{}, err
+		return nil, err
 	}
 
 	// Generate EAP response.
-	eapRes, err := srv.HandleEap(ue, eap.Packet(eapBytes))
+	eapRes, err := srv.HandleEap(ue, eapBytes)
 	if err != nil {
-		return radius.Packet{}, err
+		return nil, err
 	}
 
 	// Wrap EAP response in Radius packet.
-	res, err := srv.EapToRadius(eapRes, imsi, p.Identifier+1)
+	res, err := srv.EapToRadius(eapRes, imsi, calledStationID, p.Identifier+1)
 	if err != nil {
-		return radius.Packet{}, err
+		return nil, err
 	}
 
 	return res, err
 }
 
 // EapToRadius puts an Eap packet payload in a Radius packet.
-func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, identifier uint8) (radius.Packet, error) {
+func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, calledStationID string, identifier uint8) (*radius.Packet, error) {
 	radiusP := radius.New(radius.CodeAccessRequest, []byte(srv.cfg.radiusSecret))
 	radiusP.Identifier = identifier
 
 	// Hardcode in the auth.
 	copy(radiusP.Authenticator[:], []byte(Auth)[:])
 	radiusP.Attributes[rfc2865.UserName_Type] = []radius.Attribute{
-		radius.Attribute([]byte(imsi + IdentityPostfix)),
+		[]byte(imsi + IdentityPostfix),
 	}
 	// TODO: Fetch UE MAC addr and use as CallingStationID
-	radiusP.Attributes[rfc2865.CallingStationID_Type] = []radius.Attribute{
-		radius.Attribute([]byte(srv.cfg.brMac)),
+	err := rfc2865.CallingStationID_SetString(radiusP, srv.cfg.brMac)
+	if err != nil {
+		return nil, err
 	}
-	radiusP.Attributes[rfc2865.CalledStationID_Type] = []radius.Attribute{
-		radius.Attribute([]byte(CalledStationID)),
+	err = rfc2865.CalledStationID_SetString(radiusP, calledStationID)
+	if err != nil {
+		return nil, err
 	}
-	radiusP.Attributes[rfc2869.EAPMessage_Type] = []radius.Attribute{
-		radius.Attribute([]byte(eapP)),
+	err = rfc2869.EAPMessage_Set(radiusP, []byte(eapP))
+	if err != nil {
+		return nil, err
 	}
+
 	encoded, err := radiusP.Encode()
 	if err != nil {
-		return radius.Packet{}, errors.Wrap(err, "Error encoding Radius packet")
+		return nil, errors.Wrap(err, "Error encoding Radius packet")
 	}
 
 	// Add Message-Authenticator Attribute.
@@ -100,7 +104,22 @@ func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, identifier uin
 		fmt.Printf("%s\n", err)
 	}
 
-	return *res, nil
+	return res, nil
+}
+
+// MakeAccountStopRequest creates an Accounting Stop radius packet
+func (srv *UESimServer) MakeAccountingStopRequest(calledStationID string) (*radius.Packet, error) {
+	radiusP := radius.New(radius.CodeAccountingRequest, []byte(srv.cfg.radiusSecret))
+	err := rfc2866.AcctStatusType_Set(radiusP, rfc2866.AcctStatusType_Value_Stop)
+	if err != nil {
+		return nil, err
+	}
+	err = rfc2865.CallingStationID_SetString(radiusP, srv.cfg.brMac)
+	if err != nil {
+		return nil, err
+	}
+	err = rfc2865.CalledStationID_SetString(radiusP, calledStationID)
+	return radiusP, err
 }
 
 // addMessageAuthenticator calculates and adds the Message-Authenticator

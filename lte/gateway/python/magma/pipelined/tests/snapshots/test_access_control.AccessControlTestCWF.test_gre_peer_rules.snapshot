@@ -1,0 +1,9 @@
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x1,nw_dst=127.0.0.1 actions=drop
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x1,nw_dst=127.2.0.1 actions=drop
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x10,nw_src=127.1.0.1 actions=drop
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x10,nw_src=127.2.0.1 actions=drop
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=0,reg1=0x10 actions=resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=access_control(main_table), n_packets=0, n_bytes=0, priority=0,reg1=0x1 actions=resubmit(,access_control(scratch_table_0)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=access_control(scratch_table_0), n_packets=0, n_bytes=0, priority=10,reg1=0x1,tun_src=2.2.2.0/24 actions=resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=access_control(scratch_table_0), n_packets=0, n_bytes=0, priority=10,reg1=0x1,tun_id=0x7b,tun_src=1.2.3.0/24 actions=resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=access_control(scratch_table_0), n_packets=0, n_bytes=0, priority=0 actions=drop

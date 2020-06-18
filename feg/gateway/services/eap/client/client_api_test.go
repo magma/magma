@@ -8,6 +8,7 @@ LICENSE file in the root directory of this source tree.
 package client_test
 
 import (
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -20,8 +21,10 @@ import (
 	"magma/feg/gateway/services/eap/client"
 	eapp "magma/feg/gateway/services/eap/protos"
 	"magma/feg/gateway/services/eap/providers/aka"
+	aka_provider "magma/feg/gateway/services/eap/providers/aka/provider"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
+	eap_registry "magma/feg/gateway/services/eap/providers/registry"
 	eap_test "magma/feg/gateway/services/eap/test"
 	"magma/orc8r/cloud/go/test_utils"
 )
@@ -53,6 +56,7 @@ func (c testEapClient) Handle(in *protos.Eap) (*protos.Eap, error) {
 }
 
 func TestEAPClientApi(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)
@@ -64,6 +68,8 @@ func TestEAPClientApi(t *testing.T) {
 		t.Fatalf("failed to create EAP AKA Service: %v", err)
 		return
 	}
+	eap_registry.Register(aka_provider.NewServiced(servicer)) // register aka provider for linked local service
+
 	eapp.RegisterEapServiceServer(eapSrv.GrpcServer, servicer)
 	go eapSrv.RunTest(eapLis)
 
@@ -132,7 +138,7 @@ func TestEAPClientApi(t *testing.T) {
 			peap.GetPayload(), []byte(eap_test.SuccessEAP))
 	}
 
-	time.Sleep(servicer.SessionAuthenticatedTimeout() + time.Millisecond*10)
+	time.Sleep(servicer.SessionAuthenticatedTimeout() + time.Millisecond*100)
 
 	eapCtx = peap.GetCtx()
 	peap, err = client.Handle(&protos.Eap{Payload: tst.EapChallengeResp, Ctx: eapCtx})
@@ -169,6 +175,7 @@ func TestEAPClientApi(t *testing.T) {
 }
 
 func TestEAPClientApiConcurent(t *testing.T) {
+	os.Setenv("USE_REMOTE_SWX_PROXY", "false")
 	srv, lis := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	var service eap_test.SwxProxy
 	cp.RegisterSwxProxyServer(srv.GrpcServer, service)

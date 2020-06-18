@@ -1,0 +1,38 @@
+// Copyright (c) 2016-present, Facebook, Inc.
+// All rights reserved.
+//
+// This source code is licensed under the BSD-style license found in the
+// LICENSE file in the root directory of this source tree. An additional grant
+// of patent rights can be found in the PATENTS file in the same directory.
+syntax = "proto3";
+
+import "orc8r/protos/common.proto";
+
+package magma.orc8r;
+option go_package = "magma/orc8r/lib/go/protos";
+
+message GetTenantRequest {
+    int64 id = 1;
+}
+
+message Tenant {
+    string name = 1;
+    repeated string networks = 2;
+}
+
+message TenantList {
+    repeated IDAndTenant tenants = 1;
+}
+
+message IDAndTenant {
+    int64 id = 1;
+    Tenant tenant = 2;
+}
+
+service TenantsService {
+    rpc GetAllTenants (Void) returns (TenantList) {}
+    rpc GetTenant (GetTenantRequest) returns (Tenant) {}
+    rpc CreateTenant (IDAndTenant) returns (Void) {}
+    rpc SetTenant (IDAndTenant) returns (Void) {}
+    rpc DeleteTenant (GetTenantRequest) returns (Void) {}
+}

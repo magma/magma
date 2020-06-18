@@ -11,12 +11,14 @@ import asyncio
 import logging
 from typing import Any, List
 
+import magma.magmad.events as magmad_events
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
 from magma.configuration.mconfig_managers import MconfigManager, \
     load_service_mconfig
 from magma.magmad.service_manager import ServiceManager
 from orc8r.protos.mconfig import mconfigs_pb2
+from orc8r.protos.mconfig_pb2 import GatewayConfigsDigest
 
 CONFIG_STREAM_NAME = 'configs'
 
@@ -51,7 +53,14 @@ class ConfigManager(StreamerClient.Callback):
         self._mconfig = self._mconfig_manager.load_mconfig()
 
     def get_request_args(self, stream_name: str) -> Any:
-        return None
+        # Include an mconfig digest argument to allow cloud optimization of
+        # not returning a non-updated mconfig.
+        digest = getattr(self._mconfig.metadata, 'digest', None)
+        if digest is None:
+            return None
+        mconfig_digest_proto = GatewayConfigsDigest(
+            md5_hex_digest=digest.md5_hex_digest)
+        return mconfig_digest_proto
 
     def process_update(self, stream_name, updates, resync):
         """
@@ -109,3 +118,5 @@ class ConfigManager(StreamerClient.Callback):
             )
 
         self._mconfig = mconfig
+
+        magmad_events.processed_updates(updates)

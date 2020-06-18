@@ -29,6 +29,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <mme_app_ue_context.h>
+#include <mme_app_state.h>
 
 #include "bstrlib.h"
 #include "log.h"
@@ -39,49 +41,70 @@
 #include "nas/as_message.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "nas_messages_types.h"
 #include "s1ap_messages_types.h"
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
 int s1ap_mme_itti_send_sctp_request(
-  STOLEN_REF bstring *payload,
+  STOLEN_REF bstring* payload,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
   const mme_ue_s1ap_id_t ue_id)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_DATA_REQ);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
+      " SCTP_DATA_REQ \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
   SCTP_DATA_REQ(message_p).payload = *payload;
   *payload = NULL;
   SCTP_DATA_REQ(message_p).assoc_id = assoc_id;
   SCTP_DATA_REQ(message_p).stream = stream;
   SCTP_DATA_REQ(message_p).mme_ue_s1ap_id = ue_id;
+
   return itti_send_msg_to_task(TASK_SCTP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
 int s1ap_mme_itti_nas_uplink_ind(
   const mme_ue_s1ap_id_t ue_id,
-  STOLEN_REF bstring *payload,
-  const tai_t const *tai,
-  const ecgi_t const *cgi)
+  STOLEN_REF bstring* payload,
+  const tai_t const* tai,
+  const ecgi_t const* cgi)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
-  OAILOG_INFO(
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
+
+  OAILOG_INFO_UE(
     LOG_S1AP,
-    "Sending NAS Uplink indication to MME_APP, mme_ue_s1ap_id = (%u) \n",
+    imsi64,
+    "Sending NAS Uplink indication to NAS_MME_APP, mme_ue_s1ap_id = (%u) \n",
     ue_id);
-  message_p = itti_alloc_new_message(TASK_S1AP, NAS_UPLINK_DATA_IND);
-  NAS_UL_DATA_IND(message_p).ue_id = ue_id;
-  NAS_UL_DATA_IND(message_p).nas_msg = *payload;
+  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(
+      LOG_S1AP, imsi64,
+      "itti_alloc_new_message Failed for"
+      " MME_APP_UPLINK_DATA_IND \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  MME_APP_UL_DATA_IND(message_p).ue_id = ue_id;
+  MME_APP_UL_DATA_IND(message_p).nas_msg = *payload;
   *payload = NULL;
-  NAS_UL_DATA_IND(message_p).tai = *tai;
-  NAS_UL_DATA_IND(message_p).cgi = *cgi;
+  MME_APP_UL_DATA_IND(message_p).tai = *tai;
+  MME_APP_UL_DATA_IND(message_p).cgi = *cgi;
 
-  return itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  message_p->ittiMsgHeader.imsi = imsi64;
+  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -89,7 +112,8 @@ int s1ap_mme_itti_nas_downlink_cnf(
   const mme_ue_s1ap_id_t ue_id,
   const bool is_success)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
+  imsi64_t imsi64 = INVALID_IMSI64;
 
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
     if (!is_success) {
@@ -102,18 +126,32 @@ int s1ap_mme_itti_nas_downlink_cnf(
     // Drop this cnf message here since this is related to connection less S1AP message hence no need to send it to NAS module
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
-  message_p = itti_alloc_new_message(TASK_S1AP, NAS_DOWNLINK_DATA_CNF);
-  NAS_DL_DATA_CNF(message_p).ue_id = ue_id;
-  if (is_success) {
-    NAS_DL_DATA_CNF(message_p).err_code = AS_SUCCESS;
-  } else {
-    NAS_DL_DATA_CNF(message_p).err_code = AS_FAILURE;
-    OAILOG_ERROR(
+
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+    imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
+  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(
       LOG_S1AP,
+      imsi64,
+      "itti_alloc_new_message Failed for"
+      " MME_APP_DOWNLINK_DATA_CNF \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  MME_APP_DL_DATA_CNF(message_p).ue_id = ue_id;
+  if (is_success) {
+    MME_APP_DL_DATA_CNF(message_p).err_code = AS_SUCCESS;
+  } else {
+    MME_APP_DL_DATA_CNF(message_p).err_code = AS_FAILURE;
+    OAILOG_ERROR_UE(
+      LOG_S1AP,
+      imsi64,
       "ERROR: Failed to send S1AP message to eNB. mme_ue_s1ap_id =  %d \n",
       ue_id);
   }
-  return itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+  message_p->ittiMsgHeader.imsi = imsi64;
+  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -122,29 +160,36 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
   const sctp_assoc_id_t assoc_id,
   const uint32_t enb_id,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-  const uint8_t *const nas_msg,
+  const uint8_t* const nas_msg,
   const size_t nas_msg_length,
-  const tai_t const *tai,
-  const ecgi_t const *ecgi,
+  const tai_t const* tai,
+  const ecgi_t const* ecgi,
   const long rrc_cause,
-  const s_tmsi_t const *opt_s_tmsi,
-  const csg_id_t const *opt_csg_id,
-  const gummei_t const *opt_gummei,
-  const void const *opt_cell_access_mode,          // unused
-  const void const *opt_cell_gw_transport_address, // unused
-  const void const *opt_relay_node_indicator)      // unused
+  const s_tmsi_t const* opt_s_tmsi,
+  const csg_id_t const* opt_csg_id,
+  const gummei_t const* opt_gummei,
+  const void const* opt_cell_access_mode,          // unused
+  const void const* opt_cell_gw_transport_address, // unused
+  const void const* opt_relay_node_indicator)      // unused
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   AssertFatal(
     (nas_msg_length < 1000), "Bad length for NAS message %lu", nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+      LOG_S1AP,
+      "itti_alloc_new_message Failed for"
+      " S1AP_INITIAL_UE_MESSAGE \n");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
 
   OAILOG_INFO(
     LOG_S1AP,
-    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id : " ENB_UE_S1AP_ID_FMT
-    "\n",
+    "Sending Initial UE Message to MME_APP, enb_ue_s1ap_id "
+    ": " ENB_UE_S1AP_ID_FMT "\n",
     enb_ue_s1ap_id);
 
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id = assoc_id;
@@ -186,7 +231,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
 
 //------------------------------------------------------------------------------
 static int s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(
-  const S1ap_Cause_t *const cause)
+  const S1ap_Cause_t* const cause)
 {
   switch (cause->present) {
     case S1ap_Cause_PR_radioNetwork:
@@ -216,24 +261,35 @@ static int s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(
 //------------------------------------------------------------------------------
 void s1ap_mme_itti_nas_non_delivery_ind(
   const mme_ue_s1ap_id_t ue_id,
-  uint8_t *const nas_msg,
+  uint8_t* const nas_msg,
   const size_t nas_msg_length,
-  const S1ap_Cause_t *const cause)
+  const S1ap_Cause_t* const cause,
+  const imsi64_t imsi64)
 {
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_S1AP);
-  message_p = itti_alloc_new_message(TASK_S1AP, NAS_DOWNLINK_DATA_REJ);
+  message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(
+      LOG_S1AP,
+      imsi64,
+      "itti_alloc_new_message Failed for"
+      " MME_APP_DOWNLINK_DATA_REJ \n");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
 
-  NAS_DL_DATA_REJ(message_p).ue_id = ue_id;
+  MME_APP_DL_DATA_REJ(message_p).ue_id = ue_id;
   /* Mapping between asn1 definition and NAS definition */
-  NAS_DL_DATA_REJ(message_p).err_code =
+  MME_APP_DL_DATA_REJ(message_p).err_code =
     s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(cause);
-  NAS_DL_DATA_REJ(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
+  MME_APP_DL_DATA_REJ(message_p).nas_msg = blk2bstr(nas_msg, nas_msg_length);
 
   // should be sent to MME_APP, but this one would forward it to NAS_MME, so send it directly to NAS_MME
   // but let's see
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -242,19 +298,19 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   const sctp_assoc_id_t assoc_id,
   const uint32_t enb_id,
   const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-  const e_rab_to_be_switched_in_downlink_list_t const
-    *e_rab_to_be_switched_dl_list,
+  const e_rab_to_be_switched_in_downlink_list_t const*
+    e_rab_to_be_switched_dl_list,
   const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  const ecgi_t const *ecgi,
-  const tai_t const *tai,
+  const ecgi_t const* ecgi,
+  const tai_t const* tai,
   const uint16_t encryption_algorithm_capabilities,
-  const uint16_t integrity_algorithm_capabilities)
+  const uint16_t integrity_algorithm_capabilities,
+  const imsi64_t imsi64)
 {
-
-  MessageDef *message_p = NULL;
+  MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
-  if (NULL == message_p) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed");
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id = assoc_id;
@@ -270,11 +326,13 @@ int s1ap_mme_itti_s1ap_path_switch_request(
   S1AP_PATH_SWITCH_REQUEST(message_p).integrity_algorithm_capabilities =
     integrity_algorithm_capabilities;
 
-  OAILOG_DEBUG(
+  OAILOG_DEBUG_UE(
     LOG_S1AP,
-    "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n"
-    , mme_ue_s1ap_id);
+    imsi64,
+    "sending Path Switch Request to MME_APP for source mme_ue_s1ap_id %d\n",
+    mme_ue_s1ap_id);
 
+  message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

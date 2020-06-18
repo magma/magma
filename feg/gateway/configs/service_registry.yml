@@ -13,72 +13,52 @@ services:
 
   # Production Services
   magmad:
-    host: magmad
-    ip_address: magmad
+    ip_address: 127.0.0.1
     port: 50052
   control_proxy:
-    host: control_proxy
-    ip_address: control_proxy
+    ip_address: 127.0.0.1
     port: 50053
   session_proxy:
-    host: session_proxy
-    ip_address: session_proxy
+    ip_address: 127.0.0.1
     port: 9097
   s6a_proxy:
-    host: s6a_proxy
-    ip_address: s6a_proxy
+    ip_address: 127.0.0.1
     port: 9098
   swx_proxy:
-    host: swx_proxy
-    ip_address: swx_proxy
+    ip_address: 127.0.0.1
     port: 9110
   eap_aka:
-    host: eap_aka
-    ip_address: eap_aka
+    ip_address: 127.0.0.1
     port: 9123
   aaa_server:
-    host: aaa_server
-    ip_address: aaa_server
+    ip_address: 127.0.0.1
     port: 9109
   csfb:
-    host: csfb
-    ip_address: csfb
+    ip_address: 127.0.0.1
     port: 9101
   feg_hello:
-    host: feg_hello
-    ip_address: feg_hello
+    ip_address: 127.0.0.1
     port: 9093
   health:
-    host: health
-    ip_address: health
+    ip_address: 127.0.0.1
     port: 9107
   radiusd:
-    host: radiusd
-    ip_address: radiusd
+    ip_address: 127.0.0.1
     port: 9115
-  redis:
-    host: redis
-    ip_address: redis
-    port: 6380
+  eventd:
+    ip_address: 127.0.0.1
+    port: 50075
 
   # Development/Test Services
-
-  # Since these services won't always be present,
-  # we need to use localhost as the IP to ensure nghttpx doesn't crash
-  # from resolution errors
   mock_ocs:
-    host: mock_ocs
     ip_address: 127.0.0.1
     port: 9201
   mock_pcrf:
-    host: mock_pcrf
     ip_address: 127.0.0.1
     port: 9202
   mock_vlr:
-    host: mock_vlr
     ip_address: 127.0.0.1
     port: 9203
   hss:
-    host: hss
     ip_address: 127.0.0.1
     port: 9204

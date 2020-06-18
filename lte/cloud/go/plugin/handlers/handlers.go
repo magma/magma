@@ -9,11 +9,11 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
 	ltemodels "magma/lte/cloud/go/plugin/models"
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -21,26 +21,36 @@ import (
 	orc8rmodels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 const (
-	LteNetworks                        = "lte"
-	ListNetworksPath                   = obsidian.V1Root + LteNetworks
-	ManageNetworkPath                  = ListNetworksPath + "/:network_id"
-	ManageNetworkNamePath              = ManageNetworkPath + obsidian.UrlSep + "name"
-	ManageNetworkDescriptionPath       = ManageNetworkPath + obsidian.UrlSep + "description"
-	ManageNetworkFeaturesPath          = ManageNetworkPath + obsidian.UrlSep + "features"
-	ManageNetworkDNSPath               = ManageNetworkPath + obsidian.UrlSep + "dns"
-	ManageNetworkDNSRecordsPath        = ManageNetworkDNSPath + obsidian.UrlSep + "records"
-	ManageNetworkDNSRecordByDomainPath = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
-	ManageNetworkCellularPath          = ManageNetworkPath + obsidian.UrlSep + "cellular"
-	ManageNetworkCellularEpcPath       = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
-	ManageNetworkCellularRanPath       = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
-	ManageNetworkCellularFegNetworkID  = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
+	LteNetworks                         = "lte"
+	ListNetworksPath                    = obsidian.V1Root + LteNetworks
+	ManageNetworkPath                   = ListNetworksPath + "/:network_id"
+	ManageNetworkNamePath               = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkDescriptionPath        = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath           = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath                = ManageNetworkPath + obsidian.UrlSep + "dns"
+	ManageNetworkDNSRecordsPath         = ManageNetworkDNSPath + obsidian.UrlSep + "records"
+	ManageNetworkDNSRecordByDomainPath  = ManageNetworkDNSRecordsPath + obsidian.UrlSep + ":domain"
+	ManageNetworkCellularPath           = ManageNetworkPath + obsidian.UrlSep + "cellular"
+	ManageNetworkCellularEpcPath        = ManageNetworkCellularPath + obsidian.UrlSep + "epc"
+	ManageNetworkCellularRanPath        = ManageNetworkCellularPath + obsidian.UrlSep + "ran"
+	ManageNetworkCellularFegNetworkID   = ManageNetworkCellularPath + obsidian.UrlSep + "feg_network_id"
+	ManageNetworkSubscriberPath         = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
+	ManageNetworkBaseNamesPath          = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
+	ManageNetworkRuleNamesPath          = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
+	ManageNetworkSubscriberRuleNamePath = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
+	ManageNetworkSubscriberBaseNamePath = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
+	ManageNetworkApnPath                = ManageNetworkPath + obsidian.UrlSep + "apns"
+	ManageNetworkApnConfigurationPath   = ManageNetworkApnPath + obsidian.UrlSep + ":apn_name"
 
 	Gateways                          = "gateways"
 	ListGatewaysPath                  = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -74,6 +84,9 @@ const (
 	policyRuleManagePath     = policyRuleRootPath + obsidian.UrlSep + ":rule_id"
 	policyBaseNameRootPath   = policiesRootPath + obsidian.UrlSep + "base_names"
 	policyBaseNameManagePath = policyBaseNameRootPath + obsidian.UrlSep + ":base_name"
+
+	ratingGroupsRootPath   = handlers.ManageNetworkPath + obsidian.UrlSep + "rating_groups"
+	ratingGroupsManagePath = ratingGroupsRootPath + obsidian.UrlSep + ":rating_group_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -107,6 +120,10 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateACTIVE)},
 		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateINACTIVE)},
 		{Path: SubscriberProfilePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberProfile},
+		{Path: ManageNetworkSubscriberBaseNamePath, Methods: obsidian.POST, HandlerFunc: AddNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.POST, HandlerFunc: AddNetworkWideSubscriberRuleName},
+		{Path: ManageNetworkSubscriberBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberBaseName},
+		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberRuleName},
 
 		{Path: policyBaseNameRootPath, Methods: obsidian.GET, HandlerFunc: ListBaseNames},
 		{Path: policyBaseNameRootPath, Methods: obsidian.POST, HandlerFunc: CreateBaseName},
@@ -119,6 +136,18 @@ func GetHandlers() []obsidian.Handler {
 		{Path: policyRuleManagePath, Methods: obsidian.GET, HandlerFunc: GetRule},
 		{Path: policyRuleManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRule},
 		{Path: policyRuleManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRule},
+
+		{Path: ratingGroupsRootPath, Methods: obsidian.GET, HandlerFunc: ListRatingGroups},
+		{Path: ratingGroupsRootPath, Methods: obsidian.POST, HandlerFunc: CreateRatingGroup},
+		{Path: ratingGroupsManagePath, Methods: obsidian.GET, HandlerFunc: GetRatingGroup},
+		{Path: ratingGroupsManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateRatingGroup},
+		{Path: ratingGroupsManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteRatingGroup},
+
+		{Path: ManageNetworkApnPath, Methods: obsidian.GET, HandlerFunc: listApns},
+		{Path: ManageNetworkApnPath, Methods: obsidian.POST, HandlerFunc: createApn},
+		{Path: ManageNetworkApnConfigurationPath, Methods: obsidian.GET, HandlerFunc: getApnConfiguration},
+		{Path: ManageNetworkApnConfigurationPath, Methods: obsidian.PUT, HandlerFunc: updateApnConfiguration},
+		{Path: ManageNetworkApnConfigurationPath, Methods: obsidian.DELETE, HandlerFunc: deleteApnConfiguration},
 	}
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.LteNetworkType, &ltemodels.LteNetwork{})...)
 
@@ -131,6 +160,9 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &ltemodels.NetworkEpcConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &ltemodels.NetworkRanConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(ltemodels.FegNetworkID), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &ltemodels.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(ltemodels.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(ltemodels.BaseNames), "")...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
@@ -279,11 +311,12 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
-		Type:       lte.CellularEnodebType,
-		Key:        payload.Serial,
-		Name:       payload.Name,
-		PhysicalID: payload.Serial,
-		Config:     payload.Config,
+		Type:        lte.CellularEnodebType,
+		Key:         payload.Serial,
+		Name:        payload.Name,
+		Description: payload.Description,
+		PhysicalID:  payload.Serial,
+		Config:      payload.Config,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -417,20 +450,37 @@ func addConnectedEnodeb(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+var subscriberStateTypes = []string{lte.ICMPStateType}
+
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
+	allIMSIs := funk.Map(ents, func(e configurator.NetworkEntity) string { return e.Key }).([]string)
+	subStates, err := state.SearchStates(networkID, subscriberStateTypes, allIMSIs)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	statesByTypeBySid := map[string]map[string]state_types.State{}
+	for stateID, st := range subStates {
+		byType, ok := statesByTypeBySid[stateID.DeviceID]
+		if !ok {
+			byType = map[string]state_types.State{}
+		}
+		byType[stateID.Type] = st
+		statesByTypeBySid[stateID.DeviceID] = byType
+	}
+
 	ret := make(map[string]*ltemodels.Subscriber, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent)
+		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByTypeBySid[ent.Key])
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -441,7 +491,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Subscriber{}
+	payload := &ltemodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -454,9 +504,10 @@ func createSubscriber(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
-		Type:   lte.SubscriberEntityType,
-		Key:    payload.ID,
-		Config: payload.Lte,
+		Type:         lte.SubscriberEntityType,
+		Key:          string(payload.ID),
+		Config:       payload.Lte,
+		Associations: payload.ActiveApns.ToAssocs(),
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -471,7 +522,7 @@ func getSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true})
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -479,7 +530,16 @@ func getSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, []string{subscriberID})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	statesByType := map[string]state_types.State{}
+	for stateID, st := range states {
+		statesByType[stateID.Type] = st
+	}
+
+	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByType)
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -489,7 +549,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Subscriber{}
+	payload := &ltemodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -497,7 +557,7 @@ func updateSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{})
+	_, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -509,7 +569,13 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, payload.Lte)
+	updateCriteria := configurator.EntityUpdateCriteria{
+		Key:               subscriberID,
+		Type:              lte.SubscriberEntityType,
+		NewConfig:         payload.Lte,
+		AssociationsToSet: payload.ActiveApns.ToAssocs(),
+	}
+	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateCriteria})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -564,6 +630,110 @@ func updateSubscriberProfile(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func listApns(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.ApnEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := make(map[string]*ltemodels.Apn, len(ents))
+	for _, ent := range ents {
+		ret[ent.Key] = (&ltemodels.Apn{}).FromBackendModels(ent)
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createApn(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Apn{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
+		Type:   lte.ApnEntityType,
+		Key:    string(payload.ApnName),
+		Config: payload.ApnConfiguration,
+	})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func getApnConfiguration(c echo.Context) error {
+	networkID, apnName, nerr := getNetworkAndApnName(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ent, err := configurator.LoadEntity(networkID, lte.ApnEntityType, apnName, configurator.EntityLoadCriteria{LoadConfig: true})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	ret := (&ltemodels.Apn{}).FromBackendModels(ent)
+	return c.JSON(http.StatusOK, ret)
+}
+
+func updateApnConfiguration(c echo.Context) error {
+	networkID, apnName, nerr := getNetworkAndApnName(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := &ltemodels.Apn{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	_, err := configurator.LoadEntity(networkID, lte.ApnEntityType, apnName, configurator.EntityLoadCriteria{})
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
+		return obsidian.HttpError(errors.Wrap(err, "failed to load existing APN"), http.StatusInternalServerError)
+	}
+
+	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.ApnEntityType, apnName, payload.ApnConfiguration)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteApnConfiguration(c echo.Context) error {
+	networkID, apnName, nerr := getNetworkAndApnName(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	err := configurator.DeleteEntity(networkID, lte.ApnEntityType, apnName)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
@@ -587,6 +757,134 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		}
 		return c.NoContent(http.StatusOK)
 	}
+}
+
+func AddNetworkWideSubscriberRuleName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "rule_id")
+	if nerr != nil {
+		return nerr
+	}
+	err := addToNetworkSubscriberConfig(networkID, params[0], "")
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+func AddNetworkWideSubscriberBaseName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "base_name")
+	if nerr != nil {
+		return nerr
+	}
+	err := addToNetworkSubscriberConfig(networkID, "", params[0])
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusCreated)
+}
+
+func RemoveNetworkWideSubscriberRuleName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "rule_id")
+	if nerr != nil {
+		return nerr
+	}
+	err := removeFromNetworkSubscriberConfig(networkID, params[0], "")
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func RemoveNetworkWideSubscriberBaseName(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	params, nerr := obsidian.GetParamValues(c, "base_name")
+	if nerr != nil {
+		return nerr
+	}
+	err := removeFromNetworkSubscriberConfig(networkID, "", params[0])
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to update config"), http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(networkID, false, true)
+	if err != nil {
+		return err
+	}
+	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
+	if !exists || iSubscriberConfig == nil {
+		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
+	}
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*ltemodels.NetworkSubscriberConfig)
+	if !ok {
+		return fmt.Errorf("Unable to convert config %v", subscriberConfig)
+	}
+	if len(ruleName) != 0 {
+		ruleAlreadyExists := false
+		for _, existing := range subscriberConfig.NetworkWideRuleNames {
+			if existing == ruleName {
+				ruleAlreadyExists = true
+				break
+			}
+		}
+		if !ruleAlreadyExists {
+			subscriberConfig.NetworkWideRuleNames = append(subscriberConfig.NetworkWideRuleNames, ruleName)
+		}
+	}
+	if len(baseName) != 0 {
+		bnAlreadyExists := false
+		for _, existing := range subscriberConfig.NetworkWideBaseNames {
+			if existing == ltemodels.BaseName(baseName) {
+				bnAlreadyExists = true
+				break
+			}
+		}
+		if !bnAlreadyExists {
+			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+		}
+	}
+	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
+}
+
+func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
+	network, err := configurator.LoadNetwork(networkID, false, true)
+	if err != nil {
+		return err
+	}
+	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
+	if !exists || iSubscriberConfig == nil {
+		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
+	}
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*ltemodels.NetworkSubscriberConfig)
+	if !ok {
+		return fmt.Errorf("Unable to convert config")
+	}
+	if len(ruleName) != 0 {
+		subscriberConfig.NetworkWideRuleNames = funk.FilterString(subscriberConfig.NetworkWideRuleNames,
+			func(s string) bool { return s != ruleName })
+	}
+	if len(baseName) != 0 {
+		subscriberConfig.NetworkWideBaseNames = funk.Filter(subscriberConfig.NetworkWideBaseNames,
+			func(b ltemodels.BaseName) bool { return string(b) != baseName }).([]ltemodels.BaseName)
+	}
+	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
 }
 
 func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
@@ -616,4 +914,12 @@ func validateSubscriberProfile(networkID string, sub *ltemodels.LteSubscription)
 		}
 	}
 	return nil
+}
+
+func getNetworkAndApnName(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "apn_name")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
 }

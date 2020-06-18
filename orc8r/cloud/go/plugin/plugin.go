@@ -11,6 +11,7 @@ package plugin
 import (
 	"fmt"
 	"io/ioutil"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"os"
 	"plugin"
 	"reflect"
@@ -18,12 +19,12 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/registry"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/service/config"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/streamer/providers"
+	"magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -55,7 +56,7 @@ type OrchestratorPlugin interface {
 	// mconfigs to pass down to gateways.
 	GetMconfigBuilders() []configurator.MconfigBuilder
 
-	// GetMetricsProfile returns the metricsd profiles that this module
+	// GetMetricsProfiles returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
 	// to load on startup. See MetricsProfile for additional documentation.
 	GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile
@@ -68,6 +69,10 @@ type OrchestratorPlugin interface {
 	// These stream providers are the primary mechanism by which gateways
 	// receive data from the orchestrator (e.g. configuration).
 	GetStreamerProviders() []providers.StreamProvider
+
+	// GetStateIndexers returns a list of Indexers to register with the state service.
+	// These indexers are responsible for generating secondary indices mapped to derived state.
+	GetStateIndexers() []indexer.Indexer
 }
 
 // LoadAllPluginsFatalOnError loads and registers all orchestrator plugins
@@ -79,7 +84,7 @@ func LoadAllPluginsFatalOnError(loader OrchestratorPluginLoader) {
 	}
 }
 
-// LoadAlPlugins loads and registers all orchestrator plugins, returning the
+// LoadAllPlugins loads and registers all orchestrator plugins, returning the
 // first error encountered during the process. Standard use-cases should pass
 // DefaultOrchestratorPluginLoader.
 //
@@ -134,7 +139,10 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	}
 
 	for _, file := range files {
-		isPlugin := strings.HasSuffix(file.Name(), ".so") && !file.IsDir()
+		if file.IsDir() {
+			continue
+		}
+		isPlugin := strings.HasSuffix(file.Name(), ".so")
 		if !isPlugin {
 			glog.Infof("Not loading file %s in plugin directory because it does not appear to be a valid plugin", file.Name())
 			continue
@@ -178,6 +186,11 @@ func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.Config
 		return err
 	}
 	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
+
+	// TODO(hcgatewood): fix this once k8s polling is enabled
+	if err := indexer.RegisterIndexers(orc8rPlugin.GetStateIndexers()...); err != nil {
+		return err
+	}
 
 	return nil
 }

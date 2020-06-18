@@ -17,15 +17,16 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/service_health"
 	"magma/feg/gateway/services/gateway_health"
 	"magma/feg/gateway/services/gateway_health/collection"
-	gwmcfg "magma/orc8r/gateway/mconfig"
-
-	"github.com/golang/glog"
+	gwmcfg "magma/gateway/mconfig"
+	"magma/gateway/service_registry"
 )
 
 const (
@@ -35,16 +36,16 @@ const (
 	defaultConsecutiveFailuresThreshold = 3
 )
 
-var defaultServices = []string{registry.S6A_PROXY, registry.SESSION_PROXY}
+var defaultServices = []string{registry.SWX_PROXY, registry.SESSION_PROXY}
 
 type HealthManager struct {
-	cloudReg                  registry.CloudRegistry
+	cloudReg                  service_registry.GatewayRegistry
 	config                    *mconfig.GatewayHealthConfig
 	consecutiveUpdateFailures uint32
 	prevAction                protos.HealthResponse_RequestedAction
 }
 
-func NewHealthManager(cloudReg registry.CloudRegistry, hcfg *mconfig.GatewayHealthConfig) *HealthManager {
+func NewHealthManager(cloudReg service_registry.GatewayRegistry, hcfg *mconfig.GatewayHealthConfig) *HealthManager {
 	return &HealthManager{
 		config:                    hcfg,
 		cloudReg:                  cloudReg,
@@ -130,7 +131,8 @@ func (hm *HealthManager) handleUpdateHealthFailure(
 		return err
 	}
 
-	glog.V(2).Info("Consecutive update failures exceed threshold; Disabling FeG services' diameter connections...")
+	glog.Warningf("Consecutive update failures exceed threshold %d; Disabling FeG services' diameter connections!",
+		hm.config.GetUpdateFailureThreshold())
 	actionErr := hm.takeSystemDown(hm.config.GetLocalDisconnectPeriodSecs(), req.HealthStats.ServiceStatus)
 	if actionErr != nil {
 		glog.Error(actionErr)
@@ -203,7 +205,7 @@ func (hm *HealthManager) takeSystemUp() error {
 		}
 	}
 	if len(allActionErrors) > 0 {
-		return fmt.Errorf("Encountered the following errors while taking SYSTEM_DOWN:\n%s\n",
+		return fmt.Errorf("Encountered the following errors while taking SYSTEM_UP:\n%s\n",
 			strings.Join(allActionErrors, "\n"),
 		)
 	}

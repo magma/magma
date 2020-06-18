@@ -18,9 +18,9 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	lteprotos "magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
 )
 
@@ -66,9 +66,18 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	}
 
 	answer := ConstructSuccessAnswer(msg, sar.SessionID, srv.Config.Server, diam.TGPP_SWX_APP_ID)
-	answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
 	answer.NewAVP(avp.UserName, avp.Mbit, 0, sar.UserName)
+
 	switch sar.ServerAssignmentType {
+	case servicers.ServerAssignnmentType_USER_DEREGISTRATION:
+		subscriber.State.TgppAaaServerName = ""
+		subscriber.State.TgppAaaServerRegistered = false
+		err = srv.store.UpdateSubscriber(subscriber)
+		if err != nil {
+			err = fmt.Errorf("Failed to deregister 3GPP AAA server: %v", err)
+			return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
+		}
+
 	case servicers.ServerAssignmentType_REGISTRATION:
 		subscriber.State.TgppAaaServerRegistered = true
 		err = srv.store.UpdateSubscriber(subscriber)
@@ -76,9 +85,13 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 			err = fmt.Errorf("Failed to register 3GPP AAA server: %v", err)
 			return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 		}
-		fallthrough
-	case servicers.ServerAssignmentType_AAA_USER_DATA_REQUEST:
+		answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
 		answer.AddAVP(getNon3GPPUserDataAVP(subscriber.GetNon_3Gpp()))
+
+	case servicers.ServerAssignmentType_AAA_USER_DATA_REQUEST:
+		answer.NewAVP(avp.TGPPAAAServerName, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, aaaServer)
+		answer.AddAVP(getNon3GPPUserDataAVP(subscriber.GetNon_3Gpp()))
+
 	default:
 		err = fmt.Errorf("server assignment type not implemented: %v", sar.ServerAssignmentType)
 		return ConstructFailureAnswer(msg, sar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
@@ -89,7 +102,7 @@ func NewSAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 // getNon3GPPUserDataAVP converts a Non3GPPUserProfile proto to a diameter AVP.
 func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 	apnConfig := profile.GetApnConfig()
-	qosProfile := apnConfig.GetQosProfile()
+	qosProfile := apnConfig[0].GetQosProfile()
 	qosProfileAvp := diam.NewAVP(avp.EPSSubscribedQoSProfile, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.QoSClassIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(qosProfile.GetClassId())),
@@ -104,13 +117,13 @@ func getNon3GPPUserDataAVP(profile *lteprotos.Non3GPPUserProfile) *diam.AVP {
 	})
 	apnConfigAvp := diam.NewAVP(avp.APNConfiguration, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
-			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetContextId())),
-			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig.GetPdn())),
-			diam.NewAVP(avp.ServiceSelection, avp.Mbit, 0, datatype.UTF8String(apnConfig.GetServiceSelection())),
+			diam.NewAVP(avp.ContextIdentifier, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig[0].GetContextId())),
+			diam.NewAVP(avp.PDNType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(apnConfig[0].GetPdn())),
+			diam.NewAVP(avp.ServiceSelection, avp.Mbit, 0, datatype.UTF8String(apnConfig[0].GetServiceSelection())),
 			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
-					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthUl())),
-					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig.GetAmbr().GetMaxBandwidthDl())),
+					diam.NewAVP(avp.MaxRequestedBandwidthUL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig[0].GetAmbr().GetMaxBandwidthUl())),
+					diam.NewAVP(avp.MaxRequestedBandwidthDL, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(apnConfig[0].GetAmbr().GetMaxBandwidthDl())),
 				},
 			}),
 			qosProfileAvp,

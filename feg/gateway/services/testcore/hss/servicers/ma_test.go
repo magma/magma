@@ -16,27 +16,26 @@ import (
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/eps_authentication/servicers"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewMAA_SuccessfulResponse(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	testNewMAASuccessfulResponse(t, server)
 }
 
 func TestNewMAA_UnknownIMSI(t *testing.T) {
 	mar := createMARWithSingleAuthItem("sub_unknown")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewMAA(server, mar)
 	assert.Exactly(t, storage.NewUnknownSubscriberError("sub_unknown"), err)
 
@@ -48,11 +47,11 @@ func TestNewMAA_UnknownIMSI(t *testing.T) {
 }
 
 func TestNewMAA_MissingAuthKey(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 
 	mar := createMARWithSingleAuthItem("missing_auth_key")
 	response, err := hss.NewMAA(server, mar)
-	assert.Exactly(t, servicers.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
+	assert.Exactly(t, hss.NewAuthRejectedError("incorrect key size. Expected 16 bytes, but got 0 bytes"), err)
 
 	// Check that the MAA has the expected error.
 	var maa definitions.MAA
@@ -66,7 +65,7 @@ func TestNewMAA_MissingAuthKey(t *testing.T) {
 }
 
 func TestNewMAA_Redirect(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	set3GPPAAAServerName(t, server, "sub1", "different_server")
 
 	mar := createMARWithSingleAuthItem("sub1")
@@ -85,7 +84,7 @@ func TestNewMAA_Redirect(t *testing.T) {
 }
 
 func TestNewMAA_StoreAAAServerName(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	set3GPPAAAServerName(t, server, "sub1", "")
 	testNewMAASuccessfulResponse(t, server)
 
@@ -95,7 +94,7 @@ func TestNewMAA_StoreAAAServerName(t *testing.T) {
 }
 
 func TestNewMAA_MultipleVectors(t *testing.T) {
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	mar := createMARExtended("sub1", 3, definitions.RadioAccessTechnologyType_WLAN)
 	response, err := hss.NewMAA(server, mar)
 	assert.NoError(t, err)
@@ -116,7 +115,7 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 		},
 	})
 
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "Missing IMSI in message")
 
@@ -128,7 +127,7 @@ func TestNewMAA_MissingAVP(t *testing.T) {
 
 func TestNewMAA_RATTypeNotAllowed(t *testing.T) {
 	mar := createMARExtended("sub1", 1, 20)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewMAA(server, mar)
 	assert.EqualError(t, err, "RAT-Type not allowed: 20")
 

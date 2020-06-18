@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -33,7 +33,7 @@
 
   Subsystem   EPS Mobility Management
 
-  Author      
+  Author
 
   Description Defines the Nas Transport EMM procedure executed by the
         Non-Access Stratum.
@@ -45,7 +45,7 @@
 #include "emm_proc.h"
 #include "log.h"
 #include "emm_data.h"
-#include "nas_itti_messaging.h"
+#include "mme_app_itti_messaging.h"
 #include "conversions.h"
 #include "3gpp_23.003.h"
 #include "3gpp_36.401.h"
@@ -104,35 +104,37 @@
 int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
 {
   int rc = RETURNok;
-  emm_context_t *ue_ctx_p = NULL;
-  imeisv_t *p_imeisv = NULL;
-  MobileStationClassmark2 *p_mob_st_clsMark2 = NULL;
+  emm_context_t* emm_ctxt_p = NULL;
+  imeisv_t* p_imeisv = NULL;
+  MobileStationClassmark2* p_mob_st_clsMark2 = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
    * Get the UE's EMM context if it exists
    */
 
-  ue_ctx_p = emm_context_get(&_emm_data, ue_id);
+  emm_ctxt_p = emm_context_get(&_emm_data, ue_id);
 
-  if (ue_ctx_p != NULL) {
+  if (emm_ctxt_p != NULL) {
+    ue_mm_context_t* ue_mm_context_p =
+      PARENT_STRUCT(emm_ctxt_p, struct ue_mm_context_s, emm_context);
     /* check if the non EPS service control is enable and combined attach*/
     if (
       ((_esm_data.conf.features & MME_API_SMS_SUPPORTED) ||
        (_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED)) &&
-      (ue_ctx_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI)) {
+      (emm_ctxt_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI)) {
       // check if vlr reliable flag is true for sgs association
       if (mme_ue_context_get_ue_sgs_vlr_reliable(ue_id) == true) {
-        if (IS_EMM_CTXT_PRESENT_IMEISV(ue_ctx_p)) {
-          p_imeisv = &ue_ctx_p->_imeisv;
+        if (IS_EMM_CTXT_PRESENT_IMEISV(emm_ctxt_p)) {
+          p_imeisv = &emm_ctxt_p->_imeisv;
         }
-        if (IS_EMM_CTXT_PRESENT_MOB_STATION_CLSMARK2(ue_ctx_p)) {
-          p_mob_st_clsMark2 = &ue_ctx_p->_mob_st_clsMark2;
+        if (IS_EMM_CTXT_PRESENT_MOB_STATION_CLSMARK2(emm_ctxt_p)) {
+          p_mob_st_clsMark2 = &emm_ctxt_p->_mob_st_clsMark2;
         }
         // Send SGS Uplink unitdata message towards SGS task.
         char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
 
-        IMSI_TO_STRING(&ue_ctx_p->_imsi, imsi_str, IMSI_BCD_DIGITS_MAX + 1);
+        IMSI_TO_STRING(&emm_ctxt_p->_imsi, imsi_str, IMSI_BCD_DIGITS_MAX + 1);
 
         nas_itti_sgsap_uplink_unitdata(
           imsi_str,
@@ -140,21 +142,22 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP)
           nas_msg_pP,
           p_imeisv,
           p_mob_st_clsMark2,
-          &ue_ctx_p->originating_tai,
-          &ue_ctx_p->ecgi);
+          &emm_ctxt_p->originating_tai,
+          &ue_mm_context_p->e_utran_cgi);
       } else {
-          if (ue_ctx_p->is_imsi_only_detach == true) {
-            OAILOG_DEBUG(
+        if (emm_ctxt_p->is_imsi_only_detach == true) {
+          OAILOG_DEBUG(
             LOG_NAS_EMM,
-            "Already triggred Detach Request for the UE (ue_id="
-            MME_UE_S1AP_ID_FMT ") \n", ue_id);
-          } else {
-            // NAS trigger UE to re-attach for non-EPS services.
-            emm_proc_nw_initiated_detach_request(ue_id, NW_DETACH_TYPE_IMSI_DETACH);
-         }
+            "Already triggred Detach Request for the UE "
+            "(ue_id=" MME_UE_S1AP_ID_FMT ") \n",
+            ue_id);
+        } else {
+          // NAS trigger UE to re-attach for non-EPS services.
+          emm_proc_nw_initiated_detach_request(
+            ue_id, NW_DETACH_TYPE_IMSI_DETACH);
+        }
       }
     }
-    emm_context_unlock(ue_ctx_p);
   } else {
     OAILOG_WARNING(
       LOG_NAS_EMM,

@@ -1,0 +1,10 @@
+query LatestPythonPackageQuery {
+  latestPythonPackage {
+    lastPythonPackage {
+      version
+    }
+    lastBreakingPythonPackage {
+      version
+    }
+  }
+}

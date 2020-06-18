@@ -5,3 +5,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
+
+# When true, state service handles automatically reindex state indexers.
+# When false, reindexing must be handled by the provided CLI.
+enable_automatic_reindexing: True

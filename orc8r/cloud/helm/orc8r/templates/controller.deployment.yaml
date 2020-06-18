@@ -25,6 +25,10 @@ spec:
       labels:
         app.kubernetes.io/component: controller
 {{ include "selector-labels" . | indent 8 }}
+      annotations:
+        {{- with .Values.controller.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
     spec:
       {{- with .Values.controller.nodeSelector }}
       nodeSelector:
@@ -51,7 +55,7 @@ spec:
             secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
         {{- if .Values.secret.configs }}
         {{- range $module, $secretName := .Values.secret.configs }}
-        - name: {{ $secretName }}
+        - name: {{ $secretName }}-{{ $module }}
           secret:
             secretName: {{ $secretName }}
         {{- end }}
@@ -71,7 +75,7 @@ spec:
             {{- end }}
             {{- if .Values.secret.configs }}
             {{- range $module, $secretName := .Values.secret.configs }}
-            - name: {{ $secretName }}
+            - name: {{ $secretName }}-{{ $module }}
               mountPath: {{ print "/var/opt/magma/configs/" $module }}
               readOnly: true
             {{- end }}
@@ -107,12 +111,6 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-            - name: USE_NEW_HANDLERS
-              value: "{{ .Values.controller.migration.new_handlers }}"
-            - name: USE_NEW_MCONFIGS
-              value: "{{ .Values.controller.migration.new_mconfigs }}"
-            - name: NEW_MCONFIGS_WHITELIST
-              value: {{ .Values.controller.migration.mconfig_whitelist }}
           livenessProbe:
             tcpSocket:
               port: 9081

@@ -54,7 +54,7 @@ func (srv *FegToGwRelayServer) ResetUnverified(
 		for _, uid := range req.UserId {
 			if _, ok := uidMap[uid]; !ok {
 				uidMap[uid] = struct{}{}
-				hwId, err := getHwIDFromIMSI(uid)
+				hwId, err := getHwIDFromIMSI(ctx, uid)
 				if err != nil {
 					glog.Errorf("Reset: unable to get Hw ID for UID %s: %v.", uid, err)
 					continue

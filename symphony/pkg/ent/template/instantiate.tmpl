@@ -1,0 +1,22 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "instantiate" }}
+{{ template "header" $ }}
+
+{{ range $node := $.Nodes -}}
+
+{{- $name := $node.Name }}
+{{- $client := print $name "Client" }}
+{{- $reciver := $node.Receiver }}{{ if eq $reciver "c" }}{{ $reciver = printf "%.2s" $name | lower }}{{ end }}
+// Instantiate entity configuration.
+func (c *{{ $client }}) Instantiate({{ $reciver }} *{{ $name }}) *{{ $name }} {
+	{{ $reciver }}.config = c.config
+	return {{ $reciver }}
+}
+
+{{ end }}
+{{ end }}

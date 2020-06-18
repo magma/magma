@@ -1,0 +1,22 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  - job_name: inventory
+    static_configs:
+      - targets: ['inventory:9464']
+  - job_name: graph
+    static_configs:
+      - targets: ['graph']
+  - job_name: store
+    static_configs:
+      - targets: ['store']
+  - job_name: fluentd
+    static_configs:
+      - targets: ['fluentd:24231']
+

@@ -10,8 +10,10 @@ LICENSE file in the root directory of this source tree.
 package gx_test
 
 import (
+	"fmt"
 	"log"
 	"net"
+	"os"
 	"testing"
 	"time"
 
@@ -22,7 +24,9 @@ import (
 	"magma/feg/gateway/services/testcore/pcrf/mock_pcrf"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
@@ -35,26 +39,32 @@ const (
 )
 
 var (
-	imsi1Rules     = []string{"rule1", "rule2"}
-	imsi1BaseRules = []string{"rule1", "rule2"}
-	imsi2Rules     = []string{"rule1", "rule3"}
-	imsi3Rules     = []string{"rule1", "rule2"}
-	imsi3BaseRules = []string{"rule1", "rule2"}
+	imsi1Rules               = []string{"rule1", "rule2"}
+	imsi1BaseRules           = []string{"rule1", "rule2"}
+	imsi2Rules               = []string{"rule1", "rule3"}
+	imsi3Rules               = []string{"rule1", "rule2"}
+	imsi3BaseRules           = []string{"rule1", "rule2"}
+	defaultLocalServerConfig = diameter.DiameterServerConfig{
+		DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			Addr:     "127.0.0.1:0",
+			Protocol: "tcp"},
+	}
 )
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF
 func TestGxClient(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3898",
-		Protocol: "tcp"},
-	}
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	startServer(clientConfig, serverConfig)
+	globalConfig := getGxGlobalConfig("")
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		&serverConfig,
 		getMockReAuthHandler(),
 		nil,
+		globalConfig,
 	)
 
 	// send init
@@ -65,14 +75,16 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gx.Apn.magma.com",
 	}
 	done := make(chan interface{}, 1000)
 
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gx.GetAnswer(done)
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
+	assertReceivedAPNonPCRF(t, pcrf, "gx.Apn.magma.com")
 
 	var ruleNames []string
 	var ruleBaseNames []string
@@ -86,7 +98,7 @@ func TestGxClient(t *testing.T) {
 	assert.ElementsMatch(t, imsi1BaseRules, ruleBaseNames)
 	assert.Equal(t, 1, len(ruleDefinitions))
 	assert.Equal(t, "dynrule1", ruleDefinitions[0].RuleName)
-	assert.Equal(t, "mkey", *ruleDefinitions[0].MonitoringKey)
+	assert.Equal(t, "mkey", string(ruleDefinitions[0].MonitoringKey))
 	assert.Equal(t, uint32(128000), *ruleDefinitions[0].Qos.MaxReqBwUL)
 	assert.Equal(t, uint32(128000), *ruleDefinitions[0].Qos.MaxReqBwDL)
 	if ruleDefinitions[0].Qos.GbrUL != nil {
@@ -107,7 +119,7 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrTerminate))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrTerminate))
 	terminate := gx.GetAnswer(done)
 	assert.Equal(t, ccrTerminate.SessionID, terminate.SessionID)
 	assert.Equal(t, ccrTerminate.RequestNumber, terminate.RequestNumber)
@@ -122,7 +134,7 @@ func TestGxClient(t *testing.T) {
 		IPAddr:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer = gx.GetAnswer(done)
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
@@ -140,7 +152,7 @@ func TestGxClient(t *testing.T) {
 	assert.ElementsMatch(t, imsi3BaseRules, ruleBaseNames)
 	assert.Equal(t, 1, len(ruleDefinitions))
 	assert.Equal(t, "dynrule3", ruleDefinitions[0].RuleName)
-	assert.Equal(t, "mkey3", *ruleDefinitions[0].MonitoringKey)
+	assert.Equal(t, "mkey3", string(ruleDefinitions[0].MonitoringKey))
 	assert.Equal(t, uint32(1), ruleDefinitions[0].RedirectInformation.RedirectSupport)
 	assert.Equal(t, uint32(2), ruleDefinitions[0].RedirectInformation.RedirectAddressType)
 	assert.Equal(t, "http://www.example.com/", ruleDefinitions[0].RedirectInformation.RedirectServerAddress)
@@ -153,7 +165,7 @@ func TestGxClient(t *testing.T) {
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrTerminate))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrTerminate))
 	terminate = gx.GetAnswer(done)
 	assert.Equal(t, ccrTerminate.SessionID, terminate.SessionID)
 	assert.Equal(t, ccrTerminate.RequestNumber, terminate.RequestNumber)
@@ -161,11 +173,11 @@ func TestGxClient(t *testing.T) {
 
 	// Connection Disabling should cause CCR to fail
 	gxClient.DisableConnections(10 * time.Second)
-	assert.Error(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.Error(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	// CCR Success after Enabling
 	gxClient.EnableConnections()
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, ccrInit))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	hwaddr, err := net.ParseMAC("00:00:5e:00:53:01")
 	assert.NoError(t, err)
@@ -176,18 +188,56 @@ func TestGxClient(t *testing.T) {
 
 }
 
-func TestGxClientUsageMonitoring(t *testing.T) {
-	serverConfig := &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-		Addr:     "127.0.0.1:3899",
-		Protocol: "tcp"},
-	}
+// TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
+func TestGxClientWithGyGlobalConf(t *testing.T) {
+	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	startServer(clientConfig, serverConfig)
+	overWriteApn := "gx.overwritten.Apn.magma.com"
+	globalConfig := getGxGlobalConfig(overWriteApn)
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
 	gxClient := gx.NewGxClient(
 		clientConfig,
-		[]*diameter.DiameterServerConfig{serverConfig},
+		&serverConfig,
 		getMockReAuthHandler(),
 		nil,
+		globalConfig,
+	)
+
+	// send init
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI1,
+		RequestNumber: 0,
+		IPAddr:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+		Apn:           "gx.Apn.magma.com",
+	}
+	done := make(chan interface{}, 1000)
+
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+	assert.Equal(t, 5, len(answer.RuleInstallAVP))
+	assertReceivedAPNonPCRF(t, pcrf, overWriteApn)
+}
+
+func TestGxClientUsageMonitoring(t *testing.T) {
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
 	)
 	done := make(chan interface{}, 1000)
 
@@ -201,16 +251,16 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 	}
 
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, init))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, init))
 	initAnswer := gx.GetAnswer(done)
 	assert.Equal(t, init.SessionID, initAnswer.SessionID)
 	assert.Equal(t, init.RequestNumber, initAnswer.RequestNumber)
 	assert.Equal(t, 2, len(initAnswer.UsageMonitors))
 	for _, monitor := range initAnswer.UsageMonitors {
-		if monitor.MonitoringKey == "mkey" {
+		if string(monitor.MonitoringKey) == "mkey" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(1024))
 			assert.Equal(t, monitor.Level, gx.RuleLevel)
-		} else if monitor.MonitoringKey == "mkey3" {
+		} else if string(monitor.MonitoringKey) == "mkey3" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(2048))
 			assert.Equal(t, monitor.Level, gx.SessionLevel)
 		} else {
@@ -226,14 +276,14 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 		IPAddr:        "192.168.1.1",
 		UsageReports: []*gx.UsageReport{
 			{
-				MonitoringKey: "mkey",
+				MonitoringKey: []byte("mkey"),
 				Level:         gx.RuleLevel,
 				InputOctets:   24,
 				OutputOctets:  0,
 				TotalOctets:   24,
 			},
 			{
-				MonitoringKey: "mkey3",
+				MonitoringKey: []byte("mkey3"),
 				Level:         gx.SessionLevel,
 				InputOctets:   4000,
 				OutputOctets:  0,
@@ -241,22 +291,122 @@ func TestGxClientUsageMonitoring(t *testing.T) {
 			},
 		},
 	}
-	assert.NoError(t, gxClient.SendCreditControlRequest(serverConfig, done, update))
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, update))
 	updateAnswer := gx.GetAnswer(done)
 	assert.Equal(t, update.SessionID, updateAnswer.SessionID)
 	assert.Equal(t, update.RequestNumber, updateAnswer.RequestNumber)
 	assert.Equal(t, 2, len(updateAnswer.UsageMonitors))
 	for _, monitor := range updateAnswer.UsageMonitors {
-		if monitor.MonitoringKey == "mkey" {
+		if string(monitor.MonitoringKey) == "mkey" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(1024))
 			assert.Equal(t, monitor.Level, gx.RuleLevel)
-		} else if monitor.MonitoringKey == "mkey3" {
+		} else if string(monitor.MonitoringKey) == "mkey3" {
 			assert.Equal(t, *(*monitor.GrantedServiceUnit).TotalOctets, uint64(96))
 			assert.Equal(t, monitor.Level, gx.SessionLevel)
 		} else {
 			assert.Fail(t, "Unknown monitoring key")
 		}
 	}
+}
+
+func TestGxReAuthRemoveRules(t *testing.T) {
+	log.Printf("Start TestGxReAuth")
+	if t != nil {
+		return
+	}
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send one init to set user context in OCS
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI4,
+		RequestNumber: 0,
+		IPAddr:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+	log.Printf("Sending CCR-Init")
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+
+	// send a RAR request to request a rule removal
+	rulesToRemove := &fegprotos.RuleRemovals{RuleNames: []string{"dynrule4"}, RuleBaseNames: []string{""}}
+	raa, err := pcrf.ReAuth(
+		context.Background(),
+		&fegprotos.PolicyReAuthTarget{Imsi: testIMSI4, RulesToRemove: rulesToRemove},
+	)
+	// success reauth
+	assert.NoError(t, err)
+	assert.Equal(t, "1", raa.SessionId)
+	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+}
+
+// Test cases that don't support FramedIpv6 AVPs
+// When these env variables are set, the FrameIP Address should be overwritten
+// with the value, and no FramedIPv6Prefix AVP should be sent
+func TestDefaultFramedIpv4Addr(t *testing.T) {
+	var defaultIpv4 = "10.10.10.11"
+	log.Printf("Start TestDefaultFramedIpv4Addr with default=%v", defaultIpv4)
+	os.Setenv(gx.FramedIPv4AddrRequiredEnv, "1")
+	os.Setenv(gx.DefaultFramedIPv4AddrEnv, defaultIpv4)
+	defer func() {
+		os.Unsetenv(gx.FramedIPv4AddrRequiredEnv)
+		os.Unsetenv(gx.DefaultFramedIPv4AddrEnv)
+	}()
+
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	globalConfig := getGxGlobalConfig("")
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// send one init to set user context in OCS
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI4,
+		RequestNumber: 0,
+		IPAddr:        "2001:db8:0:1:1:1:1:1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+	log.Printf("Sending CCR-Init")
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	gx.GetAnswer(done)
+
+	lastMsg, err := pcrf.GetLastAVPreceived()
+	avpValue, err := lastMsg.FindAVP(avp.FramedIPAddress, 0)
+	assert.NoError(t, err)
+	actualIPv4, err := datatype.DecodeIPv4(avpValue.Data.Serialize())
+	assert.NoError(t, err)
+
+	assert.Equal(t, fmt.Sprintf("IPv4{%v}", defaultIpv4), actualIPv4.String())
+
+	_, err = lastMsg.FindAVP(avp.FramedIPv6Prefix, 0)
+	assert.EqualError(t, err, "AVP not found")
 }
 
 func getClientConfig() *diameter.DiameterClientConfig {
@@ -268,133 +418,31 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
+func getGxGlobalConfig(pcrfOverwriteApn string) *gx.GxGlobalConfig {
+	return &gx.GxGlobalConfig{
+		PCFROverwriteApn: pcrfOverwriteApn,
+	}
+}
+
 func startServer(
 	client *diameter.DiameterClientConfig,
 	server *diameter.DiameterServerConfig,
-) {
+) *mock_pcrf.PCRFServer {
 	serverStarted := make(chan struct{})
+	var pcrf *mock_pcrf.PCRFServer
 	go func() {
 		log.Printf("Starting server")
-		pcrf := mock_pcrf.NewPCRFDiamServer(
-			client,
-			&mock_pcrf.PCRFConfig{ServerConfig: server},
-		)
-		ctx := context.Background()
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI1})
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI2})
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI3})
-		pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI4})
-		monitoringKey := "mkey"
-		monitoringKey3 := "mkey3"
-		var rg1 uint32 = 1
-		var rg3 uint32 = 3
-		var rg5 uint32 = 5
+		pcrf = mock_pcrf.NewPCRFServer(client, server)
 
-		redirect := &protos.RedirectInformation{
-			Support:       protos.RedirectInformation_ENABLED,
-			AddressType:   protos.RedirectInformation_URL,
-			ServerAddress: "http://www.example.com/",
-		}
-
-		maxReqBWUL := uint32(128000)
-		maxReqBWDL := uint32(128000)
-		gbrDL := uint32(64000)
-		gbrUL := uint32(64000)
-		qci := protos.FlowQos_Qci(8)
-
-		qos := &protos.FlowQos{
-			MaxReqBwUl: maxReqBWUL,
-			MaxReqBwDl: maxReqBWDL,
-			GbrDl:      gbrDL,
-			GbrUl:      gbrUL,
-			Qci:        qci,
-		}
-
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi:          testIMSI1,
-				RuleNames:     imsi1Rules,
-				RuleBaseNames: imsi1BaseRules,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
-					{
-						ChargineRuleName: "dynrule1",
-						RatingGroup:      rg1,
-						Precedence:       100,
-						MonitoringKey:    monitoringKey,
-						QosInformation:   qos,
-					},
-				},
-			},
-		)
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi:      testIMSI2,
-				RuleNames: imsi2Rules,
-			},
-		)
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi:          testIMSI3,
-				RuleNames:     imsi3Rules,
-				RuleBaseNames: imsi3BaseRules,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
-					{
-						ChargineRuleName:    "dynrule3",
-						RatingGroup:         rg3,
-						Precedence:          300,
-						MonitoringKey:       monitoringKey3,
-						RedirectInformation: redirect,
-					},
-				},
-			},
-		)
-		pcrf.SetRules(
-			ctx,
-			&fegprotos.AccountRules{
-				Imsi: testIMSI4,
-				RuleDefinitions: []*fegprotos.RuleDefinition{
-					{
-						ChargineRuleName: "dynrule4",
-						Precedence:       300,
-						MonitoringKey:    monitoringKey,
-					},
-					{
-						ChargineRuleName: "dynrule5",
-						RatingGroup:      rg5,
-						Precedence:       100,
-					},
-				},
-			},
-		)
-		pcrf.SetUsageMonitors(
-			ctx,
-			&fegprotos.UsageMonitorInfo{
-				Imsi: testIMSI4,
-				UsageMonitorCredits: []*fegprotos.UsageMonitorCredit{
-					{
-						MonitoringKey:   monitoringKey,
-						Volume:          4096,
-						ReturnBytes:     1024,
-						MonitoringLevel: fegprotos.UsageMonitorCredit_RuleLevel,
-					},
-					{
-						MonitoringKey:   monitoringKey3,
-						Volume:          4096,
-						ReturnBytes:     2048,
-						MonitoringLevel: fegprotos.UsageMonitorCredit_SessionLevel,
-					},
-				},
-			},
-		)
-		serverStarted <- struct{}{}
 		lis, err := pcrf.StartListener()
 		if err != nil {
 			log.Fatalf("Could not start listener for PCRF, %s", err.Error())
 		}
+		// Overwrite config addr with the allocated port
 		server.Addr = lis.Addr().String()
+		log.Printf("Server Addr: %v", server.Addr)
+		serverStarted <- struct{}{}
+
 		err = pcrf.Start(lis)
 		if err != nil {
 			log.Fatalf("Could not start test PCRF server, %s", err.Error())
@@ -402,14 +450,120 @@ func startServer(
 		}
 	}()
 	<-serverStarted
-	time.Sleep(time.Millisecond)
+	return pcrf
 }
 
-func getMockReAuthHandler() gx.ReAuthHandler {
-	return func(request *gx.ReAuthRequest) *gx.ReAuthAnswer {
-		return &gx.ReAuthAnswer{
+func getMockReAuthHandler() gx.PolicyReAuthHandler {
+	return func(request *gx.PolicyReAuthRequest) *gx.PolicyReAuthAnswer {
+		return &gx.PolicyReAuthAnswer{
 			SessionID:  request.SessionID,
 			ResultCode: diam.Success,
 		}
 	}
+}
+
+func seedAccountConfigurations(pcrf *mock_pcrf.PCRFServer) {
+	monitoringKey := "mkey"
+	monitoringKey3 := "mkey3"
+	ruleImsi1 := &fegprotos.AccountRules{
+		Imsi:                testIMSI1,
+		StaticRuleNames:     imsi1Rules,
+		StaticRuleBaseNames: imsi1BaseRules,
+		DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				RuleName:      "dynrule1",
+				RatingGroup:   1,
+				Precedence:    100,
+				MonitoringKey: monitoringKey,
+				QosInformation: &protos.FlowQos{
+					MaxReqBwUl: 128000,
+					MaxReqBwDl: 128000,
+					GbrDl:      64000,
+					GbrUl:      64000,
+					Qci:        8,
+				},
+			},
+		},
+	}
+	ruleImsi2 := &fegprotos.AccountRules{
+		Imsi:            testIMSI2,
+		StaticRuleNames: imsi2Rules,
+	}
+	ruleImsi3 := &fegprotos.AccountRules{
+		Imsi:                testIMSI3,
+		StaticRuleNames:     imsi3Rules,
+		StaticRuleBaseNames: imsi3BaseRules,
+		DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				RuleName:      "dynrule3",
+				RatingGroup:   3,
+				Precedence:    300,
+				MonitoringKey: monitoringKey3,
+				RedirectInformation: &protos.RedirectInformation{
+					Support:       protos.RedirectInformation_ENABLED,
+					AddressType:   protos.RedirectInformation_URL,
+					ServerAddress: "http://www.example.com/",
+				},
+			},
+		},
+	}
+	ruleImsi4 := &fegprotos.AccountRules{
+		Imsi: testIMSI4,
+		DynamicRuleDefinitions: []*fegprotos.RuleDefinition{
+			{
+				RuleName:      "dynrule4",
+				Precedence:    300,
+				MonitoringKey: monitoringKey,
+			},
+			{
+				RuleName:    "dynrule5",
+				RatingGroup: 5,
+				Precedence:  100,
+			},
+		},
+	}
+	usageMonitorImsi4 := &fegprotos.UsageMonitorConfiguration{
+		Imsi: testIMSI4,
+		UsageMonitorCredits: []*fegprotos.UsageMonitor{
+			{
+				MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+					MonitoringKey:   []byte(monitoringKey),
+					MonitoringLevel: fegprotos.MonitoringLevel_RuleLevel,
+					Octets:          &fegprotos.Octets{TotalOctets: 1024},
+				},
+				TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
+			},
+			{
+				MonitorInfoPerRequest: &fegprotos.UsageMonitoringInformation{
+					MonitoringKey:   []byte(monitoringKey3),
+					MonitoringLevel: fegprotos.MonitoringLevel_SessionLevel,
+					Octets:          &fegprotos.Octets{TotalOctets: 2048},
+				},
+				TotalQuota: &fegprotos.Octets{TotalOctets: 4096},
+			},
+		},
+	}
+	ctx := context.Background()
+	// IMSI 1
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI1})
+	pcrf.SetRules(ctx, ruleImsi1)
+	// IMSI 2
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI2})
+	pcrf.SetRules(ctx, ruleImsi2)
+	// IMSI 3
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI3})
+	pcrf.SetRules(ctx, ruleImsi3)
+	// IMSI 4
+	pcrf.CreateAccount(ctx, &protos.SubscriberID{Id: testIMSI4})
+	pcrf.SetRules(ctx, ruleImsi4)
+	pcrf.SetUsageMonitors(ctx, usageMonitorImsi4)
+}
+
+// assertReceivedAPNonPCRF checks if the last received AVP contains the expected APN
+func assertReceivedAPNonPCRF(t *testing.T, pcrf *mock_pcrf.PCRFServer, expectedAPN string) {
+	avpReceived, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf("UTF8String{%s},Padding:0", expectedAPN), receivedAPN.Data.String())
 }

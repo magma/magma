@@ -13,8 +13,8 @@ import (
 	"fmt"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
+	"magma/orc8r/lib/go/errors"
 )
 
 // CancelLocation relays the CancelLocationRequest to a corresponding
@@ -36,7 +36,7 @@ func (srv *FegToGwRelayServer) CancelLocationUnverified(
 	ctx context.Context,
 	req *fegprotos.CancelLocationRequest,
 ) (*fegprotos.CancelLocationAnswer, error) {
-	hwId, err := getHwIDFromIMSI(req.UserName)
+	hwId, err := getHwIDFromIMSI(ctx, req.UserName)
 	if err != nil {
 		fmt.Printf("unable to get HwID from IMSI %v. err: %v", req.UserName, err)
 		if _, ok := err.(errors.ClientInitError); ok {

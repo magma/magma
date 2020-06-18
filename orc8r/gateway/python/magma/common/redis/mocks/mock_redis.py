@@ -6,13 +6,14 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import re
+from redis.exceptions import RedisError
 
 
 class MockRedis(object):
     """
     MockRedis implements a mock Redis Server using an in-memory dictionary
     """
-
     redis = {}
 
     def __init__(self, host, port):
@@ -27,6 +28,9 @@ class MockRedis(object):
         """ Deserialize key from plaintext encoded as UTF-8 bytes. """
         return serialized.decode('utf-8')  # Redis returns keys as bytes
 
+    def lock(self, key):
+        return MockRedisLock(key)
+
     def delete(self, key):
         """Mock delete."""
         skey = self.serialize_key(key)
@@ -37,7 +41,8 @@ class MockRedis(object):
 
     def exists(self, key):
         """Mock exists."""
-        return key in self.redis
+        skey = self.serialize_key(key)
+        return skey in self.redis
 
     def get(self, key):
         """Mock get."""
@@ -49,9 +54,26 @@ class MockRedis(object):
         skey = self.serialize_key(key)
         self.redis[skey] = value
 
-    def keys(self):
-        """ Mock keys."""
-        return list(self.redis.keys())
+    def keys(self, pattern=".*"):
+        """ Mock keys with regex pattern matching."""
+        formatted_pattern = ""
+        for index in range(0, len(pattern)):
+            if index == 0 and pattern[index] == "*":
+                formatted_pattern += ".*"
+            elif pattern[index] == "*" and pattern[index - 1] != ".":
+                formatted_pattern += ".*"
+            else:
+                formatted_pattern += pattern[index]
+
+        ret = []
+        for key in self.redis.keys():
+            try:
+                dkey = self.deserialize_key(key)
+            except AttributeError:
+                dkey = key
+            if re.match(formatted_pattern, dkey):
+                ret.append(key)
+        return ret
 
     def hget(self, hashkey, key):
         """Mock hget."""
@@ -101,29 +123,119 @@ class MockRedis(object):
         pipe.execute()
         return func_value
 
+class MockUnavailableRedis(object):
+    """
+    MockUnavailableRedis implements a mock Redis Server that always raises
+    a connection exception
+    """
 
-class MockRedisPipeline(object):
-    """Mock redis-python pipeline object"""
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
 
-    def __init__(self, redis):
-        """Initialize the object."""
+    def serialize_key(self, key):
+        """ Serialize key to plaintext encoded as UTF-8 bytes. """
+        raise RedisError("mock redis error")
 
-        self.redis = redis
+    def deserialize_key(self, serialized):
+        """ Deserialize key from plaintext encoded as UTF-8 bytes. """
+        raise RedisError("mock redis error")
 
-    def execute(self):
-        """ no-op."""
-        pass
+    def lock(self, key):
+        raise RedisError("mock redis error")
 
     def delete(self, key):
-        """ Mock delete."""
+        """Mock delete."""
+        raise RedisError("mock redis error")
 
-        self.redis.delete(key)
-        return self
+    def exists(self, key):
+        """Mock exists."""
+        raise RedisError("mock redis error")
+
+    def get(self, key):
+        """Mock get."""
+        raise RedisError("mock redis error")
+
+    def set(self, key, value):
+        """Mock set."""
+        raise RedisError("mock redis error")
+
+    def keys(self, pattern=".*"):
+        """ Mock keys with regex pattern matching."""
+        raise RedisError("mock redis error")
 
     def hget(self, hashkey, key):
-        """Mock srem."""
-        return self.redis.hget(hashkey, key)
+        """Mock hget."""
+        raise RedisError("mock redis error")
+
+    def hgetall(self, hashkey):
+        """Mock hgetall."""
+        raise RedisError("mock redis error")
+
+    def hlen(self, hashkey):
+        """Mock hlen."""
+        raise RedisError("mock redis error")
+
+    def hset(self, hashkey, key, value):
+        """Mock hset."""
+        raise RedisError("mock redis error")
 
     def hdel(self, hashkey, key):
         """ Mock hdel"""
-        return self.redis.hdel(hashkey, key)
+        raise RedisError("mock redis error")
+
+    def pipeline(self):
+        """ Mock pipline"""
+        raise RedisError("mock redis error")
+
+    # pylint: disable=unused-argument
+    def transaction(self, func, *args, **kwargs):
+        """ Mock transaction."""
+        raise RedisError("mock redis error")
+
+class MockRedisPipeline(object):
+    """Mock redis-python pipeline object. """
+
+    def __init__(self, redis):
+        """Initialize the object."""
+        self.redis = redis
+        self.pipe_res = []
+
+    def execute(self):
+        """ Mock execute."""
+        return self.pipe_res
+
+    def delete(self, key):
+        """ Mock delete."""
+        del_res = self.redis.delete(key)
+        self.pipe_res.append(del_res)
+        return del_res
+
+    def hget(self, hashkey, key):
+        """Mock hget."""
+        hget_res = self.redis.hget(hashkey, key)
+        self.pipe_res.append(hget_res)
+        return hget_res
+
+    def hdel(self, hashkey, key):
+        """ Mock hdel"""
+        hdel_res = self.redis.hdel(hashkey, key)
+        self.pipe_res.append(hdel_res)
+        return hdel_res
+
+    def multi(self):
+        """ Mock multi """
+        self.pipe_res.clear()
+
+
+class MockRedisLock(object):
+    """ Mock redis-python lock object"""
+
+    def __init__(self, name):
+        self.name = name
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        pass

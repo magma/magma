@@ -14,6 +14,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "LocalEnforcer.h"
+#include "SessionStore.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -30,14 +31,12 @@ class SessionProxyResponderHandler {
    * account
    */
   virtual void ChargingReAuth(
-    ServerContext *context,
-    const ChargingReAuthRequest *request,
-    std::function<void(Status, ChargingReAuthAnswer)> response_callback) = 0;
+      ServerContext* context, const ChargingReAuthRequest* request,
+      std::function<void(Status, ChargingReAuthAnswer)> response_callback) = 0;
 
   virtual void PolicyReAuth(
-    ServerContext *context,
-    const PolicyReAuthRequest *request,
-    std::function<void(Status, PolicyReAuthAnswer)> response_callback) = 0;
+      ServerContext* context, const PolicyReAuthRequest* request,
+      std::function<void(Status, PolicyReAuthAnswer)> response_callback) = 0;
 };
 
 /**
@@ -46,7 +45,8 @@ class SessionProxyResponderHandler {
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
  public:
-  SessionProxyResponderHandlerImpl(LocalEnforcer *monitor);
+  SessionProxyResponderHandlerImpl(
+      std::shared_ptr<LocalEnforcer> monitor, SessionStore& session_store);
 
   ~SessionProxyResponderHandlerImpl() {}
 
@@ -55,20 +55,40 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
    * account
    */
   void ChargingReAuth(
-    ServerContext *context,
-    const ChargingReAuthRequest *request,
-    std::function<void(Status, ChargingReAuthAnswer)> response_callback);
+      ServerContext* context, const ChargingReAuthRequest* request,
+      std::function<void(Status, ChargingReAuthAnswer)> response_callback);
 
   /**
    * Install/uninstall rules for an existing session
    */
   void PolicyReAuth(
-    ServerContext *context,
-    const PolicyReAuthRequest *request,
-    std::function<void(Status, PolicyReAuthAnswer)> response_callback);
+      ServerContext* context, const PolicyReAuthRequest* request,
+      std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
  private:
-  LocalEnforcer *enforcer_;
+  SessionStore& session_store_;
+  std::shared_ptr<LocalEnforcer> enforcer_;
+
+ private:
+  /**
+   * Get the most recently written state of the session to be updated for
+   * charging reauth.
+   * Does not get any other sessions.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+  SessionMap get_sessions_for_charging(const ChargingReAuthRequest& request);
+
+  /**
+   * Get the most recently written state of the session to be updated for
+   * policy reauth.
+   * Does not get any other sessions.
+   *
+   * NOTE: Call only from the main EventBase thread, otherwise there will
+   *       be undefined behavior.
+   */
+  SessionMap get_sessions_for_policy(const PolicyReAuthRequest& request);
 };
 
-} // namespace magma
+}  // namespace magma

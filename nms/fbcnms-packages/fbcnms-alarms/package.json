@@ -1,8 +1,0 @@
-{
-  "name": "@fbcnms/alarms",
-  "private": true,
-  "version": "0.1.0",
-  "dependencies": {
-    "@fbcnms/ui": "^0.1.0"
-  }
-}

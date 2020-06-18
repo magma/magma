@@ -7,11 +7,11 @@
 
 #include <list>
 
-#include <devmand/FileWatcher.h>
 #include <devmand/cartography/Cartographer.h>
 #include <devmand/magma/DevConf.h>
 #include <devmand/test/EventBaseTest.h>
 #include <devmand/test/Notifier.h>
+#include <devmand/utils/FileWatcher.h>
 
 namespace devmand {
 namespace test {
@@ -26,6 +26,7 @@ const char* yamlDeviceTemplate = R"template(    - id: {}
       ip: {}
       type: Device
       platform: {}
+      readonly: true
       poll:
           seconds: 10
       channels:
@@ -84,6 +85,7 @@ const char* mconfigDeviceTemplate = R"template(
             ],
             "host": "{}",
             "platform": "{}",
+            "readonly": true,
             "channels" : {{
               "frinxChannel": {{
                   "authorization": "Basic",
@@ -172,6 +174,7 @@ TEST_F(DevConfTest, initialReadYaml) {
       "Foo",
       "203.0.113.1",
       "",
+      true,
       std::map<std::string, cartography::ChannelConfig>{
           {"snmp",
            {std::map<std::string, std::string>{{"version", "v1"},
@@ -239,6 +242,7 @@ TEST_F(DevConfTest, initialReadMConfig) {
       "Foo",
       "203.0.113.1",
       "foobar",
+      true,
       std::map<std::string, cartography::ChannelConfig>{
           {"snmp",
            {std::map<std::string, std::string>{{"version", "v1"},

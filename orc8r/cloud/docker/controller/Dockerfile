@@ -11,7 +11,7 @@ RUN apt-get update && \
 # Install Golang 1.12
 WORKDIR /usr/local
 RUN curl https://dl.google.com/go/go1.12.linux-amd64.tar.gz -O && \
-    tar xvf go1.12.linux-amd64.tar.gz && \
+    tar xf go1.12.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 ENV GO111MODULE on
 
@@ -36,7 +36,7 @@ RUN curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc
 # reaching out to the internet unless any of the go.mod file is changed.
 COPY gomod /gomod
 RUN mkdir -p /gomod/src/modules
-RUN for module in `ls -d /gomod/src/magma/**`; do cd ${module}/cloud/go && go mod download; done
+RUN for module in `ls -d /gomod/src/magma/**`; do cd ${module}/cloud/go && echo "${module}/cloud/go" && go mod download; done
 RUN find /gomod/src/modules -maxdepth 2 -mindepth 2 -type d -exec bash -c "cd {}/cloud/go && go mod download" \;
 
 # Copy the configs
@@ -83,7 +83,7 @@ RUN /usr/local/bin/setup_swagger_ui
 # Create an empty envdir for overriding in production
 RUN mkdir -p /var/opt/magma/envdir
 # TODO: automatically read the services from the plugins
-ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,EPS_AUTHENTICATION,METRICSD,CERTIFIER,BOOTSTRAPPER,METERINGD_RECORDS,ACCESSD,OBSIDIAN,LOGGER,DISPATCHER,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE
+ENV CONTROLLER_SERVICES STREAMER,SUBSCRIBERDB,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD,FEG_RELAY,HEALTH,VPNSERVICE,STATE,DEVICE,ANALYTICS,TENANTS
 # TODO: fix dispatcher to work on containers
 ENV SERVICE_HOST_NAME localhost
 # TODO: fix metricsd for fetching host level metrics

@@ -12,7 +12,8 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/health/storage"
 	"magma/feg/cloud/go/services/health/test_utils"
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
 )
@@ -41,15 +42,15 @@ func (srv *TestHealthServer) UpdateHealth(
 	return srv.HealthServer.UpdateHealth(ctx, req)
 }
 
-func NewTestHealthServer(
-	health storage.HealthStorage,
-	cluster storage.ClusterStorage,
-) *TestHealthServer {
+func NewTestHealthServer(mockFactory blobstore.BlobStorageFactory) (*TestHealthServer, error) {
+	store, err := storage.NewHealthBlobstore(mockFactory)
+	if err != nil {
+		return nil, err
+	}
 	return &TestHealthServer{
 		HealthServer: HealthServer{
-			healthStore:  health,
-			clusterStore: cluster,
+			store: store,
 		},
 		Feg1: true,
-	}
+	}, nil
 }

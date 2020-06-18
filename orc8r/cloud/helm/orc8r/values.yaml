@@ -5,44 +5,37 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-## Global values for NMS chart
+## Global values for NMS sub-chart
 nms:
+  enabled: true
   magmalte:
-    manifests:
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
+    create: true
     image:
       repository: <registry>/magmalte
       tag: latest
   nginx:
-    manifests:
-      configmap: false
-      secrets: false
-      deployment: false
-      service: false
-      rbac: false
+    create: true
 
 # Reference to one or more secrets to be used when pulling images
 # ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
-## metrics subchart configuration.
+## metrics sub-chart configuration.
 metrics:
-  metrics:
-    create: false
+  enabled: true
   prometheus:
     create: false
   prometheusCache:
     create: false
   alertmanager:
     create: false
-  configmanager:
+  alertmanagerConfigurer:
+    create: false
+  prometheusConfigurer:
     create: false
 
-# secrets subchart configuration.
+# secrets sub-chart configuration.
 secrets:
   create: false
 
@@ -54,10 +47,23 @@ secret:
   envdir: orc8r-secrets-envdir
 
 proxy:
+  # Configure pod disruption budgets for proxy
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   # Service configuration.
   service:
+    enabled: true
+    legacyEnabled: true
     name: bootstrapper-orc8r-proxy
     annotations: {}
+    extraAnnotations:
+      bootstrapLagacy: {}
+      clientcertLegacy: {}
+      proxy: {}
     labels: {}
     type: ClusterIP
     port:
@@ -111,7 +117,94 @@ proxy:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
+nginx:
+  create: false
+
+  # Configure pod disruption budgets for proxy
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
+  # Service configuration.
+  service:
+    enabled: true
+    legacyEnabled: true
+    name: bootstrapper-orc8r-nginx
+    annotations: {}
+    extraAnnotations:
+      bootstrapLagacy: {}
+      clientcertLegacy: {}
+      proxy: {}
+    labels: {}
+    type: ClusterIP
+    port:
+      clientcert:
+        port: 8443
+        targetPort: 8443
+        nodePort: ""
+      open:
+        port: 8444
+        targetPort: 8444
+        nodePort: ""
+      api:
+        port: 443
+        targetPort: 9443
+        nodePort: ""
+      health:
+        port: 80
+        targetPort: 80
+        nodePort: ""
+    loadBalancerIP: ""
+    loadBalancerSourceRanges: []
+
+  # proxy image
+  image:
+    repository:
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  # Settings affecting proxy application
+  spec:
+    # magma controller domain name
+    hostname: ""
+    # when nginx sees a variable in a server_name it needs a resolver
+    # by default we'll use kube-dns
+    resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
+
+  # Number of proxy replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
 controller:
+  # Configure pod disruption budgets for controller
+  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+    maxUnavailable: ""
+
   # Service configuration.
   service:
     annotations: {}
@@ -146,6 +239,8 @@ controller:
     new_mconfigs: 0
     mconfig_whitelist: ""
 
+  podAnnotations: {}
+
   # Number of controller replicas desired
   replicas: 1
 
@@ -170,6 +265,10 @@ controller:
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 
-# Set True to create a CloudWatch agent to monitor metrics 
+# Set True to create a CloudWatch agent to monitor metrics
 cloudwatch:
   create: false
+
+# logging sub-chart configuration.
+logging:
+  enabled: true

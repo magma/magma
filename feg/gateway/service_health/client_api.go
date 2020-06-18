@@ -15,8 +15,8 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
-	"magma/orc8r/cloud/go/errors"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/errors"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )

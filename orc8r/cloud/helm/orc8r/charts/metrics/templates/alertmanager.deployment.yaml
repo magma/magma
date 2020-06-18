@@ -47,8 +47,6 @@ spec:
       volumes:
         - name: "prometheus-config"
 {{ toYaml .Values.metrics.volumes.prometheusConfig.volumeSpec | indent 10 }}
-        - name: "prometheus-data"
-{{ toYaml .Values.metrics.volumes.prometheusData.volumeSpec | indent 10 }}
 
       containers:
         - name: "alertmanager"

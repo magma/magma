@@ -70,7 +70,7 @@
     - cp -r protoc3/include/google /usr/include/
     - chmod -R a+Xr /usr/include/google
     - rm -rf protoc3.zip protoc3
-  when: preburn and ((pbversion is failed) or not (pbversion.stdout|match("^libprotoc 3.")))
+  when: preburn and ((pbversion is failed) or not (pbversion.stdout|regex_search("^libprotoc 3.")))
 
 #################################
 # Copy scripts
@@ -88,4 +88,5 @@
     - generate_nghttpx_config.py
     - generate_lighttpd_config.py
     - show_gateway_info.py
+    - service_util.py
   when: full_provision

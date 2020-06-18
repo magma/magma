@@ -24,6 +24,7 @@ type MetricsGatherer struct {
 	OutputChan      chan *prometheus_proto.MetricFamily
 }
 
+// NewMetricsGatherer validates params and returns a new metrics gatherer.
 func NewMetricsGatherer(
 	collectors []MetricCollector,
 	collectInterval time.Duration,

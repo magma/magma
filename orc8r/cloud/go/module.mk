@@ -20,11 +20,12 @@ clean_gen:
 download:
 	go mod download
 
-fmt:
+fmt::
 	go fmt ./...
 
 gen::
 	go generate ./...
+
 
 # The sed expression replaces '/' with '_' and gets rid of any './ in the path
 # For v1, we prepend the module name to the filename as well
@@ -32,7 +33,6 @@ gen::
 # So for e.g., a swagger file under orc8r/cloud/go/pluginimpl/swagger/swagger.v1.yml
 # will end up as orc8r_pluginimpl_swagger_swagger.v1.yml
 copy_swagger_files:
-	find . -name "swagger.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g")'
 	find . -name "swagger.v1.yml" | xargs -I% --no-run-if-empty bash -c 'cp % $${SWAGGER_V1_TEMP_GEN}/$$(echo % | sed "s#/#_#g; s/\._//g" | xargs -I @ echo "$$(basename $$(realpath $$(pwd)/../..))_@")'
 
 lint:
@@ -51,7 +51,7 @@ tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:
 	go install $*
 
-vet:
+vet::
 	go vet -composites=false ./...
 
 COVER_FILE=$(COVER_DIR)/$(PLUGIN_NAME).gocov

@@ -7,8 +7,10 @@ LICENSE file in the root directory of this source tree.
 """
 import ipaddress
 
+from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.openflow.registers import Direction, load_direction, \
+    DPI_REG
 
 from ryu.lib.packet import ether_types
 
@@ -54,11 +56,65 @@ def flow_match_to_magma_match(match):
             if value is None:
                 return
         if attrib == 'app_name':
-            attrib = 'reg3'
+            attrib = DPI_REG
 
         match_kwargs[attrib] = value
     return MagmaMatch(direction=_get_direction_for_match(match),
                       **match_kwargs)
+
+
+def flow_match_to_actions(datapath, match):
+    '''
+    Convert a FlowMatch to list of actions to get the same packet
+
+    Args:
+        match: FlowMatch
+    '''
+    parser = datapath.ofproto_parser
+    _check_pkt_protocol(match)
+    # Eth type and ip proto are read only, can't set them here (set on pkt init)
+    actions = [
+        parser.OFPActionSetField(ipv4_src=getattr(match, 'ipv4_src', '1.1.1.1')),
+        parser.OFPActionSetField(ipv4_dst=getattr(match, 'ipv4_dst', '1.2.3.4')),
+        load_direction(parser, _get_direction_for_match(match)),
+        parser.NXActionRegLoad2(dst=DPI_REG, value=getattr(match, 'app_id', 0)),
+    ]
+    if match.ip_proto == FlowMatch.IPPROTO_TCP:
+        actions.extend([
+            parser.OFPActionSetField(tcp_src=getattr(match, 'tcp_src', 0)),
+            parser.OFPActionSetField(tcp_dst=getattr(match, 'tcp_dst', 0))
+        ])
+    elif match.ip_proto == FlowMatch.IPPROTO_UDP:
+        actions.extend([
+            parser.OFPActionSetField(udp_src=getattr(match, 'udp_src', 0)),
+            parser.OFPActionSetField(udp_dst=getattr(match, 'udp_dst', 0))
+        ])
+    return actions
+
+
+def flip_flow_match(match):
+    '''
+    Flips FlowMatch(ip/ports/direction)
+
+    Args:
+        match: FlowMatch
+    '''
+    if getattr(match, 'direction', None) == match.DOWNLINK:
+        direction = match.UPLINK
+    else:
+        direction = match.DOWNLINK
+
+    return FlowMatch(
+        ipv4_src=getattr(match, 'ipv4_dst', None),
+        ipv4_dst=getattr(match, 'ipv4_src', None),
+        tcp_src=getattr(match, 'tcp_dst', None),
+        tcp_dst=getattr(match, 'tcp_src', None),
+        udp_src=getattr(match, 'udp_dst', None),
+        udp_dst=getattr(match, 'udp_src', None),
+        ip_proto=getattr(match, 'ip_proto', None),
+        direction=direction,
+        app_name=getattr(match, 'app_name', None)
+    )
 
 
 def _get_ip_tuple(ip_str):

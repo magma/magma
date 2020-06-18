@@ -10,8 +10,9 @@ package servicers
 
 import (
 	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -50,6 +51,12 @@ type ClientConnectionInterface interface {
 	Send(message []byte) error
 	// Receive data through the established connection in client side
 	Receive() ([]byte, error)
+}
+
+func CreateVlrSCTPconnection(config *mconfig.CsfbConfig) (*SCTPClientConnection, error) {
+	vlrSCTP, _ := convertIPAddressFromStrip(config.Client.ServerAddress)
+	localSCTP, _ := convertIPAddressFromStrip(config.Client.LocalAddress)
+	return NewSCTPClientConnection(vlrSCTP, localSCTP)
 }
 
 func NewCsfbServer(ConnectionInterface ClientConnectionInterface) (*CsfbServer, error) {

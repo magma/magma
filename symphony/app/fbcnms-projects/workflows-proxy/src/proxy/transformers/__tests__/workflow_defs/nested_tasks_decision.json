@@ -1,0 +1,75 @@
+{
+  "name": "EquipmentTypes",
+  "description": "",
+  "version": 1,
+  "tasks": [
+    {
+      "name": "HTTP_REQUEST_TASK",
+      "taskReferenceName": "httpInventory",
+      "inputParameters": {
+        "http_request": {
+          "uri": "http://integration_graph_1/query",
+          "method": "POST",
+          "contentType": "application/json",
+          "accept": "application/json",
+          "headers": {
+            "x-auth-user-email": "fbuser@fb.com",
+            "x-auth-organization": "fb-test"
+          },
+          "connectionTimeOut": "3600",
+          "readTimeOut": "3600",
+          "body": {
+            "query": "query EquipmentTypesListQuery { equipmentTypes { edges { node { id name } }}}"
+          }
+        }
+      },
+      "type": "HTTP",
+      "startDelay": 0,
+      "optional": false
+    },
+    {
+      "name": "decisionTask",
+      "taskReferenceName": "decisionTaskRef_AHDP",
+      "inputParameters": {
+        "param": "${httpInventory.output.response.statusCode}"
+      },
+      "type": "DECISION",
+      "caseValueParam": "param",
+      "decisionCases": {
+        "200": [
+          {
+            "name": "LAMBDA_TASK",
+            "taskReferenceName": "lambdaTaskRef_4C88",
+            "type": "LAMBDA",
+            "inputParameters": {
+              "lambdaValue": "1",
+              "scriptExpression": "if ($.lambdaValue == 1) {\n  return {testvalue: true} \n} else { \n  return {testvalue: false}\n}"
+            },
+            "optional": false,
+            "startDelay": 0
+          }
+        ]
+      },
+      "defaultCase": [
+        {
+          "name": "TERMINATE_TASK",
+          "taskReferenceName": "terminateTaskRef_ZILU",
+          "inputParameters": {
+            "terminationStatus": "FAILED",
+            "workflowOutput": "Unexpected output from inventory"
+          },
+          "type": "TERMINATE",
+          "startDelay": 0,
+          "optional": false
+        }
+      ],
+      "optional": false,
+      "startDelay": 0
+    }
+  ],
+  "outputParameters": {},
+  "inputParameters": [],
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": false
+}

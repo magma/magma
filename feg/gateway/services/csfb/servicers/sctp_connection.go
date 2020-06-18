@@ -218,6 +218,48 @@ func (conn *SCTPServerConnection) SendFromServer(msg []byte) error {
 	return nil
 }
 
+func (conn *SCTPClientConnection) GetVlrIPandPort() ([]string, int) {
+	return conn.getIPandPort(conn.vlrSCTPAddr)
+}
+
+func (conn *SCTPClientConnection) GetLocalIPandPort() ([]string, int) {
+	return conn.getIPandPort(conn.localSGsAddr)
+}
+
+func (conn *SCTPClientConnection) getIPandPort(sctpAddr *sctp.SCTPAddr) ([]string, int) {
+	ipsString := make([]string, 1)
+	for _, IPAddr := range sctpAddr.IPAddrs {
+		ipsString = append(ipsString, IPAddr.String())
+	}
+	return ipsString, sctpAddr.Port
+}
+
+func convertIPAddressFromStrip(addresString string) (*sctp.SCTPAddr, error) {
+	ips, port, err := SplitIP(addresString)
+	if err != nil {
+		return &sctp.SCTPAddr{}, err
+	}
+	sctpAddr := ConstructSCTPAddr(ips, port)
+	return sctpAddr, nil
+}
+
+func SplitIP(IPsandPort string) (ipStr string, portInt int, err error) {
+	portStr := ""
+	ipStr, portStr, err = net.SplitHostPort(IPsandPort)
+	portInt = 0
+	if err != nil {
+		glog.Errorf("Couldn't parse the whole string of IPs %s", IPsandPort)
+		return
+	}
+	portInt, err = strconv.Atoi(portStr)
+	if err != nil {
+		glog.Errorf("Couldn't parse port %s", IPsandPort)
+		return
+	}
+	return
+}
+
+// Suports strings with multiple IP comma separated like "ip" or "ip1,ip2,ip3"
 func ConstructSCTPAddr(ip string, port int) *sctp.SCTPAddr {
 	ips := []net.IPAddr{}
 	for _, i := range strings.Split(ip, ",") {
@@ -225,7 +267,6 @@ func ConstructSCTPAddr(ip string, port int) *sctp.SCTPAddr {
 			ips = append(ips, *a)
 		}
 	}
-
 	return &sctp.SCTPAddr{
 		IPAddrs: ips,
 		Port:    port,

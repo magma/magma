@@ -10,8 +10,10 @@ package diameter
 
 const (
 	// SuccessCode is the result code returned from a successful diameter call
-	SuccessCode        = 2001
-	LimitedSuccessCode = 2002
+	SuccessCode                = 2001
+	LimitedSuccessCode         = 2002
+	DiameterRatingFailed       = 5031
+	DiameterCreditLimitReached = 4012
 )
 
 var diamCodeToNameMap = map[uint32]string{
@@ -46,3 +48,8 @@ var diamCodeToNameMap = map[uint32]string{
 	5451: "USER_NO_APN_SUBSCRIPTION",
 	5452: "RAT_TYPE_NOT_ALLOWED",
 }
+
+const (
+	ServiceContextIDDefault = "32251@3gpp.org" // Packet-Switch service context
+	ServiceIDDefault        = 0
+)

@@ -10,7 +10,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 import abc
 import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import Ether, IP, ARP, TCP, UDP, ICMP, wrpcap, rdpcap
+from scapy.all import Ether, IP, ARP, TCP, UDP, ICMP, DHCP, BOOTP, wrpcap, \
+    rdpcap
 
 
 '''
@@ -118,6 +119,8 @@ class ScapyPacket:
         self.TCP = TCP()
         self.UDP = UDP()
         self.ICMP = ICMP()
+        self.BOOTP = BOOTP()
+        self.DHCP = DHCP()
 
 
 class PacketBuilder(abc.ABC):
@@ -180,6 +183,24 @@ class PacketBuilder(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def _set_bootp(self, **kwargs):
+        """
+        Set the BOOTP layer of the packet
+        Args:
+            fields (dict): BOOTP layer fields
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def _set_dhcp(self, **kwargs):
+        """
+        Set the DHCP layer of the packet
+        Args:
+            fields (dict): DHCP layer fields
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def build(self):
         """Build the final packet"""
         raise NotImplementedError()
@@ -213,6 +234,14 @@ class ScapyPacketBuilder(PacketBuilder):
     def _set_udp(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self.packet.UDP, key, value)
+
+    def _set_bootp(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self.packet.BOOTP, key, value)
+
+    def _set_dhcp(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self.packet.DHCP, key, value)
 
     def build(self):
         pass
@@ -312,3 +341,23 @@ class UDPPacketBuilder(IPPacketBuilder):
 
     def build(self):
         return self.packet.Ether / self.packet.IP / self.packet.UDP
+
+
+class BOOTPPacketBuilder(UDPPacketBuilder):
+    def set_bootp_layer(self, op, yiaddr, siaddr, chaddr):
+        self._set_bootp(op=op, yiaddr=yiaddr, siaddr=siaddr, chaddr=chaddr)
+        return self
+
+    def build(self):
+        return self.packet.Ether / self.packet.IP / self.packet.UDP \
+            / self.packet.BOOTP
+
+
+class DHCPPacketBuilder(BOOTPPacketBuilder):
+    def set_dhcp_layer(self, options):
+        self._set_dhcp(options=options)
+        return self
+
+    def build(self):
+        return self.packet.Ether / self.packet.IP / self.packet.UDP \
+            / self.packet.BOOTP / self.packet.DHCP

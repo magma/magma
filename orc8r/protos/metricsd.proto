@@ -11,7 +11,7 @@ import "orc8r/protos/common.proto";
 import "metrics.proto";
 
 package magma.orc8r;
-option go_package = "magma/orc8r/cloud/go/protos";
+option go_package = "magma/orc8r/lib/go/protos";
 
 // For each metric name tracked, we use an enum
 enum MetricName {
@@ -102,6 +102,7 @@ enum MetricName {
   upgrader2_idle                 = 321;
   unexpected_service_restarts    = 322;
   unattended_upgrade_status      = 323;
+  service_restart_status         = 324;
 
   // Pipelined metrics
   dp_send_msg_error              = 350;
@@ -230,3 +231,42 @@ service MetricsController {
   // Push a collection of metrics to metricsd
   rpc Push(PushedMetricsContainer) returns (Void) {}
 }
+
+service MetricsExporter {
+  // Submit metrics to datasinks
+  rpc Submit(SubmitMetricsRequest) returns (Void) {}
+}
+
+message SubmitMetricsRequest {
+  repeated MetricAndContext metrics = 1;
+}
+
+message MetricAndContext {
+  io.prometheus.client.MetricFamily family = 1;
+  MetricContext context = 2;
+}
+
+// MetricsContext provides information to the exporter about the metric's
+// origin
+message MetricContext {
+  string metric_name = 1;
+  oneof MetricOriginContext {
+    CloudMetricContext cloud_metric = 2;
+    GatewayMetricContext gateway_metric = 3;
+    PushedMetricContext pushed_metric = 4;
+  }
+}
+
+message CloudMetricContext {
+  string cloud_host = 1;
+}
+
+message GatewayMetricContext {
+  string network_id = 1;
+  string gateway_id = 2;
+}
+
+message PushedMetricContext {
+  string network_id = 1;
+}
+

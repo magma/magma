@@ -19,9 +19,9 @@ import (
 	"os"
 	"time"
 
-	"magma/orc8r/cloud/go/security/cert"
-	"magma/orc8r/cloud/go/security/csr"
-	"magma/orc8r/cloud/go/util"
+	"magma/orc8r/lib/go/security/cert"
+	"magma/orc8r/lib/go/security/csr"
+	"magma/orc8r/lib/go/util"
 )
 
 var (

@@ -14,70 +14,73 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/cloud_registry"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+
+	"magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	platformregistry "magma/orc8r/lib/go/registry"
+	"magma/orc8r/lib/go/util"
 )
 
 const (
 	ServiceName = "DIRECTORYD"
 	ImsiPrefix  = "IMSI"
+
+	UseCloudDirectordEnv = "USE_CLOUD_DIRECTORYD"
 )
 
-// Get a thin RPC client to the directory service.
-func GetDirectorydClient() (protos.DirectoryServiceClient, error) {
-	conn, err := cloud_registry.New().GetCloudConnection(ServiceName)
+var useCloudDirectoryd = util.GetEnvBool(UseCloudDirectordEnv)
+
+// Get a thin RPC client to the gateway directory service.
+func GetGatewayDirectorydClient() (protos.GatewayDirectoryServiceClient, error) {
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	if useCloudDirectoryd {
+		conn, err = platformregistry.Get().GetSharedCloudConnection(strings.ToLower(ServiceName))
+	} else {
+		conn, err = platformregistry.Get().GetConnection(ServiceName)
+	}
 	if err != nil {
 		initErr := errors.NewInitError(err, ServiceName)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewDirectoryServiceClient(conn), nil
+	return protos.NewGatewayDirectoryServiceClient(conn), nil
 }
 
-// AddIMSI associates given IMSI (UE) with the calling GW's HW ID
-func AddIMSI(imsi string) error {
-	if len(imsi) == 0 {
-		err := fmt.Errorf("Empty IMSI")
-		glog.Error(err)
-		return err
+// UpdateRecord updates the directory record for the provided ID with the calling
+// GW's HW ID and any associated identifiers
+func UpdateRecord(request *protos.UpdateRecordRequest) error {
+	if len(request.GetId()) == 0 {
+		return fmt.Errorf("Empty ID")
 	}
-	client, err := GetDirectorydClient()
+	client, err := GetGatewayDirectorydClient()
 	if err != nil {
 		return err
 	}
-
-	req := &protos.UpdateDirectoryLocationRequest{
-		Table: protos.TableID_IMSI_TO_HWID,
-		Id:    PrependImsiPrefix(imsi),
-		// request Record will be populated by directoryd cloud service
-	}
-	ctx := context.Background()
-	_, err = client.UpdateLocation(ctx, req)
+	request.Id = PrependImsiPrefix(request.GetId())
+	_, err = client.UpdateRecord(context.Background(), request)
 	if err != nil {
 		glog.Error(err)
 	}
 	return err
 }
 
-// RemoveIMSI disassociates given IMSI (UE) from the calling GW's HW ID
-func RemoveIMSI(imsi string) error {
-	if len(imsi) == 0 {
-		return fmt.Errorf("Empty IMSI")
+// DeleteRecord deletes the directory record for the provided ID
+func DeleteRecord(request *protos.DeleteRecordRequest) error {
+	if len(request.GetId()) == 0 {
+		return fmt.Errorf("Empty ID")
 	}
-	client, err := GetDirectorydClient()
+	client, err := GetGatewayDirectorydClient()
 	if err != nil {
 		return err
 	}
-	req := &protos.DeleteLocationRequest{
-		Table: protos.TableID_IMSI_TO_HWID,
-		Id:    PrependImsiPrefix(imsi),
-	}
-	ctx := context.Background()
-	_, err = client.DeleteLocation(ctx, req)
+	request.Id = PrependImsiPrefix(request.GetId())
+	_, err = client.DeleteRecord(context.Background(), request)
 	if err != nil {
 		glog.Error(err)
 	}

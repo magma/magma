@@ -12,6 +12,8 @@ from typing import Any, Generic, TypeVar
 
 import abc
 import os
+
+import magma.configuration.events as magma_configuration_events
 from google.protobuf import json_format
 from magma.common import serialization_utils
 from magma.configuration.exceptions import LoadConfigError
@@ -170,7 +172,6 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
 
         return service_configs[service_name]
 
-
     def load_mconfig_metadata(self) -> GatewayConfigsMetadata:
         mconfig = self.load_mconfig()
         return mconfig.metadata
@@ -204,11 +205,13 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
     def delete_stored_mconfig(self):
         with contextlib.suppress(FileNotFoundError):
             os.remove(self.MCONFIG_PATH)
+        magma_configuration_events.deleted_stored_mconfig()
 
     def update_stored_mconfig(self, updated_value: str) -> GatewayConfigs:
         serialization_utils.write_to_file_atomically(
             self.MCONFIG_PATH, updated_value,
         )
+        magma_configuration_events.updated_stored_mconfig()
 
     def _get_mconfig_file_path(self):
         if os.path.isfile(self.MCONFIG_PATH):

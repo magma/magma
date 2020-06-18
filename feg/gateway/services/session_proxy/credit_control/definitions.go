@@ -18,6 +18,20 @@ const (
 	SessionProxyServiceName = "session_proxy"
 )
 
+type RATType int
+
+const (
+	RAT_WLAN   = 0
+	RAT_EUTRAN = 1004
+)
+
+type IPCANType int
+
+const (
+	IPCAN_3GPP    = 5
+	IPCAN_Non3GPP = 6
+)
+
 type RequestKeyNamespace int
 
 const (

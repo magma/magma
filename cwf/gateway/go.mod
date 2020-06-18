@@ -16,53 +16,49 @@ replace (
 	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
+	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.6
+
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
 	magma/feg/gateway => ../../feg/gateway
+	magma/gateway => ../../orc8r/gateway/go
 	magma/lte/cloud/go => ../../lte/cloud/go
 	magma/orc8r/cloud/go => ../../orc8r/cloud/go
-	magma/orc8r/gateway => ../../orc8r/gateway/go
+	magma/orc8r/lib/go => ../../orc8r/lib/go
+	magma/orc8r/lib/go/protos => ../../orc8r/lib/go/protos
 )
 
 require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
-	github.com/creack/pty v1.1.9 // indirect
+	github.com/Microsoft/go-winio v0.4.14 // indirect
+	github.com/coreos/go-iptables v0.4.5
+	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/docker/docker v1.13.1
+	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
 	github.com/go-openapi/swag v0.18.0
+	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
-	github.com/golang/groupcache v0.0.0-20191025150517-4a4ac3fbac33 // indirect
-	github.com/golang/protobuf v1.3.2
-	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
-	github.com/google/go-cmp v0.3.1 // indirect
-	github.com/google/pprof v0.0.0-20191025152101-a8b9f9d2d3ce // indirect
-	github.com/hashicorp/golang-lru v0.5.3 // indirect
-	github.com/jstemmer/go-junit-report v0.9.1 // indirect
-	github.com/kr/pty v1.1.8 // indirect
+	github.com/golang/protobuf v1.3.3
+	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1
-	github.com/stretchr/testify v1.3.0
-	go.opencensus.io v0.22.1 // indirect
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550
-	golang.org/x/exp v0.0.0-20191024150812-c286b889502e // indirect
-	golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8 // indirect
-	golang.org/x/lint v0.0.0-20190930215403-16217165b5de // indirect
-	golang.org/x/mobile v0.0.0-20191025110607-73ccc5ba0426 // indirect
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
-	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
-	golang.org/x/sys v0.0.0-20191025090151-53bf42e6b339 // indirect
-	golang.org/x/time v0.0.0-20191024005414-555d28b269f0 // indirect
-	golang.org/x/tools v0.0.0-20191025023517-2077df36852e // indirect
-	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
-	google.golang.org/api v0.3.1 // indirect
+	github.com/shirou/gopsutil v2.20.3+incompatible
+	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
+	github.com/stretchr/testify v1.4.0
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
+	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	google.golang.org/appengine v1.6.5 // indirect
-	google.golang.org/grpc v1.21.1
-	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
+	google.golang.org/grpc v1.27.1
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
-	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000
+	magma/gateway v0.0.0
 	magma/lte/cloud/go v0.0.0
 	magma/orc8r/cloud/go v0.0.0
+	magma/orc8r/lib/go v0.0.0
+	magma/orc8r/lib/go/protos v0.0.0
 )
 
 go 1.13

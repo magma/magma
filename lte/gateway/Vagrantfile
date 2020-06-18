@@ -21,9 +21,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - debian/contrib-jessie64
     # - linux kernel from debian jessie backports
     # - updated vbguest-tool
-    magma.vm.box = "amarpad/magma_dev"
+    magma.vm.box = "fbcmagma/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.0.1542061022"
+    magma.vm.box_version = "1.0.1586316960"
+    magma.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
@@ -33,7 +35,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.provider "virtualbox" do |vb|
       vb.name = "magma-dev"
       vb.linked_clone = true
-      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--memory", "6144"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
@@ -51,6 +53,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_trfserver.vm.box = "fbcmagma/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"
     magma_trfserver.vm.box_version = "1.0.1551294676"
+    magma_trfserver.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_trfserver.vm.network "private_network", ip: "192.168.60.144", nic_type: "82540EM"
@@ -80,7 +84,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Get our prepackaged box from the atlas cloud
     magma_test.vm.box = "fbcmagma/magma_test"
     magma_test.vm.hostname = "magma-test"
-    magma_test.vm.box_version = "1.0.1551391604"
+    magma_test.vm.box_version = "1.0.1581466527"
+    magma_test.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_test.vm.network "private_network", ip: "192.168.60.141", nic_type: "82540EM"
@@ -115,6 +121,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_oai.vm.box = "fbcmagma/ubuntu"
     magma_oai.vm.box_version = "1.3"
     magma_oai.vm.hostname = "magma-oai"
+    magma_oai.vbguest.auto_update = false
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma_oai.vm.network "private_network", ip: "192.168.60.145", nic_type: "82540EM"
@@ -131,6 +139,46 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_oai.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
       ansible.playbook = "deploy/magma_oai.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_prod, autostart: false do |magma_prod|
+    magma_prod.vm.synced_folder ".", "/vagrant", disabled: true
+    magma_prod.vm.synced_folder "../..", "/home/vagrant/magma", disabled: true
+    # upstream box won't start due to missing linux-headers-4.9.0-9
+    # using slightly customized box based on debian/stretch64
+    magma_prod.vm.box = "amarpad/magma_prod"
+    magma_prod.vm.hostname = "magma-prod"
+    magma_prod.vbguest.auto_update = false
+
+    # magma_prod.vm.box = "debian/stretch64"
+    # magma_prod.vm.box_version = "9.9.1"
+    # Create a private network, which can be bridged to a physical eNB
+    magma_prod.vm.network "private_network", ip: "10.10.2.1", nic_type: "82540EM"
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_prod.vm.network "private_network", ip: "192.168.60.151", nic_type: "82540EM"
+    #config.ssh.private_key_path = "~/.ssh/vagrant.key"
+    config.ssh.forward_agent = true
+
+    magma_prod.vm.provider "virtualbox" do |vb|
+      vb.name = "magma_prod"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "1024"]
+      vb.customize ["modifyvm", :id, "--cpus", "1"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    magma_prod.vm.provision "shell",
+                            inline: "apt update"
+
+    magma_prod.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_prod.yml"
       ansible.inventory_path = "deploy/hosts"
       ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
                               ["--timeout=30"]

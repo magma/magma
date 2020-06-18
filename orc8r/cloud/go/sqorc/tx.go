@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package sqorc
 
 import (
+	"context"
 	"database/sql"
 
 	"github.com/golang/glog"
@@ -20,10 +21,11 @@ import (
 // codebase to execute a CREATE TABLE IF NOT EXISTS.
 func ExecInTx(
 	db *sql.DB,
+	opts *sql.TxOptions,
 	initFn func(*sql.Tx) error,
 	txFn func(*sql.Tx) (interface{}, error),
 ) (ret interface{}, err error) {
-	tx, err := db.Begin()
+	tx, err := db.BeginTx(context.Background(), opts)
 	if err != nil {
 		return
 	}
@@ -33,14 +35,16 @@ func ExecInTx(
 			err = tx.Commit()
 		default:
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				glog.Errorf("error rolling back tx: %s", err)
+				glog.Errorf("error rolling back tx: %s", rollbackErr)
 			}
 		}
 	}()
 
-	err = initFn(tx)
-	if err != nil {
-		return
+	if initFn != nil {
+		err = initFn(tx)
+		if err != nil {
+			return
+		}
 	}
 
 	ret, err = txFn(tx)

@@ -23,6 +23,33 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (m *LteNetwork) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.DNS.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Features.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if m.SubscriberConfig != nil {
+		if err := m.SubscriberConfig.ValidateModel(); err != nil {
+			res = append(res, err)
+		}
+	}
+
+	if len(res) > 0 {
+		return errors2.CompositeValidationError(res...)
+	}
+	return nil
+}
+
 func (m *NetworkCellularConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
@@ -153,6 +180,18 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 	return nil
 }
 
+func (m *NetworkSubscriberConfig) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m BaseNames) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m RuleNames) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *GatewayCellularConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
@@ -174,7 +213,28 @@ func (m *GatewayRanConfigs) ValidateModel() error {
 }
 
 func (m *GatewayEpcConfigs) ValidateModel() error {
-	return m.Validate(strfmt.Default)
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	if m.DNSPrimary != "" {
+		ip := net.ParseIP(m.DNSPrimary)
+		if ip == nil {
+			return errors.New("Invalid primary DNS address")
+		} else if ip.To4() == nil {
+			return errors.New("Only IPv4 is supported currently for DNS")
+		}
+	}
+
+	if m.DNSSecondary != "" {
+		secIp := net.ParseIP(m.DNSSecondary)
+		if secIp == nil {
+			return errors.New("Invalid secondary DNS address")
+		} else if secIp.To4() == nil {
+			return errors.New("Only IPv4 is supported currently for DNS")
+		}
+	}
+	return nil
 }
 
 func (m *GatewayNonEpsConfigs) ValidateModel() error {
@@ -230,7 +290,7 @@ const (
 	lteAuthOpcLength = 16
 )
 
-func (m *Subscriber) ValidateModel() error {
+func (m *MutableSubscriber) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -277,6 +337,37 @@ func validateIPBlocks(ipBlocks []string) error {
 
 // ValidateModel does standard swagger validation and any custom validation
 func (m *PolicyRule) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *RatingGroup) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *MutableRatingGroup) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ValidateModel does standard swagger validation and any custom validation
+func (m *Apn) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *IcmpStatus) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}

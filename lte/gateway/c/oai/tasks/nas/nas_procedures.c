@@ -601,7 +601,6 @@ void nas_delete_all_emm_procedures(struct emm_context_s *const emm_context)
     nas_delete_attach_procedure(emm_context);
     nas_delete_detach_procedure(emm_context);
     nas_delete_tau_procedure(emm_context);
-
     // gc
     if (emm_context->emm_procedures) {
       free_wrapper((void **) &emm_context->emm_procedures);
@@ -840,7 +839,7 @@ nas_auth_info_proc_t *nas_new_cn_auth_info_procedure(
   if (wrapper) {
     wrapper->proc = &auth_info_proc->cn_proc;
     LIST_INSERT_HEAD(&emm_context->emm_procedures->cn_procs, wrapper, entries);
-    OAILOG_TRACE(LOG_NAS_EMM, "New EMM_COMM_PROC_SMC\n");
+    OAILOG_TRACE(LOG_NAS_EMM, "New CN_PROC_AUTH_INFO\n");
     return auth_info_proc;
   } else {
     free_wrapper((void **) &auth_info_proc);
@@ -940,7 +939,6 @@ void nas_emm_procedure_register_emm_message(
       // forward to ESM, TODO later...
     }
   }
-  emm_context_unlock(emm_ctx);
 }
 
 //-----------------------------------------------------------------------------

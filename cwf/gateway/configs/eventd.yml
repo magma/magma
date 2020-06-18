@@ -1,0 +1,35 @@
+---
+#
+## Copyright (c) 2016-present, Facebook, Inc.
+## All rights reserved.
+##
+## This source code is licensed under the BSD-style license found in the
+## LICENSE file in the root directory of this source tree. An additional grant
+## of patent rights can be found in the PATENTS file in the same directory.
+
+log_level: INFO
+fluent_bit_port: 5170
+tcp_timeout: 5
+event_registry:
+  mock_subscriber_event:
+    module: orc8r
+    filename: mock_event_definitions.v1.yml
+  deleted_stored_mconfig:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  updated_stored_mconfig:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  processed_updates:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  restarted_services:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  disconnected_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  established_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+

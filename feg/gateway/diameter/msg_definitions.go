@@ -8,10 +8,10 @@ LICENSE file in the root directory of this source tree.
 
 package diameter
 
-import "github.com/fiorix/go-diameter/diam/datatype"
+import "github.com/fiorix/go-diameter/v4/diam/datatype"
 
+//https://tools.ietf.org/html/rfc4005#page-16
 /*  Abort-Session Request (ASR)
-
 < Session-Id >
 { Origin-Host }
 { Origin-Realm }
@@ -33,4 +33,25 @@ type ASR struct {
 	AuthApplicationId datatype.Unsigned32       `avp:"Auth-Application-Id"`
 	UserName          datatype.UTF8String       `avp:"User-Name"`
 	OriginStateId     datatype.Unsigned32       `avp:"Origin-State-Id"`
+}
+
+/*  Abort-Session Answer (ASA)
+< Session-Id >
+{ Origin-Host }
+{ Origin-Realm }
+[ Result-Code ]
+[ Experimental-Result ]
+[ Origin-State-Id ]
+[ Error-Message ]
+[ Error-Reporting-Host ]
+*[ Failed-AVP ]
+*[ Redirected-Host ]
+[ Redirected-Host-Usage ]
+[ Redirected-Max-Cache-Time ]
+*[ Proxy-Info ]
+*[ AVP ]
+*/
+type ASA struct {
+	SessionID  string `avp:"Session-Id"`
+	ResultCode uint32 `avp:"Result-Code"`
 }

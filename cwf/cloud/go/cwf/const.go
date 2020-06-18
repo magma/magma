@@ -11,7 +11,8 @@ package cwf
 const (
 	ModuleName = "cwf"
 
-	CwfNetworkPath = "carrier_wifi"
-	CwfNetworkType = "carrier_wifi_network"
-	CwfGatewayType = "carrier_wifi_gateway"
+	CwfNetworkPath             = "carrier_wifi"
+	CwfNetworkType             = "carrier_wifi_network"
+	CwfGatewayType             = "carrier_wifi_gateway"
+	CwfSubscriberDirectoryType = "cwf_subscriber_directory_record"
 )

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -27,6 +27,7 @@
 #include "emm_data.h"
 #include "nas_timer.h"
 #include "esm_data.h"
+#include "esm_proc.h"
 #include "log.h"
 #include "dynamic_memory_check.h"
 #include "common_defs.h"
@@ -101,6 +102,12 @@ void nas_stop_T3489(esm_context_t *const esm_ctx)
     if (NAS_TIMER_INACTIVE_ID == esm_ctx->T3489.id) {
       OAILOG_INFO(
         LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
+      if (nas_timer_callback_args) {
+        esm_ebr_timer_data_t* data =
+            (esm_ebr_timer_data_t*) nas_timer_callback_args;
+        bdestroy_wrapper(&data->msg);
+        free_wrapper((void**) &data);
+      }
     } else {
       OAILOG_ERROR(
         LOG_NAS_EMM, "Could not stop T3489 UE " MME_UE_S1AP_ID_FMT "\n", ue_id);
@@ -110,10 +117,16 @@ void nas_stop_T3489(esm_context_t *const esm_ctx)
 
 // free allocated structs
 //------------------------------------------------------------------------------
-void free_esm_context_content(esm_context_t *esm_ctx)
+void free_esm_context_content(esm_context_t* esm_ctx)
 {
-  if (esm_ctx) {
-    nas_stop_T3489(esm_ctx);
+  if (!esm_ctx) {
+    return;
+  }
+  nas_stop_T3489(esm_ctx);
+  if (esm_ctx->esm_proc_data){
+    OAILOG_DEBUG(LOG_NAS_ESM, "Free up esm_proc_data");
+    bdestroy_wrapper(&esm_ctx->esm_proc_data->apn);
+    free_wrapper((void**)&esm_ctx->esm_proc_data);
   }
 }
 

@@ -10,13 +10,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/testcore/ocs/mock_ocs"
-	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
 )
@@ -27,41 +28,68 @@ const (
 	ValidityTime  = 60   // in second
 )
 
+var (
+	serverNumber int
+)
+
 func init() {
-	flag.Parse()
+	flag.IntVar(&serverNumber, "servernumber", 1, "Number of the server. Will use Gy[servernumber-1] configuration")
 }
 
 func main() {
-	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.MOCK_OCS)
-	if err != nil {
-		log.Fatalf("Error creating mock OCS service: %s", err)
+	flag.Parse()
+
+	serverIdx := serverNumber - 1
+	log.Print("------ Reading Gy configuration a couple of times ------")
+	// Get the server N from the list of configured servers. This is normally 0, unless multiple GX connections are configured
+	gyConfigs := gy.GetGyClientConfiguration()
+	if serverIdx >= len(gyConfigs) {
+		log.Fatalf("ServerIndex value (%d) is bigger than the amount Gy servers configured (%d)", serverIdx, len(gyConfigs))
+		return
+	}
+	gyCliConf := gyConfigs[serverIdx]
+	gyServConf := gy.GetOCSConfiguration()[serverIdx]
+	log.Print("------ Done reading Gy configuration  ------")
+	log.Printf("Mock OCS using Gy server configured at index %d with adderess %s", serverIdx, gyServConf.Addr)
+
+	serviceName := registry.MOCK_OCS
+	if serverIdx > 0 {
+		serviceName = fmt.Sprintf("%s%d", serviceName, serverNumber)
+		log.Printf("OCS serviceName renamed to: %s", serviceName)
+
 	}
 
 	diamServer := mock_ocs.NewOCSDiamServer(
-		gy.GetGyClientConfiguration(),
+		gyCliConf,
 		&mock_ocs.OCSConfig{
-			ServerConfig:  gy.GetOCSConfiguration(),
-			MaxUsageBytes: MaxUsageBytes,
-			MaxUsageTime:  MaxUsageTime,
-			ValidityTime:  ValidityTime,
-			GyInitMethod:  gy.PerSessionInit,
+			ServerConfig:    gyServConf,
+			MaxUsageOctets:  &protos.Octets{TotalOctets: MaxUsageBytes},
+			MaxUsageTime:    MaxUsageTime,
+			ValidityTime:    ValidityTime,
+			GyInitMethod:    gy.PerSessionInit,
+			FinalUnitAction: protos.FinalUnitAction_Terminate,
 		},
 	)
 
+	srv, err := service.NewServiceWithOptions(registry.ModuleName, serviceName)
+	if err != nil {
+		log.Fatalf("Error creating mock %s service: %s", serviceName, err)
+	}
+
 	lis, err := diamServer.StartListener()
 	if err != nil {
-		log.Fatalf("Unable to start listener for mock OCS: %s", err)
+		log.Fatalf("Unable to start listener for mock %s: %s", serviceName, err)
 	}
 
 	protos.RegisterMockOCSServer(srv.GrpcServer, diamServer)
 
 	go func() {
-		glog.V(2).Infof("Starting mock OCS server at %s", lis.Addr().String())
+		glog.V(2).Infof("Starting mock %s server at %s", serviceName, lis.Addr().String())
 		glog.Errorf(diamServer.Start(lis).Error()) // blocks
 	}()
 
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running mock OCS service: %s", err)
+		log.Fatalf("Error running mock %s service: %s", serviceName, err)
 	}
 }

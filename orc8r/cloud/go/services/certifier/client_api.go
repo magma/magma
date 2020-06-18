@@ -13,10 +13,10 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/clock"
-	merrors "magma/orc8r/cloud/go/errors"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/registry"
 	certifierprotos "magma/orc8r/cloud/go/services/certifier/protos"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
@@ -197,7 +197,7 @@ func CollectGarbage() error {
 
 	_, err = client.CollectGarbage(context.Background(), &protos.Void{})
 	if err != nil {
-		glog.Errorf("Failed to collect garbage certificate: %s", err)
+		glog.Errorf("Failed to collect garbage: %v", err)
 		return err
 	}
 	return nil

@@ -6,18 +6,18 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-import asyncio
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest import TestCase, mock
 from unittest.mock import Mock, patch
-from spyne import MethodContext
-from spyne.server import ServerBase
+
+from magma.enodebd.tests.test_utils.enb_acs_builder import \
+    EnodebAcsStateMachineBuilder
 from magma.enodebd.tr069 import models
 from magma.enodebd.tr069.rpc_methods import AutoConfigServer
 from magma.enodebd.tr069.spyne_mods import Tr069Application, Tr069Soap11
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
+from spyne import MethodContext
+from spyne.server import ServerBase
 
 
 class Tr069Test(TestCase):
@@ -73,6 +73,34 @@ class Tr069Test(TestCase):
             "reboot_enodeb_on_mme_disconnected": True,
             "s1_interface": "eth1",
         }
+
+    def test_acs_manager_exception(self):
+        """
+        Test that an unexpected exception from the ACS SM manager will result
+        in an empty response.
+        """
+        self.enb_acs_manager.handle_tr069_message = mock.MagicMock(
+            side_effect=Exception('mock exception')
+        )
+        # stop the patcher because we want to use the above MagicMock
+        self.p.stop()
+        server = ServerBase(self.app)
+
+        ctx = MethodContext(server, MethodContext.SERVER)
+        ctx.in_string = [b'']
+        ctx, = server.generate_contexts(ctx)
+
+        server.get_in_object(ctx)
+        self.assertIsNone(ctx.in_error)
+
+        server.get_out_object(ctx)
+        self.assertIsNone(ctx.out_error)
+
+        server.get_out_string(ctx)
+        self.assertEqual(b''.join(ctx.out_string), b'')
+
+        # start the patcher otherwise the p.stop() in tearDown will complain
+        self.p.start()
 
     def test_parse_inform(self):
         """

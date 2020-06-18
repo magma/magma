@@ -9,25 +9,24 @@ LICENSE file in the root directory of this source tree.
 package credit_control
 
 import (
-	"magma/lte/cloud/go/protos"
-
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/session_proxy/relay"
+	"magma/gateway/service_registry"
+	"magma/lte/cloud/go/protos"
 )
 
 type asrHandler struct {
 	diamClient *diameter.Client
-	registry   registry.CloudRegistry
+	registry   service_registry.GatewayRegistry
 }
 
-func NewASRHandler(diamClient *diameter.Client, cloudRegistry registry.CloudRegistry) diam.Handler {
+func NewASRHandler(diamClient *diameter.Client, cloudRegistry service_registry.GatewayRegistry) diam.Handler {
 	return &asrHandler{diamClient: diamClient, registry: cloudRegistry}
 }
 
@@ -61,7 +60,7 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 
 		res, err := client.AbortSession(context.Background(), &protos.AbortSessionRequest{
 			UserName:  imsi,
-			SessionId: asr.SessionID,
+			SessionId: diameter.DecodeSessionID(asr.SessionID),
 		})
 		if err != nil {
 			glog.Errorf("Error relaying ASR to gateway: %s", err)
@@ -79,8 +78,13 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 		case protos.AbortSessionResult_USER_NOT_FOUND:
 			glog.Errorf("Unknown User in ASR: %s", res.GetErrorMessage())
 			resCode = diam.UnknownUser
-		default:
+		case protos.AbortSessionResult_SESSION_REMOVED:
 			resCode = diam.Success
+		default:
+			if len(res.GetErrorMessage()) > 0 {
+				glog.Errorf("Limited ASR Success: %s", res.GetErrorMessage())
+			}
+			resCode = diam.LimitedSuccess
 		}
 		h.sendASA(conn, m, asr.SessionID, resCode)
 	}()

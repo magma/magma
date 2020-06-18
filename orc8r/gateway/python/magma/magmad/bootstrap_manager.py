@@ -11,7 +11,9 @@ of patent rights can be found in the PATENTS file in the same directory.
 import datetime
 import enum
 import logging
+
 import grpc
+import magma.common.cert_utils as cert_utils
 import os
 import snowflake
 from cryptography.exceptions import InternalError
@@ -21,17 +23,15 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.asymmetric.utils import \
     decode_dss_signature
 from google.protobuf.duration_pb2 import Duration
-from orc8r.protos.bootstrapper_pb2 import ChallengeKey, Response
-from orc8r.protos.bootstrapper_pb2_grpc import BootstrapperStub
-from orc8r.protos.certifier_pb2 import CSR
-from orc8r.protos.identity_pb2 import AccessGatewayID, Identity
-
-import magma.common.cert_utils as cert_utils
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
 from magma.magmad.metrics import BOOTSTRAP_EXCEPTION
+from orc8r.protos.bootstrapper_pb2 import ChallengeKey, Response
+from orc8r.protos.bootstrapper_pb2_grpc import BootstrapperStub
+from orc8r.protos.certifier_pb2 import CSR
+from orc8r.protos.identity_pb2 import AccessGatewayID, Identity
 
 
 class BootstrapError(Exception):
@@ -99,7 +99,7 @@ class BootstrapManager(SDWatchdogTask):
         elif self._state == BootstrapState.SCHEDULED_BOOTSTRAP:
             await self._bootstrap_now()
         elif self._state == BootstrapState.SCHEDULED_CHECK:
-            await self._bootstrap_now()
+            await self._bootstrap_check()
         elif self._state == BootstrapState.IDLE:
             pass
 
@@ -366,10 +366,10 @@ class BootstrapManager(SDWatchdogTask):
 
         not_after = cert.not_after.ToDatetime()
         valid_time = not_after - now
+        # log a warning if the cert is short-lived
         if valid_time < self.PREEXPIRY_BOOTSTRAP_INTERVAL:
             valid_hours = valid_time.total_seconds() / 3600
-            logging.error('Received a %.1f-hour certificate', valid_hours)
-            return False
+            logging.warning('Received a %.1f-hour certificate', valid_hours)
 
         return True
 

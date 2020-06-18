@@ -16,10 +16,10 @@ import (
 	"net/http"
 	neturl "net/url"
 
-	"magma/orc8r/cloud/go/metrics"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/alert"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
+	"magma/orc8r/lib/go/metrics"
 
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/models"
@@ -32,20 +32,17 @@ const (
 	AlertNameQueryParam = "alert_name"
 	AlertNamePathParam  = "alert_name"
 
-	AlertConfigURL         = PrometheusRoot + obsidian.UrlSep + alertConfigPart
-	AlertUpdateURL         = AlertConfigURL + obsidian.UrlSep + ":" + AlertNamePathParam
-	AlertReceiverConfigURL = PrometheusRoot + obsidian.UrlSep + alertReceiverPart
-	AlertReceiverUpdateURL = AlertReceiverConfigURL + obsidian.UrlSep + ":" + ReceiverNamePathParam
-	AlertBulkUpdateURL     = AlertConfigURL + "/bulk"
-
 	AlertConfigV1URL         = PrometheusV1Root + obsidian.UrlSep + alertConfigPart
 	AlertUpdateV1URL         = AlertConfigV1URL + obsidian.UrlSep + ":" + AlertNamePathParam
 	AlertReceiverConfigV1URL = PrometheusV1Root + obsidian.UrlSep + alertReceiverPart
 	AlertReceiverUpdateV1URL = AlertReceiverConfigV1URL + obsidian.UrlSep + ":" + ReceiverNamePathParam
 	AlertBulkUpdateV1URL     = AlertConfigV1URL + "/bulk"
 
-	FiringAlertURL   = obsidian.NetworksRoot + obsidian.UrlSep + ":network_id" + obsidian.UrlSep + "alerts"
 	FiringAlertV1URL = handlers.ManageNetworkPath + obsidian.UrlSep + "alerts"
+
+	AlertSilencerV1URL = FiringAlertV1URL + obsidian.UrlSep + "silence"
+
+	alertmanagerAPIAlertPath = "/alerts"
 )
 
 func GetConfigurePrometheusAlertHandler(configManagerURL string) func(c echo.Context) error {
@@ -110,7 +107,8 @@ func GetViewFiringAlertHandler(alertmanagerURL string) func(c echo.Context) erro
 		if nerr != nil {
 			return nerr
 		}
-		return viewFiringAlerts(networkID, alertmanagerURL, c)
+		getAlertsURL := alertmanagerURL + alertmanagerAPIAlertPath
+		return viewFiringAlerts(networkID, getAlertsURL, c)
 	}
 }
 
@@ -120,7 +118,7 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("misconfigured rule: %v", err), http.StatusBadRequest)
 	}
 
-	err = alert.SecureRule(networkID, &rule)
+	err = alert.SecureRule(true, metrics.NetworkLabelName, networkID, &rule)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -270,9 +268,9 @@ func sendBulkConfig(payload interface{}, url string) (string, error) {
 	return string(contents), nil
 }
 
-func viewFiringAlerts(networkID, alertmanagerApiURL string, c echo.Context) error {
+func viewFiringAlerts(networkID, getAlertsURL string, c echo.Context) error {
 	client := &http.Client{}
-	resp, err := client.Get(alertmanagerApiURL)
+	resp, err := client.Get(getAlertsURL)
 	if err != nil {
 		return err
 	}

@@ -27,8 +27,7 @@ x-generic-service: &service
   volumes: *volumes_anchor
   logging: *logging_anchor
   restart: always
-  networks:
-    - magma
+  network_mode: host
 
 # Use generic python anchor to avoid repetition for python services
 x-pyservice: &pyservice
@@ -44,9 +43,6 @@ services:
   csfb:
     <<: *goservice
     container_name: csfb
-    environment:
-      VLR_ADDR: ${VLR_ADDR}
-      SGS_LOCAL_ADDR: ${SGS_LOCAL_ADDR}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
 
   eap_aka:
@@ -56,9 +52,16 @@ services:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
 
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    command: python3.5 -m magma.eventd.main
+
   aaa_server:
     <<: *goservice
     container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
 
   feg_hello:
@@ -73,35 +76,21 @@ services:
 
   session_proxy:
     <<: *goservice
-    container_name: session_proxy
-    ports:
-      - "${GX_HOST_PORT}:${GX_LOCAL_PORT}/${GX_NETWORK}"
-      - "${GY_HOST_PORT}:${GY_LOCAL_PORT}/${GY_NETWORK}"
     environment:
-      GX_NETWORK: ${GX_NETWORK}
-      GX_LOCAL_ADDR: :${GX_LOCAL_PORT}
-      GY_NETWORK: ${GY_NETWORK}
-      GY_LOCAL_ADDR: :${GY_LOCAL_PORT}
+      USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
+      GY_SUPPORTED_VENDOR_IDS: ${GY_SUPPORTED_VENDOR_IDS}
+      GY_SERVICE_CONTEXT_ID: ${GY_SERVICE_CONTEXT_ID}
+    container_name: session_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
 
   swx_proxy:
     <<: *goservice
     container_name: swx_proxy
-    ports:
-      - "${SWX_HOST_PORT}:${SWX_LOCAL_PORT}/${SWX_NETWORK}"
-    environment:
-      SWX_NETWORK: ${SWX_NETWORK}
-      SWX_LOCAL_ADDR: :${SWX_LOCAL_PORT}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
 
   s6a_proxy:
     <<: *goservice
     container_name: s6a_proxy
-    ports:
-      - "${S6A_HOST_PORT}:${S6A_LOCAL_PORT}/${S6A_NETWORK}"
-    environment:
-      S6A_NETWORK: ${S6A_NETWORK}
-      S6A_LOCAL_ADDR: :${S6A_LOCAL_PORT}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
   radiusd:
@@ -113,8 +102,6 @@ services:
     <<: *pyservice
     container_name: control_proxy
     volumes: *snowflake_volumes
-    environment:
-     DOCKER_NETWORK_MODE: 1
     command: >
       /bin/bash -c "/usr/local/bin/generate_nghttpx_config.py &&
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
@@ -127,7 +114,7 @@ services:
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
       - ${CERTS_VOLUME}:/var/opt/magma/certs
       - ${CONFIGS_VOLUME}:/var/opt/magma/configs
-      - ${SNOWFLAKE_PATH}:/etc/snowflake 
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/var/opt/magma/docker
     environment:
@@ -144,26 +131,9 @@ services:
              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
 
-  radius:
-    image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
-    container_name: radius
-    networks:
-      - magma
-    ports:
-      - 1812:1812/udp
-      - 1813:1813/udp
-      - 3799:3799/udp
-    environment:
-      - RADIUS_AUTH_PORT=1812
-      - RADIUS_ACCT_PORT=1813
-      - RADIUS_COA_PORT=3799
-      - RADIUS_COA_GRPC_PORT=9108
-      - RADIUS_SECRET=123456
-      - COA_FIXED_ENDPOINT=127.0.0.1:4799
-      - AAA_ENDPOINT=aaa_server:9109
-      - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
-      - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
-    restart: always
-
-networks:
-  magma:
+  td-agent-bit:
+    <<: *pyservice
+    container_name: td-agent-bit
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

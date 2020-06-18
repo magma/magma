@@ -267,12 +267,21 @@
 #define TBCD_TO_PLMN_T(tBCDsTRING, pLMN)                                       \
   do {                                                                         \
     DevAssert((tBCDsTRING)->size == 3);                                        \
-    (pLMN)->mcc_digit2 = (((tBCDsTRING)->buf[0] & 0xf0) >> 4);                 \
-    (pLMN)->mcc_digit1 = ((tBCDsTRING)->buf[0] & 0x0f);                        \
-    (pLMN)->mnc_digit3 = (((tBCDsTRING)->buf[1] & 0xf0) >> 4);                 \
-    (pLMN)->mcc_digit3 = ((tBCDsTRING)->buf[1] & 0x0f);                        \
-    (pLMN)->mnc_digit2 = (((tBCDsTRING)->buf[2] & 0xf0) >> 4);                 \
-    (pLMN)->mnc_digit1 = ((tBCDsTRING)->buf[2] & 0x0f);                        \
+    if (((tBCDsTRING)->buf[1] & 0xf0) == 0xf0) {                               \
+      (pLMN)->mcc_digit2 = (((tBCDsTRING)->buf[0] & 0xf0) >> 4);               \
+      (pLMN)->mcc_digit1 = ((tBCDsTRING)->buf[0] & 0x0f);                      \
+      (pLMN)->mcc_digit3 = ((tBCDsTRING)->buf[1] & 0x0f);                      \
+      (pLMN)->mnc_digit3 = (((tBCDsTRING)->buf[1] & 0xf0) >> 4);               \
+      (pLMN)->mnc_digit1 = ((tBCDsTRING)->buf[2] & 0x0f);                      \
+      (pLMN)->mnc_digit2 = (((tBCDsTRING)->buf[2] & 0xf0) >> 4);               \
+    } else {                                                                   \
+      (pLMN)->mcc_digit2 = (((tBCDsTRING)->buf[0] & 0xf0) >> 4);               \
+      (pLMN)->mcc_digit1 = ((tBCDsTRING)->buf[0] & 0x0f);                      \
+      (pLMN)->mnc_digit1 = (((tBCDsTRING)->buf[1] & 0xf0) >> 4);               \
+      (pLMN)->mcc_digit3 = ((tBCDsTRING)->buf[1] & 0x0f);                      \
+      (pLMN)->mnc_digit3 = (((tBCDsTRING)->buf[2] & 0xf0) >> 4);               \
+      (pLMN)->mnc_digit2 = ((tBCDsTRING)->buf[2] & 0x0f);                      \
+    }                                                                          \
   } while (0)
 
 #define PLMN_T_TO_TBCD(pLMN, tBCDsTRING, mNClENGTH)                            \
@@ -314,12 +323,20 @@
 
 #define PLMN_T_TO_MCC_MNC(pLMN, mCC, mNC, mNCdIGITlENGTH)                      \
   do {                                                                         \
-    mCC = pLMN.mcc_digit3 * 100 + pLMN.mcc_digit2 * 10 + pLMN.mcc_digit1;      \
+    mCC = pLMN.mcc_digit1 * 100 + pLMN.mcc_digit2 * 10 + pLMN.mcc_digit3;      \
     mNCdIGITlENGTH = (pLMN.mnc_digit3 == 0xF ? 2 : 3);                         \
-    mNC = (mNCdIGITlENGTH == 2 ? 0 : pLMN.mnc_digit3 * 100) +                  \
-          pLMN.mnc_digit2 * 10 + pLMN.mnc_digit1;                              \
+    mNC =                                                                      \
+      (mNCdIGITlENGTH == 2 ?                                                   \
+         (pLMN.mnc_digit1 * 10 + pLMN.mnc_digit2) :                            \
+         (pLMN.mnc_digit1 * 100) + pLMN.mnc_digit2 * 10 + pLMN.mnc_digit3);    \
   } while (0)
 
+#define PLMN_T_TO_PLMNID(pLMN, oCTETsTRING)                                    \
+  do {                                                                         \
+    uint16_t plmn_mcc = 0, plmn_mnc = 0, plmn_mnc_len = 0;                     \
+    PLMN_T_TO_MCC_MNC(pLMN, plmn_mcc, plmn_mnc, plmn_mnc_len);                 \
+    MCC_MNC_TO_PLMNID(plmn_mcc, plmn_mnc, plmn_mnc_len, oCTETsTRING);          \
+  } while (0)
 /*
  * TS 36.413 v10.9.0 section 9.2.1.37:
  * Macro eNB ID:

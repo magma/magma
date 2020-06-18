@@ -1,0 +1,35 @@
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+# Refer to https://gqlgen.com/config/
+# for detailed .gqlgen.yml documentation.
+
+schema:
+  - schema/**/*.graphql
+
+exec:
+  filename: generated/exec.go
+  package: generated
+
+federation:
+  filename: generated/federation.go
+  package: generated
+
+model:
+  filename: models/models_gen.go
+  package: models
+
+resolver:
+  filename: resolver/resolver.go
+  type: Resolver
+
+struct_tag: gqlgen
+
+autobind:
+  - github.com/facebookincubator/symphony/pkg/ent
+
+models:
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID

@@ -11,6 +11,7 @@ from orc8r.protos.mconfig import mconfigs_pb2
 from orc8r.protos.state_pb2_grpc import StateServiceStub
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service import MagmaService
+from .garbage_collector import GarbageCollector
 from .state_replicator import StateReplicator
 
 
@@ -27,8 +28,12 @@ def main():
         max_client_reuse=60,
     )
 
+    # Garbage collector propagates state deletions back to Orchestrator
+    garbage_collector = GarbageCollector(service, grpc_client_manager)
+
     # Start state replication loop
-    state_manager = StateReplicator(service, grpc_client_manager)
+    state_manager = StateReplicator(service, garbage_collector,
+                                    grpc_client_manager)
     state_manager.start()
 
     # Run the service loop

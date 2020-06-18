@@ -11,11 +11,7 @@ package gy
 
 import (
 	"magma/feg/gateway/services/session_proxy/credit_control"
-)
-
-const (
-	ServiceContextIDDefault = "32251@3gpp.org" // Packet-Switch service context
-	ServiceIDDefault        = 0
+	"magma/lte/cloud/go/protos"
 )
 
 type FinalUnitAction uint8
@@ -40,12 +36,19 @@ const (
 	POOL_EXHAUSTED
 )
 
+const (
+	// 3GPP TS 29.274 RAT Types (for Gy)
+	RAT_TYPE_WLAN   = "\x03"
+	RAT_TYPE_EUTRAN = "\x06"
+)
+
 type UsedCredits struct {
-	RatingGroup  uint32
-	InputOctets  uint64
-	OutputOctets uint64
-	TotalOctets  uint64
-	Type         UsedCreditsType
+	RatingGroup       uint32
+	ServiceIdentifier *uint32
+	InputOctets       uint64
+	OutputOctets      uint64
+	TotalOctets       uint64
+	Type              UsedCreditsType
 }
 
 type CreditControlRequest struct {
@@ -63,6 +66,8 @@ type CreditControlRequest struct {
 	Msisdn        []byte
 	Qos           *QosRequestInfo
 	Credits       []*UsedCredits
+	RatType       string
+	TgppCtx       *protos.TgppContext
 }
 
 type QosRequestInfo struct {
@@ -71,19 +76,21 @@ type QosRequestInfo struct {
 }
 
 type ReceivedCredits struct {
-	ResultCode     uint32
-	RatingGroup    uint32
-	GrantedUnits   *credit_control.GrantedServiceUnit
-	ValidityTime   uint32
-	IsFinal        bool
-	FinalAction    FinalUnitAction // unused if IsFinal is false
-	RedirectServer RedirectServer
+	ResultCode        uint32
+	RatingGroup       uint32
+	ServiceIdentifier *uint32
+	GrantedUnits      *credit_control.GrantedServiceUnit
+	ValidityTime      uint32
+	IsFinal           bool
+	FinalAction       FinalUnitAction // unused if IsFinal is false
+	RedirectServer    RedirectServer
 }
 
 type CreditControlAnswer struct {
 	ResultCode    uint32
 	SessionID     string
 	RequestNumber uint32
+	OriginHost    string
 	Credits       []*ReceivedCredits
 }
 
@@ -112,26 +119,29 @@ type MSCCDiameterMessage struct {
 	ValidityTime        uint32                            `avp:"Validity-Time"`
 	FinalUnitIndication *FinalUnitIndication              `avp:"Final-Unit-Indication"`
 	RatingGroup         uint32                            `avp:"Rating-Group"`
+	ServiceIdentifier   *uint32                           `avp:"Service-Identifier"`
 }
 
 type CCADiameterMessage struct {
 	SessionID     string                 `avp:"Session-Id"`
 	RequestNumber uint32                 `avp:"CC-Request-Number"`
 	ResultCode    uint32                 `avp:"Result-Code"`
+	OriginHost    string                 `avp:"Origin-Host"`
 	RequestType   uint32                 `avp:"CC-Request-Type"`
 	CreditControl []*MSCCDiameterMessage `avp:"Multiple-Services-Credit-Control"`
 }
 
 // ReAuthRequest is a diameter request received from the OCS to initiate a
 // credit update
-type ReAuthRequest struct {
-	SessionID   string  `avp:"Session-Id"`
-	RatingGroup *uint32 `avp:"Rating-Group"`
+type ChargingReAuthRequest struct {
+	SessionID         string  `avp:"Session-Id"`
+	RatingGroup       *uint32 `avp:"Rating-Group"`
+	ServiceIdentifier *uint32 `avp:"Service-Identifier"`
 }
 
 // ReAuthAnswer is a diameter answer sent back to the OCS after a credit update
 // is initiated
-type ReAuthAnswer struct {
+type ChargingReAuthAnswer struct {
 	SessionID  string `avp:"Session-Id"`
 	ResultCode uint32 `avp:"Result-Code"`
 }

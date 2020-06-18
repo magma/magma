@@ -10,17 +10,21 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"magma/orc8r/gateway/directoryd"
+	"fmt"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/gateway/directoryd"
 	lteprotos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -42,11 +46,17 @@ func (srv *accountingService) AbortSession(
 	}
 	sid := srv.sessions.FindSession(imsi)
 	if len(sid) == 0 {
-		return res, Errorf(codes.NotFound, "Session for IMSI: %s is not found", imsi)
+		res.Code = lteprotos.AbortSessionResult_USER_NOT_FOUND
+		res.ErrorMessage = fmt.Sprintf("Session for IMSI: %s is not found", imsi)
+		glog.Error(res.ErrorMessage)
+		return res, nil
 	}
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
-		return res, Errorf(codes.Internal, "Session for RadSID: %s and IMSI: %s is not found", sid, imsi)
+		res.Code = lteprotos.AbortSessionResult_SESSION_NOT_FOUND
+		res.ErrorMessage = fmt.Sprintf("Session for Radius Session ID: %s and IMSI: %s is not found", sid, imsi)
+		glog.Error(res.ErrorMessage)
+		return res, nil
 	}
 	s.Lock()
 	sctx := proto.Clone(s.GetCtx()).(*protos.Context)
@@ -55,15 +65,27 @@ func (srv *accountingService) AbortSession(
 	if len(req.GetSessionId()) > 0 &&
 		len(asid) > 0 &&
 		asid != req.GetSessionId() {
-		return res, Errorf(codes.FailedPrecondition,
+
+		res.Code = lteprotos.AbortSessionResult_SESSION_NOT_FOUND
+		res.ErrorMessage = fmt.Sprintf(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: %s",
 			sid, imsi, req.GetSessionId(), asid)
+		glog.Error(res.ErrorMessage)
+		return res, nil
 	}
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
-		session_manager.EndSession(makeSID(imsi))
+		req := &lteprotos.LocalEndSessionRequest{
+			Sid: makeSID(imsi),
+			Apn: sctx.GetApn(),
+		}
+		session_manager.EndSession(req)
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi())).Inc()
 	} else {
-		directoryd.RemoveIMSI(imsi)
+		deleteRequest := &orcprotos.DeleteRecordRequest{
+			Id: imsi,
+		}
+		directoryd.DeleteRecord(deleteRequest)
 	}
 	srv.sessions.RemoveSession(sid)
 	conn, err := registry.GetConnection(registry.RADIUS)
@@ -73,7 +95,11 @@ func (srv *accountingService) AbortSession(
 	radcli := protos.NewAuthorizationClient(conn)
 	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
 	if err != nil {
-		err = Error(codes.Internal, err)
+		res.Code = lteprotos.AbortSessionResult_RADIUS_SERVER_ERROR
+		res.ErrorMessage = fmt.Sprintf(
+			"Radius Disconnect Error: %v for IMSI: %s, Acct SID: %s, Radius SID: %s", err, imsi, asid, sid)
+		glog.Error(res.ErrorMessage)
+		return res, nil
 	}
 	return res, err
 }
@@ -110,12 +136,20 @@ func (srv *accountingService) TerminateRegistration(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: auth: %s | acct: %s",
 			sid, imsi, req.GetSessionId(), authSid, acctSid)
 	}
-
-	directoryd.RemoveIMSI(imsi) // remove it from directoryd even if session manager will try to remove it again
+	deleteRequest := &orcprotos.DeleteRecordRequest{
+		Id: imsi,
+	}
+	directoryd.DeleteRecord(deleteRequest) // remove it from directoryd even if session manager will try to remove it again
 
 	if srv.config.GetAccountingEnabled() {
 		// ? can potentially end a new, valid session
-		session_manager.EndSession(makeSID(imsi))
+		sid := makeSID(imsi)
+		req := &lteprotos.LocalEndSessionRequest{
+			Sid: sid,
+			Apn: sctx.GetApn(),
+		}
+		session_manager.EndSession(req)
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id).Inc()
 	}
 
 	srv.sessions.RemoveSession(sid)

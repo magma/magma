@@ -69,6 +69,16 @@ class BridgeTools:
             )
         return int(port_num)
 
+    @staticmethod
+    def create_internal_iface(bridge_name, iface_name, ip):
+        """
+        Creates a simple bridge, sets up an interface.
+        Used when running unit tests
+        """
+        subprocess.Popen(["ovs-vsctl", "add-port", bridge_name, iface_name,
+                          "--", "set", "Interface", iface_name,
+                          "type=internal"]).wait()
+        subprocess.Popen(["ifconfig", iface_name, ip]).wait()
 
     @staticmethod
     def create_bridge(bridge_name, iface_name):
@@ -122,12 +132,15 @@ class BridgeTools:
         subprocess.Popen(set_cmd).wait()
 
     @staticmethod
-    def get_flows_for_bridge(bridge_name, table_num=None):
+    def get_flows_for_bridge(bridge_name, table_num=None, include_stats=True):
         """
         Returns a flow dump of the given bridge from ovs-ofctl. If table_num is
         specified, then only the flows for the table will be returned.
         """
-        set_cmd = ["ovs-ofctl", "dump-flows", bridge_name]
+        if include_stats:
+            set_cmd = ["ovs-ofctl", "dump-flows", bridge_name]
+        else:
+            set_cmd = ["ovs-ofctl", "dump-flows", bridge_name, "--no-stats"]
         if table_num:
             set_cmd.append("table=%s" % table_num)
         flows = \
@@ -157,7 +170,8 @@ class BridgeTools:
     @classmethod
     def get_annotated_flows_for_bridge(cls, bridge_name: str,
                                        table_assignments: 'Dict[str, Tables]',
-                                       apps: Optional[List[str]] = None
+                                       apps: Optional[List[str]] = None,
+                                       include_stats: bool = True
                                        ) -> List[str]:
         """
         Returns an annotated flow dump of the given bridge from ovs-ofctl.
@@ -178,10 +192,18 @@ class BridgeTools:
             """
             resubmit(port,1) => resubmit(port,app_name(main_table))
             """
-            resubmit_tokens = match.group(1).split(',')
-            in_port, table = resubmit_tokens[0], resubmit_tokens[1]
-            return 'resubmit({},{})'.format(in_port,
-                                            annotated_table_num(table))
+            ret = ''
+            # We can have more than one resubmit per flow
+            actions = [a for a in match.group().split('resubmit') if a]
+            for action in actions:
+                resubmit_tokens = re.search(r'\((.*?)\)', action)\
+                                    .group(1).split(',')
+                in_port, table = resubmit_tokens[0], resubmit_tokens[1]
+                if ret:
+                    ret += ','
+                ret += 'resubmit({},{})'.format(in_port,
+                                                annotated_table_num(table))
+            return ret
 
         def parse_flow(flow):
             sub_rules = [
@@ -217,4 +239,5 @@ class BridgeTools:
                     yield flow
 
         return [parse_flow(flow) for flow in
-                filter_apps(cls.get_flows_for_bridge(bridge_name))]
+                filter_apps(cls.get_flows_for_bridge(bridge_name,
+                    include_stats=include_stats))]

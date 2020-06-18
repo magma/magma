@@ -9,30 +9,30 @@ of patent rights can be found in the PATENTS file in the same directory.
 import importlib
 import logging
 import typing
-import snowflake
 
+import snowflake
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sdwatchdog import SDWatchdog
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
-from orc8r.protos.state_pb2_grpc import StateServiceStub
 from magma.configuration.mconfig_managers import MconfigManagerImpl, \
     get_mconfig_manager
-from magma.magmad.logging.systemd_tailer import start_systemd_tailer
 from magma.magmad.generic_command.command_executor import \
     get_command_executor_impl
 from magma.magmad.upgrade.upgrader import UpgraderFactory, start_upgrade_loop
 from orc8r.protos.mconfig import mconfigs_pb2
+from orc8r.protos.state_pb2_grpc import StateServiceStub
+
 from .bootstrap_manager import BootstrapManager
 from .config_manager import CONFIG_STREAM_NAME, ConfigManager
+from .gateway_status import GatewayStatusFactory, KernelVersionsPoller
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
+from .metrics_collector import MetricsCollector
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
-from .state_reporter import StateReporter
-from .gateway_status import KernelVersionsPoller, GatewayStatusFactory
 from .service_poller import ServicePoller
+from .state_reporter import StateReporter
 from .sync_rpc_client import SyncRPCClient
-from .metrics_collector import MetricsCollector
 
 
 def main():
@@ -53,7 +53,8 @@ def main():
         enabled_dynamic_services = service.mconfig.dynamic_services
 
     # Poll the services' Service303 interface
-    service_poller = ServicePoller(service.loop, service.config)
+    service_poller = ServicePoller(service.loop, service.config,
+                                   enabled_dynamic_services)
     service_poller.start()
 
     service_manager = ServiceManager(services, init_system, service_poller,
@@ -103,7 +104,7 @@ def main():
     # This is called when bootstrap succeeds and when _bootstrap_check is
     # invoked but bootstrap is not needed. If it's invoked right after certs
     # are generated, certs_generated is true, control_proxy will restart.
-    async def bootstrap_success_cb(certs_generated):
+    async def bootstrap_success_cb(certs_generated: bool):
         nonlocal first_time_bootstrap
         if first_time_bootstrap:
             if stream_client:
@@ -111,8 +112,21 @@ def main():
             if sync_rpc_client:
                 sync_rpc_client.start()
             first_time_bootstrap = False
-        if certs_generated and 'control_proxy' in services:
-            await service_manager.restart_services(services=['control_proxy'])
+        if certs_generated:
+            svcs_to_restart = []
+            if 'control_proxy' in services:
+                svcs_to_restart.append('control_proxy')
+
+            # fluent-bit caches TLS client certs in memory, so we need to
+            # restart it whenever the certs change
+            fresh_mconfig = get_mconfig_manager().load_service_mconfig(
+                'magmad', mconfigs_pb2.MagmaD(),
+            )
+            dynamic_svcs = fresh_mconfig.dynamic_services or []
+            if 'td-agent-bit' in dynamic_svcs:
+                svcs_to_restart.append('td-agent-bit')
+
+            await service_manager.restart_services(services=svcs_to_restart)
 
     # Create bootstrap manager
     bootstrap_manager = BootstrapManager(service, bootstrap_success_cb)
@@ -165,9 +179,6 @@ def main():
     # Start network health metric collection
     if service.config.get('enable_network_monitor', False):
         service.loop.create_task(metrics_collection_loop(service.config))
-
-    if service.config.get('enable_systemd_tailer', False):
-        service.loop.create_task(start_systemd_tailer(service.config))
 
     # Create generic command executor
     command_executor = None

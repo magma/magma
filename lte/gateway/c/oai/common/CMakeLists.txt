@@ -9,7 +9,7 @@ set(COMMON_CPP_PROTOS  common_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/gateway/c/oai/protos")
+set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${COMMON_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
 
@@ -46,11 +46,12 @@ set(COMMON_SRC
 )
 
 add_subdirectory(glogwrapper)
+add_subdirectory(redis_utils)
 
 add_library(COMMON ${COMMON_SRC})
 target_link_libraries (COMMON
   lfds710
-  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper
+  LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper redis_utils
 )
 target_include_directories(COMMON PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}

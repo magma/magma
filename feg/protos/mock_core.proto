@@ -12,6 +12,8 @@ import "feg/protos/csfb.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
@@ -96,13 +98,22 @@ service MockOCS {
     rpc SetCredit(CreditInfo) returns (magma.orc8r.Void) {}
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
     rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
-    rpc ReAuth(ReAuthTarget) returns (ReAuthAnswer) {}
+    rpc ReAuth(ChargingReAuthTarget) returns (ChargingReAuthAnswer) {}
+    rpc GetCredits(magma.lte.SubscriberID) returns (CreditInfos) {}
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionAnswer) {}
+
+    // Todo
+    rpc SetExpectations(GyCreditControlExpectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (GyCreditControlResult) {}
 }
 
 message OCSConfig {
-    uint32 max_usage_bytes = 1;
+    Octets max_usage_octets = 1;
     uint32 max_usage_time = 2;
     uint32 validity_time = 3;
+    bool use_mock_driver = 4;
+    string redirect_address = 5;
+    FinalUnitAction final_unit_action = 6;
 }
 
 message CreditInfo {
@@ -112,57 +123,266 @@ message CreditInfo {
     }
     string imsi = 1;
     uint32 charging_key = 2;
-    uint64 volume = 3;
+    Octets volume = 3;
     UnitType unit_type = 4;
 }
 
-message ReAuthTarget {
+message CreditInfos {
+    map<uint32, CreditInfo> creditInformation = 1;
+}
+
+message ChargingReAuthTarget {
     string imsi = 1;
     uint32 rating_group = 2;
 }
 
-message ReAuthAnswer {
+message ChargingReAuthAnswer {
     string session_id = 1;
     uint32 result_code = 2;
 }
 
 service MockPCRF {
+    rpc SetPCRFConfigs(PCRFConfigs) returns (magma.orc8r.Void) {}
     rpc CreateAccount(magma.lte.SubscriberID) returns (magma.orc8r.Void) {}
-    rpc SetRules(AccountRules) returns (magma.orc8r.Void) {}
-    rpc SetUsageMonitors(UsageMonitorInfo) returns (magma.orc8r.Void) {}
-    rpc ClearSubscribers(magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc SetRules (AccountRules) returns (magma.orc8r.Void) {}
+    rpc SetUsageMonitors (UsageMonitorConfiguration) returns (magma.orc8r.Void) {}
+    rpc ClearSubscribers (magma.orc8r.Void) returns (magma.orc8r.Void) {}
+    rpc ReAuth(PolicyReAuthTarget) returns (PolicyReAuthAnswer) {}
+    rpc AbortSession(AbortSessionRequest) returns (AbortSessionAnswer) {}
+
+    rpc SetExpectations(GxCreditControlExpectations) returns (magma.orc8r.Void) {}
+    rpc AssertExpectations(magma.orc8r.Void) returns (GxCreditControlResult) {}
+}
+
+message PCRFConfigs {
+    bool use_mock_driver = 1;
 }
 
 message AccountRules {
     string imsi = 1;
-    repeated string rule_names = 2;
-    repeated string rule_base_names = 3;
-    repeated RuleDefinition rule_definitions = 4;
+    repeated string static_rule_names = 2;
+    repeated string static_rule_base_names = 3;
+    repeated RuleDefinition dynamic_rule_definitions = 4;
 }
 
 message RuleDefinition {
-    string chargine_rule_name = 1;
+    string rule_name = 1;
 	uint32 rating_group = 2;
 	uint32 precedence = 3;
 	string monitoring_key = 4;
 	repeated string flow_descriptions = 5;
-	repeated string flow_informations = 6;
 	magma.lte.RedirectInformation redirect_information = 7;
 	magma.lte.FlowQos qos_information = 8;
 }
 
-message UsageMonitorInfo {
+message UsageMonitorConfiguration {
     string imsi = 1;
-    repeated UsageMonitorCredit usage_monitor_credits = 2;
+    repeated UsageMonitor usage_monitor_credits = 2;
 }
 
-message UsageMonitorCredit {
-    enum MonitoringLevel {
-        SessionLevel = 0;
-        RuleLevel = 1;
-    }
-    string monitoring_key = 1;
+enum MonitoringLevel {
+    SessionLevel = 0;
+    RuleLevel = 1;
+}
+
+message UsageMonitor {
+    // the usage monitoring information the PCRF sends per answer
+    UsageMonitoringInformation monitor_info_per_request = 1;
+    // the total amount of quota assigned to the monitoring key
+    Octets total_quota = 2;
+}
+
+enum CCRequestType {
+    // proto3 requires enums to start at value 0. This should not be used.
+    _INVALID = 0;
+    INITIAL = 1;
+    UPDATE = 2;
+    TERMINATION = 3;
+}
+
+enum UnexpectedRequestBehavior {
+    // Answer with a permanent failure diameter code, then the session will
+    // be terminated. This will be the default behavior unless a default answer
+    // is specified
+    CONTINUE_WITH_ERROR = 0;
+    CONTINUE_WITH_DEFAULT_ANSWER = 1;
+}
+
+message GxCreditControlExpectations {
+    repeated GxCreditControlExpectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    GxCreditControlAnswer gx_default_cca = 3;
+    Octets total_expected_usage = 4;
+}
+
+message GxCreditControlResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}
+
+message ErrorByIndex {
+    int32 index = 1;
+    string error = 2;
+}
+
+message ExpectationResult {
+    int32 expectation_index = 1;
+    bool expectation_met = 2;
+}
+
+message GxCreditControlExpectation {
+    GxCreditControlRequest expected_request = 1;
+    GxCreditControlAnswer answer = 2;
+}
+
+message GxCreditControlRequest {
+    string imsi = 1;
+    CCRequestType request_type = 2;
+    google.protobuf.Int32Value request_number = 3;
+
+    repeated UsageMonitoringInformation usage_monitoring_reports = 11;
+    // As long as we use real traffic for the test, usage reporting will differ
+    // each time. So this field will specify the acceptable range for the
+    // value. We will accept a request as matching if
+    // (expected report - delta) < actual report < (expected report + delta)
+    uint64 usage_report_delta = 12;
+    google.protobuf.Int32Value event_trigger = 13;
+}
+
+message GxCreditControlAnswer {
+    // request type and request number will be taken from the request
+    uint32 result_code = 1;
+
+    repeated UsageMonitoringInformation usage_monitoring_infos = 11;
+    RuleInstalls rule_installs = 12;
+    RuleRemovals rule_removals = 13;
+    repeated uint32 event_triggers = 14;
+    google.protobuf.Timestamp revalidation_time = 15;
+}
+
+message GyCreditControlExpectations {
+    repeated GyCreditControlExpectation expectations = 1;
+    UnexpectedRequestBehavior unexpected_request_behavior = 2;
+    GyCreditControlAnswer gy_default_cca = 3;
+}
+
+message GyCreditControlResult {
+    repeated ExpectationResult results = 1;
+    repeated ErrorByIndex errors = 2;
+}
+
+message GyCreditControlExpectation {
+    GyCreditControlRequest expected_request = 1;
+    GyCreditControlAnswer answer = 2;
+}
+
+message GyCreditControlRequest {
+    string imsi = 1;
+    CCRequestType request_type = 2;
+    google.protobuf.Int32Value request_number = 3;
+    QosInfo qos_info = 21;
+    repeated MultipleServicesCreditControl mscc = 22;
+    // As long as we use real traffic for the test, usage reporting will differ
+    // each time. So this field will specify the acceptable range for the
+    // value. We will accept a request as matching if
+    // (expected report - delta) < actual report < (expected report + delta)
+    uint64 usage_report_delta = 12;
+}
+
+message GyCreditControlAnswer {
+    CCRequestType request_type = 1;
+    uint32 request_number = 2;
+    uint32 result_code = 3;
+    repeated QuotaGrant quota_grants = 4;
+    bool link_failure = 5;
+}
+
+enum FinalUnitAction {
+    Terminate = 0;
+    Redirect = 1;
+    Restrict = 2;
+}
+
+message RedirectServer {
+    string RedirectServerAddress = 1;
+}
+
+message QuotaGrant {
+    uint32 rating_group = 1;
+    Octets granted_service_unit = 2;
+    uint32 validity_time = 3;
+    uint32 result_code = 4;
+
+    bool is_final_credit = 11;
+    FinalUnitAction final_unit_action = 12;
+    RedirectServer redirect_server = 13;
+}
+
+// AVP: 1067
+message UsageMonitoringInformation {
+    bytes monitoring_key = 1;
     MonitoringLevel monitoring_level = 2;
-    uint64 return_bytes = 3;
-    uint64 volume = 4;
+    Octets octets = 3;
+}
+
+message MultipleServicesCreditControl {
+    uint32 rating_group = 1;
+    Octets used_service_unit = 2;
+    int32 update_type = 3;
+}
+
+message QosInfo {
+    // AVP: 1041
+    uint32 apn_agg_max_bit_rate_ul = 1;
+    // AVP: 1040
+    uint32 apn_agg_max_bit_rate_dl = 2;
+}
+
+message RuleInstalls {
+    repeated string rule_names = 1;
+    repeated string rule_base_names = 2;
+    repeated RuleDefinition rule_definitions = 3;
+    google.protobuf.Timestamp activation_time = 4;
+    google.protobuf.Timestamp deactivation_time = 5;
+}
+
+message RuleRemovals {
+    repeated string rule_names = 1;
+    repeated string rule_base_names = 2;
+}
+
+message Octets {
+    uint64 total_octets = 1;
+    uint64 input_octets = 2;
+    uint64 output_octets = 3;
+}
+
+message PolicyReAuthTarget {
+    string imsi = 1;
+    RuleRemovals rules_to_remove = 2;
+    RuleInstalls rules_to_install = 3;
+    repeated UsageMonitoringInformation usage_monitoring_infos = 4;
+    // TODO repeated magma.lte.EventTrigger event_triggers = 5;
+    // TODO google.protobuf.Timestamp revalidation_time = 6;
+}
+
+message PolicyReAuthAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+    map<string, uint32> failed_rules = 3;
+}
+
+enum AbortCauseType {
+    BearerReleased = 0;
+    InsufficientServerResources = 1;
+    InsufficientBearerResources = 2;
+}
+message AbortSessionRequest {
+    string imsi = 1;
+}
+
+message AbortSessionAnswer {
+    string session_id = 1;
+    uint32 result_code = 2;
+    string error_message = 3;
 }

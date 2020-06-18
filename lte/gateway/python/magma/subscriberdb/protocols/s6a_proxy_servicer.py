@@ -77,8 +77,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         except SubscriberNotFoundError as e:
             logging.warning("Subscriber not found: %s", e)
             metrics.S6A_AUTH_FAILURE_TOTAL.labels(
-                code=metrics.DIAMETER_AUTHORIZATION_REJECTED).inc()
-            aia.error_code = metrics.DIAMETER_AUTHORIZATION_REJECTED
+                code=metrics.DIAMETER_ERROR_USER_UNKNOWN).inc()
+            aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
             return aia
 
     def UpdateLocation(self, request, context):
@@ -91,6 +91,12 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             logging.warning('Subscriber not found for ULR: %s', e)
             return ula
 
+        try:
+            sub_data = self.lte_processor.get_sub_data(imsi)
+        except SubscriberNotFoundError as e:
+            ula.error_code = s6a_proxy_pb2.USER_UNKNOWN
+            logging.warning("Subscriber not found for ULR: %s", e)
+            return ula
         ula.error_code = s6a_proxy_pb2.SUCCESS
         ula.default_context_id = 0
         ula.total_ambr.max_bandwidth_ul = profile.max_ul_bit_rate
@@ -99,7 +105,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
 
         apn = ula.apn.add()
         apn.context_id = 0
-        apn.service_selection = 'oai.ipv4'
+        apn.service_selection = "oai.ipv4"
         apn.qos_profile.class_id = 9
         apn.qos_profile.priority_level = 15
         apn.qos_profile.preemption_capability = 1
@@ -108,4 +114,28 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         apn.ambr.max_bandwidth_ul = profile.max_ul_bit_rate
         apn.ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         apn.pdn = s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+
+        # Secondary PDN
+        context_id = 0
+        for apn in sub_data.non_3gpp.apn_config:
+            sec_apn = ula.apn.add()
+            # Context id 0 is assigned to oai.ipv4 apn. So start from 1
+            sec_apn.context_id = context_id + 1
+            context_id += 1
+            sec_apn.service_selection = apn.service_selection
+            sec_apn.qos_profile.class_id = apn.qos_profile.class_id
+            sec_apn.qos_profile.priority_level = apn.qos_profile.priority_level
+            sec_apn.qos_profile.preemption_capability = (
+                apn.qos_profile.preemption_capability
+            )
+            sec_apn.qos_profile.preemption_vulnerability = (
+                apn.qos_profile.preemption_vulnerability
+            )
+
+            sec_apn.ambr.max_bandwidth_ul = apn.ambr.max_bandwidth_ul
+            sec_apn.ambr.max_bandwidth_dl = apn.ambr.max_bandwidth_dl
+            sec_apn.pdn = (
+                s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
+            )
+
         return ula

@@ -29,7 +29,7 @@ from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send, assert_bridge_snapshot_match
+    wait_after_send, assert_bridge_snapshot_match, fake_controller_setup
 
 
 class RedirectTest(unittest.TestCase):
@@ -59,21 +59,27 @@ class RedirectTest(unittest.TestCase):
         testing_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.Enforcement,
-                  PipelinedController.Testing],
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
                 PipelinedController.Testing:
-                    testing_controller_reference
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
             },
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                'enable_queue_pgm': False,
+                'qos': {'enable': False},
+                'clean_restart': True,
             },
-            mconfig=None,
+            mconfig=PipelineD(
+                relay_enabled=True
+            ),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
@@ -104,6 +110,7 @@ class RedirectTest(unittest.TestCase):
             Packet bypass flows are added
             Flow learn action is triggered - another flow is added to the table
         """
+        fake_controller_setup(self.enforcement_controller)
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.enforcement_controller._redirect_manager._dns_cache.get(
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
@@ -186,6 +193,7 @@ class RedirectTest(unittest.TestCase):
             Packet bypass flows are added
             Flow learn action is triggered - another flow is added to the table
         """
+        fake_controller_setup(self.enforcement_controller)
         redirect_ip = "54.12.31.42"
         imsi = 'IMSI012000000088888'
         sub_ip = '192.168.128.74'

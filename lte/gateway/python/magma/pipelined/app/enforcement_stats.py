@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import time
+from typing import List
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
@@ -17,8 +17,10 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.app.base import MagmaController, ControllerType, \
+    global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
@@ -27,11 +29,12 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG
+    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
 
 
 ETH_FRAME_SIZE_BYTES = 14
-global_epoch = int(time.time())
+PROCESS_STATS = 0x0
+IGNORE_STATS = 0x1
 
 
 class RelayDisabledException(Exception):
@@ -50,6 +53,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     """
 
     APP_NAME = 'enforcement_stats'
+    APP_TYPE = ControllerType.LOGICAL
     SESSIOND_RPC_TIMEOUT = 10
     # 0xffffffffffffffff is reserved in openflow
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
@@ -61,20 +65,13 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     def __init__(self, *args, **kwargs):
         super(EnforcementStatsController, self).__init__(*args, **kwargs)
         # No need to report usage if relay mode is not enabled.
-        self._relay_enabled = kwargs['mconfig'].relay_enabled
-        if not self._relay_enabled:
-            self.logger.info('Relay mode is not enabled. '
-                             'enforcement_stats will not report usage.')
-            return
-        self.tbl_num = \
-            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
+        self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_next_table_num(self.APP_NAME)
         self.dpset = kwargs['dpset']
         self.loop = kwargs['loop']
         # Spawn a thread to poll for flow stats
         poll_interval = kwargs['config']['enforcement']['poll_interval']
-        self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
         # Create a rpc channel to sessiond
         self.sessiond = kwargs['rpc_stubs']['sessiond']
         self._msg_hub = MessageHub(self.logger)
@@ -83,13 +80,23 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # Store last usage excluding deleted flows for calculating deltas
         self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
+        self._unmatched_bytes = 0  # Store bytes matched by default rule if any
+        self._clean_restart = kwargs['config']['clean_restart']
+        self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
 
-    def _check_relay(func):  # pylint: disable=no-self-argument
-        def wrapped(self, *args, **kwargs):
-            if self._relay_enabled:  # pylint: disable=protected-access
-                func(self, *args, **kwargs)  # pylint: disable=not-callable
+    def delete_all_flows(self, datapath):
+        flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
-        return wrapped
+    def cleanup_state(self):
+        """
+        When we remove/reinsert flows we need to remove old usage maps as new
+        flows will have reset stat counters
+        """
+        self.unhandled_stats_msgs = []
+        self.total_usage = {}
+        self.last_usage_for_delta = {}
+        self.failed_usage = {}
+        self._unmatched_bytes = 0
 
     def initialize_on_connect(self, datapath):
         """
@@ -99,21 +106,31 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        if self._relay_enabled:
-            flows.delete_all_flows_from_table(datapath, self.tbl_num)
-            self._install_default_flows(datapath)
 
-    def _install_default_flows(self, datapath):
+    def _install_default_flows_if_not_installed(self, datapath,
+            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
         """
-        If no flows are matched, simply forward the traffic.
+        Install default flows(if not already installed) to forward the traffic,
+        If no other flows are matched.
+
+        Returns:
+            The list of flows that remain after inserting default flows
         """
         match = MagmaMatch()
-        flows.add_resubmit_next_service_flow(datapath, self.tbl_num, match, [],
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table,
-                                             cookie=self.DEFAULT_FLOW_COOKIE)
+        msg = flows.get_add_resubmit_next_service_flow_msg(
+            datapath, self.tbl_num, match, [],
+            priority=flows.MINIMUM_PRIORITY,
+            resubmit_table=self.next_table,
+            cookie=self.DEFAULT_FLOW_COOKIE)
 
-    @_check_relay
+        msg, remaining_flows = \
+            self._msg_hub.filter_msgs_if_not_in_flow_list([msg], existing_flows)
+        if msg:
+            chan = self._msg_hub.send(msg, datapath)
+            self._wait_for_responses(chan, 1)
+
+        return remaining_flows
+
     def cleanup_on_disconnect(self, datapath):
         """
         Cleanup flows on datapath disconnect event.
@@ -121,7 +138,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        if self._clean_restart:
+            self.delete_all_flows(datapath)
 
     def _install_flow_for_rule(self, imsi, ip_addr, rule):
         """
@@ -134,8 +152,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         # Do not install anything if relay is disabled
-        if not self._relay_enabled:
-            return RuleModResult.SUCCESS
 
         def fail(err):
             self.logger.error(
@@ -143,8 +159,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        msgs = self._get_rule_match_flow_msgs(imsi, rule_num, rule.id)
+        msgs = self._get_rule_match_flow_msgs(imsi, rule)
 
         chan = self._msg_hub.send(msgs, self._datapath)
         for _ in range(len(msgs)):
@@ -158,20 +173,20 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         return RuleModResult.SUCCESS
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
-    @_check_relay
     def _handle_barrier(self, ev):
         self._msg_hub.handle_barrier(ev)
 
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
-    @_check_relay
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
-    def _get_rule_match_flow_msgs(self, imsi, rule_num, rule_id):
+    # pylint: disable=protected-access
+    def _get_rule_match_flow_msgs(self, imsi, rule):
         """
         Returns flow add messages used for rule matching.
         """
-        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        version = self._session_rule_version_mapper.get_version(imsi, rule.id)
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
@@ -180,7 +195,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         outbound_rule_match = _generate_rule_match(imsi, rule_num, version,
                                                    Direction.OUT)
 
-        return [
+        inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+        outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+        msgs = [
             flows.get_add_resubmit_next_service_flow_msg(
                 self._datapath,
                 self.tbl_num,
@@ -199,14 +216,39 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 resubmit_table=self.next_table),
         ]
 
+        if rule.app_name:
+            inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+            msgs.extend([
+                flows.get_add_resubmit_next_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    inbound_rule_match,
+                    [],
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self.next_table),
+                flows.get_add_resubmit_next_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    outbound_rule_match,
+                    [],
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self.next_table),
+            ])
+        return msgs
+
+    def _get_default_flow_msg_for_subscriber(self, _):
+        return None
+
+    def _install_redirect_flow(self, imsi, ip_addr, rule):
+        pass
+
     def _install_default_flow_for_subscriber(self, imsi):
         pass
 
     def get_policy_usage(self, fut):
-        if not self._relay_enabled:
-            fut.set_exception(RelayDisabledException())
-            return
-
         record_table = RuleRecordTable(
             records=self.total_usage.values(),
             epoch=global_epoch)
@@ -219,7 +261,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         while True:
             for _, datapath in self.dpset.get_all():
-                self._poll_stats(datapath)
+                if self.init_finished:
+                    self._poll_stats(datapath)
+                else:
+                    # Still send an empty report -> needed for pipelined setup
+                    self._report_usage({})
             hub.sleep(poll_interval)
 
     def _poll_stats(self, datapath):
@@ -239,12 +285,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             self.logger.warning("Couldn't poll datapath stats: %s", e)
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
-    @_check_relay
     def _flow_stats_reply_handler(self, ev):
         """
         Schedule the flow stats handling in the main event loop, so as to
         unblock the ryu event loop
         """
+        if not self.init_finished:
+            self.logger.debug('Setup not finished, skipping stats reply')
+            return
+
         self.unhandled_stats_msgs.append(ev.msg.body)
         if ev.msg.flags == OFPMPF_REPLY_MORE:
             # Wait for more multi-part responses thats received for the
@@ -321,10 +370,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if rule_id == "":
             default_flow_matched = \
                 flow_stat.cookie == self.DEFAULT_FLOW_COOKIE and \
-                flow_stat.byte_count != 0
+                flow_stat.byte_count != 0 and \
+                self._unmatched_bytes != flow_stat.byte_count
             if default_flow_matched:
                 self.logger.error('%s bytes total not reported.',
                                   flow_stat.byte_count)
+                self._unmatched_bytes = flow_stat.byte_count
+            return current_usage
+        # If this is a pass through app name flow ignore stats
+        if flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
 
@@ -428,6 +482,7 @@ def _generate_rule_match(imsi, rule_num, version, direction):
     """
     return MagmaMatch(imsi=encode_imsi(imsi), direction=direction,
                       reg2=rule_num, rule_version=version)
+
 
 def _delta_usage_maps(current_usage, last_usage):
     """

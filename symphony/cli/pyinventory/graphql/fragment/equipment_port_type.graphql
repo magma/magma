@@ -1,0 +1,10 @@
+fragment EquipmentPortTypeFragment on EquipmentPortType {
+  id
+  name
+  propertyTypes {
+    ...PropertyTypeFragment
+  }
+  linkPropertyTypes {
+    ...PropertyTypeFragment
+  }
+}

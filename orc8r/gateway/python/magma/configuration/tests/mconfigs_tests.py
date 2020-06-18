@@ -17,8 +17,8 @@ from orc8r.protos.mconfig import mconfigs_pb2
 
 class MconfigsTest(unittest.TestCase):
 
-    @mock.patch('magma.configuration.service_configs.get_service_config_value')
-    def test_filter_configs_by_key(self, get_service_config_value_mock):
+    @mock.patch('magma.configuration.service_configs.load_service_config')
+    def test_filter_configs_by_key(self, load_service_config_mock):
         # All services present, but 1 type not
         configs_by_key = {
             'magmad': {
@@ -35,7 +35,10 @@ class MconfigsTest(unittest.TestCase):
             },
         }
 
-        get_service_config_value_mock.return_value = ['mme', 'foo']
+        # Directoryd not present
+        load_service_config_mock.return_value = {
+            'magma_services': ['mme', 'foo'],
+        }
         actual = mconfigs.filter_configs_by_key(configs_by_key)
         expected = {
             'magmad': configs_by_key['magmad'],
@@ -43,10 +46,24 @@ class MconfigsTest(unittest.TestCase):
         }
         self.assertEqual(expected, actual)
 
-        # Directoryd service not present
-        get_service_config_value_mock.return_value = []
+        # No services present
+        load_service_config_mock.return_value = {
+            'magma_services': [],
+        }
         actual = mconfigs.filter_configs_by_key(configs_by_key)
         expected = {'magmad': configs_by_key['magmad']}
+        self.assertEqual(expected, actual)
+
+        # Directoryd service present as a dynamic service
+        load_service_config_mock.return_value = {
+            'magma_services': [],
+            'registered_dynamic_services': ['directoryd'],
+        }
+        actual = mconfigs.filter_configs_by_key(configs_by_key)
+        expected = {
+            'magmad': configs_by_key['magmad'],
+            'directoryd': configs_by_key['directoryd'],
+        }
         self.assertEqual(expected, actual)
 
     def test_unpack_mconfig_any(self):

@@ -12,15 +12,20 @@ from enum import IntEnum
 # Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
+# TODO reg2 is used for enf stats rule tracking, move its declaration here
+DPI_REG = 'reg10'
 TEST_PACKET_REG = 'reg5'
+PASSTHROUGH_REG = 'reg6'
+VLAN_TAG_REG = 'reg7'
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):
-SCRATCH_REGS = ['reg0']
+SCRATCH_REGS = ['reg0', 'reg3']
 RULE_VERSION_REG = 'reg4'
 
 # Register values
 REG_ZERO_VAL = 0x0
+PASSTHROUGH_REG_VAL = 0x1
 
 
 class Direction(IntEnum):
@@ -29,12 +34,18 @@ class Direction(IntEnum):
     """
     OUT = 0x01
     IN = 0x10
-    PASSTHROUGH = 0x2
 
 
 class TestPacket(IntEnum):
     ON = 0x1
     OFF = 0x0
+
+
+def load_passthrough(parser, passthrough=PASSTHROUGH_REG_VAL):
+    """
+    Wrapper for loading the direction register
+    """
+    return parser.NXActionRegLoad2(dst=PASSTHROUGH_REG, value=passthrough)
 
 
 def load_direction(parser, direction: Direction):

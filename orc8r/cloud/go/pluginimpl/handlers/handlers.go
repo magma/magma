@@ -15,7 +15,8 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/service/config"
+	eventdh "magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"
 	"github.com/olivere/elastic/v7"
@@ -57,7 +58,8 @@ const (
 	ManageTierGatewaysPath = ManageTiersPath + obsidian.UrlSep + "gateways"
 	ManageTierGatewayPath  = ManageTierGatewaysPath + obsidian.UrlSep + ":gateway_id"
 
-	LogQueryPath = ManageNetworkPath + obsidian.UrlSep + "logs"
+	LogSearchQueryPath = ManageNetworkPath + obsidian.UrlSep + "logs" + obsidian.UrlSep + "search"
+	LogCountQueryPath  = ManageNetworkPath + obsidian.UrlSep + "logs" + obsidian.UrlSep + "count"
 )
 
 // GetObsidianHandlers returns all plugin-level obsidian handlers for orc8r
@@ -120,16 +122,22 @@ func GetObsidianHandlers() []obsidian.Handler {
 	// Elastic
 	elasticConfig, err := config.GetServiceConfig(orc8r.ModuleName, "elastic")
 	if err != nil {
-		ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+		ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 	} else {
-		elasticHost := elasticConfig.GetRequiredStringParam("elasticHost")
-		elasticPort := elasticConfig.GetRequiredIntParam("elasticPort")
+		elasticHost := elasticConfig.MustGetString("elasticHost")
+		elasticPort := elasticConfig.MustGetInt("elasticPort")
 
 		client, err := elastic.NewSimpleClient(elastic.SetURL(fmt.Sprintf("http://%s:%d", elasticHost, elasticPort)))
 		if err != nil {
-			ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 		} else {
-			ret = append(ret, obsidian.Handler{Path: LogQueryPath, Methods: obsidian.GET, HandlerFunc: GetQueryLogHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: GetQueryLogHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: GetCountLogHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: eventdh.GetEventsHandler(client)})
 		}
 	}
 

@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -24,4 +24,11 @@ func (s *swxProxy) sendDiameterMsg(msg *diam.Message, retryCount uint) error {
 		err = status.Errorf(codes.DataLoss, err.Error())
 	}
 	return err
+}
+
+func (s *swxProxy) IsHlrClient(imsi string) bool {
+	if s != nil {
+		return s.config.IsHlrClient(imsi)
+	}
+	return false
 }

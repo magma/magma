@@ -196,8 +196,7 @@ ebi_t esm_ebr_context_create(
       if(sgw_fteid) {
         memcpy(&bearer_context->s_gw_fteid_s1u, sgw_fteid, sizeof(fteid_t));
       }
-      bearer_context->bearer_state |=
-        BEARER_STATE_SGW_CREATED | BEARER_STATE_MME_CREATED;
+
       if (is_default) {
         /*
          * Set the PDN connection activation indicator
@@ -361,9 +360,18 @@ ebi_t esm_ebr_context_release(
     /*
      * Delete the TFT
      */
-    // TODO Look at "free_traffic_flow_template"
-    //free_traffic_flow_template(&pdn->bearer[*bid]->tft);
+    if (ue_mm_context->bearer_contexts[*bid]->esm_ebr_context.tft) {
+      free_traffic_flow_template(
+          &ue_mm_context->bearer_contexts[*bid]->esm_ebr_context.tft);
+    }
 
+    /*
+     * Delete PCO
+     */
+    if (ue_mm_context->bearer_contexts[*bid]->esm_ebr_context.pco) {
+      free_protocol_configuration_options(
+          &ue_mm_context->bearer_contexts[*bid]->esm_ebr_context.pco);
+    }
     /*
      * Release the specified EPS bearer data
      */
@@ -392,6 +400,21 @@ ebi_t esm_ebr_context_release(
       for (i = 1; pdn->n_bearers > 0; i++) {
         int idx = ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i];
         if ((idx >= 0) && (idx < BEARERS_PER_UE)) {
+          /* Delete only dedicated bearer. Default bearer will be deleted
+           * outside this function
+           */
+          /* If ue_mm_context->bearer_contexts[idx] is NULL, move to
+           * the next index
+           */
+          if (!ue_mm_context->bearer_contexts[idx]) {
+            continue;
+          }
+
+          if (
+            ue_mm_context->bearer_contexts[idx]->ebi ==
+            ue_mm_context->pdn_contexts[*pid]->default_ebi) {
+            continue;
+          }
           OAILOG_WARNING(
             LOG_NAS_ESM,
             "ESM-PROC  - Release EPS bearer context "
@@ -401,9 +424,18 @@ ebi_t esm_ebr_context_release(
           /*
            * Delete the TFT
            */
-          // TODO Look at "free_traffic_flow_template"
-          //free_traffic_flow_template(&pdn->bearer[i]->tft);
+          if (ue_mm_context->bearer_contexts[idx]->esm_ebr_context.tft) {
+            free_traffic_flow_template(
+                &ue_mm_context->bearer_contexts[idx]->esm_ebr_context.tft);
+          }
 
+          /*
+           * Delete PCO
+           */
+          if (ue_mm_context->bearer_contexts[idx]->esm_ebr_context.pco) {
+            free_protocol_configuration_options(
+                &ue_mm_context->bearer_contexts[idx]->esm_ebr_context.pco);
+          }
           /*
            * Set the EPS bearer context state to INACTIVE
            */

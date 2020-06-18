@@ -1,0 +1,9 @@
+{
+  "verbose": true,
+  "watch": [
+    "../../fbcnms-packages",
+    "src/",
+    "scripts/"
+  ],
+  "exec": "node -r '@fbcnms/babel-register'"
+}

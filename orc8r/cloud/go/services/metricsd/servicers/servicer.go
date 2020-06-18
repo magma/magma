@@ -6,24 +6,24 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
 */
 
-// MetricsControllerServer implements a handler to the gRPC server run by the
-// Metrics Controller. It can register instances of the Exporter interface for
-// writing to storage
 package servicers
 
 import (
 	"time"
 
-	"magma/orc8r/cloud/go/metrics"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/lib/go/metrics"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
-	prometheusProto "github.com/prometheus/client_model/go"
+	prom_proto "github.com/prometheus/client_model/go"
 	"golang.org/x/net/context"
 )
 
+// MetricsControllerServer implements a handler to the gRPC server run by the
+// Metrics Controller. It can register instances of the Exporter interface for
+// writing to storage
 type MetricsControllerServer struct {
 	exporters []exporters.Exporter
 }
@@ -69,10 +69,10 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	return new(protos.Void), nil
 }
 
-// Pulls metrics off the given input channel and sends them to all exporters
-// after some preprocessing. Should be run in a goroutine as this blocks
-// forever.
-func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prometheusProto.MetricFamily, hostName string) error {
+// ConsumeCloudMetrics pulls metrics off the given input channel and sends
+// them to all exporters after some preprocessing.
+// Returns only when inputChan closed, which should never happen.
+func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
 	for family := range inputChan {
 		metricsToSubmit := preprocessCloudMetrics(family, hostName)
 		for _, e := range srv.exporters {
@@ -82,10 +82,10 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *promethe
 			}
 		}
 	}
-	return nil
+	glog.Error("Consume cloud metrics channel unexpectedly closed")
 }
 
-func preprocessCloudMetrics(family *prometheusProto.MetricFamily, hostName string) exporters.MetricAndContext {
+func preprocessCloudMetrics(family *prom_proto.MetricFamily, hostName string) exporters.MetricAndContext {
 	ctx := exporters.MetricsContext{
 		MetricName: protos.GetDecodedName(family),
 		AdditionalContext: &exporters.CloudMetricContext{
@@ -94,7 +94,7 @@ func preprocessCloudMetrics(family *prometheusProto.MetricFamily, hostName strin
 	}
 	for _, metric := range family.Metric {
 		metric.Label = protos.GetDecodedLabel(metric)
-		addRequiredLabelToMetric(metric, metrics.CloudHostLabelName, hostName)
+		addLabel(metric, metrics.CloudHostLabelName, hostName)
 	}
 	return exporters.MetricAndContext{Family: family, Context: ctx}
 }
@@ -119,8 +119,8 @@ func metricsContainerToMetricAndContexts(
 		}
 		for _, metric := range fam.Metric {
 			metric.Label = protos.GetDecodedLabel(metric)
-			addRequiredLabelToMetric(metric, metrics.NetworkLabelName, networkID)
-			addRequiredLabelToMetric(metric, metrics.GatewayLabelName, gatewayID)
+			addLabel(metric, metrics.NetworkLabelName, networkID)
+			addLabel(metric, metrics.GatewayLabelName, gatewayID)
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}
@@ -142,31 +142,33 @@ func pushedMetricsToMetricsAndContext(in *protos.PushedMetricsContainer) []expor
 			ts = time.Now().Unix() * 1000
 		}
 
-		prometheusLabels := make([]*prometheusProto.LabelPair, 0, len(metric.Labels))
+		prometheusLabels := make([]*prom_proto.LabelPair, 0, len(metric.Labels))
 		for _, label := range metric.Labels {
-			prometheusLabels = append(prometheusLabels, &prometheusProto.LabelPair{Name: &label.Name, Value: &label.Value})
+			prometheusLabels = append(prometheusLabels, &prom_proto.LabelPair{Name: &label.Name, Value: &label.Value})
 		}
-		promoMetric := &prometheusProto.Metric{
+		promoMetric := &prom_proto.Metric{
 			Label: prometheusLabels,
-			Gauge: &prometheusProto.Gauge{
+			Gauge: &prom_proto.Gauge{
 				Value: &metric.Value,
 			},
 			TimestampMs: &ts,
 		}
-		addRequiredLabelToMetric(promoMetric, metrics.NetworkLabelName, in.NetworkId)
+		addLabel(promoMetric, metrics.NetworkLabelName, in.NetworkId)
 
-		gaugeType := prometheusProto.MetricType_GAUGE
-		fam := &prometheusProto.MetricFamily{
+		gaugeType := prom_proto.MetricType_GAUGE
+		fam := &prom_proto.MetricFamily{
 			Name:   &metric.MetricName,
 			Type:   &gaugeType,
-			Metric: []*prometheusProto.Metric{promoMetric},
+			Metric: []*prom_proto.Metric{promoMetric},
 		}
 		ret = append(ret, exporters.MetricAndContext{Family: fam, Context: ctx})
 	}
 	return ret
 }
 
-func addRequiredLabelToMetric(metric *prometheusProto.Metric, labelName, labelValue string) {
+// addLabel ensures that the desired name-value pairing is present in the
+// metric's labels.
+func addLabel(metric *prom_proto.Metric, labelName, labelValue string) {
 	labelAdded := false
 	for _, label := range metric.Label {
 		if label.GetName() == labelName {
@@ -175,10 +177,10 @@ func addRequiredLabelToMetric(metric *prometheusProto.Metric, labelName, labelVa
 		}
 	}
 	if !labelAdded {
-		metric.Label = append(metric.Label, &prometheusProto.LabelPair{Name: makeStringPointer(labelName), Value: &labelValue})
+		metric.Label = append(metric.Label, &prom_proto.LabelPair{Name: strPtr(labelName), Value: &labelValue})
 	}
 }
 
-func makeStringPointer(s string) *string {
+func strPtr(s string) *string {
 	return &s
 }

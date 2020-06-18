@@ -159,6 +159,48 @@ func (cmds *Map) Get(cmdName string) *Command {
 	return nil
 }
 
+// GetIdx finds & returns a command with cmdName and it's index in the command line. Returns (nil, idx) if not found
+func (cmds *Map) GetIdx(cmdName string) (cmd *Command, idx int) {
+	cmd = cmds.Get(cmdName)
+	for i, arg := range os.Args {
+		if arg == cmdName {
+			idx = i
+			return
+		}
+	}
+	return
+}
+
+// GetCommand returns first command line command (non-flag argument) if any & its list of arguments
+func (cmds *Map) GetCommand() (cmd *Command, cmdArgs []string) {
+	var idx int
+	cmd, idx = cmds.GetIdx(flag.Arg(0))
+	if cmd == nil {
+		return
+	}
+	return cmd, os.Args[idx+1:]
+}
+
+// HandleCommand parses command line & handles first found command with its arguments
+// it returns command exit code with nil error if successful or error if command is not registered/invalid
+// HandleCommand also prints help/usage into stdout if command is missing or is help/h
+func (cmds *Map) HandleCommand() (exitCode int, err error) {
+	cmd, args := cmds.GetCommand()
+	if cmd == nil {
+		cmdName := strings.ToLower(flag.Arg(0))
+		if cmdName != "" && cmdName != "help" && cmdName != "h" {
+			return 1, fmt.Errorf("invalid command: %s in %v", cmdName, flag.Args())
+		}
+		flag.Usage()
+		return 1, nil
+	}
+	err = cmd.Flags().Parse(args)
+	if err != nil {
+		return 2, err
+	}
+	return cmd.Handle(args), nil
+}
+
 func normalizeCmdStr(cs string) string {
 	return strings.ToLower(strings.TrimSpace(cs))
 }

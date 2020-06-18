@@ -1,0 +1,26 @@
+---
+#
+## Copyright (c) 2016-present, Facebook, Inc.
+## All rights reserved.
+##
+## This source code is licensed under the BSD-style license found in the
+## LICENSE file in the root directory of this source tree. An additional grant
+## of patent rights can be found in the PATENTS file in the same directory.
+
+log_level: INFO
+
+#state_protos:
+#  - proto_file:  - file to load proto from
+#    proto_msg:   - msg to load from proto file
+#    redis_key:   - redis key to store state with (i.e. state type)
+#    state_scope: - state scope used to determine deviceID.
+#                   Either 'network' or 'gateway' (defaults to 'gateway')
+state_protos:
+
+#json_state:
+#  - redis_key:   - redis key to store state with (i.e. state type)
+#    state_scope: - state scope used to determine deviceID.
+#                   Either 'network' or 'gateway' (defaults to 'gateway')
+json_state:
+  - redis_key: "directory_record"
+    state_scope: "network"

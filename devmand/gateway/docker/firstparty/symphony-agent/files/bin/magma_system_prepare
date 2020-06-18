@@ -3,7 +3,7 @@
 /bin/rm -f /etc/magma/env
 for e in $(tr "\000" "\n" < /proc/1/environ); do
   case "${e%%=*}" in
-    SNOWFLAKE|CLOUD_ADDRESS|BOOTSTRAP_CLOUD_ADDRESS|DEVICE_CONFIG_FILE)
+    SNOWFLAKE|CLOUD_ADDRESS|BOOTSTRAP_CLOUD_ADDRESS|DEVICE_CONFIG_FILE|HOST_PUBLIC_ADDRESS|LOGS_CLOUD_ADDRESS|LOGS_CLOUD_PORT)
       echo "$e" >> /etc/magma/env
       ;;
     *)
@@ -26,8 +26,21 @@ if [ -z "${BOOTSTRAP_CLOUD_ADDRESS}" ]; then
   BOOTSTRAP_CLOUD_ADDRESS="bootstrapper-controller.magma.etagecom.io"
 fi
 
-# TODO once the cloud supports logs set this to that.
-LOGS_CLOUD_ADDRESS=logs
+if [ -z "${LOGS_CLOUD_ADDRESS}" ]; then
+  LOGS_CLOUD_ADDRESS=fluentd-staging.magma.etagecom.io
+fi
+
+if [ -z "${LOGS_CLOUD_PORT}" ]; then
+  LOGS_CLOUD_PORT=24224
+fi
+
+if [ -z "${DEVICE_CONFIG_FILE}" ]; then
+  DEVICE_CONFIG_FILE="/var/opt/magma/configs/gateway.mconfig"
+fi
+
+if [ -z "${HOST_PUBLIC_ADDRESS}" ]; then
+  echo "WARNING! Host Public Address not set!"
+fi
 
 echo ${SNOWFLAKE} > /etc/snowflake
 sed -i -E -e "s!%%bootstrap_cloud_address%%!${BOOTSTRAP_CLOUD_ADDRESS}!g" \
@@ -36,6 +49,7 @@ sed -i -E -e "s!%%bootstrap_cloud_address%%!${BOOTSTRAP_CLOUD_ADDRESS}!g" \
 
 sed -i -E -e "s!%%snowflake%%!$(cat /etc/snowflake)!g" \
     -e "s!%%logs_cloud_address%%!${LOGS_CLOUD_ADDRESS}!g" \
+    -e "s!%%logs_cloud_port%%!${LOGS_CLOUD_PORT}!g" \
     /etc/magma/td-agent-bit.conf
 
 echo "System prepared with ${SNOWFLAKE}/${CLOUD_ADDRESS}/" \

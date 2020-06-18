@@ -7,7 +7,7 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 */}}
 
-{{- if .Values.nginx.manifests.service }}
+{{- if .Values.nginx.create }}
 {{- $envAll := . }}
 {{ $serviceType := .Values.nginx.service.type }}
 ---
@@ -17,6 +17,10 @@ metadata:
   name: nginx-proxy
   labels:
 {{ tuple $envAll "nms" "nginx" | include "nms.labels" | indent 4 }}
+  {{- if .Values.nginx.service.annotations }}
+  annotations:
+{{ with .Values.nginx.service.annotations }}{{ toYaml . | indent 4 }}{{ end }}
+  {{- end }}
 spec:
   selector:
 {{ tuple $envAll "nms" "nginx" | include "nms.selector-labels" | indent 4 }}

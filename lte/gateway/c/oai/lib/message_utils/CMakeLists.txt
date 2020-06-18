@@ -1,7 +1,6 @@
 add_library(LIB_MESSAGE_UTILS
     bytes_to_ie.c
     ie_to_bytes.c
-    s6a_message_utils.c
     service303_message_utils.c
 )
 target_include_directories(LIB_MESSAGE_UTILS

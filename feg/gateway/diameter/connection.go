@@ -14,11 +14,11 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/sm"
-	"github.com/fiorix/go-diameter/diam/sm/smpeer"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/sm"
+	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
 	"github.com/ishidawataru/sctp"
 )
@@ -158,26 +158,29 @@ func (c *Connection) getDiamConnection() (diam.Conn, *smpeer.Metadata, error) {
 // If the passed diam connection is not the same, this probably means another go routine
 // already created a new connection - just try to close it and return.
 func (c *Connection) destroyConnection(conn diam.Conn) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	if conn == nil {
 		return
 	}
-	conn.Close()
+	c.mutex.Lock()
 	if conn == c.conn {
 		c.conn = nil
 		c.metadata = nil
 	}
+	c.mutex.Unlock()
+	conn.Close()
 }
 
 // cleanupConnection is similar to destroyConnection, but it closes & cleans up connection unconditionally
 func (c *Connection) cleanupConnection() {
 	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	if c.conn != nil {
-		c.conn.Close()
+	conn := c.conn
+	if conn != nil {
 		c.conn = nil
 		c.metadata = nil
+		c.mutex.Unlock()
+		conn.Close()
+	} else {
+		c.mutex.Unlock()
 	}
 }
 
@@ -215,8 +218,10 @@ func addDestinationToMessage(
 	if err != nil {
 		message.NewAVP(avp.DestinationHost, avp.Mbit, 0, destHost)
 	} else if hostAVP != nil {
-		// apply new host
-		hostAVP.Data = destHost
+		if server.OverwriteDestHost {
+			// apply new host
+			hostAVP.Data = destHost
+		}
 	}
 	return message, nil
 }

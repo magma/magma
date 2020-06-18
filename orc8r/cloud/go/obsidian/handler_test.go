@@ -11,20 +11,15 @@ package obsidian
 import (
 	"errors"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
-
-	"magma/orc8r/cloud/go/orc8r"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
 
 type testCase struct {
-	expectHandlerFuncCalled         bool
-	expectMigratedHandlerFuncCalled bool
-	multiplexHandlers               bool
+	expectHandlerFuncCalled bool
 
 	handlerFuncError         string
 	migratedHandlerFuncError string
@@ -33,13 +28,8 @@ type testCase struct {
 }
 
 func TestRegister(t *testing.T) {
-	oldRegistry := registries
-
-	// Unmigrated, env var not set
 	runCase(t, testCase{
-		expectHandlerFuncCalled:         true,
-		expectMigratedHandlerFuncCalled: false,
-		multiplexHandlers:               true,
+		expectHandlerFuncCalled: true,
 	})
 	runCase(t, testCase{expectHandlerFuncCalled: true})
 	runCase(t, testCase{
@@ -47,33 +37,6 @@ func TestRegister(t *testing.T) {
 		handlerFuncError:        "foo",
 		expectedError:           "foo",
 	})
-
-	err := os.Setenv(orc8r.UseConfiguratorEnv, "1")
-	assert.NoError(t, err)
-	runCase(t, testCase{expectMigratedHandlerFuncCalled: true})
-	runCase(t, testCase{
-		expectMigratedHandlerFuncCalled: true,
-		migratedHandlerFuncError:        "foo",
-		expectedError:                   "foo",
-	})
-
-	runCase(t, testCase{
-		expectMigratedHandlerFuncCalled: true,
-		expectHandlerFuncCalled:         true,
-		multiplexHandlers:               true,
-		handlerFuncError:                "foo",
-		expectedError:                   "foo",
-	})
-
-	runCase(t, testCase{
-		expectHandlerFuncCalled:         false,
-		expectMigratedHandlerFuncCalled: true,
-		multiplexHandlers:               true,
-		migratedHandlerFuncError:        "foo",
-		expectedError:                   "foo",
-	})
-
-	registries = oldRegistry
 }
 
 func runCase(t *testing.T, tc testCase) {
@@ -83,7 +46,7 @@ func runCase(t *testing.T, tc testCase) {
 		PUT:    {},
 		DELETE: {},
 	}
-	handlerFuncCalled, migratedHandlerFuncCalled := false, false
+	handlerFuncCalled := false
 	mockHandler := Handler{
 		Methods: GET,
 		Path:    "/foo/",
@@ -94,14 +57,6 @@ func runCase(t *testing.T, tc testCase) {
 			}
 			return nil
 		},
-		MigratedHandlerFunc: func(c echo.Context) error {
-			migratedHandlerFuncCalled = true
-			if tc.migratedHandlerFuncError != "" {
-				return errors.New(tc.migratedHandlerFuncError)
-			}
-			return nil
-		},
-		MultiplexAfterMigration: tc.multiplexHandlers,
 	}
 	err := Register(mockHandler)
 	assert.NoError(t, err)
@@ -119,5 +74,4 @@ func runCase(t *testing.T, tc testCase) {
 		assert.NoError(t, err)
 	}
 	assert.Equal(t, tc.expectHandlerFuncCalled, handlerFuncCalled)
-	assert.Equal(t, tc.expectMigratedHandlerFuncCalled, migratedHandlerFuncCalled)
 }

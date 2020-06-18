@@ -12,16 +12,32 @@ import ipaddress
 import logging
 import os
 import threading
+import time
 from queue import Queue
+import grpc
 
 import s1ap_types
-
-from lte.protos.spgw_service_pb2 import CreateBearerRequest, \
-    DeleteBearerRequest
-from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
-from lte.protos.policydb_pb2 import PolicyRule, FlowQos, QosArp
-from magma.subscriberdb.sid import SIDUtils
 from integ_tests.gateway.rpc import get_rpc_channel
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    FlowQos,
+    PolicyRule,
+    QosArp,
+)
+from lte.protos.session_manager_pb2 import (
+    DynamicRuleInstall,
+    PolicyReAuthRequest,
+    QoSInformation,
+)
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
+from magma.subscriberdb.sid import SIDUtils
+from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+
+DEFAULT_GRPC_TIMEOUT = 10
 
 
 class S1ApUtil(object):
@@ -31,6 +47,7 @@ class S1ApUtil(object):
     through config files, that this class doesn't override. Examples include
     the various interface timeout params.
     """
+
     # Extracted from TestCntlrApp/src/ueApp/ue_esm.h
     CM_ESM_PDN_IPV4 = 0b01
     CM_ESM_PDN_IPV6 = 0b10
@@ -49,8 +66,7 @@ class S1ApUtil(object):
             self.msg_len = msg_len
 
         def cast(self, msg_class):
-            return ctypes.cast(self.msg_p,
-                               ctypes.POINTER(msg_class)).contents
+            return ctypes.cast(self.msg_p, ctypes.POINTER(msg_class)).contents
 
     @staticmethod
     def s1ap_callback(msg_type, msg_p, msg_len):
@@ -63,12 +79,13 @@ class S1ApUtil(object):
         """
         Initialize the s1aplibrary and its callbacks.
         """
-        lib_path = os.environ['S1AP_ROOT']
-        lib = os.path.join(lib_path, 'bin', S1ApUtil.lib_name)
+        lib_path = os.environ["S1AP_TESTER_ROOT"]
+        lib = os.path.join(lib_path, "bin", S1ApUtil.lib_name)
         os.chdir(lib_path)
         self._test_lib = ctypes.cdll.LoadLibrary(lib)
-        self._callback_type = ctypes.CFUNCTYPE(None, ctypes.c_short,
-                                               ctypes.c_void_p, ctypes.c_short)
+        self._callback_type = ctypes.CFUNCTYPE(
+            None, ctypes.c_short, ctypes.c_void_p, ctypes.c_short
+        )
         # Maintain a reference to the function object so GC doesn't release it.
         self._callback_fn = self._callback_type(S1ApUtil.s1ap_callback)
         self._test_lib.initTestFrameWork(self._callback_fn)
@@ -131,10 +148,53 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def attach(self, ue_id, attach_type, resp_type, resp_msg_type,
-               sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-               id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-               eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH):
+    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type):
+        """
+        Populates the PCO values.
+        Args:
+            protCfgOpts_pr: PCO structure
+            pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
+        Returns:
+            None
+        """
+        # PCO parameters
+        # Presence mask
+        protCfgOpts_pr.pres = 1
+        # Length
+        protCfgOpts_pr.len = 4
+        # Configuration protocol
+        protCfgOpts_pr.cfgProt = 0
+        # Extension bit for the additional parameters
+        protCfgOpts_pr.ext = 1
+        # Number of protocol IDs
+        protCfgOpts_pr.numProtId = 0
+
+        # Fill Number of container IDs and Container ID
+        if pcscf_addr_type == "ipv4":
+            protCfgOpts_pr.numContId = 1
+            protCfgOpts_pr.c[0].cid = 0x000C
+
+        elif pcscf_addr_type == "ipv6":
+            protCfgOpts_pr.numContId = 1
+            protCfgOpts_pr.c[0].cid = 0x0001
+
+        elif pcscf_addr_type == "ipv4v6":
+            protCfgOpts_pr.numContId = 2
+            protCfgOpts_pr.c[0].cid = 0x000C
+            protCfgOpts_pr.c[1].cid = 0x0001
+
+    def attach(
+        self,
+        ue_id,
+        attach_type,
+        resp_type,
+        resp_msg_type,
+        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+        pdn_type=1,
+        pcscf_addr_type=None,
+    ):
         """
         Given a UE issue the attach request of specified type
 
@@ -150,14 +210,22 @@ class S1ApUtil(object):
                 defaults to s1ap_types.TFW_MID_TYPE_IMSI.
             eps_type: Optional param allows for variation in the EPS attach
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
+            pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
+            pcscf_addr_type:IPv4/IPv6/IPv4v6
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
+        attach_req.pdnType_pr.pres = True
+        attach_req.pdnType_pr.pdn_type = pdn_type
 
-        assert(self.issue_cmd(attach_type, attach_req) == 0)
+        # Populate PCO only if pcscf_addr_type is set
+        if pcscf_addr_type:
+            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
+        assert self.issue_cmd(attach_type, attach_req) == 0
+
         response = self.get_response()
 
         # The MME actually sends INT_CTX_SETUP_IND and UE_ATTACH_ACCEPT_IND in
@@ -168,14 +236,14 @@ class S1ApUtil(object):
             response = self.get_response()
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
-            assert(context_setup.msg_type ==
-                   s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value)
+            assert context_setup.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
 
         logging.debug(
-            's1ap response expected, received: %d, %d',
+            "s1ap response expected, received: %d, %d",
             resp_type.value,
-            response.msg_type)
-        assert(resp_type.value == response.msg_type)
+            response.msg_type,
+        )
+        assert resp_type.value == response.msg_type
 
         msg = response.cast(resp_msg_type)
 
@@ -190,33 +258,32 @@ class S1ApUtil(object):
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
             else:
-                raise ValueError('PDN TYPE %s not supported' % pdn_type)
+                raise ValueError("PDN TYPE %s not supported" % pdn_type)
         return msg
 
     def receive_emm_info(self):
         response = self.get_response()
         logging.debug(
-            's1ap message expected, received: %d, %d',
+            "s1ap message expected, received: %d, %d",
             s1ap_types.tfwCmd.UE_EMM_INFORMATION.value,
-            response.msg_type)
-        assert(response.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value)
+            response.msg_type,
+        )
+        assert response.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value
 
     def detach(self, ue_id, reason_type, wait_for_s1_ctxt_release=True):
         """ Given a UE issue a detach request """
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
-        assert (self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-                == 0)
+        assert self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req) == 0
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
-            assert (s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value ==
-                    response.msg_type)
+            assert s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value == response.msg_type
 
         # Now wait for the context release response
         if wait_for_s1_ctxt_release:
             response = self.get_response()
-            assert(s1ap_types.tfwCmd.UE_CTX_REL_IND.value == response.msg_type)
+            assert s1ap_types.tfwCmd.UE_CTX_REL_IND.value == response.msg_type
 
         with self._lock:
             del self._ue_ip_map[ue_id]
@@ -226,7 +293,8 @@ class SubscriberUtil(object):
     """
     Helper class to manage subscriber data for the tests.
     """
-    SID_PREFIX = 'IMSI00101'
+
+    SID_PREFIX = "IMSI00101"
     IMSI_LEN = 15
 
     def __init__(self, subscriber_client):
@@ -251,7 +319,7 @@ class SubscriberUtil(object):
         idx = str(self._sid_idx)
         # Find the 0 padding we need to add
         padding = self.IMSI_LEN - len(idx) - len(self.SID_PREFIX[4:])
-        sid = self.SID_PREFIX + '0' * padding + idx
+        sid = self.SID_PREFIX + "0" * padding + idx
         self._sid_idx += 1
         print("Using subscriber IMSI %s" % sid)
         return sid
@@ -269,8 +337,8 @@ class SubscriberUtil(object):
         # cast into a uint8.
         for i in range(0, 15):
             ue_cfg.imsi[i] = ctypes.c_ubyte(int(sid[4 + i]))
-            ue_cfg.imei[i] = ctypes.c_ubyte(int('1'))
-        ue_cfg.imei[15] = ctypes.c_ubyte(int('1'))
+            ue_cfg.imei[i] = ctypes.c_ubyte(int("1"))
+        ue_cfg.imei[15] = ctypes.c_ubyte(int("1"))
         ue_cfg.imsiLen = self.IMSI_LEN
         self._ue_cfgs.append(ue_cfg)
         self._ue_id += 1
@@ -287,11 +355,88 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
-    def clean_up(self):
+    def config_apn_data(self, imsi, apn_list):
+        """ Add APN details """
+        self._subscriber_client.config_apn_details(imsi, apn_list)
+
+    def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """
         self._subscriber_client.clean_up()
         # block until changes propagate
         self._subscriber_client.wait_for_changes()
+
+
+class MagmadUtil(object):
+    def __init__(self, magmad_client):
+        """
+        Init magmad util.
+
+        Args:
+            magmad_client: MagmadServiceClient
+        """
+        self._magmad_client = magmad_client
+
+        self._data = {
+            "user": "vagrant",
+            "host": "192.168.60.142",
+            "password": "vagrant",
+            "command": "test",
+        }
+
+        self._command = "sshpass -p {password} ssh " \
+                        "-o UserKnownHostsFile=/dev/null " \
+                        "-o StrictHostKeyChecking=no " \
+                        "{user}@{host} {command}"
+
+    def exec_command(self, command):
+        """
+        Run a command remotly on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        """
+        data = self._data
+        data["command"] = '"' + command + '"'
+        os.system(self._command.format(**data))
+
+    def set_config_stateless(self, enabled):
+        """
+            Sets the use_stateless flag in mme.yml file
+
+            Args:
+                enabled: sets the flag to true if enabled
+
+            """
+        if enabled:
+            self.exec_command(
+                "sed -i 's/use_stateless: false/use_stateless: true/g' "
+                "/etc/magma/mme.yml"
+            )
+        else:
+            self.exec_command(
+                "sed -i 's/use_stateless: true/use_stateless: false/g' "
+                "/etc/magma/mme.yml"
+            )
+
+    def restart_all_services(self):
+        """
+            Restart all magma services on magma_dev VM
+            """
+        self.exec_command("sudo service magma@* stop ; "
+                          "sudo service magma@magmad start")
+        time.sleep(10)
+
+    def restart_services(self, services):
+        """
+        Restart a list of magmad services.
+
+        Args:
+            services: List of (str) services names
+
+        """
+        self._magmad_client.restart_services(services)
 
 
 class MobilityUtil(object):
@@ -343,6 +488,11 @@ class MobilityUtil(object):
         removed_blocks = self._mobility_client.remove_ip_blocks(blocks)
         return removed_blocks
 
+    def cleanup(self):
+        """ Cleanup added IP blocks """
+        blocks = self.list_ip_blocks()
+        self.remove_ip_blocks(blocks)
+
     def wait_for_changes(self):
         self._mobility_client.wait_for_changes()
 
@@ -351,36 +501,127 @@ class SpgwUtil(object):
     """
     Helper class to communicate with spgw for the tests.
     """
+
     def __init__(self):
         """
         Initialize spgw util.
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_bearer(self, imsi, lbi):
+    def create_bearer(self, imsi, lbi, qci_val=1):
         """
         Sends a CreateBearer Request to SPGW service
         """
-        print('Sending CreateBearer request to spgw service')
+        print("Sending CreateBearer request to spgw service")
         req = CreateBearerRequest(
             sid=SIDUtils.to_pb(imsi),
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
                     qos=FlowQos(
-                        qci=1,
+                        qci=qci_val,
                         gbr_ul=10000000,
                         gbr_dl=10000000,
                         max_req_bw_ul=10000000,
                         max_req_bw_dl=10000000,
                         arp=QosArp(
-                            priority_level=1,
-                            pre_capability=1,
-                            pre_vulnerability=0,
-                        )
-                    )
+                            priority_level=1, pre_capability=1, pre_vulnerability=0
+                        ),
+                    ),
+                    flow_list=[
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="0.0.0.0/0",
+                                tcp_dst=5001,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42/24",
+                                tcp_dst=5002,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5003,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5004,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_dst="192.168.129.42",
+                                tcp_dst=5005,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.UPLINK,
+                            ),
+                            action=FlowDescription.DENY,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5001,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="",
+                                tcp_src=5002,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.64/26",
+                                tcp_src=5003,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42/16",
+                                tcp_src=5004,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.PERMIT,
+                        ),
+                        FlowDescription(
+                            match=FlowMatch(
+                                ipv4_src="192.168.129.42",
+                                tcp_src=5005,
+                                ip_proto=FlowMatch.IPPROTO_TCP,
+                                direction=FlowMatch.DOWNLINK,
+                            ),
+                            action=FlowDescription.DENY,
+                        ),
+                    ],
                 )
-            ]
+            ],
         )
         self._stub.CreateBearer(req)
 
@@ -388,10 +629,145 @@ class SpgwUtil(object):
         """
         Sends a DeleteBearer Request to SPGW service
         """
-        print('Sending DeleteBearer request to spgw service')
+        print("Sending DeleteBearer request to spgw service")
         req = DeleteBearerRequest(
-            sid=SIDUtils.to_pb(imsi),
-            link_bearer_id=lbi,
-            eps_bearer_ids=[ebi]
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=[ebi]
         )
         self._stub.DeleteBearer(req)
+
+
+class SessionManagerUtil(object):
+    """
+    Helper class to communicate with session manager for the tests.
+    """
+
+    def __init__(self):
+        """
+        Initialize sessionManager util.
+        """
+        self._session_stub = SessionProxyResponderStub(
+            get_rpc_channel("sessiond")
+        )
+        self._directorydstub = GatewayDirectoryServiceStub(
+            get_rpc_channel("directoryd")
+        )
+
+    def get_flow_match(self, flow_list, flow_match_list):
+        """
+        Populates flow match list
+        """
+        for flow in flow_list:
+            flow_direction = (
+                FlowMatch.UPLINK
+                if flow["direction"] == "UL"
+                else FlowMatch.DOWNLINK
+            )
+            ip_protocol = flow["ip_proto"]
+            if ip_protocol == "TCP":
+                ip_protocol = FlowMatch.IPPROTO_TCP
+                udp_src_port = 0
+                udp_dst_port = 0
+                tcp_src_port = (
+                    int(flow["tcp_src_port"]) if "tcp_src_port" in flow else 0
+                )
+                tcp_dst_port = (
+                    int(flow["tcp_dst_port"]) if "tcp_dst_port" in flow else 0
+                )
+            elif ip_protocol == "UDP":
+                ip_protocol = FlowMatch.IPPROTO_UDP
+                tcp_src_port = 0
+                tcp_dst_port = 0
+                udp_src_port = (
+                    int(flow["udp_src_port"]) if "udp_src_port" in flow else 0
+                )
+                udp_dst_port = (
+                    int(flow["udp_dst_port"]) if "udp_dst_port" in flow else 0
+                )
+            else:
+                udp_src_port = 0
+                udp_dst_port = 0
+                tcp_src_port = 0
+                tcp_dst_port = 0
+
+            ipv4_src_addr = flow.get("ipv4_src", None)
+            ipv4_dst_addr = flow.get("ipv4_dst", None)
+
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ipv4_dst=ipv4_dst_addr,
+                        ipv4_src=ipv4_src_addr,
+                        tcp_src=tcp_src_port,
+                        tcp_dst=tcp_dst_port,
+                        udp_src=udp_src_port,
+                        udp_dst=udp_dst_port,
+                        ip_proto=ip_protocol,
+                        direction=flow_direction,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy RAR message to session manager
+        """
+        print("Sending Policy RAR message to session manager")
+        flow_match_list = []
+        res = None
+        self.get_flow_match(flow_list, flow_match_list)
+
+        policy_qos = FlowQos(
+            qci=qos["qci"],
+            max_req_bw_ul=qos["max_req_bw_ul"],
+            max_req_bw_dl=qos["max_req_bw_dl"],
+            gbr_ul=qos["gbr_ul"],
+            gbr_dl=qos["gbr_dl"],
+            arp=QosArp(
+                priority_level=qos["arp_prio"],
+                pre_capability=qos["pre_cap"],
+                pre_vulnerability=qos["pre_vul"],
+            ),
+        )
+
+        policy_rule = PolicyRule(
+            id=policy_id,
+            priority=qos["priority"],
+            flow_list=flow_match_list,
+            tracking_type=PolicyRule.NO_TRACKING,
+            rating_group=1,
+            monitoring_key=None,
+            qos=policy_qos,
+        )
+
+        qos = QoSInformation(qci=qos["qci"])
+
+        # Get sessionid
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                imsi,
+                err.code(),
+                err.details(),
+            )
+
+        self._session_stub.PolicyReAuth(
+            PolicyReAuthRequest(
+                session_id=res.value,
+                imsi=imsi,
+                rules_to_remove=[],
+                rules_to_install=[],
+                dynamic_rules_to_install=[
+                    DynamicRuleInstall(policy_rule=policy_rule)
+                ],
+                event_triggers=[],
+                revalidation_time=None,
+                usage_monitoring_credits=[],
+                qos_info=qos,
+            )
+        )

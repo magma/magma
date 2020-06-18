@@ -58,6 +58,12 @@ class AsyncServiceTest : public ::testing::Test {
 
   virtual void TearDown()
   {
+    // TODO: things are getting scheduled on the completion queue after
+    //       it is shutdown. Need to make it impossible to do so, but
+    //       until then, this wait is needed to make sure everything that
+    //       is going to be scheduled, is scheduled, before shutdown
+    //       is initiated.
+    std::this_thread::sleep_for(std::chrono::milliseconds(1001));
     magma_service->Stop();
     async_service->stop();
   }
@@ -76,8 +82,8 @@ class AsyncServiceTest : public ::testing::Test {
   {
     grpc::ClientContext end_context;
     LocalEndSessionResponse end_resp;
-    SubscriberID request;
-    request.set_id("IMSI1");
+    LocalEndSessionRequest request;
+    request.mutable_sid()->set_id("IMSI1");
     auto status = stub->EndSession(&end_context, request, &end_resp);
     EXPECT_TRUE(status.ok());
   }

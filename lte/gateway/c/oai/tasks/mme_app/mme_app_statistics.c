@@ -75,8 +75,6 @@ int mme_app_statistics_display(void)
     "======================================= STATISTICS "
     "============================================\n\n");
 
-  mme_stats_write_lock(mme_app_desc_p);
-
   // resetting stats for next display
   mme_app_desc_p->nb_enb_connected_since_last_stat = 0;
   mme_app_desc_p->nb_enb_released_since_last_stat = 0;
@@ -89,8 +87,6 @@ int mme_app_statistics_display(void)
   mme_app_desc_p->nb_ue_attached_since_last_stat = 0;
   mme_app_desc_p->nb_ue_detached_since_last_stat = 0;
 
-  mme_stats_unlock(mme_app_desc_p);
-
   return 0;
 }
 
@@ -100,20 +96,18 @@ int mme_app_statistics_display(void)
 void update_mme_app_stats_connected_enb_add(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   (mme_app_desc_p->nb_enb_connected)++;
   (mme_app_desc_p->nb_enb_connected_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
+  put_mme_nas_state();
   return;
 }
 void update_mme_app_stats_connected_enb_sub(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   if (mme_app_desc_p->nb_enb_connected != 0)
     (mme_app_desc_p->nb_enb_connected)--;
   (mme_app_desc_p->nb_enb_released_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
+  put_mme_nas_state();
   return;
 }
 
@@ -122,19 +116,15 @@ void update_mme_app_stats_connected_enb_sub(void)
 void update_mme_app_stats_connected_ue_add(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   (mme_app_desc_p->nb_ue_connected)++;
   (mme_app_desc_p->nb_ue_connected_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 void update_mme_app_stats_connected_ue_sub(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   if (mme_app_desc_p->nb_ue_connected != 0) (mme_app_desc_p->nb_ue_connected)--;
   (mme_app_desc_p->nb_ue_disconnected_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 
@@ -143,19 +133,15 @@ void update_mme_app_stats_connected_ue_sub(void)
 void update_mme_app_stats_s1u_bearer_add(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   (mme_app_desc_p->nb_s1u_bearers)++;
   (mme_app_desc_p->nb_s1u_bearers_established_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 void update_mme_app_stats_s1u_bearer_sub(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   if (mme_app_desc_p->nb_s1u_bearers != 0) (mme_app_desc_p->nb_s1u_bearers)--;
   (mme_app_desc_p->nb_s1u_bearers_released_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 
@@ -164,20 +150,16 @@ void update_mme_app_stats_s1u_bearer_sub(void)
 void update_mme_app_stats_default_bearer_add(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   (mme_app_desc_p->nb_default_eps_bearers)++;
   (mme_app_desc_p->nb_eps_bearers_established_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 void update_mme_app_stats_default_bearer_sub(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   if (mme_app_desc_p->nb_default_eps_bearers != 0)
     (mme_app_desc_p->nb_default_eps_bearers)--;
   (mme_app_desc_p->nb_eps_bearers_released_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 
@@ -186,19 +168,15 @@ void update_mme_app_stats_default_bearer_sub(void)
 void update_mme_app_stats_attached_ue_add(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   (mme_app_desc_p->nb_ue_attached)++;
   (mme_app_desc_p->nb_ue_attached_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 void update_mme_app_stats_attached_ue_sub(void)
 {
   mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
-  mme_stats_write_lock(mme_app_desc_p);
   if (mme_app_desc_p->nb_ue_attached != 0) (mme_app_desc_p->nb_ue_attached)--;
   (mme_app_desc_p->nb_ue_detached_since_last_stat)++;
-  mme_stats_unlock(mme_app_desc_p);
   return;
 }
 /*****************************************************/

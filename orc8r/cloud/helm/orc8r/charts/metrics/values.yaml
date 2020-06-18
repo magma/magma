@@ -6,15 +6,15 @@ metrics:
   # alertmanager, and configmanager pods
   volumes:
     prometheusData:
-      volumeSpec:
-        hostPath:
-          path: /prometheusData
-          type: DirectoryOrCreate
+      volumeSpec: {}
+        # hostPath:
+        #   path: /prometheusData
+        #   type: DirectoryOrCreate
     prometheusConfig:
-      volumeSpec:
-        hostPath:
-          path: /configs/prometheus
-          type: DirectoryOrCreate
+      volumeSpec: {}
+        # hostPath:
+        #   path: /configs/prometheus
+        #   type: DirectoryOrCreate
 
 prometheus:
   # Enable/Disable chart
@@ -91,7 +91,7 @@ alertmanager:
                   - prometheus
           topologyKey: "kubernetes.io/hostname"
 
-configmanager:
+prometheusConfigurer:
   # Enable/Disable chart
   create: true
 
@@ -105,17 +105,49 @@ configmanager:
       - name: prom-configmanager
         port: 9100
         targetPort: 9100
+
+  prometheusConfigurerPort: 9100
+  rulesDir: "/etc/configs/alert_rules"
+  prometheusURL: "orc8r-prometheus:9090"
+
+  image:
+    repository:
+    tag:
+    pullPolicy: IfNotPresent
+
+  resources: {}
+  nodeSelector: {}
+  tolerations: []
+  # Pod affinity must be used to ensure that this pod runs on same node as prometheus
+  affinity:
+    podAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - prometheus
+          topologyKey: "kubernetes.io/hostname"
+
+alertmanagerConfigurer:
+  # Enable/Disable chart
+  create: true
+
+  replicas: 1
+
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
       - name: alertmanager-config
         port: 9101
         targetPort: 9101
 
-  environment:
-    promAlertconfigPort: "9100"
-    rulesDir: "/etc/configs/alert_rules"
-    prometheusURL: "orc8r-prometheus:9090"
-    alertmanagerConfigPort: "9101"
-    alertmanagerConfPath: "/etc/configs/alertmanager.yml"
-    alertmanagerURL: "orc8r-alertmanager:9093"
+  alertmanagerConfigPort: 9101
+  alertmanagerConfPath: "/etc/configs/alertmanager.yml"
+  alertmanagerURL: "orc8r-alertmanager:9093"
 
   image:
     repository:
@@ -233,3 +265,65 @@ grafana:
   # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+userGrafana:
+  # Enable/Disable chart
+  create: true
+
+  # Reverse proxy setting, root url grafana will be accessed through
+  rootURL: /grafana
+
+  # Service configuration.
+  service:
+    annotations: {}
+    labels: {}
+    type: ClusterIP
+    ports:
+      - name: grafana
+        port: 3000
+        targetPort: 3000
+
+  volumes:
+    # Default volume configurations for grafana data.
+    dashboards: {}
+    datasources: {}
+    dashboardproviders: {}
+    grafanaData: {}
+
+  image:
+    repository: grafana/grafana
+    tag: 6.6.2
+    pullPolicy: IfNotPresent
+
+  # Number of metrics replicas desired
+  replicas: 1
+
+  # Resource limits & requests
+  # These defaults are suggested as lower limits may cause grafana to crashloop
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1024Mi
+    requests:
+      cpu: 100m
+      memory: 1024Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign grafana to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+configFiles:
+  useDefaults:
+    alertmanagerConf: true
+    internalAlertsConf: true
+
+# can be used to add new config or overwrite the default config files completely after the configFiles default has been disabled
+extraConfigFiles:

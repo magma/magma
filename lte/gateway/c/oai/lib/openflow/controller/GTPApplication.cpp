@@ -40,9 +40,13 @@ const std::string GTPApplication::GTP_PORT_MAC = "02:00:00:00:00:01";
 
 GTPApplication::GTPApplication(
   const std::string &uplink_mac,
-  uint32_t gtp_port_num):
+  uint32_t gtp_port_num,
+  uint32_t mtr_port_num,
+  uint32_t uplink_port_num):
   uplink_mac_(uplink_mac),
-  gtp_port_num_(gtp_port_num)
+  gtp_port_num_(gtp_port_num),
+  mtr_port_num_(mtr_port_num),
+  uplink_port_num_(uplink_port_num)
 {
 }
 
@@ -51,23 +55,29 @@ void GTPApplication::event_callback(
   const OpenflowMessenger &messenger)
 {
   if (ev.get_type() == EVENT_ADD_GTP_TUNNEL) {
-    auto add_tunnel_event = static_cast<const AddGTPTunnelEvent &>(ev);
+    auto add_tunnel_event = static_cast<const AddGTPTunnelEvent&>(ev);
     add_uplink_tunnel_flow(add_tunnel_event, messenger);
-    add_downlink_tunnel_flow(add_tunnel_event, messenger);
+    add_downlink_tunnel_flow(add_tunnel_event, messenger, uplink_port_num_);
+    add_downlink_tunnel_flow(add_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DELETE_GTP_TUNNEL) {
-    auto del_tunnel_event = static_cast<const DeleteGTPTunnelEvent &>(ev);
+    auto del_tunnel_event = static_cast<const DeleteGTPTunnelEvent&>(ev);
     delete_uplink_tunnel_flow(del_tunnel_event, messenger);
-    delete_downlink_tunnel_flow(del_tunnel_event, messenger);
+    delete_downlink_tunnel_flow(del_tunnel_event, messenger, uplink_port_num_);
+    delete_downlink_tunnel_flow(del_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DISCARD_DATA_ON_GTP_TUNNEL) {
     auto discard_tunnel_flow =
-      static_cast<const HandleDataOnGTPTunnelEvent &>(ev);
+      static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
     discard_uplink_tunnel_flow(discard_tunnel_flow, messenger);
-    discard_downlink_tunnel_flow(discard_tunnel_flow, messenger);
+    discard_downlink_tunnel_flow(
+      discard_tunnel_flow, messenger, uplink_port_num_);
+    discard_downlink_tunnel_flow(discard_tunnel_flow, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_FORWARD_DATA_ON_GTP_TUNNEL) {
     auto forward_tunnel_flow =
-      static_cast<const HandleDataOnGTPTunnelEvent &>(ev);
+      static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
     forward_uplink_tunnel_flow(forward_tunnel_flow, messenger);
-    forward_downlink_tunnel_flow(forward_tunnel_flow, messenger);
+    forward_downlink_tunnel_flow(
+      forward_tunnel_flow, messenger, uplink_port_num_);
+    forward_downlink_tunnel_flow(forward_tunnel_flow, messenger, mtr_port_num_);
   }
 }
 
@@ -102,8 +112,10 @@ void GTPApplication::add_uplink_tunnel_flow(
   const AddGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm =
-    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
+    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
   add_uplink_match(uplink_fm, gtp_port_num_, ev.get_in_tei());
 
   // Set eth src and dst
@@ -149,11 +161,14 @@ void GTPApplication::delete_uplink_tunnel_flow(
 /*
  * Helper method to add matching for adding/deleting the downlink flow
  */
-static void add_downlink_match(of13::FlowMod &downlink_fm,
-    const struct in_addr &ue_ip)
+static void add_downlink_match(
+  of13::FlowMod& downlink_fm,
+  const struct in_addr& ue_ip,
+  uint32_t port)
+
 {
   // Set match on uplink port and IP eth type
-  of13::InPort uplink_port_match(of13::OFPP_LOCAL);
+  of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
   of13::EthType ip_type(0x0800);
   downlink_fm.add_oxm_field(ip_type);
@@ -163,11 +178,13 @@ static void add_downlink_match(of13::FlowMod &downlink_fm,
   downlink_fm.add_oxm_field(ip_match);
 }
 
-static void add_ded_brr_dl_match(of13::FlowMod &downlink_fm,
-    const struct ipv4flow_dl &flow)
+static void add_ded_brr_dl_match(
+  of13::FlowMod& downlink_fm,
+  const struct ipv4flow_dl& flow,
+  uint32_t port)
 {
   // Set match on uplink port and IP eth type
-  of13::InPort uplink_port_match(of13::OFPP_LOCAL);
+  of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
   of13::EthType ip_type(0x0800);
   downlink_fm.add_oxm_field(ip_type);
@@ -212,15 +229,18 @@ static void add_ded_brr_dl_match(of13::FlowMod &downlink_fm,
 
 void GTPApplication::add_downlink_tunnel_flow(
   const AddGTPTunnelEvent &ev,
-  const OpenflowMessenger &messenger)
+  const OpenflowMessenger &messenger,
+  uint32_t port_number)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm =
-    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
+    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
 
   if (ev.is_dl_flow_valid()) {
-    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow(), port_number);
   } else {
-    add_downlink_match(downlink_fm, ev.get_ue_ip());
+    add_downlink_match(downlink_fm, ev.get_ue_ip(), port_number);
   }
 
   of13::ApplyActions apply_dl_inst;
@@ -248,7 +268,8 @@ void GTPApplication::add_downlink_tunnel_flow(
 
 void GTPApplication::delete_downlink_tunnel_flow(
   const DeleteGTPTunnelEvent &ev,
-  const OpenflowMessenger &messenger)
+  const OpenflowMessenger &messenger,
+  uint32_t port_number)
 {
   of13::FlowMod downlink_fm =
     messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
@@ -257,11 +278,10 @@ void GTPApplication::delete_downlink_tunnel_flow(
   downlink_fm.out_group(of13::OFPG_ANY);
 
   if (ev.is_dl_flow_valid()) {
-    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow(), port_number);
   } else {
-    add_downlink_match(downlink_fm, ev.get_ue_ip());
+    add_downlink_match(downlink_fm, ev.get_ue_ip(), port_number);
   }
-
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
@@ -285,7 +305,8 @@ void GTPApplication::discard_uplink_tunnel_flow(
 
 void GTPApplication::discard_downlink_tunnel_flow(
   const HandleDataOnGTPTunnelEvent &ev,
-  const OpenflowMessenger &messenger)
+  const OpenflowMessenger &messenger,
+  uint32_t port_number)
 {
   of13::FlowMod downlink_fm =
     messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY + 1);
@@ -296,11 +317,10 @@ void GTPApplication::discard_downlink_tunnel_flow(
   downlink_fm.cookie_mask(cookie + 1);
 
   if (ev.is_dl_flow_valid()) {
-    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+    add_ded_brr_dl_match(downlink_fm,  ev.get_dl_flow(), port_number);
   } else {
-    add_downlink_match(downlink_fm, ev.get_ue_ip());
+    add_downlink_match(downlink_fm, ev.get_ue_ip(), port_number);
   }
-
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
@@ -309,8 +329,10 @@ void GTPApplication::forward_uplink_tunnel_flow(
   const HandleDataOnGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm = messenger.create_default_flow_mod(
-    0, of13::OFPFC_DELETE, DEFAULT_PRIORITY + 1);
+    0, of13::OFPFC_DELETE, flow_priority + 1);
   // match all ports and groups
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
@@ -324,10 +346,13 @@ void GTPApplication::forward_uplink_tunnel_flow(
 
 void GTPApplication::forward_downlink_tunnel_flow(
   const HandleDataOnGTPTunnelEvent &ev,
-  const OpenflowMessenger &messenger)
+  const OpenflowMessenger &messenger,
+  uint32_t port_number)
 {
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm = messenger.create_default_flow_mod(
-    0, of13::OFPFC_DELETE, DEFAULT_PRIORITY + 1);
+    0, of13::OFPFC_DELETE, flow_priority + 1);
   // match all ports and groups
   downlink_fm.out_port(of13::OFPP_ANY);
   downlink_fm.out_group(of13::OFPG_ANY);
@@ -335,13 +360,37 @@ void GTPApplication::forward_downlink_tunnel_flow(
   downlink_fm.cookie_mask(cookie + 1);
 
   if (ev.is_dl_flow_valid()) {
-    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow());
+    add_ded_brr_dl_match(downlink_fm, ev.get_dl_flow(), port_number);
   } else {
-    add_downlink_match(downlink_fm, ev.get_ue_ip());
+    add_downlink_match(downlink_fm, ev.get_ue_ip(), port_number);
   }
 
-
   messenger.send_of_msg(downlink_fm, ev.get_connection());
+}
+
+// Precedence in TFT and flow rule priority in OVS are inversely
+// related. Rules with a low precedence value takes precedence,
+// where 0 has the highest precedence. In OVS rules with high
+// priority value takes precedence with the maximum value of
+// 65535. Typical range of precedence is in [0,255] in line
+// with the 8-bit TFT field for precedence in the current code.
+// This implementation:
+// - Allows 32-bit unsigned value for precedence velue, but truncates
+//   precedence values higher than 65535 (i.e., 16 bits) to 65535.
+// - Maps precendence values to priority values in [10, 65535].
+// - Sets the minimum priority value to 10 in order to give GTP App
+//   a sufficient margin to take priority over CP and management
+//   related rules.
+// - DEFAULT_PRECEDENCE always maps to a priority value of 10.
+uint32_t GTPApplication::convert_precedence_to_priority(
+  const uint32_t precedence)
+{
+  uint32_t priority =
+    (precedence < MAX_PRIORITY) ? (MAX_PRIORITY - precedence) : 0;
+  if (priority < DEFAULT_PRIORITY) {
+    priority = DEFAULT_PRIORITY;
+  }
+  return priority;
 }
 
 } // namespace openflow

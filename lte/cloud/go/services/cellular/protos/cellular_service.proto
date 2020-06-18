@@ -42,6 +42,11 @@ message GatewayEPCConfig {
     //    IPv4 IP block:      "192.168.0.0/24"
     //    IPv6 IP block:      "2401:db00:1116:301b::/64"
     string ip_block = 2;
+
+    // Primary DNS server
+    string dns_primary = 10;
+    // Secondary DNS server
+    string dns_secondary = 11;
 }
 
 message GatewayNonEPSConfig {
@@ -100,7 +105,7 @@ message NetworkRANConfig {
 
 message NetworkEPCConfig {
     enum NetworkServices {
-        METERING = 0;
+        METERING = 0 [deprecated=true];  // deprecated
         DPI = 1;
         ENFORCEMENT = 2;
     }

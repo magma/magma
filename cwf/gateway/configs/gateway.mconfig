@@ -4,6 +4,10 @@
       "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
       "logLevel": "INFO"
     },
+    "directoryd": {
+      "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
+      "logLevel": "INFO"
+    },
     "magmad": {
       "@type": "type.googleapis.com/magma.mconfig.MagmaD",
       "logLevel": "INFO",
@@ -19,12 +23,12 @@
       "logLevel": "INFO",
       "ueIpBlock": "192.168.128.0/24",
       "natEnabled": false,
-      "relayEnabled": true,
       "apps": [],
       "services": [
       ],
       "allowedGrePeers": [
-      ]
+      ],
+      "liImsis": []
     },
     "policydb": {
       "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
@@ -46,6 +50,17 @@
       "radiusMetricsPort": 9100,
       "radiusMetricsPath": "metrics",
       "updateIntervalSecs": 60
+    },
+    "dpid": {
+      "@type": "type.googleapis.com/magma.mconfig.DPID",
+      "logLevel": "INFO"
+    },
+    "td-agent-bit": {
+      "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+      "extraTags": {},
+      "throttleRate": 1000,
+      "throttleWindow": 5,
+      "throttleInterval": "1m"
     }
   }
 }

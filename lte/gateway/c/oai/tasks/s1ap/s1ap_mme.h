@@ -41,7 +41,7 @@ extern bool hss_associated;
 /** \brief S1AP layer top init
  * @returns -1 in case of failure
  **/
-int s1ap_mme_init(void);
+int s1ap_mme_init(const mme_config_t* mme_config);
 
 /** \brief S1AP layer top exit
  **/
@@ -66,7 +66,7 @@ void s1ap_dump_ue(const ue_description_t *const ue_ref);
 /** \brief Allocate and add to the list a new eNB descriptor
  * @returns Reference to the new eNB element in list
  **/
-enb_description_t *s1ap_new_enb(s1ap_state_t *state);
+enb_description_t* s1ap_new_enb(s1ap_state_t* state);
 
 /** \brief Allocate and add to the right eNB list a new UE descriptor
  * \param sctp_assoc_id association ID over SCTP

@@ -24,6 +24,7 @@
 #include <string.h>
 #include <string>
 #include <iostream>
+#include <conversions.h>
 
 #include "s6a_client_api.h"
 #include "S6aClient.h"
@@ -104,7 +105,9 @@ static void _s6a_handle_authentication_info_ans(
     itti_msg->result.present = S6A_RESULT_BASE;
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
   }
-  itti_send_msg_to_task(TASK_NAS_MME, INSTANCE_DEFAULT, message_p);
+
+  IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   return;
 }
 
@@ -165,6 +168,7 @@ static void _s6a_handle_update_location_ans(
   }
   std::cout << "[INFO] sent itti S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
                   << std::endl;
+  IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   return;
 }

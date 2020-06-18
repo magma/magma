@@ -19,6 +19,10 @@ services:
         published: 162
         protocol: udp
         mode: host
+      - target: 514
+        published: 514
+        protocol: udp
+        mode: host
     tmpfs:
       - /sys/fs/cgroup
     cap_add:
@@ -26,6 +30,7 @@ services:
       - NET_ADMIN
     sysctls:
       - net.ipv4.ping_group_range=0 0
+    network_mode: host
     stdin_open: true
     tty: true
     privileged: true
@@ -37,3 +42,6 @@ services:
       - SNOWFLAKE=${SNOWFLAKE}
       - CLOUD_ADDRESS=${CLOUD_ADDRESS}
       - BOOTSTRAP_CLOUD_ADDRESS=${BOOTSTRAP_CLOUD_ADDRESS}
+      - LOGS_CLOUD_ADDRESS=${LOGS_CLOUD_ADDRESS}
+      - LOGS_CLOUD_PORT=${LOGS_CLOUD_PORT}
+      - HOST_PUBLIC_ADDRESS=${HOST_PUBLIC_ADDRESS}

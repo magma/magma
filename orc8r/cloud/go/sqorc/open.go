@@ -11,6 +11,16 @@ package sqorc
 import (
 	"database/sql"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
+)
+
+const (
+	MariaDriver    = "mysql"
+	PostgresDriver = "postgres"
+	SQLiteDriver   = "sqlite3"
 )
 
 // Open is a wrapper for sql.Open which sets the max open connections to 1
@@ -24,7 +34,7 @@ func Open(driver string, source string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if driver == "sqlite3" && strings.Contains(source, ":memory:") {
+	if driver == SQLiteDriver && strings.Contains(source, ":memory:") {
 		db.SetMaxOpenConns(1)
 	}
 	return db, nil

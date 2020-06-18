@@ -1,0 +1,10 @@
+fragment EquipmentPortDefinitionFragment on EquipmentPortDefinition {
+  id
+  name
+  index
+  visibleLabel
+  portType {
+    id
+    name
+  }
+}

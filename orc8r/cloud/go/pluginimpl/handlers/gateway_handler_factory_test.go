@@ -29,7 +29,7 @@ import (
 )
 
 func Test_GetPartialReadGatewayHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -81,7 +81,7 @@ func Test_GetPartialReadGatewayHandler(t *testing.T) {
 }
 
 func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -149,7 +149,7 @@ func Test_GetPartialUpdateGatewayHandler(t *testing.T) {
 }
 
 func Test_GetGatewayDeviceHandler(t *testing.T) {
-	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	e := echo.New()

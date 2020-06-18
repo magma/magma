@@ -113,7 +113,7 @@ int esm_proc_pdn_disconnect_request(
   /*
    * Get UE's ESM context
    */
-  if (emm_context->esm_ctx.n_active_pdns > 1) {
+  if (emm_context->esm_ctx.n_pdns > 1) {
     /*
      * Get the identifier of the PDN connection entry assigned to the
      * * * * procedure transaction identity
@@ -245,7 +245,6 @@ int esm_proc_pdn_disconnect_reject(
   emm_sap.u.emm_esm.ue_id = ue_id;
   emm_sap.u.emm_esm.ctx = emm_context;
   emm_sap.u.emm_esm.u.data.msg = *msg;
-  *msg = NULL;
   rc = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }

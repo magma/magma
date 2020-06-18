@@ -28,10 +28,10 @@ option go_package = "magma/lte/cloud/go/protos";
 // --------------------------------------------------------------------------
 message PolicyRule{
   string id = 1;
-  // The precedence for the flow. Same definition as 3GPP. 
+  // The precedence for the flow. Same definition as 3GPP.
   uint32 priority = 3;
   uint32 rating_group = 4; // optional
-  string monitoring_key = 6; // optional
+  bytes monitoring_key = 6; // optional
   RedirectInformation redirect = 9;
   repeated FlowDescription flow_list = 7;
   FlowQos qos = 8;
@@ -43,6 +43,44 @@ message PolicyRule{
   }
   TrackingType tracking_type = 10;
   uint32 hard_timeout = 11; // optional
+  ServiceIdentifier service_identifier = 12; // optional
+  enum AppName {
+    NO_APP_NAME = 0;
+    FACEBOOK = 1;
+    FACEBOOK_MESSENGER = 2;
+    INSTAGRAM = 3;
+    YOUTUBE = 4;
+    GOOGLE = 5;
+    GMAIL = 6;
+    GOOGLE_DOCS = 7;
+    NETFLIX = 8;
+    APPLE = 9;
+    MICROSOFT = 10;
+    REDDIT = 11;
+    WHATSAPP = 12;
+    GOOGLE_PLAY = 13;
+    APPSTORE = 14;
+    AMAZON = 15;
+    WECHAT = 16;
+    TIKTOK = 17;
+    TWITTER = 18;
+    WIKIPEDIA = 19;
+    GOOGLE_MAPS = 20;
+    YAHOO = 21;
+    IMO = 22;
+  }
+  AppName app_name = 13; // optional
+  enum AppServiceType {
+    NO_SERVICE_TYPE = 0;
+    CHAT = 1;
+    AUDIO = 2;
+    VIDEO = 3;
+  }
+  AppServiceType app_service_type = 14; // optional
+}
+
+message ServiceIdentifier {
+  uint32 value = 1;
 }
 
 message FlowDescription {
@@ -130,20 +168,6 @@ message FlowQos {
   QosArp arp = 6;
 }
 
-message PolicyRuleData {
-  magma.orc8r.NetworkID network_id = 1;
-  PolicyRule rule = 2;
-}
-
-message PolicyRuleLookup {
-  magma.orc8r.NetworkID network_id = 1;
-  string rule_id = 2;
-}
-
-message PolicyRuleSet {
-  repeated PolicyRule rules = 1;
-}
-
 message RedirectInformation {
   enum Support {
     DISABLED = 0;
@@ -160,18 +184,8 @@ message RedirectInformation {
   string server_address = 3;
 }
 
-message ChargingRuleBaseNameLookup {
-  magma.orc8r.NetworkID NetworkID = 1;
-  string Name = 2;
-}
-
 message ChargingRuleNameSet {
   repeated string RuleNames = 2;
-}
-
-message ChargingRuleBaseNameRequest {
-  ChargingRuleBaseNameLookup Lookup = 1;
-  ChargingRuleNameSet Record = 2;
 }
 
 message ChargingRuleBaseNameRecord {
@@ -179,47 +193,61 @@ message ChargingRuleBaseNameRecord {
   ChargingRuleNameSet RuleNamesSet = 2;
 }
 
-service PolicyDBController {
+// ----------------------------------------------------------------------------
+// Subscriber-Policy Mappings
+// ----------------------------------------------------------------------------
 
-  // Adds a new policy rule to the store.
-  // Throws ALREADY_EXISTS if the rule already exists.
-  //
-  rpc AddRule (PolicyRuleData) returns (magma.orc8r.Void) {}
+// AssignedPolicies contains the base names and policy rules currently assigned
+// for a subscriber
+message AssignedPolicies {
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
+}
 
-  // Deletes an existing rule.
-  // If the rule is not already present, this request is ignored.
-  //
-  rpc DeleteRule (PolicyRuleLookup) returns (magma.orc8r.Void) {}
+// InstalledPolicies contains the base names and policy rules currently active
+// for a subscriber
+message InstalledPolicies {
+  repeated string installed_base_names = 10;
+  repeated string installed_policies = 11;
+}
 
-  // Updates an existing rule.
-  // Throws NOT_FOUND if the rule is missing.
-  //
-  rpc UpdateRule (PolicyRuleData) returns (magma.orc8r.Void) {}
+// --------------------------------------------------------------------------
+// PolicyAssignment controller definition.
+// --------------------------------------------------------------------------
+message EnableStaticRuleRequest {
+  string imsi = 1;
+  repeated string rule_ids = 2; // Static rule IDs
+  repeated string base_names = 3;
+}
 
-  // Returns the PolicyRule given the id and network.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc GetRule (PolicyRuleLookup) returns (PolicyRule) {}
+message DisableStaticRuleRequest {
+  string imsi = 1;
+  repeated string rule_ids = 2; // Static rule IDs
+  repeated string base_names = 3;
+}
 
-  // List the rules in the store.
+service PolicyAssignmentController {
+  // Associate the static rule with the IMSI
   //
-  rpc ListRules (magma.orc8r.NetworkID) returns (PolicyRuleSet) {}
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
 
-  // AddBaseName adds new Charging Rule Base Name Record (list of corresponding rule names)
-  // or Updates an existing Record corresponding to the given network & base name
-  // Returns the the existing base name if present
+  // Unassociate the static rule with the IMSI
   //
-  rpc AddBaseName(ChargingRuleBaseNameRequest) returns (ChargingRuleNameSet) {}
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
+}
 
-  // Deletes an existing Charging Rule Base Name Record
-  //
-  rpc DeleteBaseName(ChargingRuleBaseNameLookup) returns (magma.orc8r.Void) {}
+// --------------------------------------------------------------------------
+// PolicyDB service definition
+// --------------------------------------------------------------------------
+service PolicyDB {
 
-  // Returns the ChargingRuleBaseNameRecord given the name and network.
+  // Immediately install the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
   //
-  rpc GetBaseName (ChargingRuleBaseNameLookup) returns (ChargingRuleNameSet) {}
+  rpc EnableStaticRules (EnableStaticRuleRequest) returns (magma.orc8r.Void) {}
 
-  // List all Base Name Records in the store for a given network.
+  // Immediately uninstall the static policy for the IMSI
+  // Also unassociate the static rule with the IMSI on orc8r
   //
-  rpc ListBaseNames (magma.orc8r.NetworkID) returns (ChargingRuleNameSet) {}
+  rpc DisableStaticRules (DisableStaticRuleRequest) returns (magma.orc8r.Void) {}
 }

@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <devmand/devices/Snmpv2Device.h>
+#include <devmand/devices/snmpv2/Device.h>
 
 #include <devmand/channels/mikrotik/Channel.h>
 
@@ -15,11 +15,12 @@ namespace devmand {
 namespace devices {
 namespace mikrotik {
 
-class Device : public Snmpv2Device {
+class Device : public snmpv2::Device {
  public:
   Device(
       Application& application,
       const Id& id,
+      bool readonly,
       const folly::IPAddress& _ip,
       const std::string& _username,
       const std::string& _password,
@@ -38,18 +39,15 @@ class Device : public Snmpv2Device {
   Device(Device&&) = delete;
   Device& operator=(Device&&) = delete;
 
-  static std::unique_ptr<devices::Device> createDevice(
+  static std::shared_ptr<devices::Device> createDevice(
       Application& app,
       const cartography::DeviceConfig& deviceConfig);
 
  public:
-  std::shared_ptr<State> getState() override;
+  std::shared_ptr<Datastore> getOperationalDatastore() override;
 
  protected:
-  void setConfig(const folly::dynamic& config) override {
-    (void)config;
-    LOG(ERROR) << "set config on unconfigurable device";
-  }
+  void setIntendedDatastore(const folly::dynamic& config) override;
 
  private:
   std::shared_ptr<channels::mikrotik::Channel> mikrotikCh;

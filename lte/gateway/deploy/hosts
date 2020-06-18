@@ -4,14 +4,14 @@
 [dev]
 magma ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
 
-[prodvm]
-magma_prod ansible_ssh_host=192.168.60.143 ansible_ssh_port=22 ansible_user=vagrant
-
 [trfserver]
 magma_trfserver ansible_ssh_host=192.168.60.144 ansible_ssh_port=22 ansible_user=vagrant
 
 [test]
 magma_test ansible_ssh_host=192.168.60.141 ansible_ssh_port=22 ansible_user=vagrant
+
+[prod]
+magma_prod ansible_ssh_host=192.168.60.151 ansible_ssh_port=22 ansible_user=vagrant
 
 [atom-box]
 10.0.4.1 ansible_user=magma ansible_ssh_pass=magma ansible_become_pass=magma

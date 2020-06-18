@@ -27,6 +27,9 @@ include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
 include_directories(${MAGMA_LIB_DIR}/datastore)
 include_directories(${MAGMA_LIB_DIR}/policydb)
+include_directories(${MAGMA_LIB_DIR}/eventd)
+
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
@@ -36,11 +39,11 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS common)
+set(SMGR_ORC8R_CPP_PROTOS common directoryd)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager meteringd subscriberdb policydb
+set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb policydb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -48,6 +51,10 @@ generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
+
+set(SMGR_ORC8R_GRPC_PROTOS directoryd)
+generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
 set(SMGR_GRPC_PROTOS session_manager pipelined spgw_service)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
@@ -65,6 +72,7 @@ link_directories(
   ${MAGMA_LIB_DIR}/service303
   ${MAGMA_LIB_DIR}/datastore
   ${MAGMA_LIB_DIR}/policydb
+  ${MAGMA_LIB_DIR}/eventd
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(SESSION_MANAGER
@@ -80,10 +88,12 @@ add_library(SESSION_MANAGER
     SessionState.h
     SessionCredit.cpp
     SessionCredit.h
+    RestartHandler.cpp
+    RestartHandler.h
     RuleStore.cpp
     RuleStore.h
-    CloudReporter.cpp
-    CloudReporter.h
+    SessionReporter.cpp
+    SessionReporter.h
     SessionID.cpp
     SessionID.h
     ServiceAction.h
@@ -91,18 +101,32 @@ add_library(SESSION_MANAGER
     SpgwServiceClient.h
     PipelinedClient.cpp
     PipelinedClient.h
-    SessionRules.cpp
-    SessionRules.h
-    CreditPool.cpp
-    CreditPool.h
+    DirectorydClient.cpp
+    DirectorydClient.h
+    SessionEvents.cpp
+    SessionEvents.h
+    DiameterCodes.cpp
+    DiameterCodes.h
+    CreditKey.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
+    StoredState.cpp
+    StoredState.h
+    SessionStore.cpp
+    SessionStore.h
+    MemoryStoreClient.cpp
+    MemoryStoreClient.h
+    RedisStoreClient.cpp
+    RedisStoreClient.h
+    StoreClient.h
+    MeteringReporter.cpp
+    MeteringReporter.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
   DATASTORE
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie

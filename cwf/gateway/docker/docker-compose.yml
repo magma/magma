@@ -46,6 +46,12 @@ services:
   aaa_server:
     <<: *feggoservice
     container_name: aaa_server
+    environment:
+      USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9109"]
+      timeout: "4s"
+      retries: 3
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
 
   control_proxy:
@@ -55,12 +61,48 @@ services:
       sh -c "/usr/local/bin/generate_nghttpx_config.py &&
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
 
+  directoryd:
+    <<: *pyservice
+    container_name: directoryd
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50067"]
+      timeout: "4s"
+      retries: 3
+    command: python3.5 -m magma.directoryd.main
+
   eap_aka:
     <<: *feggoservice
     container_name: eap_aka
     environment:
       USE_REMOTE_SWX_PROXY: 1 # Relay to FeG
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9123"]
+      timeout: "4s"
+      retries: 3
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+
+  eventd:
+    <<: *pyservice
+    container_name: eventd
+    command: python3.5 -m magma.eventd.main
+
+  health:
+    <<: *feggoservice
+    image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
+    container_name: health
+    # Needed in order to enable/disable ICMP
+    privileged: true
+    volumes:
+      - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
+      - ${CERTS_VOLUME}:/var/opt/magma/certs
+      - ${CONFIGS_OVERRIDE_VOLUME}:/var/opt/magma/configs
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
+      - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
   magmad:
     <<: *pyservice
@@ -93,23 +135,36 @@ services:
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
       - /etc/snowflake:/etc/snowflake
       - /var/run/openvswitch:/var/run/openvswitch
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50063"]
+      timeout: "4s"
+      retries: 3
     command: >
       sh -c "set bridge cwag_br0 protocols=protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true &&
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
-        python3 -m magma.pipelined.main"
+        /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
+        /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
+        /var/opt/magma/scripts/add_uplink_bridge_flows.sh &&
+        python3.5 -m magma.pipelined.main"
 
   policydb:
     <<: *ltepyservice
     container_name: policydb
-    command: python3 -m magma.policydb.main
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50068"]
+      timeout: "4s"
+      retries: 3
+    depends_on:
+      - redis
+    command: python3.5 -m magma.policydb.main
 
   redirectd:
     <<: *ltepyservice
     container_name: redirectd
-    command: python3 -m magma.redirectd.main
+    command: python3.5 -m magma.redirectd.main
 
   radius:
-    image: ${DOCKER_REGISTRY}gateway_radius:${IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
     container_name: radius
     logging: *logging_anchor
     environment:
@@ -122,8 +177,17 @@ services:
       - AAA_ENDPOINT=127.0.0.1:9109
       - ANALYTICS_GRAPHQL_TOKEN=${ANALYTICS_GRAPHQL_TOKEN}
       - ANALYTICS_GRAPHQL_ENDPOINT=${ANALYTICS_GRAPHQL_ENDPOINT}
+      - STORAGE_TYPE=memory
+      - REDIS_ADDR=
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","9108"]
+      timeout: "4s"
+      retries: 3
     network_mode: host
     restart: always
+    command: >
+      /bin/bash -c "envsubst < /etc/magma/templates/radius.conf.template > /var/opt/magma/tmp/radius.config.json &&
+             envdir /var/opt/magma/envdir /var/opt/magma/bin/radius -config /var/opt/magma/tmp/radius.config.json"
 
   radiusd:
     <<: *feggoservice
@@ -141,4 +205,26 @@ services:
   sessiond:
     <<: *ltecservice
     container_name: sessiond
+    healthcheck:
+      test: ["CMD", "nc", "-zv", "localhost","50065"]
+      timeout: "4s"
+      retries: 3
+    depends_on:
+      - directoryd
     command: /usr/local/bin/sessiond
+
+  state:
+    <<: *pyservice
+    container_name: state
+    depends_on:
+      - redis
+    command: python3.5 -m magma.state.main
+
+  td-agent-bit:
+    <<: *pyservice
+    container_name: td-agent-bit
+    command: >
+        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
+        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+
+

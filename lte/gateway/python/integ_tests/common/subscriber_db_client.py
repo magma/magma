@@ -13,13 +13,16 @@ import time
 import abc
 import base64
 import grpc
-#import swagger_client
 from orc8r.protos.common_pb2 import Void
-from lte.protos.subscriberdb_pb2 import LTESubscription, SubscriberData, \
-    SubscriberState, SubscriberID
+from lte.protos.subscriberdb_pb2 import (
+    LTESubscription,
+    SubscriberData,
+    SubscriberState,
+    SubscriberID,
+    SubscriberUpdate,
+)
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
-#from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
 
@@ -132,6 +135,31 @@ class SubscriberDbGrpc(SubscriberDbClient):
         state.lte_auth_next_seq = 1
         return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
+    @staticmethod
+    def _get_apn_data(sid, apn_list):
+        """
+        Get APN data in protobuf format.
+
+        Args:
+            apn_list : list of APN configuration
+        Returns:
+            update (protos.subscriberdb_pb2.SubscriberUpdate)
+        """
+        # APN
+        update = SubscriberUpdate()
+        update.data.sid.CopyFrom(sid)
+        non_3gpp = update.data.non_3gpp
+        for apn in apn_list:
+            apn_config = non_3gpp.apn_config.add()
+            apn_config.service_selection = apn["apn_name"]
+            apn_config.qos_profile.class_id = apn["qci"]
+            apn_config.qos_profile.priority_level = apn["priority"]
+            apn_config.qos_profile.preemption_capability = apn["pre_cap"]
+            apn_config.qos_profile.preemption_vulnerability = apn["pre_vul"]
+            apn_config.ambr.max_bandwidth_ul = apn["mbr_ul"]
+            apn_config.ambr.max_bandwidth_dl = apn["mbr_dl"]
+        return update
+
     def _check_invariants(self):
         """
         Assert preservation of invariants.
@@ -147,7 +175,8 @@ class SubscriberDbGrpc(SubscriberDbClient):
         self._added_sids.add(sid)
         sub_data = self._get_subscriberdb_data(sid)
         SubscriberDbGrpc._try_to_call(
-            lambda: self._subscriber_stub.AddSubscriber(sub_data))
+            lambda: self._subscriber_stub.AddSubscriber(sub_data)
+        )
         self._check_invariants()
 
     def delete_subscriber(self, sid):
@@ -162,6 +191,15 @@ class SubscriberDbGrpc(SubscriberDbClient):
             lambda: self._subscriber_stub.ListSubscribers(Void()).sids)
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
+
+    def config_apn_details(self, imsi, apn_list):
+        sid = SIDUtils.to_pb(imsi)
+        update_sub = self._get_apn_data(sid, apn_list)
+        fields = update_sub.mask.paths
+        fields.append('non_3gpp')
+        SubscriberDbGrpc._try_to_call(
+            lambda: self._subscriber_stub.UpdateSubscriber(update_sub)
+        )
 
     def clean_up(self):
         # Remove all sids
@@ -303,133 +341,3 @@ def dbtransaction(func):
             self._db.rollback()
             raise e
     return wrapper
-
-
-class SubscriberDbMySQL(SubscriberDbClient):
-    """
-    Handle subscriber actions by making calls to MySQL server when testing with
-    standard OAI HSS
-    """
-    HSS_IP = '192.168.60.142'
-    HSS_PORT = 3306
-    HSS_USER = 'root'
-    HSS_PASSWORD = 'linux'
-    HSS_DB = 'oai_db'
-
-    def __init__(self):
-        """ Init the gRPC stub.  """
-        if mysql_import_error is not None:
-            raise mysql_import_error
-        self._added_sids = set()
-        self._db = MySQLdb.connect(host=self.HSS_IP,
-                                   port=self.HSS_PORT,
-                                   user=self.HSS_USER,
-                                   passwd=self.HSS_PASSWORD,
-                                   db=self.HSS_DB)
-        self._db.autocommit(False)
-
-    def _get_cursor(self):
-        return self._db.cursor()
-
-    @dbtransaction
-    def add_subscriber(self, sid):
-        sid = sid[4:]
-        print("Adding subscriber", sid)
-        cur = self._get_cursor()
-        # Long queries, but most are just default values
-        # Insert into users
-        result = cur.execute(
-            """
-            INSERT INTO users
-            (`imsi`, `msisdn`, `imei`, `imei_sv`, `ms_ps_status`,
-                `rau_tau_timer`, `ue_ambr_ul`, `ue_ambr_dl`,
-                `access_restriction`, `mme_cap`, `mmeidentity_idmmeidentity`,
-                `key`, `RFSP-Index`, `urrp_mme`, `sqn`,
-                `rand`, `OPc`)
-            VALUES
-            (%s, '33638060010', NULL, NULL, 'PURGED',
-                '120', '50000000', '100000000',
-                '47', '0000000000', '3',
-                %s, '1', '0', '0',
-                0x00000000000000000000000000000000, '');
-            """,
-            [sid, bytes.fromhex(KEY)])
-        assert (result == 1)
-        # Insert into pdn
-        result = cur.execute(
-            """
-            INSERT INTO pdn
-            (`id`, `apn`, `pdn_type`, `pdn_ipv4`, `pdn_ipv6`,
-                `aggregate_ambr_ul`, `aggregate_ambr_dl`, `pgw_id`,
-                `users_imsi`, `qci`, `priority_level`,`pre_emp_cap`,
-                `pre_emp_vul`, `LIPA-Permissions`)
-            VALUES
-            ('60', 'oai.ipv4', 'IPV4', '0.0.0.0', '0:0:0:0:0:0:0:0',
-                '50000000', '100000000', '3',
-                %s, '9', '15', 'DISABLED',
-                'ENABLED', 'LIPA-ONLY');
-            """,
-            [sid])
-        assert (result == 1)
-        cur.close()
-
-    @dbtransaction
-    def delete_subscriber(self, sid):
-        print("Removing subscriber", sid)
-        cur = self._get_cursor()
-        # Delete from users table
-        result = cur.execute(
-            """
-            DELETE FROM users
-            WHERE imsi=%s
-            """,
-            [sid])
-        assert(result == 1)
-        # Delete from PDN table
-        result = cur.execute(
-            """
-            DELETE FROM pdn
-            WHERE users_imsi=%s
-            """,
-            [sid])
-        # assert it was deleted
-        assert(result == 1)
-        cur.close()
-
-    @dbtransaction
-    def _delete_all_subscribers(self):
-        print("Removing all subscribers")
-        cur = self._get_cursor()
-        # Clear users table
-        cur.execute(
-            """
-            DELETE FROM users
-            """)
-        # Clear PDN table
-        cur.execute(
-            """
-            DELETE FROM pdn
-            """)
-        cur.close()
-
-    def list_subscriber_sids(self):
-        cur = self._get_cursor()
-        result = cur.execute(
-            """
-            SELECT imsi FROM users
-            """)
-
-        sids = []
-        for _ in range(result):
-            row = cur.fetchone()
-            sids.append('IMSI' + row[0])
-        cur.close()
-        return sids
-
-    def clean_up(self):
-        self._delete_all_subscribers()
-        self._db.close()
-
-    def wait_for_changes(self):
-        # On gateway, changes propagate immediately
-        return

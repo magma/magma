@@ -12,11 +12,12 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
-	"magma/orc8r/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -41,6 +42,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw},
 	}
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 
 	// Make sure we get a 0.0.0-0 and no error if no tier
 	builder := &pluginimpl.BaseOrchestratorMconfigBuilder{}
@@ -56,14 +58,19 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			AutoupgradeEnabled:      true,
 			AutoupgradePollInterval: 300,
 			PackageVersion:          "0.0.0-0",
-			Images:                  []*mconfig.ImageSpec{},
-			DynamicServices:         []string{},
-			FeatureFlags:            map[string]bool{},
+			Images:                  nil,
+			DynamicServices:         nil,
+			FeatureFlags:            nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     1000,
+			ThrottleWindow:   5,
+			ThrottleInterval: "1m",
+		},
 	}
 	assert.Equal(t, expected, actual)
-
 	// Put a tier in the graph
 	tier := configurator.NetworkEntity{
 		Type: orc8r.UpgradeTierEntityType,
@@ -99,15 +106,142 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				{Name: "Image1", Order: 42},
 				{Name: "Image2", Order: 1},
 			},
-			DynamicServices: []string{},
-			FeatureFlags:    map[string]bool{},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
 		},
 		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     1000,
+			ThrottleWindow:   5,
+			ThrottleInterval: "1m",
+		},
+	}
+	assert.Equal(t, expected, actual)
+
+	// Set list of files for log aggregation
+	testThrottleInterval := "30h"
+	testThrottleWindow := uint32(808)
+	testThrottleRate := uint32(305)
+	gw.Config = &models.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
+		AutoupgradePollInterval: 300,
+		CheckinInterval:         60,
+		CheckinTimeout:          10,
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
+		Logging: &models.GatewayLoggingConfigs{
+			Aggregation: &models.AggregationLoggingConfigs{
+				TargetFilesByTag: map[string]string{
+					"thing": "/var/log/thing.log",
+					"blah":  "/some/directory/blah.log",
+				},
+				ThrottleRate:     &testThrottleRate,
+				ThrottleWindow:   &testThrottleWindow,
+				ThrottleInterval: &testThrottleInterval,
+			},
+		},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{gw, tier},
+		Edges: []configurator.GraphEdge{
+			{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+		},
+	}
+	actual = map[string]proto.Message{}
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	expected = map[string]proto.Message{
+		"control_proxy": &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO},
+		"magmad": &mconfig.MagmaD{
+			LogLevel:                protos.LogLevel_INFO,
+			CheckinInterval:         60,
+			CheckinTimeout:          10,
+			AutoupgradeEnabled:      true,
+			AutoupgradePollInterval: 300,
+			PackageVersion:          "1.0.0-0",
+			Images: []*mconfig.ImageSpec{
+				{Name: "Image1", Order: 42},
+				{Name: "Image2", Order: 1},
+			},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
+		},
+		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     305,
+			ThrottleWindow:   808,
+			ThrottleInterval: "30h",
+			FilesByTag: map[string]string{
+				"thing": "/var/log/thing.log",
+				"blah":  "/some/directory/blah.log",
+			},
+		},
+	}
+	assert.Equal(t, expected, actual)
+
+	// Check default values for log throttling
+	gw.Config = &models.MagmadGatewayConfigs{
+		AutoupgradeEnabled:      swag.Bool(true),
+		AutoupgradePollInterval: 300,
+		CheckinInterval:         60,
+		CheckinTimeout:          10,
+		DynamicServices:         nil,
+		FeatureFlags:            nil,
+		Logging: &models.GatewayLoggingConfigs{
+			Aggregation: &models.AggregationLoggingConfigs{
+				TargetFilesByTag: map[string]string{
+					"thing": "/var/log/thing.log",
+					"blah":  "/some/directory/blah.log",
+				},
+				// No throttle values
+			},
+		},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{gw, tier},
+		Edges: []configurator.GraphEdge{
+			{From: tier.GetTypeAndKey(), To: gw.GetTypeAndKey()},
+		},
+	}
+	actual = map[string]proto.Message{}
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+	expected = map[string]proto.Message{
+		"control_proxy": &mconfig.ControlProxy{LogLevel: protos.LogLevel_INFO},
+		"magmad": &mconfig.MagmaD{
+			LogLevel:                protos.LogLevel_INFO,
+			CheckinInterval:         60,
+			CheckinTimeout:          10,
+			AutoupgradeEnabled:      true,
+			AutoupgradePollInterval: 300,
+			PackageVersion:          "1.0.0-0",
+			Images: []*mconfig.ImageSpec{
+				{Name: "Image1", Order: 42},
+				{Name: "Image2", Order: 1},
+			},
+			DynamicServices: nil,
+			FeatureFlags:    nil,
+		},
+		"metricsd": &mconfig.MetricsD{LogLevel: protos.LogLevel_INFO},
+		"td-agent-bit": &mconfig.FluentBit{
+			ExtraTags:        map[string]string{"network_id": "n1", "gateway_id": "gw1"},
+			ThrottleRate:     1000,
+			ThrottleWindow:   5,
+			ThrottleInterval: "1m",
+			FilesByTag: map[string]string{
+				"thing": "/var/log/thing.log",
+				"blah":  "/some/directory/blah.log",
+			},
+		},
 	}
 	assert.Equal(t, expected, actual)
 }
 
 func TestDnsdMconfigBuilder_Build(t *testing.T) {
+	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType,

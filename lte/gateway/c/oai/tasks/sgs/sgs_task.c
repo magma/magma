@@ -35,7 +35,6 @@
 #include "mme_config.h"
 #include "sgs_messages_types.h"
 #include "csfb_client_api.h"
-#include "sgs_service.h"
 #include "common_defs.h"
 #include "intertask_interface_types.h"
 
@@ -195,9 +194,6 @@ int sgs_init(const mme_config_t *mme_config_p)
 {
   OAILOG_DEBUG(LOG_SGS, "Initializing SGS task interface\n");
 
-  // start sgs_service which hosts GRPC server
-  sgs_service_server_init();
-
   if (itti_create_task(TASK_SGS, &sgs_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_SGS, "sgs create task\n");
     return RETURNerror;
@@ -209,6 +205,5 @@ int sgs_init(const mme_config_t *mme_config_p)
 //------------------------------------------------------------------------------
 static void sgs_exit(void)
 {
-  stop_sgs_service_server();
   /*Cleanup SGS context*/
 }

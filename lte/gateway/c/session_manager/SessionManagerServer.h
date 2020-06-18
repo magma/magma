@@ -112,6 +112,7 @@ class CallData {
    * the queue
    */
   virtual void proceed() = 0;
+  virtual ~CallData() = default;
 };
 
 /**
@@ -241,7 +242,7 @@ class CreateSessionCallData :
 class EndSessionCallData :
   public AsyncGRPCRequest<
     LocalSessionManager::AsyncService,
-    SubscriberID,
+    LocalEndSessionRequest,
     LocalEndSessionResponse> {
  public:
   EndSessionCallData(

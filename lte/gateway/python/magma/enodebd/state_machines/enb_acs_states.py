@@ -7,19 +7,20 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
 from collections import namedtuple
 from typing import Any, Optional
+
 from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.exceptions import ConfigurationError, Tr069Error
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.acs_state_utils import \
-    process_inform_message, get_all_objects_to_delete, \
-    get_all_objects_to_add, parse_get_parameter_values_response, \
-    get_object_params_to_get, get_all_param_values_to_set, \
-    get_param_values_to_set, get_obj_param_values_to_set, \
-    get_params_to_get, get_optional_param_to_check, does_inform_have_event
+    does_inform_have_event, get_all_objects_to_add, get_all_objects_to_delete, \
+    get_all_param_values_to_set, get_obj_param_values_to_set, \
+    get_object_params_to_get, get_optional_param_to_check, \
+    get_param_values_to_set, get_params_to_get, \
+    parse_get_parameter_values_response, process_inform_message
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.timer import StateMachineTimer
 from magma.enodebd.tr069 import models
@@ -67,7 +68,15 @@ class EnodebAcsState(ABC):
             '%s should implement read_msg() if it '
             'needs to handle message reading' % self.__class__.__name__)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        """
+        Produce a message to send back to the eNB.
+
+        Args:
+            message: TR-069 message which was already processed by read_msg
+
+        Returns: Message and possible transition
+        """
         raise ConfigurationError(
             '%s should implement get_msg() if it '
             'needs to produce messages' % self.__class__.__name__)
@@ -121,7 +130,7 @@ class WaitInformState(EnodebAcsState):
             return AcsReadMsgResult(True, self.boot_transition)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """ Reply with InformResponse """
         response = models.InformResponse()
         # Set maxEnvelopes to 1, as per TR-069 spec
@@ -129,7 +138,7 @@ class WaitInformState(EnodebAcsState):
         return AcsMsgAndTransition(response, self.done_transition)
 
     def state_description(self) -> str:
-        return 'Disconnected'
+        return 'Waiting for an Inform'
 
 
 class GetRPCMethodsState(EnodebAcsState):
@@ -151,7 +160,7 @@ class GetRPCMethodsState(EnodebAcsState):
             return AcsReadMsgResult(False, self.done_transition)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         resp = models.GetRPCMethodsResponse()
         resp.MethodList = models.MethodList()
         RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
@@ -201,7 +210,7 @@ class BaicellsRemWaitState(EnodebAcsState):
                                self.acs.device_cfg)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         if self.rem_timer.is_done():
             return AcsMsgAndTransition(models.DummyInput(),
                                        self.done_transition)
@@ -253,7 +262,7 @@ class CheckOptionalParamsState(EnodebAcsState):
         self.done_transition = when_done
         self.optional_param = None
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         self.optional_param = get_optional_param_to_check(self.acs.data_model)
         if self.optional_param is None:
             raise Tr069Error('Invalid State')
@@ -320,7 +329,7 @@ class SendGetTransientParametersState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         request = models.GetParameterValues()
         request.ParameterNames = models.ParameterNames()
         request.ParameterNames.string = []
@@ -432,7 +441,7 @@ class GetParametersState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
         Respond with GetParameterValuesRequest
 
@@ -489,7 +498,7 @@ class GetObjectParametersState(EnodebAcsState):
         self.acs = acs
         self.done_transition = when_done
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """ Respond with GetParameterValuesRequest """
         names = get_object_params_to_get(self.acs.desired_cfg,
                                          self.acs.device_cfg,
@@ -610,7 +619,7 @@ class DeleteObjectsState(EnodebAcsState):
         self.add_obj_transition = when_add
         self.skip_transition = when_skip
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
         Send DeleteObject message to TR-069 and poll for response(s).
         Input:
@@ -660,7 +669,7 @@ class AddObjectsState(EnodebAcsState):
         self.done_transition = when_done
         self.added_param = None
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         request = models.AddObject()
         self.added_param = get_all_objects_to_add(self.acs.desired_cfg,
                                                   self.acs.device_cfg)[0]
@@ -704,7 +713,7 @@ class SetParameterValuesState(EnodebAcsState):
         self.acs = acs
         self.done_transition = when_done
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         request = models.SetParameterValues()
         request.ParameterList = models.ParameterValueList()
         param_values = get_all_param_values_to_set(self.acs.desired_cfg,
@@ -751,7 +760,7 @@ class SetParameterValuesNotAdminState(EnodebAcsState):
         self.acs = acs
         self.done_transition = when_done
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         request = models.SetParameterValues()
         request.ParameterList = models.ParameterValueList()
         param_values = get_all_param_values_to_set(self.acs.desired_cfg,
@@ -863,9 +872,18 @@ class EndSessionState(EnodebAcsState):
         self.acs = acs
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        No message is expected after enodebd sends the eNodeB
+        an empty HTTP response.
+
+        If a device sends an empty HTTP request, we can just
+        ignore it and send another empty response.
+        """
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(True, None)
         return AcsReadMsgResult(False, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         request = models.DummyInput()
         return AcsMsgAndTransition(request, None)
 
@@ -896,7 +914,7 @@ class BaicellsSendRebootState(EnodebAcsState):
         self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         if self.prev_msg_was_inform:
             response = models.InformResponse()
             # Set maxEnvelopes to 1, as per TR-069 spec
@@ -935,7 +953,7 @@ class SendRebootState(EnodebAcsState):
         self.prev_msg_was_inform = False
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         if self.prev_msg_was_inform:
             response = models.InformResponse()
             # Set maxEnvelopes to 1, as per TR-069 spec
@@ -961,7 +979,7 @@ class WaitRebootResponseState(EnodebAcsState):
             return AcsReadMsgResult(False, None)
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """ Reply with empty message """
         return AcsMsgAndTransition(models.DummyInput(), self.done_transition)
 
@@ -1061,7 +1079,7 @@ class WaitRebootDelayState(EnodebAcsState):
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
         return AcsMsgAndTransition(models.DummyInput(), None)
 
     def state_description(self) -> str:
@@ -1070,18 +1088,31 @@ class WaitRebootDelayState(EnodebAcsState):
 
 class ErrorState(EnodebAcsState):
     """
-    The eNB handler will enter this state when an unhandled Fault is received
+    The eNB handler will enter this state when an unhandled Fault is received.
+
+    If the inform_transition_target constructor parameter is non-null, this
+    state will attempt to autoremediate by transitioning to the specified
+    target state when an Inform is received.
     """
 
-    def __init__(self, acs: EnodebAcsStateMachine):
+    def __init__(self, acs: EnodebAcsStateMachine,
+                 inform_transition_target: Optional[str] = None):
         super().__init__()
         self.acs = acs
+        self.inform_transition_target = inform_transition_target
 
     def read_msg(self, message: Any) -> AcsReadMsgResult:
         return AcsReadMsgResult(True, None)
 
-    def get_msg(self) -> AcsMsgAndTransition:
+    def get_msg(self, message: Any) -> AcsMsgAndTransition:
+        if not self.inform_transition_target:
+            return AcsMsgAndTransition(models.DummyInput(), None)
+
+        if isinstance(message, models.Inform):
+            return AcsMsgAndTransition(models.DummyInput(),
+                                       self.inform_transition_target)
         return AcsMsgAndTransition(models.DummyInput(), None)
 
     def state_description(self) -> str:
-        return 'Error state - awaiting manual restart of enodebd service'
+        return 'Error state - awaiting manual restart of enodebd service or ' \
+               'an Inform to be received from the eNB'

@@ -7,12 +7,13 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import abc
-import logging
 import asyncio
+import logging
 import time
-from typing import Optional, cast
 from contextlib import suppress
+from typing import Optional, cast
+
+import abc
 
 
 class Job(abc.ABC):
@@ -45,7 +46,7 @@ class Job(abc.ABC):
         self._cond = self._cond = asyncio.Condition(loop=self._loop)
 
     @abc.abstractmethod
-    def _run(self):
+    async def _run(self):
         """
         Once implemented by a subclass, this function will contain the actual
         work of this Job.
@@ -115,7 +116,7 @@ class Job(abc.ABC):
             try:
                 await self._run()
             except Exception as exp:  # pylint: disable=broad-except
-                logging.error("Exception from _run: %s", exp)
+                logging.exception("Exception from _run: %s", exp)
 
             # Wait for self._interval seconds or wake_up is explicitly called
             self._interval_wait_task = \

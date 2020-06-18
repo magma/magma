@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"strconv"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -16,6 +18,9 @@ import (
 // BaseNameRecord base name record
 // swagger:model base_name_record
 type BaseNameRecord struct {
+
+	// Subscribers which have been assigned this policy base name
+	AssignedSubscribers []SubscriberID `json:"assigned_subscribers,omitempty"`
 
 	// name
 	// Required: true
@@ -30,6 +35,10 @@ type BaseNameRecord struct {
 func (m *BaseNameRecord) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateAssignedSubscribers(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
@@ -41,6 +50,26 @@ func (m *BaseNameRecord) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *BaseNameRecord) validateAssignedSubscribers(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.AssignedSubscribers) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(m.AssignedSubscribers); i++ {
+
+		if err := m.AssignedSubscribers[i].Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("assigned_subscribers" + "." + strconv.Itoa(i))
+			}
+			return err
+		}
+
+	}
+
 	return nil
 }
 

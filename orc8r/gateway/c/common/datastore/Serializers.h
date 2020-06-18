@@ -18,7 +18,8 @@ namespace magma {
 /**
  * Serialize a protobuf message into the standard string form
  */
-std::function<bool(const Message&, std::string&)> get_proto_serializer();
+std::function<bool(const Message&, std::string&, uint64_t&)>
+get_proto_serializer();
 
 /**
  * Deserialize a string into a protobuf message

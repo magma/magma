@@ -24,10 +24,10 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes"
 	"golang.org/x/net/context"
@@ -126,9 +126,13 @@ func (srv *BootstrapperServer) RequestSign(
 			codes.Aborted, "Failed to verify response: %s", err))
 	}
 
-	// Ignore requested cert duration & overwrite it with our own
+	// Ignore requested cert duration & overwrite it with our own if it's
+	// longer than our default duration (allow shorter-lived certs)
 	if resp.Csr != nil {
-		resp.Csr.ValidTime = ptypes.DurationProto(GatewayCertificateDuration)
+		reqValidDuration, err := ptypes.Duration(resp.Csr.ValidTime)
+		if err != nil || reqValidDuration.Nanoseconds() > GatewayCertificateDuration.Nanoseconds() {
+			resp.Csr.ValidTime = ptypes.DurationProto(GatewayCertificateDuration)
+		}
 	}
 	cert, err := certifier.SignCSR(resp.Csr)
 	if err != nil {

@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"magma/orc8r/cloud/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
@@ -28,6 +28,7 @@ func GetServiceConfigs(service string, result proto.Message) error {
 		defer cfgMu.Unlock()
 		return fmt.Errorf("No configs found for service: '%s' in %s", service, lastFilePath)
 	}
+
 	return ptypes.UnmarshalAny(anyCfg, result)
 }
 

@@ -12,8 +12,8 @@ PartOf=magma@pipelined.service
 After=magma@pipelined.service
 PartOf=magma@sessiond.service
 After=magma@sessiond.service
-PartOf=magma@sctpd.service
-After=magma@sctpd.service
+Requires=sctpd.service
+After=sctpd.service
 
 [Service]
 Type=simple
@@ -22,6 +22,7 @@ ExecStart=/usr/local/bin/mme -c /var/opt/magma/tmp/mme.conf -s /var/opt/magma/tm
 MemoryAccounting=yes
 MemoryLimit=512M
 ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_oai_config.py
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py mme
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=mme

@@ -17,13 +17,16 @@ from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
-
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .ip_allocator import DuplicatedIPAllocationError, IPAllocator, \
-    IPBlockNotFoundError, IPNotInUseError, MappingNotFoundError, \
-    NoAvailableIPError, OverlappedIPBlocksError
 
+from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
+from .ip_allocator_base import IPAllocatorType
+
+from .ip_allocator_static import IPBlockNotFoundError, NoAvailableIPError, \
+    OverlappedIPBlocksError
+
+from .ip_allocator_base import DuplicatedIPAllocationError
 
 def _get_ip_block(ip_block_str):
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
@@ -49,9 +52,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     def __init__(self, mconfig, config):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
-        self._ipv4_allocator = IPAllocator(
+        if config['allocator_type'] == 'ip_pool':
+            config_allocator_type = IPAllocatorType.IP_POOL
+
+        self._ipv4_allocator = IPAddressManager(
             persist_to_redis=config['persist_to_redis'],
-            redis_port=config['redis_port'])
+            redis_port=config['redis_port'],
+            allocator_type=config_allocator_type)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates
@@ -158,10 +165,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         resp = IPAddress()
         if request.version == AllocateIPRequest.IPV4:
             try:
-                subscriber_id = SIDUtils.to_str(request.sid)
-                ip = self._ipv4_allocator.alloc_ip_address(subscriber_id)
-                logging.info("Allocated IPv4 %s for sid %s"
-                             % (ip, subscriber_id))
+                composite_sid = SIDUtils.to_str(request.sid)
+                if request.apn:
+                    composite_sid = composite_sid + "." + request.apn
+
+                ip = self._ipv4_allocator.alloc_ip_address(composite_sid)
+                logging.info("Allocated IPv4 %s for sid %s for apn %s"
+                             % (ip, SIDUtils.to_str(request.sid), request.apn))
                 resp.version = IPAddress.IPV4
                 resp.address = ip.packed
             except NoAvailableIPError:
@@ -180,17 +190,19 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         if request.ip.version == IPAddress.IPV4:
             try:
                 ip = ipaddress.ip_address(request.ip.address)
-                subscriber_id = SIDUtils.to_str(request.sid)
+                composite_sid = SIDUtils.to_str(request.sid)
+                if request.apn:
+                    composite_sid = composite_sid + "." + request.apn
                 self._ipv4_allocator.release_ip_address(
-                    subscriber_id, ip)
+                    composite_sid, ip)
                 logging.info("Released IPv4 %s for sid %s"
-                              % (ip, subscriber_id))
+                             % (ip, SIDUtils.to_str(request.sid)))
             except IPNotInUseError:
                 context.set_details('IP %s not in use' % ip)
                 context.set_code(grpc.StatusCode.NOT_FOUND)
             except MappingNotFoundError:
                 context.set_details('(SID, IP) map not found: (%s, %s)'
-                                    % (subscriber_id, ip))
+                                    % (SIDUtils.to_str(request.sid), ip))
                 context.set_code(grpc.StatusCode.NOT_FOUND)
         else:
             self._unimplemented_ip_version_error(context)
@@ -210,37 +222,47 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         resp.ip_blocks.extend(removed_block_msgs)
         return resp
 
-    def GetIPForSubscriber(self, sid, context):
-        sid_str = SIDUtils.to_str(sid)
-        ip = self._ipv4_allocator.get_ip_for_sid(sid_str)
+    def GetIPForSubscriber(self, request, context):
+        composite_sid = SIDUtils.to_str(request.sid)
+        if request.apn:
+            composite_sid = composite_sid + "." + request.apn
+
+        ip = self._ipv4_allocator.get_ip_for_sid(composite_sid)
         if ip is None:
-            context.set_details('SID %s not found' % sid)
+            context.set_details('SID %s not found'
+                                % SIDUtils.to_str(request.sid))
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return IPAddress()
+
         version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
         return IPAddress(version=version, address=ip.packed)
 
     def GetSubscriberIDFromIP(self, ip_addr, context):
         sent_ip = ipaddress.ip_address(ip_addr.address)
         sid = self._ipv4_allocator.get_sid_for_ip(sent_ip)
+
         if sid is None:
             context.set_details('IP address %s not found' % str(sent_ip))
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return SubscriberID()
-        return SIDUtils.to_pb(sid)
+        else:
+            #handle composite key case
+            sid, *rest = sid.partition('.')
+            return SIDUtils.to_pb(sid)
 
     def GetSubscriberIPTable(self, void, context):
         """ Get the full subscriber table """
         logging.debug("Listing subscriber IP table")
         resp = SubscriberIPTable()
 
-        sid_ip_pairs = self._ipv4_allocator.get_sid_ip_table()
-        for subscriber_id, ip in sid_ip_pairs:
-            sid = SIDUtils.to_pb(subscriber_id)
+        csid_ip_pairs = self._ipv4_allocator.get_sid_ip_table()
+        for composite_sid, ip in csid_ip_pairs:
+            #handle composite sid to sid and apn mapping
+            sid, _, apn = composite_sid.partition('.')
+            sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
-            resp.entries.add(sid=sid, ip=ip_msg)
-
+            resp.entries.add(sid=sid_pb, ip=ip_msg, apn=apn)
         return resp
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):

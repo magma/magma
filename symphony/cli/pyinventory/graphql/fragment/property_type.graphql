@@ -1,0 +1,13 @@
+fragment PropertyTypeFragment on PropertyType {
+  id
+  externalId
+  name
+  type
+  index
+  category
+  rawValue
+  isEditable
+  isInstanceProperty
+  isMandatory
+  isDeleted
+}

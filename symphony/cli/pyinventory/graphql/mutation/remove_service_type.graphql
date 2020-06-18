@@ -1,0 +1,3 @@
+mutation RemoveServiceTypeMutation($id: ID!) {
+  removeServiceType(id: $id)
+}

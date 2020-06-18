@@ -9,7 +9,7 @@
 ##################################
 # Set up dev environment variables
 ##################################
-#
+
 - name: Set Python environment variables
   lineinfile:
     dest: /etc/environment
@@ -90,4 +90,21 @@
       - protobuf-compiler
       - python-protobuf
       - libsystemd-dev
+  retries: 5
+  when: preburn
+
+- name: install the package, force reinstall to the latest version
+  pip:
+    name: setuptools
+    state: forcereinstall
+    executable: pip3
+
+###########################
+# Install dev dependencies
+###########################
+
+- name: Install mypy-protobuf
+  pip:
+    name: mypy-protobuf
+    executable: pip3
   when: preburn

@@ -3,10 +3,12 @@
 
 package storage
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-import wrappers "github.com/golang/protobuf/ptypes/wrappers"
+import (
+	fmt "fmt"
+	proto "github.com/golang/protobuf/proto"
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
+	math "math"
+)
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
@@ -17,7 +19,7 @@ var _ = math.Inf
 // is compatible with the proto package it is being compiled against.
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
+const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // OWN grants READ and WRITE
 type ACL_Permission int32
@@ -35,6 +37,7 @@ var ACL_Permission_name = map[int32]string{
 	2: "WRITE",
 	3: "OWN",
 }
+
 var ACL_Permission_value = map[string]int32{
 	"NO_PERM": 0,
 	"READ":    1,
@@ -45,8 +48,9 @@ var ACL_Permission_value = map[string]int32{
 func (x ACL_Permission) String() string {
 	return proto.EnumName(ACL_Permission_name, int32(x))
 }
+
 func (ACL_Permission) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{7, 0}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{7, 0}
 }
 
 type ACL_Wildcard int32
@@ -60,6 +64,7 @@ var ACL_Wildcard_name = map[int32]string{
 	0: "NO_WILDCARD",
 	1: "WILDCARD_ALL",
 }
+
 var ACL_Wildcard_value = map[string]int32{
 	"NO_WILDCARD":  0,
 	"WILDCARD_ALL": 1,
@@ -68,8 +73,9 @@ var ACL_Wildcard_value = map[string]int32{
 func (x ACL_Wildcard) String() string {
 	return proto.EnumName(ACL_Wildcard_name, int32(x))
 }
+
 func (ACL_Wildcard) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{7, 1}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{7, 1}
 }
 
 // A network represents a tenant. Networks can be configured in a hierarchical
@@ -94,16 +100,17 @@ func (m *Network) Reset()         { *m = Network{} }
 func (m *Network) String() string { return proto.CompactTextString(m) }
 func (*Network) ProtoMessage()    {}
 func (*Network) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{0}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{0}
 }
+
 func (m *Network) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_Network.Unmarshal(m, b)
 }
 func (m *Network) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_Network.Marshal(b, m, deterministic)
 }
-func (dst *Network) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Network.Merge(dst, src)
+func (m *Network) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Network.Merge(m, src)
 }
 func (m *Network) XXX_Size() int {
 	return xxx_messageInfo_Network.Size(m)
@@ -173,16 +180,17 @@ func (m *NetworkLoadFilter) Reset()         { *m = NetworkLoadFilter{} }
 func (m *NetworkLoadFilter) String() string { return proto.CompactTextString(m) }
 func (*NetworkLoadFilter) ProtoMessage()    {}
 func (*NetworkLoadFilter) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{1}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{1}
 }
+
 func (m *NetworkLoadFilter) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkLoadFilter.Unmarshal(m, b)
 }
 func (m *NetworkLoadFilter) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkLoadFilter.Marshal(b, m, deterministic)
 }
-func (dst *NetworkLoadFilter) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkLoadFilter.Merge(dst, src)
+func (m *NetworkLoadFilter) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkLoadFilter.Merge(m, src)
 }
 func (m *NetworkLoadFilter) XXX_Size() int {
 	return xxx_messageInfo_NetworkLoadFilter.Size(m)
@@ -221,16 +229,17 @@ func (m *NetworkLoadCriteria) Reset()         { *m = NetworkLoadCriteria{} }
 func (m *NetworkLoadCriteria) String() string { return proto.CompactTextString(m) }
 func (*NetworkLoadCriteria) ProtoMessage()    {}
 func (*NetworkLoadCriteria) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{2}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{2}
 }
+
 func (m *NetworkLoadCriteria) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkLoadCriteria.Unmarshal(m, b)
 }
 func (m *NetworkLoadCriteria) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkLoadCriteria.Marshal(b, m, deterministic)
 }
-func (dst *NetworkLoadCriteria) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkLoadCriteria.Merge(dst, src)
+func (m *NetworkLoadCriteria) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkLoadCriteria.Merge(m, src)
 }
 func (m *NetworkLoadCriteria) XXX_Size() int {
 	return xxx_messageInfo_NetworkLoadCriteria.Size(m)
@@ -267,16 +276,17 @@ func (m *NetworkLoadResult) Reset()         { *m = NetworkLoadResult{} }
 func (m *NetworkLoadResult) String() string { return proto.CompactTextString(m) }
 func (*NetworkLoadResult) ProtoMessage()    {}
 func (*NetworkLoadResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{3}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{3}
 }
+
 func (m *NetworkLoadResult) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkLoadResult.Unmarshal(m, b)
 }
 func (m *NetworkLoadResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkLoadResult.Marshal(b, m, deterministic)
 }
-func (dst *NetworkLoadResult) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkLoadResult.Merge(dst, src)
+func (m *NetworkLoadResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkLoadResult.Merge(m, src)
 }
 func (m *NetworkLoadResult) XXX_Size() int {
 	return xxx_messageInfo_NetworkLoadResult.Size(m)
@@ -326,16 +336,17 @@ func (m *NetworkUpdateCriteria) Reset()         { *m = NetworkUpdateCriteria{} }
 func (m *NetworkUpdateCriteria) String() string { return proto.CompactTextString(m) }
 func (*NetworkUpdateCriteria) ProtoMessage()    {}
 func (*NetworkUpdateCriteria) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{4}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{4}
 }
+
 func (m *NetworkUpdateCriteria) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkUpdateCriteria.Unmarshal(m, b)
 }
 func (m *NetworkUpdateCriteria) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkUpdateCriteria.Marshal(b, m, deterministic)
 }
-func (dst *NetworkUpdateCriteria) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkUpdateCriteria.Merge(dst, src)
+func (m *NetworkUpdateCriteria) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkUpdateCriteria.Merge(m, src)
 }
 func (m *NetworkUpdateCriteria) XXX_Size() int {
 	return xxx_messageInfo_NetworkUpdateCriteria.Size(m)
@@ -407,16 +418,17 @@ func (m *EntityID) Reset()         { *m = EntityID{} }
 func (m *EntityID) String() string { return proto.CompactTextString(m) }
 func (*EntityID) ProtoMessage()    {}
 func (*EntityID) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{5}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{5}
 }
+
 func (m *EntityID) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityID.Unmarshal(m, b)
 }
 func (m *EntityID) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityID.Marshal(b, m, deterministic)
 }
-func (dst *EntityID) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityID.Merge(dst, src)
+func (m *EntityID) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityID.Merge(m, src)
 }
 func (m *EntityID) XXX_Size() int {
 	return xxx_messageInfo_EntityID.Size(m)
@@ -479,16 +491,17 @@ func (m *NetworkEntity) Reset()         { *m = NetworkEntity{} }
 func (m *NetworkEntity) String() string { return proto.CompactTextString(m) }
 func (*NetworkEntity) ProtoMessage()    {}
 func (*NetworkEntity) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{6}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{6}
 }
+
 func (m *NetworkEntity) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_NetworkEntity.Unmarshal(m, b)
 }
 func (m *NetworkEntity) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_NetworkEntity.Marshal(b, m, deterministic)
 }
-func (dst *NetworkEntity) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_NetworkEntity.Merge(dst, src)
+func (m *NetworkEntity) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NetworkEntity.Merge(m, src)
 }
 func (m *NetworkEntity) XXX_Size() int {
 	return xxx_messageInfo_NetworkEntity.Size(m)
@@ -615,16 +628,17 @@ func (m *ACL) Reset()         { *m = ACL{} }
 func (m *ACL) String() string { return proto.CompactTextString(m) }
 func (*ACL) ProtoMessage()    {}
 func (*ACL) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{7}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{7}
 }
+
 func (m *ACL) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ACL.Unmarshal(m, b)
 }
 func (m *ACL) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ACL.Marshal(b, m, deterministic)
 }
-func (dst *ACL) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ACL.Merge(dst, src)
+func (m *ACL) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ACL.Merge(m, src)
 }
 func (m *ACL) XXX_Size() int {
 	return xxx_messageInfo_ACL.Size(m)
@@ -737,114 +751,14 @@ func (m *ACL) GetVersion() uint64 {
 	return 0
 }
 
-// XXX_OneofFuncs is for the internal use of the proto package.
-func (*ACL) XXX_OneofFuncs() (func(msg proto.Message, b *proto.Buffer) error, func(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error), func(msg proto.Message) (n int), []interface{}) {
-	return _ACL_OneofMarshaler, _ACL_OneofUnmarshaler, _ACL_OneofSizer, []interface{}{
+// XXX_OneofWrappers is for the internal use of the proto package.
+func (*ACL) XXX_OneofWrappers() []interface{} {
+	return []interface{}{
 		(*ACL_ScopeNetworkIDs)(nil),
 		(*ACL_ScopeWildcard)(nil),
 		(*ACL_EntityType)(nil),
 		(*ACL_TypeWildcard)(nil),
 	}
-}
-
-func _ACL_OneofMarshaler(msg proto.Message, b *proto.Buffer) error {
-	m := msg.(*ACL)
-	// scope
-	switch x := m.Scope.(type) {
-	case *ACL_ScopeNetworkIDs:
-		b.EncodeVarint(10<<3 | proto.WireBytes)
-		if err := b.EncodeMessage(x.ScopeNetworkIDs); err != nil {
-			return err
-		}
-	case *ACL_ScopeWildcard:
-		b.EncodeVarint(11<<3 | proto.WireVarint)
-		b.EncodeVarint(uint64(x.ScopeWildcard))
-	case nil:
-	default:
-		return fmt.Errorf("ACL.Scope has unexpected type %T", x)
-	}
-	// type
-	switch x := m.Type.(type) {
-	case *ACL_EntityType:
-		b.EncodeVarint(30<<3 | proto.WireBytes)
-		b.EncodeStringBytes(x.EntityType)
-	case *ACL_TypeWildcard:
-		b.EncodeVarint(31<<3 | proto.WireVarint)
-		b.EncodeVarint(uint64(x.TypeWildcard))
-	case nil:
-	default:
-		return fmt.Errorf("ACL.Type has unexpected type %T", x)
-	}
-	return nil
-}
-
-func _ACL_OneofUnmarshaler(msg proto.Message, tag, wire int, b *proto.Buffer) (bool, error) {
-	m := msg.(*ACL)
-	switch tag {
-	case 10: // scope.scope_networkIDs
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		msg := new(ACL_NetworkIDs)
-		err := b.DecodeMessage(msg)
-		m.Scope = &ACL_ScopeNetworkIDs{msg}
-		return true, err
-	case 11: // scope.scope_wildcard
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Scope = &ACL_ScopeWildcard{ACL_Wildcard(x)}
-		return true, err
-	case 30: // type.entity_type
-		if wire != proto.WireBytes {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeStringBytes()
-		m.Type = &ACL_EntityType{x}
-		return true, err
-	case 31: // type.type_wildcard
-		if wire != proto.WireVarint {
-			return true, proto.ErrInternalBadWireType
-		}
-		x, err := b.DecodeVarint()
-		m.Type = &ACL_TypeWildcard{ACL_Wildcard(x)}
-		return true, err
-	default:
-		return false, nil
-	}
-}
-
-func _ACL_OneofSizer(msg proto.Message) (n int) {
-	m := msg.(*ACL)
-	// scope
-	switch x := m.Scope.(type) {
-	case *ACL_ScopeNetworkIDs:
-		s := proto.Size(x.ScopeNetworkIDs)
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(s))
-		n += s
-	case *ACL_ScopeWildcard:
-		n += 1 // tag and wire
-		n += proto.SizeVarint(uint64(x.ScopeWildcard))
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	// type
-	switch x := m.Type.(type) {
-	case *ACL_EntityType:
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(len(x.EntityType)))
-		n += len(x.EntityType)
-	case *ACL_TypeWildcard:
-		n += 2 // tag and wire
-		n += proto.SizeVarint(uint64(x.TypeWildcard))
-	case nil:
-	default:
-		panic(fmt.Sprintf("proto: unexpected type %T in oneof", x))
-	}
-	return n
 }
 
 type ACL_NetworkIDs struct {
@@ -858,16 +772,17 @@ func (m *ACL_NetworkIDs) Reset()         { *m = ACL_NetworkIDs{} }
 func (m *ACL_NetworkIDs) String() string { return proto.CompactTextString(m) }
 func (*ACL_NetworkIDs) ProtoMessage()    {}
 func (*ACL_NetworkIDs) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{7, 0}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{7, 0}
 }
+
 func (m *ACL_NetworkIDs) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_ACL_NetworkIDs.Unmarshal(m, b)
 }
 func (m *ACL_NetworkIDs) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_ACL_NetworkIDs.Marshal(b, m, deterministic)
 }
-func (dst *ACL_NetworkIDs) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ACL_NetworkIDs.Merge(dst, src)
+func (m *ACL_NetworkIDs) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ACL_NetworkIDs.Merge(m, src)
 }
 func (m *ACL_NetworkIDs) XXX_Size() int {
 	return xxx_messageInfo_ACL_NetworkIDs.Size(m)
@@ -911,16 +826,17 @@ func (m *EntityLoadFilter) Reset()         { *m = EntityLoadFilter{} }
 func (m *EntityLoadFilter) String() string { return proto.CompactTextString(m) }
 func (*EntityLoadFilter) ProtoMessage()    {}
 func (*EntityLoadFilter) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{8}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{8}
 }
+
 func (m *EntityLoadFilter) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityLoadFilter.Unmarshal(m, b)
 }
 func (m *EntityLoadFilter) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityLoadFilter.Marshal(b, m, deterministic)
 }
-func (dst *EntityLoadFilter) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityLoadFilter.Merge(dst, src)
+func (m *EntityLoadFilter) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityLoadFilter.Merge(m, src)
 }
 func (m *EntityLoadFilter) XXX_Size() int {
 	return xxx_messageInfo_EntityLoadFilter.Size(m)
@@ -983,16 +899,17 @@ func (m *EntityLoadCriteria) Reset()         { *m = EntityLoadCriteria{} }
 func (m *EntityLoadCriteria) String() string { return proto.CompactTextString(m) }
 func (*EntityLoadCriteria) ProtoMessage()    {}
 func (*EntityLoadCriteria) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{9}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{9}
 }
+
 func (m *EntityLoadCriteria) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityLoadCriteria.Unmarshal(m, b)
 }
 func (m *EntityLoadCriteria) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityLoadCriteria.Marshal(b, m, deterministic)
 }
-func (dst *EntityLoadCriteria) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityLoadCriteria.Merge(dst, src)
+func (m *EntityLoadCriteria) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityLoadCriteria.Merge(m, src)
 }
 func (m *EntityLoadCriteria) XXX_Size() int {
 	return xxx_messageInfo_EntityLoadCriteria.Size(m)
@@ -1050,16 +967,17 @@ func (m *EntityLoadResult) Reset()         { *m = EntityLoadResult{} }
 func (m *EntityLoadResult) String() string { return proto.CompactTextString(m) }
 func (*EntityLoadResult) ProtoMessage()    {}
 func (*EntityLoadResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{10}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{10}
 }
+
 func (m *EntityLoadResult) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityLoadResult.Unmarshal(m, b)
 }
 func (m *EntityLoadResult) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityLoadResult.Marshal(b, m, deterministic)
 }
-func (dst *EntityLoadResult) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityLoadResult.Merge(dst, src)
+func (m *EntityLoadResult) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityLoadResult.Merge(m, src)
 }
 func (m *EntityLoadResult) XXX_Size() int {
 	return xxx_messageInfo_EntityLoadResult.Size(m)
@@ -1114,16 +1032,17 @@ func (m *EntityUpdateCriteria) Reset()         { *m = EntityUpdateCriteria{} }
 func (m *EntityUpdateCriteria) String() string { return proto.CompactTextString(m) }
 func (*EntityUpdateCriteria) ProtoMessage()    {}
 func (*EntityUpdateCriteria) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{11}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{11}
 }
+
 func (m *EntityUpdateCriteria) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityUpdateCriteria.Unmarshal(m, b)
 }
 func (m *EntityUpdateCriteria) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityUpdateCriteria.Marshal(b, m, deterministic)
 }
-func (dst *EntityUpdateCriteria) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityUpdateCriteria.Merge(dst, src)
+func (m *EntityUpdateCriteria) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityUpdateCriteria.Merge(m, src)
 }
 func (m *EntityUpdateCriteria) XXX_Size() int {
 	return xxx_messageInfo_EntityUpdateCriteria.Size(m)
@@ -1236,16 +1155,17 @@ func (m *EntityAssociationsToSet) Reset()         { *m = EntityAssociationsToSet
 func (m *EntityAssociationsToSet) String() string { return proto.CompactTextString(m) }
 func (*EntityAssociationsToSet) ProtoMessage()    {}
 func (*EntityAssociationsToSet) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{12}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{12}
 }
+
 func (m *EntityAssociationsToSet) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityAssociationsToSet.Unmarshal(m, b)
 }
 func (m *EntityAssociationsToSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityAssociationsToSet.Marshal(b, m, deterministic)
 }
-func (dst *EntityAssociationsToSet) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityAssociationsToSet.Merge(dst, src)
+func (m *EntityAssociationsToSet) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityAssociationsToSet.Merge(m, src)
 }
 func (m *EntityAssociationsToSet) XXX_Size() int {
 	return xxx_messageInfo_EntityAssociationsToSet.Size(m)
@@ -1280,16 +1200,17 @@ func (m *EntityGraph) Reset()         { *m = EntityGraph{} }
 func (m *EntityGraph) String() string { return proto.CompactTextString(m) }
 func (*EntityGraph) ProtoMessage()    {}
 func (*EntityGraph) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{13}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{13}
 }
+
 func (m *EntityGraph) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_EntityGraph.Unmarshal(m, b)
 }
 func (m *EntityGraph) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_EntityGraph.Marshal(b, m, deterministic)
 }
-func (dst *EntityGraph) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EntityGraph.Merge(dst, src)
+func (m *EntityGraph) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EntityGraph.Merge(m, src)
 }
 func (m *EntityGraph) XXX_Size() int {
 	return xxx_messageInfo_EntityGraph.Size(m)
@@ -1334,16 +1255,17 @@ func (m *GraphEdge) Reset()         { *m = GraphEdge{} }
 func (m *GraphEdge) String() string { return proto.CompactTextString(m) }
 func (*GraphEdge) ProtoMessage()    {}
 func (*GraphEdge) Descriptor() ([]byte, []int) {
-	return fileDescriptor_storage_7c5301dd9abb7266, []int{14}
+	return fileDescriptor_0d2c4ccf1453ffdb, []int{14}
 }
+
 func (m *GraphEdge) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GraphEdge.Unmarshal(m, b)
 }
 func (m *GraphEdge) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	return xxx_messageInfo_GraphEdge.Marshal(b, m, deterministic)
 }
-func (dst *GraphEdge) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GraphEdge.Merge(dst, src)
+func (m *GraphEdge) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GraphEdge.Merge(m, src)
 }
 func (m *GraphEdge) XXX_Size() int {
 	return xxx_messageInfo_GraphEdge.Size(m)
@@ -1369,6 +1291,8 @@ func (m *GraphEdge) GetFrom() *EntityID {
 }
 
 func init() {
+	proto.RegisterEnum("magma.orc8r.configurator.storage.ACL_Permission", ACL_Permission_name, ACL_Permission_value)
+	proto.RegisterEnum("magma.orc8r.configurator.storage.ACL_Wildcard", ACL_Wildcard_name, ACL_Wildcard_value)
 	proto.RegisterType((*Network)(nil), "magma.orc8r.configurator.storage.Network")
 	proto.RegisterMapType((map[string][]byte)(nil), "magma.orc8r.configurator.storage.Network.ConfigsEntry")
 	proto.RegisterType((*NetworkLoadFilter)(nil), "magma.orc8r.configurator.storage.NetworkLoadFilter")
@@ -1387,13 +1311,11 @@ func init() {
 	proto.RegisterType((*EntityAssociationsToSet)(nil), "magma.orc8r.configurator.storage.EntityAssociationsToSet")
 	proto.RegisterType((*EntityGraph)(nil), "magma.orc8r.configurator.storage.EntityGraph")
 	proto.RegisterType((*GraphEdge)(nil), "magma.orc8r.configurator.storage.GraphEdge")
-	proto.RegisterEnum("magma.orc8r.configurator.storage.ACL_Permission", ACL_Permission_name, ACL_Permission_value)
-	proto.RegisterEnum("magma.orc8r.configurator.storage.ACL_Wildcard", ACL_Wildcard_name, ACL_Wildcard_value)
 }
 
-func init() { proto.RegisterFile("storage.proto", fileDescriptor_storage_7c5301dd9abb7266) }
+func init() { proto.RegisterFile("storage.proto", fileDescriptor_0d2c4ccf1453ffdb) }
 
-var fileDescriptor_storage_7c5301dd9abb7266 = []byte{
+var fileDescriptor_0d2c4ccf1453ffdb = []byte{
 	// 1421 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0xdd, 0x6e, 0xdb, 0xc6,
 	0x12, 0x36, 0x25, 0xd9, 0x92, 0x86, 0x92, 0xad, 0xac, 0xe5, 0x84, 0xc7, 0x27, 0x70, 0x14, 0x1e,

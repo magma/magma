@@ -11,14 +11,15 @@
 ########################################
 
 - name: Install feg dependencies
-  apt: pkg={{ item }} state=present
-  with_items:
-    - redis-server
-    - python-redis
-    # TODO remove these when lxml is no longer a dependency
-    - libxml2-dev
-    - libxslt-dev
-    - python3-lxml
+  apt:
+    state: present
+    pkg:
+      - redis-server
+      - python-redis
+      # TODO remove these when lxml is no longer a dependency
+      - libxml2-dev
+      - libxslt-dev
+      - python3-lxml
 
 #################################
 # Copy service files

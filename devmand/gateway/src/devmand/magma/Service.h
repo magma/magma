@@ -28,16 +28,20 @@ class Service : public ::devmand::Service {
   void start() override;
   void wait() override;
   void stop() override;
-  void setGauge(const std::string& key, double value) override;
   void setGauge(
       const std::string& key,
       double value,
-      const std::string& label_name,
-      const std::string& label_value) override;
+      const std::string& labelName,
+      const std::string& labelValue) override;
 
  private:
-  void
-  setGaugeVA(const std::string& key, double value, size_t label_count, ...);
+  void setGaugeVA(const std::string& key, double value, size_t labelCount, ...);
+
+  std::list<std::map<std::string, std::string>> getOperationalStates();
+  std::map<std::string, std::string> getServiceInfo();
+
+  // The key that will tell orc8r how to store these states
+  static constexpr auto orc8rDeviceType = "symphony_device";
 
  private:
   ::magma::service303::MagmaService magmaService;

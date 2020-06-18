@@ -1,6 +1,6 @@
 # Magma
 
-[![Build Status](https://travis-ci.com/facebookincubator/magma.svg?branch=master)](https://travis-ci.com/facebookincubator/magma)
+[![facebookincubator](https://circleci.com/gh/facebookincubator/magma.svg?style=shield)](https://circleci.com/gh/facebookincubator/magma)
 
 Magma is an open-source software platform that gives network operators an open, flexible and extendable mobile core network solution. Magma enables better connectivity by:
 
@@ -25,7 +25,7 @@ Magma has three major components:
 ![Magma architecture diagram](docs/readmes/assets/magma_overview.png?raw=true "Magma Architecture")
 
 ## Usage Docs
-The documentation for developing and using Magma is avaliable at: [https://facebookincubator.github.io/magma](https://facebookincubator.github.io/magma)
+The documentation for developing and using Magma is available at: [https://facebookincubator.github.io/magma](https://facebookincubator.github.io/magma)
 
 ## Join the Magma Community
 

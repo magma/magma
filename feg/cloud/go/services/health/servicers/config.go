@@ -17,12 +17,12 @@ import (
 )
 
 const (
-	defaultCpuUtilThreshold      = 0.90
+	defaultCpuUtilThreshold      = 0.75
 	defaultMemAvailableThreshold = 0.90
 	defaultStaleUpdateThreshold  = 30
 )
 
-var defaultServices = []string{"S6A_PROXY", "SESSION_PROXY"}
+var defaultServices = []string{"SWX_PROXY", "SESSION_PROXY"}
 
 func GetHealthConfigForNetwork(networkID string) *healthConfig {
 	defaultConfig := &healthConfig{

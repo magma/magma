@@ -39,7 +39,6 @@
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
 #include "mme_app_extern.h"
-#include "nas_defs.h"
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
 #include "sgs_defs.h"
@@ -50,11 +49,11 @@
 #include "bstrlib.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "pgw_defs.h"
 #include "service303.h"
 #include "sgw_defs.h"
 #include "shared_ts_log.h"
 #include "spgw_config.h"
+#include "grpc_service.h"
 
 int main(int argc, char *argv[])
 {
@@ -100,15 +99,13 @@ int main(int argc, char *argv[])
   send_app_health_to_service303(TASK_MME_APP, false);
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
-  CHECK_INIT_RETURN(nas_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));
-  CHECK_INIT_RETURN(pgw_init(&spgw_config));
 #else
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
-  CHECK_INIT_RETURN(s1ap_mme_init());
+  CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   //Create SGS Task only if non_eps_service_control is not set to OFF
@@ -119,6 +116,7 @@ int main(int argc, char *argv[])
     CHECK_INIT_RETURN(sgs_init(&mme_config));
     OAILOG_DEBUG(LOG_MME_APP, "SGS Task initialized\n");
   }
+  CHECK_INIT_RETURN(grpc_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW
@@ -133,6 +131,9 @@ int main(int argc, char *argv[])
    * Handle signals here
    */
   itti_wait_tasks_end();
+#if EMBEDDED_SGW
+  free_spgw_config(&spgw_config);
+#endif
   pid_file_unlock();
 
   return 0;

@@ -163,7 +163,8 @@ typedef enum nas_error_code_s {
   AS_TERMINATED_NAS,       /* Transaction terminated by NAS        */
   AS_TERMINATED_AS,        /* Transaction terminated by AS         */
   AS_NON_DELIVERED_DUE_HO, /* Failure code                 */
-  AS_FAILURE /* Failure code, stand also for lower layer failure AS_LOWER_LAYER_FAILURE */
+  AS_FAILURE               /* Failure code, stand also for lower
+                            * layer failure AS_LOWER_LAYER_FAILURE */
 } nas_error_code_t;
 
 /* Core network domain */

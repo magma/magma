@@ -13,65 +13,67 @@ import (
 	"time"
 )
 
-var c Clock = &DefaultClock{}
+var (
+	c clock   = &defaultClock{}
+	s sleeper = &defaultSleep{}
+)
 
-// Now returns the current time or what it's been set to
+// Now returns the current time or the time to which it's been set.
 func Now() time.Time {
-	return c.Now()
+	return c.now()
 }
 
-// SetAndFreezeClock will set the value to be returned by Now()
-// This should only be called by test code (hence the required but unused
-// *testing.T parameter)
+// Sleep either the specified duration or a small, negligible duration.
+func Sleep(d time.Duration) {
+	s.sleep(d)
+}
+
+// Since returns the time elapsed since t, where the current time may have
+// been frozen.
+func Since(t time.Time) time.Duration {
+	return Now().Sub(t)
+}
+
+// SetAndFreezeClock will set the value to be returned by Now.
+// This should only be called by test code.
 func SetAndFreezeClock(t *testing.T, ti time.Time) {
 	if t == nil {
-		panic("nice try")
+		panic("for tests only")
 	}
-	c = &MockClock{mockTime: ti}
+	c = &mockClock{mockTime: ti}
 }
 
-// UnfreezeClock will revert clock.Now()'s behavior to delegating to time.Now()
+// UnfreezeClock will revert clock.Now's behavior to delegating to time.Now.
+// This should only be called by test code.
 func UnfreezeClock(t *testing.T) {
+	r := recover()
 	if t == nil {
-		panic("nice try")
+		panic("for tests only")
 	}
-	c = &DefaultClock{}
-}
-
-// GetUnfreezeClockDeferFunc returns a function which is expected to be
-// deferred in the same context as a call to SetAndFreezeClock.
-// The returned function will, when deferred, always unfreeze the clock, even
-// in the case of a panic in the outer scope.
-// Don't forget to call the returned function!
-// defer GetUnfreezeClockDeferFunc(t)()
-func GetUnfreezeClockDeferFunc(t *testing.T) func() {
-	return func() {
-		r := recover()
-		UnfreezeClock(t)
-		if r != nil {
-			panic(r)
-		}
+	c = &defaultClock{}
+	if r != nil {
+		panic(r)
 	}
 }
 
-// Clock is an interface for getting the current time
-type Clock interface {
-	// Now returns the current time (or what it's been set to)
-	Now() time.Time
+// SkipSleeps causes time.Sleep to sleep for only a small, negligible duration.
+// This should only be called by test code.
+func SkipSleeps(t *testing.T) {
+	if t == nil {
+		panic("for tests only")
+	}
+	s = &mockSleep{}
 }
 
-// DefaultClock is a Clock implementation which wraps time.Now()
-type DefaultClock struct{}
-
-func (d *DefaultClock) Now() time.Time {
-	return time.Now()
-}
-
-// MockClock is a Clock implementation which always returns a fixed time
-type MockClock struct {
-	mockTime time.Time
-}
-
-func (m *MockClock) Now() time.Time {
-	return m.mockTime
+// ResumeSleeps causes time.Sleep to resume default behavior.
+// This should only be called by test code.
+func ResumeSleeps(t *testing.T) {
+	r := recover()
+	if t == nil {
+		panic("for tests only")
+	}
+	s = &defaultSleep{}
+	if r != nil {
+		panic(r)
+	}
 }

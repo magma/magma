@@ -17,9 +17,9 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/gateway_health/health_manager"
 	"magma/feg/gateway/services/session_proxy/relay/mocks"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	"magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -84,7 +84,7 @@ func initTestServices(t *testing.T, mockServiceHealth *MockServiceHealthServicer
 		"configsByKey": {
 			"health": {
    				"@type": "type.googleapis.com/magma.mconfig.GatewayHealthConfig",
-   				"requiredServices": ["S6A_PROXY", "SESSION_PROXY"],
+   				"requiredServices": ["SWX_PROXY", "SESSION_PROXY"],
    				"updateIntervalSecs": 10,
    				"consecutiveFailureThreshold": 3,
    				"cloudDisconnectPeriodSecs": 10,
@@ -97,7 +97,7 @@ func initTestServices(t *testing.T, mockServiceHealth *MockServiceHealthServicer
 		t.Log(err)
 	}
 
-	srv1, lis1 := test_utils.NewTestService(t, registry.ModuleName, registry.S6A_PROXY)
+	srv1, lis1 := test_utils.NewTestService(t, registry.ModuleName, registry.SWX_PROXY)
 	srv2, lis2 := test_utils.NewTestService(t, registry.ModuleName, registry.SESSION_PROXY)
 	srv3, lis3 := test_utils.NewTestService(t, registry.ModuleName, registry.HEALTH)
 

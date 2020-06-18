@@ -9,17 +9,12 @@
 
 log_level: INFO
 rule_update_inteval_sec: 1
-use_proxied_controller: false
-local_controller_port: 9999
 
 # Session manager will report the usage when the usage is greater than
 # usage_reporting_threshold * available quota since last update
 # In this way, session manager will report the usage before the subscriber
 # completely uses up the quota.
 usage_reporting_threshold: 0.8
-
-# Extra number of bytes an user could use after the quota is exhausted
-extra_quota_margin: 0
 
 # Set to true to terminate service when the quota of a session is exhausted.
 # An user can still use up to the extra margin.
@@ -33,3 +28,14 @@ session_force_termination_timeout_ms: 5000
 
 # Set to true to enable sessiond support of carrier wifi
 support_carrier_wifi: false
+
+# CWF only
+# Number of ms before sessiond terminates a session when it is started without
+# quota.
+cwf_quota_exhaustion_termination_on_init_ms: 30000
+
+# Set to true to store session state in Redis for persistence.
+support_stateless: false
+
+# Redis table name for session state.
+sessions_table: sessiond:sessions

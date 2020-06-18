@@ -25,36 +25,70 @@
 extern "C" {
 #endif
 
-#include <stdint.h>
-
 #include "hashtable.h"
-
+#include "mme_config.h"
 #include "s1ap_types.h"
 
-typedef struct s1ap_state_s {
-  // contains eNB_description_s, key is eNB_description_s.enb_id (uint32_t)
-  hash_table_ts_t enbs;
-  // contains sctp association id, key is mme_ue_s1ap_id
-  hash_table_ts_t mmeid2associd;
-  uint32_t num_enbs;
-} s1ap_state_t;
+int s1ap_state_init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
 
-int s1ap_state_init(void);
 void s1ap_state_exit(void);
 
-s1ap_state_t *s1ap_state_get(void);
-void s1ap_state_put(s1ap_state_t *state);
+s1ap_state_t* get_s1ap_state(bool read_from_db);
 
-enb_description_t *s1ap_state_get_enb(
-  s1ap_state_t *state,
+void put_s1ap_state(void);
+
+enb_description_t* s1ap_state_get_enb(
+  s1ap_state_t* state,
   sctp_assoc_id_t assoc_id);
-ue_description_t *s1ap_state_get_ue_enbid(
-  s1ap_state_t *state,
-  enb_description_t *enb,
+
+ue_description_t* s1ap_state_get_ue_enbid(
+  sctp_assoc_id_t sctp_assoc_id,
   enb_ue_s1ap_id_t enb_ue_s1ap_id);
-ue_description_t *s1ap_state_get_ue_mmeid(
-  s1ap_state_t *state,
+
+ue_description_t* s1ap_state_get_ue_mmeid(
   mme_ue_s1ap_id_t mme_ue_s1ap_id);
+
+ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64);
+
+/**
+ * Return unique composite id for S1AP UE context
+ * @param sctp_assoc_id unique SCTP assoc id
+ * @param enb_ue_s1ap_id unique UE s1ap ID on eNB
+ * @return uint64_t of composite id
+ */
+uint64_t s1ap_get_comp_s1ap_id(
+    sctp_assoc_id_t sctp_assoc_id,
+    enb_ue_s1ap_id_t enb_ue_s1ap_id);
+
+/**
+ * Converts s1ap_imsi_map to protobuf and saves it into data store
+ */
+void put_s1ap_imsi_map(void);
+
+/**
+ * @return s1ap_imsi_map_t pointer
+ */
+s1ap_imsi_map_t * get_s1ap_imsi_map(void);
+
+hash_table_ts_t* get_s1ap_ue_state(void);
+
+int read_s1ap_ue_state_db(void);
+
+void put_s1ap_ue_state(imsi64_t imsi64);
+
+void delete_s1ap_ue_state(imsi64_t imsi64);
+
+bool s1ap_ue_compare_by_mme_ue_id_cb(
+  __attribute__((unused)) hash_key_t keyP,
+  void* elementP,
+  void* parameterP,
+  void** resultP);
+
+bool s1ap_ue_compare_by_imsi(
+    __attribute__((unused)) hash_key_t keyP,
+    void* elementP,
+    void* parameterP,
+    void** resultP);
 
 #ifdef __cplusplus
 }

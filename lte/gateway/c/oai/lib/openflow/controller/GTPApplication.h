@@ -33,7 +33,11 @@ namespace openflow {
  */
 class GTPApplication : public Application {
  public:
-  GTPApplication(const std::string &uplink_mac, uint32_t gtp_port_num);
+  GTPApplication(
+    const std::string& uplink_mac,
+    uint32_t gtp_port_num,
+    uint32_t mtr_port_num,
+    uint32_t uplink_port_num);
 
  private:
   /**
@@ -61,7 +65,8 @@ class GTPApplication : public Application {
    */
   void add_downlink_tunnel_flow(
     const AddGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
 
   /*
    * Remove uplink tunnel flow on disconnect
@@ -77,14 +82,16 @@ class GTPApplication : public Application {
    */
   void delete_downlink_tunnel_flow(
     const DeleteGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
   /*
    * Discard downlink data received for UE IP during UE suspended state
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void discard_downlink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
   /*
    * Discard uplink data received for sgw-S1U-teid during UE suspended state
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
@@ -99,15 +106,23 @@ class GTPApplication : public Application {
    */
   void forward_downlink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
   /*
-   * DRemove the rule inserted to discard data for UE in suspended state
+   * Remove the rule inserted to discard data for UE in suspended state
    * And Forward data existing rule
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void forward_uplink_tunnel_flow(
     const HandleDataOnGTPTunnelEvent &ev,
     const OpenflowMessenger &messenger);
+  /*
+   * Convert flow rule precedence to OF flow priority
+   * @param precedence - can be between 0 and DEFAULT_PRECEDENCE
+   *
+   * @return uint32_t flow priority (minimum value set to DEFAULT_PRIORITY)
+   */
+  uint32_t convert_precedence_to_priority(const uint32_t precedence);
 
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
@@ -116,10 +131,14 @@ class GTPApplication : public Application {
 
   const std::string uplink_mac_;
   const uint32_t gtp_port_num_;
+  // Internal port number for monitoring service
+  const uint32_t mtr_port_num_;
   /* cookie is added to identify the rules enforced for the flow controller
    * Initialising with 1
    */
   const uint64_t cookie = 1;
+
+  const uint32_t uplink_port_num_;
 };
 
 } // namespace openflow

@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -28,7 +28,6 @@
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "mme_app_ue_context.h"
-#include "nas_itti_messaging.h"
 #include "esm_recv.h"
 #include "esm_pt.h"
 #include "esm_ebr.h"
@@ -42,10 +41,15 @@
 #include "common_defs.h"
 #include "esm_data.h"
 #include "mme_api.h"
+#include "mme_app_desc.h"
+#include "mme_app_apn_selection.h"
+#include "mme_app_itti_messaging.h"
+#include "mme_app_state.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id,ebi_t ebi);
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -144,11 +148,14 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   emm_context_t *emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_connectivity_request_msg *msg,
-  ebi_t *new_ebi)
+  const pdn_connectivity_request_msg* msg,
+  ebi_t* new_ebi,
+  bool is_standalone)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  int rc = RETURNerror;
   int esm_cause = ESM_CAUSE_SUCCESS;
+  pdn_cid_t pdn_cid = 0;
   mme_ue_s1ap_id_t ue_id =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
@@ -156,7 +163,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-SAP   - Received PDN Connectivity Request message "
-    "(ue_id=%u, pti=%d, ebi=%d)\n",
+    "(ue_id= " MME_UE_S1AP_ID_FMT ", pti=%u, ebi=%u)\n",
     ue_id,
     pti,
     ebi);
@@ -340,36 +347,88 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         ue_id);
   }
 
-#if ORIGINAL_CODE
-  /*
-   * Execute the PDN connectivity procedure requested by the UE
-   */
-  int pid = esm_proc_pdn_connectivity_request(
-    emm_context,
-    pti,
-    request_type,
-    &esm_data->apn,
-    esm_data->pdn_type,
-    &esm_data->pdn_addr,
-    &esm_data->qos,
-    &esm_cause);
-
-  if (pid != RETURNerror) {
+  if (is_standalone) {
+    ue_mm_context_t* ue_mm_context_p =
+      mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+    //Select APN
+    struct apn_configuration_s* apn_config = mme_app_select_apn(
+      ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
     /*
-     * Create local default EPS bearer context
+     * Execute the PDN connectivity procedure requested by the UE
      */
-    int rc = esm_proc_default_eps_bearer_context(
-      emm_ctx, pid, new_ebi, &esm_data->qos, &esm_cause);
+    if (!apn_config) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
+    }
+
+    /* Find a free PDN Connection ID*/
+    for (pdn_cid = 0; pdn_cid < MAX_APN_PER_UE; pdn_cid++) {
+      if (!ue_mm_context_p->pdn_contexts[pdn_cid]) break;
+    }
+
+    if (pdn_cid >= MAX_APN_PER_UE) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot find free pdn_cid for ue id" MME_UE_S1AP_ID_FMT
+        "\n",
+        ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INSUFFICIENT_RESOURCES);
+    }
+    // Update pdn connection id
+    emm_context->esm_ctx.esm_proc_data->pdn_cid = pdn_cid;
+
+    // Update qci
+    esm_data->bearer_qos.qci = apn_config->subscribed_qos.qci;
+    rc = esm_proc_pdn_connectivity_request(
+      emm_context,
+      pti,
+      pdn_cid,
+      apn_config->context_identifier,
+      emm_context->esm_ctx.esm_proc_data->request_type,
+      esm_data->apn,
+      esm_data->pdn_type,
+      esm_data->pdn_addr,
+      &esm_data->bearer_qos,
+      (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
+        &emm_context->esm_ctx.esm_proc_data->pco :
+        NULL,
+      &esm_cause);
 
     if (rc != RETURNerror) {
-      esm_cause = ESM_CAUSE_SUCCESS;
+      /*
+       * Create local default EPS bearer context
+       */
+      rc = esm_proc_default_eps_bearer_context(
+        emm_context,
+        pti,
+        pdn_cid,
+        new_ebi,
+        esm_data->bearer_qos.qci,
+        &esm_cause);
+
+      if (rc != RETURNerror) {
+        esm_cause = ESM_CAUSE_SUCCESS;
+      }
     }
+    //Send PDN Connectivity req
+    OAILOG_INFO(
+      LOG_NAS_ESM,
+      "ESM-PROC - Sending pdn_connectivity_req to MME APP for ue %d",
+      ue_id);
+
+    emm_context->esm_ctx.is_standalone = true;
+
+    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    mme_app_send_s11_create_session_req(
+      mme_app_desc_p, ue_mm_context_p, pdn_cid);
+  } else {
+    mme_app_send_s6a_update_location_req(
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
+    esm_cause = ESM_CAUSE_SUCCESS;
   }
-#else
-  nas_itti_pdn_config_req(
-    pti, ue_id, &emm_context->_imsi, esm_data, esm_data->request_type);
-  esm_cause = ESM_CAUSE_SUCCESS;
-#endif
   /*
    * Return the ESM cause value
    */
@@ -397,23 +456,29 @@ esm_cause_t esm_recv_pdn_connectivity_request(
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_pdn_disconnect_request(
-  emm_context_t *emm_context,
+  emm_context_t* emm_context,
   proc_tid_t pti,
   ebi_t ebi,
-  const pdn_disconnect_request_msg *msg,
-  ebi_t *linked_ebi)
+  const pdn_disconnect_request_msg* msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
+  pdn_cid_t pid = MAX_APN_PER_UE;
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-      ->mme_ue_s1ap_id;
+  ue_mm_context_t* ue_mm_context_p = NULL;
+  ue_mm_context_p =
+    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+
+  if (!ue_mm_context_p) {
+    OAILOG_WARNING(
+      LOG_NAS_ESM, "Failed to find ue context from emm context \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
 
   OAILOG_INFO(
     LOG_NAS_ESM,
-    "ESM-SAP   - Received PDN Disconnect Request message "
-    "(ue_id=%d, pti=%d, ebi=%d)\n",
-    ue_id,
+    "ESM-SAP   - Received PDN Disconnect Request message for "
+    "ue_id " MME_UE_S1AP_ID_FMT ", pti=%u, ebi=%u)\n",
+    ue_mm_context_p->mme_ue_s1ap_id,
     pti,
     ebi);
 
@@ -442,31 +507,61 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
+  /* Send PDN disconnect reject if there is only one PDN connection*/
+  if (emm_context->esm_ctx.n_pdns == 1) {
+    OAILOG_FUNC_RETURN(
+      LOG_NAS_ESM, ESM_CAUSE_LAST_PDN_DISCONNECTION_NOT_ALLOWED);
+  }
   /*
    * Message processing
    */
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
-  int pid = esm_proc_pdn_disconnect_request(emm_context, pti, &esm_cause);
+  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
+  esm_data->pti = pti;
 
-  if (pid != RETURNerror) {
-    /*
-     * Get the identity of the default EPS bearer context assigned to
-     * * * * the PDN connection to disconnect from
-     */
-    *linked_ebi = msg->linkedepsbeareridentity;
-    /*
-     * Release the associated default EPS bearer context
-     */
-    int bid = 0;
-    int rc = esm_proc_eps_bearer_context_deactivate(
-      emm_context, false, *linked_ebi, &pid, &bid, &esm_cause);
-
-    if (rc != RETURNerror) {
-      esm_cause = ESM_CAUSE_SUCCESS;
+  if (ue_mm_context_p
+        ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]) {
+    pid = ue_mm_context_p
+            ->bearer_contexts[EBI_TO_INDEX(msg->linkedepsbeareridentity)]
+            ->pdn_cx_id;
+    if (pid >= MAX_APN_PER_UE) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - No PDN connection found (lbi=%u)\n",
+        msg->linkedepsbeareridentity);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
     }
+    // Check if the LBI received matches with the default bearer ID
+    if (
+      msg->linkedepsbeareridentity !=
+      ue_mm_context_p->pdn_contexts[pid]->default_ebi) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Cannot perform PDN disconnect for dedicated bearer "
+        "(lbi=%u)\n",
+        msg->linkedepsbeareridentity);
+
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
+    }
+  } else {
+    OAILOG_ERROR(
+      LOG_NAS_ESM,
+      "ESM-PROC  - No bearer context found, invalid bearer id (lbi=%u)\n",
+      msg->linkedepsbeareridentity);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
+
+  OAILOG_INFO(
+    LOG_NAS_ESM,
+    "ESM-SAP   - Sending Delete session req message "
+    "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
+    ue_mm_context_p->mme_ue_s1ap_id,
+    pid,
+    msg->linkedepsbeareridentity);
+  mme_app_send_delete_session_request(
+    ue_mm_context_p, msg->linkedepsbeareridentity, pid);
 
   /*
    * Return the ESM cause value
@@ -533,15 +628,11 @@ esm_cause_t esm_recv_information_response(
     &msg->protocolconfigurationoptions,
     &esm_cause);
 
+  bdestroy_wrapper((bstring*) &msg->accesspointname);
   if (pid != RETURNerror) {
-    // Continue with pdn connectivity request
-    nas_itti_pdn_config_req(
-      pti,
-      ue_id,
-      &emm_context->_imsi,
-      emm_context->esm_ctx.esm_proc_data,
-      emm_context->esm_ctx.esm_proc_data->request_type);
-
+    // Continue with S6a Update Location Request
+    mme_app_send_s6a_update_location_req(
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context));
     esm_cause = ESM_CAUSE_SUCCESS;
   }
 
@@ -627,10 +718,24 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
   int rc =
     esm_proc_default_eps_bearer_context_accept(emm_context, ebi, &esm_cause);
 
-  if (rc != RETURNerror) {
-    esm_cause = ESM_CAUSE_SUCCESS;
+  if (rc != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
   }
-
+  /* If activate default EPS bearer context accept message is received for a
+   * new standalone PDN connection, send modify bearer request to sgw
+   */
+  if (emm_context->esm_ctx.is_standalone == true) {
+    emm_context->esm_ctx.is_standalone = false;
+    rc = send_modify_bearer_req(ue_id, ebi);
+    if (rc != RETURNok) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
+        "\n",
+        ebi);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
+    }
+  }
   /*
    * Return the ESM cause value
    */
@@ -757,7 +862,7 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_accept(
   OAILOG_INFO(
     LOG_NAS_ESM,
     "ESM-SAP   - Received Activate Dedicated EPS Bearer "
-    "Context Accept message (ue_id=%d, pti=%d, ebi=%d)\n",
+    "Context Accept message (ue_id="MME_UE_S1AP_ID_FMT", pti=%d, ebi=%d)\n",
     ue_id,
     pti,
     ebi);
@@ -835,7 +940,6 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
   const activate_dedicated_eps_bearer_context_reject_msg *msg)
 {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   mme_ue_s1ap_id_t ue_id =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
       ->mme_ue_s1ap_id;
@@ -883,16 +987,13 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
    * * * *  accepted by the UE
    */
   int rc =
-    esm_proc_dedicated_eps_bearer_context_reject(emm_context, ebi, &esm_cause);
+    esm_proc_dedicated_eps_bearer_context_reject(emm_context, ebi);
 
-  if (rc != RETURNerror) {
-    esm_cause = ESM_CAUSE_SUCCESS;
+  if (rc != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
   }
 
-  /*
-   * Return the ESM cause value
-   */
-  OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+  OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_SUCCESS);
 }
 
 /****************************************************************************

@@ -1,0 +1,12 @@
+query EquipmentTypeAndPropertiesQuery($id: ID!) {
+  equipment: node(id: $id) {
+    ... on Equipment {
+      equipmentType {
+        name
+      }
+      properties {
+        ...PropertyFragment
+      }
+    }
+  }
+}

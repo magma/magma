@@ -52,7 +52,8 @@ int libgtpnl_init(
   uint32_t mask,
   int mtu,
   int *fd0,
-  int *fd1u)
+  int *fd1u,
+  bool persist_state)
 {
   // we don't need GTP v0, but interface with kernel requires 2 file descriptors
   *fd0 = socket(AF_INET, SOCK_DGRAM, 0);
@@ -222,12 +223,21 @@ int libgtpnl_del_tunnel(
   return ret;
 }
 
+/**
+ * Send packet marker to enodeB @enb for tunnel @tei.
+ */
+int libgtpnl_send_end_marker(struct in_addr enb, uint32_t tei)
+{
+  return -EOPNOTSUPP;
+}
+
 static const struct gtp_tunnel_ops libgtpnl_ops = {
   .init = libgtpnl_init,
   .uninit = libgtpnl_uninit,
   .reset = libgtpnl_reset,
   .add_tunnel = libgtpnl_add_tunnel,
   .del_tunnel = libgtpnl_del_tunnel,
+  .send_end_marker = libgtpnl_send_end_marker,
 };
 
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_libgtpnl(void)

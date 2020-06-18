@@ -33,10 +33,20 @@ magma-gen-meta:
       filename: enodeb_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: SubscriberID
+      filename: subscriber_id_swaggergen.go
+    - go-struct-name: PolicyID
+      filename: policy_id_swaggergen.go
     - go-struct-name: Subscriber
       filename: subscriber_swaggergen.go
     - go-struct-name: LteSubscription
       filename: lte_subscription_swaggergen.go
+    - go-struct-name: SubscriberStatus
+      filename: subscriber_status_swaggergen.go
+    - go-struct-name: IcmpStatus
+      filename: icmp_status_swaggergen.go
+    - go-struct-name: MutableSubscriber
+      filename: mutable_subscriber_swaggergen.go
     - go-struct-name: EnodebState
       filename: enodeb_state_swaggergen.go
     - go-struct-name: SubProfile
@@ -49,16 +59,34 @@ magma-gen-meta:
       filename: flow_qos_swaggergen.go
     - go-struct-name: PolicyRule
       filename: policy_rule_swaggergen.go
+    - go-struct-name: PolicyRuleConfig
+      filename: policy_rule_config_swaggergen.go
     - go-struct-name: RedirectInformation
       filename: redirect_information_swaggergen.go
     - go-struct-name: BaseNameRecord
       filename: base_name_record_swaggergen.go
     - go-struct-name: BaseName
       filename: base_name_swaggergen.go
+    - go-struct-name: BaseNames
+      filename: base_names_swaggergen.go
+    - go-struct-name: NetworkSubscriberConfig
+      filename: network_subscriber_config_swaggergen.go
     - go-struct-name: RuleID
       filename: rule_id_swaggergen.go
     - go-struct-name: RuleNames
       filename: rule_names_swaggergen.go
+    - go-struct-name: RatingGroup
+      filename: rating_group_swaggergen.go
+    - go-struct-name: AggregatedMaximumBitrate
+      filename: aggregated_maximum_bitrate_swaggergen.go
+    - go-struct-name: QoSProfile
+      filename: qos_profile_swaggergen.go
+    - go-struct-name: APNConfiguration
+      filename: apn_configuration_swaggergen.go
+    - go-struct-name: APNName
+      filename: apn_name_swaggergen.go
+    - go-struct-name: APN
+      filename: apn_swaggergen.go
 
 info:
   title: LTE Network Management
@@ -76,6 +104,8 @@ tags:
     description: Endpoints related to LTE gateway management
   - name: Policies
     description: Endpoints related to network policy management
+  - name: Rating Groups
+    description: Endpoints related to rating group management
 
 paths:
   /lte:
@@ -343,6 +373,154 @@ paths:
           schema:
             type: string
             example: feg_network
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: '#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: '#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: '#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: '#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: '#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: '#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+        - LTE Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
       responses:
         '204':
           description: Success
@@ -1080,6 +1258,86 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/apns:
+    get:
+      summary: List APNs in the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of all the APNs in the network
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/apn'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new APN to the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: apn
+          description: New APN configuration
+          required: true
+          schema:
+            $ref: '#/definitions/apn'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/apns/{apn_name}:
+    get:
+      summary: Retrieve the APN info
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/apn_name'
+      responses:
+        '200':
+          description: APN Info
+          schema:
+            $ref: '#/definitions/apn'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an existing APN in the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/apn_name'
+        - in: body
+          name: apn
+          description: New APN configuration
+          required: true
+          schema:
+            $ref: '#/definitions/apn'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove an APN from the network
+      tags:
+        - APNs
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/apn_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/subscribers:
     get:
       summary: List subscribers in the network
@@ -1107,7 +1365,7 @@ paths:
           description: Subscriber that needs to be added
           required: true
           schema:
-            $ref: '#/definitions/subscriber'
+            $ref: '#/definitions/mutable_subscriber'
       responses:
         '201':
           description: Success
@@ -1141,7 +1399,7 @@ paths:
           description: Subscriber Info
           required: true
           schema:
-            $ref: '#/definitions/subscriber'
+            $ref: '#/definitions/mutable_subscriber'
       responses:
         '204':
           description: Success
@@ -1208,6 +1466,88 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/rating_groups:
+    get:
+      summary: List rating groups
+      tags:
+        - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List all rating groups
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/rating_group'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new rating group
+      tags:
+        - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: Rating Group
+          description: Rating group to add
+          required: true
+          schema:
+            $ref: '#/definitions/rating_group'
+      responses:
+        '201':
+          description: Rating group id
+          schema:
+            $ref: '#/definitions/rating_group_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/rating_groups/{rating_group_id}:
+    get:
+      summary: Get rating group
+      tags:
+      - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rating_group_id'
+      responses:
+        '200':
+          description: Rating group on success
+          schema:
+            $ref: '#/definitions/rating_group'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Modify a rating group
+      tags:
+      - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rating_group_id'
+        - in: body
+          name: Rating group
+          description: Rating group
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_rating_group'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a rating group
+      tags:
+        - Rating Groups
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/rating_group_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/policies/rules:
     get:
       summary: List policy rules
@@ -1217,7 +1557,7 @@ paths:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of policy rules
+          description: List all policy rule IDs
           schema:
             type: array
             items:
@@ -1229,18 +1569,35 @@ paths:
       tags:
         - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - in: body
-        name: Policy rule
-        description: Policy rule to add
-        required: true
-        schema:
-          $ref: '#/definitions/policy_rule'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: Policy rule
+          description: Policy rule to add
+          required: true
+          schema:
+            $ref: '#/definitions/policy_rule'
       responses:
         '201':
           description: Rule id
           schema:
             $ref: '#/definitions/rule_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/policies/rules?view=full:
+    get:
+      summary: Get all policy rules
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Map of all policy rules for the network by rule ID
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/policy_rule'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -1299,23 +1656,25 @@ paths:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
         '200':
-          description: List of Charging Rule Base Names
+          description: List of all base names
           schema:
-            $ref: '#/definitions/rule_names'
+            type: array
+            items:
+              $ref: '#/definitions/base_name'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     post:
       summary: Create Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - in: body
-        name: Charging Rule Base Name
-        description: Charging Rule Base Name to add
-        required: true
-        schema:
-          $ref: '#/definitions/base_name_record'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: base_name_record
+          description: Charging Rule Base Name to add
+          required: true
+          schema:
+            $ref: '#/definitions/base_name_record'
       responses:
         '201':
           description: Charging Rule Base Name
@@ -1324,34 +1683,51 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/policies/base_names?view=full:
+    get:
+      summary: Get all base names
+      tags:
+        - Policies
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Map of all base names in the network by name
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/base_name_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /networks/{network_id}/policies/base_names/{base_name}:
     get:
       summary: Get Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: '#/parameters/base_name'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
       responses:
         '200':
           description: Charging Rule Base Name on success
           schema:
-            $ref: '#/definitions/rule_names'
+            $ref: '#/definitions/base_name_record'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
       summary: Modify a Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: '#/parameters/base_name'
-      - in: body
-        name: Charging Rule Base Name
-        description: Charging Rule Base Name
-        required: true
-        schema:
-          $ref: '#/definitions/rule_names'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
+        - in: body
+          name: base_name_record
+          description: Charging Rule Base Name
+          required: true
+          schema:
+            $ref: '#/definitions/base_name_record'
       responses:
         '204':
           description: Success
@@ -1360,10 +1736,10 @@ paths:
     delete:
       summary: Delete a Charging Rule Base Name
       tags:
-      - Policies
+        - Policies
       parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: '#/parameters/base_name'
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/base_name'
       responses:
         '204':
           description: Success
@@ -1392,10 +1768,25 @@ parameters:
     required: true
     type: string
 
+  rating_group_id:
+    in: path
+    name: rating_group_id
+    description: Rating Group Id
+    required: true
+    type: integer
+    format: uint32
+
   base_name:
     in: path
     name: base_name
     description: Charging Rule Base Name
+    required: true
+    type: string
+
+  apn_name:
+    in: path
+    name: apn_name
+    description: Access Point Name
     required: true
     type: string
 
@@ -1422,6 +1813,17 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+        $ref: '#/definitions/network_subscriber_config'
+
+  network_subscriber_config:
+    description: Network-wide Subscriber Configuration
+    type: object
+    properties:
+      network_wide_base_names:
+        $ref: '#/definitions/base_names'
+      network_wide_rule_names:
+        $ref: '#/definitions/rule_names'
 
   network_cellular_configs:
     description: Cellular configuration for a network
@@ -1588,12 +1990,9 @@ definitions:
         items:
           type: string
           enum:
-            - 'metering'
             - 'dpi'
             - 'policy_enforcement'
         example:
-          - 'metering'
-          - 'dpi'
           - 'policy_enforcement'
       mobility:
         type: object
@@ -1752,6 +2151,16 @@ definitions:
         maxLength: 49
         x-nullable: false
         example: '192.168.128.0/24'
+      dns_primary:
+        type: string
+        minLength: 5
+        maxLength: 45
+        example: '8.8.8.8'
+      dns_secondary:
+        type: string
+        minLength: 5
+        maxLength: 45
+        example: '8.8.4.4'
 
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway
@@ -1823,6 +2232,9 @@ definitions:
         minLength: 1
         x-nullable: false
         example: Foobar EnodeB
+      description:
+        type: string
+        example: "Description of this radio"
       config:
         $ref: '#/definitions/enodeb_configuration'
       attached_gateway_id:
@@ -1895,6 +2307,18 @@ definitions:
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
 
+  subscriber_id:
+    type: string
+    pattern: '^(IMSI\d{10,15})$'
+    example: IMSI208950000000010
+    x-nullable: false
+
+  base_names:
+    type: array
+    description: 'List of base names'
+    items:
+       $ref: '#/definitions/base_name'
+
   subscriber:
     type: object
     required:
@@ -1902,12 +2326,63 @@ definitions:
       - lte
     properties:
       id:
-        type: string
-        pattern: '^(IMSI\d{10,15})$'
-        example: IMSI208950000000010
-        x-nullable: false
+        $ref: '#/definitions/subscriber_id'
       lte:
         $ref: '#/definitions/lte_subscription'
+      active_base_names:
+        type: array
+        items:
+          $ref: '#/definitions/base_name'
+        x-omitempty: true
+        description: 'Base names which are active for this subscriber'
+        example:
+          - 'base_name_1'
+          - 'base_name_2'
+      active_policies:
+        type: array
+        items:
+          $ref: '#/definitions/policy_id'
+        x-omitempty: true
+        description: 'Policies which are active for this subscriber'
+        example:
+          - 'rule1'
+          - 'rule2'
+      active_apns:
+        $ref: '#/definitions/apn_list'
+      monitoring:
+        $ref: '#/definitions/subscriber_status'
+
+  mutable_subscriber:
+    description: Subset of subscriber field which are mutable
+    type: object
+    required:
+      - id
+      - lte
+    properties:
+      id:
+        $ref: '#/definitions/subscriber_id'
+      lte:
+        $ref: '#/definitions/lte_subscription'
+      active_base_names:
+        type: array
+        items:
+          $ref: '#/definitions/base_name'
+        x-omitempty: true
+        description: 'Base names which are active for this subscriber'
+        example:
+          - 'base_name_1'
+          - 'base_name_2'
+      active_policies:
+        type: array
+        items:
+          $ref: '#/definitions/policy_id'
+        x-omitempty: true
+        description: 'Policies which are active for this subscriber'
+        example:
+          - 'rule1'
+          - 'rule2'
+      active_apns:
+        $ref: '#/definitions/apn_list'
 
   lte_subscription:
     type: object
@@ -1944,6 +2419,27 @@ definitions:
     type: string
     minLength: 1
     example: 'default'
+
+  subscriber_status:
+    type: object
+    description: Status of a subscriber device
+    properties:
+      icmp:
+        $ref: '#/definitions/icmp_status'
+
+  icmp_status:
+    type: object
+    description: ICMP status of a subscriber device
+    required:
+      - latency_ms
+    properties:
+      latency_ms:
+        type: number
+        format: float
+        example: 12.34
+      last_reported_time:
+        type: integer
+        format: int64
 
   enodeb_state:
     description: Single Enodeb State
@@ -1998,6 +2494,13 @@ definitions:
     x-nullable: false
     example: All ICMP
 
+  rating_group_id:
+    # A unique human readable identifier for labeling a policy rule
+    type: integer
+    format: uint32
+    x-nullable: false
+    example: 1
+
   flow_description:
     type: object
     required:
@@ -2048,6 +2551,11 @@ definitions:
       server_address:
         type: string
 
+  policy_id:
+    type: string
+    minLength: 1
+    example: 'All ICMP'
+
   policy_rule:
     # A traffic match template and a identifier that is
     # used to labelling usage records
@@ -2058,9 +2566,85 @@ definitions:
       - priority
     properties:
       id:
+        $ref: '#/definitions/policy_id'
+      flow_list:
+        type: array
+        items:
+          $ref: '#/definitions/flow_description'
+      priority:
+        type: integer
+        format: uint32
+        default: 10
+      rating_group:
+        type: integer
+        format: uint32
+      monitoring_key:
         type: string
-        example: 'All ICMP'
-        x-go-custom-tag: 'magma_alt_name:"Id"'
+        example: 'SGVsbG8gV29ybGQ='
+      tracking_type:
+        type: string
+        enum:
+          - ONLY_OCS
+          - ONLY_PCRF
+          - OCS_AND_PCRF
+          - NO_TRACKING
+      app_name:
+        type: string
+        enum:
+          - NO_APP_NAME
+          - FACEBOOK
+          - FACEBOOK_MESSENGER
+          - INSTAGRAM
+          - YOUTUBE
+          - GOOGLE
+          - GMAIL
+          - GOOGLE_DOCS
+          - NETFLIX
+          - APPLE
+          - MICROSOFT
+          - REDDIT
+          - WHATSAPP
+          - GOOGLE_PLAY
+          - APPSTORE
+          - AMAZON
+          - WECHAT
+          - TIKTOK
+          - TWITTER
+          - WIKIPEDIA
+          - GOOGLE_MAPS
+          - YAHOO
+          - IMO
+      app_service_type:
+        type: string
+        enum:
+          - NO_SERVICE_TYPE
+          - CHAT
+          - AUDIO
+          - VIDEO
+      qos:
+        $ref: '#/definitions/flow_qos'
+      redirect:
+        $ref: '#/definitions/redirect_information'
+      assigned_subscribers:
+        type: array
+        items:
+          $ref: '#/definitions/subscriber_id'
+        x-omitempty: true
+        description: Subscribers which have been assigned this policy not as part of a base name
+        example:
+          - IMSI1234567890
+          - IMSI0987654321
+
+  # This should be kept in sync with the policy rule above, we use this as the
+  # config type which is stored on the backend for policy rules.
+  # But for API backwards-compatibility, we can't nest this struct in the
+  # top-level policy rule
+  policy_rule_config:
+    type: object
+    required:
+      - flow_list
+      - priority
+    properties:
       flow_list:
         type: array
         items:
@@ -2077,25 +2661,88 @@ definitions:
       tracking_type:
         type: string
         enum:
-        - ONLY_OCS
-        - ONLY_PCRF
-        - OCS_AND_PCRF
-        - NO_TRACKING
+          - ONLY_OCS
+          - ONLY_PCRF
+          - OCS_AND_PCRF
+          - NO_TRACKING
+      app_name:
+        type: string
+        enum:
+          - NO_APP_NAME
+          - FACEBOOK
+          - FACEBOOK_MESSENGER
+          - INSTAGRAM
+          - YOUTUBE
+          - GOOGLE
+          - GMAIL
+          - GOOGLE_DOCS
+          - NETFLIX
+          - APPLE
+          - MICROSOFT
+          - REDDIT
+          - WHATSAPP
+          - GOOGLE_PLAY
+          - APPSTORE
+          - AMAZON
+          - WECHAT
+          - TIKTOK
+          - TWITTER
+          - WIKIPEDIA
+          - GOOGLE_MAPS
+          - YAHOO
+          - IMO
+      app_service_type:
+        type: string
+        enum:
+          - NO_SERVICE_TYPE
+          - CHAT
+          - AUDIO
+          - VIDEO
       qos:
         $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
 
+  rating_group:
+    type: object
+    required:
+      - id
+      - limit_type
+    properties:
+      id:
+        $ref: '#/definitions/rating_group_id'
+      limit_type:
+        type: string
+        enum:
+          - FINITE
+          - INFINITE_UNMETERED
+          - INFINITE_METERED
+
+  mutable_rating_group:
+    type: object
+    required:
+      - limit_type
+    properties:
+      limit_type:
+        type: string
+        enum:
+          - FINITE
+          - INFINITE_UNMETERED
+          - INFINITE_METERED
+
   base_name:
     type: string
     minLength: 1
     x-nullable: false
+    example: "base_1"
 
   rule_names:
     type: array
+    description: 'List of rule names'
     items:
       type: string
       x-nullable: false
+      example: "rule_1"
 
   base_name_record:
     type: object
@@ -2107,6 +2754,15 @@ definitions:
         $ref: '#/definitions/base_name'
       rule_names:
         $ref: '#/definitions/rule_names'
+      assigned_subscribers:
+        type: array
+        items:
+          $ref: '#/definitions/subscriber_id'
+        x-omitempty: true
+        description: Subscribers which have been assigned this policy base name
+        example:
+          - IMSI1234567890
+          - IMSI0987654321
 
   flow_match:
     # A template for matching traffic to meter
@@ -2154,3 +2810,90 @@ definitions:
         enum:
         - UPLINK
         - DOWNLINK
+
+  aggregated_maximum_bitrate:
+    type: object
+    required:
+      - max_bandwidth_ul
+      - max_bandwidth_dl
+    properties:
+      max_bandwidth_ul:
+        type: integer
+        format: uint32
+        example: 10000000
+      max_bandwidth_dl:
+        type: integer
+        format: uint32
+        example: 20000000
+
+  qos_profile:
+    type: object
+    properties:
+      class_id:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 255
+        example: 9
+        default: 9
+        x-go-custom-tag: 'magma_alt_name:"QCI"'
+      priority_level:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 15
+        example: 15
+        default: 15
+      preemption_capability:
+        type: boolean
+        example: true
+        default: true
+      preemption_vulnerability:
+        type: boolean
+        example: false
+        default: false
+
+  apn_configuration:
+    # APN configuration for the default service
+    # that APN provides
+    type: object
+    required:
+      - ambr
+      - qos_profile
+    properties:
+      ambr:
+        $ref: '#/definitions/aggregated_maximum_bitrate'
+      qos_profile:
+        $ref: '#/definitions/qos_profile'
+
+  apn_name:
+    type: string
+    x-nullable: false
+    example: "inet"
+    x-go-custom-tag: 'magma_alt_name:"service_selection"'
+
+  apn_list:
+    type: array
+    description: 'APNs that are allowed for this subscriber'
+    items:
+      type: string
+      x-nullable: false
+      example: 'internet'
+    x-omitempty: true
+    example:
+      - 'internet'
+      - 'ims'
+
+  apn:
+    # A template for configuring APN with string name
+    # used as key and rest of the parameters are packed
+    # as APN configuration
+    type: object
+    required:
+      - apn_name
+      - apn_configuration
+    properties:
+      apn_name:
+        $ref: '#/definitions/apn_name'
+      apn_configuration:
+        $ref: '#/definitions/apn_configuration'

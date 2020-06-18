@@ -21,30 +21,18 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include <assertions.h>
-#include <common_defs.h>
-#include <cstdlib>
-#include <dynamic_memory_check.h>
-
-#ifdef __cplusplus
-}
-#endif
-
-#include <cpp_redis/cpp_redis>
-
-#include "ServiceConfigLoader.h"
+#include "state_manager.h"
 #include "spgw_state.h"
 #include "spgw_state_converter.h"
 
-#define SGW_STATE_CONTEXT_HT_MAX_SIZE 512
-#define SGW_S11_TEID_MME_HT_NAME "sgw_s11_teid2mme_htbl"
-#define S11_BEARER_CONTEXT_INFO_HT_NAME "s11_bearer_context_information_htbl"
-#define MAX_PREDEFINED_PCC_RULES_HT_SIZE 32
-#define SPGW_STATE_TABLE_NAME "spgw_state"
+namespace {
+constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
+constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
+constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
+  "s11_bearer_context_information_htbl";
+constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
+constexpr char SPGW_TASK_NAME[] = "SPGW";
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -54,8 +42,14 @@ namespace lte {
  * that contains functions to maintain SGW and PGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SpgwStateManager {
-public:
+class SpgwStateManager :
+  public StateManager<
+    spgw_state_t,
+    s_plus_p_gw_eps_bearer_context_information_t,
+    oai::SpgwState,
+    oai::S11BearerContext,
+    SpgwStateConverter> {
+ public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
    * initialized only once.
@@ -78,50 +72,23 @@ public:
   SpgwStateManager& operator=(SpgwStateManager const&) = delete;
 
   /**
-   * @param read_from_db used for debugging, to enable read from db on every message
-   * processing
-   * @return A pointer to spgw_state_cache
-   */
-  spgw_state_t* get_spgw_state(bool read_from_db);
-
-  /**
    * Frees all memory allocated on spgw_state_t.
    */
-  void free_spgw_state();
+  void free_state() override;
 
-  /**
-   * Initializes a connection to redis datastore.
-   * @param addr IP address on which redis db is running
-   * @return response code of success / error with db connection
-   */
-  int init_db_connection(const std::string& addr);
-
-  int read_state_from_db();
-  void write_state_to_db();
+  int read_ue_state_from_db() override;
 
  private:
   SpgwStateManager();
-  ~SpgwStateManager() = default;
+  ~SpgwStateManager();
 
   /**
    * Allocates a new spgw_state_t struct, and inits hashtables and state
    * structs to default values.
-   * @param config pointer to spgw_config
-   * @return spgw_state pointer
    */
-  spgw_state_t* create_spgw_state();
+  void create_state() override;
 
-  // Flag for check asserting if the state has been initialized.
-  bool is_initialized_;
-  // Flag for check asserting that write should be done after read.
-  // TODO: Convert this to state versioning variable
-  bool state_dirty_;
-  // Flag for enabling writing and reading to db.
-  bool persist_state_;
-  // TODO: Make this a unique_ptr
-  spgw_state_t* spgw_state_cache_p_;
   const spgw_config_t* config_;
-  std::unique_ptr<cpp_redis::client> db_client_;
 };
 
 } // namespace lte

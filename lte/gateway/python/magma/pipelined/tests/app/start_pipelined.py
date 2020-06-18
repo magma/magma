@@ -15,7 +15,8 @@ from collections import namedtuple
 from concurrent.futures import Future
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper
-from magma.pipelined.app.base import MagmaController
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
+from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.tests.app.exceptions import ServiceRunningError,\
     BadConfigError
 
@@ -56,6 +57,12 @@ class PipelinedController(Enum):
     InOut = Controller(
         'magma.pipelined.app.inout', 'inout'
     )
+    Arp = Controller(
+        'magma.pipelined.app.arp', 'arpd'
+    )
+    GY = Controller(
+        'magma.pipelined.app.gy', 'gy'
+    )
     Enforcement = Controller(
         'magma.pipelined.app.enforcement', 'enforcement'
     )
@@ -65,23 +72,35 @@ class PipelinedController(Enum):
     Testing = Controller(
         'magma.pipelined.app.testing', 'testing'
     )
-    Meter = Controller(
-        'magma.pipelined.app.meter', 'meter'
-    )
-    MeterStats = Controller(
-        'magma.pipelined.app.meter_stats', 'meter_stats'
-    )
     AccessControl = Controller(
         'magma.pipelined.app.access_control', 'access_control'
-    )
-    Subscriber = Controller(
-        'magma.pipelined.app.subscriber', 'subscriber'
     )
     UEMac = Controller(
         'magma.pipelined.app.ue_mac', 'ue_mac'
     )
+    TunnelLearnController = Controller(
+        'magma.pipelined.app.tunnel_learn', 'tunnel_learn'
+    )
+    VlanLearn = Controller(
+        'magma.pipelined.app.vlan_learn', 'vlan_learn'
+    )
+    CheckQuotaController = Controller(
+        'magma.pipelined.app.check_quota', 'check_quota'
+    )
+    IPFIX = Controller(
+        'magma.pipelined.app.ipfix', 'ipfix'
+    )
+    LIMirror = Controller(
+        'magma.pipelined.app.li_mirror', 'li_mirror'
+    )
     PacketTracer = Controller(
         'magma.pipelined.app.packet_tracer', 'packet_tracer'
+    )
+    StartupFlows = Controller(
+        'magma.pipelined.app.startup_flows', 'startup_flows'
+    )
+    DPI = Controller(
+        'magma.pipelined.app.dpi', 'dpi'
     )
 
 
@@ -113,20 +132,6 @@ def assert_pipelined_not_running():
         )
 
 
-def assert_valid_test_setup_config(test_setup):
-    """
-    Verify the TestSetup config. If TestSetup is Invalid throw an exception.
-
-    Checks that references are also present in apps
-    Checks that apps and references don't have duplicates
-    """
-    for ref in test_setup.references:
-        if ref not in test_setup.apps:
-            raise BadConfigError("TestSetup reference %s not in apps" % ref)
-    if (len(test_setup.apps) != len(set(test_setup.apps))):
-        raise BadConfigError("TestSetup apps can't contain duplicates")
-
-
 class StartThread(object):
     """
     Starts ryu applications
@@ -142,7 +147,6 @@ class StartThread(object):
         if test_setup.integ_test is False:
             hub.patch(thread=True)
             assert_pipelined_not_running()
-        assert_valid_test_setup_config(test_setup)
 
         self._test_setup = test_setup
         self.keep_running = True
@@ -175,6 +179,8 @@ class StartThread(object):
         contexts = manager.create_contexts()
         contexts['sids_by_ip'] = {}     # shared by both metering apps
         contexts['rule_id_mapper'] = RuleIDToNumMapper()
+        contexts['internal_ip_allocator'] = \
+            InternalIPAllocator(self._test_setup.config)
         contexts['session_rule_version_mapper'] = \
             self._test_setup.service_manager.session_rule_version_mapper
         contexts['app_futures'] = app_futures

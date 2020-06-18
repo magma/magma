@@ -22,7 +22,8 @@
 # Differentiate between the setup type(CWF or LTE)
 setup_type: LTE
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
+
 # Enable the services in PipelineD. Tables will be assigned to the services in
 # the same order as the list. Cloud managed services will be initialized
 # after these static services.
@@ -30,6 +31,7 @@ static_services: [
   'arpd',
   'access_control',
   'ryu_rest_service',
+  'startup_flows',
 #  'packet_tracer',
 ]
 
@@ -73,9 +75,16 @@ dpi:
   enabled: false
   mon_port: mon1
   mon_port_number: 32769
+  idle_timeout: 5
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0
+
+# For LTE UE doesn't have an eth src so we need to fake it
+local_ue_eth_addr: True
+
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: False
 
 # Interface to NAT traffic to
 nat_iface: eth2
@@ -88,13 +97,29 @@ bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp
 bridge_ip_address: 192.168.128.1
 
-#QoS Queue Programming
-enable_queue_pgm: true
+# QoS parameters
+qos:
+ enable: true
+ impl: linux_tc
+ max_rate: 1000000000
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
 
 monitored_ifaces: ['gtp_br0',
                    'gtp0',
                    'gtp_sys_2152'
                   ]
+
+# Whether pipelined should cleanup flows on restarts
+clean_restart: true
+
+# MTR iface IP
+mtr_ip: 10.0.2.10
+mtr_interface: mtr0
 
 ###############
 ## IMPORTANT ##
@@ -102,3 +127,5 @@ monitored_ifaces: ['gtp_br0',
 # This is duplicated from spgw.yml - if you change the value here,
 # also change it there
 ovs_gtp_port_number: 32768
+# Internal port for monitoring service
+ovs_mtr_port_number: 15577

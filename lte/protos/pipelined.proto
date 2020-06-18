@@ -10,16 +10,39 @@ syntax = "proto3";
 package magma.lte;
 
 import "orc8r/protos/common.proto";
-import "lte/protos/meteringd.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
 
 option go_package = "magma/lte/cloud/go/protos";
 
+// Deprecated
 message SetupFlowsRequest {
-  // List of rules to activate
-  repeated ActivateFlowsRequest rules = 1;
+  // List of requests to activate
+  repeated ActivateFlowsRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+  // List of subscriber quota updates
+  UpdateSubscriberQuotaStateRequest quota_updates = 3;
+}
+
+message SetupUEMacRequest {
+  // List of UEs to activate
+  repeated UEMacFlowRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupPolicyRequest {
+  // List of requests to activate
+  repeated ActivateFlowsRequest requests = 1;
+  // epoch to prevent outdated setup calls
+  uint64 epoch = 2;
+}
+
+message SetupQuotaRequest {
+  // List of quota rules to activate
+  UpdateSubscriberQuotaStateRequest quota_updates = 1;
   // epoch to prevent outdated setup calls
   uint64 epoch = 2;
 }
@@ -33,6 +56,14 @@ message SetupFlowsResult {
   Result result = 1;
 }
 
+message RequestOriginType {
+  enum OriginType {
+    GX = 0;
+    GY = 1;
+  }
+  OriginType type = 1;
+}
+
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
 
@@ -44,6 +75,9 @@ message ActivateFlowsRequest {
 
   // List of dynamic rules obtained from PCRF
   repeated PolicyRule dynamic_rules = 4;
+
+  // Activate flow source (GX/GY)
+  RequestOriginType request_origin = 5;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -54,6 +88,7 @@ message ActivateFlowsRequest {
 message DeactivateFlowsRequest {
   SubscriberID sid = 1;
   repeated string rule_ids = 2;
+  RequestOriginType request_origin = 3;
 }
 
 message RuleModResult {
@@ -72,15 +107,37 @@ message ActivateFlowsResult {
 }
 
 message DeactivateFlowsResult {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 message FlowRequest {
   FlowMatch match = 1;
   string app_name = 2;
-  uint64  bytes_rx = 3;
+  uint64 bytes_rx = 3;
+  string service_type = 4;
+  string src_mac = 5;
+  string dst_mac = 6;
+  enum FlowState {
+    FLOW_CREATED = 0;
+    FLOW_PARTIAL_CLASSIFICATION = 1;
+    FLOW_FINAL_CLASSIFICATION = 2;
+    FLOW_EXPIRED = 3;
+  }
+  FlowState state = 7;
 }
 
 message FlowResponse {
+  enum Result {
+    SUCCESS = 0;
+    FAILURE = 1;
+    OUTDATED_EPOCH = 2;
+  }
+  Result result = 1;
 }
 
 // UEMacFlowRequest is used to link a subscriber ID to a MAC address.
@@ -90,6 +147,30 @@ message UEMacFlowRequest {
 
   // UE MAC address
   string mac_addr = 2;
+
+  string msisdn = 3;
+
+  // AP MAC address
+  string ap_mac_addr = 4;
+
+  // AP Name
+  string ap_name = 5;
+}
+
+message SubscriberQuotaUpdate{
+  SubscriberID sid = 1;
+  enum Type {
+    VALID_QUOTA = 0;
+    NO_QUOTA = 1;
+    TERMINATE = 2;
+  }
+  // UE MAC address
+  string mac_addr = 2;
+  Type update_type = 3;
+}
+
+message UpdateSubscriberQuotaStateRequest {
+  repeated SubscriberQuotaUpdate updates = 1;
 }
 
 message TableAssignment {
@@ -115,19 +196,12 @@ message PacketDropTableId {
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
 service Pipelined {
-  // -------------
-  // Metering App:
-  // -------------
-
-  // Get subscriber metering flows
-  rpc GetSubscriberMeteringFlows (magma.orc8r.Void) returns (FlowTable) {}
-
   // ----------------
   // Enforcement App:
   // ----------------
 
   // Setup flows for subscribers (used on restarts)
-  rpc SetupFlows (SetupFlowsRequest) returns (SetupFlowsResult) {}
+  rpc SetupPolicyFlows (SetupPolicyRequest) returns (SetupFlowsResult) {}
 
   // Activate flows for a subscriber based on predefined flow templates
   rpc ActivateFlows (ActivateFlowsRequest) returns (ActivateFlowsResult) {}
@@ -145,16 +219,41 @@ service Pipelined {
   // Add new dpi flow
   rpc CreateFlow (FlowRequest) returns (FlowResponse) {};
 
+  // Remove dpi flow
+  rpc RemoveFlow (FlowRequest) returns (FlowResponse) {};
+
   // Update flow stats
   rpc UpdateFlowStats (FlowRequest) returns (FlowResponse) {};
+
+  // ----------------
+  // Quota Check App:
+  // ----------------
+
+  // Setup subscribers flows (used on restarts)
+  rpc SetupQuotaFlows (SetupQuotaRequest) returns (SetupFlowsResult) {}
+
+  // Synchronize subscribers quota check flows
+  rpc UpdateSubscriberQuotaState (UpdateSubscriberQuotaStateRequest) returns (FlowResponse) {}
 
   // -----------
   // UE MAC App:
   // -----------
 
+  // Setup subscribers flows (used on restarts)
+  rpc SetupUEMacFlows (SetupUEMacRequest) returns (SetupFlowsResult) {}
+
   // Add a flow for a subscriber by matching the provided UE MAC address
   rpc AddUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
+  // Delete a flow for a subscriber by matching the provided UE MAC address
+  rpc DeleteUEMacFlow (UEMacFlowRequest) returns (FlowResponse) {}
+
+  // -----------
+  // IPFIX App:
+  // -----------
+
+  // Update subscriber IPFIX flows
+  rpc UpdateIPFIXFlow (UEMacFlowRequest) returns (FlowResponse) {}
 
   // --------
   // Debugging:

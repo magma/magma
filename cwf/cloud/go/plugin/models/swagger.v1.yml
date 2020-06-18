@@ -6,6 +6,7 @@ magma-gen-meta:
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/pluginimpl/models/swagger.v1.yml'
+    - 'lte/cloud/go/plugin/models/swagger.v1.yml'
     - 'feg/cloud/go/plugin/models/swagger.v1.yml'
   temp-gen-filename: cwf-swagger.yml
   output-dir: cwf/cloud/go/plugin
@@ -26,7 +27,12 @@ magma-gen-meta:
       filename: allowed_gre_peer_swaggergen.go
     - go-struct-name: allowedGrePeers
       filename: allowed_gre_peers_swaggergen.go
-
+    - go-struct-name: ipdrExportDst
+      filename: ip_d_r_export_dst_swaggergen.go
+    - go-struct-name: CwfSubscriberDirectoryRecord
+      filename: cwf_subscriber_directory_record_swaggergen.go
+    - go-struct-name: GatewayHealthConfigs
+      filename: gateway_health_configs_swaggergen.go
 
 info:
   title: Carrier Wifi Network Management
@@ -226,6 +232,170 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /cwf/{network_id}/subscriber_config:
+    get:
+      summary: Get a network-wide subscriber config
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a network-wide subscriber config
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/rule_names:
+    get:
+      summary: Get network-wide rule names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/rule_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide rule names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/rule_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/rule_names/{rule_id}:
+    post:
+      summary: Add a network-wide rule name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide rule name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './lte-swagger.yml#/parameters/rule_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/base_names:
+    get:
+      summary: Get network-wide base names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Subscriber Config
+          schema:
+            $ref: './lte-swagger.yml#/definitions/base_names'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update network-wide base names
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: record
+          in: body
+          description: Subscriber Config for the Network
+          required: true
+          schema:
+            $ref: './lte-swagger.yml#/definitions/base_names'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscriber_config/base_names/{base_name}:
+    post:
+      summary: Add a network-wide base name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Add a network-wide base name
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref:  './lte-swagger.yml#/parameters/base_name'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/subscribers/{subscriber_id}/directory_record:
+    get:
+      summary: Get the directory record of a subscriber
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/subscriber_id'
+      responses:
+        '200':
+          description: The directory record of a subscriber
+          schema:
+            $ref: '#/definitions/cwf_subscriber_directory_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /cwf/{network_id}/gateways:
     get:
       summary: List all gateways for a carrier wifi network
@@ -366,6 +536,39 @@ paths:
         required: true
         schema:
           $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/gateways/{gateway_id}/li_imsis:
+    get:
+      summary: Get monitored LI IMSIs for Carrier Wifi network
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: List of LI IMSIs
+          schema:
+            $ref: '#/definitions/li_imsis'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update monitored LI IMSIs for Carrier Wifi network
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      - name: description
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/li_imsis'
       responses:
         '204':
           description: Success
@@ -523,6 +726,14 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+parameters:
+  subscriber_id:
+    description: Subscriber ID
+    in: path
+    name: subscriber_id
+    required: true
+    type: string
+
 definitions:
   cwf_network:
     type: object
@@ -549,6 +760,9 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_dns_config'
       features:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
+      subscriber_config:
+        x-omitempty: true
+        $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
 
   cwf_gateway:
     type: object
@@ -626,11 +840,11 @@ definitions:
         items:
           type: string
           enum:
-          - 'metering'
           - 'dpi'
           - 'policy_enforcement'
         example:
-        - 'policy_enforcement'
+          - 'dpi'
+          - 'policy_enforcement'
       eap_aka:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
       aaa_server:
@@ -639,13 +853,13 @@ definitions:
     type: object
     required:
       - ip
-      - key
     properties:
       ip:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 49
         x-nullable: false
-        example: "192.168.127.1"
+        example: '192.168.128.0/32'
       key:
         type: integer
         format: uint32
@@ -655,6 +869,26 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/allowed_gre_peer'
+  li_imsis:
+    type: array
+    items:
+      type: string
+  ipdr_export_dst:
+    type: object
+    required:
+      - ip
+      - port
+    properties:
+      ip:
+        type: string
+        format: ipv4
+        x-nullable: false
+        example: '192.168.128.88'
+      port:
+        type: integer
+        format: uint32
+        x-nullable: false
+        example: 2040
   gateway_cwf_configs:
     type: object
     description: CWF configuration for a gateway
@@ -663,3 +897,50 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
+      li_imsis:
+        $ref: '#/definitions/li_imsis'
+      ipdr_export_dst:
+        $ref: '#/definitions/ipdr_export_dst'
+      gateway_health_configs:
+        $ref: '#/definitions/gateway_health_configs'
+
+  cwf_subscriber_directory_record:
+    type: object
+    description: CWF subscriber directory record
+    required:
+      - location_history
+    properties:
+      location_history:
+        type: array
+        items:
+          type: string
+      ipv4_addr:
+        type: string
+        format: ipv4
+        x-nullable: false
+        example: "192.168.127.1"
+      mac_addr:
+        type: string
+        x-nullable: false
+        example: "aa:bb:cc:dd:ee:ff"
+
+  gateway_health_configs:
+    type: object
+    description: Configuration threshold for gateway health service
+    properties:
+      cpu_util_threshold_pct:
+        type: number
+        format: float
+        example: 0.90
+      mem_util_threshold_pct:
+        type: number
+        format: float
+        example: 0.90
+      gre_probe_interval_secs:
+        type: integer
+        format: uint32
+        example: 5
+      icmp_probe_pkt_count:
+        type: integer
+        format: uint32
+        example: 3

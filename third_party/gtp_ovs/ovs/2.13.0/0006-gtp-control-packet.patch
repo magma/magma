@@ -1,0 +1,1173 @@
+From 3dc173dd3c9796a77e78417eba637ea4be3e9f05 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Mon, 2 Mar 2020 23:12:55 +0000
+Subject: [PATCH 6/8] gtp control packet
+
+---
+ datapath/flow_netlink.c                       |  51 ++++++
+ datapath/linux/compat/gtp.c                   |  94 ++++++++---
+ datapath/linux/compat/include/linux/gtp.h     |   9 ++
+ .../linux/compat/include/linux/openvswitch.h  |   1 +
+ .../linux/compat/include/net/ip_tunnels.h     |   8 +-
+ datapath/vport.c                              |   1 +
+ include/openvswitch/flow.h                    |   4 +-
+ include/openvswitch/match.h                   |   7 +
+ include/openvswitch/meta-flow.h               |  30 +++-
+ lib/dpif-netlink.c                            |   3 +-
+ lib/flow.c                                    |  29 ++--
+ lib/flow.h                                    |   2 +-
+ lib/match.c                                   |  37 ++++-
+ lib/meta-flow.c                               |  41 +++++
+ lib/meta-flow.xml                             |  11 ++
+ lib/nx-match.c                                |   6 +-
+ lib/odp-util.c                                | 151 +++++++++++++++++-
+ lib/odp-util.h                                |   2 +-
+ lib/ofp-match.c                               |   2 +-
+ lib/packets.h                                 |  12 ++
+ manpages.mk                                   |   3 -
+ ofproto/ofproto-dpif-rid.h                    |   2 +-
+ ofproto/ofproto-dpif-xlate.c                  |   2 +-
+ 23 files changed, 454 insertions(+), 54 deletions(-)
+
+diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
+index 9fc1a1922..cf789986c 100644
+--- a/datapath/flow_netlink.c
++++ b/datapath/flow_netlink.c
+@@ -23,6 +23,7 @@
+ #include <linux/etherdevice.h>
+ #include <linux/if_ether.h>
+ #include <linux/if_vlan.h>
++#include <linux/gtp.h>
+ #include <net/llc_pdu.h>
+ #include <linux/kernel.h>
+ #include <linux/jhash.h>
+@@ -406,6 +407,7 @@ static const struct ovs_len_tbl ovs_tunnel_key_lens[OVS_TUNNEL_KEY_ATTR_MAX + 1]
+ 	[OVS_TUNNEL_KEY_ATTR_IPV6_SRC]      = { .len = sizeof(struct in6_addr) },
+ 	[OVS_TUNNEL_KEY_ATTR_IPV6_DST]      = { .len = sizeof(struct in6_addr) },
+ 	[OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS]   = { .len = OVS_ATTR_VARIABLE },
++	[OVS_TUNNEL_KEY_ATTR_GTP_OPTS]   = { .len = OVS_ATTR_VARIABLE },
+ };
+ 
+ static const struct ovs_len_tbl
+@@ -664,6 +666,33 @@ static int erspan_tun_opt_from_nlattr(const struct nlattr *a,
+ 	return 0;
+ }
+ 
++static int gtp_tun_opt_from_nlattr(const struct nlattr *a,
++				   struct sw_flow_match *match, bool is_mask,
++				   bool log)
++{
++	unsigned long opt_key_offset;
++
++	BUILD_BUG_ON(sizeof(struct gtp1_control_pkt_opts) >
++		     sizeof(match->key->tun_opts));
++
++	if (nla_len(a) > sizeof(match->key->tun_opts)) {
++		OVS_NLERR(log, "GTP option length err (len %d, max %zu).",
++			  nla_len(a), sizeof(match->key->tun_opts));
++		return -EINVAL;
++	}
++
++	if (!is_mask)
++		SW_FLOW_KEY_PUT(match, tun_opts_len,
++				sizeof(struct gtp1_control_pkt_opts), false);
++	else
++		SW_FLOW_KEY_PUT(match, tun_opts_len, 0xff, true);
++
++	opt_key_offset = TUN_METADATA_OFFSET(nla_len(a));
++	SW_FLOW_KEY_MEMCPY_OFFSET(match, opt_key_offset, nla_data(a),
++				  nla_len(a), is_mask);
++	return 0;
++}
++
+ static int ip_tun_from_nlattr(const struct nlattr *attr,
+ 			      struct sw_flow_match *match, bool is_mask,
+ 			      bool log)
+@@ -785,6 +814,21 @@ static int ip_tun_from_nlattr(const struct nlattr *attr,
+ 			tun_flags |= TUNNEL_ERSPAN_OPT;
+ 			opts_type = type;
+ 			break;
++		case OVS_TUNNEL_KEY_ATTR_GTP_OPTS:
++			if (opts_type) {
++				OVS_NLERR(log, "Multiple metadata blocks provided");
++				return -EINVAL;
++			}
++
++			err = gtp_tun_opt_from_nlattr(a, match, is_mask,
++							 log);
++			if (err)
++				return err;
++
++			tun_flags |= TUNNEL_GTP_OPT;
++			opts_type = type;
++			break;
++
+ 		default:
+ 			OVS_NLERR(log, "Unknown IP tunnel attribute %d",
+ 				  type);
+@@ -913,6 +957,10 @@ static int __ip_tun_to_nlattr(struct sk_buff *skb,
+ 			 nla_put(skb, OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS,
+ 				 swkey_tun_opts_len, tun_opts))
+ 			return -EMSGSIZE;
++		else if (output->tun_flags & TUNNEL_GTP_OPT &&
++			 nla_put(skb, OVS_TUNNEL_KEY_ATTR_GTP_OPTS,
++				 swkey_tun_opts_len, tun_opts))
++			return -EMSGSIZE;
+ 	}
+ 
+ 	return 0;
+@@ -2602,6 +2650,9 @@ static int validate_and_copy_set_tun(const struct nlattr *attr,
+ 		case OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS:
+ 			dst_opt_type = TUNNEL_ERSPAN_OPT;
+ 			break;
++		case OVS_TUNNEL_KEY_ATTR_GTP_OPTS:
++			dst_opt_type = TUNNEL_GTP_OPT;
++			break;
+ 		}
+ 	}
+ 
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index bb5c99a96..1fa61983d 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -192,12 +192,12 @@ static bool gtp_check_ms(struct sk_buff *skb, struct pdp_ctx *pctx,
+ 
+ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
+ 			unsigned int hdrlen, u8 gtp_version, unsigned int role,
+-			__be64 tid)
++			__be64 tid, u8 flags, u8 type)
+ {
+ #ifndef USE_UPSTREAM_TUNNEL
+ 	union {
+ 		struct metadata_dst dst;
+-		char buf[sizeof(struct metadata_dst) + 0];
++		char buf[sizeof(struct metadata_dst) + sizeof (struct gtp1_control_pkt_opts)];
+ 	} buf;
+ #endif
+ 	struct pcpu_sw_netstats *stats;
+@@ -206,14 +206,32 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
+ 	if (ip_tunnel_collect_metadata() || gtp->collect_md) {
+ #ifndef USE_UPSTREAM_TUNNEL
+ 		struct metadata_dst *tun_dst = &buf.dst;
+-
++#endif
++    
++                int opts_len = 0;
++                if (unlikely(flags != 0x30)) {
++                        opts_len = sizeof (struct gtp1_control_pkt_opts);
++                } 
++#ifndef USE_UPSTREAM_TUNNEL
+ 		//udp_tun_rx_dst
+-		ovs_udp_tun_rx_dst(tun_dst, skb, gtp->sk1u->sk_family, TUNNEL_KEY, tid, 0);
++		ovs_udp_tun_rx_dst(tun_dst, skb, gtp->sk1u->sk_family, TUNNEL_KEY, tid, opts_len);
+ #else
+ 		struct metadata_dst *tun_dst =
+-			udp_tun_rx_dst(skb, gtp->sk1u->sk_family, TUNNEL_KEY, tid, 0);
++			udp_tun_rx_dst(skb, gtp->sk1u->sk_family, TUNNEL_KEY, tid, opts_len);
+ #endif
+-		netdev_dbg(gtp->dev, "attaching metadata_dst to skb\n");
++		netdev_dbg(gtp->dev, "attaching metadata_dst to skb, gtp ver %d hdrlen %d\n", gtp_version, hdrlen);
++                if (unlikely(opts_len)) {
++                        struct gtp1_control_pkt_opts *opts = ip_tunnel_info_opts(&tun_dst->u.tun_info);
++	                struct gtp1_header *gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
++
++	                opts->ver = GTP_CONTROL_PKT_INFO_V1;
++                        opts->flags = gtp1->flags;
++                        opts->type = gtp1->type;
++		        netdev_dbg(gtp->dev, "recved control pkt: flag %x type: %d\n", opts->flags, opts->type);
++		        tun_dst->u.tun_info.key.tun_flags |= TUNNEL_GTP_OPT;
++                        tun_dst->u.tun_info.options_len = opts_len;
++                        skb->protocol = 0xffff;         // Unknown
++                }
+ 		/* Get rid of the GTP + UDP headers. */
+ 		if (iptunnel_pull_header(skb, hdrlen, skb->protocol,
+ 					 !net_eq(sock_net(gtp->sk1u), dev_net(gtp->dev)))) {
+@@ -221,9 +239,17 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
+ 			gtp->dev->stats.rx_length_errors++;
+ 			goto err;
+ 		}
++       
+ 		ovs_skb_dst_set(skb, &tun_dst->dst);
+ 	} else {
+-		struct pdp_ctx *pctx;
++                struct pdp_ctx *pctx;
++
++        	if (flags & GTP1_F_MASK)
++	        	hdrlen += 4;
++
++        	if (type != GTP_TPDU)
++	        	return 1;
++
+ 		if (gtp_version == GTP_V0) {
+ 			pctx = gtp0_pdp_find(gtp, be64_to_cpu(tid));
+ 			if (!pctx) {
+@@ -293,10 +319,7 @@ static int gtp0_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
+ 	if ((gtp0->flags >> 5) != GTP_V0)
+ 		return 1;
+ 
+-	if (gtp0->type != GTP_TPDU)
+-		return 1;
+-
+-	return gtp_rx(gtp, skb, hdrlen, GTP_V0, gtp->role, gtp0->tid);
++	return gtp_rx(gtp, skb, hdrlen, GTP_V0, gtp->role, gtp0->tid, gtp0->flags, gtp0->type);
+ }
+ 
+ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
+@@ -310,28 +333,23 @@ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
+ 
+ 	gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
+ 
++        netdev_dbg(gtp->dev, "flags %x\n", gtp1->flags);
+ 	if ((gtp1->flags >> 5) != GTP_V1)
+ 		return 1;
+ 
+-	if (gtp1->type != GTP_TPDU)
+-		return 1;
+-
+ 	/* From 29.060: "This field shall be present if and only if any one or
+ 	 * more of the S, PN and E flags are set.".
+ 	 *
+ 	 * If any of the bit is set, then the remaining ones also have to be
+ 	 * set.
+ 	 */
+-	if (gtp1->flags & GTP1_F_MASK)
+-		hdrlen += 4;
+-
+ 	/* Make sure the header is larger enough, including extensions. */
+ 	if (!pskb_may_pull(skb, hdrlen))
+ 		return -1;
+ 
+ 	gtp1 = (struct gtp1_header *)(skb->data + sizeof(struct udphdr));
+ 
+-	return gtp_rx(gtp, skb, hdrlen, GTP_V1, gtp->role, key32_to_tunnel_id(gtp1->tid));
++	return gtp_rx(gtp, skb, hdrlen, GTP_V1, gtp->role, key32_to_tunnel_id(gtp1->tid), gtp1->flags, gtp1->type);
+ }
+ 
+ static void __gtp_encap_destroy(struct sock *sk)
+@@ -383,7 +401,7 @@ static int gtp_encap_recv(struct sock *sk, struct sk_buff *skb)
+ 	if (!gtp)
+ 		return 1;
+ 
+-	netdev_dbg(gtp->dev, "encap_recv sk=%p\n", sk);
++	netdev_dbg(gtp->dev, "encap_recv sk=%p type %d\n", sk, udp_sk(sk)->encap_type);
+ 
+ 	switch (udp_sk(sk)->encap_type) {
+ 	case UDP_ENCAP_GTP0:
+@@ -466,7 +484,7 @@ static inline void gtp0_push_header(struct sk_buff *skb, struct pdp_ctx *pctx)
+ 	gtp0->tid	= cpu_to_be64(pctx->u.v0.tid);
+ }
+ 
+-static inline void gtp1_push_header(struct sk_buff *skb, __be64 tid)
++static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
+ {
+ 	int payload_len = skb->len;
+ 	struct gtp1_header *gtp1;
+@@ -489,6 +507,24 @@ static inline void gtp1_push_header(struct sk_buff *skb, __be64 tid)
+ 	 */
+ }
+ 
++static inline int gtp1_push_control_header(struct sk_buff *skb, __be32 tid, struct gtp1_control_pkt_opts *opts)
++{
++	int payload_len = skb->len;
++	struct gtp1_header *gtp1c;
++
++	if (opts->ver != GTP_CONTROL_PKT_INFO_V1) {
++		return 1;
++	}
++
++	gtp1c = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1c));
++
++	gtp1c->flags	= opts->flags;
++	gtp1c->type	= opts->type;
++	gtp1c->length	= htons(payload_len);
++	gtp1c->tid	= tid;
++	return 0;
++}
++
+ struct gtp_pktinfo {
+ 	struct sock		*sk;
+ 	struct iphdr		*iph;
+@@ -616,7 +652,23 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 		goto err_rt;
+ 	}
+ 
+-	gtp1_push_header(skb, tunnel_id_to_key32(info->key.tun_id));
++        netdev_dbg(dev, "packet with opt len %d", info->options_len);
++	if (info->options_len == 0) {
++		gtp1_push_header(skb, tunnel_id_to_key32(info->key.tun_id));
++	} else if (info->key.tun_flags & TUNNEL_GTP_OPT) {
++                struct gtp1_control_pkt_opts *opts = ip_tunnel_info_opts(info);
++                __be32 tid = tunnel_id_to_key32(info->key.tun_id);
++
++                netdev_dbg(dev, "control packet with opt ver %d flags %x type %x len %d tid %x",
++                        opts->ver, opts->flags, opts->type, skb->len, tid);
++
++		if (gtp1_push_control_header(skb, tid, opts)) {
++			goto err_rt;
++		}
++	} else {
++                netdev_dbg(dev, "Missing tunnel OPT");
++                goto err_rt;
++        }
+ 	udp_tunnel_xmit_skb(rt, gtp->sk1u, skb,
+ 			    fl4.saddr, fl4.daddr, fl4.flowi4_tos,
+ 			    ip4_dst_hoplimit(&rt->dst),
+diff --git a/datapath/linux/compat/include/linux/gtp.h b/datapath/linux/compat/include/linux/gtp.h
+index 6d3443389..346062fcf 100644
+--- a/datapath/linux/compat/include/linux/gtp.h
++++ b/datapath/linux/compat/include/linux/gtp.h
+@@ -7,4 +7,13 @@
+ #define GTPA_PEER_ADDRESS GTPA_SGSN_ADDRESS
+ #endif
+ 
++enum {
++	GTP_CONTROL_PKT_INFO_V1
++};
++
++struct gtp1_control_pkt_opts {
++	__u8	ver;
++	__u8	flags;
++	__u8	type;
++};
+ #endif
+diff --git a/datapath/linux/compat/include/linux/openvswitch.h b/datapath/linux/compat/include/linux/openvswitch.h
+index 101c341a6..908ab4197 100644
+--- a/datapath/linux/compat/include/linux/openvswitch.h
++++ b/datapath/linux/compat/include/linux/openvswitch.h
+@@ -405,6 +405,7 @@ enum ovs_tunnel_key_attr {
+ 	OVS_TUNNEL_KEY_ATTR_IPV6_DST,		/* struct in6_addr dst IPv6 address. */
+ 	OVS_TUNNEL_KEY_ATTR_PAD,
+ 	OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS,	/* struct erspan_metadata */
++	OVS_TUNNEL_KEY_ATTR_GTP_OPTS,		/* Array of GTP  options. */
+ 	__OVS_TUNNEL_KEY_ATTR_MAX
+ };
+ 
+diff --git a/datapath/linux/compat/include/net/ip_tunnels.h b/datapath/linux/compat/include/net/ip_tunnels.h
+index cd8e65953..5890d6bec 100644
+--- a/datapath/linux/compat/include/net/ip_tunnels.h
++++ b/datapath/linux/compat/include/net/ip_tunnels.h
+@@ -105,11 +105,11 @@ void rpl_ip_tunnel_xmit(struct sk_buff *skb, struct net_device *dev,
+ #define TUNNEL_GENEVE_OPT	__cpu_to_be16(0x0800)
+ #define TUNNEL_VXLAN_OPT	__cpu_to_be16(0x1000)
+ #define TUNNEL_NOCACHE		__cpu_to_be16(0x2000)
+-#define TUNNEL_ERSPAN_OPT	__cpu_to_be16(0x4000)
++#define TUNNEL_GTP_OPT		__cpu_to_be16(0x8000)
+ 
+ #undef TUNNEL_OPTIONS_PRESENT
+ #define TUNNEL_OPTIONS_PRESENT \
+-		(TUNNEL_GENEVE_OPT | TUNNEL_VXLAN_OPT | TUNNEL_ERSPAN_OPT)
++		(TUNNEL_GENEVE_OPT | TUNNEL_VXLAN_OPT | TUNNEL_ERSPAN_OPT | TUNNEL_GTP_OPT)
+ 
+ struct tnl_ptk_info {
+ 	__be16 flags;
+@@ -511,4 +511,8 @@ static inline int iptunnel_pull_offloads(struct sk_buff *skb)
+ #define skb_is_encapsulated ovs_skb_is_encapsulated
+ bool ovs_skb_is_encapsulated(struct sk_buff *skb);
+ 
++#ifndef TUNNEL_GTP_OPT
++#define TUNNEL_GTP_OPT          __cpu_to_be16(0x8000)
++#endif
++
+ #endif /* __NET_IP_TUNNELS_H */
+diff --git a/datapath/vport.c b/datapath/vport.c
+index dfb6dcca4..1304c06be 100644
+--- a/datapath/vport.c
++++ b/datapath/vport.c
+@@ -557,6 +557,7 @@ int ovs_vport_receive(struct vport *vport, struct sk_buff *skb,
+ 		kfree_skb(skb);
+ 		return error;
+ 	}
++
+ 	ovs_dp_process_packet(skb, &key);
+ 	return 0;
+ }
+diff --git a/include/openvswitch/flow.h b/include/openvswitch/flow.h
+index 57b6c925c..3054015d9 100644
+--- a/include/openvswitch/flow.h
++++ b/include/openvswitch/flow.h
+@@ -27,7 +27,7 @@ extern "C" {
+ /* This sequence number should be incremented whenever anything involving flows
+  * or the wildcarding of flows changes.  This will cause build assertion
+  * failures in places which likely need to be updated. */
+-#define FLOW_WC_SEQ 41
++#define FLOW_WC_SEQ 42
+ 
+ /* Number of Open vSwitch extension 32-bit registers. */
+ #define FLOW_N_REGS 16
+@@ -168,7 +168,7 @@ BUILD_ASSERT_DECL(sizeof(struct ovs_key_nsh) % sizeof(uint64_t) == 0);
+ /* Remember to update FLOW_WC_SEQ when changing 'struct flow'. */
+ BUILD_ASSERT_DECL(offsetof(struct flow, igmp_group_ip4) + sizeof(uint32_t)
+                   == sizeof(struct flow_tnl) + sizeof(struct ovs_key_nsh) + 300
+-                  && FLOW_WC_SEQ == 41);
++                  && FLOW_WC_SEQ == 42);
+ 
+ /* Incremental points at which flow classification may be performed in
+  * segments.
+diff --git a/include/openvswitch/match.h b/include/openvswitch/match.h
+index eeabd5f47..6de5ea2b2 100644
+--- a/include/openvswitch/match.h
++++ b/include/openvswitch/match.h
+@@ -121,6 +121,13 @@ void match_set_tun_erspan_dir_masked(struct match *match, uint8_t dir,
+ void match_set_tun_erspan_hwid(struct match *match, uint8_t hwid);
+ void match_set_tun_erspan_hwid_masked(struct match *match, uint8_t hwid,
+                                       uint8_t mask);
++void match_set_tun_gtp_msg_type(struct match *match, uint8_t type);
++void match_set_tun_gtp_msg_type_masked(struct match *match, uint8_t type,
++                                      uint8_t mask);
++void match_set_tun_gtp_flags(struct match *match, uint8_t flags);
++void match_set_tun_gtp_flags_masked(struct match *match, uint8_t flags,
++                                  uint8_t mask);
++
+ void match_set_in_port(struct match *, ofp_port_t ofp_port);
+ void match_set_pkt_mark(struct match *, uint32_t pkt_mark);
+ void match_set_pkt_mark_masked(struct match *, uint32_t pkt_mark, uint32_t mask);
+diff --git a/include/openvswitch/meta-flow.h b/include/openvswitch/meta-flow.h
+index f1b37da3b..3d9bdc4e0 100644
+--- a/include/openvswitch/meta-flow.h
++++ b/include/openvswitch/meta-flow.h
+@@ -502,10 +502,38 @@ enum OVS_PACKED_ENUM mf_field_id {
+      * Prerequisites: none.
+      * Access: read/write.
+      * NXM: none.
+-     * OXM: NXOXM_ET_ERSPAN_HWID(14) since v2.10.
++     * OXM: NXOXM_ET_ERSPAN_HWID(14) since v2.13.
+      */
+     MFF_TUN_ERSPAN_HWID,
+ 
++    /* "tun_gtp_flags".
++     *
++     * GTP header flags
++     *
++     * Type: u8.
++     * Maskable: bitwise.
++     * Formatting: hexadecimal.
++     * Prerequisites: none.
++     * Access: read/write.
++     * NXM: NXM_NX_MFF_TUN_GTP_FLAGS(126) since v2.12.
++     * OXM: none.
++     */
++    MFF_TUN_GTP_FLAGS,
++
++    /* "tun_gtp_msg_type".
++     *
++     * GTP msg type
++     *
++     * Type: u8.
++     * Maskable: bitwise.
++     * Formatting: hexadecimal.
++     * Prerequisites: none.
++     * Access: read/write.
++     * NXM: NXM_NX_MFF_TUN_GTP_MSG_TYPE(127) since v2.12.
++     * OXM: none.
++     */
++    MFF_TUN_GTP_MSG_TYPE,
++
+ #if TUN_METADATA_NUM_OPTS == 64
+     /* "tun_metadata<N>".
+      *
+diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
+index ba646d823..d87342ac3 100644
+--- a/lib/dpif-netlink.c
++++ b/lib/dpif-netlink.c
+@@ -2514,8 +2514,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,
+ {
+     static const struct nl_policy ovs_packet_policy[] = {
+         /* Always present. */
+-        [OVS_PACKET_ATTR_PACKET] = { .type = NL_A_UNSPEC,
+-                                     .min_len = ETH_HEADER_LEN },
++        [OVS_PACKET_ATTR_PACKET] = { .type = NL_A_UNSPEC },
+         [OVS_PACKET_ATTR_KEY] = { .type = NL_A_NESTED },
+ 
+         /* OVS_PACKET_CMD_ACTION only. */
+diff --git a/lib/flow.c b/lib/flow.c
+index 45bb96b54..e793642b3 100644
+--- a/lib/flow.c
++++ b/lib/flow.c
+@@ -129,7 +129,7 @@ struct mf_ctx {
+  * away.  Some GCC versions gave warnings on ALWAYS_INLINE, so these are
+  * defined as macros. */
+ 
+-#if (FLOW_WC_SEQ != 41)
++#if (FLOW_WC_SEQ != 42)
+ #define MINIFLOW_ASSERT(X) ovs_assert(X)
+ BUILD_MESSAGE("FLOW_WC_SEQ changed: miniflow_extract() will have runtime "
+                "assertions enabled. Consider updating FLOW_WC_SEQ after "
+@@ -731,7 +731,7 @@ void
+ miniflow_extract(struct dp_packet *packet, struct miniflow *dst)
+ {
+     /* Add code to this function (or its callees) to extract new fields. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     const struct pkt_metadata *md = &packet->md;
+     const void *data = dp_packet_data(packet);
+@@ -1188,7 +1188,7 @@ flow_get_metadata(const struct flow *flow, struct match *flow_metadata)
+ {
+     int i;
+ 
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     match_init_catchall(flow_metadata);
+     if (flow->tunnel.tun_id != htonll(0)) {
+@@ -1228,6 +1228,13 @@ flow_get_metadata(const struct flow *flow, struct match *flow_metadata)
+     if (flow->tunnel.erspan_hwid) {
+         match_set_tun_erspan_hwid(flow_metadata, flow->tunnel.erspan_hwid);
+     }
++    if (flow->tunnel.gtp_msg_flags) {
++        match_set_tun_gtp_flags(flow_metadata, flow->tunnel.gtp_msg_flags);
++    }
++    if (flow->tunnel.gtp_msg_type) {
++        match_set_tun_gtp_msg_type(flow_metadata, flow->tunnel.gtp_msg_type);
++    }
++ 
+     tun_metadata_get_fmd(&flow->tunnel, flow_metadata);
+     if (flow->metadata != htonll(0)) {
+         match_set_metadata(flow_metadata, flow->metadata);
+@@ -1768,7 +1775,7 @@ flow_wildcards_init_for_packet(struct flow_wildcards *wc,
+     memset(&wc->masks, 0x0, sizeof wc->masks);
+ 
+     /* Update this function whenever struct flow changes. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     if (flow_tnl_dst_is_set(&flow->tunnel)) {
+         if (flow->tunnel.flags & FLOW_TNL_F_KEY) {
+@@ -1789,6 +1796,8 @@ flow_wildcards_init_for_packet(struct flow_wildcards *wc,
+         WC_MASK_FIELD(wc, tunnel.erspan_idx);
+         WC_MASK_FIELD(wc, tunnel.erspan_dir);
+         WC_MASK_FIELD(wc, tunnel.erspan_hwid);
++        WC_MASK_FIELD(wc, tunnel.gtp_msg_flags);
++        WC_MASK_FIELD(wc, tunnel.gtp_msg_type);
+ 
+         if (!(flow->tunnel.flags & FLOW_TNL_F_UDPIF)) {
+             if (flow->tunnel.metadata.present.map) {
+@@ -1919,7 +1928,7 @@ void
+ flow_wc_map(const struct flow *flow, struct flowmap *map)
+ {
+     /* Update this function whenever struct flow changes. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     flowmap_init(map);
+ 
+@@ -2022,7 +2031,7 @@ void
+ flow_wildcards_clear_non_packet_fields(struct flow_wildcards *wc)
+ {
+     /* Update this function whenever struct flow changes. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     memset(&wc->masks.metadata, 0, sizeof wc->masks.metadata);
+     memset(&wc->masks.regs, 0, sizeof wc->masks.regs);
+@@ -2166,7 +2175,7 @@ flow_wildcards_set_xxreg_mask(struct flow_wildcards *wc, int idx,
+ uint32_t
+ miniflow_hash_5tuple(const struct miniflow *flow, uint32_t basis)
+ {
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+     uint32_t hash = basis;
+ 
+     if (flow) {
+@@ -2213,7 +2222,7 @@ ASSERT_SEQUENTIAL(ipv6_src, ipv6_dst);
+ uint32_t
+ flow_hash_5tuple(const struct flow *flow, uint32_t basis)
+ {
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+     uint32_t hash = basis;
+ 
+     if (flow) {
+@@ -2891,7 +2900,7 @@ flow_push_mpls(struct flow *flow, int n, ovs_be16 mpls_eth_type,
+ 
+         if (clear_flow_L3) {
+             /* Clear all L3 and L4 fields and dp_hash. */
+-            BUILD_ASSERT(FLOW_WC_SEQ == 41);
++            BUILD_ASSERT(FLOW_WC_SEQ == 42);
+             memset((char *) flow + FLOW_SEGMENT_2_ENDS_AT, 0,
+                    sizeof(struct flow) - FLOW_SEGMENT_2_ENDS_AT);
+             flow->dp_hash = 0;
+@@ -3189,7 +3198,7 @@ flow_compose(struct dp_packet *p, const struct flow *flow,
+     /* Add code to this function (or its callees) for emitting new fields or
+      * protocols.  (This isn't essential, so it can be skipped for initial
+      * testing.) */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     uint32_t pseudo_hdr_csum;
+     size_t l4_len;
+diff --git a/lib/flow.h b/lib/flow.h
+index 75751763c..b32f0b277 100644
+--- a/lib/flow.h
++++ b/lib/flow.h
+@@ -964,7 +964,7 @@ static inline void
+ pkt_metadata_from_flow(struct pkt_metadata *md, const struct flow *flow)
+ {
+     /* Update this function whenever struct flow changes. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     md->recirc_id = flow->recirc_id;
+     md->dp_hash = flow->dp_hash;
+diff --git a/lib/match.c b/lib/match.c
+index 0d1ec31ef..b2255be11 100644
+--- a/lib/match.c
++++ b/lib/match.c
+@@ -374,6 +374,34 @@ match_set_tun_erspan_hwid(struct match *match, uint8_t hwid)
+     match_set_tun_erspan_hwid_masked(match, hwid, UINT8_MAX);
+ }
+ 
++void
++match_set_tun_gtp_msg_type_masked(struct match *match, uint8_t type,
++                                 uint8_t mask)
++{
++    match->wc.masks.tunnel.gtp_msg_type = type;
++    match->flow.tunnel.gtp_msg_type =  type & mask;
++}
++
++void
++match_set_tun_gtp_msg_type(struct match *match, uint8_t type)
++{
++    match_set_tun_gtp_msg_type_masked(match, type, UINT8_MAX);
++}
++
++void
++match_set_tun_gtp_flags_masked(struct match *match, uint8_t flag,
++                             uint8_t mask)
++{
++    match->wc.masks.tunnel.gtp_msg_flags = flag;
++    match->flow.tunnel.gtp_msg_flags =  flag & mask;
++}
++
++void
++match_set_tun_gtp_flags(struct match *match, uint8_t flag)
++{
++    match_set_tun_gtp_flags_masked(match, flag, UINT8_MAX);
++}
++
+ void
+ match_set_in_port(struct match *match, ofp_port_t ofp_port)
+ {
+@@ -1325,6 +1353,13 @@ format_flow_tunnel(struct ds *s, const struct match *match)
+     if (wc->masks.tunnel.erspan_hwid && tnl->erspan_ver == 2) {
+         ds_put_format(s, "tun_erspan_hwid=%#"PRIx8",", tnl->erspan_hwid);
+     }
++    if (wc->masks.tunnel.gtp_msg_flags) {
++        ds_put_format(s, "gtp_msg_flags=%#"PRIx8",", tnl->gtp_msg_flags);
++    }
++    if (wc->masks.tunnel.gtp_msg_type) {
++        ds_put_format(s, "gtp_msg_type=%#"PRIx8",", tnl->gtp_msg_type);
++    }
++ 
+     if (wc->masks.tunnel.flags & FLOW_TNL_F_MASK) {
+         format_flags_masked(s, "tun_flags", flow_tun_flag_to_string,
+                             tnl->flags & FLOW_TNL_F_MASK,
+@@ -1396,7 +1431,7 @@ match_format(const struct match *match,
+     bool is_megaflow = false;
+     int i;
+ 
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     if (priority != OFP_DEFAULT_PRIORITY) {
+         ds_put_format(s, "%spriority=%s%d,",
+diff --git a/lib/meta-flow.c b/lib/meta-flow.c
+index 8b62e6d96..489331b19 100644
+--- a/lib/meta-flow.c
++++ b/lib/meta-flow.c
+@@ -239,6 +239,10 @@ mf_is_all_wild(const struct mf_field *mf, const struct flow_wildcards *wc)
+         return !wc->masks.tunnel.erspan_dir;
+     case MFF_TUN_ERSPAN_HWID:
+         return !wc->masks.tunnel.erspan_hwid;
++    case MFF_TUN_GTP_MSG_TYPE:
++        return !wc->masks.tunnel.gtp_msg_type;
++    case MFF_TUN_GTP_FLAGS:
++        return !wc->masks.tunnel.gtp_msg_flags;
+     CASE_MFF_TUN_METADATA:
+         return !ULLONG_GET(wc->masks.tunnel.metadata.present.map,
+                            mf->id - MFF_TUN_METADATA0);
+@@ -530,6 +534,8 @@ mf_is_value_valid(const struct mf_field *mf, const union mf_value *value)
+     case MFF_TUN_ERSPAN_VER:
+     case MFF_TUN_ERSPAN_DIR:
+     case MFF_TUN_ERSPAN_HWID:
++    case MFF_TUN_GTP_MSG_TYPE:
++    case MFF_TUN_GTP_FLAGS:
+     CASE_MFF_TUN_METADATA:
+     case MFF_METADATA:
+     case MFF_IN_PORT:
+@@ -711,6 +717,12 @@ mf_get_value(const struct mf_field *mf, const struct flow *flow,
+     case MFF_TUN_ERSPAN_HWID:
+         value->u8 = flow->tunnel.erspan_hwid;
+         break;
++    case MFF_TUN_GTP_MSG_TYPE:
++        value->u8 = flow->tunnel.gtp_msg_type;
++        break;
++     case MFF_TUN_GTP_FLAGS:
++        value->u8 = flow->tunnel.gtp_msg_flags;
++        break;
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_read(&flow->tunnel, mf, value);
+         break;
+@@ -1042,6 +1054,12 @@ mf_set_value(const struct mf_field *mf,
+     case MFF_TUN_ERSPAN_HWID:
+         match_set_tun_erspan_hwid(match, value->u8);
+         break;
++    case MFF_TUN_GTP_MSG_TYPE:
++        match_set_tun_gtp_msg_type(match, value->u8);
++        break;
++     case MFF_TUN_GTP_FLAGS:
++        match_set_tun_gtp_flags(match, value->u8);
++        break;
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_set_match(mf, value, NULL, match, err_str);
+         break;
+@@ -1459,6 +1477,13 @@ mf_set_flow_value(const struct mf_field *mf,
+     case MFF_TUN_ERSPAN_HWID:
+         flow->tunnel.erspan_hwid = value->u8;
+         break;
++    case MFF_TUN_GTP_MSG_TYPE:
++        flow->tunnel.gtp_msg_type = value->u8;
++        break;
++     case MFF_TUN_GTP_FLAGS:
++        flow->tunnel.gtp_msg_flags = value->u8;
++        break;
++ 
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_write(&flow->tunnel, mf, value);
+         break;
+@@ -1780,6 +1805,8 @@ mf_is_pipeline_field(const struct mf_field *mf)
+     case MFF_TUN_ERSPAN_IDX:
+     case MFF_TUN_ERSPAN_DIR:
+     case MFF_TUN_ERSPAN_HWID:
++    case MFF_TUN_GTP_MSG_TYPE:
++    case MFF_TUN_GTP_FLAGS:
+     CASE_MFF_TUN_METADATA:
+     case MFF_METADATA:
+     case MFF_IN_PORT:
+@@ -1970,6 +1997,13 @@ mf_set_wild(const struct mf_field *mf, struct match *match, char **err_str)
+     case MFF_TUN_ERSPAN_HWID:
+         match_set_tun_erspan_hwid_masked(match, 0, 0);
+         break;
++    case MFF_TUN_GTP_MSG_TYPE:
++        match_set_tun_gtp_msg_type_masked(match, 0, 0);
++        break;
++     case MFF_TUN_GTP_FLAGS:
++        match_set_tun_gtp_flags_masked(match, 0, 0);
++        break;
++
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_set_match(mf, NULL, NULL, match, err_str);
+         break;
+@@ -2377,6 +2411,13 @@ mf_set(const struct mf_field *mf,
+     case MFF_TUN_ERSPAN_HWID:
+         match_set_tun_erspan_hwid_masked(match, value->u8, mask->u8);
+         break;
++    case MFF_TUN_GTP_MSG_TYPE:
++        match_set_tun_gtp_msg_type_masked(match, value->u8, mask->u8);
++        break;
++     case MFF_TUN_GTP_FLAGS:
++        match_set_tun_gtp_flags_masked(match, value->u8, mask->u8);
++        break;
++
+     CASE_MFF_TUN_METADATA:
+         tun_metadata_set_match(mf, value, mask, match, err_str);
+         break;
+diff --git a/lib/meta-flow.xml b/lib/meta-flow.xml
+index 2f9c5ee16..9ec3928db 100644
+--- a/lib/meta-flow.xml
++++ b/lib/meta-flow.xml
+@@ -1797,6 +1797,17 @@ ovs-ofctl add-flow br-int 'in_port=3,tun_src=192.168.1.1,tun_id=5001 actions=1'
+       A 6-bit unique identifier of an ERSPAN v2 engine within a system.
+     </field>
+ 
++    <h2>GTP Fields</h2>
++
++    <field id="MFF_TUN_GTP_MSG_TYPE" title="Message type of GTP control plane packet">
++      This field is typically used to generate GTP Echo request response packets.
++    </field>
++
++    <field id="MFF_TUN_GTP_FLAGS" title="GTP control plane packet flags">
++      GTP-C packets needs sequence number. This field allows controller to set it.
++    </field>
++
++
+     <h2>Geneve Fields</h2>
+ 
+     <p>
+diff --git a/lib/nx-match.c b/lib/nx-match.c
+index 0432ad4de..d7b2a5ad7 100644
+--- a/lib/nx-match.c
++++ b/lib/nx-match.c
+@@ -1051,7 +1051,7 @@ nx_put_raw(struct ofpbuf *b, enum ofp_version oxm, const struct match *match,
+     ovs_be32 spi_mask;
+     int match_len;
+ 
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     struct nxm_put_ctx ctx = { .output = b, .implied_ethernet = false };
+ 
+@@ -1190,6 +1190,10 @@ nx_put_raw(struct ofpbuf *b, enum ofp_version oxm, const struct match *match,
+                 flow->tunnel.erspan_dir, match->wc.masks.tunnel.erspan_dir);
+     nxm_put_8m(&ctx, MFF_TUN_ERSPAN_HWID, oxm,
+                 flow->tunnel.erspan_hwid, match->wc.masks.tunnel.erspan_hwid);
++    nxm_put_8m(&ctx, MFF_TUN_GTP_MSG_TYPE, oxm,
++                flow->tunnel.gtp_msg_type, match->wc.masks.tunnel.gtp_msg_type);
++    nxm_put_8m(&ctx, MFF_TUN_GTP_FLAGS, oxm,
++                flow->tunnel.gtp_msg_flags, match->wc.masks.tunnel.gtp_msg_flags);
+ 
+     /* Network Service Header */
+     nxm_put_8m(&ctx, MFF_NSH_FLAGS, oxm, flow->nsh.flags,
+diff --git a/lib/odp-util.c b/lib/odp-util.c
+index 746d1e97d..9460d79ef 100644
+--- a/lib/odp-util.c
++++ b/lib/odp-util.c
+@@ -2403,6 +2403,11 @@ parse_odp_action__(struct parse_odp_context *context, const char *s,
+         return 8;
+     }
+ 
++    if (!strncmp(s, "pop_eth", 7)) {
++        nl_msg_put_flag(actions, OVS_ACTION_ATTR_POP_ETH);
++        return 7;
++    }
++
+     {
+         unsigned long long int meter_id;
+         int n = -1;
+@@ -2630,6 +2635,7 @@ static const struct attr_len_tbl ovs_tun_key_attr_lens[OVS_TUNNEL_KEY_ATTR_MAX +
+     [OVS_TUNNEL_KEY_ATTR_IPV6_SRC]      = { .len = 16 },
+     [OVS_TUNNEL_KEY_ATTR_IPV6_DST]      = { .len = 16 },
+     [OVS_TUNNEL_KEY_ATTR_ERSPAN_OPTS]   = { .len = ATTR_LEN_VARIABLE },
++    [OVS_TUNNEL_KEY_ATTR_GTP_OPTS]      = { .len = ATTR_LEN_VARIABLE },
+ };
+ 
+ const struct attr_len_tbl ovs_flow_key_attr_lens[OVS_KEY_ATTR_MAX + 1] = {
+@@ -3035,6 +3041,17 @@ odp_tun_key_from_attr__(const struct nlattr *attr, bool is_mask,
+             }
+             break;
+         }
++        case OVS_TUNNEL_KEY_ATTR_GTP_OPTS: {
++            const struct gtp1_control_pkt_opts *opts = nl_attr_get(a);
++
++            if (opts->ver == GTP_CONTROL_PKT_INFO_V1) {
++                tun->gtp_msg_flags = opts->flags;
++                tun->gtp_msg_type = opts->type;
++            } else {
++                VLOG_WARN("%s invalid gtp opts version : %d\n", __func__, opts->ver);
++            }
++            break;
++        }
+ 
+         default:
+             /* Allow this to show up as unexpected, if there are unknown
+@@ -3149,6 +3166,18 @@ tun_key_to_attr(struct ofpbuf *a, const struct flow_tnl *tun_key,
+                           &opts, sizeof(opts));
+     }
+ 
++    if (!tnl_type || !strcmp(tnl_type, "gtp")) {
++        if (tun_key->gtp_msg_type) {
++            struct gtp1_control_pkt_opts opts;
++
++            memset(&opts, 0, sizeof opts);
++            opts.ver = GTP_CONTROL_PKT_INFO_V1;
++            opts.flags = tun_key->gtp_msg_flags;    //0x32; // This specifies version 1 and seq flag.
++            opts.type = tun_key->gtp_msg_type;
++            //opts.recovery = 0xE0; // this is added for backward compatibility only.
++            nl_msg_put_unspec(a, OVS_TUNNEL_KEY_ATTR_GTP_OPTS, &opts, sizeof opts);
++        }
++    }
+     nl_msg_end_nested(a, tun_key_ofs);
+ }
+ 
+@@ -3407,8 +3436,8 @@ format_ipv6_label(struct ds *ds, const char *name, ovs_be32 key,
+ }
+ 
+ static void
+-format_u8x(struct ds *ds, const char *name, uint8_t key,
+-           const uint8_t *mask, bool verbose)
++format_u8x___(struct ds *ds, const char *name, uint8_t key,
++           const uint8_t *mask, bool verbose, bool add_comma)
+ {
+     bool mask_empty = mask && !*mask;
+ 
+@@ -3419,10 +3448,20 @@ format_u8x(struct ds *ds, const char *name, uint8_t key,
+         if (!mask_full) { /* Partially masked. */
+             ds_put_format(ds, "/%#"PRIx8, *mask);
+         }
+-        ds_put_char(ds, ',');
++        if (add_comma) {
++            ds_put_char(ds, ',');
++        }
+     }
+ }
+ 
++static void
++format_u8x(struct ds *ds, const char *name, uint8_t key,
++           const uint8_t *mask, bool verbose)
++{
++
++    format_u8x___(ds, name, key, mask, verbose, true);
++}
++
+ static void
+ format_u8u(struct ds *ds, const char *name, uint8_t key,
+            const uint8_t *mask, bool verbose)
+@@ -3645,6 +3684,33 @@ format_odp_tun_erspan_opt(const struct nlattr *attr,
+     ds_chomp(ds, ',');
+ }
+ 
++static void
++format_odp_tun_gtp_opt(const struct nlattr *attr,
++                          const struct nlattr *mask_attr, struct ds *ds,
++                          bool verbose)
++{
++    const struct gtp1_control_pkt_opts *opts, *mask;
++    uint8_t ver, ver_ma;
++
++    opts = nl_attr_get(attr);
++    mask = mask_attr ? nl_attr_get(mask_attr) : NULL;
++
++    ver = (uint8_t)opts->ver;
++    if (mask) {
++        ver_ma = (uint8_t)mask->ver;
++    }
++
++    format_u8u(ds, "ver", ver, mask ? &ver_ma : NULL, verbose);
++
++    if (opts->ver == GTP_CONTROL_PKT_INFO_V1) {
++        format_u8x(ds, "flags", opts->flags, !!mask ? &mask->flags : NULL, verbose);
++        format_u8x(ds, "type", opts->type, !!mask ? &mask->type : NULL, verbose);
++        ds_chomp(ds, ',');
++    } else {
++        ds_put_format(ds, "Unknown opt ver %d", opts->ver);
++    }
++}
++
+ #define MASK(PTR, FIELD) PTR ? &PTR->FIELD : NULL
+ 
+ static void
+@@ -3897,6 +3963,11 @@ format_odp_tun_attr(const struct nlattr *attr, const struct nlattr *mask_attr,
+             format_odp_tun_erspan_opt(a, ma, ds, verbose);
+             ds_put_cstr(ds, "),");
+             break;
++        case OVS_TUNNEL_KEY_ATTR_GTP_OPTS:
++            ds_put_cstr(ds, "gtp_opt(");
++            format_odp_tun_gtp_opt(a, ma, ds, verbose);
++            ds_put_cstr(ds, "),");
++            break;
+         case __OVS_TUNNEL_KEY_ATTR_MAX:
+         default:
+             format_unknown_key(ds, a, ma);
+@@ -5185,6 +5256,62 @@ scan_erspan_metadata(const char *s,
+     return 0;
+ }
+ 
++static int
++scan_gtp_opt(const char *s, struct gtp1_control_pkt_opts *key, struct gtp1_control_pkt_opts *mask)
++{
++    const char *s_base = s;
++    struct gtp1_control_pkt_opts k = {0};
++    struct gtp1_control_pkt_opts m = {0};
++    int len;
++
++    if (!strncmp(s, "ver=", 4)) {
++        s += 4;
++        len = scan_u8(s, &k.ver, mask ? &m.ver : NULL);
++        if (len == 0) {
++            return 0;
++        }
++        s += len;
++    }
++
++    if (s[0] == ',') {
++        s++;
++    }
++    if (!strncmp(s, "flags=", 4)) {
++        s += 6;
++        len = scan_u8(s, &k.flags, mask ? &m.flags : NULL);
++        if (len == 0) {
++            return 0;
++        }
++        s += len;
++    }
++
++    if (s[0] == ',') {
++        s++;
++    }
++
++    if (!strncmp(s, "type=", 4)) {
++        s += 5;
++        len = scan_u8(s, &k.type, mask ? &m.type : NULL);
++        if (len == 0) {
++            return 0;
++        }
++        s += len;
++    }
++
++    if (s[0] == ')') {
++        s += 1;
++
++        *key = k;
++        if (mask) {
++            *mask = m;;
++        }
++
++        return s - s_base;
++    }
++
++    return 0;
++}
++
+ static int
+ scan_geneve(const char *s, struct geneve_scan *key, struct geneve_scan *mask)
+ {
+@@ -5344,6 +5471,15 @@ erspan_to_attr(struct ofpbuf *a, const void *data_)
+                       sizeof *md);
+ }
+ 
++static void
++gtp_to_attr(struct ofpbuf *a, const void *data_)
++{
++    const struct gtp1_control_pkt_opts *opt = data_;
++
++    nl_msg_put_unspec(a, OVS_TUNNEL_KEY_ATTR_GTP_OPTS, opt,
++                      sizeof *opt);
++}
++
+ #define SCAN_PUT_ATTR(BUF, ATTR, DATA, FUNC)                      \
+     {                                                             \
+         unsigned long call_fn = (unsigned long)FUNC;              \
+@@ -5730,6 +5866,9 @@ parse_odp_key_mask_attr__(struct parse_odp_context *context, const char *s,
+         SCAN_FIELD_NESTED_FUNC("vxlan(gbp(", uint32_t, vxlan_gbp, vxlan_gbp_to_attr);
+         SCAN_FIELD_NESTED_FUNC("geneve(", struct geneve_scan, geneve,
+                                geneve_to_attr);
++        SCAN_FIELD_NESTED_FUNC("gtp_opt(", struct gtp1_control_pkt_opts, gtp_opt,
++                               gtp_to_attr);
++
+         SCAN_FIELD_NESTED_FUNC("flags(", uint16_t, tun_flags, tun_flags_to_attr);
+     } SCAN_END_NESTED();
+ 
+@@ -5997,7 +6136,7 @@ odp_flow_key_from_flow__(const struct odp_flow_key_parms *parms,
+     /* New "struct flow" fields that are visible to the datapath (including all
+      * data fields) should be translated into equivalent datapath flow fields
+      * here (you will have to add a OVS_KEY_ATTR_* for them). */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     struct ovs_key_ethernet *eth_key;
+     size_t encap[FLOW_MAX_VLAN_HEADERS] = {0};
+@@ -7096,7 +7235,7 @@ odp_flow_key_to_flow__(const struct nlattr *key, size_t key_len,
+     /* New "struct flow" fields that are visible to the datapath (including all
+      * data fields) should be translated from equivalent datapath flow fields
+      * here (you will have to add a OVS_KEY_ATTR_* for them).  */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     enum odp_key_fitness fitness = ODP_FIT_ERROR;
+     if (errorp) {
+@@ -8445,7 +8584,7 @@ commit_odp_actions(const struct flow *flow, struct flow *base,
+     /* If you add a field that OpenFlow actions can change, and that is visible
+      * to the datapath (including all data fields), then you should also add
+      * code here to commit changes to the field. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     enum slow_path_reason slow1, slow2;
+     bool mpls_done = false;
+diff --git a/lib/odp-util.h b/lib/odp-util.h
+index 4ecce1aac..623a66aa2 100644
+--- a/lib/odp-util.h
++++ b/lib/odp-util.h
+@@ -147,7 +147,7 @@ void odp_portno_name_format(const struct hmap *portno_names,
+  * add another field and forget to adjust this value.
+  */
+ #define ODPUTIL_FLOW_KEY_BYTES 640
+-BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+ /* A buffer with sufficient size and alignment to hold an nlattr-formatted flow
+  * key.  An array of "struct nlattr" might not, in theory, be sufficiently
+diff --git a/lib/ofp-match.c b/lib/ofp-match.c
+index 2ec28f803..86a082dde 100644
+--- a/lib/ofp-match.c
++++ b/lib/ofp-match.c
+@@ -65,7 +65,7 @@ ofputil_netmask_to_wcbits(ovs_be32 netmask)
+ void
+ ofputil_wildcard_from_ofpfw10(uint32_t ofpfw, struct flow_wildcards *wc)
+ {
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+     /* Initialize most of wc. */
+     flow_wildcards_init_catchall(wc);
+diff --git a/lib/packets.h b/lib/packets.h
+index 5d7f82c45..8f3ff943d 100644
+--- a/lib/packets.h
++++ b/lib/packets.h
+@@ -1661,4 +1661,16 @@ BUILD_ASSERT_DECL(DNS_HEADER_LEN == sizeof(struct dns_header));
+ #define DNS_CLASS_IN            0x01
+ #define DNS_DEFAULT_RR_TTL      3600
+ 
++/* GTP: */
++
++enum {
++    GTP_CONTROL_PKT_INFO_V1
++};
++
++struct gtp1_control_pkt_opts {
++    __u8	ver;
++    __u8	flags;
++    __u8	type;
++};
++
+ #endif /* packets.h */
+diff --git a/manpages.mk b/manpages.mk
+index dc201484c..54a3a82ad 100644
+--- a/manpages.mk
++++ b/manpages.mk
+@@ -104,7 +104,6 @@ utilities/bugtool/ovs-bugtool.8: \
+ utilities/bugtool/ovs-bugtool.8.in:
+ lib/ovs.tmac:
+ 
+-
+ utilities/ovs-dpctl-top.8: \
+ 	utilities/ovs-dpctl-top.8.in \
+ 	lib/ovs.tmac
+@@ -155,8 +154,6 @@ lib/common-syn.man:
+ lib/common.man:
+ lib/ovs.tmac:
+ 
+-lib/ovs.tmac:
+-
+ utilities/ovs-testcontroller.8: \
+ 	utilities/ovs-testcontroller.8.in \
+ 	lib/common.man \
+diff --git a/ofproto/ofproto-dpif-rid.h b/ofproto/ofproto-dpif-rid.h
+index 147ef9c33..e5d02caf2 100644
+--- a/ofproto/ofproto-dpif-rid.h
++++ b/ofproto/ofproto-dpif-rid.h
+@@ -99,7 +99,7 @@ struct rule;
+ /* Metadata for restoring pipeline context after recirculation.  Helpers
+  * are inlined below to keep them together with the definition for easier
+  * updates. */
+-BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+ 
+ struct frozen_metadata {
+     /* Metadata in struct flow. */
+diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
+index 0d3046a79..36b40f5f3 100644
+--- a/ofproto/ofproto-dpif-xlate.c
++++ b/ofproto/ofproto-dpif-xlate.c
+@@ -4117,7 +4117,7 @@ compose_output_action__(struct xlate_ctx *ctx, ofp_port_t ofp_port,
+ 
+     /* If 'struct flow' gets additional metadata, we'll need to zero it out
+      * before traversing a patch port. */
+-    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 41);
++    BUILD_ASSERT_DECL(FLOW_WC_SEQ == 42);
+     memset(&flow_tnl, 0, sizeof flow_tnl);
+ 
+     if (!check_output_prerequisites(ctx, xport, flow, check_stp)) {
+-- 
+2.17.1
+

@@ -135,6 +135,7 @@ typedef struct sgw_pdn_connection_s {
 typedef struct sgw_eps_bearer_context_information_s {
   Imsi_t
     imsi; ///< IMSI (International Mobile Subscriber Identity) is the subscriber permanent identity.
+  imsi64_t imsi64; ///< IMSI in 64 bit integer format
   int8_t
     imsi_unauthenticated_indicator; /// This is an IMSI indicator to show the IMSI is unauthenticated.
   // TO BE CHECKED me_identity_t    me_identity;       ///< Mobile Equipment Identity (e.g. IMEI/IMEISV).

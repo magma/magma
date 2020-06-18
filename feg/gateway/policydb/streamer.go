@@ -11,10 +11,11 @@ package policydb
 import (
 	"magma/feg/gateway/object_store"
 	"magma/lte/cloud/go/protos"
-	orcprotos "magma/orc8r/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
 )
 
 type storedObjectListener struct {
@@ -31,12 +32,20 @@ type PolicyDBStreamListener struct {
 	storedObjectListener
 }
 
+type OmnipresentRulesStreamListener struct {
+	storedObjectListener
+}
+
 func NewBaseNameStreamListener(streamMap object_store.ObjectMap) *BaseNameStreamListener {
 	return &BaseNameStreamListener{storedObjectListener: storedObjectListener{streamMap: streamMap, name: "base_names", protoBuf: &protos.ChargingRuleNameSet{}}}
 }
 
 func NewPolicyDBStreamListener(streamMap object_store.ObjectMap) *PolicyDBStreamListener {
 	return &PolicyDBStreamListener{storedObjectListener: storedObjectListener{streamMap: streamMap, name: "policydb", protoBuf: &protos.PolicyRule{}}}
+}
+
+func NewOmnipresentRulesListener(streamMap object_store.ObjectMap) *OmnipresentRulesStreamListener {
+	return &OmnipresentRulesStreamListener{storedObjectListener: storedObjectListener{streamMap: streamMap, name: "network_wide_rules", protoBuf: &protos.AssignedPolicies{}}}
 }
 
 // Gateway Streamer Listener Interface Implementation
@@ -78,4 +87,8 @@ func (listener *storedObjectListener) Update(ub *orcprotos.DataUpdateBatch) bool
 		}
 	}
 	return true
+}
+
+func (listener *storedObjectListener) GetExtraArgs() *any.Any {
+	return nil
 }

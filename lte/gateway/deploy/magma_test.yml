@@ -9,9 +9,12 @@
     full_provision: true
 
   roles:
+    # See magma_dev.yml for an explanation why this is commented
+    # - role: stretch_snapshot
     - role: apt_cache
       vars:
         distribution: "stretch"
+        repo: "dev"
     - role: pkgrepo
     - role: python_dev
     - role: dev_common

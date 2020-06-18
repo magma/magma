@@ -9,11 +9,27 @@ add_compile_options(-std=c++14)
 
 include_directories("${PROJECT_SOURCE_DIR}/../common/logging")
 
+list(APPEND PROTO_SRCS "")
+list(APPEND PROTO_HDRS "")
+
+set(ASYNC_ORC8R_CPP_PROTOS common redis)
+set(ASYNC_LTE_CPP_PROTOS session_manager policydb subscriberdb)
+set(ASYNC_LTE_GRPC_PROTOS session_manager)
+set(ASYNC_ORC8R_GRPC_PROTOS "")
+
+generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
+        "${ASYNC_LTE_GRPC_PROTOS}"
+        "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+
+message("Async Proto_srcs are ${PROTO_SRCS}")
+
 add_library(DATASTORE
     RedisMap.hpp
     ObjectMap.h
     Serializers.cpp
     Serializers.h
+    ${PROTO_SRCS}
+    ${PROTO_HDRS}
     )
 
 target_link_libraries(DATASTORE

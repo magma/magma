@@ -9,10 +9,10 @@
 
 #include <experimental/filesystem>
 
-#include <devmand/Diff.h>
-#include <devmand/FileWatcher.h>
 #include <devmand/cartography/DeviceConfig.h>
 #include <devmand/cartography/Method.h>
+#include <devmand/utils/Diff.h>
+#include <devmand/utils/FileWatcher.h>
 
 namespace devmand {
 namespace magma {
@@ -37,6 +37,8 @@ class DevConf : public cartography::Method {
  public:
   void enable() override;
 
+  folly::dynamic getPluginConfig();
+
  private:
   void handleFileWatchEvent(FileWatchEvent event);
   void handleDeviceDiff(
@@ -60,6 +62,7 @@ class DevConf : public cartography::Method {
   ConfigFileMode mode;
 
   cartography::DeviceConfigs oldDeviceConfigs;
+  folly::dynamic pluginConfig;
 };
 
 } // namespace magma

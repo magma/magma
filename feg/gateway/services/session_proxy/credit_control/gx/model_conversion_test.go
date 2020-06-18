@@ -19,15 +19,15 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/lte/cloud/go/protos"
 
-	"github.com/fiorix/go-diameter/diam"
+	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
-	monitoringKey := "monitor"
-	monitoringKey2 := "monitor2"
+	monitoringKey := []byte("monitor")
+	monitoringKey2 := []byte("monitor2")
 	bearerID := "bearer1"
 	var ratingGroup uint32 = 42
 	var totalOctets uint64 = 2048
@@ -36,7 +36,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)
 	assert.NoError(t, err)
-	in := &gx.ReAuthRequest{
+	in := &gx.PolicyReAuthRequest{
 		SessionID: "IMSI001010000000001-1234",
 		RulesToRemove: []*gx.RuleRemoveAVP{
 			{RuleNames: []string{"remove1", "remove2"}, RuleBaseNames: []string{"baseRemove1"}},
@@ -50,7 +50,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				RuleNames:     nil,
 				RuleBaseNames: nil,
 				RuleDefinitions: []*gx.RuleDefinition{
-					{RuleName: "dynamic1", MonitoringKey: &monitoringKey, Precedence: 100, RatingGroup: &ratingGroup},
+					{RuleName: "dynamic1",
+						MonitoringKey: []byte(monitoringKey),
+						Precedence:    100,
+						RatingGroup:   &ratingGroup},
 				},
 			},
 			{RuleNames: []string{"install3"}, RuleBaseNames: []string{}},
@@ -112,9 +115,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				PolicyRule: &protos.PolicyRule{
 					Id:            "dynamic1",
 					RatingGroup:   42,
-					MonitoringKey: monitoringKey,
+					MonitoringKey: []byte(monitoringKey),
 					Priority:      100,
 					TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
+					Redirect:      &protos.RedirectInformation{},
 				},
 			},
 		},
@@ -126,7 +130,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		UsageMonitoringCredits: []*protos.UsageMonitoringCredit{
 			{
 				Action:        protos.UsageMonitoringCredit_CONTINUE,
-				MonitoringKey: monitoringKey,
+				MonitoringKey: []byte(monitoringKey),
 				GrantedUnits: &protos.GrantedUnits{
 					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
 					Tx:    &protos.CreditUnit{IsValid: false},
@@ -136,7 +140,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			},
 			{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: monitoringKey2,
+				MonitoringKey: []byte(monitoringKey2),
 				Level:         protos.MonitoringLevel(monitoringLevel),
 			},
 		},
@@ -157,7 +161,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 			"baz": protos.PolicyReAuthAnswer_AN_GW_FAILED,
 		},
 	}
-	actual := (&gx.ReAuthAnswer{}).FromProto("sesh", in)
+	actual := (&gx.PolicyReAuthAnswer{}).FromProto("sesh", in)
 
 	// sort the rules so we get a deterministic test
 	sortFun := func(i, j int) bool {
@@ -170,7 +174,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 	}
 	sort.Slice(actual.RuleReports, sortFun)
 
-	expected := &gx.ReAuthAnswer{
+	expected := &gx.PolicyReAuthAnswer{
 		SessionID:  "sesh",
 		ResultCode: diam.Success,
 		RuleReports: []*gx.ChargingRuleReport{
@@ -183,7 +187,7 @@ func TestReAuthAnswer_FromProto(t *testing.T) {
 
 func TestRuleDefinition_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
-	monitoringKey := "monitor"
+	monitoringKey := []byte("monitor")
 	var ratingGroup uint32 = 10
 	var ruleOut *protos.PolicyRule = nil
 
@@ -192,25 +196,25 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, "", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte(nil), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_OCS, ruleOut.TrackingType)
 
 	ruleOut = (&gx.RuleDefinition{
 		RuleName:      "mkonly",
-		MonitoringKey: &monitoringKey,
+		MonitoringKey: monitoringKey,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, "monitor", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_ONLY_PCRF, ruleOut.TrackingType)
 
 	ruleOut = (&gx.RuleDefinition{
 		RuleName:      "both",
-		MonitoringKey: &monitoringKey,
+		MonitoringKey: monitoringKey,
 		RatingGroup:   &ratingGroup,
 	}).ToProto()
-	assert.Equal(t, "monitor", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte("monitor"), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(10), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_OCS_AND_PCRF, ruleOut.TrackingType)
 
@@ -219,7 +223,7 @@ func TestRuleDefinition_ToProto(t *testing.T) {
 		MonitoringKey: nil,
 		RatingGroup:   nil,
 	}).ToProto()
-	assert.Equal(t, "", ruleOut.MonitoringKey)
+	assert.Equal(t, []byte(nil), ruleOut.MonitoringKey)
 	assert.Equal(t, uint32(0), ruleOut.RatingGroup)
 	assert.Equal(t, protos.PolicyRule_NO_TRACKING, ruleOut.TrackingType)
 }

@@ -12,13 +12,14 @@ package models
 import (
 	"sort"
 
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 	"orc8r/devmand/cloud/go/devmand"
 
 	"github.com/go-openapi/swag"
@@ -77,12 +78,10 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnCreate() []configurator.Enti
 		Type: devmand.SymphonyAgentType,
 		Key:  string(m.ID),
 	}
-
 	for _, managedDevice := range m.ManagedDevices {
 		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: managedDevice})
 	}
-
-	return []configurator.EntityWriteOperation{
+	writes := []configurator.EntityWriteOperation{
 		ent,
 		configurator.EntityUpdateCriteria{
 			Type:              orc8r.MagmadGatewayType,
@@ -90,6 +89,8 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnCreate() []configurator.Enti
 			AssociationsToAdd: []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: string(m.ID)}},
 		},
 	}
+
+	return writes
 }
 
 func (m *MutableSymphonyAgent) GetAdditionalEntitiesToLoadOnUpdate(agentID string) []storage.TypeAndKey {
@@ -103,19 +104,18 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnUpdate(
 	ret := []configurator.EntityWriteOperation{}
 	_, ok := loadedEntities[storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: agentID}]
 	if !ok {
-		return ret, merrors.ErrNotFound
+		return nil, merrors.ErrNotFound
 	}
 
-	entUpdate := configurator.EntityUpdateCriteria{
-		Type: devmand.SymphonyAgentType,
-		Key:  string(m.ID),
+	update := configurator.EntityUpdateCriteria{
+		Type: devmand.SymphonyAgentType, Key: agentID,
+		AssociationsToSet: []storage.TypeAndKey{},
 	}
-
-	for _, managedDevice := range m.ManagedDevices {
-		entUpdate.AssociationsToSet = append(entUpdate.AssociationsToSet, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: managedDevice})
+	for _, dID := range m.ManagedDevices {
+		update.AssociationsToSet = append(update.AssociationsToSet, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: dID})
 	}
+	ret = append(ret, update)
 
-	ret = append(ret, entUpdate)
 	return ret, nil
 }
 
@@ -126,17 +126,6 @@ func (m *MutableSymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity
 	}
 	for _, managedDevice := range m.ManagedDevices {
 		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: managedDevice})
-	}
-	return ret
-}
-
-func (m *MutableSymphonyAgent) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
-		Type: devmand.SymphonyAgentType,
-		Key:  string(m.ID),
-	}
-	for _, managedDeviceID := range m.ManagedDevices {
-		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: managedDeviceID})
 	}
 	return ret
 }
@@ -175,47 +164,99 @@ func (m *ManagedDevices) FromBackendModels(networkID string, agentID string) err
 }
 
 func (m *ManagedDevices) ToUpdateCriteria(networkID string, agentID string) ([]configurator.EntityUpdateCriteria, error) {
-	managedDevices := []storage.TypeAndKey{}
-	for _, managedDevice := range *m {
-		managedDevices = append(managedDevices, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: managedDevice})
-	}
-	return []configurator.EntityUpdateCriteria{
-		{
-			Type:              devmand.SymphonyAgentType,
-			Key:               agentID,
-			AssociationsToSet: managedDevices,
-		},
-	}, nil
-}
-
-func (m *ManagedDevices) ToDeleteUpdateCriteria(networkID, agentID, deviceID string) configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
+	update := configurator.EntityUpdateCriteria{
 		Type: devmand.SymphonyAgentType, Key: agentID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: devmand.SymphonyDeviceType, Key: deviceID}},
+		AssociationsToSet: []storage.TypeAndKey{},
 	}
-}
-
-func (m *ManagedDevices) ToCreateUpdateCriteria(networkID, agentID, deviceID string) configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type: devmand.SymphonyAgentType, Key: agentID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: devmand.SymphonyDeviceType, Key: deviceID}},
+	for _, dID := range *m {
+		update.AssociationsToSet = append(update.AssociationsToSet, storage.TypeAndKey{Type: devmand.SymphonyDeviceType, Key: dID})
 	}
+	return []configurator.EntityUpdateCriteria{update}, nil
 }
 
 func (m *SymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *SymphonyDevice {
 	m.Name = SymphonyDeviceName(ent.Name)
 	m.ID = SymphonyDeviceID(ent.Key)
 	m.Config = ent.Config.(*SymphonyDeviceConfig)
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == devmand.SymphonyAgentType {
+			m.ManagingAgent = SymphonyDeviceAgent(tk.Key)
+		}
+	}
+	state, err := state.GetState(ent.NetworkID, devmand.SymphonyDeviceStateType, ent.Key)
+	if err == nil {
+		m.State = state.ReportedState.(*SymphonyDeviceState)
+	}
 	return m
 }
 
-func (m *SymphonyDevice) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type:      devmand.SymphonyDeviceType,
-		Key:       string(m.ID),
-		NewName:   swag.String(string(m.Name)),
-		NewConfig: m.Config,
+func (m *MutableSymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *MutableSymphonyDevice {
+	m.Name = SymphonyDeviceName(ent.Name)
+	m.ID = SymphonyDeviceID(ent.Key)
+	m.Config = ent.Config.(*SymphonyDeviceConfig)
+	for _, tk := range ent.ParentAssociations {
+		if tk.Type == devmand.SymphonyAgentType {
+			m.ManagingAgent = SymphonyDeviceAgent(tk.Key)
+		}
 	}
+	return m
+}
+
+func (m *MutableSymphonyDevice) ToEntityUpdateCriteria(nID string) ([]configurator.EntityUpdateCriteria, error) {
+	updates := []configurator.EntityUpdateCriteria{
+		configurator.EntityUpdateCriteria{
+			Type:      devmand.SymphonyDeviceType,
+			Key:       string(m.ID),
+			NewName:   swag.String(string(m.Name)),
+			NewConfig: m.Config,
+		},
+	}
+
+	// Get updates for agents
+	oldDevice, err := configurator.LoadEntity(nID, devmand.SymphonyDeviceType, string(m.ID), configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+	if err != nil {
+		return nil, err
+	}
+	oldAgent := ""
+	for _, tk := range oldDevice.ParentAssociations {
+		if tk.Type == devmand.SymphonyAgentType {
+			oldAgent = tk.Key
+		}
+	}
+	newAgent := string(m.ManagingAgent)
+	agentUpdates := GetAgentUpdates(string(m.ID), oldAgent, newAgent)
+
+	updates = append(updates, agentUpdates...)
+	return updates, nil
+}
+
+func (m *SymphonyDeviceAgent) FromBackendModels(networkID, deviceID string) error {
+	symphonyDeviceEntity, err := configurator.LoadEntity(networkID, devmand.SymphonyDeviceType, deviceID, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+	if err != nil {
+		return err
+	}
+	managingAgent := ""
+	for _, tk := range symphonyDeviceEntity.ParentAssociations {
+		if tk.Type == devmand.SymphonyAgentType {
+			managingAgent = tk.Key
+		}
+	}
+	*m = SymphonyDeviceAgent(managingAgent)
+	return nil
+}
+
+func (m *SymphonyDeviceAgent) ToUpdateCriteria(networkID, deviceID string) ([]configurator.EntityUpdateCriteria, error) {
+	symphonyDeviceEntity, err := configurator.LoadEntity(networkID, devmand.SymphonyDeviceType, deviceID, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+	if err != nil {
+		return nil, err
+	}
+	oldManagingAgent := ""
+	for _, tk := range symphonyDeviceEntity.ParentAssociations {
+		if tk.Type == devmand.SymphonyAgentType {
+			oldManagingAgent = tk.Key
+		}
+	}
+	return GetAgentUpdates(deviceID, oldManagingAgent, string(*m)), nil
 }
 
 func (m *SymphonyDeviceName) FromBackendModels(networkID, deviceID string) error {
@@ -248,7 +289,7 @@ func (m *SymphonyDeviceConfig) FromBackendModels(networkID, deviceID string) err
 
 func (m *SymphonyDeviceConfig) ToUpdateCriteria(networkID, deviceID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
-		{
+		configurator.EntityUpdateCriteria{
 			Type:      devmand.SymphonyDeviceType,
 			Key:       deviceID,
 			NewConfig: m,

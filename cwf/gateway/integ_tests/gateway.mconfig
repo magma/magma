@@ -33,25 +33,31 @@
   "swx_proxy": {
    "@type": "type.googleapis.com/magma.mconfig.SwxConfig",
    "logLevel": "INFO",
-   "server": {
-    "protocol": "sctp",
-    "address": "localhost:3868",
-    "retransmits": 0,
-    "watchdogInterval": 0,
-    "retryCount": 0,
-    "localAddress": "localhost:3869",
-    "productName": "magma",
-    "realm": "epc.mnc001.mcc01.3gppnetwork.org",
-    "host": "swx-mgm1.epc.mnc001.mcc01.3gppnetwork.org",
-    "destRealm": "epc.mnc001.mcc01.3gppnetwork.org",
-    "destHost": "hw-hss.epc.mnc001.mcc01.3gppnetwork.org"
-   },
+   "servers": [
+      {
+      "protocol": "sctp",
+      "address": "localhost:3868",
+      "retransmits": 0,
+      "watchdogInterval": 0,
+      "retryCount": 0,
+      "localAddress": "localhost:3869",
+      "productName": "magma",
+      "realm": "epc.mnc001.mcc01.3gppnetwork.org",
+      "host": "swx-mgm1.epc.mnc001.mcc01.3gppnetwork.org",
+      "destRealm": "epc.mnc001.mcc01.3gppnetwork.org",
+      "destHost": "hw-hss.epc.mnc001.mcc01.3gppnetwork.org"
+      }
+    ],
+
    "verifyAuthorization": false
   },
   "sessiond": {
    "@type": "type.googleapis.com/magma.mconfig.SessionD",
    "logLevel": "INFO",
-   "relayEnabled": true
+   "relayEnabled": true,
+   "walletExhaustDetection": {
+    "terminateOnExhaust": true
+   }
   },
   "aaa_server": {
    "@type": "type.googleapis.com/magma.mconfig.AAAConfig",
@@ -62,6 +68,10 @@
   },
   "control_proxy": {
    "@type": "type.googleapis.com/magma.mconfig.ControlProxy",
+   "logLevel": "INFO"
+  },
+  "directoryd": {
+   "@type": "type.googleapis.com/magma.mconfig.DirectoryD",
    "logLevel": "INFO"
   },
   "eap_aka": {
@@ -102,52 +112,70 @@
    "ueIpBlock": "192.168.128.0/24",
    "natEnabled": true,
    "defaultRuleId": "default_rule_1",
-   "relayEnabled": true,
    "services": [
       "ENFORCEMENT"
    ],
+   "ipdrExportDst": {
+     "ip": "192.168.40.12",
+     "port": 4740
+   },
    "allowedGrePeers": [
-    {"ip": "192.168.70.102", "key":5001}
+    {"ip": "192.168.70.102"}
    ]
+  },
+  "state": {
+   "@type": "type.googleapis.com/magma.mconfig.State",
+   "logLevel": "INFO"
   },
   "session_proxy": {
    "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
    "logLevel": "INFO",
    "gx": {
-    "server": {
-     "protocol": "tcp",
-     "address": "127.0.0.1:50003",
-     "retransmits": 0,
-     "watchdogInterval": 0,
-     "retryCount": 0,
-     "localAddress": "127.0.0.1:50004",
-     "productName": "magma",
-     "realm": "magma.svc.cluster.local",
-     "host": "feg.magma.svc.cluster.local",
-     "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
-     "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
-     "disableDestHost": false
-    }
+    "servers": [
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50003",
+       "retransmits": 0,
+       "watchdogInterval": 30,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50004",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      }
+    ]
    },
    "gy": {
-    "server": {
-     "protocol": "tcp",
-     "address": "127.0.0.1:50001",
-     "retransmits": 0,
-     "watchdogInterval": 0,
-     "retryCount": 0,
-     "localAddress": "127.0.0.1:50002",
-     "productName": "magma",
-     "realm": "magma.svc.cluster.local",
-     "host": "feg.magma.svc.cluster.local",
-     "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
-     "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
-     "disableDestHost": false
-    },
+    "servers": [
+      {
+       "protocol": "tcp",
+       "address": "127.0.0.1:50001",
+       "retransmits": 0,
+       "watchdogInterval": 30,
+       "retryCount": 0,
+       "localAddress": "127.0.0.1:50002",
+       "productName": "magma",
+       "realm": "magma.svc.cluster.local",
+       "host": "feg.magma.svc.cluster.local",
+       "destRealm": "epc.mnc001.mcc001.3gppnetwork.org",
+       "destHost": "sdp1c.epc.mnc001.mcc001.3gppnetwork.org",
+       "disableDestHost": false
+      }
+    ],
     "initMethod": "PER_KEY"
    },
    "requestFailureThreshold": 0.5,
    "minimumRequestThreshold": 1
+  },
+  "td-agent-bit": {
+   "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+   "extraTags": {},
+   "throttleRate": 1000,
+   "throttleWindow": 5,
+   "throttleInterval": "1m"
   }
  },
  "metadata": {

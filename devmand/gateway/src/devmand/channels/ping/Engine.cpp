@@ -29,32 +29,194 @@ namespace devmand {
 namespace channels {
 namespace ping {
 
+// Exhaustive switch statements, even for enums, don't guarantee a return.
+// Just throw this if there's an unexpected enuenum value.
+std::out_of_range DefaultSwitchError(
+    "Reached end of exhaustive switch IPVersion.");
+
+IcmpPacket::IcmpPacket(IPVersion ipv_)
+    : packetType(PacketType::read), ipv(ipv_) {}
+
+IcmpPacket::IcmpPacket(const folly::IPAddress& addr_, RequestId sequence)
+    : packetType(PacketType::send),
+      ipv(addr_.isV4() ? IPVersion::v4 : IPVersion::v6),
+      addr(addr_) {
+  switch (ipv) {
+    case IPVersion::v4:
+      hdrV4.type = ICMP_ECHO;
+      hdrV4.un.echo.sequence = sequence;
+      break;
+    case IPVersion::v6:
+      hdrV6.icmp6_type = ICMP6_ECHO_REQUEST;
+      hdrV6.icmp6_seq = sequence;
+      break;
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+RequestId IcmpPacket::getSequence() const {
+  switch (ipv) {
+    case IPVersion::v4:
+      return hdrV4.un.echo.sequence;
+    case IPVersion::v6:
+      return hdrV6.icmp6_seq;
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+const folly::IPAddress& IcmpPacket::getAddr() const {
+  return addr;
+}
+
+bool IcmpPacket::wasSuccess() {
+  return success;
+}
+
+auto IcmpPacket::getType() {
+  switch (ipv) {
+    case IPVersion::v4:
+      return hdrV4.type;
+    case IPVersion::v6:
+      return hdrV6.icmp6_type;
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+bool IcmpPacket::isEchoReply() {
+  switch (ipv) {
+    case IPVersion::v4:
+      return getType() == ICMP_ECHOREPLY;
+    case IPVersion::v6:
+      return getType() == ICMP6_ECHO_REPLY;
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+auto IcmpPacket::getCode() {
+  switch (ipv) {
+    case IPVersion::v4:
+      return hdrV4.code;
+    case IPVersion::v6:
+      return hdrV6.icmp6_code;
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+const sockaddr_storage& IcmpPacket::getSrc() {
+  return src;
+}
+
+auto IcmpPacket::send(int socket) const {
+  assert(packetType == PacketType::send);
+  sockaddr_storage dst;
+  addr.toSockaddrStorage(&dst);
+  switch (ipv) {
+    case IPVersion::v4:
+      return sendto(
+          socket,
+          &hdrV4,
+          sizeof(hdrV4),
+          0,
+          reinterpret_cast<const sockaddr*>(&dst),
+          sizeof(dst));
+    case IPVersion::v6:
+      return sendto(
+          socket,
+          &hdrV6,
+          sizeof(hdrV6),
+          0,
+          reinterpret_cast<const sockaddr*>(&dst),
+          sizeof(dst));
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+void IcmpPacket::read(int socket) {
+  assert(packetType == PacketType::read);
+  switch (ipv) {
+    case IPVersion::v4:
+      success = recvfrom(
+                    socket,
+                    &hdrV4,
+                    sizeof(hdrV4),
+                    0,
+                    reinterpret_cast<sockaddr*>(&src),
+                    &srcLen) > 0;
+      break;
+    case IPVersion::v6:
+      success = recvfrom(
+                    socket,
+                    &hdrV6,
+                    sizeof(hdrV6),
+                    0,
+                    reinterpret_cast<sockaddr*>(&src),
+                    &srcLen) > 0;
+      break;
+    default:
+      throw DefaultSwitchError;
+  }
+}
+
+IcmpPacket Engine::read() {
+  IcmpPacket pkt(ipv);
+  pkt.read(icmpSocket);
+  return pkt;
+}
+
 Engine::Engine(
     folly::EventBase& _eventBase,
+    IPVersion ipv_,
     const std::chrono::milliseconds& pingTimeout_,
     const std::chrono::milliseconds& timeoutFrequency_)
     : channels::Engine("Ping"),
       folly::EventHandler(&_eventBase),
       eventBase(_eventBase),
+      ipv(ipv_),
       pingTimeout(pingTimeout_),
       timeoutFrequency(timeoutFrequency_) {
-  icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+  switch (ipv) {
+    case IPVersion::v4:
+      icmpSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+      break;
+    case IPVersion::v6:
+      icmpSocket = ::socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+      break;
+  }
   if (icmpSocket < 0) {
-    LOG(ERROR) << "Failed to open dgram socket";
-    throw std::system_error(errno, std::generic_category());
+    auto err = std::system_error(errno, std::generic_category());
+    LOG(ERROR) << "Failed to open dgram socket: " << err.what();
+    if (ipv_ == IPVersion::v6) {
+      LOG(ERROR) << "ICMP over IPv6 will not work.";
+      failedIpv6Socket = true;
+    } else {
+      throw err;
+    }
+  } else {
+    if (fcntl(icmpSocket, F_SETFL, O_NONBLOCK) < 0) {
+      throw std::system_error(errno, std::generic_category());
+    }
+    folly::EventHandler::changeHandlerFD(
+        folly::NetworkSocket::fromFd(icmpSocket));
   }
-
-  if (fcntl(icmpSocket, F_SETFL, O_NONBLOCK) < 0) {
-    throw std::system_error(errno, std::generic_category());
-  }
-
-  folly::EventHandler::changeHandlerFD(
-      folly::NetworkSocket::fromFd(icmpSocket));
-
   registerHandler(folly::EventHandler::READ | folly::EventHandler::PERSIST);
-
   start();
 }
+
+Engine::Engine(
+    folly::EventBase& _eventBase,
+    const std::chrono::milliseconds& pingTimeout_,
+    const std::chrono::milliseconds& timeoutFrequency_)
+    : Engine::Engine(
+          _eventBase,
+          IPVersion::v4,
+          pingTimeout_,
+          timeoutFrequency_) {}
 
 Engine::~Engine() {
   unregisterHandler();
@@ -77,7 +239,7 @@ void Engine::start() {
 void Engine::timeout() {
   sharedOutstandingRequests.withULockPtr([this](auto uOutstandingRequests) {
     auto outstandingRequests = uOutstandingRequests.moveFromUpgradeToWrite();
-    LOG(INFO) << "Processing ping timeouts";
+    // LOG(INFO) << "Processing ping timeouts";
     for (auto it = outstandingRequests->begin();
          it != outstandingRequests->end();) {
       utils::TimePoint end = utils::Time::now();
@@ -92,30 +254,22 @@ void Engine::timeout() {
   });
 }
 
-folly::Future<Rtt> Engine::ping(
-    const icmphdr& hdr,
-    const folly::IPAddress& destination) {
+folly::Future<Rtt> Engine::ping(const IcmpPacket& pkt) {
+  if (failedIpv6Socket) {
+    LOG(ERROR) << "Attempted ping on IPV6 where socket failed to open.";
+    return folly::makeFuture<Rtt>(0);
+  }
   incrementRequests();
-
-  return sharedOutstandingRequests.withULockPtr([this, &hdr, &destination](
+  return sharedOutstandingRequests.withULockPtr([this, &pkt](
                                                     auto uOutstandingRequests) {
     auto outstandingRequests = uOutstandingRequests.moveFromUpgradeToWrite();
     auto request = outstandingRequests->emplace(
         std::piecewise_construct,
-        std::forward_as_tuple(
-            std::make_pair(destination, hdr.un.echo.sequence)),
+        std::forward_as_tuple(std::make_pair(pkt.getAddr(), pkt.getSequence())),
         std::forward_as_tuple(Request{}));
     if (request.second) {
-      sockaddr_storage dst;
-      destination.toSockaddrStorage(&dst);
       request.first->second.start = utils::Time::now();
-      auto result = sendto(
-          icmpSocket,
-          &hdr,
-          sizeof(hdr),
-          0,
-          reinterpret_cast<const sockaddr*>(&dst),
-          sizeof(dst));
+      auto result = pkt.send(icmpSocket);
       if (result <= 0) {
         switch (result) {
           case EAGAIN: // case EWOULDBLOCK:
@@ -142,32 +296,21 @@ folly::Future<Rtt> Engine::ping(
   });
 }
 
-IcmpPacket Engine::read() {
-  IcmpPacket pkt;
-  pkt.success = recvfrom(
-                    icmpSocket,
-                    &pkt.hdr,
-                    sizeof(pkt.hdr),
-                    0,
-                    reinterpret_cast<sockaddr*>(&pkt.src),
-                    &pkt.srcLen) > 0;
-  return pkt;
-}
-
 void Engine::handlerReady(uint16_t) noexcept {
   // TODO end time isn't really precise here as we don't have a kernel time
   // need to implement kernel timestamping
   utils::TimePoint end = utils::Time::now();
-  for (IcmpPacket pkt = read(); pkt.success; pkt = read()) {
+  for (IcmpPacket pkt = read(); pkt.wasSuccess(); pkt = read()) {
     bool processed{false};
-    if (pkt.hdr.type == 0 and pkt.hdr.code == 0) {
+    if (pkt.isEchoReply() and pkt.getCode() == 0) {
       sharedOutstandingRequests.withULockPtr([this, &end, &pkt, &processed](
                                                  auto uOutstandingRequests) {
         auto outstandingRequests =
             uOutstandingRequests.moveFromUpgradeToWrite();
+        auto src = pkt.getSrc();
         auto request = outstandingRequests->find(std::make_pair(
-            folly::IPAddress(reinterpret_cast<sockaddr*>(&pkt.src)),
-            pkt.hdr.un.echo.sequence));
+            folly::IPAddress(reinterpret_cast<sockaddr*>(&src)),
+            pkt.getSequence()));
         if (request != outstandingRequests->end()) {
           auto duration = std::chrono::duration_cast<std::chrono::microseconds>(
               end - request->second.start);
@@ -182,8 +325,8 @@ void Engine::handlerReady(uint16_t) noexcept {
 
     if (not processed) {
       LOG(INFO) << "Packet received with ICMP type "
-                << static_cast<int>(pkt.hdr.type) << " code "
-                << static_cast<int>(pkt.hdr.code);
+                << static_cast<int>(pkt.getType()) << " code "
+                << static_cast<int>(pkt.getCode());
     }
   }
 }

@@ -46,6 +46,56 @@ func TestHistogramToGauge(t *testing.T) {
 	}
 }
 
+func TestHistogramToGaugeValues(t *testing.T) {
+	// Expected counts in buckets:
+	// 1: 3
+	// 5: 5
+	// 10: 9
+	// Count: 15
+	// Sum: 81.5
+	observations := []float64{0.5, 0.5, 0.5, 1.5, 1.5, 5.5, 5.5, 5.5, 5.5, 11, 11, 11, 11, 11, 11}
+	origMetric := tests.MakePromoHistogram([]float64{1, 5, 10}, observations)
+
+	expectedSum := 0.0
+	for _, obs := range observations {
+		expectedSum += obs
+	}
+
+	metricType := dto.MetricType_HISTOGRAM
+	famName := "hist"
+	origFam := &dto.MetricFamily{
+		Name:   &famName,
+		Help:   makeStringPointer("testFamilyHelp"),
+		Type:   &metricType,
+		Metric: []*dto.Metric{&origMetric},
+	}
+
+	convertedFams := histogramToGauges(origFam)
+	assert.Equal(t, 3, len(convertedFams))
+
+	for _, family := range convertedFams {
+		name := family.GetName()
+		for _, metric := range family.Metric {
+			if name == (famName + bucketPostfix) {
+				if tests.HasLabel(metric.Label, histogramBucketLabelName, "1") {
+					assert.Equal(t, 3.0, metric.Gauge.GetValue())
+				} else if tests.HasLabel(metric.Label, histogramBucketLabelName, "5") {
+					assert.Equal(t, 5.0, metric.Gauge.GetValue())
+				} else if tests.HasLabel(metric.Label, histogramBucketLabelName, "10") {
+					assert.Equal(t, 9.0, metric.Gauge.GetValue())
+				}
+			} else if name == (famName + sumPostfix) {
+				assert.Equal(t, expectedSum, metric.Gauge.GetValue())
+			} else if name == (famName + countPostfix) {
+				assert.Equal(t, float64(len(observations)), metric.Gauge.GetValue())
+			} else {
+				// Unexpected family name
+				t.Fail()
+			}
+		}
+	}
+}
+
 func TestSummaryToGauge(t *testing.T) {
 	originalFamily := tests.MakeTestMetricFamily(dto.MetricType_SUMMARY, 1, sampleLabels)
 	convertedFams := summaryToGauges(originalFamily)

@@ -6,9 +6,8 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
-
+import ipaddress
 from enum import Enum
-
 
 class IPState(Enum):
     FREE = 1
@@ -23,13 +22,14 @@ class IPDesc():
     IP descriptor.
 
     Properties:
-        ip (str)
+        ip (ipaddress.ip_address)
         state (IPState)
         sid (str)
         ip_block (ipaddress.ip_network)
     """
 
-    def __init__(self, ip=None, state=None, sid=None, ip_block=None):
+    def __init__(self, ip: ipaddress.ip_address = None, state: IPState = None,
+                 sid: str = None, ip_block: ipaddress.ip_network = None):
         self.ip = ip
         self.ip_block = ip_block
         self.state = state
@@ -37,9 +37,9 @@ class IPDesc():
 
     def __str__(self):
         as_str = '<mobilityd.IPDesc ' + \
-            '{{ip: {}, ip_block: {}, state: {}, sid: {}}}>'.format(
-                self.ip,
-                self.ip_block,
-                self.state,
-                self.sid)
+                 '{{ip: {}, ip_block: {}, state: {}, sid: {}}}>'.format(
+                     self.ip,
+                     self.ip_block,
+                     self.state,
+                     self.sid)
         return as_str

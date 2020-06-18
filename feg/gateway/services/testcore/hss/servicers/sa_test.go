@@ -15,21 +15,21 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
-	"magma/feg/gateway/services/testcore/hss/servicers/test"
+	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	definitions "magma/feg/gateway/services/swx_proxy/servicers"
 
-	"github.com/fiorix/go-diameter/diam"
-	"github.com/fiorix/go-diameter/diam/avp"
-	"github.com/fiorix/go-diameter/diam/datatype"
-	"github.com/fiorix/go-diameter/diam/dict"
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccess(t, response)
@@ -39,9 +39,22 @@ func TestNewSAA_SuccessfulRegistration(t *testing.T) {
 	assert.True(t, subscriber.GetState().GetTgppAaaServerRegistered())
 }
 
+func TestNewSAA_SuccessfulDeregistration(t *testing.T) {
+	sar := createSAR("sub1", definitions.ServerAssignnmentType_USER_DEREGISTRATION)
+	server := test_utils.NewTestHomeSubscriberServer(t)
+	response, err := hss.NewSAA(server, sar)
+	assert.NoError(t, err)
+	checkSAASuccessDeregistration(t, response)
+
+	subscriber, err := server.GetSubscriberData(context.Background(), &lteprotos.SubscriberID{Id: "sub1"})
+	assert.NoError(t, err)
+	assert.False(t, subscriber.GetState().GetTgppAaaServerRegistered())
+	assert.Empty(t, subscriber.GetState().TgppAaaServerName)
+}
+
 func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
 	sar := createSAR("sub1", definitions.ServerAssignmentType_AAA_USER_DATA_REQUEST)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.NoError(t, err)
 	checkSAASuccess(t, response)
@@ -53,7 +66,7 @@ func TestNewSAA_SuccessfulUserDataRequest(t *testing.T) {
 
 func TestNewSAA_UnknownIMSI(t *testing.T) {
 	sar := createSAR("sub_unknown", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "Subscriber 'sub_unknown' not found")
 
@@ -63,7 +76,7 @@ func TestNewSAA_UnknownIMSI(t *testing.T) {
 
 func TestNewSAA_No3GPPAAAServer(t *testing.T) {
 	sar := createSAR("empty_sub", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "no 3GPP AAA server is already serving the user")
 
@@ -73,7 +86,7 @@ func TestNewSAA_No3GPPAAAServer(t *testing.T) {
 
 func TestNewSAA_Redirect(t *testing.T) {
 	sar := createSARExtended("sub1", definitions.ServerAssignmentType_REGISTRATION, "different_host")
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "diameter identity for AAA server already registered")
 
@@ -85,7 +98,7 @@ func TestNewSAA_Redirect(t *testing.T) {
 
 func TestNewSAA_MissingAPNConfig(t *testing.T) {
 	sar := createSAR("missing_auth_key", definitions.ServerAssignmentType_REGISTRATION)
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "User has no non 3GPP subscription")
 
@@ -96,7 +109,7 @@ func TestNewSAA_MissingAPNConfig(t *testing.T) {
 func TestNewSAA_MissingAVP(t *testing.T) {
 	sar := createBaseSAR()
 	sar.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String("sub1"))
-	server := test.NewTestHomeSubscriberServer(t)
+	server := test_utils.NewTestHomeSubscriberServer(t)
 	response, err := hss.NewSAA(server, sar)
 	assert.EqualError(t, err, "Missing server assignment type in message")
 
@@ -165,6 +178,16 @@ func checkSAASuccess(t *testing.T, response *diam.Message) {
 	assert.Equal(t, datatype.Enumerated(lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED), profile.Non3GPPIPAccess)
 	assert.Equal(t, datatype.Enumerated(definitions.END_USER_E164), profile.SubscriptionId.SubscriptionIdType)
 	assert.Equal(t, datatype.UTF8String("12345"), profile.SubscriptionId.SubscriptionIdData)
+}
+
+// checkSAASuccessDeregistration ensures that a successful SAA with a deregistration command contains all the expected data
+func checkSAASuccessDeregistration(t *testing.T, response *diam.Message) {
+	saa := testUnmarshalSAA(t, response)
+	assert.Equal(t, diam.Success, int(saa.ResultCode))
+	assert.Equal(t, datatype.DiameterIdentity(""), saa.AAAServerName)
+	assert.Equal(t, datatype.UTF8String("sub1"), saa.UserName)
+	assert.Equal(t, int32(definitions.AuthSessionState_NO_STATE_MAINTAINED), saa.AuthSessionState)
+
 }
 
 // testUnmarshalSAA unmarshals an SAA message and checks that the SessionID,

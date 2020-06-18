@@ -9,17 +9,26 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
+	"sort"
+	"strings"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin/models"
-	"magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 )
+
+const (
+	baseNameParam = "base_name"
+	ruleIDParam   = "rule_id"
+)
+
+// Base names
 
 func ListBaseNames(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
@@ -27,11 +36,26 @@ func ListBaseNames(c echo.Context) error {
 		return nerr
 	}
 
-	baseNames, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	view := c.QueryParam("view")
+	if strings.ToLower(view) == "full" {
+		baseNames, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.BaseNameEntityType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
+		ret := map[string]*models.BaseNameRecord{}
+		for _, bnEnt := range baseNames {
+			ret[bnEnt.Key] = (&models.BaseNameRecord{}).FromEntity(bnEnt)
+		}
+		return c.JSON(http.StatusOK, ret)
+	} else {
+		names, err := configurator.ListEntityKeys(networkID, lte.BaseNameEntityType)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		sort.Strings(names)
+		return c.JSON(http.StatusOK, names)
 	}
-	return c.JSON(http.StatusOK, baseNames)
 }
 
 func CreateBaseName(c echo.Context) error {
@@ -52,13 +76,9 @@ func CreateBaseName(c echo.Context) error {
 }
 
 func GetBaseName(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
+	networkID, baseName, nerr := getNetworkIDAndBaseName(c)
 	if nerr != nil {
 		return nerr
-	}
-	baseName := getBaseNameParam(c)
-	if len(baseName) == 0 {
-		return baseNameHTTPErr()
 	}
 
 	ret, err := configurator.LoadEntity(
@@ -67,38 +87,40 @@ func GetBaseName(c echo.Context) error {
 		baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 	)
-	if err == errors.ErrNotFound {
+	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	return c.JSON(http.StatusOK, (&models.BaseNameRecord{}).FromEntity(ret).RuleNames)
+	return c.JSON(http.StatusOK, (&models.BaseNameRecord{}).FromEntity(ret))
 }
 
 func UpdateBaseName(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
+	networkID, baseName, nerr := getNetworkIDAndBaseName(c)
 	if nerr != nil {
 		return nerr
 	}
-	baseName := getBaseNameParam(c)
-	if len(baseName) == 0 {
-		return baseNameHTTPErr()
-	}
 
-	ruleNames := models.RuleNames{}
-	if err := c.Bind(&ruleNames); err != nil {
+	bnr := &models.BaseNameRecord{}
+	if err := c.Bind(bnr); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	_, err := configurator.UpdateEntity(
-		networkID,
-		configurator.EntityUpdateCriteria{
-			Type:              lte.BaseNameEntityType,
-			Key:               baseName,
-			AssociationsToSet: ruleNames.ToAssocs(),
-		},
-	)
+	if string(bnr.Name) != baseName {
+		return obsidian.HttpError(errors.New("base name in body does not match URL param"), http.StatusBadRequest)
+	}
+
+	// 404 if the entity doesn't exist
+	exists, err := configurator.DoesEntityExist(networkID, lte.BaseNameEntityType, baseName)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to check if base name exists"), http.StatusInternalServerError)
+	}
+	if !exists {
+		return echo.ErrNotFound
+	}
+
+	_, err = configurator.UpdateEntity(networkID, bnr.ToEntityUpdateCriteria())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -106,13 +128,9 @@ func UpdateBaseName(c echo.Context) error {
 }
 
 func DeleteBaseName(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
+	networkID, baseName, nerr := getNetworkIDAndBaseName(c)
 	if nerr != nil {
 		return nerr
-	}
-	baseName := getBaseNameParam(c)
-	if len(baseName) == 0 {
-		return baseNameHTTPErr()
 	}
 
 	err := configurator.DeleteEntity(networkID, lte.BaseNameEntityType, baseName)
@@ -122,26 +140,37 @@ func DeleteBaseName(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func baseNameHTTPErr() *echo.HTTPError {
-	return obsidian.HttpError(
-		fmt.Errorf("Invalid/Missing Base Name"),
-		http.StatusBadRequest)
-}
-
-func getBaseNameParam(c echo.Context) string {
-	return c.Param("base_name")
-}
+// Rules
 
 func ListRules(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	rules, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+
+	view := c.QueryParam("view")
+	if strings.ToLower(view) == "full" {
+		rules, err := configurator.LoadAllEntitiesInNetwork(
+			networkID, lte.PolicyRuleEntityType,
+			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
+		ret := map[string]*models.PolicyRule{}
+		for _, ruleEnt := range rules {
+			ret[ruleEnt.Key] = (&models.PolicyRule{}).FromEntity(ruleEnt)
+		}
+		return c.JSON(http.StatusOK, ret)
+	} else {
+		ruleIDs, err := configurator.ListEntityKeys(networkID, lte.PolicyRuleEntityType)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		sort.Strings(ruleIDs)
+		return c.JSON(http.StatusOK, ruleIDs)
 	}
-	return c.JSON(http.StatusOK, rules)
 }
 
 func CreateRule(c echo.Context) error {
@@ -162,33 +191,33 @@ func CreateRule(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, rule.ID)
+	return c.NoContent(http.StatusCreated)
 }
 
 func GetRule(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
+	networkID, ruleID, nerr := getNetworkAndRuleIDs(c)
 	if nerr != nil {
 		return nerr
-	}
-	ruleID := c.Param("rule_id")
-	if len(ruleID) == 0 {
-		return ruleIDHTTPErr()
 	}
 
 	ent, err := configurator.LoadEntity(
 		networkID,
 		lte.PolicyRuleEntityType,
 		ruleID,
-		configurator.EntityLoadCriteria{LoadConfig: true},
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 	)
-	if err != nil {
+	switch {
+	case err == merrors.ErrNotFound:
+		return echo.ErrNotFound
+	case err != nil:
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, ent.Config)
+
+	return c.JSON(http.StatusOK, (&models.PolicyRule{}).FromEntity(ent))
 }
 
 func UpdateRule(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
+	networkID, ruleID, nerr := getNetworkAndRuleIDs(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -197,16 +226,23 @@ func UpdateRule(c echo.Context) error {
 	if err := c.Bind(rule); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	ruleID, herr := getRuleID(c, rule)
-	if herr != nil {
-		return herr
-	}
-	rule.ID = &ruleID
 	if err := rule.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
+	if ruleID != string(rule.ID) {
+		return obsidian.HttpError(errors.New("rule ID in body does not match URL param"), http.StatusBadRequest)
+	}
 
-	err := configurator.CreateOrUpdateEntityConfig(networkID, lte.PolicyRuleEntityType, ruleID, rule)
+	// 404 if rule doesn't exist
+	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyRuleEntityType, ruleID)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to check if rule exists"), http.StatusInternalServerError)
+	}
+	if !exists {
+		return echo.ErrNotFound
+	}
+
+	_, err = configurator.UpdateEntity(networkID, rule.ToEntityUpdateCriteria())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -214,13 +250,9 @@ func UpdateRule(c echo.Context) error {
 }
 
 func DeleteRule(c echo.Context) error {
-	networkID, nerr := obsidian.GetNetworkId(c)
+	networkID, ruleID, nerr := getNetworkAndRuleIDs(c)
 	if nerr != nil {
 		return nerr
-	}
-	ruleID := c.Param("rule_id")
-	if len(ruleID) == 0 {
-		return ruleIDHTTPErr()
 	}
 
 	err := configurator.DeleteEntity(networkID, lte.PolicyRuleEntityType, ruleID)
@@ -230,29 +262,18 @@ func DeleteRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func ruleIDHTTPErr() *echo.HTTPError {
-	return obsidian.HttpError(
-		fmt.Errorf("Invalid/Missing Flow Rule ID"),
-		http.StatusBadRequest)
+func getNetworkIDAndBaseName(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", baseNameParam)
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
 }
 
-func getRuleID(c echo.Context, rule *models.PolicyRule) (string, *echo.HTTPError) {
-	// The RuleId can be defined as URL param ie. "rule_id" or in the request body
-	ruleID := c.Param("rule_id")
-	if len(ruleID) != 0 {
-		if *rule.ID != ruleID {
-			msg := fmt.Errorf("Rule ID payload doesn't match URL param %s vs %s",
-				*rule.ID, ruleID)
-			return ruleID, obsidian.HttpError(msg, http.StatusBadRequest)
-		}
-		rule.ID = &ruleID
-	} else {
-		ruleID = *rule.ID
+func getNetworkAndRuleIDs(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", ruleIDParam)
+	if err != nil {
+		return "", "", err
 	}
-
-	if len(ruleID) == 0 {
-		return ruleID, ruleIDHTTPErr()
-	}
-
-	return ruleID, nil
+	return vals[0], vals[1], nil
 }

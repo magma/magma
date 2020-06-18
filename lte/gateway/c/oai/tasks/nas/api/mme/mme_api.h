@@ -48,6 +48,7 @@ Description Implements the API used by the NAS layer running in the MME
 #include "3gpp_36.401.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
+#include "mme_config.h"
 
 struct mme_config_s;
 
@@ -83,13 +84,17 @@ typedef enum {
   UE_REGISTERED,
 } mm_state_t;
 
+typedef struct gummei_list_s {
+  uint8_t num_gummei;
+  gummei_t gummei[MAX_GUMMEI];
+} gummei_list_t;
 /*
  * EPS Mobility Management configuration data
  * ------------------------------------------
  */
 typedef struct mme_api_emm_config_s {
   mme_api_feature_t features; /* Supported features           */
-  gummei_t gummei;            /* EPS Globally Unique MME Identity */
+  gummei_list_t gummei;       /* EPS Globally Unique MME Identity List*/
   uint8_t prefered_integrity_algorithm
     [8]; // choice in NAS_SECURITY_ALGORITHMS_EIA0, etc
   uint8_t prefered_ciphering_algorithm
@@ -141,7 +146,7 @@ struct mme_config_s;
 
 int mme_api_get_emm_config(
   mme_api_emm_config_t *config,
-  struct mme_config_s *mme_config_p);
+  const struct mme_config_s *mme_config_p);
 
 #define REMOVE_OLD_CONTEXT true
 #define REMOVE_NEW_CONTEXT false
@@ -154,8 +159,7 @@ int mme_api_get_esm_config(mme_api_esm_config_t *config);
 
 int mme_api_notify_imsi(
   const mme_ue_s1ap_id_t id,
-  const imsi64_t imsi64,
-  uint8_t imsi_len);
+  const imsi64_t imsi64);
 
 int mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid, guti_t *const guti);
 
@@ -190,4 +194,37 @@ bool mme_ue_context_get_ue_sgs_neaf(
 void mme_ue_context_update_ue_sgs_neaf(
   mme_ue_s1ap_id_t mme_ue_s1ap_id,
   bool neaf);
+
+/* Compares the given two PLMNs */
+#define IS_PLMN_EQUAL(pLMN1, pLMN2)                                            \
+  (((pLMN1.mcc_digit1 == pLMN2.mcc_digit1) &&                                  \
+    (pLMN1.mcc_digit2 == pLMN2.mcc_digit2) &&                                  \
+    (pLMN1.mcc_digit3 == pLMN2.mcc_digit3) &&                                  \
+    (pLMN1.mnc_digit1 == pLMN2.mnc_digit1) &&                                  \
+    (pLMN1.mnc_digit2 == pLMN2.mnc_digit2) &&                                  \
+    (pLMN1.mnc_digit3 == pLMN2.mnc_digit3)) ?                                  \
+     (true) :                                                                  \
+     (false))
+
+#define COPY_GUMMEI(gUTI, gUMMEIvAl)                                           \
+  do {                                                                         \
+    gUTI->gummei.mme_gid = gUMMEIvAl.mme_gid;                                  \
+    gUTI->gummei.mme_code = gUMMEIvAl.mme_code;                                \
+    gUTI->gummei.plmn.mcc_digit1 = gUMMEIvAl.plmn.mcc_digit1;                  \
+    gUTI->gummei.plmn.mcc_digit2 = gUMMEIvAl.plmn.mcc_digit2;                  \
+    gUTI->gummei.plmn.mcc_digit3 = gUMMEIvAl.plmn.mcc_digit3;                  \
+    gUTI->gummei.plmn.mnc_digit1 = gUMMEIvAl.plmn.mnc_digit1;                  \
+    gUTI->gummei.plmn.mnc_digit2 = gUMMEIvAl.plmn.mnc_digit2;                  \
+    gUTI->gummei.plmn.mnc_digit3 = gUMMEIvAl.plmn.mnc_digit3;                  \
+  } while (0)
+
+#define COPY_PLMN(pLMN1, pLMN2)                                                \
+  do {                                                                         \
+    pLMN1.mcc_digit1 = pLMN2.mcc_digit1;                                       \
+    pLMN1.mcc_digit2 = pLMN2.mcc_digit2;                                       \
+    pLMN1.mcc_digit3 = pLMN2.mcc_digit3;                                       \
+    pLMN1.mnc_digit1 = pLMN2.mnc_digit1;                                       \
+    pLMN1.mnc_digit2 = pLMN2.mnc_digit2;                                       \
+    pLMN1.mnc_digit3 = pLMN2.mnc_digit3;                                       \
+  } while (0)
 #endif /* FILE_MME_API_SEEN*/

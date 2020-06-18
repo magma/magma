@@ -50,7 +50,6 @@
   (mSGpTR)->ittiMsg.s1ap_enb_initiated_reset_req
 #define S1AP_ENB_INITIATED_RESET_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_enb_initiated_reset_ack
-#define S1AP_DEREGISTER_UE_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_deregister_ue_req
 #define S1AP_UE_CONTEXT_RELEASE_REQ(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.s1ap_ue_context_release_req
 #define S1AP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR)                                \
@@ -149,10 +148,6 @@ typedef struct itti_s1ap_eNB_deregistered_ind_s {
   uint32_t enb_id;
 } itti_s1ap_eNB_deregistered_ind_t;
 
-typedef struct itti_s1ap_deregister_ue_req_s {
-  mme_ue_s1ap_id_t mme_ue_s1ap_id;
-} itti_s1ap_deregister_ue_req_t;
-
 typedef enum s1ap_reset_type_e {
   RESET_ALL = 0,
   RESET_PARTIAL
@@ -236,6 +231,8 @@ typedef struct itti_s1ap_paging_request_s {
 #define S1AP_PAGING_ID_STMSI 0X1
   uint8_t paging_id;
   s1ap_cn_domain_t domain_indicator;
+  uint8_t tai_list_count;
+  paging_tai_list_t paging_tai_list[TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS];
 } itti_s1ap_paging_request_t;
 
 typedef struct itti_s1ap_initial_ue_message_s {
@@ -246,9 +243,9 @@ typedef struct itti_s1ap_initial_ue_message_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   bstring nas;
   tai_t
-    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message.                         */
+    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message. */
   ecgi_t
-    ecgi; /* Indicating the cell from which the UE has sent the NAS message.                         */
+    ecgi; /* Indicating the cell from which the UE has sent the NAS message. */
   rrc_establishment_cause_t
     rrc_establishment_cause; /* Establishment cause                     */
 

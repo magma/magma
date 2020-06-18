@@ -20,7 +20,9 @@
       "csfbMcc": "001",
       "csfbMnc": "01",
       "lac": 1,
-      "attachedEnodebTacs": []
+      "attachedEnodebTacs": [],
+      "dns_primary": "8.8.8.8",
+      "dns_secondary": "8.8.4.4"
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
@@ -53,15 +55,14 @@
       "logLevel": "INFO",
       "ueIpBlock": "192.168.128.0/24",
       "natEnabled": true,
-      "relayEnabled": false,
       "apps": [],
       "services": [
-        "METERING",
         "DPI",
         "ENFORCEMENT"
        ],
-       "allowedGrePeers": [
-       ]
+      "allowedGrePeers": [
+       ],
+      "liImsis": []
     },
     "subscriberdb": {
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
@@ -99,7 +100,19 @@
     },
     "td-agent-bit": {
       "@type": "type.googleapis.com/magma.mconfig.FluentBit",
-      "extraTags": {}
+      "extraTags": {},
+      "throttleRate": 1000,
+      "throttleWindow": 5,
+      "throttleInterval": "1m"
+    },
+     "monitord": {
+      "@type": "type.googleapis.com/magma.mconfig.MonitorD",
+      "logLevel": "INFO",
+      "pollingInterval": 60
+    },
+    "dpid": {
+      "@type": "type.googleapis.com/magma.mconfig.DPID",
+      "logLevel": "INFO"
     }
   }
 }

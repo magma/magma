@@ -1,0 +1,33 @@
+---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
+- name: Install apt-transport-https
+  apt: pkg=apt-transport-https state=present update_cache=yes
+
+- name: Download gpg public key from {{ repohost }}
+  become: no
+  get_url:
+    url: https://{{ repohost }}/key.gpg
+    dest: /tmp/localrepo.gpg
+    validate_certs: no
+
+- name: Add gpg key to apt
+  apt_key:
+    file: /tmp/localrepo.gpg
+    state: present
+
+- name: Add local pkgrepo apt repository
+  template:
+    src: repospec.list.j2
+    dest: /etc/apt/sources.list.d/{{ repohost }}.list
+
+- name: Add apt https config for {{ repohost }}
+  template:
+    src: 99httpsrepo.j2
+    dest: /etc/apt/apt.conf.d/99httpsrepo

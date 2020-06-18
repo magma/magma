@@ -9,8 +9,8 @@
 package configurator
 
 import (
-	merrors "magma/orc8r/cloud/go/errors"
 	"magma/orc8r/cloud/go/storage"
+	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/pkg/errors"
 )
@@ -21,6 +21,16 @@ import (
 
 func (eg *EntityGraph) GetEntity(entType string, key string) (NetworkEntity, error) {
 	return eg.GetEntityByTK(storage.TypeAndKey{Type: entType, Key: key})
+}
+
+func (eg *EntityGraph) GetEntitiesOfType(entType string) []NetworkEntity {
+	res := []NetworkEntity{}
+	for _, networkEnt := range eg.Entities {
+		if networkEnt.Type == entType {
+			res = append(res, networkEnt)
+		}
+	}
+	return res
 }
 
 func (eg *EntityGraph) GetEntityByTK(id storage.TypeAndKey) (NetworkEntity, error) {

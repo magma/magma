@@ -15,10 +15,9 @@ import (
 	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/alerting/receivers"
+	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 
 	"github.com/labstack/echo"
-	"github.com/prometheus/alertmanager/config"
 )
 
 const (
@@ -104,7 +103,7 @@ func retrieveAlertReceivers(c echo.Context, url string) error {
 		_ = json.NewDecoder(resp.Body).Decode(&body)
 		return obsidian.HttpError(fmt.Errorf("error reading receivers: %v", body.Message), resp.StatusCode)
 	}
-	var recs []receivers.Receiver
+	var recs []config.Receiver
 	err = json.NewDecoder(resp.Body).Decode(&recs)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, fmt.Errorf("error decoding server response %v", err))
@@ -192,22 +191,22 @@ func updateAlertRoute(c echo.Context, url string) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func buildReceiverFromContext(c echo.Context) (receivers.Receiver, error) {
-	wrapper := receivers.Receiver{}
+func buildReceiverFromContext(c echo.Context) (config.Receiver, error) {
+	wrapper := config.Receiver{}
 	err := json.NewDecoder(c.Request().Body).Decode(&wrapper)
 	if err != nil {
-		return receivers.Receiver{}, err
+		return config.Receiver{}, err
 	}
 	return wrapper, nil
 }
 
 func buildRouteFromContext(c echo.Context) (config.Route, error) {
-	jsonRoute := receivers.RouteJSONWrapper{}
-	err := json.NewDecoder(c.Request().Body).Decode(&jsonRoute)
+	route := config.Route{}
+	err := json.NewDecoder(c.Request().Body).Decode(&route)
 	if err != nil {
 		return config.Route{}, err
 	}
-	return jsonRoute.ToPrometheusConfig()
+	return route, nil
 }
 
 func makeNetworkReceiverPath(configManagerURL, networkID string) string {

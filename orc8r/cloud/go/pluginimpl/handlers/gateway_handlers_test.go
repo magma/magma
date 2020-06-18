@@ -21,7 +21,6 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/security/key"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
@@ -29,6 +28,7 @@ import (
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/security/key"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -80,7 +80,7 @@ func TestListGateways(t *testing.T) {
 
 	// add device and state to g1
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 	gatewayRecord := &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord)
 	assert.NoError(t, err)
@@ -313,7 +313,7 @@ func TestGetGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -630,7 +630,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
-	defer clock.GetUnfreezeClockDeferFunc(t)()
+	defer clock.UnfreezeClock(t)
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)

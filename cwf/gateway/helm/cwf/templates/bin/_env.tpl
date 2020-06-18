@@ -14,6 +14,8 @@
 
 COMPOSE_PROJECT_NAME=cwf
 DOCKER_REGISTRY={{ .Values.cwf.image.docker_registry }}
+DOCKER_USERNAME={{ .Values.cwf.image.username }}
+DOCKER_PASSWORD={{ .Values.cwf.image.password }}
 IMAGE_VERSION={{ .Values.cwf.image.tag }}
 BUILD_CONTEXT={{ .Values.cwf.repo.url }}#{{ .Values.cwf.repo.branch }}
 
@@ -24,3 +26,12 @@ CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=/etc/magma
+SECRETS_VOLUME=/var/opt/magma/secrets
+
+{{ if .Values.cwf.dpi }}
+DPI_LICENSE_NAME={{ .Values.cwf.dpi.dpi_license_name }}
+{{- end }}
+
+{{ if .Values.cwf.env }}
+{{ .Values.cwf.env }}
+{{- end }}

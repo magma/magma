@@ -18,9 +18,9 @@ import (
 	"github.com/golang/protobuf/ptypes"
 
 	fegmcfg "magma/feg/cloud/go/protos/mconfig"
+	"magma/gateway/mconfig"
 	ltemcfg "magma/lte/cloud/go/protos/mconfig"
-	orcprotos "magma/orc8r/cloud/go/protos"
-	"magma/orc8r/gateway/mconfig"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // JSON to recreate scenario with "static" mconfig file
@@ -147,7 +147,19 @@ const testMmconfigJsonV2 = `{
            "productName": "magma",
             "realm": "magma.com",
             "host": "magma-fedgw.magma.com"
-        }
+        },
+        "servers": [
+			{
+           		"protocol": "tcp",
+				"address": "gx.server1",
+		        "retransmits": 3,
+        		"watchdogInterval": 1,
+		        "retryCount": 5,
+        		"productName": "magma",
+				"realm": "magma.com",
+	            "host": "magma-fedgw.magma.com"
+	        }
+		]
       },
       "gy": {
         "server": {
@@ -160,6 +172,18 @@ const testMmconfigJsonV2 = `{
             "realm": "magma.com",
             "host": "magma-fedgw.magma.com"
         },
+		"servers": [
+			{
+           		"protocol": "tcp",
+	           	"address": "gy.server1",
+    	       	"retransmits": 3,
+        	   	"watchdogInterval": 1,
+				"retryCount": 5,
+	           	"productName": "magma",
+            	"realm": "magma.com",
+            	"host": "magma-fedgw.magma.com"
+	        }
+		],
         "initMethod": "PER_KEY"
       }
     }
@@ -252,6 +276,18 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
+				Servers: []*fegmcfg.DiamClientConfig{
+					&fegmcfg.DiamClientConfig{
+						Protocol:         "tcp",
+						Address:          "gx.server1",
+						Retransmits:      0x3,
+						WatchdogInterval: 0x1,
+						RetryCount:       0x5,
+						ProductName:      "magma",
+						Realm:            "magma.com",
+						Host:             "magma-fedgw.magma.com",
+					},
+				},
 			},
 			Gy: &fegmcfg.GyConfig{
 				Server: &fegmcfg.DiamClientConfig{
@@ -263,6 +299,18 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 					ProductName:      "magma",
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
+				},
+				Servers: []*fegmcfg.DiamClientConfig{
+					&fegmcfg.DiamClientConfig{
+						Protocol:         "tcp",
+						Address:          "gy.server1",
+						Retransmits:      0x3,
+						WatchdogInterval: 0x1,
+						RetryCount:       0x5,
+						ProductName:      "magma",
+						Realm:            "magma.com",
+						Host:             "magma-fedgw.magma.com",
+					},
 				},
 				InitMethod: fegmcfg.GyInitMethod_PER_KEY,
 			}})

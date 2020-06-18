@@ -18,6 +18,11 @@ You also should have completed all the steps in "[Access Gateway Setup (On Bare 
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
 
+Magma Access Gateway has a default APN "oai.ipv4" that can be used by
+UEs to access Magma in a non-federated set up. UEs must be configured
+manually with "oai.ipv4" as their APN to be able to complete the attach procedure
+at Magma Access Gateway out of the box.
+
 ## Access Gateway Configuration
 
 First, copy the root CA for your Orchestrator deployment into your AGW:
@@ -47,6 +52,13 @@ bootstrap_address: bootstrapper-controller.yourdomain.com
 bootstrap_port: 443
 
 rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
+```
+
+Then restart your services to pick up the config changes:
+
+```bash
+AGW$ sudo service magma@* stop
+AGW$ sudo service magma@magmad restart
 ```
 
 ## Creating and Configuring Your Network

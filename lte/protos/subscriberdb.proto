@@ -71,6 +71,9 @@ message LTESubscription {
 
   // Operator configuration field (Op) signed with authentication key (k)
   bytes auth_opc = 4;
+
+  repeated string assigned_base_names = 10;
+  repeated string assigned_policies = 11;
 }
 
 message SubscriberState {
@@ -150,7 +153,7 @@ message Non3GPPUserProfile {
 
   AggregatedMaximumBitrate ambr = 4;
 
-  APNConfiguration apn_config = 5;
+  repeated APNConfiguration apn_config = 5;
 
   AccessNetworkIdentifier access_net_id = 6;
 }
@@ -214,47 +217,4 @@ service SubscriberDB {
   // List the subscribers in the store.
   //
   rpc ListSubscribers (magma.orc8r.Void) returns (SubscriberIDSet) {}
-}
-
-// --------------------------------------------------------------------------
-// SubscriberDB controller
-// --------------------------------------------------------------------------
-message SubscriberLookup {
-  magma.orc8r.NetworkID network_id = 1;
-
-  SubscriberID sid = 2;
-}
-
-message GetAllSubscriberDataResponse {
-  repeated SubscriberData subscribers = 1;
-}
-
-service SubscriberDBController {
-
-  // Adds a new subscriber to the store.
-  // Throws ALREADY_EXISTS if the subscriber already exists.
-  //
-  rpc AddSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
-
-  // Deletes an existing subscriber.
-  // If the subscriber is not already present, this request is ignored.
-  //
-  rpc DeleteSubscriber (SubscriberLookup) returns (magma.orc8r.Void) {}
-
-  // Updates an existing subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc UpdateSubscriber (SubscriberData) returns (magma.orc8r.Void) {}
-
-  // Returns the SubscriberData for a subscriber.
-  // Throws NOT_FOUND if the subscriber is missing.
-  //
-  rpc GetSubscriberData (SubscriberLookup) returns (SubscriberData) {}
-
-  // List the subscribers in the store.
-  //
-  rpc ListSubscribers (magma.orc8r.NetworkID) returns (SubscriberIDSet) {}
-
-  // Get all subscriber data for the network
-  rpc GetAllSubscriberData (magma.orc8r.NetworkID) returns (GetAllSubscriberDataResponse) {}
 }
