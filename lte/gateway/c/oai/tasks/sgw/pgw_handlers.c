@@ -228,8 +228,8 @@ void handle_s5_create_session_request(
           spgw_state,
           new_bearer_ctxt_info_p,
           s5_response,
-          spgw_config.pgw_config.ipv6_address_prefix,
-          spgw_config.pgw_config.ipv6_address_prefix_len);
+          spgw_config.pgw_config.ipv6.ipv6_address_prefix,
+          spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
  
       break;
 
@@ -246,8 +246,8 @@ void handle_s5_create_session_request(
         spgw_state,
         new_bearer_ctxt_info_p,
         s5_response,
-        spgw_config.pgw_config.ipv6_address_prefix,
-        spgw_config.pgw_config.ipv6_address_prefix_len);
+        spgw_config.pgw_config.ipv6.ipv6_address_prefix,
+        spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
       break;
 
     default:

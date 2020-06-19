@@ -232,6 +232,7 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
   char* pcscf_ipv4   = NULL;
   char* pcscf_ipv6   = NULL;
   char* ipv6_addr_prefix   = NULL;
+  char* dsn_ipv6_addr   = NULL;
 
   config_init(&cfg);
 
@@ -393,14 +394,14 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
     }
 
     if (config_setting_lookup_string(
-      setting_pgw, PGW_IPV6_ADDRESS_PREFIX,
+      setting_pgw, PGW_CONFIG_IPV6_ADDRESS_PREFIX,
       (const char**) &ipv6_addr_prefix)) {
       char *temp_prefix, *len;
       len = strdup(ipv6_addr_prefix);
       temp_prefix = strsep(&len, "/");
-      config_pP->ipv6_address_prefix_len = atoi((const char*)len);
+      config_pP->ipv6.ipv6_address_prefix_len = atoi((const char*)len);
       IPV6_STR_ADDR_TO_INADDR(
-        temp_prefix, config_pP->ipv6_address_prefix,
+        temp_prefix, config_pP->ipv6.ipv6_address_prefix,
         "BAD IPv6 ADDRESS PREFIX FORMAT!\n");
       OAILOG_DEBUG(
         LOG_SPGW_APP, "Parsing configuration file IPv6 address prefix\n");
@@ -432,6 +433,19 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
           pcscf_ipv6);
     } else {
       OAILOG_WARNING(LOG_SPGW_APP, "NO P-CSCF IPv6 CONFIGURATION FOUND\n");
+    }
+
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS,
+            (const char**) &dsn_ipv6_addr)) {
+      IPV6_STR_ADDR_TO_INADDR(
+          pcscf_ipv6, config_pP->ipv6.dns_ipv6_addr,
+          "BAD IPv6 ADDRESS FORMAT FOR DNS SERVER IPv6 address !\n");
+      OAILOG_DEBUG(
+          LOG_SPGW_APP, "Parsing configuration file DNS SERVER IPv6 address: %s\n",
+          pcscf_ipv6);
+    } else {
+      OAILOG_WARNING(LOG_SPGW_APP, "NO DNS SERVER IPv6 CONFIGURATION FOUND\n");
     }
 
     if (config_setting_lookup_string(

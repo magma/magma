@@ -70,6 +70,8 @@ P-GW =
     # DNS address communicated to UEs
     DEFAULT_DNS_IPV4_ADDRESS     = "{{ ipv4_dns }}";
     DEFAULT_DNS_SEC_IPV4_ADDRESS = "{{ ipv4_sec_dns }}";
+    # Google Public DNS
+    DNS_SERVER_IPV6_ADDRESS     = "2001:4860:4860:0:0:0:0:8888";
     P_CSCF_IPV4_ADDRESS = "172.27.23.150";
     P_CSCF_IPV6_ADDRESS = "2a12:577:9941:f99c:0002:0001:c731:f114";
 

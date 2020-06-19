@@ -82,7 +82,8 @@
 #define PGW_WARN_ON_ERROR true
 #define PGW_CONFIG_P_CSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
 #define PGW_CONFIG_P_CSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
-#define PGW_IPV6_ADDRESS_PREFIX "IPV6_ADDRESS_PREFIX"
+#define PGW_CONFIG_IPV6_ADDRESS_PREFIX "IPV6_ADDRESS_PREFIX"
+#define PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS "DNS_SERVER_IPV6_ADDRESS"
 
 // may be more
 #define PGW_MAX_ALLOCATED_PDN_ADDRESSES 1024
@@ -116,9 +117,6 @@ typedef struct pgw_config_s {
   int num_ue_pool;
   uint8_t ue_pool_mask[PGW_NUM_UE_POOL_MAX];
   struct in_addr ue_pool_addr[PGW_NUM_UE_POOL_MAX];
-  uint8_t ipv6_address_prefix_len;
-  struct in6_addr ipv6_address_prefix;
-
   bool force_push_pco;
   uint16_t ue_mtu;
   bool relay_enabled;
@@ -138,6 +136,12 @@ typedef struct pgw_config_s {
     struct in_addr ipv4_addr;
     struct in6_addr ipv6_addr;
   } pcscf;
+
+  struct {
+    uint8_t ipv6_address_prefix_len;
+    struct in6_addr ipv6_address_prefix;
+    struct in6_addr dns_ipv6_addr;
+  } ipv6;
 
   STAILQ_HEAD(ipv4_pool_head_s, conf_ipv4_list_elm_s) ipv4_pool_list;
 } pgw_config_t;
