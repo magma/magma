@@ -4,6 +4,7 @@ import "lte/protos/oai/common_types.proto";
 import "lte/protos/oai/spgw_state.proto";
 
 package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
 
 // Timers for MME and Nas
 // mme_app_timer_t and nas_timer_t

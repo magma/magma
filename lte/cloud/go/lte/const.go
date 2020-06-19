@@ -34,4 +34,9 @@ const (
 	BaseNameStreamName   = "base_names"
 	MappingsStreamName   = "rule_mappings"
 	NetworkWideRules     = "network_wide_rules"
+
+	// Replicated states from AGW
+	SPGWStateType = "SPGW"
+	MMEStateType  = "MME"
+	S1APStateType = "S1AP"
 )

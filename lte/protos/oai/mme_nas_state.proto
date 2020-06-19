@@ -6,6 +6,7 @@ import "lte/protos/oai/nas_state.proto";
 import "lte/protos/oai/spgw_state.proto";
 
 package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
 
 // sgs_context_t
 message SgsContext {
