@@ -62,7 +62,8 @@ export function mockApiUtil(merge?: $Shape<ApiUtil>): ApiUtil {
       getGlobalConfig: jest.fn(),
       editGlobalConfig: jest.fn(),
       getTenants: jest.fn(),
-      getTenancy: jest.fn(),
+      getAlertmanagerTenancy: jest.fn(),
+      getPrometheusTenancy: jest.fn(),
     },
     merge || {},
   );
