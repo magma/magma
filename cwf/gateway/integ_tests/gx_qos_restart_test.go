@@ -112,7 +112,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation},
 		protos.NewGxCCAnswer(diam.Success)))
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("500k")},

@@ -85,7 +85,7 @@ func TestIpfixEnforcement(t *testing.T) {
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
 	_, err = tr.GenULTraffic(req)
