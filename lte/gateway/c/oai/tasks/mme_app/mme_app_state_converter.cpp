@@ -105,47 +105,40 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
   }
 }
 
+std::string MmeNasStateConverter::mme_app_convert_guti_to_string(
+    guti_t* guti_p) {
+  size_t len = 0;
+  len        = snprintf(
+      NULL, len, "%x%x%x%x%x%x%04x%x%x", guti_p->gummei.plmn.mcc_digit1,
+      guti_p->gummei.plmn.mcc_digit2, guti_p->gummei.plmn.mcc_digit3,
+      guti_p->gummei.plmn.mnc_digit1, guti_p->gummei.plmn.mnc_digit2,
+      guti_p->gummei.plmn.mnc_digit3, guti_p->gummei.mme_gid,
+      guti_p->gummei.mme_code, guti_p->m_tmsi);
+  char* str = (char*) calloc(1, sizeof(char) * len + 1);
+  snprintf(
+      str, len + 1, "%x%x%x%x%x%x%04x%x%x", guti_p->gummei.plmn.mcc_digit1,
+      guti_p->gummei.plmn.mcc_digit2, guti_p->gummei.plmn.mcc_digit3,
+      guti_p->gummei.plmn.mnc_digit1, guti_p->gummei.plmn.mnc_digit2,
+      guti_p->gummei.plmn.mnc_digit3, guti_p->gummei.mme_gid,
+      guti_p->gummei.mme_code, guti_p->m_tmsi);
+  return (str);
+}
+
 void MmeNasStateConverter::guti_table_to_proto(
-  const obj_hash_table_uint64_t* guti_htbl,
-  google::protobuf::Map<std::string, unsigned long>* proto_map)
-{
+    const obj_hash_table_uint64_t* guti_htbl,
+    google::protobuf::Map<std::string, unsigned long>* proto_map) {
   void*** key_array_p = (void***) calloc(1, sizeof(void**));
-  unsigned int size = 0;
+  unsigned int size   = 0;
 
   hashtable_rc_t ht_rc =
-    obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
+      obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
   if ((!*key_array_p) || (ht_rc != HASH_TABLE_OK)) {
     return;
   }
   for (auto i = 0; i < size; i++) {
     uint64_t mme_ue_id;
-    PRINT_GUTI(((guti_t*) (*key_array_p)[i]));
-    size_t len = 0;
-    len        = snprintf(
-        NULL, len, "%x%x%x%x%x%x%04x%x%x",
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mcc_digit1,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mcc_digit2,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mcc_digit3,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mnc_digit1,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mnc_digit2,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mnc_digit3,
-        (*(guti_t*) (*key_array_p)[i]).gummei.mme_gid,
-        (*(guti_t*) (*key_array_p)[i]).gummei.mme_code,
-        (*(guti_t*) (*key_array_p)[i]).m_tmsi);
-    char* str = (char*) calloc(1, sizeof(char) * len + 1);
-    snprintf(
-        str, len + 1, "%x%x%x%x%x%x%04x%x%x",
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mcc_digit1,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mcc_digit2,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mcc_digit3,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mnc_digit1,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mnc_digit2,
-        (*(guti_t*) (*key_array_p)[i]).gummei.plmn.mnc_digit3,
-        (*(guti_t*) (*key_array_p)[i]).gummei.mme_gid,
-        (*(guti_t*) (*key_array_p)[i]).gummei.mme_code,
-        (*(guti_t*) (*key_array_p)[i]).m_tmsi);
-    std::string guti_str = str;
-
+    std::string guti_str =
+        mme_app_convert_guti_to_string((guti_t*) (*key_array_p)[i]);
     OAILOG_TRACE(
       LOG_MME_APP,
       "Looking for key %p with value %u\n",
@@ -164,18 +157,10 @@ void MmeNasStateConverter::guti_table_to_proto(
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
 
-void MmeNasStateConverter::proto_to_guti_table(
-  const google::protobuf::Map<std::string, unsigned long>& proto_map,
-  obj_hash_table_uint64_t* guti_htbl)
-{
-  for (auto const& kv : proto_map) {
-    const std::string& guti_str = kv.first;
-    mme_ue_s1ap_id_t mme_ue_id = kv.second;
-    guti_t* guti_p = (guti_t*) calloc(1, sizeof(guti_t));
-    const char* chr_str = guti_str.c_str();
-
-    int idx         = 0;
-    std::size_t num = 1;
+void MmeNasStateConverter::mme_app_convert_string_to_guti(
+    guti_t* guti_p, const std::string& guti_str) {
+  int idx         = 0;
+  std::size_t num = 1;
 #define HEX_BASE_VAL 16
     guti_p->gummei.plmn.mcc_digit1 =
         std::stoul(guti_str.substr(idx++, num), &num, HEX_BASE_VAL);
@@ -201,7 +186,16 @@ void MmeNasStateConverter::proto_to_guti_table(
         guti_str.substr(idx, guti_str.size() - idx), 0, HEX_BASE_VAL);
 
     PRINT_GUTI(guti_p);
+}
 
+void MmeNasStateConverter::proto_to_guti_table(
+    const google::protobuf::Map<std::string, unsigned long>& proto_map,
+    obj_hash_table_uint64_t* guti_htbl) {
+  for (auto const& kv : proto_map) {
+    mme_ue_s1ap_id_t mme_ue_id  = kv.second;
+    guti_t* guti_p              = (guti_t*) calloc(1, sizeof(guti_t));
+
+    mme_app_convert_string_to_guti(guti_p, kv.first);
     hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
         guti_htbl, guti_p, sizeof(*guti_p), mme_ue_id);
     if (ht_rc != HASH_TABLE_OK) {
