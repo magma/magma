@@ -52,6 +52,9 @@ class S1ApUtil(object):
     CM_ESM_PDN_IPV4 = 0b01
     CM_ESM_PDN_IPV6 = 0b10
     CM_ESM_PDN_IPV4V6 = 0b11
+    CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
+    CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
+    CM_ESM_PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
 
     lib_name = "libtfw.so"
 
@@ -148,12 +151,13 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type):
+    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False):
         """
         Populates the PCO values.
         Args:
             protCfgOpts_pr: PCO structure
             pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
+            dns_ipv6_addr: True/False flag
         Returns:
             None
         """
@@ -170,18 +174,27 @@ class S1ApUtil(object):
         protCfgOpts_pr.numProtId = 0
 
         # Fill Number of container IDs and Container ID
+        idx = 0
         if pcscf_addr_type == "ipv4":
-            protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x000C
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            idx += 1
 
         elif pcscf_addr_type == "ipv6":
-            protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x0001
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            idx += 1
 
         elif pcscf_addr_type == "ipv4v6":
-            protCfgOpts_pr.numContId = 2
-            protCfgOpts_pr.c[0].cid = 0x000C
-            protCfgOpts_pr.c[1].cid = 0x0001
+            protCfgOpts_pr.numContId += 2
+            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            idx += 1
+            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            idx += 1
+
+        if dns_ipv6_addr:
+           protCfgOpts_pr.numContId += 1
+           protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
         self,
@@ -194,6 +207,7 @@ class S1ApUtil(object):
         eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
         pdn_type=1,
         pcscf_addr_type=None,
+        dns_ipv6_addr=False,
     ):
         """
         Given a UE issue the attach request of specified type
@@ -212,6 +226,7 @@ class S1ApUtil(object):
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
             pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
             pcscf_addr_type:IPv4/IPv6/IPv4v6
+            dns_ipv6_addr:True/False
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
@@ -222,8 +237,9 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pdn_type = pdn_type
 
         # Populate PCO only if pcscf_addr_type is set
-        if pcscf_addr_type:
-            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
+        if pcscf_addr_type or dns_ipv6_addr:
+            print("********* dns_ipv6_addr", dns_ipv6_addr)
+            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr)
         assert self.issue_cmd(attach_type, attach_req) == 0
 
         response = self.get_response()
@@ -257,9 +273,10 @@ class S1ApUtil(object):
                 ip = ipaddress.ip_address(bytes(addr[:4]))
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
-            else:
-                #raise ValueError("PDN TYPE %s not supported" % pdn_type)
+            elif S1ApUtil.CM_ESM_PDN_IPV6 == pdn_type:
                 print("IPv6 PDN type received")
+            elif S1ApUtil.CM_ESM_PDN_IPV4V6 == pdn_type:
+                print("IPv4v6 PDN type received")
         return msg
 
     def receive_emm_info(self):

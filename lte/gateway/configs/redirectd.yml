@@ -7,6 +7,6 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 
 http_port: 8080

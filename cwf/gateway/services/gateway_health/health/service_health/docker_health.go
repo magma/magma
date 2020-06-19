@@ -20,6 +20,7 @@ import (
 
 const (
 	dockerRequestTimeout = 3 * time.Second
+	radiusServiceName    = "/radius"
 )
 
 // DockerServiceHealthProvider provides service health for
@@ -46,6 +47,7 @@ func (d *DockerServiceHealthProvider) GetUnhealthyServices() ([]string, error) {
 	filter.Add("health", types.Unhealthy)
 	unhealthyFilter := types.ContainerListOptions{
 		Filters: filter,
+		All:     true,
 	}
 	unhealthyContainers, err := d.dockerClient.ContainerList(context.Background(), unhealthyFilter)
 	if err != nil {
@@ -54,6 +56,12 @@ func (d *DockerServiceHealthProvider) GetUnhealthyServices() ([]string, error) {
 	var unhealthyServices []string
 	for _, container := range unhealthyContainers {
 		if len(container.Names) == 0 {
+			continue
+		}
+		// Since we purposely stop the RADIUS server on Disable
+		// don't include in the check
+		// TODO: Remove once transport failover is implemented
+		if container.Names[0] == radiusServiceName {
 			continue
 		}
 		unhealthyServices = append(unhealthyServices, container.Names[0])

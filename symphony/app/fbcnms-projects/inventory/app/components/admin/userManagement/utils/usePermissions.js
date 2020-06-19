@@ -8,19 +8,19 @@
  * @format
  */
 
-import type {BasicPermissionRule} from './UserManagementUtils';
 import type {
+  BasicPermissionRule,
   CUDPermissions,
   InventoryEntsPolicy,
   WorkforceCUDPermissions,
-} from './UserManagementUtils';
+} from '../data/PermissionsPolicies';
 import type {FormAlertsContextType} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {UserPermissions} from '../../../MainContext';
 
 import fbt from 'fbt';
 import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
-import {permissionRuleValue2Bool} from './UserManagementUtils';
+import {permissionRuleValue2Bool} from '../data/PermissionsPolicies';
 import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {useMainContext} from '../../../MainContext';
 

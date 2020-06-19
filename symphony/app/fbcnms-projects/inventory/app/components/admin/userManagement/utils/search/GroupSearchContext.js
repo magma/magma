@@ -9,35 +9,23 @@
  * @format
  */
 
-import type {GroupSearchContextQuery} from './__generated__/GroupSearchContextQuery.graphql';
-import type {
-  PermissionsPolicy,
-  UserPermissionsGroup,
-} from '../UserManagementUtils';
-
 import RelayEnvironment from '../../../../../common/RelayEnvironment';
 import createSearchContext from './SearchContext';
 import {fetchQuery, graphql} from 'relay-runtime';
-import {groupsResponse2Groups} from '../UserManagementUtils';
+import type {GroupSearchContextQuery} from './__generated__/GroupSearchContextQuery.graphql';
+import type {UsersGroup} from '../../data/UsersGroups';
 
 const groupSearchQuery = graphql`
   query GroupSearchContextQuery($filters: [UsersGroupFilterInput!]!) {
     usersGroupSearch(filters: $filters) {
       usersGroups {
-        id
-        name
-        description
-        status
-        members {
-          id
-          authID
-        }
+        ...UserManagementUtils_group @relay(mask: false)
       }
     }
   }
 `;
 
-const searchCallback = (searchTerm: string, _policy: ?PermissionsPolicy) =>
+const searchCallback = (searchTerm: string) =>
   fetchQuery<GroupSearchContextQuery>(RelayEnvironment, groupSearchQuery, {
     filters: [
       {
@@ -46,14 +34,14 @@ const searchCallback = (searchTerm: string, _policy: ?PermissionsPolicy) =>
         stringValue: searchTerm,
       },
     ],
-  }).then(response => groupsResponse2Groups(response.usersGroupSearch));
+  }).then(response => response.usersGroupSearch.usersGroups.filter(Boolean));
 
 const {
   SearchContext: GroupSearchContext,
   SearchContextProvider,
   useSearchContext,
   useSearch,
-} = createSearchContext<UserPermissionsGroup>(searchCallback);
+} = createSearchContext<UsersGroup>(searchCallback);
 
 export const GroupSearchContextProvider = SearchContextProvider;
 export const useGroupSearchContext = useSearchContext;

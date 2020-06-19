@@ -84,7 +84,7 @@ class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
         for i in range(num_pdns):
             # Send PDN Connectivity Request
             self._s1ap_wrapper.sendPdnConnectivityReq(
-                ue_id, apn[i], pdn_type, pcscf_addr_type=pcscf_addr_type[i]
+                ue_id, apn[i], pdn_type=pdn_type, pcscf_addr_type=pcscf_addr_type[i]
             )
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()

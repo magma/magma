@@ -449,7 +449,7 @@ int pgw_process_pco_request(
         rc = pgw_process_pco_pcscf_ipv6_address_req(pco_resp);
         break;
 
-      case PCO_CI_DNS_SERVER_IPV6_ADDRESS:
+      case PCO_CI_DNS_SERVER_IPV6_ADDRESS_REQUEST:
         rc = pgw_process_pco_dns_server_ipv6_address_req(pco_resp);
         break;
 

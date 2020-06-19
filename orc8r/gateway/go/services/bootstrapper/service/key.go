@@ -31,15 +31,29 @@ func GetChallengeKey() (privKey interface{}, err error) {
 	}
 	glog.Warningf("Bootstrapper ReadKey(%s) error: %v", challengeKeyFile, err)
 
-	if os.IsNotExist(err) { // file doesn't exist, try to create it
+	if os.IsNotExist(err) { // file doesn't exist, check default location or try to create it
+		dir := filepath.Dir(challengeKeyFile)
+		if len(dir) > 3 {
+			os.MkdirAll(dir, 0755)
+		}
+		// try default location first
+		if challengeKeyFile != config.DefaultChallengeKeyFile {
+			if privKey, err = key.ReadKey(config.DefaultChallengeKeyFile); err == nil {
+				if err = key.WriteKey(challengeKeyFile, privKey); err == nil {
+					glog.Warningf(
+						"default challenge key '%s' was copied into configured location: %s",
+						config.DefaultChallengeKeyFile, challengeKeyFile)
+					if privKey, err = key.ReadKey(challengeKeyFile); err == nil {
+						return // copied & verified challenge key
+					}
+				}
+			}
+		}
+		// create new
 		privKey, err = key.GenerateKey(PrivateKeyType, 0)
 		if err != nil {
 			err = fmt.Errorf("Bootstrapper Generate Key error: %v", err)
 			return
-		}
-		dir := filepath.Dir(challengeKeyFile)
-		if len(dir) > 3 {
-			os.MkdirAll(dir, os.ModePerm)
 		}
 		err = key.WriteKey(challengeKeyFile, privKey)
 		if err != nil {
@@ -52,6 +66,7 @@ func GetChallengeKey() (privKey interface{}, err error) {
 				"Bootstrapper Failed to read recently created key from (%s) error: %v", challengeKeyFile, err)
 			return
 		}
+		glog.Infof("successfuly created new challenge key file: %s", challengeKeyFile)
 	}
 	return
 }

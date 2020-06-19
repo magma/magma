@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 
 import * as React from 'react';

@@ -13,7 +13,8 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import DashboardIcon from '@material-ui/icons/Dashboard';
-import EnodebThroughputChart from './EnodebThroughputChart';
+import DateTimeMetricChart from '../../components/DateTimeMetricChart';
+import EnodebConfig from './EnodebDetailConfig';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
@@ -142,6 +143,10 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
           path={relativePath('/overview')}
           render={() => <Overview enbInfo={enbInfo[enodebSerial]} />}
         />
+        <Route
+          path={relativePath('/config')}
+          render={() => <EnodebConfig enbInfo={enbInfo[enodebSerial]} />}
+        />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
@@ -174,7 +179,7 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
         <Grid container item spacing={3} alignItems="stretch" xs={12}>
           <Grid item xs={12}>
             {perEnbMetricSupportAvailable ? (
-              <EnodebThroughputChart
+              <DateTimeMetricChart
                 title={CHART_TITLE}
                 queries={[
                   `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,

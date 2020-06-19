@@ -201,3 +201,8 @@ export type AlertManagerGlobalConfig = {|
   victorops_api_url: string,
   victorops_api_key: string,
 |};
+
+export type TenancyConfig = {
+  restrictor_label: string,
+  restrict_queries: boolean,
+};

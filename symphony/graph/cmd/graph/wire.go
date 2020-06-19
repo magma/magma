@@ -18,9 +18,9 @@ import (
 	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-	"gocloud.dev/server/health"
 
 	"github.com/google/wire"
+	"gocloud.dev/server/health"
 	"google.golang.org/grpc"
 )
 
@@ -33,6 +33,7 @@ func newApplication(ctx context.Context, flags *cliFlags) (*application, func(),
 			"LogConfig",
 			"TelemetryConfig",
 			"Orc8rConfig",
+			"TenancyConfig",
 		),
 		log.Provider,
 		newApp,
@@ -68,8 +69,8 @@ func newHealthChecks(tenancy *viewer.MySQLTenancy) []health.Checker {
 	return []health.Checker{tenancy}
 }
 
-func newMySQLTenancy(config mysql.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
-	tenancy, err := viewer.NewMySQLTenancy(config.String())
+func newMySQLTenancy(mySQLConfig mysql.Config, tenancyConfig viewer.Config, logger log.Logger) (*viewer.MySQLTenancy, error) {
+	tenancy, err := viewer.NewMySQLTenancy(mySQLConfig.String(), tenancyConfig.TenantMaxConn)
 	if err != nil {
 		return nil, fmt.Errorf("creating mysql tenancy: %w", err)
 	}

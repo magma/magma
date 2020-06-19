@@ -25,6 +25,7 @@ import "lte/protos/oai/common_types.proto";
 import "lte/protos/oai/std_3gpp_types.proto";
 
 package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
 
 // sgw_bearer_context_information
 message SgwEpsBearerContextInfo {

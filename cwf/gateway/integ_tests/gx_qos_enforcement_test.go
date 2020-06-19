@@ -52,6 +52,8 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
 		if (b > expRate) && (errRate > ErrMargin) {
 			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
+			// dump pipelined service state
+			dumpPipelinedState(tr)
 			assert.Fail(t, "error greater than acceptable margin")
 		}
 	}

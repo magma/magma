@@ -55,7 +55,6 @@ var defaultKeepaliveParams = keepalive.ServerParameters{
 
 func init() {
 	flag.BoolVar(&printGrpcPayload, PrintGrpcPayloadFlag, false, "Enable GRPC Payload Printout")
-	flag.Parse()
 }
 
 type Service struct {

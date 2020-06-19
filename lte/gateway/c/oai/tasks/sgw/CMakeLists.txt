@@ -43,9 +43,9 @@ target_compile_definitions(TASK_SGW PRIVATE
 target_link_libraries(TASK_SGW
     COMMON
     ${GTPNL_LIBRARIES}
-    LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT LIB_PCEF
+    LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT LIB_PCEF
     TASK_GTPV1U
-    cpp_redis tacopie protobuf
+    cpp_redis tacopie protobuf redis_utils
 )
 target_include_directories(TASK_SGW PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

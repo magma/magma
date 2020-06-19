@@ -360,7 +360,7 @@ class TestWrapper(object):
         print("************* Sending deactivate EPS bearer context accept\n")
 
     def sendPdnConnectivityReq(
-        self, ue_id, apn, pdn_type=1, pcscf_addr_type=None
+        self, ue_id, apn, pdn_type=1, pcscf_addr_type=None, dns_ipv6_addr=False
     ):
         req = s1ap_types.uepdnConReq_t()
         req.ue_Id = ue_id
@@ -376,9 +376,9 @@ class TestWrapper(object):
         )
         print("********* PDN type", pdn_type)
         # Populate PCO if pcscf_addr_type is set
-        if pcscf_addr_type:
-            print("********* pcscf_addr_type", pcscf_addr_type)
-            self._s1_util.populate_pco(req.protCfgOpts_pr, pcscf_addr_type)
+        if pcscf_addr_type or dns_ipv6_addr:
+            print("********* dns_ipv6_addr", dns_ipv6_addr)
+            self._s1_util.populate_pco(req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr)
 
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 

@@ -11,7 +11,7 @@
 import type {
   InventoryCatalogPolicy,
   InventoryPolicy,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';

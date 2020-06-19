@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -30,7 +31,7 @@ func TestWorkOrderEvents(t *testing.T) {
 }
 
 func (s *workOrderTestSuite) SetupSuite() {
-	s.eventTestSuite.SetupSuite()
+	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureMoveWorkOrderActivitiesToAsyncService))
 	s.typ = s.client.WorkOrderType.Create().
 		SetName("Chore").
 		SaveX(s.ctx)
@@ -39,30 +40,33 @@ func (s *workOrderTestSuite) SetupSuite() {
 func (s *workOrderTestSuite) TestWorkOrderCreate() {
 	var wg sync.WaitGroup
 	wg.Add(1)
+	ctx, cancel := context.WithCancel(s.ctx)
+	events := []string{WorkOrderAdded, WorkOrderDone}
+	emitted := make(map[string]struct{}, len(events))
+	for i := range events {
+		emitted[events[i]] = struct{}{}
+	}
+	listener, err := pubsub.NewListener(ctx, pubsub.ListenerConfig{
+		Subscriber: s.subscriber,
+		Logger:     s.logger.Background(),
+		Tenant:     pointer.ToString(viewertest.DefaultTenant),
+		Events:     events,
+		Handler: pubsub.HandlerFunc(func(_ context.Context, _ string, name string, body []byte) error {
+			s.Assert().NotEmpty(body)
+			_, ok := emitted[name]
+			s.Assert().True(ok)
+			delete(emitted, name)
+			if len(emitted) == 0 {
+				cancel()
+			}
+			return nil
+		}),
+	})
+	s.Assert().NoError(err)
 	go func() {
 		defer wg.Done()
-		ctx, cancel := context.WithCancel(s.ctx)
-		events := []string{WorkOrderAdded, WorkOrderDone}
-		emitted := make(map[string]struct{}, len(events))
-		for i := range events {
-			emitted[events[i]] = struct{}{}
-		}
-		err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
-			Subscriber: s.subscriber,
-			Logger:     s.logger.Background(),
-			Tenant:     pointer.ToString(viewertest.DefaultTenant),
-			Events:     events,
-			Handler: pubsub.HandlerFunc(func(_ context.Context, _ string, name string, body []byte) error {
-				s.Assert().NotEmpty(body)
-				_, ok := emitted[name]
-				s.Assert().True(ok)
-				delete(emitted, name)
-				if len(emitted) == 0 {
-					cancel()
-				}
-				return nil
-			}),
-		})
+		defer listener.Shutdown(ctx)
+		err := listener.Listen(ctx)
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
 	woType := s.client.WorkOrderType.Create().
@@ -89,21 +93,24 @@ func (s *workOrderTestSuite) TestWorkOrderUpdate() {
 func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 	var wg sync.WaitGroup
 	wg.Add(1)
+	ctx, cancel := context.WithCancel(s.ctx)
+	listener, err := pubsub.NewListener(ctx, pubsub.ListenerConfig{
+		Subscriber: s.subscriber,
+		Logger:     s.logger.Background(),
+		Tenant:     pointer.ToString(viewertest.DefaultTenant),
+		Events:     []string{WorkOrderDone},
+		Handler: pubsub.HandlerFunc(func(_ context.Context, tenant string, name string, body []byte) error {
+			s.Assert().Equal(WorkOrderDone, name)
+			s.Assert().NotEmpty(body)
+			cancel()
+			return nil
+		}),
+	})
+	s.Assert().NoError(err)
 	go func() {
 		defer wg.Done()
-		ctx, cancel := context.WithCancel(s.ctx)
-		err := pubsub.SubscribeAndListen(ctx, pubsub.ListenerConfig{
-			Subscriber: s.subscriber,
-			Logger:     s.logger.Background(),
-			Tenant:     pointer.ToString(viewertest.DefaultTenant),
-			Events:     []string{WorkOrderDone},
-			Handler: pubsub.HandlerFunc(func(_ context.Context, tenant string, name string, body []byte) error {
-				s.Assert().Equal(WorkOrderDone, name)
-				s.Assert().NotEmpty(body)
-				cancel()
-				return nil
-			}),
-		})
+		defer listener.Shutdown(ctx)
+		err := listener.Listen(ctx)
 		s.Require().True(errors.Is(err, context.Canceled))
 	}()
 
@@ -118,7 +125,7 @@ func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
 		SaveX(s.ctx)
 	tx, err := s.client.Tx(s.ctx)
 	s.Require().NoError(err)
-	ctx := ent.NewTxContext(s.ctx, tx)
+	ctx = ent.NewTxContext(s.ctx, tx)
 	tx.WorkOrder.UpdateOne(wo).
 		SetStatus(models.WorkOrderStatusDone.String()).
 		ExecX(ctx)

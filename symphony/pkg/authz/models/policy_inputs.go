@@ -26,17 +26,17 @@ type BasicCUDInput struct {
 }
 
 type LocationCUDInput struct {
-	Create *LocationPermissionRuleInput `json:"create"`
+	Create *BasicPermissionRuleInput    `json:"create"`
 	Update *LocationPermissionRuleInput `json:"update"`
-	Delete *LocationPermissionRuleInput `json:"delete"`
+	Delete *BasicPermissionRuleInput    `json:"delete"`
 }
 
 type WorkforceCUDInput struct {
-	Create            *WorkforcePermissionRuleInput `json:"create"`
-	Update            *WorkforcePermissionRuleInput `json:"update"`
-	Delete            *WorkforcePermissionRuleInput `json:"delete"`
-	Assign            *WorkforcePermissionRuleInput `json:"assign"`
-	TransferOwnership *WorkforcePermissionRuleInput `json:"transferOwnership"`
+	Create            *BasicPermissionRuleInput `json:"create"`
+	Update            *BasicPermissionRuleInput `json:"update"`
+	Delete            *BasicPermissionRuleInput `json:"delete"`
+	Assign            *BasicPermissionRuleInput `json:"assign"`
+	TransferOwnership *BasicPermissionRuleInput `json:"transferOwnership"`
 }
 
 type InventoryPolicyInput struct {

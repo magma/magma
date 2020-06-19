@@ -440,7 +440,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 pkt_sender.send(packet)
                 self.service_manager.session_rule_version_mapper. \
                     update_version(imsi, 'rule1')
-            self.enforcement_controller.deactivate_rules(imsi, [policy.id])
+                self.enforcement_controller.deactivate_rules(imsi, [policy.id])
 
         verify_enforcement.verify()
         verify_enforcement_stats.verify()

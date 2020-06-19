@@ -133,8 +133,7 @@ class SessionStoreTest : public ::testing::Test {
     update_criteria.new_rule_lifetimes[dynamic_rule_id_1] = lifetime;
 
     // Monitoring credit installation
-    update_criteria.monitor_credit_to_install =
-      std::unordered_map<std::string, StoredMonitor>{};
+    update_criteria.monitor_credit_to_install = StoredMonitorMap{};
     auto monitor2 = StoredMonitor{};
     auto credit2 = StoredSessionCredit{};
     credit2.reporting = false;
@@ -305,12 +304,12 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   auto credit_update = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
+  session->receive_monitor(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333), uc);
-  EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
-  EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
+  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
+  EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
+  EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = std::vector<std::unique_ptr<SessionState>>{};
@@ -358,21 +357,21 @@ TEST_F(SessionStoreTest, test_read_and_write)
             false);
 
   // Check for installation of new monitoring credit
-  session_map[imsi].front()->get_monitor_pool().add_monitor(monitoring_key2,
-    UsageMonitoringCreditPool::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_TX), 100);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_RX), 200);
+  session_map[imsi].front()->set_monitor(monitoring_key2,
+    SessionState::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key2, USED_TX), 100);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key2, USED_RX), 200);
 
   // Check monitoring credit usage
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, USED_TX), 222);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, USED_RX), 666);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, ALLOWED_TOTAL), 1002);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, ALLOWED_TX), 1003);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, ALLOWED_RX), 1004);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTING_TX), 5);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTING_RX), 6);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_TX), 7);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_RX), 8);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, USED_TX), 222);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, USED_RX), 666);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, ALLOWED_TOTAL), 1002);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, ALLOWED_TX), 1003);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, ALLOWED_RX), 1004);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTING_TX), 5);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTING_RX), 6);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_TX), 7);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_RX), 8);
 
   // 11) Delete sessions for IMSI1
   update_req = SessionUpdate{};

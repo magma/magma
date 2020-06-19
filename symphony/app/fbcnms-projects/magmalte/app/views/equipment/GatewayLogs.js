@@ -11,18 +11,13 @@ import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
 import Grid from '@material-ui/core/Grid';
-import ListAltIcon from '@material-ui/icons/ListAlt';
+import LogChart from './GatewayLogChart';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {Bar} from 'react-chartjs-2';
-import {DateTimePicker} from '@material-ui/pickers';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
 // we have to use a different mechanism in case we want to go higher, we should
@@ -96,50 +91,9 @@ const getLogType = (msg: string): string => {
 
 export default function GatewayLogs() {
   const classes = useStyles();
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid item xs={6}>
-          <Text>
-            <ListAltIcon />
-            Logs
-          </Text>
-        </Grid>
-        <Grid item xs={6}>
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <Text>Filter By Date</Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="inline"
-                inputVariant="outlined"
-                maxDate={endDate}
-                disableFuture
-                value={startDate}
-                onChange={setStartDate}
-              />
-            </Grid>
-            <Grid item>
-              <Text>To</Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="inline"
-                inputVariant="outlined"
-                disableFuture
-                value={endDate}
-                onChange={setEndDate}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
           <LogChart />
@@ -149,53 +103,6 @@ export default function GatewayLogs() {
         </Grid>
       </Grid>
     </div>
-  );
-}
-function LogChart() {
-  const data = {
-    labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-    datasets: [
-      {
-        label: 'Log Counts',
-        backgroundColor: 'rgba(255,99,132,0.2)',
-        borderColor: 'rgba(255,99,132,1)',
-        borderWidth: 1,
-        hoverBackgroundColor: 'rgba(255,99,132,0.4)',
-        hoverBorderColor: 'rgba(255,99,132,1)',
-        data: [65, 59, 80, 81, 56, 55, 40],
-      },
-    ],
-  };
-  return (
-    <Bar
-      data={data}
-      options={{
-        maintainAspectRatio: false,
-        scaleShowValues: true,
-        scales: {
-          xAxes: [
-            {
-              gridLines: {
-                display: false,
-              },
-              ticks: {
-                maxTicksLimit: 10,
-              },
-            },
-          ],
-          yAxes: [
-            {
-              gridLines: {
-                drawBorder: true,
-              },
-              ticks: {
-                maxTicksLimit: 1,
-              },
-            },
-          ],
-        },
-      }}
-    />
   );
 }
 

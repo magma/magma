@@ -112,6 +112,7 @@ class CallData {
    * the queue
    */
   virtual void proceed() = 0;
+  virtual ~CallData() = default;
 };
 
 /**

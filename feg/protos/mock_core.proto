@@ -328,6 +328,7 @@ message UsageMonitoringInformation {
 message MultipleServicesCreditControl {
     uint32 rating_group = 1;
     Octets used_service_unit = 2;
+    int32 update_type = 3;
 }
 
 message QosInfo {
