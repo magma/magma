@@ -88,7 +88,7 @@ func TestWwwExporter_Export(t *testing.T) {
 
 	testCases := []exportTestCase{
 		{
-			name:          "Post Form Error",
+			name:          "Post form error",
 			client:        errClient,
 			exporter:      testExporter,
 			exportResult:  sampleResult,
@@ -98,7 +98,7 @@ func TestWwwExporter_Export(t *testing.T) {
 			},
 		},
 		{
-			name:          "Bad Client Status",
+			name:          "Bad client status",
 			client:        badStatusClient,
 			exporter:      testExporter,
 			exportResult:  sampleResult,
@@ -118,7 +118,7 @@ func TestWwwExporter_Export(t *testing.T) {
 			},
 		},
 		{
-			name:          "Successful Export",
+			name:          "Successful export",
 			client:        successClient,
 			exporter:      testExporter,
 			exportResult:  sampleResult,
