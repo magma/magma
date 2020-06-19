@@ -137,10 +137,13 @@ const systemTasks = type => {
         taskReferenceName: 'lambdaJsTaskRef_' + hash(),
         type: 'SIMPLE',
         inputParameters: {
-          args: '${workflow.input.lambdaValue}',
-          outputIsJson: 'false',
+          lambdaValue: '${workflow.input.lambdaValue}',
           scriptExpression:
-            'console.log("Hello " + argv[1]);',
+`if ($.lambdaValue == 1) {
+  return {testvalue: true};
+} else {
+  return {testvalue: false};
+}`,
         },
         optional: false,
         startDelay: 0,
@@ -152,10 +155,12 @@ const systemTasks = type => {
         taskReferenceName: 'lambdaPyTaskRef_' + hash(),
         type: 'SIMPLE',
         inputParameters: {
-          args: '${workflow.input.lambdaValue}',
-          outputIsJson: 'false',
+          lambdaValue: '${workflow.input.lambdaValue}',
           scriptExpression:
-            'print("Hello " + argv[1])',
+`if inputData["lambdaValue"] == "1":
+  return {"testValue": True}
+else:
+  return {"testValue": False}`,
         },
         optional: false,
         startDelay: 0,

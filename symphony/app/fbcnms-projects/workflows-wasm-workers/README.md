@@ -7,46 +7,55 @@ Every execution spawns a new short lived process.
 
 Currently supports two task types: `GLOBAL___js` and `GLOBAL___py`.
 
-* `args` - arguments to the script. To use workflow input: `${workflow.input.enter_your_name}`
-To read from previous task: `${some_task_ref.output.result}`
-* `outputIsJson` - if set to `true`, output will be interpreted as JSON. Otherwise interpreted as plaintext.
+* `lambdaValue` - convention for storing task inputs. E.g. workflow input: `${workflow.input.enter_your_name}`,
+result of previous task: `${some_task_ref.output.result}`
+* `outputIsJson` - if set to `true`, output is interpreted as JSON and
+task will be marked as failed if parsing fails. If `false`, output is interpreted as plaintext.
+Any other value, including empty one, means output will be parsed as JSON, will fallback
+to plaintext on parsing failure.
 * `scriptExpression` - script to be executed
 
 ## Javascript engine
 Task `GLOBAL___js` uses [QuickJs](https://bellard.org/quickjs/) engine, compiled to wasm [(demo)](https://wapm.io/package/quickjs).
 
 ### APIs
-Task result is written using `console.log`.
+Task result is written using `console.log` or by `return`ing the value (preferred).
 
-Log messages are written using `console.error`.
+Log messages are written using `log` or `console.error`.
 
-Arguments are available in `argv` global variable.
+Input data is available in `$` global variable.
+Use `$.lambdaValue` to get task input.
+This is backwards compatibile with
+[Lambda tasks](https://netflix.github.io/conductor/configuration/systask/#lambda-task)
 
 ## Python interpreter
 Task `GLOBAL___py` uses CPython 3.6 compiled to wasm [(demo)](https://wapm.io/package/python).
 
 ### APIs
-Task result is written using `print`.
+Task result is written using `print` or by `return`ing the value (preferred).
 
-Log messages are written using `eprint`.
+Log messages are written using `log` or `eprint`.
 
-Arguments are available in `argv` global variable.
+Input data is available in `inputData` global variable.
+Use `inputData["lambdaValue"]` to get task input.
 
 ## Example workflow
 
 This example asks user for name, then executes:
 * python task:
+lambdaValue: `${workflow.input.enter_your_name}`
 ```python
-import json
-print(json.dumps({'name': argv[1]}))
-eprint('logging from python')
+log('logging from python')
+name = inputData['lambdaValue']
+return {'name': name}
 ```
 * javascript task:
+lambdaValue: `${create_json_ref.output.result}`
 ```javascript
-let json=JSON.parse(argv[1]);
-json.name_length = json.name.length;
-console.log(JSON.stringify(json));
-console.error('logging from js');
+log('logging from js');
+var result = $.lambdaValue;
+result.name_length = (result.name||'').length;
+return result;
 ```
 
 ### Set conductor proxy as CONDUCTOR_API variable
@@ -73,9 +82,9 @@ ${CONDUCTOR_API}/metadata/workflow -d @- << 'EOF'
             "taskReferenceName": "create_json_ref",
             "name": "GLOBAL___py",
             "inputParameters": {
-                "args": "${workflow.input.enter_your_name}",
+                "lambdaValue": "${workflow.input.enter_your_name}",
                 "outputIsJson": "true",
-                "scriptExpression": "import json\nprint(json.dumps({'name': argv[1]}))\neprint('logging from python')"
+                "scriptExpression": "log('logging from python')\nname = inputData['lambdaValue']\nreturn {'name': name}\n"
             },
             "type": "SIMPLE",
             "startDelay": 0,
@@ -86,9 +95,9 @@ ${CONDUCTOR_API}/metadata/workflow -d @- << 'EOF'
             "taskReferenceName": "calculate_name_length_ref",
             "name": "GLOBAL___js",
             "inputParameters": {
-                "args": "${create_json_ref.output.result}",
+                "lambdaValue": "${create_json_ref.output.result}",
                 "outputIsJson": "true",
-                "scriptExpression": "let json=JSON.parse(argv[1]);\njson.name_length = json.name.length;\nconsole.log(JSON.stringify(json));\nconsole.error('logging from js');"
+                "scriptExpression": "log('logging from js');\nvar result = $.lambdaValue;\nresult.name_length = (result.name||'').length;\nreturn result;\n"
             },
             "type": "SIMPLE",
             "startDelay": 0,
@@ -140,4 +149,4 @@ Output of the workflow execution should contain:
 * Syntax errors are printed to stdout
 
 ### Python bugs, limitations:
-* Compared to QuickJs this approach introduces 5-20x worse latency for small scripts.
+* Compared to QuickJs this approach introduces 5-200x worse latency for small scripts: ~30ms for QuickJs, ~.5s for Python

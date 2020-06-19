@@ -9,21 +9,42 @@
  */
 import logging from '@fbcnms/logging';
 const logger = logging.getLogger(module);
-import {argsToJsonArray} from './utils.js';
+import {escapeJson} from './utils.js';
 import {executeWasmer} from './wasmer.js';
 
 const pythonBinPath = process.env.PYTHON_PATH || 'wasm/python/bin/python.wasm';
 const pythonLibPath = process.env.PYTHON_LIB_PATH || 'wasm/python/lib';
 
-export async function executePython(script: string, args: string[]) {
-  const preamble = `
-argv = ${argsToJsonArray(args)};
-import sys
-def eprint(*args, **kwargs):
+function prefixLines(script: string, indent: string) {
+  return script
+    .split('\n')
+    .map(it => indent + it)
+    .join('\n');
+}
+
+export async function executePython(
+  script: string,
+  args: string[],
+  inputData: mixed,
+) {
+  const escapedInputDataJson = escapeJson(inputData);
+  script = `
+import sys,json
+inputData = json.loads(${escapedInputDataJson})
+def log(*args, **kwargs):
   print(*args, file=sys.stderr, **kwargs)
 
+def script_fun():
+${prefixLines(script, '  ')}
+
+result = script_fun()
+if not result is None:
+  if isinstance(result, str):
+    sys.stdout.write(result)
+  else:
+    sys.stdout.write(json.dumps(result))
 `;
-  script = preamble + script;
+
   // options:
   // -q: quiet, do not print python version
   // -B: do not write .pyc files on import
@@ -51,15 +72,16 @@ def eprint(*args, **kwargs):
 export async function pythonHealthCheck() {
   try {
     const {stdout, stderr} = await executePython(
-      `print('stdout');eprint('stderr');`,
+      `log('stderr');return 'stdout'`,
       [],
+      {},
     );
-    if (stdout == 'stdout\n' && stderr == 'stderr\n') {
+    if (stdout == 'stdout' && stderr == 'stderr\n') {
       return true;
     }
     logger.warn('Unexpected healthcheck result', {stdout, stderr});
   } catch (error) {
-    logger.warn('Unexpected healthcheck error', {error});
+    console.error('Unexpected healthcheck error', error);
   }
   return false;
 }

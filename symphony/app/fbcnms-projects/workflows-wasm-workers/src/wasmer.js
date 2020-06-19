@@ -12,6 +12,7 @@ import logging from '@fbcnms/logging';
 const logger = logging.getLogger(module);
 
 const wasmerPath = process.env.WASMER_PATH || '/root/.wasmer/bin/wasmer';
+const enableTracing = process.env.TRACING == 'true' || false;
 const maximumWasmerTimeoutMillis: number =
   parseInt(process.env.MAX_WASMER_TIMEOUT_MS) || 10000;
 
@@ -26,7 +27,10 @@ type WasmerError = {
 
 export function executeWasmer(wasmerArgs: string[], stdin: ?string) {
   return new Promise<{stdout: string, stderr: string}>((resolve, reject) => {
-    logger.info('executeWasmer', {wasmerArgs, stdin});
+    if (enableTracing) {
+      console.debug('executeWasmer');
+      wasmerArgs.forEach(it => console.debug(it));
+    }
 
     const options = {
       timeout: maximumWasmerTimeoutMillis,

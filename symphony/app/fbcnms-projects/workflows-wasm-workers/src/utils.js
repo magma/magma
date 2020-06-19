@@ -8,21 +8,14 @@
  * @format
  */
 
-export function argsToJsonArray(args: string[] | string | {}): string {
-  let argsArray: string[];
-  if (!Array.isArray(args)) {
-    let argString: string;
-    if (typeof args !== 'string') {
-      // serialize it to a string
-      argString = JSON.stringify(args) || '';
-    } else {
-      argString = args;
-    }
-    argsArray = [argString];
-  } else {
-    argsArray = args.slice();
-  }
-  // 0-th argument is the program name
-  argsArray.unshift('script');
-  return JSON.stringify(argsArray);
+// Stringify object twice so that it can be dropped into source code.
+// E.g. input is {"lambdaValue":"a"}
+// result is "{\"lambdaValue\":\"a\"}"
+// This is useful for embedding the value inside script to be evaluated:
+// const scriptString = 'JSON.parse(' + result + ')';
+// eval(scriptString)
+export function escapeJson(inputData: mixed) {
+  const firstJson = JSON.stringify(inputData) || '"{}"';
+  const result = JSON.stringify(firstJson);
+  return result;
 }

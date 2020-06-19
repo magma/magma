@@ -38,19 +38,33 @@ async function createTaskResult(
   outputIsJson,
   outputData,
   stderr,
-  updaterFun,
+  updater,
   reasonForIncompletion,
 ) {
-  const logs = stderr.split('\n').filter(String);
-  if (outputIsJson) {
-    // convert back to object
+  // split stderr to array, remove empty lines
+  const logs = stderr.split(/\r?\n/).filter(String);
+  // unless outputIsJson is disabled or task already failed,
+  // try to interpret result as JSON
+  if (outputIsJson !== 'false' || reasonForIncompletion != null) {
     try {
       outputData.result = JSON.parse(outputData.result);
     } catch (e) {
-      logs.push('Cannot convert stdout to json');
+      logs.push('Converting stdout to json failed');
+      if (outputIsJson === 'true') {
+        // if user specifies that this must be JSON, fail the task
+        if (reasonForIncompletion == null) {
+          reasonForIncompletion = 'Invalid JSON';
+        }
+      }
     }
   }
-  logger.info('createTaskResult updating task', {outputData, updaterFun});
+  const updaterFun =
+    reasonForIncompletion == null ? updater.complete : updater.fail;
+  logger.info('createTaskResult updating task', {
+    outputData,
+    logs,
+    reasonForIncompletion,
+  });
   await updaterFun({
     outputData,
     logs,
@@ -61,21 +75,22 @@ async function createTaskResult(
 async function checkAndRegister(wasmSuffix, healthCheckFn, executeFn) {
   if (!(await healthCheckFn())) {
     logger.warn(wasmSuffix + ' healthcheck failed');
+  } else {
+    logger.info(wasmSuffix + ' healthcheck OK');
   }
   registerWasmWorker(wasmSuffix, async (data, updater) => {
     logger.info(wasmSuffix + ' got new task', {inputData: data.inputData});
     const inputData = data.inputData;
     const args = inputData.args;
-    const outputIsJson = inputData.outputIsJson === 'true';
+    const outputIsJson = inputData.outputIsJson;
     const scriptExpression = inputData.scriptExpression;
     try {
-      const {stdout, stderr} = await executeFn(scriptExpression, args);
-      await createTaskResult(
-        outputIsJson,
-        {result: stdout},
-        stderr,
-        updater.complete,
+      const {stdout, stderr} = await executeFn(
+        scriptExpression,
+        args,
+        inputData,
       );
+      await createTaskResult(outputIsJson, {result: stdout}, stderr, updater);
     } catch (e) {
       logger.error('Task has failed', {
         killed: e.killed,
@@ -83,7 +98,7 @@ async function checkAndRegister(wasmSuffix, healthCheckFn, executeFn) {
         signal: e.signal,
         cmd: e.cmd,
       });
-      logger.debug('Task has failed', {error: e});
+      logger.info('Task has failed', {error: e});
       let reasonForIncompletion = 'Unknown reason';
       if (e.killed) {
         reasonForIncompletion = 'Timeout';
@@ -94,7 +109,7 @@ async function checkAndRegister(wasmSuffix, healthCheckFn, executeFn) {
         outputIsJson,
         {result: e.stdout},
         e.stderr,
-        updater.fail,
+        updater,
         reasonForIncompletion,
       );
     }

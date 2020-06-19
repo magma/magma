@@ -9,17 +9,35 @@
  */
 import logging from '@fbcnms/logging';
 const logger = logging.getLogger(module);
-import {argsToJsonArray} from './utils.js';
+import {escapeJson} from './utils.js';
 import {executeWasmer} from './wasmer.js';
 
 const quickJsPath = process.env.QUICKJS_PATH || 'wasm/quickjs/quickjs.wasm';
 
-export async function executeQuickJs(script: string, args: string[]) {
-  const preamble = `
-const argv = ${argsToJsonArray(args)};
-console.error = function(...args) { std.err.puts(args.join(' '));std.err.puts('\\n'); }
+export async function executeQuickJs(
+  script: string,
+  args: string[],
+  inputData: mixed,
+) {
+  const escapedInputDataJson = escapeJson(inputData);
+  script = `
+const $ = JSON.parse(${escapedInputDataJson});
+console.error = function(...args) {
+  std.err.puts(args.join(' '));
+  std.err.puts('\\n');
+}
+log = console.error;
+let result = function() {
+${script}
+}();
+if (result != null) {
+  if (typeof result === 'object') {
+    result = JSON.stringify(result);
+  }
+  std.out.puts(result);
+}
 `;
-  script = preamble + script;
+  // --std: enable std for out, err objects
   const wasmerArgs = ['run', quickJsPath, '--', '--std', '-e', script];
   try {
     const {stdout, stderr} = await executeWasmer(wasmerArgs);
@@ -34,10 +52,11 @@ console.error = function(...args) { std.err.puts(args.join(' '));std.err.puts('\
 export async function quickJsHealthCheck() {
   try {
     const {stdout, stderr} = await executeQuickJs(
-      `console.log('stdout');console.error('stderr');`,
+      `log('stderr');return 'stdout'`,
       [],
+      {},
     );
-    if (stdout == 'stdout\n' && stderr == 'stderr\n') {
+    if (stdout == 'stdout' && stderr == 'stderr\n') {
       return true;
     }
     logger.warn('Unexpected healthcheck result', {stdout, stderr});
