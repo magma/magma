@@ -15,6 +15,8 @@ import Editor from '../../common/Editor';
 import EmailConfigEditor from './EmailConfigEditor';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import PagerDutyConfigEditor from './PagerDutyConfigEditor';
+import PushoverConfigEditor from './PushoverConfigEditor';
 import SlackConfigEditor from './SlackConfigEditor';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -28,6 +30,8 @@ import type {
   AlertReceiver,
   ReceiverConfigListName,
   ReceiverEmailConfig,
+  ReceiverPagerDutyConfig,
+  ReceiverPushoverConfig,
   ReceiverSlackConfig,
   ReceiverWebhookConfig,
 } from '../../AlarmAPIType';
@@ -63,6 +67,18 @@ const CONFIG_TYPES: {
     listName: 'webhook_configs',
     createConfig: emptyWebhookReceiver,
     ConfigEditor: WebhookConfigEditor,
+  },
+  pagerduty: {
+    friendlyName: 'PagerDuty',
+    listName: 'pagerduty_configs',
+    createConfig: emptyPagerDutyReceiver,
+    ConfigEditor: PagerDutyConfigEditor,
+  },
+  pushover: {
+    friendlyName: 'Pushover',
+    listName: 'pushover_configs',
+    createConfig: emptyPushoverReceiver,
+    ConfigEditor: PushoverConfigEditor,
   },
 };
 
@@ -244,6 +260,14 @@ function emptyWebhookReceiver(): ReceiverWebhookConfig {
   return {
     url: '',
   };
+}
+
+function emptyPagerDutyReceiver(): ReceiverPagerDutyConfig {
+  return {};
+}
+
+function emptyPushoverReceiver(): ReceiverPushoverConfig {
+  return {};
 }
 
 /**

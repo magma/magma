@@ -89,7 +89,6 @@ export default function ConfigEditor({
         <Grid item xs={12}>
           {RequiredFields}
         </Grid>
-
         {OptionalFields && (
           <>
             <Grid item>
