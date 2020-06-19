@@ -503,6 +503,7 @@ func (r mutationResolver) createAddedCheckListItemFiles(ctx context.Context, ite
 					}
 					return "image/jpeg"
 				}(),
+				Annotation: input.Annotation,
 			},
 			func(create *ent.FileCreate) error {
 				create.SetChecklistItem(item)

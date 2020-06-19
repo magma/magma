@@ -13,85 +13,69 @@ import (
 	"sync"
 	"testing"
 
-	merrors "magma/orc8r/lib/go/errors"
+	"github.com/thoas/go-funk"
 )
 
-type indexerRegistry struct {
+type remoteRegistry struct {
 	sync.RWMutex
-	indexers map[string]Indexer
+	// TODO(hcgatewood): convert to RemoteIndexer-only once supercontainer is broken up
+	indexerByService map[string]Indexer
 }
 
-// registry is a singleton providing process-global access to registered indexers.
-var registry = &indexerRegistry{
-	indexers: map[string]Indexer{},
-}
+var (
+	// reg is a singleton providing process-global access to registered indexers.
+	reg = &remoteRegistry{indexerByService: map[string]Indexer{}}
+)
 
-// RegisterAll registers indexers with the state service to be called
-// on updates to synced state.
-func RegisterAll(indexers ...Indexer) error {
-	registry.Lock()
-	defer registry.Unlock()
-	for i, indexer := range indexers {
-		if err := registerUnsafe(indexer); err != nil {
-			unregisterUnsafe(indexers[:i])
-			return err
+// RegisterIndexers registers an indexer.
+func RegisterIndexers(indexers ...Indexer) error {
+	reg.Lock()
+	defer reg.Unlock()
+
+	for _, x := range indexers {
+		id := x.GetID()
+		if _, exists := reg.indexerByService[id]; exists {
+			return fmt.Errorf("an indexer for the service %s already exists", id)
 		}
+		reg.indexerByService[id] = x
 	}
 	return nil
 }
 
-// GetIndexer returns the registered indexer with ID.
-// If not found, returns ErrNotFound from magma/orc8r/lib/go/errors.
-func GetIndexer(id string) (Indexer, error) {
-	registry.Lock()
-	defer registry.Unlock()
+// GetIndexer returns the remote indexer for a desired service.
+// Returns nil if not found.
+func GetIndexer(serviceName string) Indexer {
+	reg.Lock()
+	defer reg.Unlock()
 
-	indexer, exists := registry.indexers[id]
-	if !exists {
-		return nil, merrors.ErrNotFound
-	}
-	return indexer, nil
+	return reg.indexerByService[serviceName]
 }
 
-// GetAllIndexers returns all registered indexers.
-func GetAllIndexers() []Indexer {
-	registry.Lock()
-	defer registry.Unlock()
+// GetIndexers returns all registered indexers.
+func GetIndexers() []Indexer {
+	reg.Lock()
+	defer reg.Unlock()
 
-	indexers := make([]Indexer, 0, len(registry.indexers))
-	for _, indexer := range registry.indexers {
-		indexers = append(indexers, indexer)
+	var ret []Indexer
+	for _, x := range reg.indexerByService {
+		ret = append(ret, x)
 	}
-
-	return indexers
+	return ret
 }
 
-// GetAllIndexerVersionsByID returns a map of registered indexer IDs to their registered ("desired") versions.
-func GetAllIndexerVersionsByID() map[string]Version {
-	registry.Lock()
-	defer registry.Unlock()
+// GetIndexersForState returns all registered indexers which handle the passed state type.
+func GetIndexersForState(stateType string) []Indexer {
+	reg.Lock()
+	defer reg.Unlock()
 
-	versions := make(map[string]Version, len(registry.indexers))
-	for _, indexer := range registry.indexers {
-		versions[indexer.GetID()] = indexer.GetVersion()
+	var filtered []Indexer
+	for _, x := range reg.indexerByService {
+		if funk.Contains(x.GetTypes(), stateType) {
+			filtered = append(filtered, x)
+		}
+
 	}
-
-	return versions
-}
-
-func registerUnsafe(indexer Indexer) error {
-	id := indexer.GetID()
-	if _, exists := registry.indexers[id]; exists {
-		return fmt.Errorf("an indexer with the ID %s already exists", id)
-	}
-	registry.indexers[id] = indexer
-	return nil
-}
-
-func unregisterUnsafe(indexers []Indexer) {
-	for _, indexer := range indexers {
-		delete(registry.indexers, indexer.GetID())
-	}
+	return filtered
 }
 
 // DeregisterAllForTest deregisters all previously-registered indexers.
@@ -100,7 +84,7 @@ func DeregisterAllForTest(t *testing.T) {
 	if t == nil {
 		panic("for tests only")
 	}
-	registry.indexers = map[string]Indexer{}
+	reg.indexerByService = map[string]Indexer{}
 }
 
 // RegisterForTest sets an indexer in the registry.
@@ -110,5 +94,5 @@ func RegisterForTest(t *testing.T, idx Indexer) {
 	if t == nil {
 		panic("for tests only")
 	}
-	registry.indexers[idx.GetID()] = idx
+	reg.indexerByService[idx.GetID()] = idx
 }

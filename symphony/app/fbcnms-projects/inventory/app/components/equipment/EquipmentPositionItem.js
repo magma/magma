@@ -28,7 +28,6 @@ import React from 'react';
 import RemoveEquipmentFromPositionMutation from '../../mutations/RemoveEquipmentFromPositionMutation';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -59,47 +58,55 @@ type State = {
 
 const styles = theme => ({
   root: {
-    padding: '10px',
+    maxWidth: '176px',
+    minWidth: '176px',
+    minHeight: '48px',
+    maxHeight: '48px',
+    overflow: 'hidden',
+    padding: '8px',
     backgroundColor: gray0,
     borderRadius: '3px',
-    width: '172px',
+    boxSizing: 'content-box',
+
     display: 'flex',
+    alignItems: 'center',
+
     '&:hover': {
       backgroundColor: theme.palette.grey[50],
       boxShadow: theme.shadows[1],
     },
   },
-  equipmentRoot: {
-    paddingTop: '5px',
-    paddingBottom: '5px',
-    alignItems: 'center',
-  },
-  positionBody: {
-    marginRight: theme.spacing(),
-    display: 'inline',
-    flexGrow: 1,
-  },
   equipment: {
-    height: '45px',
+    width: '5px',
+    flexGrow: 1,
+    flexShrink: 1,
+
+    display: 'flex',
+    flexDirection: 'column',
   },
   equipmentDetails: {
     display: 'flex',
-    lineHeight: '1em',
-    marginTop: '2px',
-    color: gray0,
+    alignItems: 'center',
+    overflow: 'hidden',
+
+    '&>*': {
+      minWidth: '10px',
+      flexShrink: 1,
+    },
   },
-  equipmentName: {
-    whiteSpace: 'nowrap',
-    textOverflow: 'ellipsis',
-    paddingLeft: '2px',
-  },
-  equipmentState: {
-    marginTop: '2px',
-    lineHeight: '1em',
-    color: gray2,
+  allowWrapping: {
+    flexWrap: 'wrap',
   },
   equipmentPositionName: {
     color: gray2,
+    display: 'flex',
+    alignItems: 'center',
+    overflow: 'hidden',
+
+    '&>*': {
+      minWidth: '10px',
+      flexShrink: 1,
+    },
   },
 });
 
@@ -112,12 +119,8 @@ class EquipmentPositionItem extends React.Component<Props, State> {
     const {classes, position} = this.props;
     const positionOccupied = position.attachedEquipment != null;
     return (
-      <div
-        className={classNames({
-          [classes.root]: true,
-          [classes.equipmentRoot]: true,
-        })}>
-        <div className={classes.positionBody}>{this.renderEquipment()}</div>
+      <div className={classes.root}>
+        {this.renderEquipment()}
         <FormActionWithPermissions
           permissions={
             positionOccupied == true
@@ -187,38 +190,65 @@ class EquipmentPositionItem extends React.Component<Props, State> {
   renderEquipment() {
     const {position, classes} = this.props;
     const equipment = position.attachedEquipment;
+
+    const equipmentPositionName = (
+      <div className={classes.equipmentPositionName}>
+        <Text
+          variant="body2"
+          useEllipsis={true}
+          title={position.definition.name}>
+          {`${position.definition.name}`}
+        </Text>
+        <Text variant="body2">{': '}</Text>
+      </div>
+    );
+    const available = `${fbt('Available', '')}`;
+
     if (equipment === null || equipment === undefined) {
       return (
         <div className={classes.equipment}>
-          <div className={classes.equipmentDetails}>
-            <Typography
+          <div
+            className={classNames(
+              classes.equipmentDetails,
+              classes.allowWrapping,
+            )}>
+            {equipmentPositionName}
+            <Text
               variant="body2"
+              useEllipsis={true}
+              title={available}
               className={classes.equipmentPositionName}>
-              {`${position.definition.name}: Available`}
-            </Typography>
+              {available}
+            </Text>
           </div>
         </div>
       );
     }
 
+    const showWorkOrderButton = !!equipment?.workOrder;
+
     return (
       <div className={classes.equipment}>
-        <div className={classes.equipmentDetails}>
-          <Text variant="body2" className={classes.equipmentPositionName}>
-            {`${position.definition.name}: `}
-          </Text>
+        <div
+          className={classNames(classes.equipmentDetails, {
+            [classes.allowWrapping]: !showWorkOrderButton,
+          })}>
+          {equipmentPositionName}
           <Button
-            className={classes.equipmentName}
             variant="text"
+            className={classes.equipmentName}
+            useEllipsis={true}
+            tooltip={equipment.name}
             onClick={() => this.props.onEquipmentPositionClicked(equipment.id)}>
             {equipment.name}
           </Button>
         </div>
-        {equipment.futureState && (
+        {showWorkOrderButton && (
           <div>
             <Button
               variant="text"
               skin="regular"
+              useEllipsis={true}
               onClick={() =>
                 this.props.onWorkOrderSelected(
                   nullthrows(equipment?.workOrder?.id),

@@ -140,6 +140,20 @@ func (fc *FileCreate) SetNillableCategory(s *string) *FileCreate {
 	return fc
 }
 
+// SetAnnotation sets the annotation field.
+func (fc *FileCreate) SetAnnotation(s string) *FileCreate {
+	fc.mutation.SetAnnotation(s)
+	return fc
+}
+
+// SetNillableAnnotation sets the annotation field if the given value is not nil.
+func (fc *FileCreate) SetNillableAnnotation(s *string) *FileCreate {
+	if s != nil {
+		fc.SetAnnotation(*s)
+	}
+	return fc
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (fc *FileCreate) SetLocationID(id int) *FileCreate {
 	fc.mutation.SetLocationID(id)
@@ -464,6 +478,14 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 			Column: file.FieldCategory,
 		})
 		f.Category = value
+	}
+	if value, ok := fc.mutation.Annotation(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: file.FieldAnnotation,
+		})
+		f.Annotation = value
 	}
 	if nodes := fc.mutation.LocationIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

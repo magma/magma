@@ -10,6 +10,7 @@ import logging
 from magma.pipelined.openflow.meters import MeterClass
 from .utils import IdManager
 from .types import QosInfo
+import subprocess
 
 LOG = logging.getLogger('pipelined.qos.qos_meter_impl')
 BROKEN_KERN_ERROR_MSG = "kernel module has a broken meter implementation"
@@ -94,3 +95,13 @@ class MeterManager(object):
             if stat.max_meter == 0:
                 self._qos_impl_broken = True
                 LOG.error("kernel module has a broken meter implementation")
+
+    @staticmethod
+    def dump_meter_state(meter_id):
+        try:
+            output = subprocess.check_output(["ovs-ofctl", "-O", "OpenFlow15",
+                                              "meter-stats", "cwag_br0",
+                                              "meter=%s" % meter_id])
+            print(output.decode())
+        except subprocess.CalledProcessError:
+            print("Exception dumping meter state for %s", meter_id)

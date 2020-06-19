@@ -14,6 +14,7 @@ import (
 	"contrib.go.opencensus.io/integrations/ocsql"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
+
 	"github.com/go-sql-driver/mysql"
 	"go.uber.org/zap"
 )

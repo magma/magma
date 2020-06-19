@@ -25,6 +25,9 @@ type Enodeb struct {
 	// Required: true
 	Config *EnodebConfiguration `json:"config"`
 
+	// description
+	Description string `json:"description,omitempty"`
+
 	// name
 	// Required: true
 	// Min Length: 1

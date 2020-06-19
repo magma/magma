@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash e54151206314c51b1d20b8c012af5225
+ * @relayHash 01123a838225dacce7f7ac2a256dadfa
  */
 
 /* eslint-disable */
@@ -40,6 +40,7 @@ export type AddImageInput = {|
   modified: any,
   contentType: string,
   category?: ?string,
+  annotation?: ?string,
 |};
 export type AddFloorPlanMutationVariables = {|
   input: AddFloorPlanInput

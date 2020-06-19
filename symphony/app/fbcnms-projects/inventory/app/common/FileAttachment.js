@@ -17,4 +17,5 @@ export type FileAttachmentType = $ReadOnly<{
   fileType?: ?string,
   storeKey?: ?string,
   category?: ?string,
+  annotation?: ?string,
 }>;

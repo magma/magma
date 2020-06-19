@@ -23,7 +23,6 @@
       "logLevel": "INFO",
       "ueIpBlock": "192.168.128.0/24",
       "natEnabled": true,
-      "relayEnabled": true,
       "apps": [],
       "services": [],
       "allowedGrePeers": [],

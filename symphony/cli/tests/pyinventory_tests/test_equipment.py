@@ -29,9 +29,9 @@ from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 class TestEquipment(BaseTest):
     def __init__(
-        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
+        self, test_name: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
-        super().__init__(testName, client, stub)
+        super().__init__(test_name, client, stub)
 
     def setUp(self) -> None:
         super().setUp()
@@ -42,7 +42,7 @@ class TestEquipment(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -50,7 +50,7 @@ class TestEquipment(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -62,13 +62,13 @@ class TestEquipment(BaseTest):
                 PropertyDefinition(
                     property_name="Mayor",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
                 PropertyDefinition(
                     property_name="Contact",
                     property_kind=PropertyKind.email,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
             ],
@@ -81,7 +81,7 @@ class TestEquipment(BaseTest):
                 PropertyDefinition(
                     property_name="IP",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],

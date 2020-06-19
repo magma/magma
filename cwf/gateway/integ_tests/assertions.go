@@ -87,8 +87,10 @@ func (tr *TestRunner) AssertAllGyExpectationsMetNoError() {
 func (tr *TestRunner) assertAllExpectationsMetNoError(resByIdx []*protos.ExpectationResult, errByIdx []*protos.ErrorByIndex, err error) {
 	expectedResults := makeDefaultExpectationResults(len(resByIdx))
 	assert.NoError(tr.t, err)
-	assert.Empty(tr.t, errByIdx)
-	assert.ElementsMatch(tr.t, expectedResults, resByIdx)
+	matches := assert.ElementsMatch(tr.t, expectedResults, resByIdx)
+	if !matches {
+		tr.t.Log(errByIdx)
+	}
 }
 
 func makeDefaultExpectationResults(n int) []*protos.ExpectationResult {

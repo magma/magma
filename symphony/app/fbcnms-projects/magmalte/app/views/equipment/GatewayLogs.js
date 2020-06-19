@@ -7,16 +7,23 @@
  * @flow strict-local
  * @format
  */
+import type {ActionQuery} from '../../components/ActionTable';
+
 import ActionTable from '../../components/ActionTable';
 import Grid from '@material-ui/core/Grid';
+import LogChart from './GatewayLogChart';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
+
+// elastic search pagination through 'from' mechanism has a 10000 row limit
+// we have to use a different mechanism in case we want to go higher, we should
+// use search_after
+// https://www.elastic.co/guide/en/elasticsearch/reference/6.8/search-request-search-after.html
+const MAX_PAGE_ROW_COUNT = 10000;
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -59,14 +66,10 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     minWidth: 120,
   },
+  button: {
+    margin: theme.spacing(1),
+  },
 }));
-
-type LogRowType = {
-  date: Date,
-  service: string,
-  logType: string,
-  output: string,
-};
 
 const getLogType = (msg: string): string => {
   for (const typ of [
@@ -93,7 +96,7 @@ export default function GatewayLogs() {
     <div className={classes.dashboardRoot}>
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
-          Log Bar Chart
+          <LogChart />
         </Grid>
         <Grid item xs={12}>
           <LogTable />
@@ -108,33 +111,51 @@ function LogTable() {
   const networkId: string = nullthrows(match.params.networkId);
   const gatewayId: string = nullthrows(match.params.gatewayId);
 
-  const {response: gatewayLogs} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdLogs,
-    {
-      networkId: networkId,
-      filters: `gateway_id:${gatewayId}`,
-    },
-  );
-  if (!gatewayLogs) {
-    return null;
-  }
-
-  const logRows: Array<LogRowType> = gatewayLogs.map(elastic_hit => {
-    const src = elastic_hit._source;
-    const date = new Date(src['@timestamp'] ?? 0);
-    const msg = src['message'];
-    return {
-      date: date,
-      service: src['ident'],
-      logType: getLogType(msg),
-      output: msg,
-    };
-  });
   return (
     <ActionTable
-      titleIcon={SettingsInputAntennaIcon}
-      title={'EnodeBs'}
-      data={logRows}
+      title={'Logs'}
+      data={(query: ActionQuery) =>
+        new Promise((resolve, reject) => {
+          const countReq = MagmaV1API.getNetworksByNetworkIdLogsCount({
+            networkId: networkId,
+            filters: `gateway_id:${gatewayId}`,
+            simpleQuery: query.search,
+          });
+
+          const searchReq = MagmaV1API.getNetworksByNetworkIdLogsSearch({
+            networkId: networkId,
+            filters: `gateway_id:${gatewayId}`,
+            from: (query.page * query.pageSize).toString(),
+            size: query.pageSize.toString(),
+            simpleQuery: query.search,
+          });
+
+          Promise.all([countReq, searchReq])
+            .then(([countResp, searchResp]) => {
+              let gatewayLogCount = countResp;
+              if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
+                gatewayLogCount = MAX_PAGE_ROW_COUNT;
+              }
+              const logRows = searchResp.filter(Boolean).map(elastic_hit => {
+                const src = elastic_hit._source;
+                const date = new Date(src['@timestamp'] ?? 0);
+                const msg = src['message'];
+                return {
+                  date: date,
+                  service: src['ident'],
+                  logType: getLogType(msg ?? ''),
+                  output: msg,
+                };
+              });
+              resolve({
+                data: logRows,
+                page: query.page,
+                totalCount: gatewayLogCount,
+              });
+            })
+            .catch(err => reject(err));
+        })
+      }
       columns={[
         {title: 'Date', field: 'date', type: 'datetime'},
         {title: 'Service', field: 'service'},
@@ -144,6 +165,8 @@ function LogTable() {
       options={{
         actionsColumnIndex: -1,
         pageSizeOptions: [5, 10],
+        exportButton: true,
+        exportAllData: true,
       }}
     />
   );

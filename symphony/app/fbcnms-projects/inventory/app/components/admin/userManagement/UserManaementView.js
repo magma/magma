@@ -13,6 +13,7 @@ import type {NavigatableView} from '@fbcnms/ui/components/design-system/View/Nav
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import InventorySuspense from '../../../common/InventorySuspense';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
 import NewUserDialog from './users/NewUserDialog';
 import PermissionsGroupCard from './groups/PermissionsGroupCard';
@@ -29,7 +30,6 @@ import UsersView from './users/UsersView';
 import fbt from 'fbt';
 import {FormContextProvider} from '../../../common/FormContext';
 import {NEW_DIALOG_PARAM, POLICY_TYPES} from './utils/UserManagementUtils';
-import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, withRouter} from 'react-router-dom';
 
@@ -171,7 +171,7 @@ const UserManaementView = ({match}: Props) => {
   }, [gotoGroupsPage, gotoPoliciesPage, history, permissionPoliciesMode]);
 
   return (
-    <UserManagementContextProvider>
+    <InventorySuspense isTopLevel={true}>
       <FormContextProvider permissions={{adminRightsRequired: true}}>
         <NavigatableViews
           header={Strings.admin.users.viewHeader}
@@ -182,7 +182,7 @@ const UserManaementView = ({match}: Props) => {
       {addingNewUser && (
         <NewUserDialog onClose={() => setAddingNewUser(false)} />
       )}
-    </UserManagementContextProvider>
+    </InventorySuspense>
   );
 };
 

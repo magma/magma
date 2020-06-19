@@ -8,7 +8,15 @@ services:
   workflows:
     build:
       context: ${XPLAT_FBC_DIR}
-      dockerfile: fbcnms-projects/workflows/Dockerfile
+      dockerfile: fbcnms-projects/workflows-proxy/Dockerfile
+    networks:
+      - private
+    restart: on-failure
+
+  workflows-wasm-worker:
+    build:
+      context: ${XPLAT_FBC_DIR}
+      dockerfile: fbcnms-projects/workflows-wasm-workers/Dockerfile
     networks:
       - private
     restart: on-failure

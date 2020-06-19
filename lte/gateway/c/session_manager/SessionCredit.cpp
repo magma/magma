@@ -205,6 +205,7 @@ void SessionCredit::receive_credit(
     set_reauth(REAUTH_NOT_NEEDED, update_criteria);
   }
   if (!is_quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
+                                service_state_ == SERVICE_REDIRECTED ||
                                 service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MINFO) << "Quota available. Activating service";
@@ -214,7 +215,6 @@ void SessionCredit::receive_credit(
 }
 
 void SessionCredit::log_quota_and_usage() const {
-  auto reported_sum = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
   MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
                << " Rx: " << buckets_[USED_RX]
                << " Total: " << buckets_[USED_TX] + buckets_[USED_RX];
@@ -288,18 +288,29 @@ bool SessionCredit::should_deactivate_service() const {
   if (unlimited_quota_) {
     return false;
   }
-  if (!SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
-    // configured in sessiond.yml
+  if ((final_action_info_.final_action ==
+        ChargingCredit_FinalAction_TERMINATE) &&
+      !SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
+      // configured in sessiond.yml
+      return false;
+  }
+  if (service_state_ != SERVICE_ENABLED){
+    // service is not enabled
     return false;
   }
   if (is_final_grant_ && is_quota_exhausted()) {
-    // We only terminate when we receive a Final Unit Indication (final Grant)
-    // and we've exhausted all quota
-    MLOG(MINFO) << "Terminating service because we have exhausted the given "
-                << "quota and it is the final grant";
+    // We only deactivate service when we receive a Final Unit
+    // Indication (final Grant) and we've exhausted all quota
+    MLOG(MINFO) << "Deactivating service because we have exhausted the given "
+      << "quota and it is the final grant."
+      << "action=" << final_action_to_str(final_action_info_.final_action);
     return true;
   }
   return false;
+}
+
+bool SessionCredit::is_service_redirected() const {
+  return service_state_ == SERVICE_REDIRECTED;
 }
 
 bool SessionCredit::validity_timer_expired() const {
@@ -335,14 +346,15 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
   return usage;
 }
 
+// Todo Return Proto CreditUsage
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
-  if (is_final_grant_) {
-    return get_all_unreported_usage_for_reporting(update_criteria);
-  }
-
   if (reauth_state_ == REAUTH_REQUIRED) {
     set_reauth(REAUTH_PROCESSING, update_criteria);
+  }
+
+  if (is_final_grant_) {
+    return get_all_unreported_usage_for_reporting(update_criteria);
   }
 
   auto usage = get_unreported_usage();
@@ -498,6 +510,10 @@ std::string service_state_to_str(ServiceState state) {
     return "SERVICE_DISABLED";
   case SERVICE_NEEDS_ACTIVATION:
     return "SERVICE_NEEDS_ACTIVATION";
+  case SERVICE_REDIRECTED:
+    return "SERVICE_REDIRECTED";
+  case SERVICE_RESTRICTED:
+    return "SERVICE_RESTRICTED";
   default:
     return "INVALID SERVICE STATE";
   }

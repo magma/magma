@@ -11,7 +11,6 @@ package models
 import (
 	"encoding/base64"
 	"fmt"
-	"log"
 	"sort"
 	"time"
 
@@ -428,6 +427,7 @@ func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID st
 
 func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Name = ent.Name
+	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
 		m.Config = ent.Config.(*EnodebConfiguration)
@@ -442,10 +442,11 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 
 func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
-		Key:       m.Serial,
-		NewName:   swag.String(m.Name),
-		NewConfig: m.Config,
+		Type:           lte.CellularEnodebType,
+		Key:            m.Serial,
+		NewName:        swag.String(m.Name),
+		NewDescription: swag.String(m.Description),
+		NewConfig:      m.Config,
 	}
 }
 
@@ -608,7 +609,7 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 	)
 	if len(m.MonitoringKey) > 0 {
 		if protoMKey, err = base64.StdEncoding.DecodeString(m.MonitoringKey); err != nil {
-			log.Printf("Error decoding Monitoring Key '%q' for rule ID '%s', will use as is. Err: %v",
+			glog.Warningf("Can't decode Monitoring Key '%q' for rule ID '%s', will use as is. Err: %v",
 				m.MonitoringKey, id, err)
 			protoMKey = []byte(m.MonitoringKey)
 		}

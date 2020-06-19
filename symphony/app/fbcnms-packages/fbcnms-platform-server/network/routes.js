@@ -21,7 +21,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {CWF, FEG, LTE, SYMPHONY} from '@fbcnms/types/network';
+import {CWF, FEG, LTE, SYMPHONY, XWFM} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 
 const logger = require('@fbcnms/logging').getLogger(module);
@@ -119,6 +119,24 @@ router.post(
               default_rule_id: '',
               eap_aka: {},
               network_services: ['policy_enforcement', 'dpi'],
+            },
+          },
+        });
+      } else if (data.networkType === XWFM) {
+        resp = await MagmaV1API.postCwf({
+          cwfNetwork: {
+            ...commonField,
+            dns: DEFAULT_DNS_CONFIG,
+            federation: {feg_network_id: data.fegNetworkID},
+            carrier_wifi: {
+              aaa_server: {
+                accounting_enabled: true,
+                create_session_on_auth: true,
+                idle_session_timeout_ms: 500000,
+              },
+              default_rule_id: '',
+              eap_aka: {},
+              network_services: [],
             },
           },
         });

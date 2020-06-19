@@ -35,16 +35,16 @@
 <dl>
 <dt id="pyinventory.common.data_class.Customer"><code class="flex name class">
 <span>class <span class="ident">Customer</span></span>
-<span>(</span><span>name: str, id: str, externalId: Union[str, NoneType])</span>
+<span>(</span><span>id: str, name: str, external_id: Union[str, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
-<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>name</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>ID</dd>
-<dt><strong><code>externalId</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional[str]</code></dt>
 <dd>external ID</dd>
 </dl></div>
 <h3>Ancestors</h3>
@@ -53,17 +53,17 @@
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pyinventory.common.data_class.Customer.externalId"><code class="name">var <span class="ident">externalId</span> : Union[str, NoneType]</code></dt>
+<dt id="pyinventory.common.data_class.Customer.external_id"><code class="name">var <span class="ident">external_id</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
 <dt id="pyinventory.common.data_class.Customer.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 1</p></div>
+<div class="desc"><p>Alias for field number 0</p></div>
 </dd>
 <dt id="pyinventory.common.data_class.Customer.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 0</p></div>
+<div class="desc"><p>Alias for field number 1</p></div>
 </dd>
 </dl>
 </dd>
@@ -97,7 +97,7 @@
 </dd>
 <dt id="pyinventory.common.data_class.Document"><code class="flex name class">
 <span>class <span class="ident">Document</span></span>
-<span>(</span><span>id: str, name: str, parentId: str, parentEntity: <a title="pyinventory.graphql.image_entity_enum.ImageEntity" href="../graphql/image_entity_enum.html#pyinventory.graphql.image_entity_enum.ImageEntity">ImageEntity</a>, category: Union[str, NoneType])</span>
+<span>(</span><span>id: str, name: str, parent_id: str, parent_entity: pysymphony.graphql.enum.image_entity.ImageEntity, category: Union[str, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -106,9 +106,9 @@
 <dd>ID</dd>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>name</dd>
-<dt><strong><code>parentId</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>parent_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>parent ID</dd>
-<dt><strong><code>parentEntity</code></strong> :&ensp;<code>ImageEntity</code></dt>
+<dt><strong><code>parent_entity</code></strong> :&ensp;<code>ImageEntity</code></dt>
 <dd>parent entity</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>Optional[str]</code></dt>
 <dd>category</dd>
@@ -131,11 +131,11 @@
 <dd>
 <div class="desc"><p>Alias for field number 1</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.Document.parentEntity"><code class="name">var <span class="ident">parentEntity</span> : <a title="pyinventory.graphql.image_entity_enum.ImageEntity" href="../graphql/image_entity_enum.html#pyinventory.graphql.image_entity_enum.ImageEntity">ImageEntity</a></code></dt>
+<dt id="pyinventory.common.data_class.Document.parent_entity"><code class="name">var <span class="ident">parent_entity</span> : pysymphony.graphql.enum.image_entity.ImageEntity</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.Document.parentId"><code class="name">var <span class="ident">parentId</span> : str</code></dt>
+<dt id="pyinventory.common.data_class.Document.parent_id"><code class="name">var <span class="ident">parent_id</span> : str</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
@@ -183,7 +183,7 @@
 </dd>
 <dt id="pyinventory.common.data_class.EquipmentPort"><code class="flex name class">
 <span>class <span class="ident">EquipmentPort</span></span>
-<span>(</span><span>id: str, properties: Sequence[<a title="pyinventory.graphql.property_fragment.PropertyFragment" href="../graphql/property_fragment.html#pyinventory.graphql.property_fragment.PropertyFragment">PropertyFragment</a>], definition: <a title="pyinventory.common.data_class.EquipmentPortDefinition" href="#pyinventory.common.data_class.EquipmentPortDefinition">EquipmentPortDefinition</a>, link: Union[pyinventory.common.data_class.Link, NoneType])</span>
+<span>(</span><span>id: str, properties: Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>], definition: <a title="pyinventory.common.data_class.EquipmentPortDefinition" href="#pyinventory.common.data_class.EquipmentPortDefinition">EquipmentPortDefinition</a>, link: Union[pyinventory.common.data_class.Link, NoneType])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -213,7 +213,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.EquipmentPort.properties"><code class="name">var <span class="ident">properties</span> : Sequence[<a title="pyinventory.graphql.property_fragment.PropertyFragment" href="../graphql/property_fragment.html#pyinventory.graphql.property_fragment.PropertyFragment">PropertyFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.EquipmentPort.properties"><code class="name">var <span class="ident">properties</span> : Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 1</p></div>
 </dd>
@@ -255,7 +255,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </dd>
 <dt id="pyinventory.common.data_class.EquipmentPortType"><code class="flex name class">
 <span>class <span class="ident">EquipmentPortType</span></span>
-<span>(</span><span>id: str, name: str, property_types: Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>], link_property_types: Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>])</span>
+<span>(</span><span>id: str, name: str, property_types: Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], link_property_types: Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -264,11 +264,9 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>ID</dd>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>name</dd>
-<dt><strong><code>property_types</code></strong> :&ensp;<code>Sequence[PropertyTypeFragment]</code></dt>
-<dd>property types sequence</dd>
-<dt><strong><code>link_property_types</code></strong> :&ensp;<code>Sequence[PropertyTypeFragment]</code></dt>
-<dd>link property types sequence</dd>
-</dl></div>
+</dl>
+<p>property_types (Sequence[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): property types sequence
+link_property_types (Sequence[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): link property types sequence</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -279,7 +277,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.EquipmentPortType.link_property_types"><code class="name">var <span class="ident">link_property_types</span> : Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.EquipmentPortType.link_property_types"><code class="name">var <span class="ident">link_property_types</span> : Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
@@ -287,7 +285,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 1</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.EquipmentPortType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.EquipmentPortType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
@@ -295,7 +293,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </dd>
 <dt id="pyinventory.common.data_class.EquipmentType"><code class="flex name class">
 <span>class <span class="ident">EquipmentType</span></span>
-<span>(</span><span>name: str, category: Union[str, NoneType], id: str, property_types: Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>], position_definitions: Sequence[<a title="pyinventory.graphql.equipment_position_definition_fragment.EquipmentPositionDefinitionFragment" href="../graphql/equipment_position_definition_fragment.html#pyinventory.graphql.equipment_position_definition_fragment.EquipmentPositionDefinitionFragment">EquipmentPositionDefinitionFragment</a>], port_definitions: Sequence[<a title="pyinventory.graphql.equipment_port_definition_fragment.EquipmentPortDefinitionFragment" href="../graphql/equipment_port_definition_fragment.html#pyinventory.graphql.equipment_port_definition_fragment.EquipmentPortDefinitionFragment">EquipmentPortDefinitionFragment</a>])</span>
+<span>(</span><span>name: str, category: Union[str, NoneType], id: str, property_types: Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], position_definitions: Sequence[<a title="pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment" href="../graphql/fragment/equipment_position_definition.html#pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment">EquipmentPositionDefinitionFragment</a>], port_definitions: Sequence[<a title="pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment" href="../graphql/fragment/equipment_port_definition.html#pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment">EquipmentPortDefinitionFragment</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -306,13 +304,11 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>category</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>ID</dd>
-<dt><strong><code>property_types</code></strong> :&ensp;<code>Sequence[PropertyTypeFragment]</code></dt>
-<dd>property types sequence</dd>
-<dt><strong><code>position_definitions</code></strong> :&ensp;<code>Sequence[EquipmentPositionDefinitionFragment]</code></dt>
-<dd>position definitions sequence</dd>
-<dt><strong><code>port_definitions</code></strong> :&ensp;<code>Sequence[EquipmentPortDefinitionFragment]</code></dt>
-<dd>port definition sequence</dd>
-</dl></div>
+</dl>
+<p>property_types (Sequence[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]):
+property types sequence
+position_definitions (Sequence[ <code>pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment</code> ]): position definitions sequence
+port_definitions (Sequence[ <code>pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment</code> ]): port definition sequence</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -331,15 +327,15 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.EquipmentType.port_definitions"><code class="name">var <span class="ident">port_definitions</span> : Sequence[<a title="pyinventory.graphql.equipment_port_definition_fragment.EquipmentPortDefinitionFragment" href="../graphql/equipment_port_definition_fragment.html#pyinventory.graphql.equipment_port_definition_fragment.EquipmentPortDefinitionFragment">EquipmentPortDefinitionFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.EquipmentType.port_definitions"><code class="name">var <span class="ident">port_definitions</span> : Sequence[<a title="pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment" href="../graphql/fragment/equipment_port_definition.html#pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment">EquipmentPortDefinitionFragment</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 5</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.EquipmentType.position_definitions"><code class="name">var <span class="ident">position_definitions</span> : Sequence[<a title="pyinventory.graphql.equipment_position_definition_fragment.EquipmentPositionDefinitionFragment" href="../graphql/equipment_position_definition_fragment.html#pyinventory.graphql.equipment_position_definition_fragment.EquipmentPositionDefinitionFragment">EquipmentPositionDefinitionFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.EquipmentType.position_definitions"><code class="name">var <span class="ident">position_definitions</span> : Sequence[<a title="pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment" href="../graphql/fragment/equipment_position_definition.html#pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment">EquipmentPositionDefinitionFragment</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 4</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.EquipmentType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.EquipmentType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
@@ -347,15 +343,14 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </dd>
 <dt id="pyinventory.common.data_class.Link"><code class="flex name class">
 <span>class <span class="ident">Link</span></span>
-<span>(</span><span>id: str, properties: Sequence[<a title="pyinventory.graphql.property_fragment.PropertyFragment" href="../graphql/property_fragment.html#pyinventory.graphql.property_fragment.PropertyFragment">PropertyFragment</a>], service_ids: List[str])</span>
+<span>(</span><span>id: str, properties: Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>], service_ids: List[str])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>link ID</dd>
-<dt><strong><code>properties</code></strong> :&ensp;<code>Sequence[PropertyFragment]</code></dt>
-<dd>properties sequence</dd>
+<dt>properties (Sequence[ <code>pyinventory.graphql.fragment.property.PropertyFragment</code> ]): properties sequence</dt>
 <dt><strong><code>service_ids</code></strong> :&ensp;<code>List[str]</code></dt>
 <dd>service IDs</dd>
 </dl></div>
@@ -369,7 +364,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.Link.properties"><code class="name">var <span class="ident">properties</span> : Sequence[<a title="pyinventory.graphql.property_fragment.PropertyFragment" href="../graphql/property_fragment.html#pyinventory.graphql.property_fragment.PropertyFragment">PropertyFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.Link.properties"><code class="name">var <span class="ident">properties</span> : Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 1</p></div>
 </dd>
@@ -381,7 +376,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </dd>
 <dt id="pyinventory.common.data_class.Location"><code class="flex name class">
 <span>class <span class="ident">Location</span></span>
-<span>(</span><span>name: str, id: str, latitude: numbers.Number, longitude: numbers.Number, externalId: Union[str, NoneType], locationTypeName: str)</span>
+<span>(</span><span>name: str, id: str, latitude: numbers.Number, longitude: numbers.Number, external_id: Union[str, NoneType], location_type_name: str, properties: Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -394,18 +389,19 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>latitude</dd>
 <dt><strong><code>longitude</code></strong> :&ensp;<code>Number</code></dt>
 <dd>longitude</dd>
-<dt><strong><code>externalId</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional[str]</code></dt>
 <dd>external ID</dd>
-<dt><strong><code>locationTypeName</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>location_type_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>location type name</dd>
-</dl></div>
+</dl>
+<p>properties (Sequence[ <code>pyinventory.graphql.fragment.property.PropertyFragment</code> ])</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pyinventory.common.data_class.Location.externalId"><code class="name">var <span class="ident">externalId</span> : Union[str, NoneType]</code></dt>
+<dt id="pyinventory.common.data_class.Location.external_id"><code class="name">var <span class="ident">external_id</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 4</p></div>
 </dd>
@@ -417,7 +413,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.Location.locationTypeName"><code class="name">var <span class="ident">locationTypeName</span> : str</code></dt>
+<dt id="pyinventory.common.data_class.Location.location_type_name"><code class="name">var <span class="ident">location_type_name</span> : str</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 5</p></div>
 </dd>
@@ -429,11 +425,15 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
+<dt id="pyinventory.common.data_class.Location.properties"><code class="name">var <span class="ident">properties</span> : Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 6</p></div>
+</dd>
 </dl>
 </dd>
 <dt id="pyinventory.common.data_class.LocationType"><code class="flex name class">
 <span>class <span class="ident">LocationType</span></span>
-<span>(</span><span>name: str, id: str, property_types: Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>])</span>
+<span>(</span><span>name: str, id: str, property_types: Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -443,7 +443,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>ID</dd>
 </dl>
-<p>property_types (Sequence[ <code>pyinventory.graphql.property_type_fragment.PropertyTypeFragment</code> ]): property types sequence</p></div>
+<p>property_types (Sequence[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): property types sequence</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -458,7 +458,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.LocationType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.LocationType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
@@ -466,22 +466,42 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </dd>
 <dt id="pyinventory.common.data_class.PropertyDefinition"><code class="flex name class">
 <span>class <span class="ident">PropertyDefinition</span></span>
-<span>(</span><span>property_name: str, property_kind: <a title="pyinventory.graphql.property_kind_enum.PropertyKind" href="../graphql/property_kind_enum.html#pyinventory.graphql.property_kind_enum.PropertyKind">PropertyKind</a>, default_value: Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], is_fixed: Union[bool, NoneType] = False, external_id: Union[str, NoneType] = None, is_mandatory: Union[bool, NoneType] = False)</span>
+<span>(</span><span>property_name: str, property_kind: <a title="pyinventory.graphql.enum.property_kind.PropertyKind" href="../graphql/enum/property_kind.html#pyinventory.graphql.enum.property_kind.PropertyKind">PropertyKind</a>, default_raw_value: Union[str, NoneType], id: Union[str, NoneType] = None, is_fixed: Union[bool, NoneType] = False, external_id: Union[str, NoneType] = None, is_mandatory: Union[bool, NoneType] = False, is_deleted: Union[bool, NoneType] = False)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>property_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>type name</dd>
-<dt>property_kind ( <code><a title="pyinventory.graphql.property_kind_enum.PropertyKind" href="../graphql/property_kind_enum.html#pyinventory.graphql.property_kind_enum.PropertyKind">PropertyKind</a></code> ): property kind</dt>
-<dt><strong><code>default_value</code></strong> :&ensp;<code>Optional[PropertyValue]</code></dt>
-<dd>default property value</dd>
+<dt>property_kind ( <code><a title="pyinventory.graphql.enum.property_kind.PropertyKind" href="../graphql/enum/property_kind.html#pyinventory.graphql.enum.property_kind.PropertyKind">PropertyKind</a></code> ): property kind</dt>
+<dt><strong><code>default_raw_value</code></strong> :&ensp;<code>str</code></dt>
+<dd>default property value as a string
+<code>string
+- "string"
+int
+- "123"
+bool
+- "true" / "True" / "TRUE"
+float
+- "0.123456"
+date
+- "24/10/2020"
+range
+- "0.123456 - 0.2345" / "1 - 2"
+email
+- "email@some.domain"
+gps_location
+- "0.1234, 0.2345"</code></dd>
+<dt><strong><code>id</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dd>ID</dd>
 <dt><strong><code>is_fixed</code></strong> :&ensp;<code>bool</code></dt>
 <dd>fixed value flag</dd>
 <dt><strong><code>external_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>property type external ID</dd>
 <dt><strong><code>is_mandatory</code></strong> :&ensp;<code>bool</code></dt>
 <dd>mandatory value flag</dd>
+<dt><strong><code>is_deleted</code></strong> :&ensp;<code>bool</code></dt>
+<dd>is delete flag</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -489,23 +509,31 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pyinventory.common.data_class.PropertyDefinition.default_value"><code class="name">var <span class="ident">default_value</span> : Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType]</code></dt>
+<dt id="pyinventory.common.data_class.PropertyDefinition.default_raw_value"><code class="name">var <span class="ident">default_raw_value</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
 <dt id="pyinventory.common.data_class.PropertyDefinition.external_id"><code class="name">var <span class="ident">external_id</span> : Union[str, NoneType]</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 4</p></div>
+<div class="desc"><p>Alias for field number 5</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.PropertyDefinition.is_fixed"><code class="name">var <span class="ident">is_fixed</span> : Union[bool, NoneType]</code></dt>
+<dt id="pyinventory.common.data_class.PropertyDefinition.id"><code class="name">var <span class="ident">id</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
+<dt id="pyinventory.common.data_class.PropertyDefinition.is_deleted"><code class="name">var <span class="ident">is_deleted</span> : Union[bool, NoneType]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 7</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.PropertyDefinition.is_fixed"><code class="name">var <span class="ident">is_fixed</span> : Union[bool, NoneType]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 4</p></div>
+</dd>
 <dt id="pyinventory.common.data_class.PropertyDefinition.is_mandatory"><code class="name">var <span class="ident">is_mandatory</span> : Union[bool, NoneType]</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 5</p></div>
+<div class="desc"><p>Alias for field number 6</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.PropertyDefinition.property_kind"><code class="name">var <span class="ident">property_kind</span> : <a title="pyinventory.graphql.property_kind_enum.PropertyKind" href="../graphql/property_kind_enum.html#pyinventory.graphql.property_kind_enum.PropertyKind">PropertyKind</a></code></dt>
+<dt id="pyinventory.common.data_class.PropertyDefinition.property_kind"><code class="name">var <span class="ident">property_kind</span> : <a title="pyinventory.graphql.enum.property_kind.PropertyKind" href="../graphql/enum/property_kind.html#pyinventory.graphql.enum.property_kind.PropertyKind">PropertyKind</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 1</p></div>
 </dd>
@@ -517,7 +545,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </dd>
 <dt id="pyinventory.common.data_class.Service"><code class="flex name class">
 <span>class <span class="ident">Service</span></span>
-<span>(</span><span>name: str, id: str, externalId: Union[str, NoneType], customer: Union[pyinventory.common.data_class.Customer, NoneType], endpoints: List[<a title="pyinventory.common.data_class.ServiceEndpoint" href="#pyinventory.common.data_class.ServiceEndpoint">ServiceEndpoint</a>], links: List[<a title="pyinventory.common.data_class.Link" href="#pyinventory.common.data_class.Link">Link</a>])</span>
+<span>(</span><span>id: str, name: str, external_id: Union[str, NoneType], service_type_name: str, customer: Union[pyinventory.common.data_class.Customer, NoneType], properties: Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -526,15 +554,13 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>name</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>ID</dd>
-<dt><strong><code>externalId</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional[str]</code></dt>
 <dd>external ID</dd>
-<dt><strong><code>customer</code></strong> :&ensp;<code>Optional[<a title="pyinventory.common.data_class.Customer" href="#pyinventory.common.data_class.Customer">Customer</a>]</code></dt>
-<dd>customer</dd>
-<dt><strong><code>endpoints</code></strong> :&ensp;<code>List[<a title="pyinventory.common.data_class.ServiceEndpoint" href="#pyinventory.common.data_class.ServiceEndpoint">ServiceEndpoint</a>]</code></dt>
-<dd>service endpoints list</dd>
-<dt><strong><code>links</code></strong> :&ensp;<code>List[<a title="pyinventory.common.data_class.Link" href="#pyinventory.common.data_class.Link">Link</a>]</code></dt>
-<dd>links</dd>
-</dl></div>
+<dt><strong><code>service_type_name</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service tyoe name</dd>
+</dl>
+<p>customer (Optional[ <code>pyinventory.common.data_class.Customer</code> ]): customer
+properties (Sequence[ <code>pyinventory.graphql.fragment.property..PropertyFragment</code> ]): properties sequence</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
@@ -543,43 +569,45 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dl>
 <dt id="pyinventory.common.data_class.Service.customer"><code class="name">var <span class="ident">customer</span> : Union[<a title="pyinventory.common.data_class.Customer" href="#pyinventory.common.data_class.Customer">Customer</a>, NoneType]</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 3</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.Service.endpoints"><code class="name">var <span class="ident">endpoints</span> : List[<a title="pyinventory.common.data_class.ServiceEndpoint" href="#pyinventory.common.data_class.ServiceEndpoint">ServiceEndpoint</a>]</code></dt>
-<dd>
 <div class="desc"><p>Alias for field number 4</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.Service.externalId"><code class="name">var <span class="ident">externalId</span> : Union[str, NoneType]</code></dt>
+<dt id="pyinventory.common.data_class.Service.external_id"><code class="name">var <span class="ident">external_id</span> : Union[str, NoneType]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
 <dt id="pyinventory.common.data_class.Service.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 1</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.Service.links"><code class="name">var <span class="ident">links</span> : List[<a title="pyinventory.common.data_class.Link" href="#pyinventory.common.data_class.Link">Link</a>]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 5</p></div>
+<div class="desc"><p>Alias for field number 0</p></div>
 </dd>
 <dt id="pyinventory.common.data_class.Service.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
 <dd>
-<div class="desc"><p>Alias for field number 0</p></div>
+<div class="desc"><p>Alias for field number 1</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.Service.properties"><code class="name">var <span class="ident">properties</span> : Sequence[<a title="pyinventory.graphql.fragment.property.PropertyFragment" href="../graphql/fragment/property.html#pyinventory.graphql.fragment.property.PropertyFragment">PropertyFragment</a>]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 5</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.Service.service_type_name"><code class="name">var <span class="ident">service_type_name</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 3</p></div>
 </dd>
 </dl>
 </dd>
 <dt id="pyinventory.common.data_class.ServiceEndpoint"><code class="flex name class">
 <span>class <span class="ident">ServiceEndpoint</span></span>
-<span>(</span><span>id: str, port: Union[pyinventory.common.data_class.EquipmentPort, NoneType], type: str)</span>
+<span>(</span><span>id: str, equipment_id: str, service_id: str, definition_id: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
 <dl>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>ID</dd>
-<dt><strong><code>port</code></strong> :&ensp;<code>Optional[<a title="pyinventory.common.data_class.EquipmentPort" href="#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a>]</code></dt>
-<dd>port</dd>
-<dt><strong><code>type</code></strong> :&ensp;<code>str</code></dt>
-<dd>type</dd>
+<dt><strong><code>equipment_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing equipment ID</dd>
+<dt><strong><code>service_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service ID</dd>
+<dt><strong><code>definition_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service endpoint definition ID</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -587,23 +615,73 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 </ul>
 <h3>Instance variables</h3>
 <dl>
+<dt id="pyinventory.common.data_class.ServiceEndpoint.definition_id"><code class="name">var <span class="ident">definition_id</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 3</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.ServiceEndpoint.equipment_id"><code class="name">var <span class="ident">equipment_id</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 1</p></div>
+</dd>
 <dt id="pyinventory.common.data_class.ServiceEndpoint.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.ServiceEndpoint.port"><code class="name">var <span class="ident">port</span> : Union[<a title="pyinventory.common.data_class.EquipmentPort" href="#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a>, NoneType]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 1</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.ServiceEndpoint.type"><code class="name">var <span class="ident">type</span> : str</code></dt>
+<dt id="pyinventory.common.data_class.ServiceEndpoint.service_id"><code class="name">var <span class="ident">service_id</span> : str</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
 </dl>
 </dd>
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition"><code class="flex name class">
+<span>class <span class="ident">ServiceEndpointDefinition</span></span>
+<span>(</span><span>id: Union[str, NoneType], name: str, endpoint_definition_index: int, role: Union[str, NoneType], equipment_type_id: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>ID</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>name</dd>
+<dt><strong><code>endpoint_definition_index</code></strong> :&ensp;<code>int</code></dt>
+<dd>index</dd>
+<dt><strong><code>role</code></strong> :&ensp;<code>str</code></dt>
+<dd>role</dd>
+<dt><strong><code>equipment_type_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>equipment type ID</dd>
+</dl></div>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.tuple</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.endpoint_definition_index"><code class="name">var <span class="ident">endpoint_definition_index</span> : int</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 2</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.equipment_type_id"><code class="name">var <span class="ident">equipment_type_id</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 4</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.id"><code class="name">var <span class="ident">id</span> : Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 0</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 1</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.role"><code class="name">var <span class="ident">role</span> : Union[str, NoneType]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 3</p></div>
+</dd>
+</dl>
+</dd>
 <dt id="pyinventory.common.data_class.ServiceType"><code class="flex name class">
 <span>class <span class="ident">ServiceType</span></span>
-<span>(</span><span>name: str, id: str, hasCustomer: bool, property_types: Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>])</span>
+<span>(</span><span>name: str, id: str, has_customer: bool, property_types: Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], endpoint_definitions: List[<a title="pyinventory.common.data_class.ServiceEndpointDefinition" href="#pyinventory.common.data_class.ServiceEndpointDefinition">ServiceEndpointDefinition</a>])</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -612,18 +690,22 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>name</dd>
 <dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
 <dd>ID</dd>
-<dt><strong><code>hasCustomer</code></strong> :&ensp;<code>bool</code></dt>
+<dt><strong><code>has_customer</code></strong> :&ensp;<code>bool</code></dt>
 <dd>customer existence flag</dd>
-<dt><strong><code>property_types</code></strong> :&ensp;<code>Sequence[PropertyTypeFragment]</code></dt>
-<dd>property types sequence</dd>
-</dl></div>
+</dl>
+<p>property_types (Sequence[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): property types sequence
+endpoint_definitions (List[ <code>pyinventory.common.data_class.ServiceEndpointDefinition</code> ]): service endpoint definitions list</p></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>builtins.tuple</li>
 </ul>
 <h3>Instance variables</h3>
 <dl>
-<dt id="pyinventory.common.data_class.ServiceType.hasCustomer"><code class="name">var <span class="ident">hasCustomer</span> : bool</code></dt>
+<dt id="pyinventory.common.data_class.ServiceType.endpoint_definitions"><code class="name">var <span class="ident">endpoint_definitions</span> : List[<a title="pyinventory.common.data_class.ServiceEndpointDefinition" href="#pyinventory.common.data_class.ServiceEndpointDefinition">ServiceEndpointDefinition</a>]</code></dt>
+<dd>
+<div class="desc"><p>Alias for field number 4</p></div>
+</dd>
+<dt id="pyinventory.common.data_class.ServiceType.has_customer"><code class="name">var <span class="ident">has_customer</span> : bool</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 2</p></div>
 </dd>
@@ -635,73 +717,15 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.ServiceType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="../graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a>]</code></dt>
+<dt id="pyinventory.common.data_class.ServiceType.property_types"><code class="name">var <span class="ident">property_types</span> : Sequence[<a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]</code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
-</dd>
-</dl>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey"><code class="flex name class">
-<span>class <span class="ident">SiteSurvey</span></span>
-<span>(</span><span>name: str, id: str, completionTime: datetime.datetime, sourceFileId: Union[str, NoneType], sourceFileName: Union[str, NoneType], sourceFileKey: Union[str, NoneType], forms: Dict[str, Dict[str, Any]])</span>
-</code></dt>
-<dd>
-<div class="desc"><h2 id="attributes">Attributes</h2>
-<dl>
-<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>name</dd>
-<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
-<dd>ID</dd>
-<dt><strong><code>completionTime</code></strong> :&ensp;<code>datetime</code></dt>
-<dd>complition time</dd>
-<dt><strong><code>sourceFileId</code></strong> :&ensp;<code>Optional[str]</code></dt>
-<dd>source file ID</dd>
-<dt><strong><code>sourceFileName</code></strong> :&ensp;<code>Optional[str]</code></dt>
-<dd>source file name</dd>
-<dt><strong><code>sourceFileKey</code></strong> :&ensp;<code>Optional[str]</code></dt>
-<dd>source file key</dd>
-<dt><strong><code>forms</code></strong> :&ensp;<code>Dict[str, Dict[str, Any]]</code></dt>
-<dd>forms</dd>
-</dl></div>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>builtins.tuple</li>
-</ul>
-<h3>Instance variables</h3>
-<dl>
-<dt id="pyinventory.common.data_class.SiteSurvey.completionTime"><code class="name">var <span class="ident">completionTime</span> : datetime.datetime</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 2</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey.forms"><code class="name">var <span class="ident">forms</span> : Dict[str, Dict[str, Any]]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 6</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 1</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey.name"><code class="name">var <span class="ident">name</span> : str</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 0</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey.sourceFileId"><code class="name">var <span class="ident">sourceFileId</span> : Union[str, NoneType]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 3</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey.sourceFileKey"><code class="name">var <span class="ident">sourceFileKey</span> : Union[str, NoneType]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 5</p></div>
-</dd>
-<dt id="pyinventory.common.data_class.SiteSurvey.sourceFileName"><code class="name">var <span class="ident">sourceFileName</span> : Union[str, NoneType]</code></dt>
-<dd>
-<div class="desc"><p>Alias for field number 4</p></div>
 </dd>
 </dl>
 </dd>
 <dt id="pyinventory.common.data_class.User"><code class="flex name class">
 <span>class <span class="ident">User</span></span>
-<span>(</span><span>id: str, auth_id: str, email: str, status: <a title="pyinventory.graphql.user_status_enum.UserStatus" href="../graphql/user_status_enum.html#pyinventory.graphql.user_status_enum.UserStatus">UserStatus</a>, role: <a title="pyinventory.graphql.user_role_enum.UserRole" href="../graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole">UserRole</a>)</span>
+<span>(</span><span>id: str, auth_id: str, email: str, status: <a title="pyinventory.graphql.enum.user_status.UserStatus" href="../graphql/enum/user_status.html#pyinventory.graphql.enum.user_status.UserStatus">UserStatus</a>, role: <a title="pyinventory.graphql.enum.user_role.UserRole" href="../graphql/enum/user_role.html#pyinventory.graphql.enum.user_role.UserRole">UserRole</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><h2 id="attributes">Attributes</h2>
@@ -735,11 +759,11 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <dd>
 <div class="desc"><p>Alias for field number 0</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.User.role"><code class="name">var <span class="ident">role</span> : <a title="pyinventory.graphql.user_role_enum.UserRole" href="../graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole">UserRole</a></code></dt>
+<dt id="pyinventory.common.data_class.User.role"><code class="name">var <span class="ident">role</span> : <a title="pyinventory.graphql.enum.user_role.UserRole" href="../graphql/enum/user_role.html#pyinventory.graphql.enum.user_role.UserRole">UserRole</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 4</p></div>
 </dd>
-<dt id="pyinventory.common.data_class.User.status"><code class="name">var <span class="ident">status</span> : <a title="pyinventory.graphql.user_status_enum.UserStatus" href="../graphql/user_status_enum.html#pyinventory.graphql.user_status_enum.UserStatus">UserStatus</a></code></dt>
+<dt id="pyinventory.common.data_class.User.status"><code class="name">var <span class="ident">status</span> : <a title="pyinventory.graphql.enum.user_status.UserStatus" href="../graphql/enum/user_status.html#pyinventory.graphql.enum.user_status.UserStatus">UserStatus</a></code></dt>
 <dd>
 <div class="desc"><p>Alias for field number 3</p></div>
 </dd>
@@ -764,7 +788,7 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <li>
 <h4><code><a title="pyinventory.common.data_class.Customer" href="#pyinventory.common.data_class.Customer">Customer</a></code></h4>
 <ul class="">
-<li><code><a title="pyinventory.common.data_class.Customer.externalId" href="#pyinventory.common.data_class.Customer.externalId">externalId</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Customer.external_id" href="#pyinventory.common.data_class.Customer.external_id">external_id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Customer.id" href="#pyinventory.common.data_class.Customer.id">id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Customer.name" href="#pyinventory.common.data_class.Customer.name">name</a></code></li>
 </ul>
@@ -782,8 +806,8 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <li><code><a title="pyinventory.common.data_class.Document.category" href="#pyinventory.common.data_class.Document.category">category</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Document.id" href="#pyinventory.common.data_class.Document.id">id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Document.name" href="#pyinventory.common.data_class.Document.name">name</a></code></li>
-<li><code><a title="pyinventory.common.data_class.Document.parentEntity" href="#pyinventory.common.data_class.Document.parentEntity">parentEntity</a></code></li>
-<li><code><a title="pyinventory.common.data_class.Document.parentId" href="#pyinventory.common.data_class.Document.parentId">parentId</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Document.parent_entity" href="#pyinventory.common.data_class.Document.parent_entity">parent_entity</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Document.parent_id" href="#pyinventory.common.data_class.Document.parent_id">parent_id</a></code></li>
 </ul>
 </li>
 <li>
@@ -843,12 +867,13 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <li>
 <h4><code><a title="pyinventory.common.data_class.Location" href="#pyinventory.common.data_class.Location">Location</a></code></h4>
 <ul class="two-column">
-<li><code><a title="pyinventory.common.data_class.Location.externalId" href="#pyinventory.common.data_class.Location.externalId">externalId</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Location.external_id" href="#pyinventory.common.data_class.Location.external_id">external_id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Location.id" href="#pyinventory.common.data_class.Location.id">id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Location.latitude" href="#pyinventory.common.data_class.Location.latitude">latitude</a></code></li>
-<li><code><a title="pyinventory.common.data_class.Location.locationTypeName" href="#pyinventory.common.data_class.Location.locationTypeName">locationTypeName</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Location.location_type_name" href="#pyinventory.common.data_class.Location.location_type_name">location_type_name</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Location.longitude" href="#pyinventory.common.data_class.Location.longitude">longitude</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Location.name" href="#pyinventory.common.data_class.Location.name">name</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Location.properties" href="#pyinventory.common.data_class.Location.properties">properties</a></code></li>
 </ul>
 </li>
 <li>
@@ -862,8 +887,10 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <li>
 <h4><code><a title="pyinventory.common.data_class.PropertyDefinition" href="#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code></h4>
 <ul class="two-column">
-<li><code><a title="pyinventory.common.data_class.PropertyDefinition.default_value" href="#pyinventory.common.data_class.PropertyDefinition.default_value">default_value</a></code></li>
+<li><code><a title="pyinventory.common.data_class.PropertyDefinition.default_raw_value" href="#pyinventory.common.data_class.PropertyDefinition.default_raw_value">default_raw_value</a></code></li>
 <li><code><a title="pyinventory.common.data_class.PropertyDefinition.external_id" href="#pyinventory.common.data_class.PropertyDefinition.external_id">external_id</a></code></li>
+<li><code><a title="pyinventory.common.data_class.PropertyDefinition.id" href="#pyinventory.common.data_class.PropertyDefinition.id">id</a></code></li>
+<li><code><a title="pyinventory.common.data_class.PropertyDefinition.is_deleted" href="#pyinventory.common.data_class.PropertyDefinition.is_deleted">is_deleted</a></code></li>
 <li><code><a title="pyinventory.common.data_class.PropertyDefinition.is_fixed" href="#pyinventory.common.data_class.PropertyDefinition.is_fixed">is_fixed</a></code></li>
 <li><code><a title="pyinventory.common.data_class.PropertyDefinition.is_mandatory" href="#pyinventory.common.data_class.PropertyDefinition.is_mandatory">is_mandatory</a></code></li>
 <li><code><a title="pyinventory.common.data_class.PropertyDefinition.property_kind" href="#pyinventory.common.data_class.PropertyDefinition.property_kind">property_kind</a></code></li>
@@ -874,40 +901,40 @@ link (Optional[ <code>pyinventory.common.data_class.Link</code> ]): link</p></di
 <h4><code><a title="pyinventory.common.data_class.Service" href="#pyinventory.common.data_class.Service">Service</a></code></h4>
 <ul class="two-column">
 <li><code><a title="pyinventory.common.data_class.Service.customer" href="#pyinventory.common.data_class.Service.customer">customer</a></code></li>
-<li><code><a title="pyinventory.common.data_class.Service.endpoints" href="#pyinventory.common.data_class.Service.endpoints">endpoints</a></code></li>
-<li><code><a title="pyinventory.common.data_class.Service.externalId" href="#pyinventory.common.data_class.Service.externalId">externalId</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Service.external_id" href="#pyinventory.common.data_class.Service.external_id">external_id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Service.id" href="#pyinventory.common.data_class.Service.id">id</a></code></li>
-<li><code><a title="pyinventory.common.data_class.Service.links" href="#pyinventory.common.data_class.Service.links">links</a></code></li>
 <li><code><a title="pyinventory.common.data_class.Service.name" href="#pyinventory.common.data_class.Service.name">name</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Service.properties" href="#pyinventory.common.data_class.Service.properties">properties</a></code></li>
+<li><code><a title="pyinventory.common.data_class.Service.service_type_name" href="#pyinventory.common.data_class.Service.service_type_name">service_type_name</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="pyinventory.common.data_class.ServiceEndpoint" href="#pyinventory.common.data_class.ServiceEndpoint">ServiceEndpoint</a></code></h4>
 <ul class="">
+<li><code><a title="pyinventory.common.data_class.ServiceEndpoint.definition_id" href="#pyinventory.common.data_class.ServiceEndpoint.definition_id">definition_id</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceEndpoint.equipment_id" href="#pyinventory.common.data_class.ServiceEndpoint.equipment_id">equipment_id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.ServiceEndpoint.id" href="#pyinventory.common.data_class.ServiceEndpoint.id">id</a></code></li>
-<li><code><a title="pyinventory.common.data_class.ServiceEndpoint.port" href="#pyinventory.common.data_class.ServiceEndpoint.port">port</a></code></li>
-<li><code><a title="pyinventory.common.data_class.ServiceEndpoint.type" href="#pyinventory.common.data_class.ServiceEndpoint.type">type</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceEndpoint.service_id" href="#pyinventory.common.data_class.ServiceEndpoint.service_id">service_id</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="pyinventory.common.data_class.ServiceEndpointDefinition" href="#pyinventory.common.data_class.ServiceEndpointDefinition">ServiceEndpointDefinition</a></code></h4>
+<ul class="">
+<li><code><a title="pyinventory.common.data_class.ServiceEndpointDefinition.endpoint_definition_index" href="#pyinventory.common.data_class.ServiceEndpointDefinition.endpoint_definition_index">endpoint_definition_index</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceEndpointDefinition.equipment_type_id" href="#pyinventory.common.data_class.ServiceEndpointDefinition.equipment_type_id">equipment_type_id</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceEndpointDefinition.id" href="#pyinventory.common.data_class.ServiceEndpointDefinition.id">id</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceEndpointDefinition.name" href="#pyinventory.common.data_class.ServiceEndpointDefinition.name">name</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceEndpointDefinition.role" href="#pyinventory.common.data_class.ServiceEndpointDefinition.role">role</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="pyinventory.common.data_class.ServiceType" href="#pyinventory.common.data_class.ServiceType">ServiceType</a></code></h4>
 <ul class="">
-<li><code><a title="pyinventory.common.data_class.ServiceType.hasCustomer" href="#pyinventory.common.data_class.ServiceType.hasCustomer">hasCustomer</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceType.endpoint_definitions" href="#pyinventory.common.data_class.ServiceType.endpoint_definitions">endpoint_definitions</a></code></li>
+<li><code><a title="pyinventory.common.data_class.ServiceType.has_customer" href="#pyinventory.common.data_class.ServiceType.has_customer">has_customer</a></code></li>
 <li><code><a title="pyinventory.common.data_class.ServiceType.id" href="#pyinventory.common.data_class.ServiceType.id">id</a></code></li>
 <li><code><a title="pyinventory.common.data_class.ServiceType.name" href="#pyinventory.common.data_class.ServiceType.name">name</a></code></li>
 <li><code><a title="pyinventory.common.data_class.ServiceType.property_types" href="#pyinventory.common.data_class.ServiceType.property_types">property_types</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="pyinventory.common.data_class.SiteSurvey" href="#pyinventory.common.data_class.SiteSurvey">SiteSurvey</a></code></h4>
-<ul class="two-column">
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.completionTime" href="#pyinventory.common.data_class.SiteSurvey.completionTime">completionTime</a></code></li>
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.forms" href="#pyinventory.common.data_class.SiteSurvey.forms">forms</a></code></li>
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.id" href="#pyinventory.common.data_class.SiteSurvey.id">id</a></code></li>
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.name" href="#pyinventory.common.data_class.SiteSurvey.name">name</a></code></li>
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.sourceFileId" href="#pyinventory.common.data_class.SiteSurvey.sourceFileId">sourceFileId</a></code></li>
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.sourceFileKey" href="#pyinventory.common.data_class.SiteSurvey.sourceFileKey">sourceFileKey</a></code></li>
-<li><code><a title="pyinventory.common.data_class.SiteSurvey.sourceFileName" href="#pyinventory.common.data_class.SiteSurvey.sourceFileName">sourceFileName</a></code></li>
 </ul>
 </li>
 <li>

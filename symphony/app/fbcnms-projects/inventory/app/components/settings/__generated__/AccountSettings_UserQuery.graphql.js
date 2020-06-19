@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 9fed6d9170263858824439c5465a4bab
+ * @relayHash 7d7a96520328adbb2c4c02bb9f8bc903
  */
 
 /* eslint-disable */
@@ -17,6 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type UserRole = "ADMIN" | "OWNER" | "USER" | "%future added value";
 export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
+export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 export type AccountSettings_UserQueryVariables = {|
   id: string
 |};
@@ -32,12 +33,9 @@ export type AccountSettings_UserQueryResponse = {|
     +groups?: $ReadOnlyArray<?{|
       +id: string,
       +name: string,
+      +description: ?string,
+      +status: UsersGroupStatus,
     |}>,
-    +profilePhoto?: ?{|
-      +id: string,
-      +fileName: string,
-      +storeKey: ?string,
-    |},
   |}
 |};
 export type AccountSettings_UserQuery = {|
@@ -64,11 +62,8 @@ query AccountSettings_UserQuery(
       groups {
         id
         name
-      }
-      profilePhoto {
-        id
-        fileName
-        storeKey
+        description
+        status
       }
     }
     id
@@ -157,33 +152,15 @@ v9 = {
       "name": "name",
       "args": null,
       "storageKey": null
-    }
-  ]
-},
-v10 = {
-  "kind": "LinkedField",
-  "alias": null,
-  "name": "profilePhoto",
-  "storageKey": null,
-  "args": null,
-  "concreteType": "File",
-  "plural": false,
-  "selections": [
-    (v2/*: any*/),
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "fileName",
-      "args": null,
-      "storageKey": null
     },
     {
       "kind": "ScalarField",
       "alias": null,
-      "name": "storeKey",
+      "name": "description",
       "args": null,
       "storageKey": null
-    }
+    },
+    (v7/*: any*/)
   ]
 };
 return {
@@ -215,8 +192,7 @@ return {
               (v6/*: any*/),
               (v7/*: any*/),
               (v8/*: any*/),
-              (v9/*: any*/),
-              (v10/*: any*/)
+              (v9/*: any*/)
             ]
           }
         ]
@@ -255,8 +231,7 @@ return {
               (v6/*: any*/),
               (v7/*: any*/),
               (v8/*: any*/),
-              (v9/*: any*/),
-              (v10/*: any*/)
+              (v9/*: any*/)
             ]
           }
         ]
@@ -267,11 +242,11 @@ return {
     "operationKind": "query",
     "name": "AccountSettings_UserQuery",
     "id": null,
-    "text": "query AccountSettings_UserQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on User {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n      }\n      profilePhoto {\n        id\n        fileName\n        storeKey\n      }\n    }\n    id\n  }\n}\n",
+    "text": "query AccountSettings_UserQuery(\n  $id: ID!\n) {\n  node(id: $id) {\n    __typename\n    ... on User {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n        description\n        status\n      }\n    }\n    id\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'cb8b3c947f34c2625051568a2986a5ce';
+(node/*: any*/).hash = '69cc582ae7f726145f7626fd99ab4cf7';
 module.exports = node;

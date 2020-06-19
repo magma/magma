@@ -11,13 +11,11 @@ package servicers
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"strings"
 	"time"
 
-	"magma/gateway/directoryd"
-
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -28,6 +26,7 @@ import (
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
+	"magma/gateway/directoryd"
 	lte_protos "magma/lte/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 )
@@ -108,7 +107,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	s := srv.sessions.RemoveSession(sid)
 	if s == nil {
 		// Log error and return OK, no need to stop accounting for already removed session
-		log.Printf("Accounting Stop: Session %s is not found", sid)
+		glog.Warningf("Accounting Stop: Session %s is not found", sid)
 		return &protos.AcctResp{}, nil
 	}
 

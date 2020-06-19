@@ -6,29 +6,35 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 	"net/url"
 
 	"github.com/google/wire"
+	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 // Config configures this package.
 type Config struct {
-	url string
+	PubURL *url.URL
+	SubURL *url.URL
 }
 
-// String returns the textual representation of a config.
-func (c Config) String() string {
-	return c.url
+// AddFlagsVar adds the flags used by this package to the Kingpin application.
+func AddFlagsVar(a *kingpin.Application, config *Config) {
+	a.Flag("event.pub-url", "events pub url").
+		Envar("EVENT_PUB_URL").
+		Default("mem://events").
+		URLVar(&config.PubURL)
+	a.Flag("event.sub-url", "events sub url").
+		Envar("EVENT_SUB_URL").
+		Default("mem://events").
+		URLVar(&config.SubURL)
 }
 
-// Set updates the value of the config.
-func (c *Config) Set(v string) error {
-	if _, err := url.Parse(v); err != nil {
-		return fmt.Errorf("parsing url: %w", err)
-	}
-	c.url = v
-	return nil
+// AddFlags adds the flags used by this package to the Kingpin application.
+func AddFlags(a *kingpin.Application) *Config {
+	config := &Config{}
+	AddFlagsVar(a, config)
+	return config
 }
 
 // Set is a wire provider that provides an emitter/subscriber
@@ -42,7 +48,7 @@ var Set = wire.NewSet(
 
 // ProvideEmitter providers emitter from config.
 func ProvideEmitter(ctx context.Context, cfg Config) (*TopicEmitter, func(), error) {
-	emitter, err := NewTopicEmitter(ctx, cfg.url)
+	emitter, err := NewTopicEmitter(ctx, cfg.PubURL.String())
 	if err != nil {
 		return nil, nil, err
 	}
@@ -51,5 +57,5 @@ func ProvideEmitter(ctx context.Context, cfg Config) (*TopicEmitter, func(), err
 
 // ProvideEmitter providers subscriber from config.
 func ProvideSubscriber(cfg Config) URLSubscriber {
-	return NewURLSubscriber(cfg.url)
+	return NewURLSubscriber(cfg.SubURL.String())
 }

@@ -93,8 +93,4 @@ int sgw_handle_sgi_endpoint_created(
   itti_sgi_create_end_point_response_t *const resp_p,
   imsi64_t imsi64);
 
-int sgw_send_s11_create_session_response(
-  const s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  const gtpv2c_cause_value_t cause,
-  imsi64_t imsi64);
 #endif /* FILE_SPGW_TYPES_SEEN */

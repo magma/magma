@@ -9,7 +9,6 @@ of patent rights can be found in the PATENTS file in the same directory.
 import ipaddress
 from enum import Enum
 
-
 class IPState(Enum):
     FREE = 1
     ALLOCATED = 2

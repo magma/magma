@@ -5,14 +5,7 @@ fragment PropertyTypeFragment on PropertyType {
   type
   index
   category
-  stringValue
-  intValue
-  booleanValue
-  floatValue
-  latitudeValue
-  longitudeValue
-  rangeFromValue
-  rangeToValue
+  rawValue
   isEditable
   isInstanceProperty
   isMandatory

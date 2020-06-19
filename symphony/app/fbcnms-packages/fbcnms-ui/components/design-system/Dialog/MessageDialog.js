@@ -11,7 +11,7 @@
 import * as React from 'react';
 import Button from '../Button';
 import Checkbox from '../Checkbox/Checkbox';
-import DialogBase from './DialogBase';
+import DialogRoot from './DialogRoot';
 import IconButton from '../IconButton';
 import Strings from '@fbcnms/strings/Strings';
 import Text from '../Text';
@@ -54,6 +54,7 @@ const useStyles = makeStyles(() => ({
   footer: {
     display: 'flex',
     flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   cancelButton: {
     marginRight: '8px',
@@ -102,7 +103,7 @@ const MessageDialog = ({
   }, [hidden]);
 
   return (
-    <DialogBase className={classes.root} onClose={onClose} hidden={hidden}>
+    <DialogRoot className={classes.root} onClose={onClose} hidden={hidden}>
       <div className={classes.titleContainer}>
         <Text className={classes.titleText} weight="medium">
           {title}
@@ -146,7 +147,7 @@ const MessageDialog = ({
           </Button>
         )}
       </div>
-    </DialogBase>
+    </DialogRoot>
   );
 };
 

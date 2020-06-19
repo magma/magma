@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.location_type.add_location_type"><code class="name flex">
-<span>def <span class="ident">add_location_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], map_zoom_level: int = 8) -> <a title="pyinventory.common.data_class.LocationType" href="../common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a></span>
+<span>def <span class="ident">add_location_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="../common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], map_zoom_level: int = 8) -> <a title="pyinventory.common.data_class.LocationType" href="../common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function creates new location type.</p>
@@ -40,14 +40,7 @@
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>location type name</dd>
-</dl>
-<p>properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-- str - type name
-- str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-- PropertyValue - default property value
-- bool - fixed value flag</p>
-<dl>
+<dt>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dt>
 <dt><strong><code>map_zoom_level</code></strong> :&ensp;<code>int</code></dt>
 <dd>map zoom level</dd>
 </dl>
@@ -61,13 +54,20 @@
 <h2 id="example">Example</h2>
 <pre><code>location_type = client.add_location_type(
     name=&quot;city&quot;,
-    properties=[(&quot;Contact&quot;, &quot;email&quot;, None, True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;Contact&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
     map_zoom_level=5,
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location_type.delete_location_type_with_locations"><code class="name flex">
-<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.common.data_class.LocationType" href="../common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
+<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client: pysymphony.SymphonyClient, location_type: <a title="pyinventory.common.data_class.LocationType" href="../common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete locaton type with existing locations.</p>
@@ -80,7 +80,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.location_type.delete_locations_by_location_type"><code class="name flex">
-<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.common.data_class.LocationType" href="../common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
+<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client: pysymphony.SymphonyClient, location_type: <a title="pyinventory.common.data_class.LocationType" href="../common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete locatons by location type.</p>

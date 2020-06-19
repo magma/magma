@@ -151,6 +151,26 @@ func (fu *FileUpdate) ClearCategory() *FileUpdate {
 	return fu
 }
 
+// SetAnnotation sets the annotation field.
+func (fu *FileUpdate) SetAnnotation(s string) *FileUpdate {
+	fu.mutation.SetAnnotation(s)
+	return fu
+}
+
+// SetNillableAnnotation sets the annotation field if the given value is not nil.
+func (fu *FileUpdate) SetNillableAnnotation(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetAnnotation(*s)
+	}
+	return fu
+}
+
+// ClearAnnotation clears the value of annotation.
+func (fu *FileUpdate) ClearAnnotation() *FileUpdate {
+	fu.mutation.ClearAnnotation()
+	return fu
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (fu *FileUpdate) SetLocationID(id int) *FileUpdate {
 	fu.mutation.SetLocationID(id)
@@ -547,6 +567,19 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: file.FieldCategory,
+		})
+	}
+	if value, ok := fu.mutation.Annotation(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: file.FieldAnnotation,
+		})
+	}
+	if fu.mutation.AnnotationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: file.FieldAnnotation,
 		})
 	}
 	if fu.mutation.LocationCleared() {
@@ -993,6 +1026,26 @@ func (fuo *FileUpdateOne) ClearCategory() *FileUpdateOne {
 	return fuo
 }
 
+// SetAnnotation sets the annotation field.
+func (fuo *FileUpdateOne) SetAnnotation(s string) *FileUpdateOne {
+	fuo.mutation.SetAnnotation(s)
+	return fuo
+}
+
+// SetNillableAnnotation sets the annotation field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableAnnotation(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetAnnotation(*s)
+	}
+	return fuo
+}
+
+// ClearAnnotation clears the value of annotation.
+func (fuo *FileUpdateOne) ClearAnnotation() *FileUpdateOne {
+	fuo.mutation.ClearAnnotation()
+	return fuo
+}
+
 // SetLocationID sets the location edge to Location by id.
 func (fuo *FileUpdateOne) SetLocationID(id int) *FileUpdateOne {
 	fuo.mutation.SetLocationID(id)
@@ -1387,6 +1440,19 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,
 			Column: file.FieldCategory,
+		})
+	}
+	if value, ok := fuo.mutation.Annotation(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Value:  value,
+			Column: file.FieldAnnotation,
+		})
+	}
+	if fuo.mutation.AnnotationCleared() {
+		_spec.Fields.Clear = append(_spec.Fields.Clear, &sqlgraph.FieldSpec{
+			Type:   field.TypeString,
+			Column: file.FieldAnnotation,
 		})
 	}
 	if fuo.mutation.LocationCleared() {

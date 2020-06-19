@@ -12,9 +12,11 @@ package service
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
+	"path/filepath"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/gateway/config"
 	"magma/gateway/mconfig"
@@ -34,7 +36,7 @@ func SaveConfigs(cfgJson []byte, readOldCfg bool) (oldCfgJson []byte, err error)
 	}
 	err = safeSwap(mconfig.ConfigFilePath(), cfgJson)
 	if err == nil {
-		log.Printf("successfully updated mconfig in %s", mconfigPath)
+		glog.V(1).Infof("successfully updated mconfig in %s", mconfigPath)
 	}
 	return oldCfgJson, err
 }
@@ -55,11 +57,19 @@ func updateStaticConfigs(cfgJson []byte) error {
 }
 
 func safeSwap(mconfigPath string, cfgJson []byte) error {
+	os.MkdirAll(filepath.Dir(mconfigPath), 0755)
 	newMconfigPath := mconfigPath + ".new"
 	oldMconfigPath := mconfigPath + ".old"
 	err := ioutil.WriteFile(newMconfigPath, cfgJson, 0644)
 	if err != nil {
-		return fmt.Errorf("failed to save mconfigs into %s: %v", newMconfigPath, err)
+		if os.IsNotExist(err) {
+			if os.MkdirAll(filepath.Dir(mconfigPath), 0755) == nil {
+				err = ioutil.WriteFile(newMconfigPath, cfgJson, 0644)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("failed to save mconfigs into %s: %v", newMconfigPath, err)
+		}
 	}
 	oerr := os.Rename(mconfigPath, oldMconfigPath) // best effort, needed just for rollback on error
 	err = os.Rename(newMconfigPath, mconfigPath)

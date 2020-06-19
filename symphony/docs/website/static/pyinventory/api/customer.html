@@ -32,7 +32,7 @@
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="pyinventory.api.customer.add_customer"><code class="name flex">
-<span>def <span class="ident">add_customer</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Customer" href="../common/data_class.html#pyinventory.common.data_class.Customer">Customer</a></span>
+<span>def <span class="ident">add_customer</span></span>(<span>client: pysymphony.SymphonyClient, name: str, external_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Customer" href="../common/data_class.html#pyinventory.common.data_class.Customer">Customer</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function adds Customer.</p>
@@ -53,7 +53,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.customer.delete_customer"><code class="name flex">
-<span>def <span class="ident">delete_customer</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, customer: <a title="pyinventory.common.data_class.Customer" href="../common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>) -> NoneType</span>
+<span>def <span class="ident">delete_customer</span></span>(<span>client: pysymphony.SymphonyClient, customer: <a title="pyinventory.common.data_class.Customer" href="../common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function delete Customer.</p>
@@ -64,7 +64,7 @@
 </code></pre></div>
 </dd>
 <dt id="pyinventory.api.customer.get_all_customers"><code class="name flex">
-<span>def <span class="ident">get_all_customers</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="../client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.common.data_class.Customer" href="../common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>]</span>
+<span>def <span class="ident">get_all_customers</span></span>(<span>client: pysymphony.SymphonyClient) -> List[<a title="pyinventory.common.data_class.Customer" href="../common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns all Customers.</p>

@@ -25,7 +25,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 	tim := time.Now()
 
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivities))
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	u := viewer.MustGetOrCreateUser(
 		privacy.DecisionContext(ctx, privacy.Allow),
 		viewertest.DefaultUser,
@@ -55,8 +55,10 @@ func TestAddWorkOrderActivities(t *testing.T) {
 
 		switch a.ChangedField {
 		case activity.ChangedFieldCREATIONDATE:
+			timestampInt, err := strconv.ParseInt(a.NewValue, 10, 64)
+			require.NoError(t, err)
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, strconv.FormatInt(tim.Unix(), 10))
+			require.WithinDuration(t, time.Unix(timestampInt, 0), tim, time.Second*3)
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldOWNER:
@@ -86,7 +88,7 @@ func TestEditWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
 
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivities))
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	u := viewer.MustGetOrCreateUser(
 		privacy.DecisionContext(ctx, privacy.Allow),
 		viewertest.DefaultUser,

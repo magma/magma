@@ -57,13 +57,12 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     session_store          = std::make_shared<SessionStore>(rule_store);
     pipelined_client       = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto eventd_client     = std::make_shared<MockEventdClient>();
     auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client        = std::make_shared<MockAAAClient>();
     auto default_mconfig = get_default_mconfig();
     local_enforcer         = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client,
+        directoryd_client, MockEventdClient::getInstance(), spgw_client, aaa_client,
         0, 0, default_mconfig);
     session_map = SessionMap{};
 
@@ -185,15 +184,15 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
 
   auto credit_update                               = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
+  session->receive_monitor(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(
+  session->add_to_monitor(
       monitoring_key, uint64_t(111), uint64_t(333), uc);
   EXPECT_EQ(
-      session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
+      session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(
-      session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
+      session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = std::vector<std::unique_ptr<SessionState>>{};

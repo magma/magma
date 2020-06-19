@@ -16,6 +16,7 @@
 import type { ReaderFragment } from 'relay-runtime';
 export type UserRole = "ADMIN" | "OWNER" | "USER" | "%future added value";
 export type UserStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
+export type UsersGroupStatus = "ACTIVE" | "DEACTIVATED" | "%future added value";
 import type { FragmentReference } from "relay-runtime";
 declare export opaque type UserManagementUtils_user$ref: FragmentReference;
 declare export opaque type UserManagementUtils_user$fragmentType: UserManagementUtils_user$ref;
@@ -30,12 +31,9 @@ export type UserManagementUtils_user = {|
   +groups: $ReadOnlyArray<?{|
     +id: string,
     +name: string,
+    +description: ?string,
+    +status: UsersGroupStatus,
   |}>,
-  +profilePhoto: ?{|
-    +id: string,
-    +fileName: string,
-    +storeKey: ?string,
-  |},
   +$refType: UserManagementUtils_user$ref,
 |};
 export type UserManagementUtils_user$data = UserManagementUtils_user;
@@ -52,6 +50,13 @@ var v0 = {
   "kind": "ScalarField",
   "alias": null,
   "name": "id",
+  "args": null,
+  "storageKey": null
+},
+v1 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "status",
   "args": null,
   "storageKey": null
 };
@@ -91,13 +96,7 @@ return {
       "args": null,
       "storageKey": null
     },
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "status",
-      "args": null,
-      "storageKey": null
-    },
+    (v1/*: any*/),
     {
       "kind": "ScalarField",
       "alias": null,
@@ -121,38 +120,20 @@ return {
           "name": "name",
           "args": null,
           "storageKey": null
-        }
-      ]
-    },
-    {
-      "kind": "LinkedField",
-      "alias": null,
-      "name": "profilePhoto",
-      "storageKey": null,
-      "args": null,
-      "concreteType": "File",
-      "plural": false,
-      "selections": [
-        (v0/*: any*/),
-        {
-          "kind": "ScalarField",
-          "alias": null,
-          "name": "fileName",
-          "args": null,
-          "storageKey": null
         },
         {
           "kind": "ScalarField",
           "alias": null,
-          "name": "storeKey",
+          "name": "description",
           "args": null,
           "storageKey": null
-        }
+        },
+        (v1/*: any*/)
       ]
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c8c37334b8cf30ae12641abc9eb99d0e';
+(node/*: any*/).hash = '913c168de5dbcc1d4c3b70ca9833c8d1';
 module.exports = node;

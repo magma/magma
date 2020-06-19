@@ -92,7 +92,7 @@ def add_location(
     properties_dict: Dict[str, PropertyValue],
     lat: Optional[float] = None,
     long: Optional[float] = None,
-    externalID: Optional[str] = None,
+    external_id: Optional[str] = None,
 ) -> Location:
     """Create a new location of a specific type with a specific name.
         It will also get the requested location specifiers for hirerchy
@@ -112,7 +112,7 @@ def add_location(
 
             lat (float): latitude
             long (float): longitude
-            externalID (str): location external ID
+            external_id (str): location external ID
 
         Returns:
             `pyinventory.common.data_class.Location` object
@@ -141,7 +141,7 @@ def add_location(
                 },
                 lat=-11.32,
                 long=98.32,
-                externalID=None)
+                external_id=None)
             ```
     """
 
@@ -177,7 +177,7 @@ def add_location(
                     longitude=long_val,
                     parent=last_location.id if last_location else None,
                     properties=properties,
-                    externalID=externalID,
+                    externalID=external_id,
                 ),
             )
 
@@ -198,8 +198,8 @@ def add_location(
         name=last_location.name,
         latitude=last_location.latitude,
         longitude=last_location.longitude,
-        externalId=last_location.externalId,
-        locationTypeName=last_location.locationType.name,
+        external_id=last_location.externalId,
+        location_type_name=last_location.locationType.name,
         properties=last_location.properties,
     )
 
@@ -273,8 +273,8 @@ def get_location(
         name=last_location.name,
         latitude=last_location.latitude,
         longitude=last_location.longitude,
-        externalId=last_location.externalId,
-        locationTypeName=last_location.locationType.name,
+        external_id=last_location.externalId,
+        location_type_name=last_location.locationType.name,
         properties=last_location.properties,
     )
 
@@ -309,8 +309,8 @@ def get_locations(client: SymphonyClient) -> List[Location]:
                     id=node.id,
                     latitude=node.latitude,
                     longitude=node.longitude,
-                    externalId=node.externalId,
-                    locationTypeName=node.locationType.name,
+                    external_id=node.externalId,
+                    location_type_name=node.locationType.name,
                     properties=node.properties,
                 )
             )
@@ -349,8 +349,8 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             id=location.id,
             latitude=location.latitude,
             longitude=location.longitude,
-            externalId=location.externalId,
-            locationTypeName=location.locationType.name,
+            external_id=location.externalId,
+            location_type_name=location.locationType.name,
             properties=location.properties,
         )
         for location in location_with_children.children
@@ -399,12 +399,12 @@ def edit_location(
             ```
     """
     properties = []
-    location_type = location.locationTypeName
+    location_type = location.location_type_name
     property_types = LOCATION_TYPES[location_type].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     if new_external_id is None:
-        new_external_id = location.externalId
+        new_external_id = location.external_id
     edit_location_input = EditLocationInput(
         id=location.id,
         name=new_name if new_name is not None else location.name,
@@ -419,8 +419,8 @@ def edit_location(
         id=result.id,
         latitude=result.latitude,
         longitude=result.longitude,
-        externalId=result.externalId,
-        locationTypeName=result.locationType.name,
+        external_id=result.externalId,
+        location_type_name=result.locationType.name,
         properties=result.properties,
     )
 
@@ -492,20 +492,10 @@ def move_location(
         id=result.id,
         latitude=result.latitude,
         longitude=result.longitude,
-        externalId=result.externalId,
-        locationTypeName=result.locationType.name,
+        external_id=result.externalId,
+        location_type_name=result.locationType.name,
         properties=result.properties,
     )
-
-
-@deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
-def get_locations_by_external_id(
-    client: SymphonyClient, external_id: str
-) -> List[Location]:
-
-    locations = []
-    locations.append(get_location_by_external_id(client, external_id))
-    return locations
 
 
 def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
@@ -553,8 +543,8 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
         id=location_details.id,
         latitude=location_details.latitude,
         longitude=location_details.longitude,
-        externalId=location_details.externalId,
-        locationTypeName=location_details.locationType.name,
+        external_id=location_details.externalId,
+        location_type_name=location_details.locationType.name,
         properties=location_details.properties,
     )
 
@@ -588,8 +578,8 @@ def get_location_documents(
         Document(
             name=file.fileName,
             id=file.id,
-            parentId=location.id,
-            parentEntity=ImageEntity.LOCATION,
+            parent_id=location.id,
+            parent_entity=ImageEntity.LOCATION,
             category=file.category,
         )
         for file in location_with_documents.files
@@ -598,8 +588,8 @@ def get_location_documents(
         Document(
             name=file.fileName,
             id=file.id,
-            parentId=location.id,
-            parentEntity=ImageEntity.LOCATION,
+            parent_id=location.id,
+            parent_entity=ImageEntity.LOCATION,
             category=file.category,
         )
         for file in location_with_documents.images

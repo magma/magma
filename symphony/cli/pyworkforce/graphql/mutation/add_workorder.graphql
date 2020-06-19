@@ -1,0 +1,6 @@
+mutation AddWorkOrderMutation($input: AddWorkOrderInput!) {
+  addWorkOrder(input: $input) {
+    id
+    name
+  }
+}

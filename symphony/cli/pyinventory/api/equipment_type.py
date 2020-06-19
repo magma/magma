@@ -7,12 +7,7 @@ from typing import Dict, List, Optional
 
 from pysymphony import SymphonyClient
 
-from .._utils import (
-    format_property_definitions,
-    get_port_definition_input,
-    get_position_definition_input,
-    get_property_type_input,
-)
+from .._utils import get_port_definition_input, get_position_definition_input
 from ..common.cache import EQUIPMENT_TYPES, PORT_TYPES
 from ..common.data_class import (
     Equipment,
@@ -21,8 +16,12 @@ from ..common.data_class import (
     PropertyDefinition,
 )
 from ..common.data_enum import Entity
+from ..common.data_format import (
+    format_to_property_definitions,
+    format_to_property_type_input,
+    format_to_property_type_inputs,
+)
 from ..exceptions import EntityNotFoundError
-from ..graphql.fragment.property_type import PropertyTypeFragment
 from ..graphql.input.add_equipment_type import AddEquipmentTypeInput
 from ..graphql.input.edit_equipment_type import EditEquipmentTypeInput
 from ..graphql.input.equipment_port import EquipmentPortInput
@@ -52,7 +51,7 @@ def _populate_equipment_types(client: SymphonyClient) -> None:
                 name=node.name,
                 category=node.category,
                 id=node.id,
-                property_types=node.propertyTypes,
+                property_types=format_to_property_definitions(node.propertyTypes),
                 position_definitions=node.positionDefinitions,
                 port_definitions=node.portDefinitions,
             )
@@ -67,8 +66,10 @@ def _populate_equipment_port_types(client: SymphonyClient) -> None:
             PORT_TYPES[node.name] = EquipmentPortType(
                 id=node.id,
                 name=node.name,
-                property_types=node.propertyTypes,
-                link_property_types=node.linkPropertyTypes,
+                property_types=format_to_property_definitions(node.propertyTypes),
+                link_property_types=format_to_property_definitions(
+                    node.linkPropertyTypes
+                ),
             )
 
 
@@ -128,7 +129,7 @@ def get_or_create_equipment_type(
                     PropertyDefinition(
                         property_name="IP",
                         property_kind=PropertyKind.string,
-                        default_value=None,
+                        default_raw_value=None,
                         is_fixed=True
                     )
                 ],
@@ -189,7 +190,7 @@ def _update_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        property_types=equipment_type.propertyTypes,
+        property_types=format_to_property_definitions(equipment_type.propertyTypes),
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
@@ -232,7 +233,7 @@ def add_equipment_type(
                     PropertyDefinition(
                         property_name="IP",
                         property_kind=PropertyKind.string,
-                        default_value=None,
+                        default_raw_value=None,
                         is_fixed=True
                     )
                 ],
@@ -241,7 +242,7 @@ def add_equipment_type(
             )
             ```
     """
-    new_property_types = format_property_definitions(properties)
+    new_property_types = format_to_property_type_inputs(data=properties)
 
     port_definitions = [
         EquipmentPortInput(name=name, portTypeID=PORT_TYPES[_type].id)
@@ -262,7 +263,7 @@ def add_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        property_types=equipment_type.propertyTypes,
+        property_types=format_to_property_definitions(equipment_type.propertyTypes),
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
@@ -302,7 +303,7 @@ def edit_equipment_type(
     """
     equipment_type = EQUIPMENT_TYPES[name]
     edited_property_types = [
-        get_property_type_input(property_type)
+        format_to_property_type_input(property_type)
         for property_type in equipment_type.property_types
     ]
     position_definitions = [
@@ -354,7 +355,7 @@ def copy_equipment_type(
     equipment_type = EQUIPMENT_TYPES[curr_equipment_type_name]
 
     new_property_types = [
-        get_property_type_input(property_type)
+        format_to_property_type_input(property_type)
         for property_type in equipment_type.property_types
     ]
 
@@ -381,7 +382,7 @@ def copy_equipment_type(
         name=equipment_type.name,
         category=equipment_type.category,
         id=equipment_type.id,
-        property_types=equipment_type.propertyTypes,
+        property_types=format_to_property_definitions(equipment_type.propertyTypes),
         position_definitions=equipment_type.positionDefinitions,
         port_definitions=equipment_type.portDefinitions,
     )
@@ -392,7 +393,7 @@ def copy_equipment_type(
 
 def get_equipment_type_property_type(
     client: SymphonyClient, equipment_type_name: str, property_type_id: str
-) -> PropertyTypeFragment:
+) -> PropertyDefinition:
     """Get property type by ID on specific equipment type.
 
         Args:
@@ -400,7 +401,7 @@ def get_equipment_type_property_type(
             property_type_id (str): property type ID
 
         Returns:
-            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment`  object
+            `pyinventory.common.data_class.PropertyDefinition`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with id=`property_type_id` is not found
@@ -423,7 +424,7 @@ def get_equipment_type_property_type(
 
 def get_equipment_type_property_type_by_external_id(
     client: SymphonyClient, equipment_type_name: str, property_type_external_id: str
-) -> PropertyTypeFragment:
+) -> PropertyDefinition:
     """Get property type by external ID on specific equipment type.
 
         Args:
@@ -431,7 +432,7 @@ def get_equipment_type_property_type_by_external_id(
             property_type_external_id (str): property type external ID
 
         Returns:
-            `pyinventory.graphql.fragment.property_type.PropertyTypeFragment`  object
+            `pyinventory.common.data_class.PropertyDefinition`  object
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
@@ -480,7 +481,7 @@ def edit_equipment_type_property_type(
                 new_property_definition=PropertyDefinition(
                     property_name=property_type_name,
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                     external_id="12345",
                 ),

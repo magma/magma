@@ -20,6 +20,11 @@ aliases:
       branches:
         only: master
 
+  - &onlypr
+    filters:
+      branches:
+        ignore: master
+
   - &tfworkdir
     working_directory: infra/deploy
 
@@ -28,6 +33,9 @@ aliases:
 
   - &appdir
     working_directory: app
+
+  - &alarmsdir
+    working_directory: app/fbcnms-packages/fbcnms-alarms
 
 orbs:
   artifactory: circleci/artifactory@1.0.0
@@ -337,8 +345,18 @@ jobs:
       dlc: true
     resource_class: large
     environment:
-      COMPOSE_FILE: integration/docker-compose.ci.yaml
+      COMPOSE_FILE: <<parameters.compose_file>>
       DOCKER_REGISTRY: facebookconnectivity-symphony-dev-docker.jfrog.io
+    parameters:
+      compose_file:
+        type: string
+        default: integration/docker-compose.pr.yaml
+      pull_images:
+        type: boolean
+        default: false
+      extra_build_args:
+        type: string
+        default: ""
     steps:
       - checkout
       - docker/check:
@@ -347,12 +365,15 @@ jobs:
           name: Setup environment variables
           command: echo "export TAG=$CIRCLE_SHA1" >> $BASH_ENV
       - *mktestdir
-      - run:
-          name: Pull service images
-          command: docker-compose pull
+      - when:
+          condition: <<parameters.pull_images>>
+          steps:
+            - run:
+                name: Pull service images
+                command: docker-compose pull
       - run:
           name: Build services
-          command: docker-compose build --pull
+          command: docker-compose build <<parameters.extra_build_args>>
       - run:
           name: Start containers
           command: docker-compose up -d --scale tests=0 --scale pytests=0
@@ -546,6 +567,30 @@ jobs:
           <<: *appdir
           command: yarn run eslint ./
 
+  npm-publish-alarms:
+    executor: yarnnode
+    steps:
+      - checkout
+      - run:
+          <<: *alarmsdir
+          name: End step if version has not changed
+          command: |
+            publishedVersion=$(npm show @fbcnms/alarms version);
+            # Extract version from package.json
+            packageVersion=$(grep "version" package.json | awk '{print $2}'); packageVersion=${packageVersion:1}; packageVersion=${packageVersion%??}
+            if [[ $publishedVersion == $packageVersion ]]; then
+              circleci step halt
+            fi
+      - yarn-install
+      - run:
+          <<: *alarmsdir
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=$npm_TOKEN_FBCNMS" > ~/.npmrc
+      - run:
+          <<: *alarmsdir
+          name: Publish package to npm
+          command: npm publish --access public
+
 workflows:
   version: 2.1
   all:
@@ -557,53 +602,82 @@ workflows:
       - yarntest:
           requires:
             - flowtest
+      - npm-publish-alarms:
+          context: symphony
+          requires:
+            - yarntest
+          <<: *onlymaster
       - docker-publish:
           name: graph/publish
+          context: symphony
           dockerfile: graph/Dockerfile
           image: graph
           requires: &dpreq
             - lint
             - unit
+          <<: *onlymaster
       - docker-publish:
           name: store/publish
+          context: symphony
           dockerfile: store/Dockerfile
           image: store
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: async/publish
+          context: symphony
           dockerfile: async/Dockerfile
           image: async
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: docs/publish
+          context: symphony
           path: docs
           image: docs
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: front/publish
+          context: symphony
           dockerfile: fbcnms-projects/platform-server/Dockerfile.prod
           path: app
           image: front
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: storybook/publish
+          context: symphony
           dockerfile: fbcnms-projects/storybook/Dockerfile
           path: app
           image: storybook
           requires: *dpreq
+          <<: *onlymaster
       - docker-publish:
           name: jobrunner/publish
+          context: symphony
           dockerfile: jobrunner/Dockerfile
           image: jobrunner
           requires: *dpreq
+          <<: *onlymaster
       - helm-lint
       - tflint
       - integration:
+          name: integration/pr
+          <<: *onlypr
+      - integration:
+          context: symphony
+          pull_images: true
+          extra_build_args: --pull
+          compose_file: integration/docker-compose.ci.yaml
           requires:
             - graph/publish
             - store/publish
             - front/publish
+            - async/publish
+          <<: *onlymaster
       - promote-images: &promote
+          context: symphony
           requires:
             - integration
             - docs/publish
@@ -613,6 +687,7 @@ workflows:
           <<: *onlymaster
       - artifactory/upload:
           name: upload-charts
+          context: symphony
           build-steps:
             - helm-install
             - run: mkdir /tmp/helm-charts
@@ -636,10 +711,12 @@ workflows:
     jobs:
       - tfdiff:
           workspace: default
+          context: symphony
           <<: *tfvardir
       - tfapply:
           name: staging/deploy
           workspace: staging
+          context: symphony
           after_checkout:
             - tfprepare: &tfprepare
                 <<: *tfvardir
@@ -647,6 +724,7 @@ workflows:
           requires:
             - tfdiff
       - testim:
+          context: symphony
           before_test:
             - run:
                 name: Check testim blocker
@@ -659,6 +737,7 @@ workflows:
       - tfapply:
           name: production/deploy
           workspace: default
+          context: symphony
           after_checkout:
             - tfprepare: *tfprepare
           requires:

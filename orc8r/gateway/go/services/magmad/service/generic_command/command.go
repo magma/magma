@@ -13,11 +13,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"os/exec"
 	"strings"
 	"time"
 
+	"github.com/golang/glog"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/google/shlex"
 
@@ -64,13 +64,13 @@ func Execute(ctx context.Context, req *protos.GenericCommandParams) (*protos.Gen
 	}
 	cmdList, splitErr := shlex.Split(cmdStr)
 	if splitErr != nil || len(cmdList) == 0 {
-		log.Printf("invalid command format: %v", splitErr)
+		glog.Errorf("invalid command format: %v", splitErr)
 		cmdList = []string{"sh", "-c", cmdStr}
 	}
 	execCtx, cancel := context.WithTimeout(ctx, Timeout)
 	defer cancel()
 	exeCmd := exec.CommandContext(execCtx, cmdList[0], cmdList[1:]...)
-	log.Printf("executing command '%s'", exeCmd.String())
+	glog.Infof("executing command '%s'", exeCmd.String())
 	var errBuff, outBuff bytes.Buffer
 	exeCmd.Stderr = &errBuff
 	exeCmd.Stdout = &outBuff

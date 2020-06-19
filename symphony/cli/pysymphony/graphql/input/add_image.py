@@ -23,4 +23,5 @@ class AddImageInput(DataClassJsonMixin):
     modified: datetime = DATETIME_FIELD
     contentType: str
     category: Optional[str] = None
+    annotation: Optional[str] = None
 

@@ -9,9 +9,10 @@ LICENSE file in the root directory of this source tree.
 package config
 
 import (
-	"log"
 	"strings"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/service/config"
@@ -178,7 +179,7 @@ func (mdc *MagmadCfg) UpdateFromYml() (StructuredConfig, string, string) {
 	}
 	ymlFile, ymlOWFile, err := config.GetStructuredServiceConfig("", definitions.MagmadServiceName, newCfg)
 	if err != nil {
-		log.Printf("Error Getting Magmad Configs: %v,\n\tcontinue using old configs: %+v", err, mdc)
+		glog.Warningf("Error Getting Magmad Configs: %v,\n\tcontinue using old configs: %+v", err, mdc)
 	} else {
 		if mdc != newCfg { // success, copy if needed
 			*mdc = *newCfg

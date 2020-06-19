@@ -8,7 +8,7 @@ class SiteSurvey(NamedTuple):
     """
     Attributes:
         name (str): name
-        id (str): ID
+        survey_id (str): ID
         completionTime (datetime): complition time
         sourceFileId (Optional[str]): source file ID
         sourceFileName (Optional[str]): source file name
@@ -23,3 +23,23 @@ class SiteSurvey(NamedTuple):
     sourceFileName: Optional[str]
     sourceFileKey: Optional[str]
     forms: Dict[str, Dict[str, Any]]
+
+
+class WorkOrderType(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+    """
+
+    id: str
+
+
+class WorkOrder(NamedTuple):
+    """
+    Attributes:
+        id (str): ID
+        name (str): name
+    """
+
+    id: str
+    name: str

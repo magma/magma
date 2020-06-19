@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
+
+// Proto file to serialize the structures in
+// magma/lte/gateway/c/lib/3gpp/...
+
+// parameters_list
+message ParametersList {
+    repeated Parameter parameters = 1;
+    uint32 num_parameters = 2;
+}
+
+// parameter_t
+message Parameter {
+    uint32 parameter_identifier = 1;
+    uint32 length = 2;
+    bytes contents = 3;
+}
+
+// protocol_configuration_options_t
+message Pco {
+    uint32 ext = 1;
+    uint32 spare = 2;
+    uint32 configuration_protocol = 3;
+    uint32 num_protocol_or_container_id = 4;
+    repeated PcoProtocol pco_protocol = 5;
+}
+
+// pco_protocol_or_container_id
+message PcoProtocol {
+    uint32 id = 1;
+    uint32 length = 2;
+    bytes contents = 3;
+}
+
+// fteid_t
+message Fteid {
+    uint32 ipv4_address = 1;
+    bytes ipv6_address = 2;
+    uint32 interface_type = 3;
+    uint32 teid = 4;
+}
+
+// port_range
+message PortRange {
+    uint32 low_limit = 1;
+    uint32 high_limit = 2;
+}
+
+// typdeofservice_trafficclass
+message TypeOfServiceTrafficClass {
+    uint32 value = 1;
+    uint32 mask = 2;
+}
+
+// ipvremoteaddr
+message IpRemoteAddress {
+    uint32 addr = 1;
+    uint32 mask = 2;
+}
+
+// packet_filter_contents
+message PacketFilterContents {
+    uint32 flags = 1;
+
+    repeated IpRemoteAddress ipv4_remote_addresses = 2;
+    repeated IpRemoteAddress ipv6_remote_addresses = 3;
+    uint32 protocol_identifier_nextheader = 4;
+
+    uint32 single_local_port = 10;
+    PortRange local_port_range = 11;
+    uint32 single_remote_port = 12;
+    PortRange remote_port_range = 13;
+
+    uint32 security_parameter_index = 20;
+
+    TypeOfServiceTrafficClass type_of_service_traffic_class = 21;
+    uint32 flow_label = 22;
+}

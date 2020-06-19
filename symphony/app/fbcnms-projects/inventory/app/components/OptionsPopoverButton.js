@@ -12,28 +12,32 @@ import type {
   ErrorHandlingProps,
   PermissionHandlingProps,
 } from '@fbcnms/ui/components/design-system/Form/FormAction';
+import type {PermissionEnforcement} from './admin/userManagement/utils/usePermissions';
 
 import * as React from 'react';
 import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu';
 import classNames from 'classnames';
+import usePermissions from './admin/userManagement/utils/usePermissions';
 import {ThreeDotsVerticalIcon} from '@fbcnms/ui/components/design-system/Icons';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo} from 'react';
 
-export type MenuOption = {|
+export type MenuOption = $ReadOnly<{|
   onClick: () => void,
   caption: React.Node,
+  disabled?: ?boolean,
+  permissions?: ?PermissionEnforcement,
   ...PermissionHandlingProps,
   ...ErrorHandlingProps,
-|};
+|}>;
 
-type Props = {|
+type Props = $ReadOnly<{|
   options: Array<MenuOption>,
   menuIcon?: React.Node,
   className?: ?string,
   popoverMenuClassName?: ?string,
   onVisibilityChange?: (isVisible: boolean) => void,
-|};
+|}>;
 
 const useStyles = makeStyles(() => ({
   menu: {
@@ -74,21 +78,41 @@ const OptionsPopoverButton = (props: Props) => {
     },
     [options],
   );
+  const permissions = usePermissions();
+
+  const optIsMissingPermissions = opt =>
+    opt.permissions != null && !!permissions.check(opt.permissions);
+
+  const menuOptions = options
+    .filter(
+      opt =>
+        !(
+          opt.permissions?.hideOnMissingPermissions === true &&
+          optIsMissingPermissions(opt)
+        ),
+    )
+    .map((opt, optIndex) => ({
+      key: optIndex + '',
+      label: opt.caption,
+      value: optIndex,
+      disabled: opt.disabled === true || optIsMissingPermissions(opt),
+      ignorePermissions: opt.ignorePermissions ?? opt.permissions != null,
+      hideOnMissingPermissions: opt.hideOnMissingPermissions,
+    }));
+
+  if (menuOptions.length === 0) {
+    return null;
+  }
+
   return (
     <PopoverMenu
       disabled={!isEnabled}
       variant="text"
       menuDockRight={true}
-      options={options.map((opt, optIndex) => ({
-        key: optIndex + '',
-        label: opt.caption,
-        value: optIndex,
-        ignorePermissions: opt.ignorePermissions,
-        hideOnMissingPermissions: opt.hideOnMissingPermissions,
-      }))}
+      options={menuOptions}
       onChange={handleOptionClick}
-      menuClassName={classes.menu}
-      className={classNames(classes.menuButton, popoverMenuClassName)}
+      menuClassName={classNames(classes.menu, popoverMenuClassName)}
+      className={classes.menuButton}
       onVisibilityChange={onVisibilityChange}>
       {menuIcon ?? (
         <ThreeDotsVerticalIcon

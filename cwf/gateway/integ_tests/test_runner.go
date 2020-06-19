@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
-	"strings"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -50,7 +50,7 @@ const (
 	RedisPort        = 6380
 	DirectorydPort   = 8443
 
-        // If updating these, also update the ipfix exported hex values
+	// If updating these, also update the ipfix exported hex values
 	defaultMSISDN          = "5100001234"
 	defaultCalledStationID = "98-DE-D0-84-B5-47:CWF-TP-LINK_B547_5G"
 
@@ -204,7 +204,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Logf("Finished Authenticating UE. Resulting RADIUS Packet: %d\n", radiusP)
+	tr.t.Log("Finished Authenticating UE")
 	return radiusP, nil
 }
 
@@ -223,16 +223,8 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Logf("Finished Discconnecting UE. Resulting RADIUS Packet: %d\n", radiusP)
+	tr.t.Log("Finished Discconnecting UE")
 	return radiusP, nil
-}
-
-// ResetUESeq reset sequence for a UE allowing multiple authentication.
-//
-func (tr *TestRunner) ResetUESeq(ue *cwfprotos.UEConfig) error {
-	fmt.Printf("************************* Reset Ue Sequence for IMSI: %v\n", ue.Imsi)
-	ue.Seq--
-	return uesim.AddUE(ue)
 }
 
 // GenULTraffic simulates the UE sending traffic through the CWAG to the Internet
@@ -400,7 +392,7 @@ func getEncodedIMSI(imsiStr string) (string, error) {
 		return "", err
 	}
 
-    prefixLen := len(imsiStr) - len(strings.TrimLeft(imsiStr, "0"))
-    compacted := (imsi << 2) | (prefixLen & 0x3)
-	return fmt.Sprintf("0x%016x", compacted << 1 | 0x1), nil
+	prefixLen := len(imsiStr) - len(strings.TrimLeft(imsiStr, "0"))
+	compacted := (imsi << 2) | (prefixLen & 0x3)
+	return fmt.Sprintf("0x%016x", compacted<<1|0x1), nil
 }

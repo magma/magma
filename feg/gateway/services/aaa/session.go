@@ -59,6 +59,8 @@ type SessionTable interface {
 	GetSession(sid string) (session Session)
 	// FindSession returns session ID corresponding to the given IMSI (empty string if not found)
 	FindSession(imsi string) (sessionId string)
+	// GetSessionByImsi returns session corresponding to the given IMSI or nil if not found
+	GetSessionByImsi(imsi string) (session Session)
 	// RemoveSession - removes the session with the given SID and returns it, returns nil if not found
 	RemoveSession(sid string) Session
 	// SetTimeout - [Re]sets the session's cleanup timeout to fire after tout duration

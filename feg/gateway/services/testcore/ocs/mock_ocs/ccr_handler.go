@@ -48,14 +48,16 @@ type subscriptionID struct {
 }
 
 type usedServiceUnit struct {
-	InputOctets  uint64 `avp:"CC-Input-Octets"`
-	OutputOctets uint64 `avp:"CC-Output-Octets"`
-	TotalOctets  uint64 `avp:"CC-Total-Octets"`
+	InputOctets     uint64 `avp:"CC-Input-Octets"`
+	OutputOctets    uint64 `avp:"CC-Output-Octets"`
+	TotalOctets     uint64 `avp:"CC-Total-Octets"`
+	ReportingReason uint32 `avp:"Reporting-Reason"`
 }
 
 type ccrCredit struct {
 	RatingGroup     uint32           `avp:"Rating-Group"`
 	UsedServiceUnit *usedServiceUnit `avp:"Used-Service-Unit"`
+	ReportingReason uint32           `avp:"Reporting-Reason"`
 }
 
 // getCCRHandler returns a handler to be called when the server receives a CCR
@@ -84,7 +86,6 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 			Connection: c,
 			SessionID:  string(ccr.SessionID),
 		}
-
 		if srv.ocsConfig.UseMockDriver {
 			srv.mockDriver.Lock()
 			iAnswer := srv.mockDriver.GetAnswerFromExpectations(ccr)

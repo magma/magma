@@ -40,3 +40,25 @@ def restarted_services(services):
             value=json.dumps(RestartedServices(services=services).to_dict()),
         )
     )
+
+
+def established_sync_rpc_stream():
+    log_event(
+        Event(
+            stream_name="magmad",
+            event_type="established_sync_rpc_stream",
+            tag=snowflake.snowflake(),
+            value="{}"
+        )
+    )
+
+
+def disconnected_sync_rpc_stream():
+    log_event(
+        Event(
+            stream_name="magmad",
+            event_type="disconnected_sync_rpc_stream",
+            tag=snowflake.snowflake(),
+            value="{}"
+        )
+    )

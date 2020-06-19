@@ -15,6 +15,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
+import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
 import Grid from '@material-ui/core/Grid';
@@ -82,6 +83,8 @@ function EquipmentDashboard() {
   const {match, relativePath, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const [enbInfo, setEnbInfo] = useState<{[string]: EnodebInfo}>({});
+  const [isEnbStLoading, setIsEnbStLoading] = useState(true);
+
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {response: lteGatwayResp, isLoading: isLteRespLoading} = useMagmaAPI(
@@ -100,11 +103,10 @@ function EquipmentDashboard() {
 
   useEffect(() => {
     const fetchEnodebState = async () => {
+      let err = false;
       if (!enb) {
         return;
       }
-
-      let err = false;
       const requests = Object.keys(enb).map(async k => {
         const {serial} = enb[k];
         try {
@@ -137,15 +139,19 @@ function EquipmentDashboard() {
           };
         });
         setEnbInfo(enbInfoLocal);
+        setIsEnbStLoading(false);
       });
     };
+    if (!enb && !isEnbRespLoading) {
+      setIsEnbStLoading(false);
+      return;
+    }
     fetchEnodebState();
-  }, [networkId, enb, enqueueSnackbar]);
+  }, [networkId, enb, isEnbRespLoading, enqueueSnackbar]);
 
-  if (isLteRespLoading || isEnbRespLoading) {
+  if (isLteRespLoading || isEnbStLoading) {
     return <LoadingFiller />;
   }
-
   const lteGateways: {[string]: lte_gateway} = lteGatwayResp ?? {};
   return (
     <>
@@ -153,6 +159,10 @@ function EquipmentDashboard() {
         <Route
           path={relativePath('/overview/gateway/:gatewayId')}
           render={() => <GatewayDetail lteGateways={lteGateways} />}
+        />
+        <Route
+          path={relativePath('/overview/enodeb/:enodebSerial')}
+          render={() => <EnodebDetail enbInfo={enbInfo} />}
         />
         <Route
           path={relativePath('/overview')}

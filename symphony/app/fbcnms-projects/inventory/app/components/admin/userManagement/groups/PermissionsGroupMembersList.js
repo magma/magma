@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -42,8 +42,8 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = $ReadOnly<{|
-  group: UserPermissionsGroup,
-  onChange: UserPermissionsGroup => void,
+  group: UsersGroup,
+  onChange: UsersGroup => void,
 |}>;
 
 export default function PermissionsGroupMembersList(props: Props) {
@@ -101,9 +101,7 @@ export default function PermissionsGroupMembersList(props: Props) {
 
   return (
     <GroupMembersList
-      users={
-        userSearch.isEmptySearchTerm ? group.memberUsers : userSearch.results
-      }
+      users={userSearch.isEmptySearchTerm ? group.members : userSearch.results}
       group={group}
       onChange={onChange}
       assigmentButton={
