@@ -8,12 +8,13 @@
  * @format
  */
 import * as React from 'react';
-import AddIcon from '@material-ui/icons/Add';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
 import Editor from '../../common/Editor';
 import EmailConfigEditor from './EmailConfigEditor';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import MenuItem from '@material-ui/core/MenuItem';
 import SlackConfigEditor from './SlackConfigEditor';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -82,12 +83,13 @@ export default function AddEditReceiver(props: Props) {
     initialState: receiver,
   });
 
-  const [addConfigType, setAddConfigType] = React.useState('slack');
-
-  const handleAddConfig = React.useCallback(() => {
-    const {listName, createConfig} = CONFIG_TYPES[addConfigType];
-    addListItem(listName, createConfig());
-  }, [addConfigType, addListItem]);
+  const handleAddConfig = React.useCallback(
+    (configType: string) => {
+      const {listName, createConfig} = CONFIG_TYPES[configType];
+      addListItem(listName, createConfig());
+    },
+    [addListItem],
+  );
 
   const handleSave = React.useCallback(() => {
     async function makeApiCall() {
@@ -134,6 +136,7 @@ export default function AddEditReceiver(props: Props) {
   };
   return (
     <Editor
+      xs={8}
       isNew={isNew}
       onSave={handleSave}
       onExit={onExit}
@@ -141,52 +144,21 @@ export default function AddEditReceiver(props: Props) {
       title={receiver?.name || 'New Receiver'}
       description="Configure channels to notify when an alert fires">
       <Grid item>
-        <TextField
-          required
-          id="name"
-          label="Receiver Name"
-          placeholder="Ex: Support Team"
-          disabled={!isNew}
-          value={formState.name}
-          onChange={handleInputChange(val => ({name: val}))}
-          fullWidth
-        />
-      </Grid>
-      <Grid container item>
-        <Grid item xs={12}>
-          <Typography>Add Notification</Typography>
-        </Grid>
-        <Grid
-          item
-          container
-          xs={12}
-          justify="space-between"
-          alignItems="center">
-          <Grid xs={11} item>
+        <Card>
+          <CardContent>
+            <Typography paragraph>Details</Typography>
             <TextField
-              select
+              required
+              id="name"
+              label="Name"
+              placeholder="Ex: Support Team"
+              disabled={!isNew}
+              value={formState.name}
+              onChange={handleInputChange(val => ({name: val}))}
               fullWidth
-              value={addConfigType}
-              onChange={e => setAddConfigType(e.target.value)}>
-              {Object.keys(CONFIG_TYPES).map(key => {
-                const {friendlyName} = CONFIG_TYPES[key];
-                return (
-                  <MenuItem key={key} value={key} data-test-config-type={key}>
-                    {friendlyName}
-                  </MenuItem>
-                );
-              })}
-            </TextField>
-          </Grid>
-          <Grid xs={1} item>
-            <IconButton
-              edge="end"
-              onClick={handleAddConfig}
-              aria-label="add new receiver configuration">
-              <AddIcon />
-            </IconButton>
-          </Grid>
-        </Grid>
+            />
+          </CardContent>
+        </Card>
       </Grid>
 
       {Object.keys(CONFIG_TYPES).map(key => {
@@ -198,19 +170,19 @@ export default function AddEditReceiver(props: Props) {
         } = CONFIG_TYPES[key];
         const list = formState[listName];
         return (
-          <ConfigSection title={friendlyName}>
+          <ConfigSection
+            title={friendlyName}
+            onAddConfigClicked={() => handleAddConfig(key)}>
             {list && list.map
               ? list.map((config, idx) => (
-                  <Grid item key={idx}>
-                    <ConfigEditor
-                      {...getConfigEditorProps({
-                        listName: listName,
-                        index: idx,
-                        createConfig,
-                        ...configEditorSharedProps,
-                      })}
-                    />
-                  </Grid>
+                  <ConfigEditor
+                    {...getConfigEditorProps({
+                      listName: listName,
+                      index: idx,
+                      createConfig,
+                      ...configEditorSharedProps,
+                    })}
+                  />
                 ))
               : null}
           </ConfigSection>
@@ -223,18 +195,39 @@ export default function AddEditReceiver(props: Props) {
 function ConfigSection({
   children,
   title,
+  onAddConfigClicked,
 }: {
   children?: ?React.Node,
   title: string,
+  onAddConfigClicked: () => void,
 }) {
   return (
-    <Grid container item direction="column" wrap="nowrap" spacing={1}>
-      <Grid container justify="space-between" alignItems="center" item xs={12}>
-        <Grid item>
-          <Typography color="textSecondary">{title}</Typography>
-        </Grid>
-      </Grid>
-      {children || null}
+    <Grid item>
+      <Card>
+        <CardContent>
+          <Grid container direction="column" wrap="nowrap" spacing={3}>
+            <Grid
+              container
+              item
+              xs={12}
+              justify="space-between"
+              alignItems="center">
+              <Grid item>
+                <Typography>{title}</Typography>
+              </Grid>
+              <Grid item>
+                <IconButton
+                  edge="end"
+                  onClick={onAddConfigClicked}
+                  aria-label="add new receiver configuration">
+                  <AddCircleOutlineIcon color="primary" />
+                </IconButton>
+              </Grid>
+            </Grid>
+            {children}
+          </Grid>
+        </CardContent>
+      </Card>
     </Grid>
   );
 }
