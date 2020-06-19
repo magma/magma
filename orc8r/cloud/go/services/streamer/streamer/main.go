@@ -28,7 +28,6 @@ func main() {
 	// Add servicers to the service
 	servicer := &servicers.StreamingServer{}
 	protos.RegisterStreamerServer(srv.GrpcServer, servicer)
-	srv.GrpcServer.RegisterService(protos.GetLegacyStreamerDesc(), servicer)
 
 	// Run the service
 	err = srv.Run()
