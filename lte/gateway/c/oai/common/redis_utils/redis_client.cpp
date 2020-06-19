@@ -59,26 +59,6 @@ void RedisClient::init_db_connection()
   is_connected_ = true;
 }
 
-int RedisClient::serialize(
-  const Message& proto_msg,
-  std::string& str_to_serialize)
-{
-  if (!proto_msg.SerializeToString(&str_to_serialize)) {
-    return RETURNerror;
-  }
-  return RETURNok;
-}
-
-int RedisClient::deserialize(
-  Message& proto_msg,
-  const std::string& str_to_deserialize)
-{
-  if (!proto_msg.ParseFromString(str_to_deserialize)) {
-    return RETURNerror;
-  }
-  return RETURNok;
-}
-
 int RedisClient::write(const std::string& key, const std::string& value)
 {
   if (!is_connected()) {
@@ -115,11 +95,30 @@ std::string RedisClient::read(const std::string& key)
 
 int RedisClient::write_proto(const std::string& key, const Message& proto_msg)
 {
-  std::string str_value;
-  if (serialize(proto_msg, str_value) != RETURNok) {
+  std::string inner_val;
+  if (serialize(proto_msg, inner_val) != RETURNok) {
     return RETURNerror;
   }
 
+  // Read the existing key for current version if it exists.
+  // Bump the version number of the wrapper and set its wrapped message.
+  orc8r::RedisState wrapper_proto = orc8r::RedisState();
+  try {
+    if (key_exists(key)) {
+      if (read_redis_state(key, wrapper_proto) != RETURNok) {
+        return RETURNerror;
+      }
+    }
+  } catch (const std::runtime_error& e) {
+    return RETURNerror;
+  }
+  wrapper_proto.set_serialized_msg(inner_val);
+  wrapper_proto.set_version(wrapper_proto.version() + 1);
+
+  std::string str_value;
+  if (serialize(wrapper_proto, str_value) != RETURNok) {
+    return RETURNerror;
+  }
   if (write(key, str_value) != RETURNok) {
     return RETURNerror;
   }
@@ -128,17 +127,17 @@ int RedisClient::write_proto(const std::string& key, const Message& proto_msg)
 
 int RedisClient::read_proto(const std::string& key, Message& proto_msg)
 {
-  try {
-    std::string str_value = read(key);
-
-    if (deserialize(proto_msg, str_value) != RETURNok) {
-      return RETURNerror;
-    }
-
-    return RETURNok;
-  } catch (const std::runtime_error& e) {
+  orc8r::RedisState wrapper_proto = orc8r::RedisState();
+  if (read_redis_state(key, wrapper_proto) != RETURNok) {
     return RETURNerror;
   }
+
+  std::string wrapped_val = wrapper_proto.serialized_msg();
+  if (deserialize(proto_msg, wrapped_val) != RETURNok) {
+    return RETURNerror;
+  }
+
+  return RETURNok;
 }
 
 int RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear)
@@ -183,6 +182,61 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern)
 
   return replies;
 }
+
+int RedisClient::read_redis_state(
+    const std::string& key, orc8r::RedisState& state_out)
+{
+  try {
+    std::string str_value = read(key);
+    if (deserialize(state_out, str_value) != RETURNok) {
+      return RETURNerror;
+    }
+    return RETURNok;
+  } catch(const std::runtime_error& e) {
+    return RETURNerror;
+  }
+}
+
+bool RedisClient::key_exists(const std::string& key)
+{
+  auto exists_vec = std::vector<std::string>();
+  exists_vec.push_back(key);
+
+  auto reply_future = db_client_->exists(exists_vec);
+  db_client_->sync_commit();
+  auto reply = reply_future.get();
+
+  if (reply.is_null()) {
+    return false;
+  }
+  if (reply.is_error() || !reply.is_integer()) {
+    throw std::runtime_error("Could not check for existence in redis");
+  }
+
+  // EXISTS returns how many of the queried keys exist as an integer
+  return reply.as_integer() == 1;
+}
+
+int RedisClient::serialize(
+    const Message& proto_msg,
+    std::string& str_to_serialize)
+{
+  if (!proto_msg.SerializeToString(&str_to_serialize)) {
+    return RETURNerror;
+  }
+  return RETURNok;
+}
+
+int RedisClient::deserialize(
+    Message& proto_msg,
+    const std::string& str_to_deserialize)
+{
+  if (!proto_msg.ParseFromString(str_to_deserialize)) {
+    return RETURNerror;
+  }
+  return RETURNok;
+}
+
 
 } // namespace lte
 } // namespace magma
