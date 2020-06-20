@@ -90,6 +90,7 @@ func RefreshConfigsFrom(mcpath string) error {
 		return fmt.Errorf("Managed Config File '%s' stat error: %v", mcpath, err)
 	}
 	if sameFile(lastFileInfo, fi) {
+		glog.V(1).Infof("mconfig '%s' is unchanged from %s", mcpath, lastFileInfo.ModTime().Format(time.RFC822))
 		return nil
 	}
 	err = loadFromFile(mcpath)

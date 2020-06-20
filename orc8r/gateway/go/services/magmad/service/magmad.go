@@ -82,7 +82,7 @@ func (m *magmadService) SetConfigs(_ context.Context, cfg *protos.GatewayConfigs
 		var marshaled []byte
 		marshaled, err = protos.MarshalMconfig(cfg)
 		if err == nil {
-			_, err = config_service.SaveConfigs(marshaled, false)
+			err = config_service.SaveConfigs(marshaled)
 		}
 	}
 	return &protos.Void{}, err
