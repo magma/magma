@@ -9,7 +9,6 @@ import (
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/pkg/authz"
-	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 )
 
 // Activity defines the location type schema.
@@ -45,17 +44,14 @@ func (Activity) Edges() []ent.Edge {
 }
 
 // Policy returns Activity policy.
-//TODO(T67933416): Replace the always read\write with the correct permissions
 func (Activity) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithQueryRules(
-			privacy.AlwaysAllowRule(),
-			// authz.ActivityReadPolicyRule(),
+			authz.ActivityReadPolicyRule(),
 		),
 		authz.WithMutationRules(
-			privacy.AlwaysAllowRule(),
-			// authz.ActivityWritePolicyRule(),
-			// authz.ActivityCreatePolicyRule(),
+			authz.ActivityWritePolicyRule(),
+			authz.ActivityCreatePolicyRule(),
 		),
 	)
 }

@@ -449,7 +449,7 @@ func TestAddWorkOrderWithActivity(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
 	ctx := viewertest.NewContext(
-		context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureMoveWorkOrderActivitiesToAsyncService))
+		context.Background(), r.client)
 	qr := r.Query()
 	w := createWorkOrder(ctx, t, *r, "Foo")
 
