@@ -359,8 +359,6 @@ jobs:
         default: ""
     steps:
       - checkout
-      - docker/check:
-          registry: $DOCKER_REGISTRY
       - run:
           name: Setup environment variables
           command: echo "export TAG=$CIRCLE_SHA1" >> $BASH_ENV
@@ -368,6 +366,8 @@ jobs:
       - when:
           condition: <<parameters.pull_images>>
           steps:
+            - docker/check:
+                registry: $DOCKER_REGISTRY
             - run:
                 name: Pull service images
                 command: docker-compose pull
