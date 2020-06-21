@@ -711,12 +711,10 @@ workflows:
     jobs:
       - tfdiff:
           workspace: default
-          context: symphony
           <<: *tfvardir
       - tfapply:
           name: staging/deploy
           workspace: staging
-          context: symphony
           after_checkout:
             - tfprepare: &tfprepare
                 <<: *tfvardir
@@ -724,7 +722,6 @@ workflows:
           requires:
             - tfdiff
       - testim:
-          context: symphony
           before_test:
             - run:
                 name: Check testim blocker
@@ -737,7 +734,6 @@ workflows:
       - tfapply:
           name: production/deploy
           workspace: default
-          context: symphony
           after_checkout:
             - tfprepare: *tfprepare
           requires:
