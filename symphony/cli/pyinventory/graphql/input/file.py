@@ -17,11 +17,11 @@ from ..enum.file_type import FileType
 class FileInput(DataClassJsonMixin):
     fileName: str
     storeKey: str
+    fileType: Optional[FileType] = None
     id: Optional[str] = None
     sizeInBytes: Optional[int] = None
     modificationTime: Optional[int] = None
     uploadTime: Optional[int] = None
-    fileType: Optional[FileType] = None
     mimeType: Optional[str] = None
     annotation: Optional[str] = None
 
