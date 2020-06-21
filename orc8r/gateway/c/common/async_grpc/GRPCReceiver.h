@@ -67,6 +67,7 @@ public:
     context_.set_deadline(
       std::chrono::system_clock::now() + std::chrono::seconds(timeout_sec));
   }
+  virtual ~AsyncGRPCResponse() = default;
 
   virtual void handle_response() {}
 
@@ -76,8 +77,8 @@ public:
    */
   void set_response_reader(
       std::unique_ptr<grpc::ClientAsyncResponseReader<ResponseType>> reader) {
-    reader->Finish(&response_, &status_, this);
     response_reader_ = std::move(reader);
+    response_reader_->Finish(&response_, &status_, this);
   }
 
   /**

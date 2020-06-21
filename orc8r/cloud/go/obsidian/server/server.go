@@ -18,6 +18,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
+	"magma/orc8r/cloud/go/obsidian/reverse_proxy"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -30,6 +31,7 @@ func Start() {
 	// metrics middleware is used before all other middlewares
 	e.Use(CollectStats)
 	e.Use(middleware.Recover())
+
 	// Serve static pages for the API docs
 	e.Static(obsidian.StaticURLPrefix, obsidian.StaticFolder+"/apidocs")
 	e.Static(obsidian.StaticURLPrefix+"/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
@@ -94,9 +96,14 @@ func Start() {
 		if !e.DisableHTTP2 {
 			s.TLSConfig.NextProtos = append(s.TLSConfig.NextProtos, "h2")
 		}
-		err = e.StartServer(e.TLSServer)
 	} else {
 		e.Use(access.Middleware)
+	}
+
+	e.Use(reverse_proxy.ReverseProxy)
+	if obsidian.TLS {
+		err = e.StartServer(e.TLSServer)
+	} else {
 		err = e.Start(portStr)
 	}
 	if err != nil {

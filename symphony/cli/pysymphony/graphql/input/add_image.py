@@ -15,13 +15,13 @@ from ..enum.image_entity import ImageEntity
 
 @dataclass
 class AddImageInput(DataClassJsonMixin):
-    entityType: ImageEntity = enum_field(ImageEntity)
     entityId: str
     imgKey: str
     fileName: str
     fileSize: int
-    modified: datetime = DATETIME_FIELD
     contentType: str
+    entityType: ImageEntity = enum_field(ImageEntity)
+    modified: datetime = DATETIME_FIELD
     category: Optional[str] = None
     annotation: Optional[str] = None
 

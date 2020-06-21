@@ -21,7 +21,7 @@ class MeteringReporter {
    * Report all unreported traffic usage for a session.
    * All charging and monitoring keys are aggregated.
    */
-  bool report_usage(
+  void report_usage(
       const std::string& imsi, const std::string& session_id,
       SessionStateUpdateCriteria& update_criteria);
 

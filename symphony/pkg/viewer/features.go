@@ -7,7 +7,5 @@ package viewer
 // The following strings are features that can be allowed on for specific tenants\users
 // To query if feature is allowed use FeatureSet.Enabled
 const (
-	FeaturePermissionPolicies      = "permission_policies"
-	FeatureGraphEventLogging       = "graph_event_logging"
-	FeatureWorkOrderActivitiesHook = "work_order_activities_hook"
+	FeaturePermissionPolicies = "permission_policies"
 )

@@ -41,10 +41,12 @@ const std::string GTPApplication::GTP_PORT_MAC = "02:00:00:00:00:01";
 GTPApplication::GTPApplication(
   const std::string &uplink_mac,
   uint32_t gtp_port_num,
-  uint32_t mtr_port_num):
+  uint32_t mtr_port_num,
+  uint32_t uplink_port_num):
   uplink_mac_(uplink_mac),
   gtp_port_num_(gtp_port_num),
-  mtr_port_num_(mtr_port_num)
+  mtr_port_num_(mtr_port_num),
+  uplink_port_num_(uplink_port_num)
 {
 }
 
@@ -55,26 +57,26 @@ void GTPApplication::event_callback(
   if (ev.get_type() == EVENT_ADD_GTP_TUNNEL) {
     auto add_tunnel_event = static_cast<const AddGTPTunnelEvent&>(ev);
     add_uplink_tunnel_flow(add_tunnel_event, messenger);
-    add_downlink_tunnel_flow(add_tunnel_event, messenger, of13::OFPP_LOCAL);
+    add_downlink_tunnel_flow(add_tunnel_event, messenger, uplink_port_num_);
     add_downlink_tunnel_flow(add_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DELETE_GTP_TUNNEL) {
     auto del_tunnel_event = static_cast<const DeleteGTPTunnelEvent&>(ev);
     delete_uplink_tunnel_flow(del_tunnel_event, messenger);
-    delete_downlink_tunnel_flow(del_tunnel_event, messenger, of13::OFPP_LOCAL);
+    delete_downlink_tunnel_flow(del_tunnel_event, messenger, uplink_port_num_);
     delete_downlink_tunnel_flow(del_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DISCARD_DATA_ON_GTP_TUNNEL) {
     auto discard_tunnel_flow =
       static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
     discard_uplink_tunnel_flow(discard_tunnel_flow, messenger);
     discard_downlink_tunnel_flow(
-      discard_tunnel_flow, messenger, of13::OFPP_LOCAL);
+      discard_tunnel_flow, messenger, uplink_port_num_);
     discard_downlink_tunnel_flow(discard_tunnel_flow, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_FORWARD_DATA_ON_GTP_TUNNEL) {
     auto forward_tunnel_flow =
       static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
     forward_uplink_tunnel_flow(forward_tunnel_flow, messenger);
     forward_downlink_tunnel_flow(
-      forward_tunnel_flow, messenger, of13::OFPP_LOCAL);
+      forward_tunnel_flow, messenger, uplink_port_num_);
     forward_downlink_tunnel_flow(forward_tunnel_flow, messenger, mtr_port_num_);
   }
 }

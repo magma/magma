@@ -30,9 +30,9 @@ from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 class TestService(BaseTest):
     def __init__(
-        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
+        self, test_name: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
-        super().__init__(testName, client, stub)
+        super().__init__(test_name, client, stub)
 
     def setUp(self) -> None:
         super().setUp()
@@ -173,6 +173,9 @@ class TestService(BaseTest):
         )
         self.assertFalse(endpoints)
         endpoint_definition_id = endpoint_definitions[0].id
+        assert (
+            endpoint_definition_id is not None
+        ), f"service type {self.service_type.name} has no endpoints"
         add_service_endpoint(
             client=self.client,
             service=self.service,

@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
@@ -70,14 +70,14 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = $ReadOnly<{|
-  group: UserPermissionsGroup,
-  onChange: UserPermissionsGroup => void,
+  group: UsersGroup,
+  onChange: UsersGroup => void,
   className?: ?string,
 |}>;
 
 function SearchBar(
   props: $ReadOnly<{|
-    group: UserPermissionsGroup,
+    group: UsersGroup,
   |}>,
 ) {
   const {group} = props;

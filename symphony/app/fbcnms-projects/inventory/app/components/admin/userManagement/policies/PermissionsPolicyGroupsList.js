@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import Button from '@fbcnms/ui/components/design-system/Button';

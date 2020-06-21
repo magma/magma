@@ -30,59 +30,16 @@ RestartHandler::RestartHandler(
       session_store_(session_store) {}
 
 void RestartHandler::cleanup_previous_sessions() {
-  uint rpc_try  = 0;
-  bool finished = false;
-  while (!finished && rpc_try < max_cleanup_retries_) {
-    std::promise<bool> directoryd_res;
-    std::future<bool> directoryd_future = directoryd_res.get_future();
-    directoryd_client_->get_all_directoryd_records(
-        [this, &directoryd_res](Status status, AllDirectoryRecords response) {
-          if (!status.ok()) {
-            directoryd_res.set_value(false);
-            return;
-          }
-          auto records = response.records();
-          for (auto& record : records) {
-            auto session_iter = record.fields().find("session_id");
-            if (session_iter == record.fields().end()) {
-              continue;
-            }
-            auto session_id = session_iter->second;
-            sessions_to_terminate_.insert({record.id(), session_id});
-          }
-          directoryd_res.set_value(true);
-        });
-    finished = directoryd_future.get();
-    rpc_try++;
-    directoryd_res = std::promise<bool>();
-    if (!finished) {
-      std::this_thread::sleep_for(std::chrono::seconds(rpc_retry_interval_s_));
-    }
-  }
-  if (!finished) {
+  bool populated = populate_sessions_to_terminate_with_retries();
+  if (!populated) {
     MLOG(MERROR) << "DirectoryD call to fetch all records failed after "
                  << max_cleanup_retries_
                  << " retries. Not cleaning up previous sessions";
     return;
   }
-  uint termination_try = 0;
-  while (!sessions_to_terminate_.empty() &&
-         termination_try < max_cleanup_retries_) {
-    std::vector<std::future<void>> termination_futures;
-    for (const auto& iter : sessions_to_terminate_) {
-      termination_futures.push_back(std::async(
-          std::launch::async,
-          &magma::sessiond::RestartHandler::terminate_previous_session, this,
-          iter.first, iter.second));
-    }
-    termination_try++;
-    for (auto&& fut : termination_futures) {
-      fut.get();
-    }
-    termination_futures.clear();
-    std::this_thread::sleep_for(std::chrono::seconds(rpc_retry_interval_s_));
-  }
-  if (sessions_to_terminate_.empty()) {
+
+  bool all_terminated = launch_threads_to_terminate_with_retries();
+  if (all_terminated) {
     MLOG(MINFO) << "Successfully terminated all old sessions";
   } else {
     MLOG(MERROR) << "Terminating old sessions failed";
@@ -92,6 +49,90 @@ void RestartHandler::cleanup_previous_sessions() {
 void RestartHandler::setup_aaa_sessions() {
   auto session_map = session_store_.read_all_sessions();
   aaa_client_->add_sessions(session_map);
+}
+
+// For each session that still need to be terminated, launch a thread to
+// run terminate_previous_session. Retry up to max_cleanup_retries_, with
+// sleeps in between.
+// We must lock access to sessions_to_terminate while iterating and launching
+// threads, so that elements are not removed during iteration.
+bool RestartHandler::launch_threads_to_terminate_with_retries() {
+  if (sessions_to_terminate_.empty()) {
+    return true;
+  }
+  
+  uint termination_try = 0;
+  while (!sessions_to_terminate_.empty() &&
+         termination_try < max_cleanup_retries_) {
+    std::vector<std::future<void>> termination_futures;
+    {
+      // Modify sessions_to_terminate_
+      std::lock_guard<std::mutex> map_guard(sessions_to_terminate_lock_);
+
+      for (const auto& iter : sessions_to_terminate_) {
+        termination_futures.push_back(std::async(
+            std::launch::async,
+            &magma::sessiond::RestartHandler::terminate_previous_session, this,
+            iter.first, iter.second));
+      }
+      // sessions_to_terminate_lock_ released
+    }
+
+    termination_try++;
+    // Retrieve all thread results
+    for (auto&& fut : termination_futures) {
+      fut.get();
+    }
+    termination_futures.clear();
+
+    // Check whether all sessions have successfully terminated before sleeping
+    // There are no active terminate threads, so no locking is necessary.
+    if (sessions_to_terminate_.empty()) {
+      return true;
+    }
+    std::this_thread::sleep_for(std::chrono::seconds(rpc_retry_interval_s_));
+  }
+  // At this point, we've re-tried the maximum number of times with no success.
+  return false;
+}
+
+// This function is executed in the main thread before multiple terminate
+// threads are launched. So no locking is necessary here.
+bool RestartHandler::populate_sessions_to_terminate_with_retries() {
+  uint rpc_try  = 0;
+  bool finished = false;
+  std::promise<bool> directoryd_res;
+
+  while (rpc_try < max_cleanup_retries_) {
+    std::future<bool> directoryd_future = directoryd_res.get_future();
+    directoryd_client_->get_all_directoryd_records(
+        [this, &directoryd_res](Status status, AllDirectoryRecords response) {
+          if (!status.ok()) {
+            directoryd_res.set_value(false);
+            return;
+          }
+          for (auto& record : response.records()) {
+            auto session_iter = record.fields().find("session_id");
+            if (session_iter == record.fields().end()) {
+              continue;
+            }
+            const std::string& session_id = session_iter->second;
+            sessions_to_terminate_.insert({record.id(), session_id});
+          }
+          directoryd_res.set_value(true);
+        });
+
+    // Block until DirectoryD call is complete
+    finished = directoryd_future.get();
+    if (finished) {
+      break;
+    }
+    // Setup for next iteration
+    rpc_try++;
+    directoryd_res = std::promise<bool>();
+    std::this_thread::sleep_for(std::chrono::seconds(rpc_retry_interval_s_));
+  }
+  return finished;
 }
 
 void RestartHandler::terminate_previous_session(
@@ -128,9 +169,12 @@ void RestartHandler::terminate_previous_session(
                   termination_res.set_value(true);
                 });
           });
+  // Block until Termination call is complete
   bool should_erase = termination_future.get();
   if (should_erase) {
+    std::lock_guard<std::mutex> map_guard(sessions_to_terminate_lock_);
     sessions_to_terminate_.erase(sid);
+    // sessions_to_terminate_lock_ released
   }
 }
 }  // namespace sessiond

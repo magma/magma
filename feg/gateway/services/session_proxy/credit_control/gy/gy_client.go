@@ -269,7 +269,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 		avp.SessionID,
 		avp.Mbit,
 		0,
-		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginRealm(), request.SessionID))))
+		datatype.UTF8String(diameter.EncodeSessionID(gyClient.diamClient.OriginHost(), request.SessionID))))
 
 	return m, nil
 }

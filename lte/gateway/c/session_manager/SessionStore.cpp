@@ -241,10 +241,18 @@ bool SessionStore::merge_into_session(
                    << std::endl;
       return false;
     }
-    session->insert_gy_dynamic_rule(rule, uc);
-    MLOG(MERROR) << "Merge: " << session->get_session_id()
-                   << " gy dynamic rule " << rule.id()
+    if (update_criteria.new_rule_lifetimes.find(rule.id()) != update_criteria.new_rule_lifetimes.end()) {
+      auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
+      session->insert_gy_dynamic_rule(rule, lifetime, uc);
+      MLOG(MERROR) << "Merge: " << session->get_session_id()
+                   << " gy dynamic rule " << rule.id() << std::endl;
+    }
+    else{
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because gy dynamic rule lifetime is not found"
                    << std::endl;
+      return false;
+    }
   }
   for (const auto& rule_id : update_criteria.gy_dynamic_rules_to_uninstall) {
     if (session->is_gy_dynamic_rule_installed(rule_id)) {
@@ -261,13 +269,13 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.charging_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
-    session->get_charging_pool().merge_credit_update(key, credit_update);
+    session->merge_charging_credit_update(key, credit_update);
   }
   for (const auto& it : update_criteria.charging_credit_to_install) {
     auto key           = it.first;
     auto stored_credit = it.second;
     auto uc            = get_default_update_criteria();
-    session->get_charging_pool().add_credit(
+    session->set_charging_credit(
         key, SessionCredit::unmarshal(stored_credit, CHARGING), uc);
   }
 
@@ -275,14 +283,14 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.monitor_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
-    session->get_monitor_pool().merge_credit_update(key, credit_update);
+    session->merge_monitor_updates(key, credit_update);
   }
   for (const auto& it : update_criteria.monitor_credit_to_install) {
     auto key            = it.first;
     auto stored_monitor = it.second;
     auto uc             = get_default_update_criteria();
-    session->get_monitor_pool().add_monitor(
-        key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor), uc);
+    session->set_monitor(
+        key, SessionState::unmarshal_monitor(stored_monitor), uc);
   }
   return true;
 }

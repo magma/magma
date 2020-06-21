@@ -17,7 +17,7 @@ target_include_directories(test_mme_app_ue_context_imsi PUBLIC
 
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 
-add_subdirectory(rpc_client)
+add_subdirectory(mobility_client)
 add_subdirectory(openflow)
 # Currently broken due to include error.
 # add_subdirectory(service303)

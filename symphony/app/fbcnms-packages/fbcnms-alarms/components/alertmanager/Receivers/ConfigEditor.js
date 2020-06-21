@@ -8,19 +8,15 @@
  * @format
  */
 import * as React from 'react';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
+import ButtonBase from '@material-ui/core/ButtonBase';
 import Collapse from '@material-ui/core/Collapse';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
 import RootRef from '@material-ui/core/RootRef';
-import Tooltip from '@material-ui/core/Tooltip';
-import classnames from 'classnames';
+import Typography from '@material-ui/core/Typography';
 import {makeStyles} from '@material-ui/styles';
 
 export type Props = {
@@ -57,6 +53,12 @@ const useStyles = makeStyles(theme => ({
   expandOpen: {
     transform: 'rotate(180deg)',
   },
+  configEditor: {
+    '&:not(:last-of-type)': {
+      borderBottom: `1px solid ${theme.palette.grey[200]}`,
+      paddingBottom: theme.spacing(4),
+    },
+  },
 }));
 
 export default function ConfigEditor({
@@ -65,7 +67,6 @@ export default function ConfigEditor({
   RequiredFields,
   OptionalFields,
   isNew,
-  ...props
 }: Props) {
   const classes = useStyles();
 
@@ -77,40 +78,47 @@ export default function ConfigEditor({
     [setOptionalFieldsExpanded],
   );
   return (
-    <Card {...props}>
-      <CardContent>
-        <Grid container justify="flex-end">
+    <Grid
+      className={classes.configEditor}
+      container
+      item
+      justify="space-between"
+      xs={12}
+      alignItems="flex-start">
+      <Grid item container spacing={2} direction="column" wrap="nowrap" xs={11}>
+        <Grid item xs={12}>
+          {RequiredFields}
+        </Grid>
+        {OptionalFields && (
+          <>
+            <Grid item>
+              <ButtonBase onClick={handleExpandClick} disableTouchRipple>
+                <Typography color="primary" variant="body2">
+                  {!optionalFieldsExpanded ? 'Show' : 'Hide'} advanced options
+                </Typography>
+              </ButtonBase>
+            </Grid>
+            <Grid item xs={12}>
+              <Collapse
+                in={optionalFieldsExpanded}
+                timeout="auto"
+                unmountOnExit>
+                {OptionalFields}
+              </Collapse>
+            </Grid>
+          </>
+        )}
+      </Grid>
+      <Grid item xs={1} container justify="flex-end">
+        <Grid item>
           <EditorMenuButton
             onReset={onReset}
             onDelete={onDelete}
             isNew={isNew}
           />
         </Grid>
-        <Grid container spacing={2} direction="column" wrap="nowrap">
-          {RequiredFields}
-        </Grid>
-      </CardContent>
-      {OptionalFields && (
-        <>
-          <CardActions disableSpacing>
-            <Tooltip title="Advanced" placement="right">
-              <IconButton
-                className={classnames(classes.expand, {
-                  [classes.expandOpen]: optionalFieldsExpanded,
-                })}
-                onClick={handleExpandClick}
-                aria-expanded={optionalFieldsExpanded}
-                aria-label="optional fields">
-                <ExpandMoreIcon />
-              </IconButton>
-            </Tooltip>
-          </CardActions>
-          <Collapse in={optionalFieldsExpanded} timeout="auto" unmountOnExit>
-            <CardContent>{OptionalFields}</CardContent>
-          </Collapse>
-        </>
-      )}
-    </Card>
+      </Grid>
+    </Grid>
   );
 }
 
@@ -131,7 +139,6 @@ function EditorMenuButton({
       <RootRef rootRef={iconRef}>
         <IconButton
           aria-label="editor-menu"
-          size="small"
           edge="end"
           onClick={() => setMenuOpen(true)}>
           <MoreVertIcon />

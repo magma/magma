@@ -57,6 +57,9 @@ const emptyApiUtil = {
   getMetricSeries: (..._) => Promise.reject('not implemented'),
   getGlobalConfig: _ => Promise.reject('not implemented'),
   editGlobalConfig: _ => Promise.reject('not implemented'),
+  getTenants: _ => Promise.reject('not implemented'),
+  getAlertmanagerTenancy: _ => Promise.reject('not implemented'),
+  getPrometheusTenancy: _ => Promise.reject('not implemented'),
 };
 
 const context = React.createContext<AlarmContext>({

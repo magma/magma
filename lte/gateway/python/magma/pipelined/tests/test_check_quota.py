@@ -28,6 +28,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 )
 
 
+@unittest.skip("Skip test, currenlty flaky")
 class UEMacAddressTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
@@ -51,6 +52,7 @@ class UEMacAddressTest(unittest.TestCase):
             ['ue_mac', 'arpd', 'check_quota'])
         check_quota_controller_reference = Future()
         testing_controller_reference = Future()
+        arp_controller_reference = Future()
         test_setup = TestSetup(
             apps=[PipelinedController.UEMac,
                   PipelinedController.Arp,
@@ -65,7 +67,7 @@ class UEMacAddressTest(unittest.TestCase):
                 PipelinedController.UEMac:
                     Future(),
                 PipelinedController.Arp:
-                    Future(),
+                    arp_controller_reference,
                 PipelinedController.StartupFlows:
                     Future(),
             },
@@ -94,6 +96,7 @@ class UEMacAddressTest(unittest.TestCase):
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.check_quota_controller = check_quota_controller_reference.result()
+        cls.arp_controlelr = arp_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
     @classmethod
@@ -111,6 +114,7 @@ class UEMacAddressTest(unittest.TestCase):
         mac_1 = '5e:cc:cc:b1:49:4b'
         mac_2 = '5e:a:cc:af:aa:fe'
         mac_3 = '5e:bb:cc:aa:aa:fe'
+
         # Add subscriber with UE MAC address
         self.check_quota_controller.update_subscriber_quota_state(
             [
@@ -131,7 +135,7 @@ class UEMacAddressTest(unittest.TestCase):
                                              include_stats=False)
 
         with snapshot_verifier:
-          wait_after_send(self.testing_controller)
+            wait_after_send(self.testing_controller)
 
     def test_add_three_subscribers(self):
         """
@@ -164,7 +168,7 @@ class UEMacAddressTest(unittest.TestCase):
                                              include_stats=False)
 
         with snapshot_verifier:
-          wait_after_send(self.testing_controller)
+            wait_after_send(self.testing_controller)
 
 if __name__ == "__main__":
     unittest.main()

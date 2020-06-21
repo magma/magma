@@ -31,7 +31,6 @@ typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
     SessionUpdate;
-
 /**
  * SessionStore acts as a broker to storage of sessiond state.
  *

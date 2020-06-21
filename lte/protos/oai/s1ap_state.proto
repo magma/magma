@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
 
 message S1apTimer {
   int32 id = 1;  // long

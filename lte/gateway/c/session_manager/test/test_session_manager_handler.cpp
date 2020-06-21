@@ -38,13 +38,12 @@ protected:
     session_store = std::make_shared<SessionStore>(rule_store);
     pipelined_client = std::make_shared<MockPipelinedClient>();
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
-    auto eventd_client = std::make_shared<MockEventdClient>();
     auto spgw_client = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client = std::make_shared<MockAAAClient>();
     auto default_mconfig = get_default_mconfig();
     local_enforcer = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client, aaa_client, 0, 0,
+        directoryd_client, MockEventdClient::getInstance(), spgw_client, aaa_client, 0, 0,
         default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
@@ -93,7 +92,8 @@ MATCHER_P(CheckUpdateSessionRequest, request_number, "")
 {
   auto request = static_cast<const UpdateSessionRequest&>(arg);
   for (const auto& credit_usage_update : request.updates()) {
-    return credit_usage_update.request_number() == request_number;
+    int req_number = credit_usage_update.request_number();
+    return req_number == request_number;
   }
   return false;
 }
@@ -248,7 +248,6 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   // Check the request number
   auto session_map_2 = session_store->read_sessions(SessionRead{imsi});
   EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 1);
-
   // 2) ReportRuleStats
   grpc::ServerContext server_context;
   RuleRecordTable table;

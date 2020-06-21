@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"log"
 
-	"magma/orc8r/cloud/go/services/state/indexer/reindex"
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 
 	"github.com/spf13/cobra"
@@ -42,14 +42,14 @@ func runList(cmd *cobra.Command, args []string) {
 		if !ok {
 			log.Fatalf("No indexer found for ID %s", listID)
 		}
-		printVersions(protos.MakeVersion(v))
+		printVersions(indexer.MakeVersion(v))
 		return
 	}
 
-	printVersions(protos.MakeVersions(res.IndexersById)...)
+	printVersions(indexer.MakeVersions(res.IndexersById)...)
 }
 
-func printVersions(versions ...*reindex.Version) {
+func printVersions(versions ...*indexer.Versions) {
 	for _, v := range versions {
 		if listShort {
 			fmt.Println(v.IndexerID)

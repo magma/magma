@@ -104,9 +104,10 @@ void PagingApplication::install_default_flow(
   fluid_base::OFConnection *ofconn,
   const OpenflowMessenger &messenger)
 {
-  // Get assigned IP block from mobilityd
-  struct in_addr netaddr;
-  uint32_t prefix;
+  // Get assigned IP block from mobilityd,
+  // In case of error allow entire IP space.
+  struct in_addr netaddr = { .s_addr = INADDR_ANY };
+  uint32_t prefix = 0;
   int ret = get_assigned_ipv4_block(0, &netaddr, &prefix);
 
   // Convert to string for logging

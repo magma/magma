@@ -110,6 +110,18 @@ class TrafficClass:
             qid_list.append(qid)
         return qid_list
 
+    @staticmethod
+    def dump_class_state(intf: str, qid: int):
+        qid_hex = hex(qid)
+        tc_cmd = "tc -s -d class show dev {} classid 1:{}".format(intf,
+                                                                  qid_hex)
+        args = argSplit(tc_cmd)
+        try:
+            output = subprocess.check_output(args)
+            print(output.decode())
+        except subprocess.CalledProcessError:
+            print("Exception dumping Qos State for %s", intf)
+
 
 class TCManager(object):
     """

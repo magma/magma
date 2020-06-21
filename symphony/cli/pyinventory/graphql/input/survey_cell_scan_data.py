@@ -15,8 +15,8 @@ from ..enum.cellular_network_type import CellularNetworkType
 
 @dataclass
 class SurveyCellScanData(DataClassJsonMixin):
-    networkType: CellularNetworkType = enum_field(CellularNetworkType)
     signalStrength: int
+    networkType: CellularNetworkType = enum_field(CellularNetworkType)
     timestamp: Optional[int] = None
     baseStationID: Optional[str] = None
     networkID: Optional[str] = None

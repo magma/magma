@@ -172,14 +172,18 @@ function MultiGroupsCell({value, classes, columnIdx}: CellProps<GroupsList>) {
   );
 }
 
-const renderLabelValue = labelValue => {
+const renderLabelValue = (labelValue: LabelVal) => {
   if (typeof labelValue === 'boolean') {
     return labelValue ? 'true' : 'false';
+  }
+  if (typeof labelValue === 'string' && labelValue.trim() === '') {
+    return null;
   }
   return labelValue;
 };
 
-type Labels = {[string]: string | number | boolean};
+type LabelVal = string | number | boolean;
+type Labels = {[string]: LabelVal};
 function LabelsCell({
   value,
   classes,
@@ -201,19 +205,24 @@ function LabelsCell({
         className={
           columnIdx === 0 ? classes.titleCell : classes.secondaryItalicCell
         }>
-        {Object.keys(labels).map(keyName => (
-          <Chip
-            key={keyName}
-            classes={{label: classes.ellipsisChip}}
-            className={classes.labelChip}
-            label={
-              <span>
-                <em>{keyName}</em>={renderLabelValue(labels[keyName])}
-              </span>
-            }
-            size="small"
-          />
-        ))}
+        {Object.keys(labels).map(keyName => {
+          const val = renderLabelValue(labels[keyName]);
+          return (
+            <Chip
+              key={keyName}
+              classes={{label: classes.ellipsisChip}}
+              className={classes.labelChip}
+              label={
+                <span>
+                  <em>{keyName}</em>
+                  {val !== null && typeof val !== 'undefined' ? '=' : null}
+                  {val}
+                </span>
+              }
+              size="small"
+            />
+          );
+        })}
       </div>
     </BodyTableCell>
   );

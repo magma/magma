@@ -2,27 +2,28 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pubsub
+package pubsub_test
 
 import (
 	"context"
 	"sync"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gocloud.dev/pubsub"
+	gcpubsub "gocloud.dev/pubsub"
 	"gocloud.dev/pubsub/mempubsub"
 )
 
 func TestTopicEmitter(t *testing.T) {
 	ctx := context.Background()
 	url := mempubsub.Scheme + "://" + uuid.New().String()
-	emitter, err := NewTopicEmitter(ctx, url)
+	emitter, err := pubsub.NewTopicEmitter(ctx, url)
 	require.NoError(t, err)
-	assert.Implements(t, (*Emitter)(nil), emitter)
-	subscription, err := pubsub.OpenSubscription(ctx, url)
+	assert.Implements(t, (*pubsub.Emitter)(nil), emitter)
+	subscription, err := gcpubsub.OpenSubscription(ctx, url)
 	require.NoError(t, err)
 	defer subscription.Shutdown(ctx)
 
@@ -35,8 +36,8 @@ func TestTopicEmitter(t *testing.T) {
 		msg, err := subscription.Receive(ctx)
 		require.NoError(t, err)
 		defer msg.Ack()
-		assert.Equal(t, tenant, msg.Metadata[TenantHeader])
-		assert.Equal(t, t.Name(), msg.Metadata[NameHeader])
+		assert.Equal(t, tenant, msg.Metadata[pubsub.TenantHeader])
+		assert.Equal(t, t.Name(), msg.Metadata[pubsub.NameHeader])
 		assert.Equal(t, body, msg.Body)
 	}()
 	defer wg.Wait()
@@ -48,7 +49,7 @@ func TestTopicEmitter(t *testing.T) {
 }
 
 func TestNopEmitter(t *testing.T) {
-	emitter := NewNopEmitter()
+	emitter := pubsub.NewNopEmitter()
 	err := emitter.Emit(context.Background(), "", "", nil)
 	assert.NoError(t, err)
 }

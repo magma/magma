@@ -66,7 +66,7 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    std::shared_ptr<AsyncEventdClient> eventd_client,
+    AsyncEventdClient& eventd_client,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
@@ -283,7 +283,7 @@ void LocalEnforcer::aggregate_records(
     for (const auto& session : it->second) {
       SessionStateUpdateCriteria& uc =
           session_update[record.sid()][session->get_session_id()];
-      session->add_used_credit(
+      session->add_rule_usage(
           record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
     }
   }
@@ -422,6 +422,9 @@ static RedirectInformation_AddressType address_type_converter(
       return RedirectInformation_AddressType_URL;
     case RedirectServer_RedirectAddressType_SIP_URI:
       return RedirectInformation_AddressType_SIP_URI;
+    default:
+      MLOG(MERROR) << "Unknown redirect address type!";
+      return RedirectInformation_AddressType_IPv4;
   }
 }
 
@@ -453,7 +456,6 @@ void LocalEnforcer::install_redirect_flow(
   directoryd_client_->get_directoryd_ip_field(
       imsi, [this, imsi, static_rules, gy_dynamic_rules]
         (Status status, DirectoryField resp) {
-
         if (!status.ok()) {
           MLOG(MERROR) << "Could not fetch subscriber " << imsi << " ip, "
                        << "redirection fails, error: "
@@ -465,15 +467,23 @@ void LocalEnforcer::install_redirect_flow(
             MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
             return;
           }
-
           auto session_update =
-            session_store_.get_default_session_update(session_map);
+              session_store_.get_default_session_update(session_map);
+
+          //check if the rule has been installed already.
+          for (const auto &session : it->second) {
+            if(session->is_dynamic_rule_installed(gy_dynamic_rules.front().id())) {
+              return;
+            }
+          }
+          MLOG(MDEBUG) << "Install redirect GY flow in pipelined";
           pipelined_client_->add_gy_final_action_flow(
             imsi, resp.value(), static_rules, gy_dynamic_rules);
 
           for (const auto &session : it->second) {
             auto &uc = session_update[imsi][session->get_session_id()];
-            session->insert_gy_dynamic_rule(gy_dynamic_rules.front(), uc);
+            RuleLifetime lifetime{};
+            session->insert_gy_dynamic_rule(gy_dynamic_rules.front(), lifetime, uc);
           }
           session_store_.update_sessions(session_update);
         }
@@ -510,8 +520,7 @@ void LocalEnforcer::reset_updates(
       // When updates are reset, they aren't written back into SessionStore,
       // so we can just put in a default UpdateCriteria
       auto uc = get_default_update_criteria();
-      session->get_charging_pool().reset_reporting_credit(
-          CreditKey(update.usage()), uc);
+      session->reset_reporting_charging_credit(CreditKey(update.usage()), uc);
     }
   }
   for (const auto& update : failed_request.usage_monitors()) {
@@ -526,8 +535,7 @@ void LocalEnforcer::reset_updates(
       // When updates are reset, they aren't written back into SessionStore,
       // so we can just put in a default UpdateCriteria
       auto uc = get_default_update_criteria();
-      session->get_monitor_pool().reset_reporting_credit(
-          update.update().monitoring_key(), uc);
+      session->reset_reporting_monitor(update.update().monitoring_key(), uc);
     }
   }
 }
@@ -568,6 +576,9 @@ static bool should_activate(
     case PolicyRule::NO_TRACKING:
       MLOG(MINFO) << "Activating untracked rule " << rule.id();
       break;
+    default:
+      MLOG(MINFO) << "Invalid rule tracking type " << rule.id();
+      return false;
   }
   return true;
 }
@@ -811,7 +822,7 @@ bool LocalEnforcer::init_session_credit(
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {
     auto uc = get_default_update_criteria();
-    session_state->get_charging_pool().receive_credit(credit, uc);
+    session_state->receive_charging_credit(credit, uc);
     if (credit.success() && contains_credit(credit.credit().granted_units())) {
       charging_credits_received.insert(credit.charging_key());
     }
@@ -840,36 +851,16 @@ bool LocalEnforcer::init_session_credit(
                        << " and some without";
       }
     auto uc = get_default_update_criteria();
-    session_state->get_monitor_pool().receive_credit(monitor, uc);
+    session_state->receive_monitor(monitor, uc);
   }
 
   auto rule_update_success = handle_session_init_rule_updates(
       session_map, imsi, *session_state, response, charging_credits_received);
 
   if (session_state->is_radius_cwf_session()) {
-    using namespace std::placeholders;
-    MLOG(MERROR) << "Adding UE MAC flow for subscriber " << imsi;
-    SubscriberID sid;
-    sid.set_id(imsi);
-    std::string apn_mac_addr;
-    std::string apn_name;
-    if (!parse_apn(cfg.apn, apn_mac_addr, apn_name)) {
-      MLOG(MWARNING) << "Failed mac/name parsing for apn " << cfg.apn;
-      apn_mac_addr = "";
-      apn_name     = cfg.apn;
-    }
-    auto ue_mac_addr             = session_state->get_config().mac_addr;
-    bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
-        sid, ue_mac_addr, cfg.msisdn, apn_mac_addr, apn_name,
-        std::bind(
-          &LocalEnforcer::handle_add_ue_mac_flow_callback,
-          this, sid, ue_mac_addr, cfg.msisdn, apn_mac_addr, apn_name, _1, _2));
-    if (!add_ue_mac_flow_success) {
-      MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
-    }
     if (terminate_on_wallet_exhaust()) {
       handle_session_init_subscriber_quota_state(
-        session_map, imsi, *session_state);
+          session_map, imsi, *session_state);
     }
   }
 
@@ -1072,10 +1063,9 @@ void LocalEnforcer::update_charging_credits(
     for (const auto& session : it->second) {
       std::string sid                             = session->get_session_id();
       SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
-      bool is_redirected = session->get_charging_pool().
-          is_credit_state_redirected(CreditKey(credit_update_resp));
-      session->get_charging_pool().receive_credit(
-          credit_update_resp, update_criteria);
+      bool is_redirected = session->is_credit_state_redirected(CreditKey(credit_update_resp));
+      session->receive_charging_credit(credit_update_resp, update_criteria);
+
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
       SessionState::SessionInfo info;
 
@@ -1130,7 +1120,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
-      session->get_monitor_pool().receive_credit(
+      session->receive_monitor(
           usage_monitor_resp, update_criteria);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), update_criteria);
 
@@ -1309,8 +1299,7 @@ uint64_t LocalEnforcer::get_charging_credit(
     return 0;
   }
   for (const auto& session : it->second) {
-    uint64_t credit =
-        session->get_charging_pool().get_credit(charging_key, bucket);
+    uint64_t credit = session->get_charging_credit(charging_key, bucket);
     if (credit > 0) {
       return credit;
     }
@@ -1326,7 +1315,7 @@ uint64_t LocalEnforcer::get_monitor_credit(
     return 0;
   }
   for (const auto& session : it->second) {
-    uint64_t credit = session->get_monitor_pool().get_credit(mkey, bucket);
+    uint64_t credit = session->get_monitor(mkey, bucket);
     if (credit > 0) {
       return credit;
     }
@@ -1352,8 +1341,7 @@ LocalEnforcer::init_charging_reauth(SessionMap &session_map,
                  << request.session_id();
     for (const auto& session : it->second) {
       if (session->get_session_id() == request.session_id()) {
-        return session->get_charging_pool().reauth_key(
-            CreditKey(request), update_criteria);
+        return session->reauth_key(CreditKey(request), update_criteria);
       }
     }
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
@@ -1364,7 +1352,7 @@ LocalEnforcer::init_charging_reauth(SessionMap &session_map,
                << request.sid() << " for session" << request.session_id();
   for (const auto& session : it->second) {
     if (session->get_session_id() == request.session_id()) {
-      return session->get_charging_pool().reauth_all(update_criteria);
+      return session->reauth_all(update_criteria);
     }
   }
   MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
@@ -1492,7 +1480,7 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   for (const auto& usage_monitoring_credit :
        request.usage_monitoring_credits()) {
     credit->CopyFrom(usage_monitoring_credit);
-    session->get_monitor_pool().receive_credit(
+    session->receive_monitor(
         monitoring_credit, update_criteria);
   }
 }
@@ -1798,22 +1786,6 @@ void LocalEnforcer::handle_cwf_roaming(
       update_criteria.is_config_updated = true;
       update_criteria.updated_config = session->get_config();
       // TODO Check for event triggers and send updates to the core if needed
-      MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
-      SubscriberID sid;
-      sid.set_id(imsi);
-      std::string apn_mac_addr;
-      std::string apn_name;
-      if (!parse_apn(config.apn, apn_mac_addr, apn_name)) {
-        MLOG(MWARNING) << "Failed mac/name parsiong for apn " << config.apn;
-        apn_mac_addr = "";
-        apn_name     = config.apn;
-      }
-      auto ue_mac_addr             = session->get_config().mac_addr;
-      bool add_ue_mac_flow_success = pipelined_client_->update_ipfix_flow(
-          sid, ue_mac_addr, config.msisdn, apn_mac_addr, apn_name);
-      if (!add_ue_mac_flow_success) {
-        MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
-      }
     }
   }
 }

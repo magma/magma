@@ -10,10 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/async/handler"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/event"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -22,10 +25,11 @@ import (
 
 func TestAddWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
+	r.client.Use(event.LogHook(handler.HandleActivityLog, log.NewNopLogger()))
 	tim := time.Now()
 
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivitiesHook))
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	u := viewer.MustGetOrCreateUser(
 		privacy.DecisionContext(ctx, privacy.Allow),
 		viewertest.DefaultUser,
@@ -55,8 +59,10 @@ func TestAddWorkOrderActivities(t *testing.T) {
 
 		switch a.ChangedField {
 		case activity.ChangedFieldCREATIONDATE:
+			timestampInt, err := strconv.ParseInt(a.NewValue, 10, 64)
+			require.NoError(t, err)
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, strconv.FormatInt(tim.Unix(), 10))
+			require.WithinDuration(t, time.Unix(timestampInt, 0), tim, time.Second*3)
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldOWNER:
@@ -84,9 +90,10 @@ func TestAddWorkOrderActivities(t *testing.T) {
 
 func TestEditWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
+	r.client.Use(event.LogHook(handler.HandleActivityLog, log.NewNopLogger()))
 
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client, viewertest.WithFeatures(viewer.FeatureWorkOrderActivitiesHook))
+	ctx := viewertest.NewContext(context.Background(), r.client)
 	u := viewer.MustGetOrCreateUser(
 		privacy.DecisionContext(ctx, privacy.Allow),
 		viewertest.DefaultUser,

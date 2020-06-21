@@ -18,6 +18,7 @@
   with_items:
     - PYTHON_BUILD="{{ python_build }}"
     - PIP_CACHE_HOME="~/.pipcache"
+    - PYTHONDONTWRITEBYTECODE="no"
   when: full_provision
 
 - name: Test for path in /etc/environment file

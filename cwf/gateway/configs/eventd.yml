@@ -26,3 +26,10 @@ event_registry:
   restarted_services:
     module: orc8r
     filename: magmad_events.v1.yml
+  disconnected_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  established_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+

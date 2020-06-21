@@ -3,11 +3,12 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from numbers import Number
+from typing import Dict, List, Optional, Sequence, Tuple, cast
 
 from pysymphony import SymphonyClient
 
-from .._utils import deprecated, get_graphql_property_inputs
+from .._utils import get_graphql_property_inputs
 from ..common.cache import LOCATION_TYPES
 from ..common.constant import LOCATION_PAGINATION_STEP, LOCATIONS_TO_SEARCH
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
@@ -158,8 +159,8 @@ def add_location(
         if i == len(location_hirerchy) - 1:
             property_types = LOCATION_TYPES[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
-            lat_val = lat
-            long_val = long
+            lat_val = cast(Number, lat)
+            long_val = cast(Number, long)
 
         location_search_result = _get_location_children_by_name_and_type(
             client=client,
@@ -408,8 +409,10 @@ def edit_location(
     edit_location_input = EditLocationInput(
         id=location.id,
         name=new_name if new_name is not None else location.name,
-        latitude=new_lat if new_lat is not None else location.latitude,
-        longitude=new_long if new_long is not None else location.longitude,
+        latitude=cast(Number, new_lat) if new_lat is not None else location.latitude,
+        longitude=cast(Number, new_long)
+        if new_long is not None
+        else location.longitude,
         properties=properties,
         externalID=new_external_id,
     )

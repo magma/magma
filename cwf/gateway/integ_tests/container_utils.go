@@ -16,6 +16,8 @@ import (
 	dockerTypes "github.com/docker/docker/api/types"
 	dockerFilters "github.com/docker/docker/api/types/filters"
 	dockerClient "github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -47,6 +49,87 @@ func (tr *TestRunner) PauseService(serviceName string) error {
 	}
 	err = cli.ContainerPause(ctx, containerID)
 	return err
+}
+
+//CmdOutput struct representing output of docker container command
+type CmdOutput struct {
+	cmd    []string
+	output string
+	err    error
+}
+
+//RunCommandInContainer adds ability to run a specific command within a container
+func (tr *TestRunner) RunCommandInContainer(serviceName string, cmdList [][]string) ([]*CmdOutput, error) {
+	fmt.Printf("RunCommandInContainer: %v\n", serviceName)
+	ctx := context.Background()
+
+	cli, containerID, err := tr.getDockerClientAndContainerID(serviceName)
+	if err != nil {
+		fmt.Println("error getting container id ", err)
+		return nil, err
+	}
+	response := []*CmdOutput{}
+	for _, cmd := range cmdList {
+		r := &CmdOutput{cmd: cmd}
+		response = append(response, r)
+
+		createResp, err := cli.ContainerExecCreate(
+			ctx,
+			containerID,
+			dockerTypes.ExecConfig{
+				AttachStdout: true,
+				AttachStderr: true,
+				Cmd:          cmd,
+			},
+		)
+		if err != nil {
+			r.err = err
+			continue
+		}
+
+		attachResp, err := cli.ContainerExecAttach(ctx, createResp.ID, dockerTypes.ExecConfig{})
+		if err != nil {
+			r.err = err
+			continue
+		}
+		defer attachResp.Close()
+
+		var outBuf, errBuf bytes.Buffer
+		outputDone := make(chan error)
+		go func() {
+			_, err := stdcopy.StdCopy(&outBuf, &errBuf, attachResp.Reader)
+			outputDone <- err
+		}()
+
+		select {
+		case err = <-outputDone:
+			break
+
+		case <-ctx.Done():
+			err = fmt.Errorf("timeout")
+			break
+		}
+
+		if err != nil {
+			r.err = err
+			continue
+		}
+
+		_, err = cli.ContainerExecInspect(ctx, createResp.ID)
+		if err != nil {
+			r.err = err
+			continue
+		}
+
+		var cmdOutput string
+		if errBuf.Len() != 0 {
+			cmdOutput = errBuf.String()
+		} else {
+			cmdOutput = outBuf.String()
+		}
+		r.output = cmdOutput
+	}
+	return response, nil
 }
 
 // OverwriteMConfig adds ability to overwrite the mconfig file with a specified

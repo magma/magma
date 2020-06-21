@@ -11,7 +11,7 @@
 import type {
   CUDPermissions,
   WorkforcePolicy,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';

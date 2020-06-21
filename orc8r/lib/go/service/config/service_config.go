@@ -175,9 +175,7 @@ func getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir s
 
 func updateMap(baseMap, overrides *ConfigMap) *ConfigMap {
 	for k, v := range overrides.RawMap {
-		if _, ok := baseMap.RawMap[k]; ok {
-			baseMap.RawMap[k] = v
-		}
+		baseMap.RawMap[k] = v
 	}
 	return baseMap
 }

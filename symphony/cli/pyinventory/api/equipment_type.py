@@ -177,7 +177,7 @@ def _update_equipment_type(
     port_definitions: List[EquipmentPortInput],
 ) -> EquipmentType:
 
-    equipment_type = _edit_equipment_type(
+    equipment_type_result = _edit_equipment_type(
         client=client,
         equipment_type_id=equipment_type_id,
         name=name,
@@ -187,12 +187,14 @@ def _update_equipment_type(
         port_definitions=port_definitions,
     )
     equipment_type = EquipmentType(
-        name=equipment_type.name,
-        category=equipment_type.category,
-        id=equipment_type.id,
-        property_types=format_to_property_definitions(equipment_type.propertyTypes),
-        position_definitions=equipment_type.positionDefinitions,
-        port_definitions=equipment_type.portDefinitions,
+        name=equipment_type_result.name,
+        category=equipment_type_result.category,
+        id=equipment_type_result.id,
+        property_types=format_to_property_definitions(
+            equipment_type_result.propertyTypes
+        ),
+        position_definitions=equipment_type_result.positionDefinitions,
+        port_definitions=equipment_type_result.portDefinitions,
     )
     EQUIPMENT_TYPES[name] = equipment_type
     return equipment_type
@@ -251,7 +253,7 @@ def add_equipment_type(
     position_definitions = [
         EquipmentPositionInput(name=position) for position in position_list
     ]
-    equipment_type = _add_equipment_type(
+    equipment_type_result = _add_equipment_type(
         client,
         name,
         category,
@@ -260,12 +262,14 @@ def add_equipment_type(
         port_definitions,
     )
     equipment_type = EquipmentType(
-        name=equipment_type.name,
-        category=equipment_type.category,
-        id=equipment_type.id,
-        property_types=format_to_property_definitions(equipment_type.propertyTypes),
-        position_definitions=equipment_type.positionDefinitions,
-        port_definitions=equipment_type.portDefinitions,
+        name=equipment_type_result.name,
+        category=equipment_type_result.category,
+        id=equipment_type_result.id,
+        property_types=format_to_property_definitions(
+            equipment_type_result.propertyTypes
+        ),
+        position_definitions=equipment_type_result.positionDefinitions,
+        port_definitions=equipment_type_result.portDefinitions,
     )
     EQUIPMENT_TYPES[name] = equipment_type
     return equipment_type
@@ -369,7 +373,7 @@ def copy_equipment_type(
         for port_definition in equipment_type.port_definitions
     ]
 
-    equipment_type = _add_equipment_type(
+    equipment_type_result = _add_equipment_type(
         client,
         new_equipment_type_name,
         equipment_type.category,
@@ -379,12 +383,14 @@ def copy_equipment_type(
     )
 
     new_equipment_type = EquipmentType(
-        name=equipment_type.name,
-        category=equipment_type.category,
-        id=equipment_type.id,
-        property_types=format_to_property_definitions(equipment_type.propertyTypes),
-        position_definitions=equipment_type.positionDefinitions,
-        port_definitions=equipment_type.portDefinitions,
+        name=equipment_type_result.name,
+        category=equipment_type_result.category,
+        id=equipment_type_result.id,
+        property_types=format_to_property_definitions(
+            equipment_type_result.propertyTypes
+        ),
+        position_definitions=equipment_type_result.positionDefinitions,
+        port_definitions=equipment_type_result.portDefinitions,
     )
 
     EQUIPMENT_TYPES[new_equipment_type_name] = new_equipment_type

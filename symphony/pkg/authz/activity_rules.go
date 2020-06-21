@@ -4,8 +4,15 @@
 
 package authz
 
-//TODO(T67933416): Return these rules
-/*
+import (
+	"context"
+
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/activity"
+	"github.com/facebookincubator/symphony/pkg/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+)
+
 // ActivityReadPolicyRule grants read permission to activity based on policy.
 func ActivityReadPolicyRule() privacy.QueryRule {
 	return privacy.ActivityQueryRuleFunc(func(ctx context.Context, q *ent.ActivityQuery) error {
@@ -70,4 +77,3 @@ func ActivityCreatePolicyRule() privacy.MutationRule {
 		return privacy.Skip
 	})
 }
-*/

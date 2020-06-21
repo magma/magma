@@ -10,5 +10,5 @@ class UserRole(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "UserRole":
+    def _missing_(cls, value: object) -> "UserRole":
         return cls.MISSING_ENUM

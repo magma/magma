@@ -158,3 +158,8 @@ func (m *GyCreditControlRequest) SetMSCC(mscc *MultipleServicesCreditControl) *G
 	m.Mscc = append(m.Mscc, mscc)
 	return m
 }
+
+func (m *GyCreditControlRequest) SetMSCCDelta(delta uint64) *GyCreditControlRequest {
+	m.UsageReportDelta = delta
+	return m
+}

@@ -101,22 +101,15 @@ protected:
     return stored;
   }
 
-  StoredChargingCreditPool get_stored_charging_credit_pool() {
-    StoredChargingCreditPool stored;
-    stored.imsi = "IMSI1";
-    auto credit_map =
-        std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
-                           decltype(&ccEqual)>(4, &ccHash, &ccEqual);
-    credit_map[CreditKey(1, 2)] = get_stored_session_credit();
-    stored.credit_map = credit_map;
+  StoredChargingCreditMap get_stored_charging_credit_map() {
+    StoredChargingCreditMap stored(4, &ccHash, &ccEqual);
+    stored[CreditKey(1, 2)] = get_stored_session_credit();
     return stored;
   }
 
-  StoredUsageMonitoringCreditPool get_stored_monitor_pool() {
-    StoredUsageMonitoringCreditPool stored;
-    stored.imsi = "IMSI1";
-    stored.session_level_key = "session_level_key";
-    stored.monitor_map["mk1"] = get_stored_monitor();
+  StoredMonitorMap get_stored_monitor_map() {
+    StoredMonitorMap stored;
+    stored["mk1"] = get_stored_monitor();
     return stored;
   }
 
@@ -124,8 +117,9 @@ protected:
     StoredSessionState stored;
 
     stored.config = get_stored_session_config();
-    stored.charging_pool = get_stored_charging_credit_pool();
-    stored.monitor_pool = get_stored_monitor_pool();
+    stored.credit_map = get_stored_charging_credit_map();
+    stored.monitor_map = get_stored_monitor_map();
+    stored.session_level_key = "session_level_key";
     stored.imsi = "IMSI1";
     stored.session_id = "session_id";
     stored.core_session_id = "core_session_id";
@@ -263,13 +257,13 @@ TEST_F(StoredStateTest, test_stored_monitor) {
   EXPECT_EQ(deserialized.level, MonitoringLevel::PCC_RULE_LEVEL);
 }
 
-TEST_F(StoredStateTest, test_stored_charging_credit_pool) {
-  auto stored = get_stored_charging_credit_pool();
+TEST_F(StoredStateTest, test_stored_charging_credit_map) {
+  auto stored = get_stored_charging_credit_map();
 
-  auto serialized = serialize_stored_charging_credit_pool(stored);
-  auto deserialized = deserialize_stored_charging_credit_pool(serialized);
+  auto serialized = serialize_stored_charging_credit_map(stored);
+  auto deserialized = deserialize_stored_charging_credit_map(serialized);
 
-  auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
+  auto stored_credit = deserialized[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
   EXPECT_EQ(stored_credit.unlimited_quota, true);
@@ -290,16 +284,13 @@ TEST_F(StoredStateTest, test_stored_charging_credit_pool) {
   EXPECT_EQ(stored_credit.usage_reporting_limit, 4444);
 }
 
-TEST_F(StoredStateTest, test_stored_monitor_pool) {
-  auto stored = get_stored_monitor_pool();
+TEST_F(StoredStateTest, test_stored_monitor_map) {
+  auto stored = get_stored_monitor_map();
 
-  auto serialized = serialize_stored_usage_monitoring_pool(stored);
-  auto deserialized = deserialize_stored_usage_monitoring_pool(serialized);
+  auto serialized = serialize_stored_usage_monitor_map(stored);
+  auto deserialized = deserialize_stored_usage_monitor_map(serialized);
 
-  EXPECT_EQ(deserialized.imsi, "IMSI1");
-  EXPECT_EQ(deserialized.session_level_key, "session_level_key");
-
-  auto stored_monitor = deserialized.monitor_map["mk1"];
+  auto stored_monitor = deserialized["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.is_final, true);
   EXPECT_EQ(stored_monitor.credit.unlimited_quota, true);
@@ -344,8 +335,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(config.qos_info.enabled, true);
   EXPECT_EQ(config.qos_info.qci, 123);
 
-  auto charging_pool = deserialized.charging_pool;
-  auto stored_credit = charging_pool.credit_map[CreditKey(1, 2)];
+  auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
   EXPECT_EQ(stored_credit.unlimited_quota, true);
@@ -365,10 +355,9 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(stored_credit.usage_reporting_limit, 4444);
 
-  auto monitor_pool = deserialized.monitor_pool;
-  EXPECT_EQ(monitor_pool.imsi, "IMSI1");
-  EXPECT_EQ(monitor_pool.session_level_key, "session_level_key");
-  auto stored_monitor = monitor_pool.monitor_map["mk1"];
+  EXPECT_EQ(deserialized.session_level_key, "session_level_key");
+
+  auto stored_monitor = deserialized.monitor_map["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.is_final, true);
   EXPECT_EQ(stored_monitor.credit.unlimited_quota, true);

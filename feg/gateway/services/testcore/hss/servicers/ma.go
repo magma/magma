@@ -22,6 +22,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/golang/glog"
 )
 
 // NewMAA outputs a multimedia authentication answer (MAA) to reply to a multimedia
@@ -44,6 +45,9 @@ func NewMAA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		}
 		return ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(diam.UnableToComply)), err
 	}
+
+	subscriber.Lock()
+	defer subscriber.Unlock()
 
 	if !isRATTypeAllowed(uint32(mar.RATType)) {
 		answer := ConstructFailureAnswer(msg, mar.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_RAT_NOT_ALLOWED))
@@ -120,10 +124,15 @@ func (srv *HomeSubscriberServer) GenerateSIPAuthVectors(subscriber *lteprotos.Su
 	lteAuthNextSeq := subscriber.GetState().GetLteAuthNextSeq()
 	for i := uint32(0); i < numVectors; i++ {
 		vector, nextSeq, err := srv.GenerateSIPAuthVector(subscriber)
-		lteAuthNextSeq = nextSeq
 		if err != nil {
-			return vectors, 0, err
+			if i == 0 {
+				return nil, 0, err
+			}
+			glog.Errorf("failed to generate SWX auth vector: %v", err)
+			break
 		}
+		lteAuthNextSeq = nextSeq
+		subscriber.State.LteAuthNextSeq = lteAuthNextSeq
 		vectors = append(vectors, vector)
 	}
 	return vectors, lteAuthNextSeq, nil

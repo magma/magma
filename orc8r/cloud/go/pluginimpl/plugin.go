@@ -22,7 +22,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
-	directorydIndexers "magma/orc8r/cloud/go/services/directoryd/indexers"
 	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
@@ -117,8 +116,10 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 }
 
 func (*BaseOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
+	// TODO(hcgatewood): fix this once k8s polling is enabled -- for now, hard-coding this single indexer as the only remote indexer
 	return []indexer.Indexer{
-		directorydIndexers.NewSessionIDToIMSI(),
+		// From orc8r/cloud/go/services/directoryd/servicers/indexer_servicer.go
+		indexer.NewRemoteIndexer(directoryd.ServiceName, 1, orc8r.DirectoryRecordType),
 	}
 }
 

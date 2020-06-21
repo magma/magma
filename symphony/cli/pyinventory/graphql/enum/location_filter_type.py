@@ -13,5 +13,5 @@ class LocationFilterType(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "LocationFilterType":
+    def _missing_(cls, value: object) -> "LocationFilterType":
         return cls.MISSING_ENUM

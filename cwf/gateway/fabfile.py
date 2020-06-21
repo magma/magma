@@ -131,6 +131,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_set_cwag_test_networking, cwag_br_mac)
 
     if run_tests == "False":
+        execute(_add_docker_host_remote_network_envvar)
         print("run_test was set to false. Test will not be run\n"
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
@@ -184,8 +185,12 @@ def transfer_artifacts(services="sessiond session_proxy", get_core_dump=False):
 def _tar_coredump():
     _switch_to_vm_no_destroy(None, "cwag", "cwag_dev.yml")
     with cd(CWAG_ROOT):
-        run("sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*", warn_only=True)
-        run("sudo rm /var/opt/magma/cores/*", warn_only=True)
+        core_dump_dir = run('ls /var/opt/magma/cores/')
+        num_of_dumps = len(core_dump_dir.split())
+        print(f'Found {num_of_dumps} core dumps')
+        if num_of_dumps > 0:
+            run("sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*",
+                warn_only=True)
 
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
@@ -361,6 +366,13 @@ def _run_unit_tests():
     """ Run the cwag unit tests """
     with cd(CWAG_ROOT):
         run('make test')
+
+
+def _add_docker_host_remote_network_envvar():
+    sudo(
+        "grep -q 'DOCKER_HOST=tcp://%s:2375' /etc/environment || "
+        "echo 'DOCKER_HOST=tcp://%s:2375' >> /etc/environment && "
+        "echo 'DOCKER_API_VERSION=1.40' >> /etc/environment" % (CWAG_IP, CWAG_IP))
 
 
 def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,

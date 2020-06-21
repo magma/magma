@@ -7,7 +7,7 @@
 ## LICENSE file in the root directory of this source tree. An additional grant
 ## of patent rights can be found in the PATENTS file in the same directory.
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 
 #state_protos:
 #  - proto_file:  - file to load proto from
@@ -16,6 +16,18 @@ log_level: INFO
 #    state_scope: - state scope used to determine deviceID.
 #                   Either 'network' or 'gateway' (defaults to 'gateway')
 state_protos:
+  - proto_file: "lte.protos.oai.s1ap_state_pb2"
+    proto_msg: "S1apState"
+    redis_key: "S1AP"
+    state_scope: "network"
+  - proto_file: "lte.protos.oai.spgw_state_pb2"
+    proto_msg: "SpgwState"
+    redis_key: "SPGW"
+    state_scope: "network"
+  - proto_file: "lte.protos.oai.mme_nas_state_pb2"
+    proto_msg: "MmeNasState"
+    redis_key: "MME"
+    state_scope: "network"
 
 #json_state:
 #  - redis_key:   - redis key to store state with (i.e. state type)

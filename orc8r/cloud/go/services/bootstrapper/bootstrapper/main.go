@@ -42,7 +42,6 @@ func main() {
 		log.Fatalf("Failed to create bootstrapper servicer: %s", err)
 	}
 	protos.RegisterBootstrapperServer(srv.GrpcServer, servicer)
-	srv.GrpcServer.RegisterService(protos.GetLegacyBootstrapperDesc(), servicer)
 
 	// Run the service
 	err = srv.Run()

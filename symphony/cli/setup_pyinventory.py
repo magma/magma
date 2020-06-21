@@ -55,5 +55,7 @@ setuptools.setup(
         "protobuf>=3.11.3",
         "grpcio>=1.27.2",
         "grpcio-tools>=1.27.2",
+        "websocket-client>=0.56.0",
+        "mypy",
     ],
 )

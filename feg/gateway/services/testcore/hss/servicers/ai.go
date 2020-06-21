@@ -44,6 +44,9 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 		return ConstructFailureAnswer(msg, air.SessionID, srv.Config.Server, uint32(fegprotos.ErrorCode_AUTHENTICATION_DATA_UNAVAILABLE)), err
 	}
 
+	subscriber.Lock()
+	defer subscriber.Unlock()
+
 	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
 	if err == nil {
 		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)

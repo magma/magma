@@ -10,10 +10,11 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/event"
+
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
-	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -29,7 +30,7 @@ func TestLogEvents(t *testing.T) {
 }
 
 func (s *logTestSuite) SetupSuite() {
-	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureGraphEventLogging))
+	s.eventTestSuite.SetupSuite()
 	s.toUpdate = s.client.LocationType.Create().
 		SetName("LocationTypeToUpdate").
 		SaveX(s.ctx)
@@ -38,10 +39,10 @@ func (s *logTestSuite) SetupSuite() {
 		SaveX(s.ctx)
 }
 
-func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entry pubsub.LogEntry)) {
+func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entry event.LogEntry)) {
 	wg.Add(1)
 	ctx, cancel := context.WithCancel(s.ctx)
-	events := []string{pubsub.EntMutation}
+	events := []string{event.EntMutation}
 	listener, err := pubsub.NewListener(s.ctx, pubsub.ListenerConfig{
 		Subscriber: s.subscriber,
 		Logger:     s.logger.Background(),
@@ -49,8 +50,8 @@ func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entr
 		Handler: pubsub.HandlerFunc(func(_ context.Context, tenant, name string, body []byte) error {
 			s.Assert().NotEmpty(body)
 			s.Assert().Equal(viewertest.DefaultTenant, tenant)
-			s.Assert().Equal(pubsub.EntMutation, name)
-			var entry pubsub.LogEntry
+			s.Assert().Equal(event.EntMutation, name)
+			var entry event.LogEntry
 			err := pubsub.Unmarshal(body, &entry)
 			s.NoError(err)
 			expect(entry)
@@ -69,7 +70,7 @@ func (s *logTestSuite) subscribeForOneEvent(wg *sync.WaitGroup, expect func(entr
 
 func (s *logTestSuite) TestCreateEnt() {
 	var wg sync.WaitGroup
-	s.subscribeForOneEvent(&wg, func(entry pubsub.LogEntry) {
+	s.subscribeForOneEvent(&wg, func(entry event.LogEntry) {
 		s.Assert().Equal(s.user.AuthID, entry.UserName)
 		s.Assert().Equal(s.user.ID, *entry.UserID)
 		s.Assert().Equal(ent.OpCreate, entry.Operation)
@@ -100,7 +101,7 @@ func (s *logTestSuite) TestCreateEnt() {
 
 func (s *logTestSuite) TestUpdateEnt() {
 	var wg sync.WaitGroup
-	s.subscribeForOneEvent(&wg, func(entry pubsub.LogEntry) {
+	s.subscribeForOneEvent(&wg, func(entry event.LogEntry) {
 		s.Assert().Equal(s.user.AuthID, entry.UserName)
 		s.Assert().Equal(s.user.ID, *entry.UserID)
 		s.Assert().Equal(ent.OpUpdateOne, entry.Operation)
@@ -131,7 +132,7 @@ func (s *logTestSuite) TestUpdateEnt() {
 
 func (s *logTestSuite) TestDeleteEnt() {
 	var wg sync.WaitGroup
-	s.subscribeForOneEvent(&wg, func(entry pubsub.LogEntry) {
+	s.subscribeForOneEvent(&wg, func(entry event.LogEntry) {
 		s.Assert().Equal(s.user.AuthID, entry.UserName)
 		s.Assert().Equal(s.user.ID, *entry.UserID)
 		s.Assert().Equal(ent.OpDeleteOne, entry.Operation)

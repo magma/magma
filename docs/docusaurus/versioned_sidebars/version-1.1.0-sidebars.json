@@ -52,6 +52,7 @@
           "version-1.1.0-feg/deploy_install"
         ]
       }
-    ]
+    ],
+    "FAQ": ["faq/magma_faq"]
   }
 }
