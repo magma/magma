@@ -1863,24 +1863,33 @@ static bool s1ap_send_enb_deregistered_ind(
         .enb_ue_s1ap_id[arg->current_ue_index] = ue_ref_p->enb_ue_s1ap_id;
 
     arg->handled_ues++;
-    arg->current_ue_index =
-        (uint8_t)(arg->handled_ues % S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE);
+    arg->current_ue_index++;
 
-    // Max UEs reached for this ITTI message, send message to MME App
     if (arg->handled_ues == arg->deregister_ue_count ||
-        (arg->current_ue_index == 0 && arg->handled_ues > 0)) {
-      if (arg->current_ue_index != 0) {
-        // The last batch of messages needs to be sent here
-        S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
-            (uint8_t) arg->current_ue_index;
-      } else {
-        S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
-            S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE;
-      }
-
+        arg->current_ue_index == S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE) {
       // Sending INVALID_IMSI64 because message is not specific to any UE/IMSI
       arg->message_p->ittiMsgHeader.imsi               = INVALID_IMSI64;
       S1AP_ENB_DEREGISTERED_IND(arg->message_p).enb_id = arg->associated_enb_id;
+      S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
+          (uint8_t) arg->current_ue_index;
+
+      if (arg->current_ue_index == S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE) {
+        arg->current_ue_index = 0;
+        // Max UEs reached for this ITTI message, send message to MME App
+        OAILOG_DEBUG(
+            LOG_S1AP,
+            "Reached maximum UE count for this ITTI message. Sending "
+            "deregistered indication to MME App for UE count = %u\n",
+            S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister);
+      } else {
+        // The last batch of messages will be sent here
+        OAILOG_DEBUG(
+            LOG_S1AP,
+            "Reached maximum UE count to be deregistered. Sending "
+            "deregistered indication to MME App for UE count = %u\n",
+            S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister);
+      }
+
       itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, arg->message_p);
       arg->message_p = NULL;
     }
