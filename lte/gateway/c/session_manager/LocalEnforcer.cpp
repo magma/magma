@@ -422,6 +422,9 @@ static RedirectInformation_AddressType address_type_converter(
       return RedirectInformation_AddressType_URL;
     case RedirectServer_RedirectAddressType_SIP_URI:
       return RedirectInformation_AddressType_SIP_URI;
+    default:
+      MLOG(MERROR) << "Unknown redirect address type!";
+      return RedirectInformation_AddressType_IPv4;
   }
 }
 
@@ -573,6 +576,9 @@ static bool should_activate(
     case PolicyRule::NO_TRACKING:
       MLOG(MINFO) << "Activating untracked rule " << rule.id();
       break;
+    default:
+      MLOG(MINFO) << "Invalid rule tracking type " << rule.id();
+      return false;
   }
   return true;
 }
