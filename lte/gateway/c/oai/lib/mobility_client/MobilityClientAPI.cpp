@@ -31,7 +31,6 @@
 #include "pcef_handlers.h"
 #include "service303.h"
 #include "spgw_types.h"
-
 #include "MobilityServiceClient.h"
 
 using grpc::Channel;
@@ -231,7 +230,7 @@ int get_subscriber_id_from_ipv4(
 struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_prefix)
 {
   char *ip6_addr = (char*)malloc(INET6_ADDRSTRLEN);
-  char *temp_prefix[4];
+  char *temp_prefix[4], *temp_prefix_free[4];
   char *buf_ipv6 = ip6_addr;
   struct in6_addr* ip6_prefix = (struct in6_addr*)malloc(INET6_ADDRSTRLEN);
   unsigned int random[4] = {0};
@@ -241,6 +240,10 @@ struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_pr
   inet_ntop(AF_INET6, &config_ipv6_prefix, buf_ipv6, INET6_ADDRSTRLEN);
   for (itrn=0; itrn<4; itrn++){
     temp_prefix[itrn] = (char*)malloc(4);
+    /* Take a copy of temp_prefix because strsep function updates
+     * the pointer and points right after the token it found
+     */
+    temp_prefix_free[itrn] = temp_prefix[itrn];
     temp_prefix[itrn] = strsep(&buf_ipv6, ":");
   }
   // Generate Random Interface Identifier
@@ -253,6 +256,10 @@ struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_pr
 
   // Convert the IPv6 address into in6_addr format
   inet_pton(AF_INET6, ip6_addr, ip6_prefix);
+  for (itrn=0; itrn<4; itrn++){
+    free_wrapper((void**) &temp_prefix_free[itrn]);
+  }
+  free_wrapper((void**) &ip6_addr);
   return ip6_prefix;
 }
 
@@ -304,6 +311,7 @@ int pgw_handle_allocate_ipv6_address(
     session_req,
     new_bearer_ctxt_info_p);
   increment_counter("spgw_create_session", 1, 1, "result", "success");
+  free_wrapper((void**) &ip6_prefix);
   return 0;
 }
 
@@ -399,6 +407,7 @@ int pgw_handle_allocate_ipv4v6_address(
         new_bearer_ctxt_info_p);
       s5_response.eps_bearer_id = eps_bearer_id;
       s5_response.context_teid = context_teid;
+      free_wrapper((void**) &ip6_prefix_temp);
       OAILOG_FUNC_OUT(LOG_PGW_APP);
     }
     s5_response.eps_bearer_id = eps_bearer_id;

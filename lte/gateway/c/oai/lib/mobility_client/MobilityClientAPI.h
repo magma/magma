@@ -30,6 +30,7 @@ extern "C" {
 #include "log.h"
 #include "ip_forward_messages_types.h"
 #include "intertask_interface.h"
+#include "dynamic_memory_check.h"
 #include "spgw_state.h"
 
 // Status codes from gRPC

@@ -85,6 +85,14 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
+        # Attach Reject will be sent since IPv6 PDN Type is not configured
+        if pdn_type_value == 2:
+          response = self._s1ap_wrapper.s1_util.get_response()
+          self.assertEqual(
+              response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+          )
+          return self._s1ap_wrapper.s1_util.get_response()
+
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value

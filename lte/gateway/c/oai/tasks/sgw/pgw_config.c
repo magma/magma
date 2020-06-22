@@ -411,13 +411,17 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
     if (config_setting_lookup_string(
       setting_pgw, PGW_CONFIG_IPV6_ADDRESS_PREFIX,
       (const char**) &ipv6_addr_prefix)) {
-      char *temp_prefix, *len;
-      len = strdup(ipv6_addr_prefix);
+      char *temp_prefix, *len, *temp;
+      /* Take a copy of len to be freed later because strsep function
+       * updates the pointer and points right after the token it found
+       */
+      temp = len = strdup(ipv6_addr_prefix);
       temp_prefix = strsep(&len, "/");
       config_pP->ipv6.ipv6_address_prefix_len = atoi((const char*)len);
       IPV6_STR_ADDR_TO_INADDR(
         temp_prefix, config_pP->ipv6.ipv6_address_prefix,
         "BAD IPv6 ADDRESS PREFIX FORMAT!\n");
+      free_wrapper((void**) &temp);
       OAILOG_DEBUG(
         LOG_SPGW_APP, "Parsing configuration file IPv6 address prefix\n");
       } else {
