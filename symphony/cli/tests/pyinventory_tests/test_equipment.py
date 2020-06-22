@@ -9,6 +9,7 @@ from pyinventory.api.equipment import (
     get_equipment,
     get_equipment_by_external_id,
     get_equipment_properties,
+    get_equipments,
     get_equipments_by_location,
     get_equipments_by_type,
     get_or_create_equipment,
@@ -134,6 +135,10 @@ class TestEquipment(BaseTest):
             properties_dict={"IP": "127.0.0.1"},
         )
         self.assertEqual(self.equipment, equipment2)
+
+    def test_get_equipments(self) -> None:
+        equipments = get_equipments(client=self.client)
+        self.assertEqual(len(equipments), 2)
 
     def test_equipment_properties(self) -> None:
         properties = get_equipment_properties(

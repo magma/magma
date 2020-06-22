@@ -101,6 +101,7 @@ class InventoryClient(SymphonyClient):
         add_equipment_to_position,
         get_equipment,
         get_equipment_in_position,
+        get_equipments,
         delete_equipment,
         search_for_equipments,
         delete_all_equipments,
