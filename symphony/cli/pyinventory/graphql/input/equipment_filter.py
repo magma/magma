@@ -17,10 +17,10 @@ from ..enum.filter_operator import FilterOperator
 from ..input.property_type import PropertyTypeInput
 @dataclass
 class EquipmentFilterInput(DataClassJsonMixin):
-    filterType: EquipmentFilterType = enum_field(EquipmentFilterType)
-    operator: FilterOperator = enum_field(FilterOperator)
     idSet: List[str]
     stringSet: List[str]
+    filterType: EquipmentFilterType = enum_field(EquipmentFilterType)
+    operator: FilterOperator = enum_field(FilterOperator)
     stringValue: Optional[str] = None
     propertyValue: Optional[PropertyTypeInput] = None
     maxDepth: Optional[int] = None

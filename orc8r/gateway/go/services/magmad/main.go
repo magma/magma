@@ -178,6 +178,9 @@ func mainEventLoop(eventChan <-chan interface{}, freeMemChan <-chan time.Time) {
 			if ok {
 				glog.Info("purging unused memory")
 				debug.FreeOSMemory()
+				if glog.V(2) {
+					profile.LogMemStats()
+				}
 				// write out heap profile if built with -tags with_profiler, noop otherwise
 				// to use:
 				//    go tool pprof -http=127.0.0.1:9999 <path/to/magmad> <profiles_dir/memory_MMDD_HH.mm.SS.pprof>

@@ -3,7 +3,7 @@
   "description": "UI components for alert configuration of prometheus and alertmanager.",
   "author": "Facebook Connectivity",
   "license": "BSD-2-Clause",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "repository": {
     "type": "git",
     "url": "https://github.com/facebookincubator/magma.git",

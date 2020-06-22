@@ -24,9 +24,9 @@ class SurveyQuestionResponse(DataClassJsonMixin):
     wifiData: List[SurveyWiFiScanData]
     cellData: List[SurveyCellScanData]
     imagesData: List[FileInput]
+    questionFormat: Optional[SurveyQuestionType] = None
     formName: Optional[str] = None
     formDescription: Optional[str] = None
-    questionFormat: Optional[SurveyQuestionType] = None
     boolData: Optional[bool] = None
     emailData: Optional[str] = None
     latitude: Optional[Number] = None

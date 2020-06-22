@@ -5,7 +5,7 @@
 
 import warnings
 from datetime import datetime
-from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, cast
+from typing import Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union, cast
 
 from dacite import Config, from_dict
 
@@ -71,7 +71,7 @@ def get_graphql_input_field(
 
 def get_graphql_property_type_inputs(
     property_types: Sequence[PropertyDefinition],
-    properties_dict: Dict[str, PropertyValue],
+    properties_dict: Mapping[str, PropertyValue],
 ) -> List[PropertyTypeInput]:
     """This function gets existing property types and dictionary, where key - are type names, and keys - new values
     formats data, validates existence of keys from `properties_dict` in `property_types` and returns list of PropertyTypeInput
@@ -97,9 +97,11 @@ def get_graphql_property_type_inputs(
     for name, value in properties_dict.items():
         if name not in property_type_names:
             raise EntityNotFoundError(entity=Entity.PropertyType, entity_name=name)
+        property_type_id = property_type_names[name].id
+        assert property_type_id is not None, f"property {name} has no id"
         assert not property_type_names[name].is_fixed, f"property {name} is fixed"
-        result = {
-            "id": property_type_names[name].id,
+        result: Dict[str, Union[PropertyValue, PropertyKind]] = {
+            "id": property_type_id,
             "name": name,
             "type": PropertyKind(property_type_names[name].property_kind),
         }
@@ -153,8 +155,10 @@ def get_graphql_property_inputs(
     for name, value in properties_dict.items():
         if name not in property_type_names:
             raise EntityNotFoundError(entity=Entity.PropertyType, entity_name=name)
+        property_type_id = property_type_names[name].id
+        assert property_type_id is not None, f"property {name} has no id"
         assert not property_type_names[name].is_fixed, f"property {name} is fixed"
-        result = {"propertyTypeID": property_type_names[name].id}
+        result: Dict[str, PropertyValue] = {"propertyTypeID": property_type_id}
         result.update(
             get_graphql_input_field(
                 property_type_name=name,

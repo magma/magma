@@ -105,8 +105,9 @@ class SubscriptionClient:
                     # exception queues. but this scenario will only happen with
                     # servers having glaring holes in implementing the protocol
                     # correctly, which is rare. hence this is not very urgent
-                    err = f'Protocol Violation.\nExpected "id" in {msg}, but could not find.'
-                    raise InvalidPayloadException(err)
+                    raise InvalidPayloadException(
+                        f'Protocol Violation.\nExpected "id" in {msg}, but could not find.'
+                    )
 
                 # if the message has an id, it is meant for a particular operation
                 if "id" in msg:

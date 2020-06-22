@@ -9,7 +9,7 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 from functools import partial
 from numbers import Number
-from typing import Any, Callable, List, Mapping, Optional
+from typing import Any, Callable, List, Mapping, Optional, Dict
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
@@ -50,7 +50,7 @@ class LocationSearchQuery(DataClassJsonMixin):
     # fmt: off
     def execute(cls, client: GraphqlClient, filters: List[LocationFilterInput] = [], limit: Optional[int] = None) -> LocationSearchQueryData.LocationSearchResult:
         # fmt: off
-        variables = {"filters": filters, "limit": limit}
+        variables: Dict[str, Any] = {"filters": filters, "limit": limit}
         try:
             network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)

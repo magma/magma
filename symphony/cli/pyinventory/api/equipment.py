@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple, cast
 
 from pysymphony import SymphonyClient
 from tqdm import tqdm
@@ -581,9 +581,9 @@ def search_for_equipments(
             client.search_for_equipments(limit=10)
             ```
     """
-    equipments = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
+    equipments_result = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
 
-    total_count = equipments.count
+    total_count = equipments_result.count
     equipments = [
         Equipment(
             id=equipment.id,
@@ -591,7 +591,7 @@ def search_for_equipments(
             name=equipment.name,
             equipment_type_name=equipment.equipmentType.name,
         )
-        for equipment in equipments.equipment
+        for equipment in equipments_result.equipment
     ]
     return equipments, total_count
 
@@ -634,7 +634,7 @@ def _get_equipment_type_and_properties_dict(
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     equipment_type = result.equipmentType.name
 
-    properties_dict = {}
+    properties_dict: Dict[str, PropertyValue] = {}
     property_types = EQUIPMENT_TYPES[equipment_type].property_types
     for property in result.properties:
         property_type_id = property.propertyType.id
@@ -654,8 +654,8 @@ def _get_equipment_type_and_properties_dict(
         )
         if property_type.property_kind == PropertyKind.gps_location:
             properties_dict[property_type.property_name] = (
-                property_value[0],
-                property_value[1],
+                cast(float, property_value[0]),
+                cast(float, property_value[1]),
             )
         else:
             properties_dict[property_type.property_name] = property_value[0]

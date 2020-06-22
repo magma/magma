@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package event
+package handler
 
 import (
 	"context"
@@ -13,9 +13,10 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/event"
 )
 
-func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
+func updateActivitiesOnWOCreate(ctx context.Context, entry *event.LogEntry) error {
 	userID := entry.UserID
 	client := ent.FromContext(ctx)
 
@@ -31,7 +32,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		return err
 	}
 
-	if assignee, found := findEdge(wo.Edges, workorder.EdgeAssignee); found {
+	if assignee, found := event.FindEdge(wo.Edges, workorder.EdgeAssignee); found {
 		assgnID := assignee.IDs[0]
 		_, err = client.Activity.Create().
 			SetChangedField(activity.ChangedFieldASSIGNEE).
@@ -45,7 +46,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	if owner, found := findEdge(wo.Edges, workorder.EdgeOwner); found {
+	if owner, found := event.FindEdge(wo.Edges, workorder.EdgeOwner); found {
 		ownerID := owner.IDs[0]
 
 		_, err = client.Activity.Create().
@@ -60,7 +61,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	if st, found := findField(wo.Fields, workorder.FieldStatus); found {
+	if st, found := event.FindField(wo.Fields, workorder.FieldStatus); found {
 		_, err = client.Activity.Create().
 			SetChangedField(activity.ChangedFieldSTATUS).
 			SetIsCreate(true).
@@ -73,7 +74,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	if pri, found := findField(wo.Fields, workorder.FieldPriority); found {
+	if pri, found := event.FindField(wo.Fields, workorder.FieldPriority); found {
 		_, err = client.Activity.Create().
 			SetChangedField(activity.ChangedFieldPRIORITY).
 			SetIsCreate(true).
@@ -88,7 +89,7 @@ func updateActivitiesOnWOCreate(ctx context.Context, entry *LogEntry) error {
 	return nil
 }
 
-func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
+func updateActivitiesOnWOUpdate(ctx context.Context, entry *event.LogEntry) error {
 	userID := entry.UserID
 	client := ent.FromContext(ctx)
 
@@ -122,7 +123,7 @@ func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	newVal, oldVal, shouldUpdate = getStringDiffValuesField(entry, workorder.FieldStatus)
+	newVal, oldVal, shouldUpdate = event.GetStringDiffValuesField(entry, workorder.FieldStatus)
 	if shouldUpdate {
 		_, err := client.Activity.Create().
 			SetChangedField(activity.ChangedFieldSTATUS).
@@ -137,7 +138,7 @@ func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
 		}
 	}
 
-	newVal, oldVal, shouldUpdate = getStringDiffValuesField(entry, workorder.FieldPriority)
+	newVal, oldVal, shouldUpdate = event.GetStringDiffValuesField(entry, workorder.FieldPriority)
 	if shouldUpdate {
 		_, err := client.Activity.Create().
 			SetChangedField(activity.ChangedFieldPRIORITY).
@@ -154,8 +155,8 @@ func updateActivitiesOnWOUpdate(ctx context.Context, entry *LogEntry) error {
 	return nil
 }
 
-func getDiffOfUniqueEdgeAsString(entry *LogEntry, edge string) (*string, *string, bool) {
-	newIntVal, oldIntVal, shouldUpdate := getDiffOfUniqueEdge(entry, edge)
+func getDiffOfUniqueEdgeAsString(entry *event.LogEntry, edge string) (*string, *string, bool) {
+	newIntVal, oldIntVal, shouldUpdate := event.GetDiffOfUniqueEdge(entry, edge)
 	var newStrVal, oldStrVal *string
 	if newIntVal != nil {
 		newStrVal = pointer.ToString(strconv.Itoa(*newIntVal))
@@ -166,7 +167,7 @@ func getDiffOfUniqueEdgeAsString(entry *LogEntry, edge string) (*string, *string
 	return newStrVal, oldStrVal, shouldUpdate
 }
 
-func HandleActivityLog(ctx context.Context, entry LogEntry) error {
+func HandleActivityLog(ctx context.Context, entry event.LogEntry) error {
 	var err error
 	if entry.Type != ent.TypeWorkOrder {
 		return nil

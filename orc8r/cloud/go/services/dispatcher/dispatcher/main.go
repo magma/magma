@@ -57,14 +57,10 @@ func main() {
 	if err != nil {
 		glog.Fatalf("SyncRPCService Initialization Error: %s", err)
 	}
+	protos.RegisterSyncRPCServiceServer(srv.GrpcServer, syncRpcServicer)
 
 	// create http server
 	httpServer := httpserver.NewSyncRPCHttpServer(broker)
-
-	protos.RegisterSyncRPCServiceServer(srv.GrpcServer, syncRpcServicer)
-	srv.GrpcServer.RegisterService(protos.GetLegacyDispatcherDesc(), syncRpcServicer)
-
-	// run http server
 	go httpServer.Run(fmt.Sprintf(":%d", HttpServerPort))
 
 	err = srv.Run()

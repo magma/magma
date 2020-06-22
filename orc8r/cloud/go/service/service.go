@@ -34,9 +34,7 @@ func NewOrchestratorService(moduleName string, serviceName string) (*platform_se
 // NewOrchestratorServiceWithOptions returns a new GRPC orchestrator service
 // implementing service303 with the specified grpc server options. This service
 // will implement a middleware interceptor to perform identity check.
-func NewOrchestratorServiceWithOptions(
-	moduleName string, serviceName string, serverOptions ...grpc.ServerOption,
-) (*platform_service.Service, error) {
+func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*platform_service.Service, error) {
 	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.MiddlewareHandler))

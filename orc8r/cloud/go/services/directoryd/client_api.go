@@ -93,7 +93,7 @@ func GetIMSIForSessionID(networkID, sessionID string) (string, error) {
 		SessionID: sessionID,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to get imsi for session ID %s under network ID %s: %s", sessionID, networkID, err)
+		return "", fmt.Errorf("failed to get IMSI for session ID %s under network ID %s: %s", sessionID, networkID, err)
 	}
 
 	return res.Imsi, nil

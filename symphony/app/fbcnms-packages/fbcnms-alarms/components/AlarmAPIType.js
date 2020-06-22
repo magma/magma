@@ -35,13 +35,17 @@ export type AlertReceiver = {
   email_configs?: Array<ReceiverEmailConfig>,
   slack_configs?: Array<ReceiverSlackConfig>,
   webhook_configs?: Array<ReceiverWebhookConfig>,
+  pagerduty_configs?: Array<ReceiverPagerDutyConfig>,
+  pushover_configs?: Array<ReceiverPushoverConfig>,
 };
 
 // names of all the <type>_configs lists for a receiver
 export type ReceiverConfigListName =
   | 'email_configs'
   | 'slack_configs'
-  | 'webhook_configs';
+  | 'webhook_configs'
+  | 'pagerduty_configs'
+  | 'pushover_configs';
 
 export type ReceiverEmailConfig = {
   auth_identity?: string,
@@ -52,10 +56,10 @@ export type ReceiverEmailConfig = {
   headers?: {[string]: string},
   hello?: string,
   html?: string,
-  send_resolved?: boolean,
   smarthost: string,
   text?: string,
   to: string,
+  send_resolved?: boolean,
 };
 
 export type ReceiverSlackConfig = {
@@ -117,6 +121,30 @@ export type HTTPConfig = {
 export type HTTPConfigBasicAuth = {
   password: string,
   username: string,
+};
+
+export type ReceiverPagerDutyConfig = {
+  send_resolved?: boolean,
+  routing_key: string,
+  service_key: string,
+  url: string,
+  client: string,
+  client_url: string,
+  description: string,
+  severity: string,
+};
+
+export type ReceiverPushoverConfig = {
+  send_resolved: boolean,
+  user_key: string,
+  token: string,
+  title: string,
+  message: string,
+  url: string,
+  priority: string,
+  retry: string,
+  expire: string,
+  http_config: HTTPConfig,
 };
 
 /**

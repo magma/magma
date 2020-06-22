@@ -15,7 +15,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
 	"github.com/facebookincubator/symphony/pkg/pubsub"
-	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -31,7 +30,7 @@ func TestLogEvents(t *testing.T) {
 }
 
 func (s *logTestSuite) SetupSuite() {
-	s.eventTestSuite.SetupSuite(viewertest.WithFeatures(viewer.FeatureMoveWorkOrderActivitiesToAsyncService))
+	s.eventTestSuite.SetupSuite()
 	s.toUpdate = s.client.LocationType.Create().
 		SetName("LocationTypeToUpdate").
 		SaveX(s.ctx)

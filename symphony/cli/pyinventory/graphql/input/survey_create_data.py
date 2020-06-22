@@ -20,7 +20,7 @@ class SurveyCreateData(DataClassJsonMixin):
     completionTimestamp: int
     locationID: str
     surveyResponses: List[SurveyQuestionResponse]
+    status: Optional[SurveyStatus] = None
     ownerName: Optional[str] = None
     creationTimestamp: Optional[int] = None
-    status: Optional[SurveyStatus] = None
 

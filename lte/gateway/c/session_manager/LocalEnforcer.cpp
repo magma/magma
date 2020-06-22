@@ -852,29 +852,9 @@ bool LocalEnforcer::init_session_credit(
       session_map, imsi, *session_state, response, charging_credits_received);
 
   if (session_state->is_radius_cwf_session()) {
-    using namespace std::placeholders;
-    MLOG(MERROR) << "Adding UE MAC flow for subscriber " << imsi;
-    SubscriberID sid;
-    sid.set_id(imsi);
-    std::string apn_mac_addr;
-    std::string apn_name;
-    if (!parse_apn(cfg.apn, apn_mac_addr, apn_name)) {
-      MLOG(MWARNING) << "Failed mac/name parsing for apn " << cfg.apn;
-      apn_mac_addr = "";
-      apn_name     = cfg.apn;
-    }
-    auto ue_mac_addr             = session_state->get_config().mac_addr;
-    bool add_ue_mac_flow_success = pipelined_client_->add_ue_mac_flow(
-        sid, ue_mac_addr, cfg.msisdn, apn_mac_addr, apn_name,
-        std::bind(
-          &LocalEnforcer::handle_add_ue_mac_flow_callback,
-          this, sid, ue_mac_addr, cfg.msisdn, apn_mac_addr, apn_name, _1, _2));
-    if (!add_ue_mac_flow_success) {
-      MLOG(MERROR) << "Failed to add UE MAC flow for subscriber " << imsi;
-    }
     if (terminate_on_wallet_exhaust()) {
       handle_session_init_subscriber_quota_state(
-        session_map, imsi, *session_state);
+          session_map, imsi, *session_state);
     }
   }
 
@@ -1800,22 +1780,6 @@ void LocalEnforcer::handle_cwf_roaming(
       update_criteria.is_config_updated = true;
       update_criteria.updated_config = session->get_config();
       // TODO Check for event triggers and send updates to the core if needed
-      MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
-      SubscriberID sid;
-      sid.set_id(imsi);
-      std::string apn_mac_addr;
-      std::string apn_name;
-      if (!parse_apn(config.apn, apn_mac_addr, apn_name)) {
-        MLOG(MWARNING) << "Failed mac/name parsiong for apn " << config.apn;
-        apn_mac_addr = "";
-        apn_name     = config.apn;
-      }
-      auto ue_mac_addr             = session->get_config().mac_addr;
-      bool add_ue_mac_flow_success = pipelined_client_->update_ipfix_flow(
-          sid, ue_mac_addr, config.msisdn, apn_mac_addr, apn_name);
-      if (!add_ue_mac_flow_success) {
-        MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
-      }
     }
   }
 }

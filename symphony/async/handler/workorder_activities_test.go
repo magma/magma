@@ -24,7 +24,7 @@ import (
 func TestAddWorkOrderActivities(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
-	c.Use(event.LogHook(event.HandleActivityLog, log.NewNopLogger()))
+	c.Use(event.LogHook(HandleActivityLog, log.NewNopLogger()))
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 
 	now := time.Now()
@@ -70,7 +70,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 func TestEditWorkOrderActivities(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
-	c.Use(event.LogHook(event.HandleActivityLog, log.NewNopLogger()))
+	c.Use(event.LogHook(HandleActivityLog, log.NewNopLogger()))
 	u := viewer.FromContext(ctx).(*viewer.UserViewer).User()
 
 	now := time.Now()

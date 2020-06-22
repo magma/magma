@@ -34,6 +34,9 @@ aliases:
   - &appdir
     working_directory: app
 
+  - &clidir
+    working_directory: cli
+
   - &alarmsdir
     working_directory: app/fbcnms-packages/fbcnms-alarms
 
@@ -67,6 +70,9 @@ executors:
   yarnnode:
     docker:
       - image: circleci/node:10-buster-browsers-legacy
+  python:
+    docker:
+      - image: circleci/python:3.7
 
 commands:
   getmods:
@@ -113,7 +119,7 @@ commands:
         default: infra/deploy
         type: string
       workspace:
-        default: ''
+        default: ""
         type: string
     steps:
       - run:
@@ -212,6 +218,25 @@ commands:
           key: yarn-packages-{{ checksum "app/yarn.lock" }}
           paths:
             - ~/.cache/yarn
+
+  pyinventory-setup:
+    steps:
+      - run:
+          name: Install PyInvenory requirements
+          <<: *clidir
+          command: sudo python3 setup_pyinventory.py install
+
+  validate-gql:
+    parameters:
+      schema_directory:
+        type: string
+      package_name:
+        type: string
+    steps:
+      - run:
+          name: Validate <<parameters.package_name>> GraphQL files
+          <<: *clidir
+          command: python3 -m test_validate_gql_files <<parameters.schema_directory>> <<parameters.package_name>>/graphql/
 
 jobs:
   lint:
@@ -359,8 +384,6 @@ jobs:
         default: ""
     steps:
       - checkout
-      - docker/check:
-          registry: $DOCKER_REGISTRY
       - run:
           name: Setup environment variables
           command: echo "export TAG=$CIRCLE_SHA1" >> $BASH_ENV
@@ -368,6 +391,8 @@ jobs:
       - when:
           condition: <<parameters.pull_images>>
           steps:
+            - docker/check:
+                registry: $DOCKER_REGISTRY
             - run:
                 name: Pull service images
                 command: docker-compose pull
@@ -379,12 +404,10 @@ jobs:
           command: docker-compose up -d --scale tests=0 --scale pytests=0
       - run:
           name: Run go tests
-          command:
-            docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=integration.xml tests
+          command: docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=integration.xml tests
       - run:
           name: Run python tests
-          command:
-            docker-compose run --use-aliases -e XML_OUTPUT_DIRECTORY=. pytests
+          command: docker-compose run --use-aliases -e XML_OUTPUT_DIRECTORY=. pytests
       - run:
           name: Collect tests results
           command: |
@@ -508,7 +531,7 @@ jobs:
         default: Testim-Grid
         type: string
       options:
-        default: ''
+        default: ""
         type: string
     executor: testim
     steps:
@@ -546,6 +569,42 @@ jobs:
           name: flow typecheck
           <<: *appdir
           command: yarn run flow
+
+  validate-gql-test:
+    parameters:
+      schema_directory:
+        default: ../graph/graphql/schema
+        type: string
+      pyinventory_package:
+        default: pyinventory
+        type: string
+      pysymphony_package:
+        default: pysymphony
+        type: string
+    executor: python
+    steps:
+      - checkout
+      - pyinventory-setup
+      - validate-gql:
+          schema_directory: <<parameters.schema_directory>>
+          package_name: <<parameters.pyinventory_package>>
+      - validate-gql:
+          schema_directory: <<parameters.schema_directory>>
+          package_name: <<parameters.pysymphony_package>>
+      - run:
+          name: GraphQL Breaking Changes
+          <<: *clidir
+          command: python3 -m test_gql_breaking_changes <<parameters.schema_directory>>
+
+  pdoctest:
+    executor: python
+    steps:
+      - checkout
+      - pyinventory-setup
+      - run:
+          name: pdoc3 check
+          <<: *clidir
+          command: python3 -m export_doc
 
   yarntest:
     executor: yarnnode
@@ -596,6 +655,8 @@ workflows:
   all:
     jobs:
       - lint
+      - validate-gql-test
+      - pdoctest
       - eslint
       - unit
       - flowtest
@@ -711,12 +772,10 @@ workflows:
     jobs:
       - tfdiff:
           workspace: default
-          context: symphony
           <<: *tfvardir
       - tfapply:
           name: staging/deploy
           workspace: staging
-          context: symphony
           after_checkout:
             - tfprepare: &tfprepare
                 <<: *tfvardir
@@ -724,7 +783,6 @@ workflows:
           requires:
             - tfdiff
       - testim:
-          context: symphony
           before_test:
             - run:
                 name: Check testim blocker
@@ -737,7 +795,6 @@ workflows:
       - tfapply:
           name: production/deploy
           workspace: default
-          context: symphony
           after_checkout:
             - tfprepare: *tfprepare
           requires:

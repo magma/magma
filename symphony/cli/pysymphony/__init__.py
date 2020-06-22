@@ -89,15 +89,15 @@ class SymphonyClient(GraphqlClient):
             params={"contentType": file_type},
             headers={"Is-Global": str(is_global)},
         )
-        sign_response = sign_response.json()
-        signed_url = sign_response["URL"]
+        sign_response_json = sign_response.json()
+        signed_url = sign_response_json["URL"]
         with open(file_path, "rb") as f:
             file_data = f.read()
         response = self.session.put(
             signed_url, data=file_data, headers={"Content-Type": file_type}
         )
         response.raise_for_status()
-        return sign_response["key"]
+        return sign_response_json["key"]
 
     def delete_file(self, key: str, is_global: bool) -> None:
         # TODO(T64504906): Remove after basic auth is enabled
