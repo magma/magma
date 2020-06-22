@@ -118,6 +118,7 @@ class InventoryClient(SymphonyClient):
     from .api.link import (
         add_link,
         get_link_in_port_of_equipment,
+        get_links,
         get_all_links_and_port_names_of_equipment,
     )
     from .api.service import (

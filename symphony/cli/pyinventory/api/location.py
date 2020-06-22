@@ -10,7 +10,7 @@ from pysymphony import SymphonyClient
 
 from .._utils import get_graphql_property_inputs
 from ..common.cache import LOCATION_TYPES
-from ..common.constant import LOCATION_PAGINATION_STEP, LOCATIONS_TO_SEARCH
+from ..common.constant import LOCATIONS_TO_SEARCH, PAGINATION_STEP
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -291,11 +291,11 @@ def get_locations(client: SymphonyClient) -> List[Location]:
             all_locations = client.get_locations()
             ```
     """
-    locations = GetLocationsQuery.execute(client, first=LOCATION_PAGINATION_STEP)
+    locations = GetLocationsQuery.execute(client, first=PAGINATION_STEP)
     edges = locations.edges if locations else []
     while locations is not None and locations.pageInfo.hasNextPage:
         locations = GetLocationsQuery.execute(
-            client, after=locations.pageInfo.endCursor, first=LOCATION_PAGINATION_STEP
+            client, after=locations.pageInfo.endCursor, first=PAGINATION_STEP
         )
         if locations is not None:
             edges.extend(locations.edges)
