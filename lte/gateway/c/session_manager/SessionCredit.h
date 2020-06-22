@@ -57,7 +57,7 @@ public:
   SessionCredit(CreditType credit_type, ServiceState start_state);
 
   SessionCredit(CreditType credit_type, ServiceState start_state,
-                bool unlimited_quota);
+                CreditUpdateResponse::CreditLimitType credit_limit_type);
 
   /**
    * add_used_credit increments USED_TX and USED_RX

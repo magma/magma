@@ -94,16 +94,22 @@ SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
       reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
       unlimited_quota_(false), buckets_{}, is_final_grant_(false){}
 
-SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state,
-                             bool unlimited_quota)
+SessionCredit::SessionCredit(
+  CreditType credit_type, ServiceState start_state,
+  CreditUpdateResponse::CreditLimitType credit_limit_type)
     : credit_type_(credit_type), reporting_(false),
       reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(unlimited_quota), buckets_{}, is_final_grant_(false) {}
+      buckets_{}, is_final_grant_(false) {
+    if (credit_limit_type != CreditUpdateResponse::FINITE) {
+      unlimited_quota_ = true;
+    } else {
+      unlimited_quota_ = false;
+    }
+ }
 
-
-// by default, enable service
+// by default, enable service & finite credit
 SessionCredit::SessionCredit(CreditType credit_type)
-    : SessionCredit(credit_type, SERVICE_ENABLED, false) {}
+    : SessionCredit(credit_type, SERVICE_ENABLED, CreditUpdateResponse::FINITE) {}
 
 void SessionCredit::set_expiry_time(uint32_t validity_time,
                                     SessionCreditUpdateCriteria &uc) {
