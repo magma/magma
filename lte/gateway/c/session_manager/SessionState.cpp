@@ -900,12 +900,8 @@ bool SessionState::init_charging_credit(
               << " and charging key " << update.charging_key();
 
   std::unique_ptr<SessionCredit> credit;
-  if (update.limit_type() == CreditUpdateResponse::FINITE) {
-    credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
-  } else {
-    credit = std::make_unique<SessionCredit>(CreditType::CHARGING,
-                                             SERVICE_ENABLED, true);
-  }
+  credit = std::make_unique<SessionCredit>(
+    CreditType::CHARGING, SERVICE_ENABLED, update.limit_type());
   SessionCreditUpdateCriteria credit_uc{};
   credit->receive_credit(
     update.credit().granted_units(), update.credit().validity_time(),

@@ -16,7 +16,7 @@ from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
     UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
-    CreditUpdateResponse
+    CreditUpdateResponse, CreditLimitType
 from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
     add_CentralSessionControllerServicer_to_server
@@ -180,9 +180,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
                 sid=sid,
                 charging_key=self.infinite_credit_charging_keys[0],
                 result_code=1,
-                limit_type=CreditUpdateResponse.CreditLimitType.Value(
-                    "INFINITE_UNMETERED",
-                )
+                limit_type=CreditLimitType.Value("INFINITE_UNMETERED")
             )]
         return []
 

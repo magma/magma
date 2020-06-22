@@ -138,7 +138,7 @@ class SessionStoreTest : public ::testing::Test {
     auto credit2 = StoredSessionCredit{};
     credit2.reporting = false;
     credit2.is_final = false;
-    credit2.unlimited_quota = false;
+    credit2.credit_limit_type = INFINITE_METERED;
     credit2.service_state = SERVICE_ENABLED;
     credit2.expiry_time = 0;
     credit2.buckets = std::unordered_map<Bucket, uint64_t>{};

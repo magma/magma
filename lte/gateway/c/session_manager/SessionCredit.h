@@ -57,7 +57,7 @@ public:
   SessionCredit(CreditType credit_type, ServiceState start_state);
 
   SessionCredit(CreditType credit_type, ServiceState start_state,
-                bool unlimited_quota);
+                CreditLimitType credit_limit_type);
 
   /**
    * add_used_credit increments USED_TX and USED_RX
@@ -217,7 +217,7 @@ public:
 private:
   bool reporting_;
   bool is_final_grant_;
-  bool unlimited_quota_;
+  CreditLimitType credit_limit_type_;
   FinalActionInfo final_action_info_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
