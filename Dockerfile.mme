@@ -9,6 +9,7 @@ RUN mkdir -p $C_BUILD
 
 RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y gnupg wget software-properties-common autoconf automake \
     libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
     gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim \
@@ -208,9 +209,19 @@ COPY ./ /magma
 RUN ldconfig && \
     cd /magma/lte/gateway && \
     echo $FEATURES && \ 
-    make build_oai
+    make build_oai && \
+    make build_sctpd
 
 FROM ubuntu:bionic as conv-mme
+
+# Install a few tools (may not be necessary later on)
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+    psmisc \
+    openssl \
+    net-tools \
+    tshark \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
 COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libasan.so.3 /usr/lib/x86_64-linux-gnu/
@@ -249,10 +260,12 @@ COPY --from=conv-builder /lib/x86_64-linux-gnu/libidn.so.11 /usr/lib/x86_64-linu
 # Refresh library cache
 RUN ldconfig
 
+# Copy pre-built binaries for MME and SCTPD
 WORKDIR /conv-mme/bin
-# Copy pre-built binary
 COPY --from=conv-builder /build/c/oai/oai_mme/mme oai_mme
+COPY --from=conv-builder /build/c/sctpd/sctpd .
 
+# Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
 COPY --from=conv-builder /magma/lte/gateway/configs/templates/mme.conf.template .
 COPY --from=conv-builder /magma/lte/gateway/configs/templates/mme_fd.conf.template .
