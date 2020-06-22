@@ -95,6 +95,14 @@ enum ServiceState {
   SERVICE_RESTRICTED = 5,
 };
 
+enum GrantTrackingType {
+  TOTAL_ONLY = 0,
+  TX_ONLY = 1,
+  RX_ONLY = 2,
+  TX_AND_RX = 3,
+  NO_TRACKING = 4,
+};
+
 /**
  * State transitions of a session:
  * SESSION_ACTIVE  ---------
@@ -139,7 +147,7 @@ struct StoredSessionCredit {
   ServiceState service_state;
   std::time_t expiry_time;
   std::unordered_map<Bucket, uint64_t> buckets;
-  uint64_t usage_reporting_limit;
+  GrantTrackingType grant_tracking_type;
 };
 
 struct StoredMonitor {
@@ -179,7 +187,6 @@ struct StoredSessionState {
 };
 
 // Update Criteria
-
 struct SessionCreditUpdateCriteria {
   bool is_final;
   FinalActionInfo final_action_info;
@@ -187,9 +194,9 @@ struct SessionCreditUpdateCriteria {
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t expiry_time;
+  GrantTrackingType grant_tracking_type;
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
-  uint64_t usage_reporting_limit;
 };
 
 struct SessionStateUpdateCriteria {
@@ -271,5 +278,4 @@ deserialize_stored_usage_monitor_map(std::string &serialized);
 std::string serialize_stored_session(StoredSessionState &stored);
 
 StoredSessionState deserialize_stored_session(std::string &serialized);
-
 } // namespace magma
