@@ -145,7 +145,12 @@ class InventoryClient(SymphonyClient):
         edit_equipment_port_type,
         delete_equipment_port_type,
     )
-    from .api.port import get_port, edit_port_properties, edit_link_properties
+    from .api.port import (
+        get_port,
+        edit_port_properties,
+        edit_link_properties,
+        get_ports,
+    )
     from .api.user import (
         add_user,
         get_user,
