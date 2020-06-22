@@ -190,11 +190,6 @@ convert_update_type_to_proto(CreditUpdateType update_type) {
   }
 }
 
-static uint64_t get_granted_units(const CreditUnit &unit,
-                                  uint64_t default_val) {
-  return unit.is_valid() ? unit.volume() : default_val;
-}
-
 static FinalActionInfo get_final_action_info(const ChargingCredit &credit) {
   FinalActionInfo final_action_info;
   if (credit.is_final()) {
@@ -863,20 +858,6 @@ bool SessionState::reset_reporting_charging_credit(
   return true;
 }
 
-static void receive_charging_credit_with_default(
-    SessionCredit &credit, const GrantedUnits &gsu, uint64_t default_volume,
-    const ChargingCredit &charging_credit,
-    SessionCreditUpdateCriteria &update_criteria) {
-  uint64_t total = get_granted_units(gsu.total(), default_volume);
-  uint64_t tx = get_granted_units(gsu.tx(), default_volume);
-  uint64_t rx = get_granted_units(gsu.rx(), default_volume);
-
-  credit.receive_credit(total, tx, rx, charging_credit.validity_time(),
-                        charging_credit.is_final(),
-                        get_final_action_info(charging_credit),
-                        update_criteria);
-}
-
 bool SessionState::receive_charging_credit(
     const CreditUpdateResponse &update,
     SessionStateUpdateCriteria &update_criteria) {
@@ -898,9 +879,10 @@ bool SessionState::receive_charging_credit(
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " rating group "
                << update.charging_key();
-  uint64_t default_volume = 0; // default to not increasing credit
-  receive_charging_credit_with_default(*(it->second), gsu, default_volume,
-                                       update.credit(), *credit_uc);
+  it->second->receive_credit(gsu, update.credit().validity_time(),
+                             update.credit().is_final(),
+                             get_final_action_info(update.credit()),
+                             *credit_uc);
   return true;
 }
 
@@ -924,13 +906,7 @@ bool SessionState::init_charging_credit(
   }
   MLOG(MINFO) << "Initialized a charging credit for imsi " << imsi_
               << " and charging key " << update.charging_key();
-  // unless defined, volume is defined as the maximum possible value
-  // uint64_t default_volume = std::numeric_limits<uint64_t>::max();
-  /*
-   * Setting it to 0 otherwise it will lead to data transfer even if there
-   * in no GSUs present in Gy:CCA-I
-   */
-  uint64_t default_volume = 0;
+
   std::unique_ptr<SessionCredit> credit;
   if (update.limit_type() == CreditUpdateResponse::FINITE) {
     credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
@@ -939,12 +915,13 @@ bool SessionState::init_charging_credit(
                                              SERVICE_ENABLED, true);
   }
   SessionCreditUpdateCriteria credit_uc{};
-  receive_charging_credit_with_default(*credit, update.credit().granted_units(),
-                                       default_volume, update.credit(),
-                                       credit_uc);
-  StoredSessionCredit stored_credit = credit->marshal();
+  credit->receive_credit(
+    update.credit().granted_units(), update.credit().validity_time(),
+    update.credit().is_final(), get_final_action_info(update.credit()),
+    credit_uc);
+
   update_criteria.charging_credit_to_install[CreditKey(update)] =
-      credit->marshal();
+    credit->marshal();
   credit_map_[CreditKey(update)] = std::move(credit);
   return true;
 }
@@ -997,6 +974,7 @@ void SessionState::merge_charging_credit_update(
   it->second->set_reauth(credit_update.reauth_state, credit_update);
   it->second->set_service_state(credit_update.service_state, credit_update);
   it->second->set_expiry_time(credit_update.expiry_time, credit_update);
+  it->second->set_grant_tracking_type(credit_update.grant_tracking_type, credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->add_credit(credit_update.bucket_deltas.find(bucket)->second,
@@ -1095,19 +1073,6 @@ StoredMonitor SessionState::marshal_monitor(std::unique_ptr<Monitor> &monitor) {
   return marshaled;
 }
 
-static void receive_monitor_with_default(
-    SessionCredit &credit, const GrantedUnits &gsu, uint64_t default_volume,
-    SessionCreditUpdateCriteria &update_criteria) {
-  uint64_t total = get_granted_units(gsu.total(), default_volume);
-  uint64_t tx = get_granted_units(gsu.tx(), default_volume);
-  uint64_t rx = get_granted_units(gsu.rx(), default_volume);
-
-  FinalActionInfo final_action_info;
-
-  credit.receive_credit(total, tx, rx, 0, false, final_action_info,
-                        update_criteria);
-}
-
 bool SessionState::receive_monitor(
     const UsageMonitoringUpdateResponse &update,
     SessionStateUpdateCriteria &update_criteria) {
@@ -1132,10 +1097,9 @@ bool SessionState::receive_monitor(
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " monitoring key "
                << update.credit().monitoring_key();
-  uint64_t default_volume = 0;
-  receive_monitor_with_default(it->second->credit,
-                                         update.credit().granted_units(),
-                                         default_volume, *credit_uc);
+  FinalActionInfo final_action_info;
+  it->second->credit.receive_credit(
+    gsu, 0, false, final_action_info, *credit_uc);
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     monitor_map_.erase(update.credit().monitoring_key());
   }
@@ -1231,8 +1195,10 @@ bool SessionState::init_new_monitor(
   // unless defined, volume is defined as the maximum possible value
   uint64_t default_volume = std::numeric_limits<uint64_t>::max();
   auto _ = SessionCreditUpdateCriteria{};
-  receive_monitor_with_default(
-      monitor->credit, update.credit().granted_units(), default_volume, _);
+  FinalActionInfo final_action_info;
+  auto gsu = update.credit().granted_units();
+  monitor->credit.receive_credit(gsu, 0, false, final_action_info, _);
+
   update_criteria.monitor_credit_to_install[update.credit().monitoring_key()] =
       marshal_monitor(monitor);
   monitor_map_[update.credit().monitoring_key()] = std::move(monitor);

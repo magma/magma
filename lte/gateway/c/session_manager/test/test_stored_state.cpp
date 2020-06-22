@@ -90,7 +90,7 @@ protected:
     stored.buckets[USED_TX] = 12345;
     stored.buckets[ALLOWED_TOTAL] = 54321;
 
-    stored.usage_reporting_limit = 4444;
+    stored.grant_tracking_type = TX_ONLY;
     return stored;
   };
 
@@ -227,7 +227,7 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
   EXPECT_EQ(deserialized.buckets[USED_TX], 12345);
   EXPECT_EQ(deserialized.buckets[ALLOWED_TOTAL], 54321);
 
-  EXPECT_EQ(deserialized.usage_reporting_limit, 4444);
+  EXPECT_EQ(deserialized.grant_tracking_type, TX_ONLY);
 }
 
 TEST_F(StoredStateTest, test_stored_monitor) {
@@ -253,7 +253,6 @@ TEST_F(StoredStateTest, test_stored_monitor) {
   EXPECT_EQ(deserialized.credit.expiry_time, 0);
   EXPECT_EQ(deserialized.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(deserialized.credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(deserialized.credit.usage_reporting_limit, 4444);
   EXPECT_EQ(deserialized.level, MonitoringLevel::PCC_RULE_LEVEL);
 }
 
@@ -281,7 +280,6 @@ TEST_F(StoredStateTest, test_stored_charging_credit_map) {
   EXPECT_EQ(stored_credit.expiry_time, 0);
   EXPECT_EQ(stored_credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_credit.usage_reporting_limit, 4444);
 }
 
 TEST_F(StoredStateTest, test_stored_monitor_map) {
@@ -308,7 +306,6 @@ TEST_F(StoredStateTest, test_stored_monitor_map) {
   EXPECT_EQ(stored_monitor.credit.expiry_time, 0);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_monitor.credit.usage_reporting_limit, 4444);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 }
 
@@ -353,7 +350,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_credit.expiry_time, 0);
   EXPECT_EQ(stored_credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_credit.usage_reporting_limit, 4444);
 
   EXPECT_EQ(deserialized.session_level_key, "session_level_key");
 
@@ -375,7 +371,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.expiry_time, 0);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_monitor.credit.usage_reporting_limit, 4444);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
   EXPECT_EQ(stored.imsi, "IMSI1");
