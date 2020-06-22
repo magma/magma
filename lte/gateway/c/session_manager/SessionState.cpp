@@ -184,9 +184,10 @@ convert_update_type_to_proto(CreditUpdateType update_type) {
       return CreditUsage::REAUTH_REQUIRED;
     case CREDIT_VALIDITY_TIMER_EXPIRED:
       return CreditUsage::VALIDITY_TIMER_EXPIRED;
+    default:
+      MLOG(MERROR) << "Converting invalid update type " << update_type;
+      return CreditUsage::QUOTA_EXHAUSTED;
   }
-  MLOG(MERROR) << "Converting invalid update type " << update_type;
-  return CreditUsage::QUOTA_EXHAUSTED;
 }
 
 static uint64_t get_granted_units(const CreditUnit &unit,
@@ -312,8 +313,8 @@ void SessionState::get_monitor_updates(
     auto usage = credit.get_usage_for_reporting(*credit_uc);
     auto update = make_usage_monitor_update(
         usage, mkey, monitor_pair.second->level);
-
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
+
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->mutable_update()->CopyFrom(update);
     new_req->set_event_trigger(USAGE_REPORT);
