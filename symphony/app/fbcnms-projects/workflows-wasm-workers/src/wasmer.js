@@ -11,7 +11,9 @@ const {execFile} = require('child_process');
 import logging from '@fbcnms/logging';
 const logger = logging.getLogger(module);
 
-const wasmerPath = process.env.WASMER_PATH || '/root/.wasmer/bin/wasmer';
+const wasmerPath =
+  process.env.WASMER_PATH ||
+  '/app/fbcnms-projects/workflows-wasm-workers/.wasmer/bin/wasmer';
 const enableTracing = process.env.TRACING == 'true' || false;
 const maximumWasmerTimeoutMillis: number =
   parseInt(process.env.MAX_WASMER_TIMEOUT_MS) || 10000;
@@ -27,6 +29,7 @@ type WasmerError = {
 
 export function executeWasmer(wasmerArgs: string[], stdin: ?string) {
   return new Promise<{stdout: string, stderr: string}>((resolve, reject) => {
+    wasmerArgs.unshift('run', '--backend', 'cranelift');
     if (enableTracing) {
       console.debug('executeWasmer');
       wasmerArgs.forEach(it => console.debug(it));

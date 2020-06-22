@@ -38,7 +38,7 @@ if (result != null) {
 }
 `;
   // --std: enable std for out, err objects
-  const wasmerArgs = ['run', quickJsPath, '--', '--std', '-e', script];
+  const wasmerArgs = [quickJsPath, '--', '--std', '-e', script];
   try {
     const {stdout, stderr} = await executeWasmer(wasmerArgs);
     logger.info('executeQuickJs succeeded', {stdout, stderr});

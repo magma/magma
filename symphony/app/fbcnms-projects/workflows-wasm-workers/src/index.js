@@ -73,10 +73,13 @@ async function createTaskResult(
 }
 
 async function checkAndRegister(wasmSuffix, healthCheckFn, executeFn) {
+  const healthCheckStart = new Date();
   if (!(await healthCheckFn())) {
-    logger.warn(wasmSuffix + ' healthcheck failed');
+    logger.warn(`${wasmSuffix} healthcheck failed`);
   } else {
-    logger.info(wasmSuffix + ' healthcheck OK');
+    logger.info(
+      `${wasmSuffix} healthcheck OK in ${new Date() - healthCheckStart} ms`,
+    );
   }
   registerWasmWorker(wasmSuffix, async (data, updater) => {
     logger.info(wasmSuffix + ' got new task', {inputData: data.inputData});

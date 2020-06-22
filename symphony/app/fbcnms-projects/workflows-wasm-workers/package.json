@@ -4,9 +4,11 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "conductor-client": "^1.2.0",
     "@fbcnms/babel-register": "^0.1.0",
-    "@fbcnms/logging": "^0.1.0"
+    "@fbcnms/logging": "^0.1.0",
+    "conductor-client": "^1.2.0",
+    "fs-extra": "^9.0.1",
+    "tmp-promise": "^3.0.2"
   },
   "devDependencies": {
     "nodemon": "^1.18.10"

@@ -150,3 +150,4 @@ Output of the workflow execution should contain:
 
 ### Python bugs, limitations:
 * Compared to QuickJs this approach introduces 5-200x worse latency for small scripts: ~30ms for QuickJs, ~.5s for Python
+* Python needs writable lib directory, thus a temp directory needs to be created/deleted for each execution

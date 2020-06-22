@@ -11,6 +11,8 @@ import logging from '@fbcnms/logging';
 const logger = logging.getLogger(module);
 import {escapeJson} from './utils.js';
 import {executeWasmer} from './wasmer.js';
+const tmp = require('tmp-promise');
+const fs = require('fs-extra');
 
 const pythonBinPath = process.env.PYTHON_PATH || 'wasm/python/bin/python.wasm';
 const pythonLibPath = process.env.PYTHON_LIB_PATH || 'wasm/python/lib';
@@ -23,6 +25,30 @@ function prefixLines(script: string, indent: string) {
 }
 
 export async function executePython(
+  script: string,
+  args: string[],
+  inputData: mixed,
+) {
+  const start = new Date();
+  const tmpFolder = await tmp.dir({unsafeCleanup: true});
+  logger.info('Created temp directory', {tmpFolder: tmpFolder.path});
+  try {
+    // copy lib folder to the temp directory
+    await fs.copy(pythonLibPath, tmpFolder.path);
+    logger.info(`Copied lib to temp directory in ${new Date() - start} ms`);
+    return await executePythonWithLibFolder(
+      tmpFolder.path,
+      script,
+      args,
+      inputData,
+    );
+  } finally {
+    await tmpFolder.cleanup();
+  }
+}
+
+async function executePythonWithLibFolder(
+  libFolder: string,
   script: string,
   args: string[],
   inputData: mixed,
@@ -50,9 +76,8 @@ if not result is None:
   // -B: do not write .pyc files on import
   // -c script: execute passed script
   const wasmerArgs = [
-    'run',
     pythonBinPath,
-    '--mapdir=lib:' + pythonLibPath,
+    '--mapdir=lib:' + libFolder,
     '--',
     '-B',
     '-q',
