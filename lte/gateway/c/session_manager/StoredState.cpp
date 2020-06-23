@@ -92,42 +92,13 @@ SessionConfig deserialize_stored_session_config(const std::string &serialized) {
   return stored;
 }
 
-std::string
-serialize_stored_redirect_server(const StoredRedirectServer &stored) {
-  folly::dynamic marshaled = folly::dynamic::object;
-  marshaled["redirect_address_type"] =
-      static_cast<int>(stored.redirect_address_type);
-  marshaled["redirect_server_address"] = stored.redirect_server_address;
-
-  std::string serialized = folly::toJson(marshaled);
-  return serialized;
-}
-
-StoredRedirectServer
-deserialize_stored_redirect_server(const std::string &serialized) {
-  auto folly_serialized = folly::StringPiece(serialized);
-  folly::dynamic marshaled = folly::parseJson(folly_serialized);
-
-  auto stored = StoredRedirectServer{};
-  stored.redirect_address_type =
-      static_cast<RedirectServer_RedirectAddressType>(
-          marshaled["redirect_address_type"].getInt());
-  stored.redirect_server_address =
-      marshaled["redirect_server_address"].getString();
-
-  return stored;
-}
-
 std::string serialize_stored_final_action_info(const FinalActionInfo &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["final_action"] = static_cast<int>(stored.final_action);
-  StoredRedirectServer stored_redirect_server;
-  stored_redirect_server.redirect_address_type =
-      stored.redirect_server.redirect_address_type();
-  stored_redirect_server.redirect_server_address =
-      stored.redirect_server.redirect_server_address();
-  marshaled["redirect_server"] =
-      serialize_stored_redirect_server(stored_redirect_server);
+
+  std::string redirect_server;
+  stored.redirect_server.SerializeToString(&redirect_server);
+  marshaled["redirect_server"] = redirect_server;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
@@ -141,13 +112,10 @@ deserialize_stored_final_action_info(const std::string &serialized) {
   auto stored = FinalActionInfo{};
   stored.final_action = static_cast<ChargingCredit_FinalAction>(
       marshaled["final_action"].getInt());
-  StoredRedirectServer stored_redirect_server =
-      deserialize_stored_redirect_server(
-          marshaled["redirect_server"].getString());
-  stored.redirect_server.set_redirect_address_type(
-      stored_redirect_server.redirect_address_type);
-  stored.redirect_server.set_redirect_server_address(
-      stored_redirect_server.redirect_server_address);
+
+  magma::lte::RedirectServer redirect_server;
+  redirect_server.ParseFromString(marshaled["redirect_server"].getString());
+  stored.redirect_server = redirect_server;
 
   return stored;
 }

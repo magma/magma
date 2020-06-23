@@ -47,14 +47,6 @@ protected:
     return stored;
   }
 
-  StoredRedirectServer get_stored_redirect_server() {
-    StoredRedirectServer stored;
-    stored.redirect_address_type = RedirectServer_RedirectAddressType::
-        RedirectServer_RedirectAddressType_IPV6;
-    stored.redirect_server_address = "redirect_server_address";
-    return stored;
-  }
-
   FinalActionInfo get_stored_final_action_info() {
     FinalActionInfo stored;
     stored.final_action =
@@ -171,18 +163,6 @@ TEST_F(StoredStateTest, test_stored_session_config) {
   EXPECT_EQ(deserialized.bearer_id, 321);
   EXPECT_EQ(deserialized.qos_info.enabled, true);
   EXPECT_EQ(deserialized.qos_info.qci, 123);
-}
-
-TEST_F(StoredStateTest, test_stored_redirect_server) {
-  auto stored = get_stored_redirect_server();
-
-  auto serialized = serialize_stored_redirect_server(stored);
-  auto deserialized = deserialize_stored_redirect_server(serialized);
-
-  EXPECT_EQ(deserialized.redirect_address_type,
-            RedirectServer_RedirectAddressType::
-                RedirectServer_RedirectAddressType_IPV6);
-  EXPECT_EQ(deserialized.redirect_server_address, "redirect_server_address");
 }
 
 TEST_F(StoredStateTest, test_stored_final_action_info) {
