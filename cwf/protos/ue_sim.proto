@@ -55,6 +55,7 @@ message GenTrafficRequest {
     uint64 timeInSecs = 4;    
     uint64 reportingIntervalInSecs = 5;    
     bool reverseMode = 6;
+    uint32 timeout = 7;
 }
 
 message GenTrafficResponse {

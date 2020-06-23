@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strconv"
+	"strings"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -162,7 +163,6 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	if req == nil {
 		return &cwfprotos.GenTrafficResponse{}, fmt.Errorf("Nil GenTrafficRequest provided")
 	}
-	var cmd *exec.Cmd
 
 	argList := []string{"--json", "-c", trafficSrvIP, "-M", trafficMSS}
 	if req.Volume != nil {
@@ -184,16 +184,7 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	if req.ReportingIntervalInSecs != 0 {
 		argList = append(argList, []string{"-i", strconv.FormatUint(req.ReportingIntervalInSecs, 10)}...)
 	}
-	glog.V(2).Info("Execute: iper3 ", argList)
-	cmd = exec.Command("iperf3", argList...)
-	cmd.Dir = "/usr/bin"
-	output, err := cmd.Output()
-	if err != nil {
-		glog.Info("args = ", argList)
-		glog.Info("error = ", err)
-		err = errors.Wrap(err, fmt.Sprintf("argList %v\n output %v", argList, string(output)))
-	}
-	glog.V(2).Infof("Iperf3 result:\n %s", pretyptrintIperfResponse(output))
+	output, err := executeIperfWithTimeoutIfNeeded(argList, req)
 	return &cwfprotos.GenTrafficResponse{Output: output}, err
 }
 
@@ -257,11 +248,45 @@ func ConvertStorageErrorToGrpcStatus(err error) error {
 	return status.Errorf(codes.Unknown, err.Error())
 }
 
+func executeIperfWithTimeoutIfNeeded(argList []string, req *cwfprotos.GenTrafficRequest) ([]byte, error) {
+	if req.Timeout > 0 {
+		timeoutString := fmt.Sprintf("%ds", req.Timeout)
+		argsList2 := []string{timeoutString, "iperf3"}
+		argsList2 = append(argsList2, argList...)
+		return executeCommand("timeout", argsList2)
+	} else {
+		return executeCommand("iperf3", argList)
+	}
+}
+
+func executeCommand(command string, argList []string) ([]byte, error) {
+	glog.V(2).Info("Execute: ", command, argList)
+	var cmd *exec.Cmd
+	cmd = exec.Command(command, argList...)
+	cmd.Dir = "/usr/bin"
+	output, err := cmd.Output()
+	if err != nil {
+		newError := errors.Wrap(err, fmt.Sprintf(
+			"error or timeout while executing \"%s %s\"\n %v",
+			command, strings.Join(argList, " "), string(output)))
+		glog.Error(newError)
+		return nil, newError
+	}
+	glog.V(2).Infof("Result:\n %s", pretyptrintIperfResponse(output))
+	return output, nil
+}
+
 func pretyptrintIperfResponse(input []byte) string {
 	prettyOutput := &bytes.Buffer{}
 	err := json.Indent(prettyOutput, input, "", "  ")
 	if err != nil {
-		return ("Couldn't parse iper3 resonse into JSON")
+		return ("Couldn't parse iperf3 response into JSON")
 	}
 	return prettyOutput.String()
+}
+
+func unmarshallIper3Response(output []byte) map[string]interface{} {
+	var jsonResponse map[string]interface{}
+	json.Unmarshal([]byte(output), &jsonResponse)
+	return jsonResponse
 }
