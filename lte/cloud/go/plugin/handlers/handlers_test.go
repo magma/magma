@@ -2776,7 +2776,7 @@ func TestListSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP state for 1234567890
+	// Now create ICMP and some MME state for 1234567890
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -2786,9 +2786,16 @@ func TestListSubscribers(t *testing.T) {
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 	defer clock.UnfreezeClock(t)
+
 	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	mmeState := state.ArbitaryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	spgwState := state.ArbitaryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -2813,6 +2820,11 @@ func TestListSubscribers(t *testing.T) {
 						LastReportedTime: frozenClock,
 						LatencyMs:        f32Ptr(12.34),
 					},
+				},
+				State: &lteModels.SubscriberState{
+					Mme:  mmeState,
+					S1ap: s1apState,
+					Spgw: spgwState,
 				},
 			},
 			"IMSI0987654321": {
@@ -2905,7 +2917,7 @@ func TestGetSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP state
+	// Now create ICMP and MME state
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -2918,6 +2930,12 @@ func TestGetSubscriber(t *testing.T) {
 	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	mmeState := state.ArbitaryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	spgwState := state.ArbitaryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -2941,6 +2959,11 @@ func TestGetSubscriber(t *testing.T) {
 					LastReportedTime: frozenClock,
 					LatencyMs:        f32Ptr(12.34),
 				},
+			},
+			State: &lteModels.SubscriberState{
+				Mme:  mmeState,
+				S1ap: s1apState,
+				Spgw: spgwState,
 			},
 		},
 	}

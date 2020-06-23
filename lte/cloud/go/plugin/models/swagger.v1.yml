@@ -2351,6 +2351,8 @@ definitions:
         $ref: '#/definitions/apn_list'
       monitoring:
         $ref: '#/definitions/subscriber_status'
+      state:
+        $ref: '#/definitions/subscriber_state'
 
   mutable_subscriber:
     description: Subset of subscriber field which are mutable
@@ -2419,6 +2421,21 @@ definitions:
     type: string
     minLength: 1
     example: 'default'
+
+  subscriber_state:
+    type: object
+    description: MME state for a subscriber
+    properties:
+      s1ap:
+        $ref: '#/definitions/untyped_mme_state'
+      mme:
+        $ref: '#/definitions/untyped_mme_state'
+      spgw:
+        $ref: '#/definitions/untyped_mme_state'
+
+  untyped_mme_state:
+    type: object
+    description: Arbitrary untyped JSON object that represents replicated MME state
 
   subscriber_status:
     type: object
