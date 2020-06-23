@@ -100,8 +100,7 @@ int pgw_handle_allocate_ipv4_address(
  * and handle response for PGW handler.
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param apn: access point name string, e.g., "ims", "internet", etc.
- * @param addr: contains the IP address allocated upon returning in
- * "host byte order"
+ * @param ip6_prefix: contains the IPv6 prefix configured
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv6...)
  * @param context_teid tunnel id
@@ -109,6 +108,7 @@ int pgw_handle_allocate_ipv4_address(
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
+ * @param ipv6_address_prefix_len from the config file 
  * @return status of gRPC call
  */
 
@@ -149,7 +149,8 @@ int release_ipv4_address(
  * periodically.
  *
  * @param subscriber_id: subscriber id string, i.e. IMSI
- * @param addr: IP address to release in "host byte order"
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param addr: IPv6 address to release in "host byte order
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
@@ -182,6 +183,25 @@ int get_ipv4_address_for_subscriber(
 int get_subscriber_id_from_ipv4(
   const struct in_addr* addr,
   char** subscriber_id);
+
+/**
+ * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
+ * and handle response for PGW handler.
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param ip4_addr: contains the IP address allocated upon returning in
+ * "host byte order"
+ * @param ip6_prefix: contains the IPv6 prefix configured
+ * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
+ * @param pdn_type str for PDN type (ipv6...)
+ * @param context_teid tunnel id
+ * @param eps_bearer_id bearer id
+ * @param spgw_state spgw_state_t struct
+ * @param new_bearer_ctxt_info_p SPGW ue context struct
+ * @param s5_response itti message for s5_create_session response
+ * @param ipv6_address_prefix_len from the config file 
+ * @return status of gRPC call
+ */
 
 int pgw_handle_allocate_ipv4v6_address(
   const char* subscriber_id,

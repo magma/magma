@@ -305,49 +305,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     _esm_data.conf.features,
     esm_data->pdn_type);
   emm_context->emm_cause = ESM_CAUSE_SUCCESS;
-#if 0
-  switch (_esm_data.conf.features & (MME_API_IPV4 | MME_API_IPV6)) {
-    case (MME_API_IPV4 | MME_API_IPV6):
-      /*
-     * The network supports both IPv4 and IPv6 connection
-     */
-      if (
-        (esm_data->pdn_type == ESM_PDN_TYPE_IPV4V6) &&
-        (_esm_data.conf.features & MME_API_SINGLE_ADDR_BEARERS)) {
-        /*
-         * The network supports single IP version bearers only
-         */
-        emm_context->emm_cause = ESM_CAUSE_SINGLE_ADDRESS_BEARERS_ONLY_ALLOWED;
-      }
-      break;
 
-    case MME_API_IPV6:
-      /*
-       * The network supports connection to IPv6 only
-       */
-      if (esm_data->pdn_type != ESM_PDN_TYPE_IPV6) {
-        emm_context->emm_cause = ESM_CAUSE_PDN_TYPE_IPV6_ONLY_ALLOWED;
-      }
-      break;
-
-    case MME_API_IPV4:
-      /*
-       * The network supports connection to IPv4 only
-       */
-      if (esm_data->pdn_type != ESM_PDN_TYPE_IPV4) {
-        emm_context->emm_cause = ESM_CAUSE_PDN_TYPE_IPV4_ONLY_ALLOWED;
-      }
-      break;
-
-    default:
-      OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-PROC  - _esm_data.conf.features incorrect value (no IPV4 or IPV6 "
-        ") %X for (ue_id = %u)\n",
-        _esm_data.conf.features,
-        ue_id);
-  }
-#endif
   if (is_standalone) {
     ue_mm_context_t* ue_mm_context_p =
       mme_ue_context_exists_mme_ue_s1ap_id(ue_id);

@@ -165,7 +165,6 @@ int esm_proc_pdn_connectivity_request(
   /*
    * Check network IP capabilities
    */
-  //*esm_cause = ESM_CAUSE_SUCCESS;
   OAILOG_DEBUG(
     LOG_NAS_ESM,
     "ESM-PROC  - _esm_data.conf.features %08x for (ue_id = %u)\n",
@@ -430,7 +429,7 @@ static int _pdn_connectivity_create(
       pdn_type,
       ue_mm_context->mme_ue_s1ap_id);
       pdn_context->pdn_type = pdn_type;
-      if (pdn_addr) { // TODO Pruthvi check static IPv6 addr allocation
+      if (pdn_addr) {
         pdn_context->paa.pdn_type = pdn_type;
         switch (pdn_type) {
           case IPv4:
@@ -447,6 +446,7 @@ static int _pdn_connectivity_create(
                      &pdn_context->paa.ipv6_address),
               "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
+          // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6: AssertFatal(0, "TODO\n"); break;
           case IPv4_OR_v6: AssertFatal(0, "TODO\n"); break;
           default:;

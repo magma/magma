@@ -119,6 +119,7 @@ typedef struct pgw_config_s {
   int num_ue_pool;
   uint8_t ue_pool_mask[PGW_NUM_UE_POOL_MAX];
   struct in_addr ue_pool_addr[PGW_NUM_UE_POOL_MAX];
+
   bool force_push_pco;
   uint16_t ue_mtu;
   bool relay_enabled;

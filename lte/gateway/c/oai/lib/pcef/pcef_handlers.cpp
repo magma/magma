@@ -103,8 +103,7 @@ void pcef_create_session(
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p)
 {
   auto imsi_str = std::string(imsi);
-  std::string ip4_str = "";
-  std::string ip6_str = "";
+  std::string ip4_str, ip6_str;
 
   if (ip4) {
     ip4_str = ip4;
@@ -125,6 +124,7 @@ void pcef_create_session(
     sreq.set_ue_ipv4(ip4_str);
     sreq.set_ue_ipv6(ip6_str);
   }
+  sreq.set_pdn_type(session_data->pdn_type);
   sreq.set_bearer_id(session_request.eps_bearer_id);
   pcef_fill_create_session_req(session_data, &sreq);
 

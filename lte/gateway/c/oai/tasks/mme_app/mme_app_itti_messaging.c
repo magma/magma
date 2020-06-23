@@ -301,6 +301,7 @@ int mme_app_send_s11_create_session_req(
 
   //ue_mm_context->mme_teid_s11 = session_request_p->sender_fteid_for_cp.teid;
   ue_mm_context->pdn_contexts[pdn_cid]->s_gw_teid_s11_s4 = 0;
+  mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
   mme_ue_context_update_coll_keys(
     &mme_app_desc_p->mme_ue_contexts,
     ue_mm_context,
@@ -309,6 +310,7 @@ int mme_app_send_s11_create_session_req(
     ue_mm_context->emm_context._imsi64,
     session_request_p->sender_fteid_for_cp.teid, // mme_teid_s11 is new
     &ue_mm_context->emm_context._guti);
+  mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
   struct apn_configuration_s* selected_apn_config_p = mme_app_get_apn_config(
     ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->context_identifier);
 

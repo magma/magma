@@ -380,7 +380,7 @@ int pgw_process_pco_dns_server_ipv6_address_req(
   pco_protocol_or_container_id_t poc_id_resp = {0};
 
   OAILOG_DEBUG(
-    LOG_SPGW_APP, "PCO: Protocol identifier PCO_CI_P_CSCF_IPV6_ADDRESS\n");
+    LOG_SPGW_APP, "PCO: Protocol identifier PCO_CI_DNS_SERVER_IPV6_ADDRESS\n");
   poc_id_resp.id = PCO_CI_DNS_SERVER_IPV6_ADDRESS;
   poc_id_resp.length = 16;
   poc_id_resp.contents = blk2bstr(dns_ipv6_addr.s6_addr, sizeof(struct in6_addr));

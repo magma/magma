@@ -227,6 +227,9 @@ int get_subscriber_id_from_ipv4(
   return status;
 }
 
+/* Temporary code to generate IPv6 Network Interface Identifier. To be removed
+ * once Mobilityd is enhanced to support IPv6 address
+ */
 struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_prefix)
 {
   char *ip6_addr = (char*)malloc(INET6_ADDRSTRLEN);
@@ -240,7 +243,7 @@ struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_pr
   inet_ntop(AF_INET6, &config_ipv6_prefix, buf_ipv6, INET6_ADDRSTRLEN);
   for (itrn=0; itrn<4; itrn++){
     temp_prefix[itrn] = (char*)malloc(4);
-    /* Take a copy of temp_prefix because strsep function updates
+    /* Take a copy of temp_prefix to be freed later because strsep function updates
      * the pointer and points right after the token it found
      */
     temp_prefix_free[itrn] = temp_prefix[itrn];
@@ -256,6 +259,7 @@ struct in6_addr* generate_random_ip6_interface_id(struct in6_addr config_ipv6_pr
 
   // Convert the IPv6 address into in6_addr format
   inet_pton(AF_INET6, ip6_addr, ip6_prefix);
+
   for (itrn=0; itrn<4; itrn++){
     free_wrapper((void**) &temp_prefix_free[itrn]);
   }
@@ -277,21 +281,25 @@ int pgw_handle_allocate_ipv6_address(
   struct in6_addr config_ipv6_prefix,
   uint8_t ipv6_prefix_len)
 {
-  // TODO Pruthvi Make an RPC call to Mobilityd
+  // TODO Make an RPC call to Mobilityd
 
-  // TODO Temporary code to be removed once Mobilityd is ready
+  // TODO Temporary code to be removed once Mobilityd supports ipv6
   ip6_prefix = generate_random_ip6_interface_id(config_ipv6_prefix);
   auto sgi_resp = handle_allocate_ipv6_address_status(
 	*ip6_prefix, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp, ipv6_prefix_len);
 
   char ip6_str[INET6_ADDRSTRLEN];
   inet_ntop(AF_INET6, ip6_prefix, ip6_str, INET6_ADDRSTRLEN);
+
   OAILOG_INFO(
     LOG_UTIL,
-    "Allocated IPv6 Address <%s>, PDN Type <%s>\n",
+    "Allocated IPv6 Address <%s>, PDN Type <%s>," 
+    " for IMSI <%s> and APN <%s>\n",
     ip6_str,
-    pdn_type);
-
+    pdn_type,
+    subscriber_id,
+    apn);
+ 
   // create session in PCEF and return
   s5_create_session_request_t session_req = {0};
   session_req.context_teid = context_teid;
@@ -334,11 +342,6 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
     sgi_create_endpoint_resp.paa.ipv6_address = addr;
     sgi_create_endpoint_resp.paa.ipv6_prefix_length = ipv6_prefix_len;
     sgi_create_endpoint_resp.paa.pdn_type = IPv6;
-    OAILOG_INFO(
-      LOG_UTIL,
-      "Allocated IPv6 Address for imsi <%s>, apn <%s>\n",
-      imsi,
-      apn);
     sgi_create_endpoint_resp.status = SGI_STATUS_OK;
   return sgi_create_endpoint_resp;
 }
@@ -365,9 +368,9 @@ int pgw_handle_allocate_ipv4v6_address(
     [=, &s5_response](const Status& status, IPAddress ip_msg) {
       memcpy(ip4_addr, ip_msg.mutable_address()->c_str(), sizeof(in_addr));
  
-    // TODO Pruthvi Make an RPC call to Mobilityd to get IPv6 address
+    // TODO Make an RPC call to Mobilityd to get IPv6 address
 
-    // TODO Remove the below temporary code once Mobilitid is ready
+    // TODO Remove the below temporary code once Mobilityd supports ipv6
     struct in6_addr* ip6_prefix_temp = generate_random_ip6_interface_id(config_ipv6_prefix);
     memcpy(ip6_prefix, ip6_prefix_temp, sizeof(struct in6_addr));
 
@@ -386,10 +389,13 @@ int pgw_handle_allocate_ipv4v6_address(
       inet_ntop(AF_INET6, ip6_prefix, ip6_str, INET6_ADDRSTRLEN);
       OAILOG_INFO(
         LOG_UTIL,
-        "Allocated IPv4 Address <%s>, IPv6 Address <%s>, PDN Type <%s>\n",
+        "Allocated IPv4 Address <%s>, IPv6 Address <%s>, PDN Type <%s>," 
+        " for IMSI <%s> and APN <%s>\n",
         ip4_str,
         ip6_str,
-        pdn_type);
+        pdn_type,
+        subscriber_id,
+        apn);
  
       struct pcef_create_session_data session_data;
       get_session_req_data(
@@ -410,6 +416,7 @@ int pgw_handle_allocate_ipv4v6_address(
       free_wrapper((void**) &ip6_prefix_temp);
       OAILOG_FUNC_OUT(LOG_PGW_APP);
     }
+    // sgi_resp.status != SGI_STATUS_OK 
     s5_response.eps_bearer_id = eps_bearer_id;
     s5_response.context_teid = context_teid;
     handle_s5_create_session_response(
@@ -439,12 +446,6 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_statu
       "result",
       "success");
     sgi_create_endpoint_resp.paa.ipv4_address = ip4_addr;
-
-    OAILOG_DEBUG(
-      LOG_UTIL,
-      "Allocated IPv4 address for imsi <%s>, apn <%s>\n",
-      imsi,
-      apn);
     sgi_create_endpoint_resp.status = SGI_STATUS_OK;
   } else {
     if (status.error_code() == RPC_STATUS_ALREADY_EXISTS) {
@@ -461,7 +462,6 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_statu
        * Release the IP address so that subsequent attempt is successfull
        */
       release_ipv4_address(imsi, apn, &ip4_addr);
-      // TODO - Pruthvi Release IPv6 address
       // TODO - Release the GTP-tunnel corresponding to this IP address
     } else {
       increment_counter(
@@ -489,11 +489,6 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4v6_address_statu
   } else {
     sgi_create_endpoint_resp.paa.pdn_type = IPv6;
   }
-  OAILOG_DEBUG(
-    LOG_UTIL,
-    "Allocated IPv6 Address for imsi <%s>, apn <%s>\n",
-    imsi,
-    apn);
   return sgi_create_endpoint_resp;
 }
 
@@ -501,7 +496,7 @@ int release_ipv6_address(const char *subscriber_id, const char *apn,
                          const struct in6_addr* addr)
 {
   int status = 0;
-  // Uncomment once IPv6 is implemented at Mobilityd
+  // TODO- Uncomment once IPv6 is implemented at Mobilityd
   /*status = MobilityServiceClient::getInstance().ReleaseIPv6Address(
     subscriber_id, apn, *addr);*/
   return status;

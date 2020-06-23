@@ -216,7 +216,6 @@ void handle_s5_create_session_request(
       break;
 
     case IPv6:
-      // TODO: Pruthvi Generate IPv6 NI address
       pgw_handle_allocate_ipv6_address(
           imsi,
           apn,

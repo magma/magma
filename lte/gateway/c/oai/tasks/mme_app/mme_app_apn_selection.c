@@ -96,6 +96,13 @@ int select_pdn_type(struct apn_configuration_s *apn_config, esm_proc_pdn_type_t 
       break;
 
     default:
+      OAILOG_ERROR(
+        LOG_MME_APP,
+        " Sending PDN Connectivity Reject with cause ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+        " UE requested PDN Type %d, subscribed PDN Type %d \n",
+        ue_selected_pdn_type,
+        apn_config->pdn_type);
+
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       break;
   }
@@ -113,6 +120,7 @@ struct apn_configuration_s *mme_app_select_apn(
   context_identifier_t default_context_identifier =
     ue_context->apn_config_profile.context_identifier;
   int index;
+  int rc = RETURNok;
 
   for (index = 0; index < ue_context->apn_config_profile.nb_apns; index++) {
     if (!ue_selected_apn) {
@@ -122,19 +130,20 @@ struct apn_configuration_s *mme_app_select_apn(
       if (
         ue_context->apn_config_profile.apn_configuration[index]
           .context_identifier == default_context_identifier) {
-        OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Selected APN %s for UE " IMSI_64_FMT "\n",
-          ue_context->apn_config_profile.apn_configuration[index]
-            .service_selection,
-          ue_context->emm_context._imsi64);
         // Select PDN Type
-        select_pdn_type(&ue_context->apn_config_profile.apn_configuration[index],
+        rc = select_pdn_type(&ue_context->apn_config_profile.apn_configuration[index],
           ue_selected_pdn_type, esm_cause);
-        if (*esm_cause == ESM_CAUSE_UNKNOWN_PDN_TYPE) {
+        if (*esm_cause == ESM_CAUSE_UNKNOWN_PDN_TYPE || rc == RETURNerror) {
           return NULL;
         } 
-        return &ue_context->apn_config_profile.apn_configuration[index];
+        OAILOG_INFO(
+          LOG_MME_APP,
+          "Selected APN <%s>, PDN Type <%d> for UE " IMSI_64_FMT "\n",
+          ue_context->apn_config_profile.apn_configuration[index]
+            .service_selection,
+          ue_context->apn_config_profile.apn_configuration[index].pdn_type,
+          ue_context->emm_context._imsi64);
+       return &ue_context->apn_config_profile.apn_configuration[index];
       }
     } else {
       /*
@@ -147,18 +156,20 @@ struct apn_configuration_s *mme_app_select_apn(
             .service_selection,
           strlen(ue_context->apn_config_profile.apn_configuration[index]
                    .service_selection)) == 1) {
-        OAILOG_DEBUG(
+        // Select PDN Type
+        rc = select_pdn_type(&ue_context->apn_config_profile.apn_configuration[index],
+          ue_selected_pdn_type, esm_cause);
+        if (*esm_cause == ESM_CAUSE_UNKNOWN_PDN_TYPE || rc == RETURNerror) {
+          return NULL;
+        }
+        OAILOG_INFO(
           LOG_MME_APP,
-          "Selected APN %s for UE " IMSI_64_FMT "\n",
+          "Selected APN <%s>, PDN Type <%d> for UE " IMSI_64_FMT "\n",
           ue_context->apn_config_profile.apn_configuration[index]
             .service_selection,
+          ue_context->apn_config_profile.apn_configuration[index].pdn_type,
           ue_context->emm_context._imsi64);
-        // Select PDN Type
-        select_pdn_type(&ue_context->apn_config_profile.apn_configuration[index],
-          ue_selected_pdn_type, esm_cause);
-        if (*esm_cause == ESM_CAUSE_UNKNOWN_PDN_TYPE) {
-          return NULL;
-        } 
+ 
         return &ue_context->apn_config_profile.apn_configuration[index];
       }
     }

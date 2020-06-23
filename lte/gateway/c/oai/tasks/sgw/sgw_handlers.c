@@ -531,7 +531,7 @@ int sgw_handle_sgi_endpoint_updated(
       ;
 
       struct in_addr ue = {.s_addr = 0};
-      // TODO - Pruthvi Add support for IPv6
+      // TODO - Add support for IPv6
       ue.s_addr = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
       Imsi_t imsi =
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;

@@ -51,6 +51,7 @@ message LocalCreateSessionRequest {
   string radius_session_id = 14;
   uint32 bearer_id = 15;
   string ue_ipv6 = 16;
+  uint32 pdn_type = 17;
 }
 
 message LocalCreateSessionResponse {
