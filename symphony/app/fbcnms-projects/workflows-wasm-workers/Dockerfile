@@ -11,6 +11,13 @@ WORKDIR /qjs/src
 RUN git checkout 05d9099
 RUN make qjs.wasm
 
+FROM node:12 as python
+RUN git clone https://github.com/wapm-packages/python.git /python
+WORKDIR /python
+RUN git checkout 7435ecf
+# get rid of warning: Could not find platform dependent libraries <exec_prefix>
+RUN mkdir wapm/lib/python3.6/lib-dynload/
+
 FROM node:12
 EXPOSE 8080
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
@@ -39,23 +46,17 @@ COPY fbcnms-projects/workflows-wasm-workers/package.json fbcnms-projects/workflo
 COPY fbcnms-packages fbcnms-packages
 RUN yarn install --frozen-lockfile && yarn cache clean
 
-# Copy python lib files
-RUN git clone https://github.com/wapm-packages/python.git /app/python
-WORKDIR /app/python
-RUN git checkout 7435ecf395417a225a80e2e41e0c673ad17f5344
-
 # Copy app source
 WORKDIR /app/fbcnms-projects/workflows-wasm-workers
 COPY fbcnms-projects/workflows-wasm-workers .
 
-# Finish python copying
-RUN cp -r /app/python/wapm/lib wasm/python/lib
-RUN cp wasm/python/bin/python.wasm wasm/python/lib/
-RUN rm -rf /app/python
-# get rid of warning: Could not find platform dependent libraries <exec_prefix>
-RUN mkdir wasm/python/lib/python3.6/lib-dynload/
-
+# QuickJs
 COPY --from=qjs-wasi /qjs/src/qjs.wasm wasm/quickjs/quickjs.wasm
+
+# Python
+COPY --from=python /python/wapm/bin/python.wasm wasm/python/bin/
+COPY --from=python /python/wapm/lib/ wasm/python/lib/
+RUN cp wasm/python/bin/python.wasm wasm/python/lib/
 
 USER wasm
 
