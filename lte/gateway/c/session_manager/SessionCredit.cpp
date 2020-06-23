@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "DiameterCodes.h"
+#include "EnumToString.h"
 #include "SessionCredit.h"
 #include "magma_logging.h"
 
@@ -17,9 +18,6 @@ namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
-std::string final_action_to_str(ChargingCredit_FinalAction final_action);
-std::string service_state_to_str(ServiceState state);
-std::string reauth_state_to_str(ReAuthState state);
 
 std::unique_ptr<SessionCredit>
 SessionCredit::unmarshal(const StoredSessionCredit &marshaled,
@@ -485,49 +483,5 @@ void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
                << " tx=" << buckets_[REPORTING_TX]
                << " rx=" << buckets_[REPORTING_RX];
 }
-
-std::string final_action_to_str(ChargingCredit_FinalAction final_action) {
-  switch (final_action) {
-  case ChargingCredit_FinalAction_TERMINATE:
-    return "TERMINATE";
-  case ChargingCredit_FinalAction_REDIRECT:
-    return "REDIRECT";
-  case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-    return "RESTRICT_ACCESS";
-  default:
-    return "";
-  }
+// magma namespace
 }
-
-std::string service_state_to_str(ServiceState state) {
-  switch (state) {
-  case SERVICE_ENABLED:
-    return "SERVICE_ENABLED";
-  case SERVICE_NEEDS_DEACTIVATION:
-    return "SERVICE_NEEDS_DEACTIVATION";
-  case SERVICE_DISABLED:
-    return "SERVICE_DISABLED";
-  case SERVICE_NEEDS_ACTIVATION:
-    return "SERVICE_NEEDS_ACTIVATION";
-  case SERVICE_REDIRECTED:
-    return "SERVICE_REDIRECTED";
-  case SERVICE_RESTRICTED:
-    return "SERVICE_RESTRICTED";
-  default:
-    return "INVALID SERVICE STATE";
-  }
-}
-
-std::string reauth_state_to_str(ReAuthState state) {
-  switch (state) {
-  case REAUTH_NOT_NEEDED:
-    return "REAUTH_NOT_NEEDED";
-  case REAUTH_REQUIRED:
-    return "REAUTH_REQUIRED";
-  case REAUTH_PROCESSING:
-    return "REAUTH_PROCESSING";
-  default:
-    return "INVALID REAUTH STATE";
-  }
-}
-} // namespace magma
