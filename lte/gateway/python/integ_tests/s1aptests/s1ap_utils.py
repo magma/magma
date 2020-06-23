@@ -52,9 +52,10 @@ class S1ApUtil(object):
     CM_ESM_PDN_IPV4 = 0b01
     CM_ESM_PDN_IPV6 = 0b10
     CM_ESM_PDN_IPV4V6 = 0b11
-    CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
-    CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
-    CM_ESM_PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
+
+    PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
+    PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
+    PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
 
     lib_name = "libtfw.so"
 
@@ -181,32 +182,32 @@ class S1ApUtil(object):
             protCfgOpts_pr.numContId += 1
             protCfgOpts_pr.c[
                 idx
-            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
             idx += 1
 
         elif pcscf_addr_type == "ipv6":
             protCfgOpts_pr.numContId += 1
             protCfgOpts_pr.c[
                 idx
-            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
             idx += 1
 
         elif pcscf_addr_type == "ipv4v6":
             protCfgOpts_pr.numContId += 2
             protCfgOpts_pr.c[
                 idx
-            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
             idx += 1
             protCfgOpts_pr.c[
                 idx
-            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
             idx += 1
 
         if dns_ipv6_addr:
             protCfgOpts_pr.numContId += 1
             protCfgOpts_pr.c[
                 idx
-            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
+            ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
         self,
