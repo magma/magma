@@ -13,6 +13,7 @@ import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
 import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
+import EventsTable, {magmaEventTypes} from '../../views/events/EventsTable';
 import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -53,10 +54,6 @@ const useStyles = makeStyles(theme => ({
   tabIconLabel: {
     verticalAlign: 'middle',
     margin: '0 5px 3px 0',
-  },
-  // TODO: remove this when we actually fill out the grid sections
-  contentPlaceholder: {
-    padding: '50px 0',
   },
   input: {
     color: 'white',
@@ -176,13 +173,12 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
 
         <Grid item xs={12}>
           <Text>
-            <GpsFixed /> Events (388)
+            <GpsFixed /> Events
           </Text>
-          <Paper>
-            <div className={classes.contentPlaceholder}>
-              Events Table Goes Here
-            </div>
-          </Paper>
+          <EventsTable
+            eventTypes={magmaEventTypes.NETWORK}
+            gatewayHardwareId={'f9a9fc7c-7977-474d-9617-8a309479f2bb'}
+          />
         </Grid>
       </Grid>
     </div>
