@@ -92,18 +92,18 @@ StoredSessionState SessionState::marshal() {
 
 SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
-    : request_number_(marshaled.request_number),
-      curr_state_(marshaled.fsm_state),
-      config_(marshaled.config),
-      imsi_(marshaled.imsi),
+    : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
       core_session_id_(marshaled.core_session_id),
+      request_number_(marshaled.request_number),
+      curr_state_(marshaled.fsm_state),
+      config_(marshaled.config),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
-      credit_map_(4, &ccHash, &ccEqual),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
-      revalidation_time_(marshaled.revalidation_time) {
+      revalidation_time_(marshaled.revalidation_time),
+      credit_map_(4, &ccHash, &ccEqual) {
 
   session_level_key_ =
       std::make_unique<std::string>(marshaled.session_level_key);
@@ -147,13 +147,13 @@ SessionState::SessionState(
     : imsi_(imsi),
       session_id_(session_id),
       core_session_id_(core_session_id),
-      config_(cfg),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
-      credit_map_(4, &ccHash, &ccEqual),
+      config_(cfg),
       tgpp_context_(tgpp_context),
-      static_rules_(rule_store) {}
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual) {}
 
 std::unique_ptr<Monitor>
 SessionState::unmarshal_monitor(const StoredMonitor &marshaled) {

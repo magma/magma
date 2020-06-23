@@ -18,6 +18,13 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 add_definitions(-DLOG_WITH_GLOG)
 
+message("Build type is ${CMAKE_BUILD_TYPE}")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS
+    "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-unused-function"
+  )
+endif ()
+
 include_directories("${OUTPUT_DIR}")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
 

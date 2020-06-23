@@ -25,8 +25,8 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     SessionStore& session_store)
-    : enforcer_(enforcer),
-      session_store_(session_store),
+    : session_store_(session_store),
+      enforcer_(enforcer),
       reporter_(reporter),
       directoryd_client_(directoryd_client),
 
