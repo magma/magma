@@ -132,19 +132,3 @@ Under the location types tab, drag and drop the locations types so that it's arr
    * "Latitude" - to specify the coordinates of the location
    * "Longitude" - to specify the coordinates of the location
 
-
-## 3. [DEPRECATED] Locations upload - not via export 
-
-Location files should be of the following form:
-
-![](https://s3.amazonaws.com/purpleheadband.images/wiki/full_location.png)
-
-* First row is the location types (in order, specified on the "configure->location types page) followed by are the properties, 'external ID'and latitude/longitude.
-* the location  types should be at the beginning, but after  that the order does not matter
-* Properties and 'external ID' will be added to the smallest location of that row (on the prev example - (2nd row) 1st floor on '2392 S Wayside D' Building is of size - 200 sq ft)
-* 'external ID' is an optional column name to add to each location and it later can be searched upon.
-* Add 'latitude' and 'longitude' columns to specify the coordinates of the location
-
-* If there is not one hierarchy - multiple files can be uploaded.
-      * for example, if there can be both "Buildings" and "Rooms" under cities - have one file with the hierarchy of ...City => Building => Floor etc ..., and one with the ....City=>Room
-
