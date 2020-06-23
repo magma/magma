@@ -101,6 +101,7 @@ class InventoryClient(SymphonyClient):
         add_equipment_to_position,
         get_equipment,
         get_equipment_in_position,
+        get_equipments,
         delete_equipment,
         search_for_equipments,
         delete_all_equipments,
@@ -118,6 +119,7 @@ class InventoryClient(SymphonyClient):
     from .api.link import (
         add_link,
         get_link_in_port_of_equipment,
+        get_links,
         get_all_links_and_port_names_of_equipment,
     )
     from .api.service import (
@@ -144,7 +146,12 @@ class InventoryClient(SymphonyClient):
         edit_equipment_port_type,
         delete_equipment_port_type,
     )
-    from .api.port import get_port, edit_port_properties, edit_link_properties
+    from .api.port import (
+        get_port,
+        edit_port_properties,
+        edit_link_properties,
+        get_ports,
+    )
     from .api.user import (
         add_user,
         get_user,

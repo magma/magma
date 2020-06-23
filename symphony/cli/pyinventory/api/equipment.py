@@ -10,7 +10,7 @@ from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
 from ..common.cache import EQUIPMENT_TYPES
-from ..common.constant import EQUIPMENTS_TO_SEARCH
+from ..common.constant import EQUIPMENTS_TO_SEARCH, PAGINATION_STEP
 from ..common.data_class import Equipment, EquipmentType, Location
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -35,6 +35,7 @@ from ..graphql.query.equipment_type_and_properties import (
     EquipmentTypeAndPropertiesQuery,
 )
 from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.equipments import EquipmentsQuery
 from ..graphql.query.location_equipments import LocationEquipmentsQuery
 
 
@@ -94,6 +95,42 @@ def get_equipment(client: SymphonyClient, name: str, location: Location) -> Equi
     if equipment is None:
         raise EquipmentNotFoundException(equipment_name=name)
     return equipment
+
+
+def get_equipments(client: SymphonyClient) -> List[Equipment]:
+    """This function returns all existing equipments
+
+        Returns:
+            List[ `pyinventory.common.data_class.Equipment` ]
+
+        Example:
+            ```
+            all_equipments = client.get_equipments()
+            ```
+    """
+    equipments = EquipmentsQuery.execute(client, first=PAGINATION_STEP)
+    edges = equipments.edges if equipments else []
+    while equipments is not None and equipments.pageInfo.hasNextPage:
+        equipments = EquipmentsQuery.execute(
+            client, after=equipments.pageInfo.endCursor, first=PAGINATION_STEP
+        )
+        if equipments is not None:
+            edges.extend(equipments.edges)
+
+    result = []
+    for edge in edges:
+        node = edge.node
+        if node is not None:
+            result.append(
+                Equipment(
+                    id=node.id,
+                    external_id=node.externalId,
+                    name=node.name,
+                    equipment_type_name=node.equipmentType.name,
+                )
+            )
+
+    return result
 
 
 def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Equipment:

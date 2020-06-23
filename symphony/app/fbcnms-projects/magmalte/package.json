@@ -10,7 +10,8 @@
     "start:prod": "NODE_ENV=production node -r @fbcnms/babel-register scripts/server",
     "migrate": "node -r @fbcnms/babel-register scripts/migrate.js",
     "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js",
-    "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js"
+    "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js",
+    "mockserver": "node scripts/mockServer.js"
   },
   "dependencies": {
     "@date-io/moment": "1.x",
@@ -45,6 +46,7 @@
     "@testing-library/react-hooks": "^3.2.1",
     "fbcnms-webpack-config": "^0.1.0",
     "identity-obj-proxy": "^3.0.0",
+    "json-server": "^0.16.1",
     "nodemon": "^1.18.10",
     "react-hot-loader": "^4.8.0",
     "react-test-renderer": "^16.12.0",

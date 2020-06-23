@@ -92,7 +92,8 @@ MATCHER_P(CheckUpdateSessionRequest, request_number, "")
 {
   auto request = static_cast<const UpdateSessionRequest&>(arg);
   for (const auto& credit_usage_update : request.updates()) {
-    return credit_usage_update.request_number() == request_number;
+    int req_number = credit_usage_update.request_number();
+    return req_number == request_number;
   }
   return false;
 }

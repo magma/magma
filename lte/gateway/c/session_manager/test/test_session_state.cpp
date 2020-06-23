@@ -96,7 +96,10 @@ protected:
       return RedirectInformation_AddressType_URL;
     case RedirectServer_RedirectAddressType_SIP_URI:
       return RedirectInformation_AddressType_SIP_URI;
+    default:
+      return RedirectInformation_AddressType_IPv4;
     }
+
   }
 
   void insert_gy_redirection_rule(const std::string &rule_id){

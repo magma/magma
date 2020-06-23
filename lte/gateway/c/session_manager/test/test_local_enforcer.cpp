@@ -105,7 +105,10 @@ protected:
   folly::EventBase *evb;
 };
 
-MATCHER_P(CheckCount, count, "") { return arg.size() == count; }
+MATCHER_P(CheckCount, count, "") {
+  int arg_count = arg.size();
+  return arg_count == count;
+}
 
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
@@ -132,7 +135,7 @@ MATCHER_P4(CheckSessionInfos, imsi_list, ip_address_list, static_rule_lists,
   if (infos.size() != imsi_list.size())
     return false;
 
-  for (int i = 0; i < infos.size(); i++) {
+  for (size_t i = 0; i < infos.size(); i++) {
     if (infos[i].imsi != imsi_list[i])
       return false;
     if (infos[i].ip_addr != ip_address_list[i])
@@ -141,11 +144,11 @@ MATCHER_P4(CheckSessionInfos, imsi_list, ip_address_list, static_rule_lists,
       return false;
     if (infos[i].dynamic_rules.size() != dynamic_rule_ids_lists[i].size())
       return false;
-    for (int r_index = 0; i < infos[i].static_rules.size(); i++) {
+    for (size_t r_index = 0; i < infos[i].static_rules.size(); i++) {
       if (infos[i].static_rules[r_index] != static_rule_lists[i][r_index])
         return false;
     }
-    for (int r_index = 0; i < infos[i].dynamic_rules.size(); i++) {
+    for (size_t r_index = 0; i < infos[i].dynamic_rules.size(); i++) {
       if (infos[i].dynamic_rules[r_index].id() !=
           dynamic_rule_ids_lists[i][r_index])
         return false;

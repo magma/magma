@@ -173,6 +173,10 @@ class RyuForwardFlowArgsBuilder():
         self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
         return self
 
+    def set_eth_type_arp(self):
+        self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_ARP}
+        return self
+
     def _set_subscriber_match(self, sub_info):
         """ Sets up match/action for subscriber flows """
         self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}

@@ -74,12 +74,12 @@ LocalEnforcer::LocalEnforcer(
     magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
-      session_store_(session_store),
       pipelined_client_(pipelined_client),
       directoryd_client_(directoryd_client),
       eventd_client_(eventd_client),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
+      session_store_(session_store),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
@@ -422,6 +422,9 @@ static RedirectInformation_AddressType address_type_converter(
       return RedirectInformation_AddressType_URL;
     case RedirectServer_RedirectAddressType_SIP_URI:
       return RedirectInformation_AddressType_SIP_URI;
+    default:
+      MLOG(MERROR) << "Unknown redirect address type!";
+      return RedirectInformation_AddressType_IPv4;
   }
 }
 
@@ -573,6 +576,9 @@ static bool should_activate(
     case PolicyRule::NO_TRACKING:
       MLOG(MINFO) << "Activating untracked rule " << rule.id();
       break;
+    default:
+      MLOG(MINFO) << "Invalid rule tracking type " << rule.id();
+      return false;
   }
   return true;
 }

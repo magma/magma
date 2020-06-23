@@ -661,9 +661,11 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref)
     if (enb_ref->s1_state == S1AP_RESETING) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
       enb_ref->s1_state = S1AP_INIT;
+      set_gauge("s1_connection", 0,  1, "enb_name", enb_ref->enb_name);
       update_mme_app_stats_connected_enb_sub();
     } else if (enb_ref->s1_state == S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
+      set_gauge("s1_connection", 0,  1, "enb_name", enb_ref->enb_name);
       s1ap_remove_enb(state, enb_ref);
       update_mme_app_stats_connected_enb_sub();
     }

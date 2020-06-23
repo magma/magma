@@ -7,6 +7,7 @@ from typing import List, Tuple
 
 from pysymphony import SymphonyClient
 
+from ..common.constant import PAGINATION_STEP
 from ..common.data_class import Equipment, Link
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -18,6 +19,7 @@ from ..graphql.input.add_link import AddLinkInput
 from ..graphql.input.link_side import LinkSide
 from ..graphql.mutation.add_link import AddLinkMutation
 from ..graphql.query.equipment_ports import EquipmentPortsQuery
+from ..graphql.query.links import LinksQuery
 from .port import get_port
 
 
@@ -140,6 +142,41 @@ def add_link(
         properties=link.properties,
         service_ids=[s.id for s in link.services],
     )
+
+
+def get_links(client: SymphonyClient) -> List[Link]:
+    """This function returns all existing links
+
+        Returns:
+            List[ `pyinventory.common.data_class.Link` ]
+
+        Example:
+            ```
+            all_links = client.get_links()
+            ```
+    """
+    links = LinksQuery.execute(client, first=PAGINATION_STEP)
+    edges = links.edges if links else []
+    while links is not None and links.pageInfo.hasNextPage:
+        links = LinksQuery.execute(
+            client, after=links.pageInfo.endCursor, first=PAGINATION_STEP
+        )
+        if links is not None:
+            edges.extend(links.edges)
+
+    result = []
+    for edge in edges:
+        node = edge.node
+        if node is not None:
+            result.append(
+                Link(
+                    id=node.id,
+                    properties=node.properties,
+                    service_ids=[s.id for s in node.services],
+                )
+            )
+
+    return result
 
 
 def get_link_in_port_of_equipment(

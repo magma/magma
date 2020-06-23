@@ -95,7 +95,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
     return session_map;
   }
   auto array = reply.as_array();
-  for (int i = 0; i < array.size(); i += 2) {
+  for (size_t i = 0; i < array.size(); i += 2) {
     auto key_reply = array[i];
     if (!key_reply.is_string()) {
       MLOG(MERROR) << "Non string key found in sessions from redis";

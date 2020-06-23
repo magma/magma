@@ -650,9 +650,16 @@ jobs:
           name: Publish package to npm
           command: npm publish --access public
 
+parameters:
+  deploy:
+    type: boolean
+    default: false
+
 workflows:
   version: 2.1
   all:
+    when:
+      not: << pipeline.parameters.deploy >>
     jobs:
       - lint
       - validate-gql-test
@@ -795,6 +802,46 @@ workflows:
       - tfapply:
           name: production/deploy
           workspace: default
+          after_checkout:
+            - tfprepare: *tfprepare
+          requires:
+            - testim
+
+  deploy_api:
+    when:
+      and:
+        - equal: [ master, << pipeline.git.branch >> ]
+        - << pipeline.parameters.deploy >>
+    jobs:
+      - tfdiff:
+          workspace: default
+          context: symphony
+          <<: *tfvardir
+      - tfapply:
+          name: staging/deploy
+          workspace: staging
+          context: symphony
+          after_checkout:
+            - tfprepare: &tfprepare
+                <<: *tfvardir
+                <<: *tfworkdir
+          requires:
+            - tfdiff
+      - testim:
+          context: symphony
+          before_test:
+            - run:
+                name: Check testim blocker
+                command: test -z $TESTIMIO_SKIP || circleci step halt
+            - tfathalt:
+                <<: *tfvardir
+          options: "--suite Sanity"
+          requires:
+            - staging/deploy
+      - tfapply:
+          name: production/deploy
+          workspace: default
+          context: symphony
           after_checkout:
             - tfprepare: *tfprepare
           requires:

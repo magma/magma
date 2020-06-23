@@ -354,7 +354,7 @@ def _check_docker_services():
 def _start_ue_simulator():
     """ Starts the UE Sim Service """
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
-        run('tmux new -d \'go run main.go\'')
+        run('tmux new -d \'go run main.go -logtostderr=true -v=10\'')
 
 
 def _start_trfserver():

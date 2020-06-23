@@ -22,7 +22,7 @@ const char* DIRECTION_DOWN     = "down";
 
 MeteringReporter::MeteringReporter() {}
 
-bool MeteringReporter::report_usage(
+void MeteringReporter::report_usage(
     const std::string& imsi, const std::string& session_id,
     SessionStateUpdateCriteria& update_criteria) {
   double total_tx = 0;

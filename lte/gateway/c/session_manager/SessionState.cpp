@@ -16,14 +16,13 @@
 #include <google/protobuf/util/time_util.h>
 
 #include "CreditKey.h"
+#include "EnumToString.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
 #include "magma_logging.h"
 
 namespace magma {
-
-std::string session_fsm_state_to_str(SessionFsmState state);
 
 std::unique_ptr<SessionState> SessionState::unmarshal(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store) {
@@ -92,18 +91,18 @@ StoredSessionState SessionState::marshal() {
 
 SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
-    : request_number_(marshaled.request_number),
-      curr_state_(marshaled.fsm_state),
-      config_(marshaled.config),
-      imsi_(marshaled.imsi),
+    : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
       core_session_id_(marshaled.core_session_id),
+      request_number_(marshaled.request_number),
+      curr_state_(marshaled.fsm_state),
+      config_(marshaled.config),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
-      credit_map_(4, &ccHash, &ccEqual),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
-      revalidation_time_(marshaled.revalidation_time) {
+      revalidation_time_(marshaled.revalidation_time),
+      credit_map_(4, &ccHash, &ccEqual) {
 
   session_level_key_ =
       std::make_unique<std::string>(marshaled.session_level_key);
@@ -147,13 +146,13 @@ SessionState::SessionState(
     : imsi_(imsi),
       session_id_(session_id),
       core_session_id_(core_session_id),
-      config_(cfg),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
-      credit_map_(4, &ccHash, &ccEqual),
+      config_(cfg),
       tgpp_context_(tgpp_context),
-      static_rules_(rule_store) {}
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual) {}
 
 std::unique_ptr<Monitor>
 SessionState::unmarshal_monitor(const StoredMonitor &marshaled) {
@@ -184,9 +183,10 @@ convert_update_type_to_proto(CreditUpdateType update_type) {
       return CreditUsage::REAUTH_REQUIRED;
     case CREDIT_VALIDITY_TIMER_EXPIRED:
       return CreditUsage::VALIDITY_TIMER_EXPIRED;
+    default:
+      MLOG(MERROR) << "Converting invalid update type " << update_type;
+      return CreditUsage::QUOTA_EXHAUSTED;
   }
-  MLOG(MERROR) << "Converting invalid update type " << update_type;
-  return CreditUsage::QUOTA_EXHAUSTED;
 }
 
 static uint64_t get_granted_units(const CreditUnit &unit,
@@ -312,8 +312,8 @@ void SessionState::get_monitor_updates(
     auto usage = credit.get_usage_for_reporting(*credit_uc);
     auto update = make_usage_monitor_update(
         usage, mkey, monitor_pair.second->level);
-
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
+
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->mutable_update()->CopyFrom(update);
     new_req->set_event_trigger(USAGE_REPORT);
@@ -791,25 +791,6 @@ void SessionState::set_fsm_state(SessionFsmState new_state,
     curr_state_ = new_state;
     uc.is_fsm_updated = true;
     uc.updated_fsm_state = new_state;
-  }
-}
-
-std::string session_fsm_state_to_str(SessionFsmState state) {
-  switch (state) {
-  case SESSION_ACTIVE:
-    return "SESSION_ACTIVE";
-  case SESSION_TERMINATING_FLOW_ACTIVE:
-    return "SESSION_TERMINATING_FLOW_ACTIVE";
-  case SESSION_TERMINATING_AGGREGATING_STATS:
-    return "SESSION_TERMINATING_AGGREGATING_STATS";
-  case SESSION_TERMINATING_FLOW_DELETED:
-    return "SESSION_TERMINATING_FLOW_DELETED";
-  case SESSION_TERMINATED:
-    return "SESSION_TERMINATED";
-  case SESSION_TERMINATION_SCHEDULED:
-    return "SESSION_TERMINATION_SCHEDULED";
-  default:
-    return "INVALID SESSION FSM STATE";
   }
 }
 

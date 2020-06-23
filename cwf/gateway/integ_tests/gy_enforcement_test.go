@@ -495,7 +495,7 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 // ASR to complete without any error and all the rules associated with
 // that session to be cleaned up
 func TestGyAbortSessionRequest(t *testing.T) {
-	t.Log("Testing TestGyAbortSessionRequest")
+	fmt.Println("\nTesting TestGyAbortSessionRequest...")
 
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()

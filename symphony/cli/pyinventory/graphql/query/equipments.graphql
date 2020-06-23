@@ -1,0 +1,12 @@
+query EquipmentsQuery($after: Cursor, $first: Int) {
+  equipments(after: $after, first: $first) {
+    edges {
+      node {
+        ...EquipmentFragment
+      }
+    }
+    pageInfo {
+      ...PageInfoFragment
+    }
+  }
+}

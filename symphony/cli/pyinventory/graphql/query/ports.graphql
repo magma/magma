@@ -1,0 +1,12 @@
+query PortsQuery($after: Cursor, $first: Int) {
+  equipmentPorts(after: $after, first: $first) {
+    edges {
+      node {
+        ...EquipmentPortFragment
+      }
+    }
+    pageInfo {
+      ...PageInfoFragment
+    }
+  }
+}
