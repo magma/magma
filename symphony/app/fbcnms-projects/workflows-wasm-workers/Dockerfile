@@ -1,7 +1,18 @@
+FROM node:12 as wasmer
+WORKDIR /wasmer
+RUN wget -q https://github.com/wasmerio/wasmer/releases/download/0.17.0/wasmer-linux-amd64.tar.gz -O wasmer.tar.gz && \
+ tar xvfz wasmer.tar.gz
+
+FROM wasienv/wasienv as qjs-wasi
+RUN apt-get install -y make gcc git
+COPY --from=wasmer /wasmer/bin/wasmer /root/.wasienv/bin/
+RUN git clone https://github.com/robot-rumble/qjs-wasi.git /qjs
+WORKDIR /qjs/src
+RUN git checkout 05d9099
+RUN make qjs.wasm
+
 FROM node:12
-
 EXPOSE 8080
-
 # https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
 RUN mkdir -p /app/fbcnms-projects/workflows-wasm-workers && \
  groupadd -r wasm && \
@@ -15,8 +26,7 @@ RUN mkdir -p /app/fbcnms-projects/workflows-wasm-workers && \
 # install wasmer wasm runtime to ~/.wasmer/bin/wasmer
 #RUN curl https://get.wasmer.io -sSfL | sh
 WORKDIR /app/fbcnms-projects/workflows-wasm-workers/.wasmer
-RUN wget https://github.com/wasmerio/wasmer/releases/download/0.17.0/wasmer-linux-amd64.tar.gz -O wasmer.tar.gz && \
- tar xvfz wasmer.tar.gz
+COPY --from=wasmer /wasmer/bin/wasmer bin/
 
 # Create app directory
 WORKDIR /app
@@ -45,9 +55,7 @@ RUN rm -rf /app/python
 # get rid of warning: Could not find platform dependent libraries <exec_prefix>
 RUN mkdir wasm/python/lib/python3.6/lib-dynload/
 
-# make lib read only to mitigate security issue - folder is mapped to wasm container
-# and this is accessible
-#RUN chmod -R g=rx,o=rx wasm/python/lib
+COPY --from=qjs-wasi /qjs/src/qjs.wasm wasm/quickjs/quickjs.wasm
 
 USER wasm
 
