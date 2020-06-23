@@ -105,8 +105,7 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
   }
 }
 
-std::string MmeNasStateConverter::mme_app_convert_guti_to_string(
-    guti_t* guti_p) {
+char* MmeNasStateConverter::mme_app_convert_guti_to_string(guti_t* guti_p) {
   size_t len = 0;
   len        = snprintf(
       NULL, len, "%x%x%x%x%x%x%04x%x%x", guti_p->gummei.plmn.mcc_digit1,
@@ -137,8 +136,10 @@ void MmeNasStateConverter::guti_table_to_proto(
   }
   for (auto i = 0; i < size; i++) {
     uint64_t mme_ue_id;
-    std::string guti_str =
-        mme_app_convert_guti_to_string((guti_t*) (*key_array_p)[i]);
+
+    char* str = mme_app_convert_guti_to_string((guti_t*) (*key_array_p)[i]);
+    std::string guti_str(str);
+    free(str);
     OAILOG_TRACE(
       LOG_MME_APP,
       "Looking for key %p with value %u\n",

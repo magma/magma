@@ -69,7 +69,7 @@ class MmeNasStateConverter : public StateConverter {
   static void mme_app_convert_string_to_guti(
       guti_t* guti_p, const std::string& guti_str);
 
-  static std::string mme_app_convert_guti_to_string(guti_t* guti_p);
+  static char* mme_app_convert_guti_to_string(guti_t* guti_p);
 
  private:
   /***********************************************************
