@@ -16,19 +16,19 @@ import {Bar} from 'react-chartjs-2';
 export function getStep(start: moment, end: moment): [number, string, string] {
   const d = moment.duration(end.diff(start));
   if (d.asMinutes() <= 60.5) {
-    return [5, 'minutes', 'HH::mm'];
+    return [5, 'minutes', 'HH:mm'];
   } else if (d.asHours() <= 3.5) {
-    return [15, 'minutes', 'HH::mm'];
+    return [15, 'minutes', 'HH:mm'];
   } else if (d.asHours() <= 6.5) {
-    return [15, 'minutes', 'HH::mm'];
+    return [15, 'minutes', 'HH:mm'];
   } else if (d.asHours() <= 12.5) {
-    return [1, 'hours', 'HH::mm'];
+    return [1, 'hours', 'HH:mm'];
   } else if (d.asHours() <= 24.5) {
-    return [2, 'hours', 'HH::mm'];
+    return [2, 'hours', 'HH:mm'];
   } else if (d.asDays() <= 3.5) {
-    return [6, 'hours', 'DD-MM-YY HH::mm'];
+    return [6, 'hours', 'DD-MM-YY HH:mm'];
   } else if (d.asDays() <= 7.5) {
-    return [12, 'hours', 'DD-MM-YY HH::mm'];
+    return [12, 'hours', 'DD-MM-YY HH:mm'];
   } else if (d.asDays() <= 14.5) {
     return [1, 'days', 'DD-MM-YYYY'];
   } else if (d.asDays() <= 30.5) {
