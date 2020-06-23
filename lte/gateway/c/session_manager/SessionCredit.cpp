@@ -92,16 +92,15 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 }
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
-    : credit_type_(credit_type), reporting_(false),
-      reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(false), buckets_{}, is_final_grant_(false){}
+    : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      service_state_(start_state), buckets_{}, reporting_(false),
+      unlimited_quota_(false), is_final_grant_(false){}
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state,
                              bool unlimited_quota)
-    : credit_type_(credit_type), reporting_(false),
-      reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(unlimited_quota), buckets_{}, is_final_grant_(false) {}
-
+    : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      service_state_(start_state), buckets_{}, reporting_(false),
+      unlimited_quota_(unlimited_quota), is_final_grant_(false) {}
 
 // by default, enable service
 SessionCredit::SessionCredit(CreditType credit_type)

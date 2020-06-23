@@ -74,12 +74,12 @@ LocalEnforcer::LocalEnforcer(
     magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
-      session_store_(session_store),
       pipelined_client_(pipelined_client),
       directoryd_client_(directoryd_client),
       eventd_client_(eventd_client),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
+      session_store_(session_store),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
