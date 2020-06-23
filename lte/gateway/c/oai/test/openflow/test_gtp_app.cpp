@@ -101,6 +101,14 @@ MATCHER_P(CheckIPv4Dst, ip, "")
   return ipv4_field->value().getIPv4() == ip.s_addr;
 }
 
+MATCHER_P(CheckArpTpa, ip, "")
+{
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv4_field =
+    static_cast<of13::ARPTPA *>(msg->get_oxm_field(of13::OFPXMT_OFB_ARP_TPA));
+  return ipv4_field->value().getIPv4() == ip.s_addr;
+}
+
 MATCHER_P(CheckEthType, eth_type, "")
 {
   auto msg = static_cast<of13::FlowMod *>(&arg);
@@ -197,6 +205,29 @@ TEST_F(GTPApplicationTest, TestAddTunnel)
       _))
     .Times(1);
 
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(of13::OFPP_LOCAL),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
+        CheckCommandType(of13::OFPFC_ADD)),
+      _))
+    .Times(1);
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(TEST_MTR_PORT),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
+        CheckCommandType(of13::OFPFC_ADD)),
+      _))
+    .Times(1);
+
   controller->dispatch_event(add_tunnel);
 }
 
@@ -240,6 +271,30 @@ TEST_F(GTPApplicationTest, TestDeleteTunnel)
         CheckInPort(TEST_MTR_PORT),
         CheckEthType(0x0800),
         CheckIPv4Dst(ue_ip),
+        CheckCommandType(of13::OFPFC_DELETE)),
+      _))
+    .Times(1);
+
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(of13::OFPP_LOCAL),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
+        CheckCommandType(of13::OFPFC_DELETE)),
+      _))
+    .Times(1);
+
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(TEST_MTR_PORT),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
         CheckCommandType(of13::OFPFC_DELETE)),
       _))
     .Times(1);
@@ -316,6 +371,29 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow)
       _))
     .Times(1);
 
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(of13::OFPP_LOCAL),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
+        CheckCommandType(of13::OFPFC_ADD)),
+      _))
+    .Times(1);
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(TEST_MTR_PORT),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
+        CheckCommandType(of13::OFPFC_ADD)),
+      _))
+    .Times(1);
+
   controller->dispatch_event(add_tunnel);
 }
 
@@ -378,6 +456,30 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlow)
         CheckIPv4Proto(dl_flow.ip_proto),
         CheckTcpDstPort(dl_flow.tcp_dst_port),
         CheckTcpSrcPort(dl_flow.tcp_src_port),
+        CheckCommandType(of13::OFPFC_DELETE)),
+      _))
+    .Times(1);
+
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(of13::OFPP_LOCAL),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
+        CheckCommandType(of13::OFPFC_DELETE)),
+      _))
+    .Times(1);
+
+  EXPECT_CALL(
+    *messenger,
+    send_of_msg(
+      AllOf(
+        CheckTableId(0),
+        CheckInPort(TEST_MTR_PORT),
+        CheckEthType(0x0806),
+        CheckArpTpa(ue_ip),
         CheckCommandType(of13::OFPFC_DELETE)),
       _))
     .Times(1);
