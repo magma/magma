@@ -59,11 +59,15 @@ void GTPApplication::event_callback(
     add_uplink_tunnel_flow(add_tunnel_event, messenger);
     add_downlink_tunnel_flow(add_tunnel_event, messenger, uplink_port_num_);
     add_downlink_tunnel_flow(add_tunnel_event, messenger, mtr_port_num_);
+    add_downlink_arp_flow(add_tunnel_event, messenger, uplink_port_num_);
+    add_downlink_arp_flow(add_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DELETE_GTP_TUNNEL) {
     auto del_tunnel_event = static_cast<const DeleteGTPTunnelEvent&>(ev);
     delete_uplink_tunnel_flow(del_tunnel_event, messenger);
     delete_downlink_tunnel_flow(del_tunnel_event, messenger, uplink_port_num_);
     delete_downlink_tunnel_flow(del_tunnel_event, messenger, mtr_port_num_);
+    delete_downlink_arp_flow(del_tunnel_event, messenger, uplink_port_num_);
+    delete_downlink_arp_flow(del_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_DISCARD_DATA_ON_GTP_TUNNEL) {
     auto discard_tunnel_flow =
       static_cast<const HandleDataOnGTPTunnelEvent&>(ev);
@@ -101,9 +105,9 @@ void add_uplink_match(
  */
 void add_imsi_metadata(
   of13::ApplyActions &apply_actions,
-  const std::string &imsi)
+  uint64_t imsi)
 {
-  auto metadata_field = new of13::Metadata(IMSIEncoder::compact_imsi(imsi));
+  auto metadata_field = new of13::Metadata(imsi);
   of13::SetFieldAction set_metadata(metadata_field);
   apply_actions.add_action(set_metadata);
 }
@@ -112,6 +116,7 @@ void GTPApplication::add_uplink_tunnel_flow(
   const AddGTPTunnelEvent &ev,
   const OpenflowMessenger &messenger)
 {
+  auto imsi = IMSIEncoder::compact_imsi(ev.get_imsi());
   uint32_t flow_priority =
     convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm =
@@ -130,7 +135,7 @@ void GTPApplication::add_uplink_tunnel_flow(
   apply_ul_inst.add_action(set_eth_dst);
 
   // add imsi to packet metadata to pass to other tables
-  add_imsi_metadata(apply_ul_inst, ev.get_imsi());
+  add_imsi_metadata(apply_ul_inst, imsi);
 
   uplink_fm.add_instruction(apply_ul_inst);
 
@@ -140,7 +145,7 @@ void GTPApplication::add_uplink_tunnel_flow(
 
   // Finally, send flow mod
   messenger.send_of_msg(uplink_fm, ev.get_connection());
-  OAILOG_DEBUG(LOG_GTPV1U, "Uplink flow added\n");
+  OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "Uplink flow added\n");
 }
 
 void GTPApplication::delete_uplink_tunnel_flow(
@@ -161,6 +166,23 @@ void GTPApplication::delete_uplink_tunnel_flow(
 /*
  * Helper method to add matching for adding/deleting the downlink flow
  */
+static void add_downlink_arp_match(
+  of13::FlowMod& downlink_fm,
+  const struct in_addr& ue_ip,
+  uint32_t port)
+
+{
+  // Set match on uplink port and IP eth type
+  of13::InPort uplink_port_match(port);
+  downlink_fm.add_oxm_field(uplink_port_match);
+  of13::EthType ip_type(0x0806);
+  downlink_fm.add_oxm_field(ip_type);
+
+  // Match UE IP destination
+  of13::ARPTPA arptpa(ue_ip.s_addr);
+  downlink_fm.add_oxm_field(arptpa);
+}
+
 static void add_downlink_match(
   of13::FlowMod& downlink_fm,
   const struct in_addr& ue_ip,
@@ -232,6 +254,7 @@ void GTPApplication::add_downlink_tunnel_flow(
   const OpenflowMessenger &messenger,
   uint32_t port_number)
 {
+  auto imsi = IMSIEncoder::compact_imsi(ev.get_imsi());
   uint32_t flow_priority =
     convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod downlink_fm =
@@ -253,7 +276,7 @@ void GTPApplication::add_downlink_tunnel_flow(
   apply_dl_inst.add_action(set_tunnel_dst);
 
   // add imsi to packet metadata to pass to other tables
-  add_imsi_metadata(apply_dl_inst, ev.get_imsi());
+  add_imsi_metadata(apply_dl_inst, imsi);
 
   // Output to inout table
   of13::GoToTable goto_inst(NEXT_TABLE);
@@ -263,7 +286,36 @@ void GTPApplication::add_downlink_tunnel_flow(
 
   // Finally, send flow mod
   messenger.send_of_msg(downlink_fm, ev.get_connection());
-  OAILOG_DEBUG(LOG_GTPV1U, "Downlink flow added\n");
+  OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "Downlink flow added\n");
+}
+
+void GTPApplication::add_downlink_arp_flow(
+  const AddGTPTunnelEvent &ev,
+  const OpenflowMessenger &messenger,
+  uint32_t port_number)
+{
+  auto imsi = IMSIEncoder::compact_imsi(ev.get_imsi());
+  uint32_t flow_priority =
+    convert_precedence_to_priority(ev.get_dl_flow_precedence());
+  of13::FlowMod downlink_fm =
+    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
+
+  add_downlink_arp_match(downlink_fm, ev.get_ue_ip(), port_number);
+
+  of13::ApplyActions apply_dl_inst;
+
+  // add imsi to packet metadata to pass to other tables
+  add_imsi_metadata(apply_dl_inst, imsi);
+
+  // Output to inout table
+  of13::GoToTable goto_inst(NEXT_TABLE);
+
+  downlink_fm.add_instruction(apply_dl_inst);
+  downlink_fm.add_instruction(goto_inst);
+
+  // Finally, send flow mod
+  messenger.send_of_msg(downlink_fm, ev.get_connection());
+  OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "ARP flow added\n");
 }
 
 void GTPApplication::delete_downlink_tunnel_flow(
@@ -282,6 +334,22 @@ void GTPApplication::delete_downlink_tunnel_flow(
   } else {
     add_downlink_match(downlink_fm, ev.get_ue_ip(), port_number);
   }
+
+  messenger.send_of_msg(downlink_fm, ev.get_connection());
+}
+
+void GTPApplication::delete_downlink_arp_flow(
+  const DeleteGTPTunnelEvent &ev,
+  const OpenflowMessenger &messenger,
+  uint32_t port_number)
+{
+  of13::FlowMod downlink_fm =
+    messenger.create_default_flow_mod(0, of13::OFPFC_DELETE, 0);
+  // match all ports and groups
+  downlink_fm.out_port(of13::OFPP_ANY);
+  downlink_fm.out_group(of13::OFPG_ANY);
+
+  add_downlink_arp_match(downlink_fm, ev.get_ue_ip(), port_number);
 
   messenger.send_of_msg(downlink_fm, ev.get_connection());
 }
