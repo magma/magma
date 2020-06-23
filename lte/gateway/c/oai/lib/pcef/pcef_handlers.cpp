@@ -97,7 +97,8 @@ void pcef_create_session(
     const pcef_create_session_data* session_data,
     itti_sgi_create_end_point_response_t sgi_response,
     s5_create_session_request_t session_request,
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
+    s_plus_p_gw_eps_bearer_context_information_t* ctx_p)
+{
   auto imsi_str = std::string(imsi);
   std::string ip4_str, ip6_str;
 

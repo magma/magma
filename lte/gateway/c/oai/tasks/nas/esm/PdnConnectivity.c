@@ -127,7 +127,8 @@ int esm_proc_pdn_connectivity_request(
     const esm_proc_pdn_request_t request_type, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
     bearer_qos_t* default_qos, protocol_configuration_options_t* const pco,
-    esm_cause_t* esm_cause) {
+    esm_cause_t* esm_cause)
+{
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNok;
   mme_ue_s1ap_id_t ue_id =
@@ -345,7 +346,8 @@ static int _pdn_connectivity_create(
     const context_identifier_t context_identifier, const_bstring const apn,
     pdn_type_t pdn_type, const_bstring const pdn_addr,
     protocol_configuration_options_t* const pco, const bool is_emergency,
-    esm_cause_t* esm_cause) {
+    esm_cause_t* esm_cause)
+{
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);

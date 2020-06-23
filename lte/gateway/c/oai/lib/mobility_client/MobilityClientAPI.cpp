@@ -227,7 +227,8 @@ int get_subscriber_id_from_ipv4(
  * once Mobilityd is enhanced to support IPv6 address
  */
 struct in6_addr* generate_random_ip6_interface_id(
-    struct in6_addr config_ipv6_prefix) {
+    struct in6_addr config_ipv6_prefix)
+{
   char* ip6_addr = (char*) malloc(INET6_ADDRSTRLEN);
   char *temp_prefix[4], *temp_prefix_free[4];
   char* buf_ipv6              = ip6_addr;
@@ -271,7 +272,8 @@ int pgw_handle_allocate_ipv6_address(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response,
-    struct in6_addr config_ipv6_prefix, uint8_t ipv6_prefix_len) {
+    struct in6_addr config_ipv6_prefix, uint8_t ipv6_prefix_len)
+{
   // TODO Make an RPC call to Mobilityd
 
   // TODO Temporary code to be removed once Mobilityd supports ipv6
@@ -310,7 +312,8 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
     struct in6_addr addr, const char* imsi, const char* apn,
     const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    uint8_t ipv6_prefix_len) {
+    uint8_t ipv6_prefix_len)
+{
   increment_counter(
       "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "success");
   sgi_create_endpoint_resp.paa.ipv6_address       = addr;
@@ -328,7 +331,8 @@ int pgw_handle_allocate_ipv4v6_address(
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response,
-    struct in6_addr config_ipv6_prefix, uint8_t ipv6_prefix_len) {
+    struct in6_addr config_ipv6_prefix, uint8_t ipv6_prefix_len)
+{
   // Get IPv4 address
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
@@ -375,7 +379,7 @@ int pgw_handle_allocate_ipv4v6_address(
           free_wrapper((void**) &ip6_prefix_temp);
           OAILOG_FUNC_OUT(LOG_PGW_APP);
         }
-        // sgi_resp.status != SGI_STATUS_OK
+        // If status != SGI_STATUS_OK
         s5_response.eps_bearer_id = eps_bearer_id;
         s5_response.context_teid  = context_teid;
         handle_s5_create_session_response(
@@ -390,7 +394,8 @@ handle_allocate_ipv4v6_address_status(
     const Status& status, struct in_addr ip4_addr, struct in6_addr ip6_addr,
     const char* imsi, const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    uint8_t ipv6_prefix_len) {
+    uint8_t ipv6_prefix_len)
+{
   if (status.ok()) {
     increment_counter(
         "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "success");
@@ -406,7 +411,6 @@ handle_allocate_ipv4v6_address_status(
        * Release the IP address so that subsequent attempt is successfull
        */
       release_ipv4_address(imsi, apn, &ip4_addr);
-      // TODO - Release the GTP-tunnel corresponding to this IP address
     } else {
       increment_counter(
           "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "failure");
@@ -430,7 +434,8 @@ handle_allocate_ipv4v6_address_status(
 }
 
 int release_ipv6_address(
-    const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
+    const char* subscriber_id, const char* apn, const struct in6_addr* addr)
+{
   int status = 0;
   // TODO- Uncomment once IPv6 is implemented at Mobilityd
   /*status = MobilityServiceClient::getInstance().ReleaseIPv6Address(

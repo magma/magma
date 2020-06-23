@@ -78,8 +78,8 @@ int select_pdn_type(
          */
         OAILOG_ERROR(
             LOG_MME_APP,
-            "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
             " Sending PDN Connectivity Reject with cause "
+            "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
             " UE requested PDN Type %d, subscribed PDN Type %d \n",
             ue_selected_pdn_type, apn_config->pdn_type);
 
@@ -117,7 +117,8 @@ int select_pdn_type(
 //------------------------------------------------------------------------------
 struct apn_configuration_s* mme_app_select_apn(
     ue_mm_context_t* const ue_context, const_bstring const ue_selected_apn,
-    esm_proc_pdn_type_t ue_selected_pdn_type, int* esm_cause) {
+    esm_proc_pdn_type_t ue_selected_pdn_type, int* esm_cause)
+{
   context_identifier_t default_context_identifier =
       ue_context->apn_config_profile.context_identifier;
   int index;

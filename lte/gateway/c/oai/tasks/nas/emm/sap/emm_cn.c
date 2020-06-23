@@ -206,7 +206,8 @@ static int _emm_cn_smc_fail(const emm_cn_smc_fail_t *msg)
 }
 
 //------------------------------------------------------------------------------
-void _handle_apn_mismatch(ue_mm_context_t* const ue_context, int esm_cause) {
+void _handle_apn_mismatch(ue_mm_context_t* const ue_context, int esm_cause)
+{
   ESM_msg esm_msg               = {.header = {0}};
   struct emm_context_s* emm_ctx = NULL;
   uint8_t emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
