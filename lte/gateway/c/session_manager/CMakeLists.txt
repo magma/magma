@@ -85,6 +85,8 @@ link_directories(
 add_library(SESSION_MANAGER
     AAAClient.cpp
     AAAClient.h
+    EnumToString.cpp
+    EnumToString.h
     SessionManagerServer.cpp
     SessionManagerServer.h
     LocalSessionManagerHandler.cpp
