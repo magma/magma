@@ -124,17 +124,12 @@ int esm_proc_status(
  */
 
 int esm_proc_pdn_connectivity_request(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  const pdn_cid_t pdn_cid,
-  const context_identifier_t context_identifier,
-  const esm_proc_pdn_request_t request_type,
-  const_bstring const apn,
-  pdn_type_t pdn_type,
-  const_bstring const pdn_addr,
-  bearer_qos_t *default_qos,
-  protocol_configuration_options_t *const pco,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
+    const context_identifier_t context_identifier,
+    const esm_proc_pdn_request_t request_type, const_bstring const apn,
+    pdn_type_t pdn_type, const_bstring const pdn_addr,
+    bearer_qos_t* default_qos, protocol_configuration_options_t* const pco,
+    esm_cause_t* esm_cause);
 
 int esm_proc_pdn_connectivity_reject(
   bool is_standalone,

@@ -151,7 +151,9 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False):
+    def populate_pco(
+        self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+    ):
         """
         Populates the PCO values.
         Args:
@@ -177,24 +179,34 @@ class S1ApUtil(object):
         idx = 0
         if pcscf_addr_type == "ipv4":
             protCfgOpts_pr.numContId += 1
-            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
             idx += 1
 
         elif pcscf_addr_type == "ipv6":
             protCfgOpts_pr.numContId += 1
-            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
             idx += 1
 
         elif pcscf_addr_type == "ipv4v6":
             protCfgOpts_pr.numContId += 2
-            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
             idx += 1
-            protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
             idx += 1
 
         if dns_ipv6_addr:
-           protCfgOpts_pr.numContId += 1
-           protCfgOpts_pr.c[idx].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.CM_ESM_PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
         self,
@@ -239,7 +251,9 @@ class S1ApUtil(object):
         # Populate PCO only if pcscf_addr_type is set
         if pcscf_addr_type or dns_ipv6_addr:
             print("********* dns_ipv6_addr", dns_ipv6_addr)
-            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr)
+            self.populate_pco(
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+            )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
         response = self.get_response()

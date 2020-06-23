@@ -162,6 +162,7 @@ typedef enum {
   LOG_SGS,
   LOG_ASYNC_SYSTEM,
   LOG_ASSERT,
+  LOG_COMMON,
   MAX_LOG_PROTOS,
 } log_proto_t;
 

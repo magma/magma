@@ -378,7 +378,9 @@ class TestWrapper(object):
         # Populate PCO if pcscf_addr_type is set
         if pcscf_addr_type or dns_ipv6_addr:
             print("********* dns_ipv6_addr", dns_ipv6_addr)
-            self._s1_util.populate_pco(req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr)
+            self._s1_util.populate_pco(
+                req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+            )
 
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 

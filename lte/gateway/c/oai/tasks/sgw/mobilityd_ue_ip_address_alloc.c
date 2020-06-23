@@ -45,18 +45,10 @@ int release_ue_ipv4_address(
 }
 
 int release_ue_ipv6_address(
-  const char* imsi,
-  const char* apn,
-  struct in6_addr* addr)
-{
+    const char* imsi, const char* apn, struct in6_addr* addr) {
   increment_counter(
-    "ue_pdn_connection",
-    1,
-    2,
-    "pdn_type",
-    "ipv6",
-    "result",
-    "ip_address_released");
+      "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result",
+      "ip_address_released");
   // Release IP address back to PGW IP Address allocator
   return release_ipv6_address(imsi, apn, addr);
 }

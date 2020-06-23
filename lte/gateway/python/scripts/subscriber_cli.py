@@ -93,7 +93,16 @@ def update_subscriber(client, args):
         ul = "mbr_uplink"
         dl = "mbr_downlink"
         pdn_type = "pdn_type"
-        apn_keys = (apn_name, qci, priority, pre_cap, pre_vul, ul, dl, pdn_type)
+        apn_keys = (
+            apn_name,
+            qci,
+            priority,
+            pre_cap,
+            pre_vul,
+            ul,
+            dl,
+            pdn_type,
+        )
         apn_data = args.apn_config
         for apn_d in apn_data:
             apn_val = apn_d.split(",")
@@ -197,7 +206,8 @@ def create_parser():
             action="append",
             help="APN parameters to add/update in the order :"
             " [apn-name, qci, priority, preemption-capability,"
-            " preemption-vulnerability, mbr-ul, mbr-dl, pdn-type/*0-IPv4, 1-IPv6, 2-IPv4v6*/]"
+            " preemption-vulnerability, mbr-ul, mbr-dl, pdn-type"
+            " PDN Type [0-IPv4, 1-IPv6, 2-IPv4v6]"
             " [e.g --apn-config ims,5,15,1,1,1000,2000,1"
             " --apn-config internet,9,1,0,0,3000,4000,0]",
         )

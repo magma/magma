@@ -93,15 +93,11 @@ static void pcef_fill_create_session_req(
 }
 
 void pcef_create_session(
-  spgw_state_t* state,
-  const char* imsi,
-  const char* ip4,
-  const char* ip6,
-  const pcef_create_session_data* session_data,
-  itti_sgi_create_end_point_response_t sgi_response,
-  s5_create_session_request_t session_request,
-  s_plus_p_gw_eps_bearer_context_information_t* ctx_p)
-{
+    spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
+    const pcef_create_session_data* session_data,
+    itti_sgi_create_end_point_response_t sgi_response,
+    s5_create_session_request_t session_request,
+    s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
   auto imsi_str = std::string(imsi);
   std::string ip4_str, ip6_str;
 
@@ -120,7 +116,9 @@ void pcef_create_session(
     sreq.set_ue_ipv4(ip4_str);
   } else if ((session_data->pdn_type == IPv6) && (!ip6_str.empty())) {
     sreq.set_ue_ipv6(ip6_str);
-  } else if ((session_data->pdn_type == IPv4_AND_v6) && (!ip4_str.empty()) && (!ip6_str.empty())) {
+  } else if (
+      (session_data->pdn_type == IPv4_AND_v6) && (!ip4_str.empty()) &&
+      (!ip6_str.empty())) {
     sreq.set_ue_ipv4(ip4_str);
     sreq.set_ue_ipv6(ip6_str);
   }
@@ -131,12 +129,12 @@ void pcef_create_session(
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
-    sreq,
-    [imsi_str, apn, sgi_response, session_request, ctx_p, state](
-      grpc::Status status, magma::LocalCreateSessionResponse response) {
-      create_session_response(
-        state, imsi_str, apn, sgi_response, session_request, status, ctx_p);
-    });
+      sreq,
+      [imsi_str, apn, sgi_response, session_request, ctx_p, state](
+          grpc::Status status, magma::LocalCreateSessionResponse response) {
+        create_session_response(
+            state, imsi_str, apn, sgi_response, session_request, status, ctx_p);
+      });
 }
 
 bool pcef_end_session(char *imsi, char *apn)

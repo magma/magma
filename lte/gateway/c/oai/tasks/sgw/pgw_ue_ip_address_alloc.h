@@ -35,15 +35,12 @@
 #include "spgw_state.h"
 #include "ip_forward_messages_types.h"
 
-int release_ue_ipv4_address(const char *imsi,
-                            const char *apn,
-                            struct in_addr *addr);
+int release_ue_ipv4_address(
+    const char* imsi, const char* apn, struct in_addr* addr);
 
-int get_ip_block(struct in_addr *netaddr, uint32_t *netmask);
+int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
 
-int release_ue_ipv6_address(const char *imsi,
-                            const char *apn,
-                            struct in6_addr *addr);
-
+int release_ue_ipv6_address(
+    const char* imsi, const char* apn, struct in6_addr* addr);
 
 #endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */

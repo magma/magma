@@ -375,15 +375,16 @@ int pgw_process_pco_pcscf_ipv6_address_req(
 int pgw_process_pco_dns_server_ipv6_address_req(
     protocol_configuration_options_t* const pco_resp)
 {
-  struct in6_addr dns_ipv6_addr =
-    spgw_config.pgw_config.ipv6.dns_ipv6_addr;
+  struct in6_addr dns_ipv6_addr = spgw_config.pgw_config.ipv6.dns_ipv6_addr;
   pco_protocol_or_container_id_t poc_id_resp = {0};
 
   OAILOG_DEBUG(
-    LOG_SPGW_APP, "PCO: Protocol identifier PCO_CI_DNS_SERVER_IPV6_ADDRESS\n");
-  poc_id_resp.id = PCO_CI_DNS_SERVER_IPV6_ADDRESS;
+      LOG_SPGW_APP,
+      "PCO: Protocol identifier PCO_CI_DNS_SERVER_IPV6_ADDRESS\n");
+  poc_id_resp.id     = PCO_CI_DNS_SERVER_IPV6_ADDRESS;
   poc_id_resp.length = 16;
-  poc_id_resp.contents = blk2bstr(dns_ipv6_addr.s6_addr, sizeof(struct in6_addr));
+  poc_id_resp.contents =
+      blk2bstr(dns_ipv6_addr.s6_addr, sizeof(struct in6_addr));
 
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }

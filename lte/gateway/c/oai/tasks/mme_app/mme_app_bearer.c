@@ -1230,17 +1230,19 @@ int mme_app_handle_create_sess_resp(
    */
   if (create_sess_resp_pP->paa.pdn_type == IPv4) {
     nas_pdn_cs_respose_success.pdn_addr =
-      paa_to_bstring(&create_sess_resp_pP->paa);
+        paa_to_bstring(&create_sess_resp_pP->paa);
   } else {
     paa_t paa_temp;
-    paa_temp.pdn_type = create_sess_resp_pP->paa.pdn_type;
+    paa_temp.pdn_type           = create_sess_resp_pP->paa.pdn_type;
     paa_temp.ipv6_prefix_length = create_sess_resp_pP->paa.ipv6_prefix_length;
-    memcpy(&paa_temp.ipv6_address, &create_sess_resp_pP->paa.ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN], IPV6_INTERFACE_ID_LEN);
+    memcpy(
+        &paa_temp.ipv6_address,
+        &create_sess_resp_pP->paa.ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+        IPV6_INTERFACE_ID_LEN);
     if (create_sess_resp_pP->paa.pdn_type == IPv4_AND_v6) {
       paa_temp.ipv4_address = create_sess_resp_pP->paa.ipv4_address;
     }
-    nas_pdn_cs_respose_success.pdn_addr =
-      paa_to_bstring(&paa_temp);
+    nas_pdn_cs_respose_success.pdn_addr = paa_to_bstring(&paa_temp);
   }
   nas_pdn_cs_respose_success.pdn_type = create_sess_resp_pP->paa.pdn_type;
 

@@ -311,16 +311,16 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     //Select APN
     struct apn_configuration_s* apn_config = mme_app_select_apn(
-      ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn,
-      emm_context->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
+        ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn,
+        emm_context->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */
     if (!apn_config) {
       OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
+          LOG_NAS_ESM,
+          "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
     }
 
@@ -342,20 +342,14 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     // Update qci
     esm_data->bearer_qos.qci = apn_config->subscribed_qos.qci;
-    rc = esm_proc_pdn_connectivity_request(
-      emm_context,
-      pti,
-      pdn_cid,
-      apn_config->context_identifier,
-      emm_context->esm_ctx.esm_proc_data->request_type,
-      esm_data->apn,
-      apn_config->pdn_type,
-      esm_data->pdn_addr,
-      &esm_data->bearer_qos,
-      (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
-        &emm_context->esm_ctx.esm_proc_data->pco :
-        NULL,
-      &esm_cause);
+    rc                       = esm_proc_pdn_connectivity_request(
+        emm_context, pti, pdn_cid, apn_config->context_identifier,
+        emm_context->esm_ctx.esm_proc_data->request_type, esm_data->apn,
+        apn_config->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
+        (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
+            &emm_context->esm_ctx.esm_proc_data->pco :
+            NULL,
+        &esm_cause);
 
     if (rc != RETURNerror) {
       /*

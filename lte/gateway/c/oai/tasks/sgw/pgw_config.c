@@ -228,14 +228,14 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
   int i                         = 0;
   unsigned char buf_in_addr[sizeof(struct in_addr)];
   struct in_addr addr_start;
-  bstring system_cmd = NULL;
-  libconfig_int mtu  = 0;
-  int prefix_mask    = 0;
-  char* pcscf_ipv4   = NULL;
-  char* pcscf_ipv6   = NULL;
-  char* ipv6_addr_prefix   = NULL;
-  char* dns_ipv6_addr   = NULL;
-  char* nat_enabled  = NULL;
+  bstring system_cmd     = NULL;
+  libconfig_int mtu      = 0;
+  int prefix_mask        = 0;
+  char* pcscf_ipv4       = NULL;
+  char* pcscf_ipv6       = NULL;
+  char* ipv6_addr_prefix = NULL;
+  char* dns_ipv6_addr    = NULL;
+  char* nat_enabled      = NULL;
 
   config_init(&cfg);
 
@@ -365,15 +365,12 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
             LOG_SPGW_APP, "CONFIG POOL ADDR IPV4: NO IPV4 ADDRESS FOUND\n");
       }
 
-      if (
-        config_setting_lookup_string(
-          setting_pgw,
-          PGW_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
-          (const char **) &default_dns) &&
-        config_setting_lookup_string(
-          setting_pgw,
-          PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
-          (const char **) &default_dns_sec)) {
+      if (config_setting_lookup_string(
+              setting_pgw, PGW_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
+              (const char**) &default_dns) &&
+          config_setting_lookup_string(
+              setting_pgw, PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
+              (const char**) &default_dns_sec)) {
         bdestroy_wrapper(&config_pP->ipv4.if_name_S5_S8);
         config_pP->ipv4.if_name_S5_S8 = bfromcstr(if_S5_S8);
         IPV4_STR_ADDR_TO_INADDR(
@@ -409,24 +406,24 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
     }
 
     if (config_setting_lookup_string(
-      setting_pgw, PGW_CONFIG_IPV6_ADDRESS_PREFIX,
-      (const char**) &ipv6_addr_prefix)) {
+            setting_pgw, PGW_CONFIG_IPV6_ADDRESS_PREFIX,
+            (const char**) &ipv6_addr_prefix)) {
       char *temp_prefix, *len, *temp;
       /* Take a copy of len to be freed later because strsep function
        * updates the pointer and points right after the token it found
        */
-      temp = len = strdup(ipv6_addr_prefix);
-      temp_prefix = strsep(&len, "/");
-      config_pP->ipv6.ipv6_address_prefix_len = atoi((const char*)len);
+      temp = len                              = strdup(ipv6_addr_prefix);
+      temp_prefix                             = strsep(&len, "/");
+      config_pP->ipv6.ipv6_address_prefix_len = atoi((const char*) len);
       IPV6_STR_ADDR_TO_INADDR(
-        temp_prefix, config_pP->ipv6.ipv6_address_prefix,
-        "BAD IPv6 ADDRESS PREFIX FORMAT!\n");
+          temp_prefix, config_pP->ipv6.ipv6_address_prefix,
+          "BAD IPv6 ADDRESS PREFIX FORMAT!\n");
       free_wrapper((void**) &temp);
       OAILOG_DEBUG(
-        LOG_SPGW_APP, "Parsing configuration file IPv6 address prefix\n");
-      } else {
-        OAILOG_WARNING(LOG_SPGW_APP, "NO IPv6 PREFIX CONFIGURATION FOUND\n");
-      }
+          LOG_SPGW_APP, "Parsing configuration file IPv6 address prefix\n");
+    } else {
+      OAILOG_WARNING(LOG_SPGW_APP, "NO IPv6 PREFIX CONFIGURATION FOUND\n");
+    }
 
     if (config_setting_lookup_string(
             setting_pgw, PGW_CONFIG_P_CSCF_IPV4_ADDRESS,
@@ -461,7 +458,8 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
           dns_ipv6_addr, config_pP->ipv6.dns_ipv6_addr,
           "BAD IPv6 ADDRESS FORMAT FOR DNS SERVER IPv6 address !\n");
       OAILOG_DEBUG(
-          LOG_SPGW_APP, "Parsing configuration file DNS SERVER IPv6 address: %s\n",
+          LOG_SPGW_APP,
+          "Parsing configuration file DNS SERVER IPv6 address: %s\n",
           pcscf_ipv6);
     } else {
       OAILOG_WARNING(LOG_SPGW_APP, "NO DNS SERVER IPv6 CONFIGURATION FOUND\n");

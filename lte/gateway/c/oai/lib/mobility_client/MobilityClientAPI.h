@@ -108,23 +108,18 @@ int pgw_handle_allocate_ipv4_address(
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
- * @param ipv6_address_prefix_len from the config file 
+ * @param ipv6_address_prefix_len from the config file
  * @return status of gRPC call
  */
 
 int pgw_handle_allocate_ipv6_address(
-  const char* subscriber_id,
-  const char* apn,
-  struct in6_addr* ip6_prefix,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-  const char* pdn_type,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
-  spgw_state_t* spgw_state,
-  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response,
-  struct in6_addr config_ipv6_prefix,
-  uint8_t ipv6_address_prefix_len);
+    const char* subscriber_id, const char* apn, struct in6_addr* ip6_prefix,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t s5_response,
+    struct in6_addr config_ipv6_prefix, uint8_t ipv6_address_prefix_len);
 
 /*
  * Release an allocated IP address.
@@ -155,9 +150,7 @@ int release_ipv4_address(
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
 int release_ipv6_address(
-  const char* subscriber_id,
-  const char* apn,
-  const struct in6_addr* addr);
+    const char* subscriber_id, const char* apn, const struct in6_addr* addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber
@@ -204,19 +197,14 @@ int get_subscriber_id_from_ipv4(
  */
 
 int pgw_handle_allocate_ipv4v6_address(
-  const char* subscriber_id,
-  const char* apn,
-  struct in_addr* ip4_addr,
-  struct in6_addr* ip6_prefix,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-  const char* pdn_type,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
-  spgw_state_t* spgw_state,
-  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response,
-  struct in6_addr config_ipv6_prefix,
-  uint8_t ipv6_address_prefix_len);
+    const char* subscriber_id, const char* apn, struct in_addr* ip4_addr,
+    struct in6_addr* ip6_prefix,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t s5_response,
+    struct in6_addr config_ipv6_prefix, uint8_t ipv6_address_prefix_len);
 
 #ifdef __cplusplus
 }

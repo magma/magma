@@ -206,10 +206,9 @@ static int _emm_cn_smc_fail(const emm_cn_smc_fail_t *msg)
 }
 
 //------------------------------------------------------------------------------
-void _handle_apn_mismatch(ue_mm_context_t *const ue_context, int esm_cause)
-{
-  ESM_msg esm_msg = {.header = {0}};
-  struct emm_context_s *emm_ctx = NULL;
+void _handle_apn_mismatch(ue_mm_context_t* const ue_context, int esm_cause) {
+  ESM_msg esm_msg               = {.header = {0}};
+  struct emm_context_s* emm_ctx = NULL;
   uint8_t emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
 
   if (ue_context == NULL) {
@@ -219,29 +218,23 @@ void _handle_apn_mismatch(ue_mm_context_t *const ue_context, int esm_cause)
   /*Setup ESM message*/
   emm_ctx = &ue_context->emm_context;
   esm_send_pdn_connectivity_reject(
-    emm_ctx->esm_ctx.esm_proc_data->pti,
-    &esm_msg.pdn_connectivity_reject,
-    esm_cause);
+      emm_ctx->esm_ctx.esm_proc_data->pti, &esm_msg.pdn_connectivity_reject,
+      esm_cause);
 
   int size =
-    esm_msg_encode(&esm_msg, emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
+      esm_msg_encode(&esm_msg, emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
   OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
   if (size > 0) {
-    nas_emm_attach_proc_t *attach_proc =
-      get_nas_specific_procedure_attach(emm_ctx);
+    nas_emm_attach_proc_t* attach_proc =
+        get_nas_specific_procedure_attach(emm_ctx);
     /*
      * Setup the ESM message container
      */
     attach_proc->esm_msg_out = blk2bstr(emm_cn_sap_buffer, size);
     increment_counter(
-      "ue_attach",
-      1,
-      2,
-      "result",
-      "failure",
-      "cause",
-      "pdn_connection_estb_failed");
+        "ue_attach", 1, 2, "result", "failure", "cause",
+        "pdn_connection_estb_failed");
     emm_proc_attach_reject(ue_context->mme_ue_s1ap_id, EMM_CAUSE_ESM_FAILURE);
   }
 
@@ -284,9 +277,9 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
   // PDN selection here
   // Because NAS knows APN selected by UE if any
   // default APN selection
-  struct apn_configuration_s *apn_config =
-    mme_app_select_apn(ue_mm_context, emm_ctx->esm_ctx.esm_proc_data->apn,
-    emm_ctx->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
+  struct apn_configuration_s* apn_config = mme_app_select_apn(
+      ue_mm_context, emm_ctx->esm_ctx.esm_proc_data->apn,
+      emm_ctx->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
 
   if (!apn_config) {
     /*
@@ -349,19 +342,16 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
     }
     // TODO  "Better to throw emm_ctx->esm_ctx.esm_proc_data as a parameter or as a hidden parameter ?"
     rc = esm_proc_pdn_connectivity_request(
-      emm_ctx,
-      emm_ctx->esm_ctx.esm_proc_data->pti,
-      emm_ctx->esm_ctx.esm_proc_data->pdn_cid,
-      apn_config->context_identifier,
-      emm_ctx->esm_ctx.esm_proc_data->request_type,
-      emm_ctx->esm_ctx.esm_proc_data->apn,
-      apn_config->pdn_type,
-      emm_ctx->esm_ctx.esm_proc_data->pdn_addr,
-      &emm_ctx->esm_ctx.esm_proc_data->bearer_qos,
-      (emm_ctx->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
-        &emm_ctx->esm_ctx.esm_proc_data->pco :
-        NULL,
-      &esm_cause);
+        emm_ctx, emm_ctx->esm_ctx.esm_proc_data->pti,
+        emm_ctx->esm_ctx.esm_proc_data->pdn_cid, apn_config->context_identifier,
+        emm_ctx->esm_ctx.esm_proc_data->request_type,
+        emm_ctx->esm_ctx.esm_proc_data->apn, apn_config->pdn_type,
+        emm_ctx->esm_ctx.esm_proc_data->pdn_addr,
+        &emm_ctx->esm_ctx.esm_proc_data->bearer_qos,
+        (emm_ctx->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
+            &emm_ctx->esm_ctx.esm_proc_data->pco :
+            NULL,
+        &esm_cause);
 
     if (rc != RETURNerror) {
       /*
@@ -595,15 +585,12 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
    * Return default EPS bearer context request message
    */
   rc = esm_send_activate_default_eps_bearer_context_request(
-    msg_pP->pti,
-    msg_pP->ebi, //msg_pP->ebi,
-    &esm_msg.activate_default_eps_bearer_context_request,
-    ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed,
-    &msg_pP->pco,
-    esm_pdn_type,
-    msg_pP->pdn_addr,
-    &qos,
-    ue_mm_context->pdn_contexts[pdn_cid]->esm_data.esm_cause);
+      msg_pP->pti,
+      msg_pP->ebi,  // msg_pP->ebi,
+      &esm_msg.activate_default_eps_bearer_context_request,
+      ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed, &msg_pP->pco,
+      esm_pdn_type, msg_pP->pdn_addr, &qos,
+      ue_mm_context->pdn_contexts[pdn_cid]->esm_data.esm_cause);
   clear_protocol_configuration_options(&msg_pP->pco);
   if (rc != RETURNerror) {
     /*

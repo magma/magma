@@ -217,16 +217,8 @@ void handle_s5_create_session_request(
 
     case IPv6:
       pgw_handle_allocate_ipv6_address(
-          imsi,
-          apn,
-          &in6addr,
-          sgi_create_endpoint_resp,
-          "ipv6",
-          context_teid,
-          eps_bearer_id,
-          spgw_state,
-          new_bearer_ctxt_info_p,
-          s5_response,
+          imsi, apn, &in6addr, sgi_create_endpoint_resp, "ipv6", context_teid,
+          eps_bearer_id, spgw_state, new_bearer_ctxt_info_p, s5_response,
           spgw_config.pgw_config.ipv6.ipv6_address_prefix,
           spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
  
@@ -234,19 +226,10 @@ void handle_s5_create_session_request(
 
     case IPv4_AND_v6:
       pgw_handle_allocate_ipv4v6_address(
-        imsi,
-        apn,
-        &inaddr,
-        &in6addr,
-        sgi_create_endpoint_resp,
-        "ipv4v6",
-        context_teid,
-        eps_bearer_id,
-        spgw_state,
-        new_bearer_ctxt_info_p,
-        s5_response,
-        spgw_config.pgw_config.ipv6.ipv6_address_prefix,
-        spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
+          imsi, apn, &inaddr, &in6addr, sgi_create_endpoint_resp, "ipv4v6",
+          context_teid, eps_bearer_id, spgw_state, new_bearer_ctxt_info_p,
+          s5_response, spgw_config.pgw_config.ipv6.ipv6_address_prefix,
+          spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
       break;
 
     default:
