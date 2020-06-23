@@ -658,6 +658,8 @@ parameters:
 workflows:
   version: 2.1
   all:
+    when:
+      not: << pipeline.parameters.deploy >>
     jobs:
       - lint
       - validate-gql-test
