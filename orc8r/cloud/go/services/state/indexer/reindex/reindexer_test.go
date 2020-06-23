@@ -7,11 +7,10 @@
 */
 
 // NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
-// ensure postgres_test and maria_test containers are running, and use the
-// following environment variables to point to the relevant DB endpoints:
+// ensure postgres_test container is running, and use the following environment
+// variables to point to the relevant DB endpoints:
 //	- TEST_DATABASE_HOST=localhost
 //	- TEST_DATABASE_PORT_POSTGRES=5433
-//	- TEST_DATABASE_PORT_MARIA=3307
 
 // reindex_test.go tests reindexing with local indexers.
 // Also contains the consts and vars shared by reindex testing code.

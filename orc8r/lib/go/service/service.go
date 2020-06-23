@@ -92,7 +92,6 @@ func NewServiceWithOptions(moduleName string, serviceName string, serverOptions 
 // service303 with the specified grpc server options. This will not instantiate
 // the service with the identity checking middleware.
 func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*Service, error) {
-
 	// Load config, in case it does not exist, log
 	configMap, err := config.GetServiceConfig(moduleName, serviceName)
 	if err != nil {

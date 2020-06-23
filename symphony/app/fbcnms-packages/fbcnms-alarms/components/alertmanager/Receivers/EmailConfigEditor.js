@@ -54,6 +54,46 @@ export default function EmailConfigEditor({
               fullWidth
             />
           </Grid>
+          <Grid item>
+            <TextField
+              label="Auth Username"
+              value={config.auth_username}
+              onChange={e => onUpdate({auth_username: e.target.value})}
+              fullWidth
+              helperText="SMTP Auth using CRAM-MD5, LOGIN and PLAIN"
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              label="Auth Password"
+              value={config.auth_password}
+              onChange={e => onUpdate({auth_password: e.target.value})}
+              fullWidth
+              helperText="SMTP Auth using LOGIN and PLAIN"
+            />
+          </Grid>
+        </>
+      }
+      OptionalFields={
+        <>
+          <Grid item>
+            <TextField
+              label="Auth Secret"
+              value={config.auth_secret}
+              onChange={e => onUpdate({auth_secret: e.target.value})}
+              fullWidth
+              helperText="SMTP Auth using CRAM-MD5"
+            />
+          </Grid>
+          <Grid item>
+            <TextField
+              label="Auth Identity"
+              value={config.auth_identity}
+              onChange={e => onUpdate({auth_identity: e.target.value})}
+              fullWidth
+              helperText="SMTP Auth using PLAIN"
+            />
+          </Grid>
         </>
       }
       data-testid="email-config-editor"

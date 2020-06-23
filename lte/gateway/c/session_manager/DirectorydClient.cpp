@@ -85,7 +85,7 @@ bool AsyncDirectorydClient::delete_directoryd_record(
 }
 
 
-bool AsyncDirectorydClient::get_all_directoryd_records(
+void AsyncDirectorydClient::get_all_directoryd_records(
   std::function<void(Status status, AllDirectoryRecords)> callback)
 {
   magma::Void request;

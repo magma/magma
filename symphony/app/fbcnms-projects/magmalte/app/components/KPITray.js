@@ -15,53 +15,68 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import type {ComponentType} from 'react';
 
-export type KPIData = {category: string, value: number | string, unit?: string};
+export type KPIData = {
+  category: string,
+  value: number | string,
+  unit?: string,
+  icon?: ComponentType<SvgIconExports>,
+};
 type Props = {
   icon?: ComponentType<SvgIconExports>,
   description?: string,
   data: KPIData[],
 };
 
-export default function KPITray(props: Props) {
-  const kpiTray = [];
-  if (props.icon) {
-    const KpiIcon = props.icon;
-    kpiTray.push(
-      <Grid item key="kpiIcon">
-        <Card elevation={0}>
-          <CardContent>
-            <KpiIcon fontSize="large" />
-          </CardContent>
-        </Card>
-      </Grid>,
-      <Grid item key="kpiTitle">
-        <Card elevation={0}>
-          <CardContent>
-            <Text variant="h6">{props.description}</Text>
-          </CardContent>
-        </Card>
-      </Grid>,
-    );
-  }
+function KPIIcon(Icon: ComponentType<SvgIconExports>) {
+  return <Icon fontSize="large" />;
+}
 
-  kpiTray.push(
-    props.data.map((kpi, i) => (
-      <Grid item xs key={'data-' + i}>
-        <Card>
-          <CardHeader
-            title={kpi.category}
-            subheader={kpi.value + (kpi.unit ?? '')}
-            titleTypographyProps={{align: 'center', variant: 'body1'}}
-            subheaderTypographyProps={{variant: 'h5', align: 'center'}}
-            data-testid={kpi.category}
-          />
-        </Card>
-      </Grid>
-    )),
-  );
+export default function KPITray(props: Props) {
   return (
     <Grid container alignItems="center" justify="center">
-      {kpiTray}
+      {props.icon ? (
+        <>
+          <Grid item>
+            <Card elevation={0}>
+              <CardContent>{KPIIcon(props.icon)}</CardContent>
+            </Card>
+          </Grid>
+          <Grid item>
+            <Card elevation={0}>
+              <CardContent>
+                <Text variant="h6">{props.description}</Text>
+              </CardContent>
+            </Card>
+          </Grid>
+        </>
+      ) : (
+        ''
+      )}
+      {props.data.map((kpi, i) => (
+        <Grid item xs key={'data-' + i}>
+          <Card>
+            <CardHeader
+              title={kpi.category}
+              subheader={
+                <Grid
+                  container
+                  justify="center"
+                  alignItems="center"
+                  spacing={3}>
+                  <Grid item>{kpi.icon ? KPIIcon(kpi.icon) : ''}</Grid>
+                  <Grid item>
+                    <Text variant="h5">
+                      {kpi.value} {kpi.unit ?? ''}
+                    </Text>
+                  </Grid>
+                </Grid>
+              }
+              titleTypographyProps={{align: 'center', variant: 'body1'}}
+              data-testid={kpi.category}
+            />
+          </Card>
+        </Grid>
+      ))}
     </Grid>
   );
 }

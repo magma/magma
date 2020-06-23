@@ -9,5 +9,5 @@ class DiscoveryMethod(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "DiscoveryMethod":
+    def _missing_(cls, value: object) -> "DiscoveryMethod":
         return cls.MISSING_ENUM

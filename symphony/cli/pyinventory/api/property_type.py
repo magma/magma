@@ -3,12 +3,24 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Sequence
+from typing import Dict, List, Optional, Sequence, Union
 
 from pysymphony import SymphonyClient
 
-from ..common.cache import EQUIPMENT_TYPES, LOCATION_TYPES, PORT_TYPES, SERVICE_TYPES
-from ..common.data_class import PropertyDefinition
+from ..common.cache import (
+    EQUIPMENT_TYPES,
+    LOCATION_TYPES,
+    PORT_TYPES,
+    SERVICE_TYPES,
+    Cache,
+)
+from ..common.data_class import (
+    EquipmentPortType,
+    EquipmentType,
+    LocationType,
+    PropertyDefinition,
+    ServiceType,
+)
 from ..common.data_enum import Entity
 from ..common.data_format import format_to_property_type_input
 from ..exceptions import EntityNotFoundError
@@ -39,12 +51,29 @@ def get_property_types(
             ```
     """
 
-    existing_entity_types = {
+    caches: Dict[
+        Entity,
+        Union[
+            Cache[LocationType],
+            Cache[EquipmentType],
+            Cache[ServiceType],
+            Cache[EquipmentPortType],
+        ],
+    ] = {
         Entity.LocationType: LOCATION_TYPES,
         Entity.EquipmentType: EQUIPMENT_TYPES,
         Entity.ServiceType: SERVICE_TYPES,
         Entity.EquipmentPortType: PORT_TYPES,
-    }.get(entity_type, None)
+    }
+
+    existing_entity_types: Optional[
+        Union[
+            Cache[LocationType],
+            Cache[EquipmentType],
+            Cache[ServiceType],
+            Cache[EquipmentPortType],
+        ],
+    ] = caches.get(entity_type, None)
 
     if existing_entity_types is None:
         raise EntityNotFoundError(entity=entity_type)

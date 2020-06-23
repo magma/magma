@@ -10,10 +10,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/async/handler"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/event"
+	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -22,6 +25,7 @@ import (
 
 func TestAddWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
+	r.client.Use(event.LogHook(handler.HandleActivityLog, log.NewNopLogger()))
 	tim := time.Now()
 
 	defer r.Close()
@@ -86,6 +90,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 
 func TestEditWorkOrderActivities(t *testing.T) {
 	r := newTestResolver(t)
+	r.client.Use(event.LogHook(handler.HandleActivityLog, log.NewNopLogger()))
 
 	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)

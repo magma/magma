@@ -92,7 +92,9 @@ class TestEquipmentType(BaseTest):
         for property_type in property_types:
             if property_type.property_name == property_type_name:
                 fetched_property_type = property_type
-        self.assertIsNotNone(fetched_property_type)
+        assert (
+            fetched_property_type is not None
+        ), f"property {property_type_name} does not exist"
         self.assertEqual(fetched_property_type.external_id, "12345")
 
     def test_equipment_type_property_type_name(self) -> None:
@@ -132,5 +134,6 @@ class TestEquipmentType(BaseTest):
             property_type_input = format_to_property_type_input(property_type)
             if property_type_input.name == new_name:
                 fetched_property_type = property_type_input
-        self.assertIsNotNone(fetched_property_type)
-        self.assertEqual(fetched_property_type.name, new_name)
+        assert fetched_property_type is not None, f"property {new_name} does not exist"
+        if fetched_property_type is not None:
+            self.assertEqual(fetched_property_type.name, new_name)

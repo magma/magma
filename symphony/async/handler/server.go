@@ -58,7 +58,7 @@ func NewServer(cfg Config) *Server {
 		logger:     cfg.Logger,
 		subscriber: cfg.Subscriber,
 		handlers: []Handler{
-			Func(event.HandleActivityLog),
+			Func(HandleActivityLog),
 		},
 	}
 }

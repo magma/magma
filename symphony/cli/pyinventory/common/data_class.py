@@ -78,7 +78,8 @@ TYPE_AND_FIELD_NAME = {
     "string": DataTypeName(data_type=str, graphql_field_name=("stringValue",)),
     "bool": DataTypeName(data_type=bool, graphql_field_name=("booleanValue",)),
     "gps_location": DataTypeName(
-        data_type=tuple, graphql_field_name=("latitudeValue", "longitudeValue")
+        data_type=tuple,  # type: ignore
+        graphql_field_name=("latitudeValue", "longitudeValue"),
     ),
 }
 

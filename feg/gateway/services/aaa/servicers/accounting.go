@@ -24,6 +24,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/metrics"
+	"magma/feg/gateway/services/aaa/pipelined"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/session_manager"
 	"magma/gateway/directoryd"
@@ -141,7 +142,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 
 // CreateSession is an "outbound" RPC for session manager which can be called from start()
 func (srv *accountingService) CreateSession(
-	grpcCtx context.Context, aaaCtx *protos.Context) (*protos.CreateSessionResp, error) {
+	_ context.Context, aaaCtx *protos.Context) (CSR *protos.CreateSessionResp, err error) {
 
 	startime := time.Now()
 
@@ -149,20 +150,18 @@ func (srv *accountingService) CreateSession(
 	if err != nil {
 		return &protos.CreateSessionResp{}, Errorf(codes.InvalidArgument, "Invalid MAC Address: %v", err)
 	}
-	req := &lte_protos.LocalCreateSessionRequest{
-		Sid:             makeSID(aaaCtx.GetImsi()),
-		UeIpv4:          aaaCtx.GetIpAddr(),
-		Apn:             aaaCtx.GetApn(),
-		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
-		RatType:         lte_protos.RATType_TGPP_WLAN,
-		HardwareAddr:    mac,
-		RadiusSessionId: aaaCtx.GetSessionId(),
+	subscriberId := makeSID(aaaCtx.GetImsi())
+	err = installMacFlowOrRecycleSession(subscriberId, aaaCtx, srv.sessions)
+	if err != nil {
+		return nil, Errorf(codes.Internal, "Error on install mac flow: %v", err)
 	}
-	csResp, err := session_manager.CreateSession(req)
+
+	csResp, err := createSessionOnSessionManager(mac, subscriberId, aaaCtx)
 	if err == nil {
 		metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
 	} else {
-		err = Errorf(codes.Internal, "Create Session Error: %v", err)
+		// TODO: do we really need to remove the flow?
+		pipelined.DeleteUeMacFlow(subscriberId, aaaCtx)
 	}
 
 	return &protos.CreateSessionResp{SessionId: csResp.GetSessionId()}, err
@@ -263,6 +262,46 @@ func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.
 		return &protos.AcctResp{}, fmt.Errorf("Unable to add the session for the following IMSIs: %v", failed)
 	}
 	return &protos.AcctResp{}, nil
+}
+
+// installMacFlowOrIPFIXflow installs a new mac flow if it is a brand new session or
+// reinstalls IPFIX flows in case the CORE session already existed (recycle session)
+// Note that the existence of a core session will trigger a recylce process on sessiond too
+func installMacFlowOrRecycleSession(sid *lte_protos.SubscriberID, aaaCtx *protos.Context, sessions aaa.SessionTable) error {
+	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) == false {
+		// (new session) install MAC flows for new session
+		glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
+		return pipelined.AddUeMacFlow(sid, aaaCtx)
+	} else {
+		// (recycle session) reinstall IPFIX flows for an existing session
+		// the session will be modified by store in memory it self
+		glog.V(2).Infof("Update IPFix flows (recycle Session) for %s", aaaCtx.GetImsi())
+		return pipelined.UpdateIPFIXFlow(sid, aaaCtx)
+	}
+}
+
+func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {
+	oldSession := sessions.GetSessionByImsi(imsi)
+	if oldSession != nil {
+		oldSession.Lock()
+		defer oldSession.Unlock()
+		return len(oldSession.GetCtx().GetAcctSessionId()) > 0
+	}
+	return false
+}
+
+func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_protos.SubscriberID,
+	aaaCtx *protos.Context) (*lte_protos.LocalCreateSessionResponse, error) {
+	req := &lte_protos.LocalCreateSessionRequest{
+		Sid:             subscriberId,
+		UeIpv4:          aaaCtx.GetIpAddr(),
+		Apn:             aaaCtx.GetApn(),
+		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
+		RatType:         lte_protos.RATType_TGPP_WLAN,
+		HardwareAddr:    mac,
+		RadiusSessionId: aaaCtx.GetSessionId(),
+	}
+	return session_manager.CreateSession(req)
 }
 
 func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {

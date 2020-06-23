@@ -152,15 +152,17 @@ def _run_docker(cmd: List[str]) -> None:
 
 
 def _copy_module(module: MagmaModule) -> None:
-    """ Copy the module dir into the build context  """
+    """ Copy module directory into the build context  """
     module_dest = _get_module_destination(module)
     dst = os.path.join(BUILD_CONTEXT, module_dest)
 
-    # Copy relevant parts of the module to the build context
+    # Copy cloud/
     shutil.copytree(
         os.path.join(module.host_path, 'cloud'),
         os.path.join(dst, 'cloud'),
     )
+
+    # Handle orc8r lib/ and gateway/go/
     if module.name == 'orc8r':
         shutil.copytree(
             os.path.join(module.host_path, 'lib'),
@@ -171,12 +173,14 @@ def _copy_module(module: MagmaModule) -> None:
             os.path.join(dst, 'gateway', 'go'),
         )
 
+    # Optionally copy tools/
     if os.path.isdir(os.path.join(module.host_path, 'tools')):
         shutil.copytree(
             os.path.join(module.host_path, 'tools'),
             os.path.join(dst, 'tools'),
         )
 
+    # Optionally copy cloud/configs/
     if os.path.isdir(os.path.join(module.host_path, 'cloud', 'configs')):
         shutil.copytree(
             os.path.join(module.host_path, 'cloud', 'configs'),
@@ -215,12 +219,14 @@ def _get_modules() -> List[MagmaModule]:
     with open(filename) as file:
         conf = yaml.safe_load(file)
         for module in conf['native_modules']:
-            mod_path = os.path.abspath(os.path.join(HOST_MAGMA_ROOT, module))
+            module_abspath = os.path.abspath(
+                os.path.join(HOST_MAGMA_ROOT, module)
+            )
             modules.append(
                 MagmaModule(
                     is_external=False,
-                    host_path=mod_path,
-                    name=os.path.basename(mod_path),
+                    host_path=module_abspath,
+                    name=os.path.basename(module_abspath),
                 ),
             )
         for ext_module in conf['external_modules']:

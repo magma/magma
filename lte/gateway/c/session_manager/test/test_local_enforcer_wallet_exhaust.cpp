@@ -94,10 +94,11 @@ protected:
 
 MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "") {
   auto updates = static_cast<const std::vector<SubscriberQuotaUpdate>>(arg);
-  if (updates.size() != size) {
+  int updates_size = updates.size();
+  if (updates_size != size) {
     return false;
   }
-  for (int i = 0; i < updates.size(); i++) {
+  for (int i = 0; i < updates_size; i++) {
     if (updates[i].update_type() != expected_states[i]) {
       return false;
     }

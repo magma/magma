@@ -19,8 +19,8 @@ class ServiceCreateData(DataClassJsonMixin):
     name: str
     serviceTypeId: str
     upstreamServiceIds: List[str]
-    externalId: Optional[str] = None
     status: Optional[ServiceStatus] = None
+    externalId: Optional[str] = None
     customerId: Optional[str] = None
     properties: Optional[List[PropertyInput]] = None
 

@@ -185,8 +185,12 @@ def transfer_artifacts(services="sessiond session_proxy", get_core_dump=False):
 def _tar_coredump():
     _switch_to_vm_no_destroy(None, "cwag", "cwag_dev.yml")
     with cd(CWAG_ROOT):
-        run("sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*", warn_only=True)
-        run("sudo rm /var/opt/magma/cores/*", warn_only=True)
+        core_dump_dir = run('ls /var/opt/magma/cores/')
+        num_of_dumps = len(core_dump_dir.split())
+        print(f'Found {num_of_dumps} core dumps')
+        if num_of_dumps > 0:
+            run("sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*",
+                warn_only=True)
 
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
@@ -350,7 +354,7 @@ def _check_docker_services():
 def _start_ue_simulator():
     """ Starts the UE Sim Service """
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
-        run('tmux new -d \'go run main.go\'')
+        run('tmux new -d \'go run main.go -logtostderr=true -v=10\'')
 
 
 def _start_trfserver():

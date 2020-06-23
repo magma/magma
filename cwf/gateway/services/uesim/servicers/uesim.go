@@ -9,6 +9,8 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strconv"
@@ -182,7 +184,7 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	if req.ReportingIntervalInSecs != 0 {
 		argList = append(argList, []string{"-i", strconv.FormatUint(req.ReportingIntervalInSecs, 10)}...)
 	}
-
+	glog.V(2).Info("Execute: iper3 ", argList)
 	cmd = exec.Command("iperf3", argList...)
 	cmd.Dir = "/usr/bin"
 	output, err := cmd.Output()
@@ -191,6 +193,7 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 		glog.Info("error = ", err)
 		err = errors.Wrap(err, fmt.Sprintf("argList %v\n output %v", argList, string(output)))
 	}
+	glog.V(2).Infof("Iperf3 result:\n %s", pretyptrintIperfResponse(output))
 	return &cwfprotos.GenTrafficResponse{Output: output}, err
 }
 
@@ -252,4 +255,13 @@ func ConvertStorageErrorToGrpcStatus(err error) error {
 		return nil
 	}
 	return status.Errorf(codes.Unknown, err.Error())
+}
+
+func pretyptrintIperfResponse(input []byte) string {
+	prettyOutput := &bytes.Buffer{}
+	err := json.Indent(prettyOutput, input, "", "  ")
+	if err != nil {
+		return ("Couldn't parse iper3 resonse into JSON")
+	}
+	return prettyOutput.String()
 }

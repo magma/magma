@@ -513,6 +513,7 @@ int s1ap_mme_handle_s1_setup_request(
   rc = s1ap_generate_s1_setup_response(state, enb_association);
   if (rc == RETURNok) {
     update_mme_app_stats_connected_enb_add();
+    set_gauge("s1_connection", 1,  1, "enb_name", enb_association->enb_name);
     increment_counter("s1_setup", 1, 1, "result", "success");
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);

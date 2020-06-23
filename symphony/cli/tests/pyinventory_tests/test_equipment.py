@@ -9,6 +9,7 @@ from pyinventory.api.equipment import (
     get_equipment,
     get_equipment_by_external_id,
     get_equipment_properties,
+    get_equipments,
     get_equipments_by_location,
     get_equipments_by_type,
     get_or_create_equipment,
@@ -16,7 +17,7 @@ from pyinventory.api.equipment import (
 from pyinventory.api.equipment_type import add_equipment_type
 from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
-from pyinventory.api.port import edit_port_properties, get_port
+from pyinventory.api.port import edit_port_properties, get_port, get_ports
 from pyinventory.api.port_type import add_equipment_port_type
 from pyinventory.common.cache import EQUIPMENT_TYPES
 from pyinventory.common.data_class import PropertyDefinition
@@ -135,6 +136,10 @@ class TestEquipment(BaseTest):
         )
         self.assertEqual(self.equipment, equipment2)
 
+    def test_get_equipments(self) -> None:
+        equipments = get_equipments(client=self.client)
+        self.assertEqual(len(equipments), 2)
+
     def test_equipment_properties(self) -> None:
         properties = get_equipment_properties(
             client=self.client, equipment=self.equipment
@@ -147,6 +152,10 @@ class TestEquipment(BaseTest):
             client=self.client, equipment=self.equipment, port_name="tp_link_port"
         )
         self.assertEqual(self.port_type1.name, fetched_port.definition.port_type_name)
+
+    def test_get_ports(self) -> None:
+        ports = get_ports(client=self.client)
+        self.assertEqual(len(ports), 2)
 
     def test_equipment_edit_port_properties(self) -> None:
         edit_port_properties(

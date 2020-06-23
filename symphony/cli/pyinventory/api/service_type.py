@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional
+from typing import List, Mapping, Optional
 
 from pysymphony import SymphonyClient
 
@@ -183,7 +183,7 @@ def edit_service_type(
     service_type: ServiceType,
     new_name: Optional[str] = None,
     new_has_customer: Optional[bool] = None,
-    new_properties: Optional[Dict[str, PropertyValue]] = None,
+    new_properties: Optional[Mapping[str, PropertyValue]] = None,
     new_endpoints: Optional[List[ServiceEndpointDefinition]] = None,
 ) -> ServiceType:
     """Edit existing service type by ID.

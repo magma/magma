@@ -78,7 +78,7 @@ func TestBasicEnforcementWithSessionDRestarts(t *testing.T) {
 	// After authentication restart SessionD
 	assert.NoError(t, tr.RestartService("sessiond"))
 	fmt.Println("Waiting for SessionD to restore context...")
-	time.Sleep(1 * time.Second)
+	time.Sleep(4 * time.Second)
 	// All session state/config should be restored from Redis by now...
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)

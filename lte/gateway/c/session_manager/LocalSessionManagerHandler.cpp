@@ -401,7 +401,7 @@ std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
     return res;
   }
   res.reserve(l * 3 - 1);
-  for (int i = 0; i < l; i++) {
+  for (size_t i = 0; i < l; i++) {
     if (i > 0) {
       res.push_back(':');
     }

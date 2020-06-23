@@ -86,6 +86,8 @@ class BridgeTools:
         Creates a simple bridge, sets up an interface.
         Used when running unit tests
         """
+        subprocess.Popen(["ovs-vsctl", "--if-exists", "del-br",
+                          bridge_name]).wait()
         subprocess.Popen(["ovs-vsctl", "add-br", bridge_name]).wait()
         subprocess.Popen(["ovs-vsctl", "set", "bridge", bridge_name,
                           "protocols=OpenFlow10,OpenFlow13,OpenFlow14",

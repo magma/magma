@@ -3,14 +3,14 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple, cast
 
 from pysymphony import SymphonyClient
 from tqdm import tqdm
 
 from .._utils import PropertyValue, _get_property_value, get_graphql_property_inputs
 from ..common.cache import EQUIPMENT_TYPES
-from ..common.constant import EQUIPMENTS_TO_SEARCH
+from ..common.constant import EQUIPMENTS_TO_SEARCH, PAGINATION_STEP
 from ..common.data_class import Equipment, EquipmentType, Location
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -35,6 +35,7 @@ from ..graphql.query.equipment_type_and_properties import (
     EquipmentTypeAndPropertiesQuery,
 )
 from ..graphql.query.equipment_type_equipments import EquipmentTypeEquipmentQuery
+from ..graphql.query.equipments import EquipmentsQuery
 from ..graphql.query.location_equipments import LocationEquipmentsQuery
 
 
@@ -94,6 +95,42 @@ def get_equipment(client: SymphonyClient, name: str, location: Location) -> Equi
     if equipment is None:
         raise EquipmentNotFoundException(equipment_name=name)
     return equipment
+
+
+def get_equipments(client: SymphonyClient) -> List[Equipment]:
+    """This function returns all existing equipments
+
+        Returns:
+            List[ `pyinventory.common.data_class.Equipment` ]
+
+        Example:
+            ```
+            all_equipments = client.get_equipments()
+            ```
+    """
+    equipments = EquipmentsQuery.execute(client, first=PAGINATION_STEP)
+    edges = equipments.edges if equipments else []
+    while equipments is not None and equipments.pageInfo.hasNextPage:
+        equipments = EquipmentsQuery.execute(
+            client, after=equipments.pageInfo.endCursor, first=PAGINATION_STEP
+        )
+        if equipments is not None:
+            edges.extend(equipments.edges)
+
+    result = []
+    for edge in edges:
+        node = edge.node
+        if node is not None:
+            result.append(
+                Equipment(
+                    id=node.id,
+                    external_id=node.externalId,
+                    name=node.name,
+                    equipment_type_name=node.equipmentType.name,
+                )
+            )
+
+    return result
 
 
 def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Equipment:
@@ -581,9 +618,9 @@ def search_for_equipments(
             client.search_for_equipments(limit=10)
             ```
     """
-    equipments = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
+    equipments_result = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
 
-    total_count = equipments.count
+    total_count = equipments_result.count
     equipments = [
         Equipment(
             id=equipment.id,
@@ -591,7 +628,7 @@ def search_for_equipments(
             name=equipment.name,
             equipment_type_name=equipment.equipmentType.name,
         )
-        for equipment in equipments.equipment
+        for equipment in equipments_result.equipment
     ]
     return equipments, total_count
 
@@ -634,7 +671,7 @@ def _get_equipment_type_and_properties_dict(
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     equipment_type = result.equipmentType.name
 
-    properties_dict = {}
+    properties_dict: Dict[str, PropertyValue] = {}
     property_types = EQUIPMENT_TYPES[equipment_type].property_types
     for property in result.properties:
         property_type_id = property.propertyType.id
@@ -654,8 +691,8 @@ def _get_equipment_type_and_properties_dict(
         )
         if property_type.property_kind == PropertyKind.gps_location:
             properties_dict[property_type.property_name] = (
-                property_value[0],
-                property_value[1],
+                cast(float, property_value[0]),
+                cast(float, property_value[1]),
             )
         else:
             properties_dict[property_type.property_name] = property_value[0]

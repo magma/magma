@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pysymphony import SymphonyClient
 
@@ -108,7 +108,7 @@ def edit_user(
             client.edit_user(user=user, new_password="New_Password4Ever", new_role=UserRole.ADMIN)
             ```
     """
-    params = {}
+    params: Dict[str, Any] = {}
     if new_password is not None:
         params.update({"password": new_password})
     if new_role is not None:

@@ -27,7 +27,7 @@ type LogEntry struct {
 	CurrState *ent.Node `json:"currState"`
 }
 
-func findEdge(edges []*ent.Edge, val string) (*ent.Edge, bool) {
+func FindEdge(edges []*ent.Edge, val string) (*ent.Edge, bool) {
 	for _, edge := range edges {
 		if edge.Name == val && len(edge.IDs) > 0 {
 			return edge, true
@@ -36,7 +36,7 @@ func findEdge(edges []*ent.Edge, val string) (*ent.Edge, bool) {
 	return nil, false
 }
 
-func findField(fields []*ent.Field, val string) (*ent.Field, bool) {
+func FindField(fields []*ent.Field, val string) (*ent.Field, bool) {
 	for _, f := range fields {
 		if f.Name == val {
 			return f, true
@@ -45,12 +45,12 @@ func findField(fields []*ent.Field, val string) (*ent.Field, bool) {
 	return nil, false
 }
 
-func getDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
+func GetDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
 	var newIntVal, oldsIntVal *int
 	newEdges := entry.CurrState.Edges
 	oldEdges := entry.PrevState.Edges
-	newEdge, newFound := findEdge(newEdges, edge)
-	oldEdge, oldFound := findEdge(oldEdges, edge)
+	newEdge, newFound := FindEdge(newEdges, edge)
+	oldEdge, oldFound := FindEdge(oldEdges, edge)
 	if newFound && len(newEdge.IDs) > 0 {
 		newIntVal = &newEdge.IDs[0]
 	}
@@ -61,12 +61,12 @@ func getDiffOfUniqueEdge(entry *LogEntry, edge string) (*int, *int, bool) {
 	return newIntVal, oldsIntVal, shouldUpdate
 }
 
-func getStringDiffValuesField(entry *LogEntry, field string) (*string, *string, bool) {
+func GetStringDiffValuesField(entry *LogEntry, field string) (*string, *string, bool) {
 	var newStrVal, oldStrVal *string
 	newFields := entry.CurrState.Fields
 	oldFields := entry.PrevState.Fields
-	newField, newFound := findField(newFields, field)
-	oldField, oldFound := findField(oldFields, field)
+	newField, newFound := FindField(newFields, field)
+	oldField, oldFound := FindField(oldFields, field)
 	if newFound && newField != nil {
 		newStrVal = pointer.ToString(newField.MustGetString())
 	}
