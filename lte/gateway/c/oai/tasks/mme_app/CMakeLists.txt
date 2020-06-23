@@ -13,6 +13,12 @@ generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${LTE_OUT_DIR})
 
+set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
+link_directories(
+        ${MAGMA_LIB_DIR}/async_grpc
+        ${MAGMA_LIB_DIR}/eventd
+)
+
 add_library(TASK_MME_APP
     mme_app_capabilities.c
     mme_app_context.c
@@ -52,6 +58,7 @@ add_library(TASK_MME_APP
     mme_app_state_converter.cpp
     mme_app_state_manager.cpp
     mme_app_state.cpp
+    mme_events.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
@@ -64,7 +71,7 @@ target_compile_definitions(TASK_MME_APP PRIVATE
 target_link_libraries(TASK_MME_APP
   ${CONFIG_LIBRARIES}
   COMMON
-  LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU
+  LIB_BSTR LIB_HASHTABLE LIB_DIRECTORYD LIB_SECU LIB_EVENT_CLIENT
   TASK_NAS TASK_S1AP TASK_SGW TASK_SERVICE303 TASK_SCTP_SERVER
   TASK_S6A TASK_SGS protobuf cpp_redis
     )
