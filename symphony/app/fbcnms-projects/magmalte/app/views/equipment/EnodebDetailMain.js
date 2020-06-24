@@ -20,6 +20,7 @@ import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import nullthrows from '@fbcnms/util/nullthrows';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -28,12 +29,11 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
 
-import {colors} from '../../theme/default';
+import {colors, typography} from '../../theme/default';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -44,10 +44,11 @@ const useStyles = makeStyles(theme => ({
   topBar: {
     backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: '0 0 0 20px',
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
     color: colors.primary.white,
@@ -57,11 +58,28 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
+  },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
+  appBarBtnSecondary: {
+    color: colors.primary.white,
   },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
@@ -90,7 +108,7 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
@@ -122,13 +140,21 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
+          <Grid
+            item
+            xs={6}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Text color="light">Secondary Action</Text>
+                {/* TODO: these button styles need to be localized */}
+                <Button variant="text" className={classes.appBarBtnSecondary}>
+                  Secondary Action
+                </Button>
               </Grid>
               <Grid item>
-                <Button color="primary" variant="contained">
+                <Button variant="contained" className={classes.appBarBtn}>
                   Reboot
                 </Button>
               </Grid>
