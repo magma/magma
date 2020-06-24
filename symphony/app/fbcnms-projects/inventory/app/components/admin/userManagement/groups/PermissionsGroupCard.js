@@ -202,16 +202,13 @@ function PermissionsGroupCard(props: Props) {
           <Grid
             item
             xs={8}
-            sm={8}
-            lg={8}
-            xl={8}
             className={classNames(classes.container, classes.vertical)}>
             <PermissionsGroupDetailsPane group={group} onChange={setGroup} />
             {userManagementDevMode ? (
               <PermissionsGroupPoliciesPane group={group} onChange={setGroup} />
             ) : null}
           </Grid>
-          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
+          <Grid item xs={4} className={classes.container}>
             <PermissionsGroupMembersPane group={group} onChange={setGroup} />
           </Grid>
         </Grid>

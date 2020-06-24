@@ -73,7 +73,7 @@ function InventoryDataRule(props: InventoryDataRuleProps) {
       id={cudAction}
       title={title}
       disabled={disabled}
-      value={!disabled && permissionRuleValue2Bool(rule[cudAction].isAllowed)}
+      value={permissionRuleValue2Bool(rule[cudAction].isAllowed)}
       onChange={checked =>
         onChange({
           isAllowed: bool2PermissionRuleValue(checked),
@@ -106,7 +106,7 @@ type Props = $ReadOnly<{|
   rule: CUDPermissions,
   disabled?: ?boolean,
   className?: ?string,
-  onChange: CUDPermissions => void,
+  onChange?: CUDPermissions => void,
   children?: React.Node,
 |}>;
 
@@ -134,7 +134,9 @@ export default function PermissionsPolicyRulesSection(props: Props) {
           ...currentRule,
           [cudAction]: actionValue,
         };
-        onChange(newRuleValue);
+        if (onChange != null) {
+          onChange(newRuleValue);
+        }
         return newRuleValue;
       });
     },

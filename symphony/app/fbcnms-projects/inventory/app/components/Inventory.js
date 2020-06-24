@@ -17,13 +17,13 @@ import EquipmentComparisonView from './comparison_view/EquipmentComparisonView';
 import ExpandButtonContext from './context/ExpandButtonContext';
 import Inventory from '../pages/Inventory';
 import InventoryComparisonView from './comparison_view/InventoryComparisonView';
+import InventorySuspense from '../common/InventorySuspense';
 import LocationsMap from './map/LocationsMap';
 import MainNavListItems from './MainNavListItems';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
-import RelayEnvironment from '../common/RelayEnvironment.js';
 import ServicesMain from './services/ServicesMain';
+import {DialogShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/DialogShowingContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {getProjectLinks} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {setLoggerUser} from '../common/LoggingUtils';
@@ -106,9 +106,11 @@ export default function IndexWrapper() {
           isExpanded,
           isExpandButtonShown,
         }}>
-        <RelayEnvironmentProvider environment={RelayEnvironment}>
-          <Index />
-        </RelayEnvironmentProvider>
+        <InventorySuspense isTopLevel={true}>
+          <DialogShowingContextProvider>
+            <Index />
+          </DialogShowingContextProvider>
+        </InventorySuspense>
       </ExpandButtonContext.Provider>
     </ApplicationMain>
   );

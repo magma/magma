@@ -23,6 +23,7 @@ import PermissionsPolicyRulesSection, {
 } from './PermissionsPolicyRulesSection';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
 import {
   bool2PermissionRuleValue,
@@ -62,7 +63,7 @@ const useStyles = makeStyles(() => ({
 type InventoryDataRulesSectionProps = $ReadOnly<{|
   rule: WorkforceCUDPermissions,
   disabled: boolean,
-  onChange: WorkforceCUDPermissions => void,
+  onChange?: WorkforceCUDPermissions => void,
 |}>;
 
 type WorkforceCUDPermissionsKey = $Keys<WorkforceCUDPermissions>;
@@ -76,7 +77,8 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
 
   const debouncedOnChange = useCallback(
     debounce(
-      (newRuleValue: WorkforceCUDPermissions) => onChange(newRuleValue),
+      (newRuleValue: WorkforceCUDPermissions) =>
+        onChange && onChange(newRuleValue),
       100,
     ),
     [],
@@ -138,14 +140,17 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
             </DataRuleTitle>
           }
           disabled={disabled}
-          value={!disabled && permissionRuleValue2Bool(rule.assign.isAllowed)}
-          onChange={checked =>
-            onChange({
-              ...rule,
-              assign: {
-                isAllowed: bool2PermissionRuleValue(checked),
-              },
-            })
+          value={permissionRuleValue2Bool(rule.assign.isAllowed)}
+          onChange={
+            onChange != null
+              ? checked =>
+                  onChange({
+                    ...rule,
+                    assign: {
+                      isAllowed: bool2PermissionRuleValue(checked),
+                    },
+                  })
+              : undefined
           }
           hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
           className={classes.rule}
@@ -182,11 +187,12 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
 
 type Props = $ReadOnly<{|
   policy: ?WorkforcePolicy,
-  onChange: WorkforcePolicy => void,
+  onChange?: WorkforcePolicy => void,
+  className?: ?string,
 |}>;
 
 export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
-  const {policy, onChange} = props;
+  const {policy, onChange, className} = props;
   const classes = useStyles();
 
   if (policy == null) {
@@ -194,9 +200,10 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
   }
 
   const readAllowed = permissionRuleValue2Bool(policy.read.isAllowed);
+  const isDisabled = onChange == null;
 
   return (
-    <div className={classes.root}>
+    <div className={classNames(classes.root, className)}>
       <div className={classes.header}>
         <Text variant="subtitle1">
           <fbt desc="">Workforce Data</fbt>
@@ -212,23 +219,30 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
         className={classes.readRule}
         title={fbt('View work orders and projects', '')}
         checked={readAllowed}
-        onChange={checked =>
-          onChange({
-            ...policy,
-            read: {
-              isAllowed: bool2PermissionRuleValue(checked),
-            },
-          })
+        disabled={isDisabled}
+        onChange={
+          onChange != null
+            ? checked =>
+                onChange({
+                  ...policy,
+                  read: {
+                    isAllowed: bool2PermissionRuleValue(checked),
+                  },
+                })
+            : undefined
         }
       />
       <WorkforceDataRulesSection
-        disabled={!readAllowed}
+        disabled={isDisabled || !readAllowed}
         rule={policy.data}
-        onChange={data =>
-          onChange({
-            ...policy,
-            data,
-          })
+        onChange={
+          onChange != null
+            ? data =>
+                onChange({
+                  ...policy,
+                  data,
+                })
+            : undefined
         }
       />
     </div>
