@@ -40,6 +40,7 @@ const useStyles = makeStyles(() => ({
     marginBottom: '40px',
   },
   footer: {
+    paddingBottom: '8px',
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'flex-end',

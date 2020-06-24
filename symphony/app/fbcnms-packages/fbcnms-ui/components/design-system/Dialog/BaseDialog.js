@@ -14,16 +14,14 @@ import * as React from 'react';
 import DialogFrame from './DialogFrame';
 import IconButton from '../IconButton';
 import Text from '../Text';
+import ViewContainer from '../View/ViewContainer';
 import classNames from 'classnames';
 import {CloseIcon} from '../Icons';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
   root: {
-    padding: '24px',
-    display: 'flex',
-    flexDirection: 'column',
-    boxSizing: 'border-box',
+    paddingBottom: '1px',
   },
   titleContainer: {
     display: 'flex',
@@ -40,6 +38,8 @@ const useStyles = makeStyles(() => ({
     flexGrow: 1,
     display: 'flex',
     flexDirection: 'column',
+    height: 0,
+    overflowY: 'auto',
   },
 }));
 
@@ -78,15 +78,25 @@ function BaseDialog(props: BaseDialogComponentProps) {
       className={classNames(classes.root, className)}
       onClose={callOnClose}
       {...rootProps}>
-      <div className={classes.titleContainer}>
-        <Text className={classes.titleText} weight="medium">
-          {title}
-        </Text>
-        {showCloseButton != false && (
-          <IconButton skin="gray" icon={CloseIcon} onClick={callOnClose} />
-        )}
-      </div>
-      <div className={classes.content}>{children}</div>
+      <ViewContainer
+        header={{
+          title: (
+            <div className={classes.titleContainer}>
+              <Text className={classes.titleText} weight="medium">
+                {title}
+              </Text>
+              {showCloseButton != false && (
+                <IconButton
+                  skin="gray"
+                  icon={CloseIcon}
+                  onClick={callOnClose}
+                />
+              )}
+            </div>
+          ),
+        }}>
+        {children}
+      </ViewContainer>
     </DialogFrame>
   );
 }

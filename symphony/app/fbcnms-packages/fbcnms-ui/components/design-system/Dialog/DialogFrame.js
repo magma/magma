@@ -41,6 +41,7 @@ const useStyles = makeStyles(() => ({
     alignItems: 'flex-start',
     display: 'flex',
     pointerEvents: 'none',
+    maxHeight: '100%',
   },
   center: {
     justifyContent: 'center',

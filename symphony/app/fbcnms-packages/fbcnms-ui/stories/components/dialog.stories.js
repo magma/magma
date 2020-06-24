@@ -109,8 +109,10 @@ const DialogsRoot = () => {
         isModal={false}
         onClose={closeDialog}
         hidden={!isNoMaskDialogShown}>
-        <Text>This is the dialog content.</Text>
-        <Text>Clicking out side of panel will not close it.</Text>
+        <div className={classes.content}>
+          <Text>This is the dialog content.</Text>
+          <Text>Clicking out side of panel will not close it.</Text>
+        </div>
       </BaseDialog>
     </div>
   );
