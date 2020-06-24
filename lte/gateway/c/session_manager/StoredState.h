@@ -135,7 +135,7 @@ enum SessionFsmState {
 struct StoredSessionCredit {
   bool reporting;
   bool is_final;
-  bool unlimited_quota;
+  CreditLimitType credit_limit_type;
   FinalActionInfo final_action_info;
   ReAuthState reauth_state;
   ServiceState service_state;
