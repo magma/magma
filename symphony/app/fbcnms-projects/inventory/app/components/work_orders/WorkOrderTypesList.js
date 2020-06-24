@@ -9,6 +9,7 @@
  */
 
 import Avatar from '@material-ui/core/Avatar';
+import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
@@ -67,19 +68,26 @@ function WorkOrderTypesList(props: Props) {
           sortLexicographically(workOrderTypeA.name, workOrderTypeB.name),
         )
         .map(workOrderType => (
-          <ListItem
-            className={classes.listItem}
-            button
-            key={workOrderType.id}
-            selected={selectedWorkOrderTypeId === workOrderType.id}
-            onClick={() => handleListItemClick(workOrderType)}>
-            <ListItemAvatar className={classes.listAvatar}>
-              <Avatar className={classes.avatar}>
-                <WorkIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText primary={workOrderType.name} />
-          </ListItem>
+          <FormActionWithPermissions
+            permissions={{
+              entity: 'workorder',
+              action: 'create',
+              workOrderTypeId: workOrderType.id,
+            }}>
+            <ListItem
+              className={classes.listItem}
+              button
+              key={workOrderType.id}
+              selected={selectedWorkOrderTypeId === workOrderType.id}
+              onClick={() => handleListItemClick(workOrderType)}>
+              <ListItemAvatar className={classes.listAvatar}>
+                <Avatar className={classes.avatar}>
+                  <WorkIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText primary={workOrderType.name} />
+            </ListItem>
+          </FormActionWithPermissions>
         )),
     [
       classes.avatar,

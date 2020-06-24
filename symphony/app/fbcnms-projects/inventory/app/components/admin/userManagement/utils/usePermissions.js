@@ -64,6 +64,9 @@ type WorkforcePermissionEnforcement = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: WorkforceEntName,
   action?: ?WorkforceActionName,
+  projectTypeId?: ?string,
+  workOrderTypeId?: ?string,
+  ignoreTypes?: ?boolean,
 |}>;
 
 export type EntName = InventoryEntName | WorkforceEntName;
@@ -120,7 +123,51 @@ const performCheck = (
     permissionsEnforcement.entity === 'project'
   ) {
     const action: WorkforceActionName = permissionsEnforcement.action;
-    actionPermissionValue = userPermissions.workforcePolicy.data[action];
+
+    const allowedWorkOrderTemplates =
+      userPermissions.workforcePolicy.data[action].workOrderTypeIds;
+    const allowedProjectTemplates =
+      userPermissions.workforcePolicy.data[action].projectTypeIds;
+
+    if (
+      permissionsEnforcement.ignoreTypes !== true &&
+      (allowedWorkOrderTemplates != null || allowedProjectTemplates != null)
+    ) {
+      if (
+        permissionsEnforcement.workOrderTypeId == null &&
+        permissionsEnforcement.projectTypeId == null
+      ) {
+        return FAILED_REGULAR_VALUE;
+      }
+
+      if (permissionsEnforcement.workOrderTypeId != null) {
+        const typeAllowed =
+          allowedWorkOrderTemplates != null &&
+          allowedWorkOrderTemplates.includes(
+            permissionsEnforcement.workOrderTypeId,
+          );
+        if (typeAllowed === false) {
+          return FAILED_REGULAR_VALUE;
+        }
+      }
+
+      if (permissionsEnforcement.projectTypeId != null) {
+        const typeAllowed =
+          allowedProjectTemplates != null &&
+          allowedProjectTemplates.includes(
+            permissionsEnforcement.projectTypeId,
+          );
+        if (typeAllowed === false) {
+          return FAILED_REGULAR_VALUE;
+        }
+      }
+
+      return PASSED_VALUE;
+    }
+
+    actionPermissionValue = {
+      isAllowed: userPermissions.workforcePolicy.data[action].isAllowed,
+    };
   } else if (
     permissionsEnforcement.entity === 'workorderTemplate' ||
     permissionsEnforcement.entity === 'projectTemplate'

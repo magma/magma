@@ -153,7 +153,49 @@ const meQuery = graphql`
           }
         }
         workforcePolicy {
-          ...UserManagementUtils_workforcePolicy @relay(mask: false)
+          read {
+            isAllowed
+            projectTypeIds
+            workOrderTypeIds
+          }
+          templates {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          data {
+            create {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            update {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            delete {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            assign {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            transferOwnership {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+          }
         }
       }
     }
