@@ -13,92 +13,101 @@ import Portal from '../Core/Portal';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
+import {useRef} from 'react';
 
 const SIDE_PANEL_WIDTH = '474px';
 
 const useStyles = makeStyles(() => ({
-  root: {
-    alignItems: 'stretch',
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    minHeight: '100vh',
-    zIndex: 1,
+  dialog: {
+    zIndex: 2,
     position: 'fixed',
-    left: `calc(100% - ${SIDE_PANEL_WIDTH})`,
-    right: 0,
-    top: 0,
-    bottom: 0,
-    overflow: 'hidden',
-    '&:not($hidden) > $anchor$right $dialog > *': {
-      transition: 'opacity 100ms 300ms',
-    },
-    '&$hidden > $anchor$right $dialog > *': {
-      transition: 'opacity 100ms',
-    },
-  },
-  withTransition: {
-    transition: 'left ease-out 400ms',
-  },
-  withMask: {
-    left: 0,
-    '&:not($hidden) > $anchor$right > $dialog': {
-      width: SIDE_PANEL_WIDTH,
-    },
-  },
-  anchor: {
-    alignItems: 'flex-start',
     display: 'flex',
-    pointerEvents: 'none',
-    maxHeight: '100%',
+    backgroundColor: symphony.palette.white,
+    boxShadow: symphony.shadows.DP3,
+    '&$hidden': {
+      visibility: 'hidden',
+    },
   },
   center: {
-    justifyContent: 'center',
-    '& > $dialog': {
-      borderRadius: '4px',
+    transform: 'translate(-50%, -50%)',
+    left: '50%',
+    top: '50%',
+    '&:not($hidden)': {
+      animation: '$fadeIn 200ms forwards',
+    },
+    '&$hidden': {
+      animation: '$fadeOut 200ms forwards',
     },
   },
   right: {
-    justifyContent: 'flex-end',
-    flexGrow: 1,
-    '& > $dialog': {
-      height: '100%',
-      width: '100%',
+    bottom: 0,
+    top: 0,
+    '&:not($hidden)': {
+      animation: '$slideIn 500ms forwards',
+    },
+    '&$hidden': {
+      animation: '$slideOut 500ms forwards',
     },
   },
-  dialog: {
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    pointerEvents: 'all',
-    position: 'relative',
-    zIndex: 0,
-    backgroundColor: symphony.palette.white,
-    boxShadow: symphony.shadows.DP3,
-    marginLeft: '22px',
-    transition: 'width ease-out 400ms',
-  },
-  hidden: {
-    '& $mask': {
-      display: 'none',
-    },
-    left: '100%',
-    // visibility: 'hidden',
-    '& $dialog': {
-      width: 0,
-      '& > *': {
-        opacity: 0,
-      },
-    },
-  },
+  hidden: {},
   mask: {
+    zIndex: 1,
     backgroundColor: symphony.palette.overlay,
     position: 'fixed',
     bottom: 0,
     right: 0,
     left: 0,
     top: 0,
+    '&:not($hidden)': {
+      animation: '$fadeIn 500ms forwards',
+    },
+    '&$hidden': {
+      animation: '$fadeOut 500ms forwards',
+    },
+  },
+  '@keyframes fadeIn': {
+    from: {
+      opacity: 0,
+      visibility: 'hidden',
+    },
+    to: {
+      opacity: 1,
+      visibility: 'visible',
+    },
+  },
+  '@keyframes fadeOut': {
+    from: {
+      opacity: 1,
+      visibility: 'visible',
+    },
+    to: {
+      opacity: 0,
+      visibility: 'hidden',
+    },
+  },
+  '@keyframes slideIn': {
+    from: {
+      right: `-${SIDE_PANEL_WIDTH}`,
+      left: '100%',
+      visibility: 'hidden',
+    },
+    to: {
+      right: 0,
+      left: `calc(100% - ${SIDE_PANEL_WIDTH})`,
+      visibility: 'visible',
+    },
+  },
+  '@keyframes slideOut': {
+    from: {
+      right: 0,
+      left: `calc(100% - ${SIDE_PANEL_WIDTH})`,
+      visibility: 'visible',
+    },
+    to: {
+      right: `-${SIDE_PANEL_WIDTH}`,
+      left: '100%',
+      visibility: 'hidden',
+    },
   },
 }));
 
@@ -128,23 +137,32 @@ function DialogFrame(props: Props) {
   } = props;
   const classes = useStyles();
 
+  const renderedOnce = useRef(false);
+
+  if (hidden && renderedOnce.current === false) {
+    return null;
+  }
+  renderedOnce.current = true;
+
   const position = positionProp ?? POSITION.center;
   const isModal = isModalProp !== false;
 
   return (
     <Portal target={document.body}>
+      {isModal && (
+        <div
+          className={classNames(classes.mask, {[classes.hidden]: hidden})}
+          onClick={onClose}
+        />
+      )}
       <div
-        className={classNames(classes.root, {
-          [classes.hidden]: hidden,
-          [classes.withMask]: isModal,
-          [classes.withTransition]: position === POSITION.right,
-        })}>
-        {isModal && <div className={classes.mask} onClick={onClose} />}
-        <div className={classNames(classes.anchor, classes[position])}>
-          <div className={classNames(classes.dialog, className)}>
-            {children}
-          </div>
-        </div>
+        className={classNames(
+          classes.dialog,
+          classes[position],
+          {[classes.hidden]: hidden},
+          className,
+        )}>
+        {children}
       </div>
     </Portal>
   );
