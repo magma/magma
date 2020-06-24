@@ -14,7 +14,7 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
-const SIDE_PANEL_WIDTH = '452px';
+const SIDE_PANEL_WIDTH = '474px';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -30,10 +30,20 @@ const useStyles = makeStyles(() => ({
     right: 0,
     top: 0,
     bottom: 0,
+    overflow: 'hidden',
+    '&:not($hidden) > $anchor$right $dialog > *': {
+      transition: 'opacity 100ms 300ms',
+    },
+    '&$hidden > $anchor$right $dialog > *': {
+      transition: 'opacity 100ms',
+    },
+  },
+  withTransition: {
+    transition: 'left ease-out 400ms',
   },
   withMask: {
     left: 0,
-    '& > $anchor$right > $dialog': {
+    '&:not($hidden) > $anchor$right > $dialog': {
       width: SIDE_PANEL_WIDTH,
     },
   },
@@ -66,9 +76,21 @@ const useStyles = makeStyles(() => ({
     zIndex: 0,
     backgroundColor: symphony.palette.white,
     boxShadow: symphony.shadows.DP3,
+    marginLeft: '22px',
+    transition: 'width ease-out 400ms',
   },
   hidden: {
-    visibility: 'hidden',
+    '& $mask': {
+      display: 'none',
+    },
+    left: '100%',
+    // visibility: 'hidden',
+    '& $dialog': {
+      width: 0,
+      '& > *': {
+        opacity: 0,
+      },
+    },
   },
   mask: {
     backgroundColor: symphony.palette.overlay,
@@ -115,6 +137,7 @@ function DialogFrame(props: Props) {
         className={classNames(classes.root, {
           [classes.hidden]: hidden,
           [classes.withMask]: isModal,
+          [classes.withTransition]: position === POSITION.right,
         })}>
         {isModal && <div className={classes.mask} onClick={onClose} />}
         <div className={classNames(classes.anchor, classes[position])}>
