@@ -90,6 +90,8 @@ link_directories(
 add_library(SESSION_MANAGER
     AAAClient.cpp
     AAAClient.h
+    ChargingGrant.cpp
+    ChargingGrant.h
     EnumToString.cpp
     EnumToString.h
     SessionManagerServer.cpp

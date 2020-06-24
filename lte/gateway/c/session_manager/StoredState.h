@@ -149,6 +149,15 @@ struct StoredMonitor {
   MonitoringLevel level;
 };
 
+struct StoredChargingGrant {
+  StoredSessionCredit credit;
+  bool is_final;
+  FinalActionInfo final_action_info;
+  ReAuthState reauth_state;
+  ServiceState service_state;
+  std::time_t expiry_time;
+};
+
 struct RuleLifetime {
   std::time_t activation_time; // Unix timestamp
   std::time_t deactivation_time; // Unix timestamp
