@@ -22,6 +22,7 @@ import TokenizerBasicPostFetchDecorator from './TokenizerBasicPostFetchDecorator
 import TokensList from './TokensList';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
+import {useFormElementContext} from '../Form/FormElementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -54,15 +55,19 @@ export type NetworkDataSource<TEntry> = $ReadOnly<{|
   ) => Entries<TEntry>,
 |}>;
 
+export type TokenizerDisplayProps = $ReadOnly<{|
+  disabled?: boolean,
+  inputClassName?: string,
+  menuClassName?: string,
+|}>;
+
 type Props<TEntry> = $ReadOnly<{|
+  ...TokenizerDisplayProps,
   tokens: Entries<TEntry>,
   dataSource: NetworkDataSource<TEntry>,
   onTokensChange: (Entries<TEntry>) => void,
   queryString: string,
   onQueryStringChange: string => void,
-  disabled?: boolean,
-  inputClassName?: string,
-  menuClassName?: string,
 |}>;
 
 const Tokenizer = <TEntry>(props: Props<TEntry>) => {
@@ -75,7 +80,7 @@ const Tokenizer = <TEntry>(props: Props<TEntry>) => {
     },
     onTokensChange,
     tokens,
-    disabled = false,
+    disabled: propDisabled = false,
     inputClassName,
     menuClassName,
   } = props;
@@ -98,6 +103,12 @@ const Tokenizer = <TEntry>(props: Props<TEntry>) => {
   useLayoutEffect(
     () => popoverTriggerRef && popoverTriggerRef.current?.reposition(),
     [tokens],
+  );
+
+  const {disabled: contextDisabled} = useFormElementContext();
+  const disabled = useMemo(
+    () => (propDisabled ? propDisabled : contextDisabled),
+    [contextDisabled, propDisabled],
   );
 
   return (

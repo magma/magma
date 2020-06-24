@@ -12,11 +12,13 @@ import AppContent from '@fbcnms/ui/components/layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import InventorySuspense from '../../common/InventorySuspense';
 import ProjectComparisonView from '../projects/ProjectComparisonView';
 import React, {useContext} from 'react';
 import RelayEnvironment from '../../common/RelayEnvironment';
 import WorkOrderComparisonView from './WorkOrderComparisonView';
 import WorkOrderConfigure from './WorkOrderConfigure';
+import {DialogShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/DialogShowingContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {RelayEnvironmentProvider} from 'react-relay/hooks';
 import {WorkOrdersNavListItems} from './WorkOrdersNavListItems';
@@ -42,33 +44,37 @@ function WorkOrdersMain() {
   const {integrationUserDefinition} = useMainContext();
 
   return (
-    <div className={classes.root}>
-      <AppSideBar
-        mainItems={<WorkOrdersNavListItems />}
-        projects={getProjectLinks(tabs, integrationUserDefinition)}
-        showSettings={true}
-        user={integrationUserDefinition}
-      />
-      <AppContent>
-        <RelayEnvironmentProvider environment={RelayEnvironment}>
-          <Switch>
-            <Route
-              path={relativeUrl('/search')}
-              component={WorkOrderComparisonView}
-            />
-            <Route
-              path={relativeUrl('/projects/search')}
-              component={ProjectComparisonView}
-            />
-            <Route
-              path={relativeUrl('/configure')}
-              component={WorkOrderConfigure}
-            />
-            <Redirect to={relativeUrl('/search')} />
-          </Switch>
-        </RelayEnvironmentProvider>
-      </AppContent>
-    </div>
+    <InventorySuspense isTopLevel={true}>
+      <DialogShowingContextProvider>
+        <div className={classes.root}>
+          <AppSideBar
+            mainItems={<WorkOrdersNavListItems />}
+            projects={getProjectLinks(tabs, integrationUserDefinition)}
+            showSettings={true}
+            user={integrationUserDefinition}
+          />
+          <AppContent>
+            <RelayEnvironmentProvider environment={RelayEnvironment}>
+              <Switch>
+                <Route
+                  path={relativeUrl('/search')}
+                  component={WorkOrderComparisonView}
+                />
+                <Route
+                  path={relativeUrl('/projects/search')}
+                  component={ProjectComparisonView}
+                />
+                <Route
+                  path={relativeUrl('/configure')}
+                  component={WorkOrderConfigure}
+                />
+                <Redirect to={relativeUrl('/search')} />
+              </Switch>
+            </RelayEnvironmentProvider>
+          </AppContent>
+        </div>
+      </DialogShowingContextProvider>
+    </InventorySuspense>
   );
 }
 

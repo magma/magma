@@ -299,7 +299,7 @@ class BootstrapManagerTest(TestCase):
                 key_type=ChallengeKey.ECHO
             )
             self.manager._gateway_key = ec.generate_private_key(
-                ec.SECP384R1(), default_backend())
+                ec.SECP256R1(), default_backend())
             csr = self.manager._create_csr()
             response = self.manager._construct_response(challenge, csr)
 
@@ -327,7 +327,7 @@ class BootstrapManagerTest(TestCase):
                 key_type=ChallengeKey.ECHO
             )
             self.manager._gateway_key = ec.generate_private_key(
-                ec.SECP384R1(), default_backend())
+                ec.SECP256R1(), default_backend())
             csr = self.manager._create_csr()
             response = self.manager._construct_response(challenge, csr)
             # test no error
@@ -426,13 +426,13 @@ class BootstrapManagerTest(TestCase):
 
     def test__create_csr(self):
         self.manager._gateway_key = ec.generate_private_key(
-            ec.SECP384R1(), default_backend())
+            ec.SECP256R1(), default_backend())
         csr_msg = self.manager._create_csr()
         self.assertEqual(csr_msg.id.gateway.hardware_id, self.hw_id)
 
     @patch('magma.common.cert_utils.load_key')
     def test__construct_response(self, load_key_mock):
-        ecdsa_key = ec.generate_private_key(ec.SECP384R1(), default_backend())
+        ecdsa_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
 
         key_types = {
             ChallengeKey.ECHO: None,
@@ -456,7 +456,7 @@ class BootstrapManagerTest(TestCase):
         challenge = b'challenge'
 
         # success case
-        private_key = ec.generate_private_key(ec.SECP384R1(), default_backend())
+        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
         load_key_mock.return_value = private_key
         r, s = self.manager._ecdsa_sha256_response(challenge)
         r = int.from_bytes(r, 'big')

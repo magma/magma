@@ -24,16 +24,17 @@ const useStyles = makeStyles(() => ({
     maxWidth: '200px',
     backgroundColor: symphony.palette.D50,
     borderRadius: '2px',
-    '&:hover': {
+    '&:hover:not($disabledToken)': {
       backgroundColor: symphony.palette.D100,
     },
   },
-  disabledToken: {},
-  text: {
-    padding: '2px 0px 2px 6px',
-    '&$disabledToken': {
+  disabledToken: {
+    '& $text': {
       paddingRight: '6px',
     },
+  },
+  text: {
+    padding: '2px 0px 2px 6px',
   },
 }));
 
@@ -48,13 +49,11 @@ const Token = (props: Props) => {
   const {label, onRemove, disabled = false, className} = props;
   const classes = useStyles();
   return (
-    <div className={classNames(classes.root, className)}>
-      <Text
-        variant="body2"
-        className={classNames(classes.text, {
-          [classes.disabledToken]: disabled,
-        })}
-        useEllipsis={true}>
+    <div
+      className={classNames(classes.root, className, {
+        [classes.disabledToken]: disabled,
+      })}>
+      <Text variant="body2" className={classes.text} useEllipsis={true}>
         {label}
       </Text>
       {!disabled && (

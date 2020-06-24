@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 48efd8187174c7def73615342cf101ec
+ * @relayHash 72c649477bd29f4e04eeea94eb13ebae
  */
 
 /* eslint-disable */
@@ -15,9 +15,9 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PowerSearchLocationTypeFilterQueryVariables = {||};
-export type PowerSearchLocationTypeFilterQueryResponse = {|
-  +locationTypes: ?{|
+export type ProjectTemplateNodesQueryVariables = {||};
+export type ProjectTemplateNodesQueryResponse = {|
+  +projectTypes: ?{|
     +edges: $ReadOnlyArray<{|
       +node: ?{|
         +id: string,
@@ -26,16 +26,16 @@ export type PowerSearchLocationTypeFilterQueryResponse = {|
     |}>
   |}
 |};
-export type PowerSearchLocationTypeFilterQuery = {|
-  variables: PowerSearchLocationTypeFilterQueryVariables,
-  response: PowerSearchLocationTypeFilterQueryResponse,
+export type ProjectTemplateNodesQuery = {|
+  variables: ProjectTemplateNodesQueryVariables,
+  response: ProjectTemplateNodesQueryResponse,
 |};
 */
 
 
 /*
-query PowerSearchLocationTypeFilterQuery {
-  locationTypes {
+query ProjectTemplateNodesQuery {
+  projectTypes {
     edges {
       node {
         id
@@ -51,10 +51,10 @@ var v0 = [
   {
     "kind": "LinkedField",
     "alias": null,
-    "name": "locationTypes",
+    "name": "projectTypes",
     "storageKey": null,
     "args": null,
-    "concreteType": "LocationTypeConnection",
+    "concreteType": "ProjectTypeConnection",
     "plural": false,
     "selections": [
       {
@@ -63,7 +63,7 @@ var v0 = [
         "name": "edges",
         "storageKey": null,
         "args": null,
-        "concreteType": "LocationTypeEdge",
+        "concreteType": "ProjectTypeEdge",
         "plural": true,
         "selections": [
           {
@@ -72,7 +72,7 @@ var v0 = [
             "name": "node",
             "storageKey": null,
             "args": null,
-            "concreteType": "LocationType",
+            "concreteType": "ProjectType",
             "plural": false,
             "selections": [
               {
@@ -100,7 +100,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "PowerSearchLocationTypeFilterQuery",
+    "name": "ProjectTemplateNodesQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": [],
@@ -108,19 +108,19 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "PowerSearchLocationTypeFilterQuery",
+    "name": "ProjectTemplateNodesQuery",
     "argumentDefinitions": [],
     "selections": (v0/*: any*/)
   },
   "params": {
     "operationKind": "query",
-    "name": "PowerSearchLocationTypeFilterQuery",
+    "name": "ProjectTemplateNodesQuery",
     "id": null,
-    "text": "query PowerSearchLocationTypeFilterQuery {\n  locationTypes {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query ProjectTemplateNodesQuery {\n  projectTypes {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'f395dc103ec13db0fa455e3d8b56103f';
+(node/*: any*/).hash = '1557fbf5ef8503ec41726b5e089eb2f5';
 module.exports = node;

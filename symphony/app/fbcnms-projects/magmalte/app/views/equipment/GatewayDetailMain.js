@@ -15,6 +15,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
@@ -196,7 +197,9 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
               <GraphicEqIcon />
               Status
             </Text>
-            <Paper className={classes.paper}>Status KPI Tray</Paper>
+            <Paper>
+              <GatewayDetailStatus gwInfo={gwInfo} />
+            </Paper>
           </Grid>
           <Grid item xs={12}>
             <Text>

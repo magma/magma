@@ -84,7 +84,7 @@ export default function EventsTable({
   eventTypes,
   gatewayHardwareId,
 }: {
-  eventTypes: magmaEventType,
+  eventTypes: number,
   gatewayHardwareId: string,
 }) {
   const {match} = useRouter();

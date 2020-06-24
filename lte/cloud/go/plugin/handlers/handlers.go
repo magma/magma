@@ -450,7 +450,12 @@ func addConnectedEnodeb(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-var subscriberStateTypes = []string{lte.ICMPStateType}
+var subscriberStateTypes = []string{
+	lte.ICMPStateType,
+	lte.S1APStateType,
+	lte.MMEStateType,
+	lte.SPGWStateType,
+}
 
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)

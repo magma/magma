@@ -365,6 +365,7 @@ const AddWorkOrderCard = (props: Props) => {
         permissions={{
           entity: 'workorder',
           action: 'create',
+          workOrderTypeId: workOrderTypeId,
         }}>
         <div className={classes.nameHeader}>
           <Breadcrumbs

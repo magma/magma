@@ -17,15 +17,15 @@
 #                   Either 'network' or 'gateway' (defaults to 'gateway')
 state_protos:
   - proto_file: "lte.protos.oai.s1ap_state_pb2"
-    proto_msg: "S1apState"
+    proto_msg: "UeDescription"
     redis_key: "S1AP"
     state_scope: "network"
   - proto_file: "lte.protos.oai.spgw_state_pb2"
-    proto_msg: "SpgwState"
+    proto_msg: "S11BearerContext"
     redis_key: "SPGW"
     state_scope: "network"
   - proto_file: "lte.protos.oai.mme_nas_state_pb2"
-    proto_msg: "MmeNasState"
+    proto_msg: "UeContext"
     redis_key: "MME"
     state_scope: "network"
 

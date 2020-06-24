@@ -55,6 +55,23 @@ namespace magma {
     }
   }
 
+  std::string grant_type_to_str(GrantTrackingType grant_type) {
+    switch (grant_type) {
+    case TOTAL_ONLY:
+      return "TOTAL_ONLY";
+    case TX_ONLY:
+      return "TX_ONLY";
+    case RX_ONLY:
+      return "RX_ONLY";
+    case TX_AND_RX:
+      return "TX_AND_RX";
+    case NO_TRACKING:
+      return "NO_TRACKING";
+    default:
+      return "INVALID GRANT TRACKING TYPE";
+    }
+  }
+
   std::string session_fsm_state_to_str(SessionFsmState state) {
     switch (state) {
     case SESSION_ACTIVE:

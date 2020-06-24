@@ -21,6 +21,7 @@ import UserDetailsCard from './UserDetailsCard';
 import UserViewer from './UserViewer';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
+import withSuspense from '../../../../common/withSuspense';
 import {
   USER_ROLES,
   USER_STATUSES,
@@ -180,4 +181,4 @@ function UsersTable() {
   );
 }
 
-export default UsersTable;
+export default withSuspense(UsersTable);

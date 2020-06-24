@@ -138,7 +138,7 @@ class SessionStoreTest : public ::testing::Test {
     auto credit2 = StoredSessionCredit{};
     credit2.reporting = false;
     credit2.is_final = false;
-    credit2.unlimited_quota = false;
+    credit2.credit_limit_type = INFINITE_METERED;
     credit2.service_state = SERVICE_ENABLED;
     credit2.expiry_time = 0;
     credit2.buckets = std::unordered_map<Bucket, uint64_t>{};
@@ -151,7 +151,6 @@ class SessionStoreTest : public ::testing::Test {
     credit2.buckets[REPORTING_RX] = 6;
     credit2.buckets[REPORTED_TX] = 7;
     credit2.buckets[REPORTED_RX] = 8;
-    credit2.usage_reporting_limit = 12345;
     monitor2.level = SESSION_LEVEL;
     monitor2.credit = credit2;
     update_criteria.monitor_credit_to_install[monitoring_key2] = monitor2;
@@ -358,7 +357,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   // Check for installation of new monitoring credit
   session_map[imsi].front()->set_monitor(monitoring_key2,
-    SessionState::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
+    Monitor::unmarshal(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
   EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key2, USED_TX), 100);
   EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key2, USED_RX), 200);
 

@@ -38,6 +38,9 @@ type Subscriber struct {
 
 	// monitoring
 	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
+
+	// state
+	State *SubscriberState `json:"state,omitempty"`
 }
 
 // Validate validates this subscriber
@@ -65,6 +68,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMonitoring(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateState(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -170,6 +177,24 @@ func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
 		if err := m.Monitoring.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("monitoring")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateState(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.State) { // not required
+		return nil
+	}
+
+	if m.State != nil {
+		if err := m.State.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state")
 			}
 			return err
 		}
