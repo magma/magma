@@ -10,7 +10,7 @@
 
 import type {TextCommentPost_comment} from './__generated__/TextCommentPost_comment.graphql.js';
 
-import ChatBubbleOutlineIcon from '@material-ui/icons/ChatBubbleOutline';
+import ActivityCommentsIcon from './ActivityCommentsIcon';
 import DateTimeFormat from '../../common/DateTimeFormat.js';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -32,13 +32,6 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'row',
   },
-  commentIndicator: {
-    padding: '8px 12px 0px 0px',
-  },
-  commentTypeIcon: {
-    fontSize: '16px',
-    color: symphony.palette.D300,
-  },
   commentBody: {
     flexGrow: 1,
     display: 'flex',
@@ -50,7 +43,7 @@ const useStyles = makeStyles(() => ({
   },
   commentContent: {
     flexGrow: 1,
-    backgroundColor: symphony.palette.D10,
+    backgroundColor: symphony.palette.D50,
     borderRadius: '4px',
     padding: '4px 8px',
   },
@@ -66,9 +59,7 @@ const TextCommentPost = (props: Props) => {
 
   return (
     <div className={classes.textCommentPost}>
-      <div className={classes.commentIndicator}>
-        <ChatBubbleOutlineIcon className={classes.commentTypeIcon} />
-      </div>
+      <ActivityCommentsIcon field="COMMENT" />
       <div className={classes.commentBody}>
         <Text variant="body2" className={classes.commentContent}>
           <span className={classes.commentAuthor}>

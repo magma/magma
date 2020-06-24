@@ -12,9 +12,10 @@ import type {ContextRouter} from 'react-router-dom';
 import type {EquipmentPosition} from '../common/Equipment';
 import type {EquipmentType} from '../common/EquipmentType';
 import type {Location} from '../common/Location';
-import type {LocationMoreActionsButton_location} from '../components/location/__generated__/LocationMoreActionsButton_location.graphql';
+import type {LocationMenu_location} from '../components/location/__generated__/LocationMenu_location.graphql';
 import type {LocationType} from '../common/LocationType';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
 import AddToLocationDialog from '../components/AddToLocationDialog';
@@ -24,11 +25,14 @@ import InventoryTopBar from '../components/InventoryTopBar';
 import LocationCard from '../components/LocationCard';
 import LocationsTree from '../components/LocationsTree';
 import React from 'react';
+import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
+import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {InventoryAPIUrls} from '../common/InventoryAPI';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../common/RouterUtils';
 import {withRouter} from 'react-router-dom';
+import {withSnackbar} from 'notistack';
 import {withStyles} from '@material-ui/core';
 
 const styles = {
@@ -72,7 +76,10 @@ type Card = {
   type: 'location' | 'equipment',
 };
 
-type Props = ContextRouter & WithStyles<typeof styles> & WithAlert & {};
+type Props = ContextRouter &
+  WithStyles<typeof styles> &
+  WithAlert &
+  WithSnackbarProps & {};
 
 type State = {
   card: Card,
@@ -247,6 +254,7 @@ class Inventory extends React.Component<Props, State> {
                     this.navigateToWorkOrder(selectedWorkOrderCardId)
                   }
                   onAddEquipment={() => this.showDialog('equipment')}
+                  onLocationMoved={this.onMoveLocation}
                   onLocationRemoved={this.onDeleteLocation}
                 />
               )}
@@ -380,13 +388,45 @@ class Inventory extends React.Component<Props, State> {
     this.navigateToLocation(newLocationId);
   };
 
-  onDeleteLocation = (deletedLocation: LocationMoreActionsButton_location) => {
+  onMoveLocation = (movedLocation: LocationMenu_location) => {
+    ServerLogger.info(LogEvents.MOVE_LOCATION_BUTTON_CLICKED);
+    this.props.enqueueSnackbar('Location moved successfuly', {
+      children: key => (
+        <SnackbarItem
+          id={key}
+          message={fbt(
+            'Location moved successfuly',
+            'Pop-over message when moving a location',
+          )}
+          variant="success"
+        />
+      ),
+    });
+    this.navigateToLocation(
+      movedLocation?.parentLocation?.id || this.state.parentLocationId || '',
+    );
+  };
+
+  onDeleteLocation = (deletedLocation: LocationMenu_location) => {
     ServerLogger.info(LogEvents.DELETE_LOCATION_BUTTON_CLICKED);
-    this.props.alert('Location removed successfuly');
+    this.props.enqueueSnackbar('Location removed successfuly', {
+      children: key => (
+        <SnackbarItem
+          id={key}
+          message={fbt(
+            'Location removed successfuly',
+            'Pop-over message when deleting a location',
+          )}
+          variant="success"
+        />
+      ),
+    });
     this.navigateToLocation(
       deletedLocation?.parentLocation?.id || this.state.parentLocationId || '',
     );
   };
 }
 
-export default withStyles(styles)(withRouter(withAlert(Inventory)));
+export default withStyles(styles)(
+  withRouter(withAlert(withSnackbar(Inventory))),
+);

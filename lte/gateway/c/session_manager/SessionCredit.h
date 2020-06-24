@@ -117,6 +117,11 @@ public:
   bool is_reporting() const;
 
   /**
+   * Returns true if service is being redirected
+   */
+  bool is_service_redirected() const;
+
+  /**
    * Helper function to get the credit in a particular bucket
    */
   uint64_t get_credit(Bucket bucket) const;
@@ -192,20 +197,20 @@ public:
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
 private:
-  bool reporting_;
-  bool is_final_grant_;
-  bool unlimited_quota_;
-  FinalActionInfo final_action_info_;
+  CreditType credit_type_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
-  std::time_t expiry_time_;
+  FinalActionInfo final_action_info_;
   uint64_t buckets_[MAX_VALUES];
+  std::time_t expiry_time_;
   /**
    * Limit for the total usage (tx + rx) in credit updates to prevent
    * session manager from reporting more usage than granted
    */
   uint64_t usage_reporting_limit_;
-  CreditType credit_type_;
+  bool reporting_;
+  bool unlimited_quota_;
+  bool is_final_grant_;
 
 private:
   /**

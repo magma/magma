@@ -258,30 +258,6 @@ func getCert(c echo.Context) *x509.Certificate {
 	return r.TLS.PeerCertificates[0]
 }
 
-// DEPRECATED - use GetGatewayID, and use :gateway_id as path param
-func GetLogicalGwId(c echo.Context) (string, *echo.HTTPError) {
-	logicalGwId := c.Param("logical_ag_id")
-	if logicalGwId == "" {
-		return logicalGwId, HttpError(
-			fmt.Errorf("Invalid/Missing Gateway ID"),
-			http.StatusBadRequest)
-	}
-	return logicalGwId, nil
-}
-
-// DEPRECATED - use GetNetworkAndGatewayIDs, and use :gateway_id as path param
-func GetNetworkAndGWID(c echo.Context) (string, string, error) {
-	networkID, err := GetNetworkId(c)
-	if err != nil {
-		return "", "", err
-	}
-	gatewayID, err := GetLogicalGwId(c)
-	if err != nil {
-		return "", "", err
-	}
-	return networkID, gatewayID, nil
-}
-
 func GetNetworkAndGatewayIDs(c echo.Context) (string, string, *echo.HTTPError) {
 	vals, err := GetParamValues(c, "network_id", "gateway_id")
 	if err != nil {

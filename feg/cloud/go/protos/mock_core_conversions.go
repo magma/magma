@@ -106,6 +106,11 @@ func (m *GxCreditControlRequest) SetUsageReportDelta(delta uint64) *GxCreditCont
 	return m
 }
 
+func (m *GxCreditControlRequest) SetEventTrigger(eventTrigger int32) *GxCreditControlRequest {
+	m.EventTrigger = &wrappers.Int32Value{Value: eventTrigger}
+	return m
+}
+
 func NewGyCreditControlExpectation() *GyCreditControlExpectation {
 	return &GyCreditControlExpectation{}
 }
@@ -151,5 +156,10 @@ func (m *GyCreditControlRequest) SetMSCC(mscc *MultipleServicesCreditControl) *G
 		m.Mscc = []*MultipleServicesCreditControl{}
 	}
 	m.Mscc = append(m.Mscc, mscc)
+	return m
+}
+
+func (m *GyCreditControlRequest) SetMSCCDelta(delta uint64) *GyCreditControlRequest {
+	m.UsageReportDelta = delta
 	return m
 }

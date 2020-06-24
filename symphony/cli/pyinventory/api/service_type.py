@@ -3,11 +3,11 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional
+from typing import List, Mapping, Optional
 
 from pysymphony import SymphonyClient
 
-from .._utils import format_property_definitions, get_graphql_property_type_inputs
+from .._utils import get_graphql_property_type_inputs
 from ..common.cache import SERVICE_TYPES
 from ..common.data_class import (
     PropertyDefinition,
@@ -16,6 +16,10 @@ from ..common.data_class import (
     ServiceType,
 )
 from ..common.data_enum import Entity
+from ..common.data_format import (
+    format_to_property_definitions,
+    format_to_property_type_inputs,
+)
 from ..exceptions import EntityNotFoundError
 from ..graphql.input.service_type_create_data import ServiceTypeCreateData
 from ..graphql.input.service_type_edit_data import (
@@ -54,7 +58,7 @@ def _populate_service_types(client: SymphonyClient) -> None:
                 id=node.id,
                 name=node.name,
                 has_customer=node.hasCustomer,
-                property_types=node.propertyTypes,
+                property_types=format_to_property_definitions(node.propertyTypes),
                 endpoint_definitions=definitions,
             )
 
@@ -89,13 +93,13 @@ def add_service_type(
                     PropertyDefinition(
                         property_name="Service Package",
                         property_kind=PropertyKind.string,
-                        default_value="Public 5G",
+                        default_raw_value="Public 5G",
                         is_fixed=False,
                     ),
                     PropertyDefinition(
                         property_name="Address Family",
                         property_kind=PropertyKind.string,
-                        default_value=None,
+                        default_raw_value=None,
                         is_fixed=False,
                     ),
                 )
@@ -104,7 +108,7 @@ def add_service_type(
 
     formated_property_types = None
     if properties is not None:
-        formated_property_types = format_property_definitions(properties=properties)
+        formated_property_types = format_to_property_type_inputs(data=properties)
     definition_inputs = []
     if endpoint_definitions:
         for endpoint in endpoint_definitions:
@@ -141,7 +145,7 @@ def add_service_type(
         id=result.id,
         name=result.name,
         has_customer=result.hasCustomer,
-        property_types=result.propertyTypes,
+        property_types=format_to_property_definitions(result.propertyTypes),
         endpoint_definitions=definitions,
     )
     SERVICE_TYPES[name] = service_type
@@ -179,7 +183,7 @@ def edit_service_type(
     service_type: ServiceType,
     new_name: Optional[str] = None,
     new_has_customer: Optional[bool] = None,
-    new_properties: Optional[Dict[str, PropertyValue]] = None,
+    new_properties: Optional[Mapping[str, PropertyValue]] = None,
     new_endpoints: Optional[List[ServiceEndpointDefinition]] = None,
 ) -> ServiceType:
     """Edit existing service type by ID.
@@ -267,7 +271,7 @@ def edit_service_type(
         id=result.id,
         name=result.name,
         has_customer=result.hasCustomer,
-        property_types=result.propertyTypes,
+        property_types=format_to_property_definitions(result.propertyTypes),
         endpoint_definitions=definitions,
     )
     SERVICE_TYPES[service_type.name] = service_type

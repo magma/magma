@@ -7,11 +7,10 @@
 */
 
 // NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
-// ensure postgres_test and maria_test containers are running, and use the
-// following environment variables to point to the relevant DB endpoints:
+// ensure postgres_test container is running, and use the following environment
+// variables to point to the relevant DB endpoints:
 //	- TEST_DATABASE_HOST=localhost
 //	- TEST_DATABASE_PORT_POSTGRES=5433
-//	- TEST_DATABASE_PORT_MARIA=3307
 
 package reindex_test
 
@@ -328,12 +327,12 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 	assert.Empty(t, v)
 
 	// Write some versions, ensure they stuck
-	want := []*reindex.Version{
+	want := []*indexer.Versions{
 		{IndexerID: id0, Actual: zero, Desired: version0},
 		{IndexerID: id1, Actual: zero, Desired: version1},
 		{IndexerID: id2, Actual: zero, Desired: version2},
 	}
-	err = indexer.RegisterAll(indexer0, indexer1, indexer2)
+	err = indexer.RegisterIndexers(indexer0, indexer1, indexer2)
 	assert.NoError(t, err)
 	got, err := q.GetIndexerVersions()
 	assert.NoError(t, err)
@@ -351,7 +350,7 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 	assert.NoError(t, err)
 	got, err = q.GetIndexerVersions()
 	assert.NoError(t, err)
-	want = []*reindex.Version{
+	want = []*indexer.Versions{
 		{IndexerID: id0, Actual: zero, Desired: version0},
 		{IndexerID: id1, Actual: zero, Desired: version1},
 		{IndexerID: id2, Actual: version2, Desired: version2a},
@@ -361,7 +360,7 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 
 func initSQLTest(t *testing.T, dbName string) reindex.JobQueue {
 	indexer.DeregisterAllForTest(t)
-	err := indexer.RegisterAll(indexer0, indexer1, indexer2)
+	err := indexer.RegisterIndexers(indexer0, indexer1, indexer2)
 	assert.NoError(t, err)
 
 	db := sqorc.OpenCleanForTest(t, dbName, sqorc.PostgresDriver)

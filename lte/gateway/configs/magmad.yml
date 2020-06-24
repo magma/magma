@@ -7,7 +7,7 @@
 # LICENSE file in the root directory of this source tree.
 ################################################################################
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 
 # List of services for magmad to control
 magma_services:

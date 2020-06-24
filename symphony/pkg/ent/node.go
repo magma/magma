@@ -1606,7 +1606,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     f.ID,
 		Type:   "File",
-		Fields: make([]*Field, 10),
+		Fields: make([]*Field, 11),
 		Edges:  make([]*Edge, 9),
 	}
 	var buf []byte
@@ -1688,6 +1688,14 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 	node.Fields[9] = &Field{
 		Type:  "string",
 		Name:  "category",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(f.Annotation); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "string",
+		Name:  "annotation",
 		Value: string(buf),
 	}
 	var ids []int

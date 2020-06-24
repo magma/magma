@@ -9,7 +9,7 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 from functools import partial
 from numbers import Number
-from typing import Any, Callable, List, Mapping, Optional
+from typing import Any, Callable, List, Mapping, Optional, Dict
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
@@ -63,9 +63,9 @@ class SearchQuery(DataClassJsonMixin):
 
                     typename: str
                     id: str
+                    externalId: Optional[str]
                     name: str
                     locationType: LocationType
-                    externalId: Optional[str]
 
                 node: Optional[Node]
 
@@ -79,7 +79,7 @@ class SearchQuery(DataClassJsonMixin):
     # fmt: off
     def execute(cls, client: GraphqlClient, name: str, after: Optional[str] = None, first: Optional[int] = 10, before: Optional[str] = None, last: Optional[int] = None) -> SearchQueryData.SearchNodesConnection:
         # fmt: off
-        variables = {"name": name, "after": after, "first": first, "before": before, "last": last}
+        variables: Dict[str, Any] = {"name": name, "after": after, "first": first, "before": before, "last": last}
         try:
             network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)

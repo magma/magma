@@ -36,7 +36,8 @@ class GTPApplication : public Application {
   GTPApplication(
     const std::string& uplink_mac,
     uint32_t gtp_port_num,
-    uint32_t mtr_port_num);
+    uint32_t mtr_port_num,
+    uint32_t uplink_port_num);
 
  private:
   /**
@@ -123,6 +124,24 @@ class GTPApplication : public Application {
    */
   uint32_t convert_precedence_to_priority(const uint32_t precedence);
 
+  /**
+   * Add Arp flow for UE IP address
+   * @param ev - AddGTPTunnelEvent containing ue ip
+   */
+  void add_downlink_arp_flow(
+    const AddGTPTunnelEvent &ev,
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
+
+  /**
+   * Delete arp flow of the UE.
+   * @param ev - AddGTPTunnelEvent containing ue ip
+   */
+  void delete_downlink_arp_flow(
+    const DeleteGTPTunnelEvent &ev,
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
+
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;
@@ -136,6 +155,8 @@ class GTPApplication : public Application {
    * Initialising with 1
    */
   const uint64_t cookie = 1;
+
+  const uint32_t uplink_port_num_;
 };
 
 } // namespace openflow

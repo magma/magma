@@ -35,3 +35,9 @@ definitions:
         type: array
         items:
           type: string
+  established_sync_rpc_stream:
+    type: object
+    description: SyncRPC connection was established
+  disconnected_sync_rpc_stream:
+    type: object
+    description: SyncRPC stream was disconnected

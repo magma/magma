@@ -4,8 +4,21 @@
 
 package authz_test
 
-//TODO(T67933416): Return these rules
-/*
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/authz/models"
+	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/activity"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/viewer"
+	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
+	"github.com/stretchr/testify/require"
+)
+
 func getActivityCudOperations(
 	ctx context.Context,
 	c *ent.Client,
@@ -135,4 +148,3 @@ func TestWorkOrderActivityPolicyRule(t *testing.T) {
 		delete: cudOperations.delete,
 	})
 }
-*/

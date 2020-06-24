@@ -55,9 +55,9 @@ export type NetworkDataSource<TEntry> = $ReadOnly<{|
 |}>;
 
 type Props<TEntry> = $ReadOnly<{|
-  tokens: $ReadOnlyArray<TokenizerEntryType<TEntry>>,
+  tokens: Entries<TEntry>,
   dataSource: NetworkDataSource<TEntry>,
-  onTokensChange: ($ReadOnlyArray<TEntry>) => void,
+  onTokensChange: (Entries<TEntry>) => void,
   queryString: string,
   onQueryStringChange: string => void,
   disabled?: boolean,
@@ -80,7 +80,7 @@ const Tokenizer = <TEntry>(props: Props<TEntry>) => {
     menuClassName,
   } = props;
   const classes = useStyles();
-  const [searchEntries, setSearchEntries] = useState([]);
+  const [searchEntries, setSearchEntries] = useState<Entries<TEntry>>([]);
   const inputRef = useRef(null);
   const popoverTriggerRef = useRef(null);
 

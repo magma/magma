@@ -52,6 +52,8 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
 		if (b > expRate) && (errRate > ErrMargin) {
 			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
+			// dump pipelined service state
+			dumpPipelinedState(tr)
 			assert.Fail(t, "error greater than acceptable margin")
 		}
 	}
@@ -177,6 +179,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		Imsi:        imsi,
 		ReverseMode: true,
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
+		Timeout:     60,
 	}
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
@@ -258,7 +261,8 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	var c float64 = 0.3 * 5 * MegaBytes
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(uint64(c))
+		SetUsageReportDelta(uint64(c)).
+		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{rule2Key}, []string{}).
 		SetUsageMonitorInfo(getUsageInformation(monitorKey, 10*MegaBytes))

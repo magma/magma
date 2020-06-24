@@ -38,7 +38,7 @@ extern "C" {
 #endif
 
 #include "state_converter.h"
-#include "lte/gateway/c/oai/protos/s1ap_state.pb.h"
+#include "lte/protos/oai/s1ap_state.pb.h"
 #include "s1ap_state.h"
 
 namespace magma {
@@ -48,10 +48,10 @@ class S1apStateConverter : StateConverter {
  public:
   static void state_to_proto(
     s1ap_state_t* state,
-    gateway::s1ap::S1apState* proto);
+    oai::S1apState* proto);
 
   static void proto_to_state(
-    const gateway::s1ap::S1apState& proto,
+    const oai::S1apState& proto,
     s1ap_state_t* state);
 
   /**
@@ -59,29 +59,29 @@ class S1apStateConverter : StateConverter {
    */
   static void s1ap_imsi_map_to_proto(
     const s1ap_imsi_map_t* s1ap_imsi_map,
-    gateway::s1ap::S1apImsiMap* s1ap_imsi_proto);
+    oai::S1apImsiMap* s1ap_imsi_proto);
 
   /**
    * Deserializes s1ap_imsi_map_t from S1apImsiMap proto
    */
   static void proto_to_s1ap_imsi_map(
-    const gateway::s1ap::S1apImsiMap& s1ap_imsi_proto,
+    const oai::S1apImsiMap& s1ap_imsi_proto,
     s1ap_imsi_map_t* s1ap_imsi_map);
 
   static void enb_to_proto(
     enb_description_t* enb,
-    gateway::s1ap::EnbDescription* proto);
+    oai::EnbDescription* proto);
 
   static void proto_to_enb(
-    const gateway::s1ap::EnbDescription& proto,
+    const oai::EnbDescription& proto,
     enb_description_t* enb);
 
   static void ue_to_proto(
     const ue_description_t* ue,
-    gateway::s1ap::UeDescription* proto);
+    oai::UeDescription* proto);
 
   static void proto_to_ue(
-    const gateway::s1ap::UeDescription& proto,
+    const oai::UeDescription& proto,
     ue_description_t* ue);
 
  private:

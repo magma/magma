@@ -35,22 +35,31 @@ SessionMap SessionStore::read_all_sessions() {
   return store_client_->read_all_sessions();
 }
 
-SessionMap SessionStore::read_sessions_for_reporting(const SessionRead& req) {
-  auto session_map   = store_client_->read_sessions(req);
-  auto session_map_2 = store_client_->read_sessions(req);
-  // For all sessions of the subscriber, increment the request numbers
-  for (const std::string& imsi : req) {
-    if (session_map_2.find(imsi) == session_map_2.end()
-          || session_map_2[imsi].size() == 0) {
-      MLOG(MWARNING) << "No sessions under " << imsi
-                     << " was found in SessionStore. This might be unexpected";
-    }
-    for (auto& session : session_map_2[imsi]) {
-      session->increment_request_number(session->get_credit_key_count());
+void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
+  // Read the current stored state
+  auto subscriber_ids = std::set<std::string>{};
+  for (const auto& it : update_criteria) {
+    subscriber_ids.insert(it.first);
+  }
+  auto session_map = store_client_->read_sessions(subscriber_ids);
+
+  // Sync stored state so that subsequent reads have the right request_number
+  MLOG(MDEBUG) << "Syncing request numbers into existing sessions";
+  for (auto& it : session_map) {
+    auto imsi = it.first;
+    auto it2 = it.second.begin();
+    while (it2 != it.second.end()) {
+      auto updates = update_criteria.find(it.first)->second;
+      auto session_id = (*it2)->get_session_id();
+      if (updates.find(session_id) != updates.end()) {
+        (*it2)->increment_request_number(
+            updates[session_id].request_number_increment);
+      }
+      ++it2;
     }
   }
-  store_client_->write_sessions(std::move(session_map_2));
-  return session_map;
+  MLOG(MDEBUG) << "sync_request_numbers: Writing into session store";
+  store_client_->write_sessions(std::move(session_map));
 }
 
 SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
@@ -114,18 +123,26 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
 bool SessionStore::merge_into_session(
     std::unique_ptr<SessionState>& session,
     SessionStateUpdateCriteria& update_criteria) {
+  auto uc = get_default_update_criteria();
   // FSM State
   if (update_criteria.is_fsm_updated) {
-    session->set_fsm_state(update_criteria.updated_fsm_state);
+    session->set_fsm_state(update_criteria.updated_fsm_state, uc);
   }
 
+  if (update_criteria.is_pending_event_triggers_updated) {
+    for (auto it : update_criteria.pending_event_triggers) {
+      session->set_event_trigger(it.first, it.second, uc);
+      if (it.first == REVALIDATION_TIMEOUT) {
+        session->set_revalidation_time(update_criteria.revalidation_time, uc);
+      }
+    }
+  }
   // Config
   if (update_criteria.is_config_updated) {
     session->set_config(update_criteria.updated_config);
   }
 
   // Static rules
-  auto uc = get_default_update_criteria();
   for (const auto& rule_id : update_criteria.static_rules_to_install) {
     if (session->is_static_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
@@ -216,17 +233,49 @@ bool SessionStore::merge_into_session(
     session->schedule_dynamic_rule(rule, lifetime, uc);
   }
 
+  // Gy Dynamic rules
+  for (const auto& rule : update_criteria.gy_dynamic_rules_to_install) {
+    if (session->is_gy_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because gy dynamic rule already installed: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+    if (update_criteria.new_rule_lifetimes.find(rule.id()) != update_criteria.new_rule_lifetimes.end()) {
+      auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
+      session->insert_gy_dynamic_rule(rule, lifetime, uc);
+      MLOG(MERROR) << "Merge: " << session->get_session_id()
+                   << " gy dynamic rule " << rule.id() << std::endl;
+    }
+    else{
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                   << " because gy dynamic rule lifetime is not found"
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : update_criteria.gy_dynamic_rules_to_uninstall) {
+    if (session->is_gy_dynamic_rule_installed(rule_id)) {
+      session->remove_gy_dynamic_rule(rule_id, _, uc);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+                << " because gy dynamic rule already uninstalled: " << rule_id
+                << std::endl;
+      return false;
+    }
+  }
+
   // Charging credit
   for (const auto& it : update_criteria.charging_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
-    session->get_charging_pool().merge_credit_update(key, credit_update);
+    session->merge_charging_credit_update(key, credit_update);
   }
   for (const auto& it : update_criteria.charging_credit_to_install) {
     auto key           = it.first;
     auto stored_credit = it.second;
     auto uc            = get_default_update_criteria();
-    session->get_charging_pool().add_credit(
+    session->set_charging_credit(
         key, SessionCredit::unmarshal(stored_credit, CHARGING), uc);
   }
 
@@ -234,14 +283,14 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.monitor_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
-    session->get_monitor_pool().merge_credit_update(key, credit_update);
+    session->merge_monitor_updates(key, credit_update);
   }
   for (const auto& it : update_criteria.monitor_credit_to_install) {
     auto key            = it.first;
     auto stored_monitor = it.second;
     auto uc             = get_default_update_criteria();
-    session->get_monitor_pool().add_monitor(
-        key, UsageMonitoringCreditPool::unmarshal_monitor(stored_monitor), uc);
+    session->set_monitor(
+        key, SessionState::unmarshal_monitor(stored_monitor), uc);
   }
   return true;
 }

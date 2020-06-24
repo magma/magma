@@ -155,7 +155,7 @@ int pgw_config_process(pgw_config_t* config_pP) {
     close(fd);
   }
   // Get IP block information
-  {
+  if (config_pP->enable_nat) {
     int rv = 0;
     struct in_addr netaddr;
     uint32_t netmask;
@@ -199,6 +199,8 @@ int pgw_config_process(pgw_config_t* config_pP) {
           inet_ntoa(netaddr), netmask, min_mtu - 40);
     }
 #endif
+  } else {
+    OAILOG_DEBUG(LOG_SPGW_APP, "Nat is OFF");
   }
 
   // TODO: Fix me: Add tc support
@@ -231,6 +233,7 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
   int prefix_mask    = 0;
   char* pcscf_ipv4   = NULL;
   char* pcscf_ipv6   = NULL;
+  char* nat_enabled  = NULL;
 
   config_init(&cfg);
 
@@ -386,6 +389,18 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
       } else {
         OAILOG_WARNING(LOG_SPGW_APP, "NO DNS CONFIGURATION FOUND\n");
       }
+    }
+    config_pP->enable_nat = true;
+    if (config_setting_lookup_string(setting_pgw, PGW_CONFIG_STRING_NAT_ENABLED,
+                (const char**)&nat_enabled)) {
+      if (strcasecmp(nat_enabled, "false") == 0) {
+        config_pP->enable_nat = false;
+      } else {
+        config_pP->enable_nat = true;
+      }
+      OAILOG_INFO(
+          LOG_SPGW_APP, "Parsing configuration file Nat enable: %s\n",
+          nat_enabled);
     }
 
     if (config_setting_lookup_string(
@@ -577,6 +592,9 @@ void pgw_config_display(pgw_config_t* config_p) {
       inet_ntoa(*((struct in_addr*) &config_p->ipv4.SGI)));
   OAILOG_INFO(
       LOG_SPGW_APP, "    SGi MTU (read)........: %u\n", config_p->ipv4.mtu_SGI);
+  OAILOG_INFO(
+      LOG_SPGW_APP, "    NAT ..................: %s\n",
+      config_p->enable_nat == 0 ? "false" : "true");
   OAILOG_INFO(
       LOG_SPGW_APP, "    User TCP MSS clamping : %s\n",
       config_p->ue_tcp_mss_clamp == 0 ? "false" : "true");

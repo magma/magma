@@ -403,6 +403,7 @@ type ComplexityRoot struct {
 	}
 
 	File struct {
+		Annotation  func(childComplexity int) int
 		Category    func(childComplexity int) int
 		ContentType func(childComplexity int) int
 		FileType    func(childComplexity int) int
@@ -2806,6 +2807,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Field.Value(childComplexity), true
+
+	case "File.annotation":
+		if e.complexity.File.Annotation == nil {
+			break
+		}
+
+		return e.complexity.File.Annotation(childComplexity), true
 
 	case "File.category":
 		if e.complexity.File.Category == nil {
@@ -7418,9 +7426,9 @@ input LocationCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
   ) {
-  create: LocationPermissionRuleInput
+  create: BasicPermissionRuleInput
   update: LocationPermissionRuleInput
-  delete: LocationPermissionRuleInput
+  delete: BasicPermissionRuleInput
 }
 
 type AdministrativePolicy
@@ -7471,11 +7479,11 @@ input WorkforceCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
   ) {
-  create: WorkforcePermissionRuleInput
-  update: WorkforcePermissionRuleInput
-  delete: WorkforcePermissionRuleInput
-  assign: WorkforcePermissionRuleInput
-  transferOwnership: WorkforcePermissionRuleInput
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+  assign: BasicPermissionRuleInput
+  transferOwnership: BasicPermissionRuleInput
 }
 
 type WorkforcePolicy
@@ -7721,6 +7729,7 @@ type File implements Node {
   mimeType: String
   storeKey: String
   category: String
+  annotation: String
 }
 
 type Hyperlink implements Node {
@@ -7748,6 +7757,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
+  annotation: String
 }
 
 type Comment implements Node {
@@ -9558,6 +9568,7 @@ input FileInput {
   fileType: FileType
   mimeType: String
   storeKey: String!
+  annotation: String
 }
 
 input SurveyTemplateQuestionInput {
@@ -18664,6 +18675,37 @@ func (ec *executionContext) _File_category(ctx context.Context, field graphql.Co
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _File_annotation(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "File",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Annotation, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -38810,6 +38852,12 @@ func (ec *executionContext) unmarshalInputAddImageInput(ctx context.Context, obj
 			if err != nil {
 				return it, err
 			}
+		case "annotation":
+			var err error
+			it.Annotation, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -40942,6 +40990,12 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			if err != nil {
 				return it, err
 			}
+		case "annotation":
+			var err error
+			it.Annotation, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -41152,7 +41206,7 @@ func (ec *executionContext) unmarshalInputLocationCUDInput(ctx context.Context, 
 		switch k {
 		case "create":
 			var err error
-			it.Create, err = ec.unmarshalOLocationPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐLocationPermissionRuleInput(ctx, v)
+			it.Create, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41164,7 +41218,7 @@ func (ec *executionContext) unmarshalInputLocationCUDInput(ctx context.Context, 
 			}
 		case "delete":
 			var err error
-			it.Delete, err = ec.unmarshalOLocationPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐLocationPermissionRuleInput(ctx, v)
+			it.Delete, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -42802,31 +42856,31 @@ func (ec *executionContext) unmarshalInputWorkforceCUDInput(ctx context.Context,
 		switch k {
 		case "create":
 			var err error
-			it.Create, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Create, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "update":
 			var err error
-			it.Update, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Update, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "delete":
 			var err error
-			it.Delete, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Delete, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "assign":
 			var err error
-			it.Assign, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.Assign, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "transferOwnership":
 			var err error
-			it.TransferOwnership, err = ec.unmarshalOWorkforcePermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐWorkforcePermissionRuleInput(ctx, v)
+			it.TransferOwnership, err = ec.unmarshalOBasicPermissionRuleInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐBasicPermissionRuleInput(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -45351,6 +45405,8 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 			out.Values[i] = ec._File_storeKey(ctx, field, obj)
 		case "category":
 			out.Values[i] = ec._File_category(ctx, field, obj)
+		case "annotation":
+			out.Values[i] = ec._File_annotation(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

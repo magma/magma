@@ -91,10 +91,12 @@ def package(vcs='hg', all_deps="False",
         # Generate magma dependency packages
         run('mkdir -p ~/magma-deps')
         print("Generating lte/setup.py magma dependency packages")
-        run('./release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
+        run(
+            './release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
 
         print("Generating orc8r/setup.py magma dependency packages")
-        run('./release/pydep finddep -b --build-output ~/magma-deps %s/setup.py' % ORC8R_AGW_PYTHON_ROOT)
+        run(
+            './release/pydep finddep -b --build-output ~/magma-deps %s/setup.py' % ORC8R_AGW_PYTHON_ROOT)
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
@@ -363,14 +365,16 @@ def _set_service_config_var(service, var_name, value):
 def _start_trfserver():
     """ Starts the traffic gen server"""
     # disable-tcp-checksumming
-    # trfgen-server daemon
+    # trfgen-server non daemon
     host = env.hosts[0].split(':')[0]
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
-    local('ssh -i %s -o UserKnownHostsFile=/dev/null'
+    # set tty on cbreak mode as background ssh process breaks indentation
+    local('ssh -f -i %s -o UserKnownHostsFile=/dev/null'
           ' -o StrictHostKeyChecking=no -tt %s -p %s'
-          ' \'sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off;'
-          ' nohup sudo /usr/local/bin/traffic_server.py -d 192.168.60.144 62462\''
+          ' sh -c "sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off; '
+          'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+          'stty cbreak'
           % (key, host, port))
 
 

@@ -17,7 +17,7 @@ from ..enum.survey_question_type import SurveyQuestionType
 class SurveyTemplateQuestionInput(DataClassJsonMixin):
     questionTitle: str
     questionDescription: str
-    questionType: SurveyQuestionType = enum_field(SurveyQuestionType)
     index: int
+    questionType: SurveyQuestionType = enum_field(SurveyQuestionType)
     id: Optional[str] = None
 

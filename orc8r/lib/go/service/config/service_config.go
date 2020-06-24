@@ -11,13 +11,15 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
+	"github.com/golang/glog"
 	"gopkg.in/yaml.v2"
+
+	_ "magma/orc8r/lib/go/initflag"
 )
 
 var (
@@ -42,7 +44,7 @@ func GetServiceConfig(moduleName string, serviceName string) (*ConfigMap, error)
 func MustGetServiceConfig(moduleName string, serviceName string) *ConfigMap {
 	cfg, err := GetServiceConfig(moduleName, serviceName)
 	if err != nil {
-		log.Fatal(err)
+		glog.Fatal(err)
 	}
 	return cfg
 }
@@ -76,13 +78,13 @@ func GetStructuredServiceConfigExt(
 	if err == nil {
 		err = yaml.Unmarshal(yamlFileData, out)
 		if err != nil {
-			log.Printf("Structured CFG: Error Unmarshaling '%s' into type %T: %v", ymlFilePath, out, err)
+			glog.Errorf("Structured CFG: Error Unmarshaling '%s' into type %T: %v", ymlFilePath, out, err)
 		} else {
-			log.Printf("Successfully loaded structured '%s::%s' service configs from '%s'",
+			glog.Infof("Successfully loaded structured '%s::%s' service configs from '%s'",
 				moduleName, serviceName, ymlFilePath)
 		}
 	} else {
-		log.Printf("Structured CFG: Error Reading '%s': %v", ymlFilePath, err)
+		glog.Errorf("Structured CFG: Error Reading '%s': %v", ymlFilePath, err)
 	}
 	// Overwrite params from override configs
 	var oerr error
@@ -92,14 +94,14 @@ func GetStructuredServiceConfigExt(
 		if oerr == nil {
 			oerr = yaml.Unmarshal(yamlFileData, out)
 			if oerr != nil {
-				log.Printf("Structured CFG: Error Unmarshaling Override file '%s' into type %T: %v",
+				glog.Errorf("Structured CFG: Error Unmarshaling Override file '%s' into type %T: %v",
 					ymlQWFilePath, out, err)
 			} else {
-				log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
+				glog.Infof("Successfully loaded Override configs for service %s:%s from '%s'",
 					moduleName, serviceName, ymlQWFilePath)
 			}
 		} else {
-			log.Printf("Structured CFG:Error Loading Override configs from '%s': %v", ymlQWFilePath, err)
+			glog.Errorf("Structured CFG:Error Loading Override configs from '%s': %v", ymlQWFilePath, err)
 		}
 	} else {
 		ymlQWFilePath = ""
@@ -134,20 +136,20 @@ func getServiceConfigImpl(moduleName, serviceName, configDir, oldConfigDir, conf
 	if err != nil {
 		// If error - try Override cfg
 		config = &ConfigMap{RawMap: map[interface{}]interface{}{}}
-		log.Printf("Error Loading %s::%s configs from '%s': %v", moduleName, serviceName, configFileName, err)
+		glog.Errorf("Error Loading %s::%s configs from '%s': %v", moduleName, serviceName, configFileName, err)
 	} else {
-		log.Printf("Successfully loaded '%s::%s' service configs from '%s'", moduleName, serviceName, configFileName)
+		glog.Infof("Successfully loaded '%s::%s' service configs from '%s'", moduleName, serviceName, configFileName)
 	}
 
 	overrideFileName := filepath.Join(configOverrideDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
 	if fi, serr := os.Stat(overrideFileName); serr == nil && !fi.IsDir() {
 		overrides, oerr := loadYamlFile(overrideFileName)
 		if oerr != nil {
-			log.Printf("Error Loading %s Override configs from '%s': %v", serviceName, overrideFileName, oerr)
+			glog.Errorf("Error Loading %s Override configs from '%s': %v", serviceName, overrideFileName, oerr)
 			return config, err
 		}
 		config = updateMap(config, overrides)
-		log.Printf("Successfully loaded Override configs for service %s:%s from '%s'",
+		glog.Infof("Successfully loaded Override configs for service %s:%s from '%s'",
 			moduleName, serviceName, overrideFileName)
 		err = nil
 	}
@@ -164,7 +166,7 @@ func getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir s
 		old := configFileName
 		configFileName = filepath.Join(oldConfigDir, moduleName, fmt.Sprintf("%s.yml", serviceName))
 		if fi, err := os.Stat(configFileName); err != nil || fi.IsDir() {
-			log.Printf("Cannot find '%s': %v, or Legacy Service Registry Configuration: '%s': %v",
+			glog.Warningf("Cannot find '%s': %v, or Legacy Service Registry Configuration: '%s': %v",
 				old, nerr, configFileName, err)
 		}
 	}
@@ -173,9 +175,7 @@ func getServiceConfigFilePath(moduleName, serviceName, configDir, oldConfigDir s
 
 func updateMap(baseMap, overrides *ConfigMap) *ConfigMap {
 	for k, v := range overrides.RawMap {
-		if _, ok := baseMap.RawMap[k]; ok {
-			baseMap.RawMap[k] = v
-		}
+		baseMap.RawMap[k] = v
 	}
 	return baseMap
 }

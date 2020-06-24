@@ -11,6 +11,7 @@ package servicers
 import (
 	"context"
 
+	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/lib/go/protos"
@@ -24,7 +25,7 @@ type indexerServicer struct {
 	autoEnabled bool
 }
 
-func NewIndexerServicer(reindexer reindex.Reindexer, autoReindexEnabled bool) indexer_protos.IndexerServer {
+func NewIndexerManagerServicer(reindexer reindex.Reindexer, autoReindexEnabled bool) indexer_protos.IndexerManagerServer {
 	return &indexerServicer{reindexer: reindexer, autoEnabled: autoReindexEnabled}
 }
 
@@ -38,11 +39,11 @@ func (srv *indexerServicer) GetIndexers(ctx context.Context, req *indexer_protos
 		return nil, internalErr(err, "error getting indexer versions from reindex job queue")
 	}
 
-	ret := &indexer_protos.GetIndexersResponse{IndexersById: indexer_protos.MakeProtoInfos(versions)}
+	ret := &indexer_protos.GetIndexersResponse{IndexersById: indexer.MakeProtoInfos(versions)}
 	return ret, nil
 }
 
-func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest, stream indexer_protos.Indexer_StartReindexServer) error {
+func (srv *indexerServicer) StartReindex(req *indexer_protos.StartReindexRequest, stream indexer_protos.IndexerManager_StartReindexServer) error {
 	ctx := stream.Context()
 	if err := validateCtx(ctx); err != nil {
 		return err

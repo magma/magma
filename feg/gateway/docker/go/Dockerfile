@@ -1,7 +1,7 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-ARG baseImage="ubuntu:xenial"
+ARG baseImage="ubuntu:bionic"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -41,7 +41,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Golang 1.13.
 WORKDIR /usr/local
-RUN curl https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz -O && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
     tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 
@@ -114,13 +114,13 @@ RUN ./run.sh build
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial as gocache
+FROM ubuntu:bionic as gocache
 COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS gateway_go
+FROM ubuntu:bionic AS gateway_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools netcat gettext musl

@@ -161,9 +161,9 @@ input LocationCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
   ) {
-  create: LocationPermissionRuleInput
+  create: BasicPermissionRuleInput
   update: LocationPermissionRuleInput
-  delete: LocationPermissionRuleInput
+  delete: BasicPermissionRuleInput
 }
 
 type AdministrativePolicy
@@ -214,11 +214,11 @@ input WorkforceCUDInput
   @goModel(
     model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
   ) {
-  create: WorkforcePermissionRuleInput
-  update: WorkforcePermissionRuleInput
-  delete: WorkforcePermissionRuleInput
-  assign: WorkforcePermissionRuleInput
-  transferOwnership: WorkforcePermissionRuleInput
+  create: BasicPermissionRuleInput
+  update: BasicPermissionRuleInput
+  delete: BasicPermissionRuleInput
+  assign: BasicPermissionRuleInput
+  transferOwnership: BasicPermissionRuleInput
 }
 
 type WorkforcePolicy
@@ -464,6 +464,7 @@ type File implements Node {
   mimeType: String
   storeKey: String
   category: String
+  annotation: String
 }
 
 type Hyperlink implements Node {
@@ -491,6 +492,7 @@ input AddImageInput {
   modified: Time!
   contentType: String!
   category: String
+  annotation: String
 }
 
 type Comment implements Node {
@@ -2301,6 +2303,7 @@ input FileInput {
   fileType: FileType
   mimeType: String
   storeKey: String!
+  annotation: String
 }
 
 input SurveyTemplateQuestionInput {

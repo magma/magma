@@ -23,7 +23,7 @@ import {useContext, useMemo} from 'react';
 export type TableSelectionContextValue = {
   activeId: string | number | null,
   setActiveId?: ?(id: NullableTableRowId) => void,
-  selectedIds: Array<TableRowId>,
+  selectedIds: $ReadOnlyArray<TableRowId>,
   selectionMode: 'all' | 'none' | 'some',
   changeRowSelection: (
     id: TableRowId,
@@ -44,10 +44,10 @@ const TableSelectionContext = React.createContext<TableSelectionContextValue>({
 
 type Props = {
   children: React.Node,
-  allIds: Array<TableRowId>,
+  allIds: $ReadOnlyArray<TableRowId>,
   activeId?: NullableTableRowId,
   onActiveChanged?: ActiveCallbackType,
-  selectedIds: Array<TableRowId>,
+  selectedIds: $ReadOnlyArray<TableRowId>,
   onSelectionChanged?: SelectionCallbackType,
 };
 

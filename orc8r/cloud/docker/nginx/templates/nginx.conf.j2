@@ -8,6 +8,25 @@ events {
 }
 
 http {
+  # Custom JSON-formatted log
+  log_format json_custom escape=json
+    '{'
+      '"nginx.time_local": "$time_local",'
+      '"nginx.remote_addr": "$remote_addr",'
+      '"nginx.request": "$request",'
+      '"nginx.request_method": "$request_method",'
+      '"nginx.request_uri": "$request_uri",'
+      '"nginx.status": $status,'
+      '"nginx.body_bytes_sent": $body_bytes_sent,'
+      '"nginx.request_length": $request_length,'
+      '"nginx.request_time": $request_time,'
+      '"nginx.server_name": "$server_name",'
+      '"nginx.clientcert_port": $srvport,'
+      '"nginx.open_port": $open_srvport,'
+      '"nginx.client_serial": "$ssl_client_serial",'
+      '"nginx.client_cn": "$ssl_client_s_dn_cn"'
+    '}';
+
   # See https://kubernetes.github.io/ingress-nginx/examples/grpc/#notes-on-using-responserequest-streams
   grpc_send_timeout 1200s;
   grpc_read_timeout 1200s;
@@ -39,9 +58,10 @@ http {
   }
 
   # Use a regex to pull the client cert common name out of the DN
+  # The DN will look something like "CN=foobar,OU=,O=,C=US"
   map $ssl_client_s_dn $ssl_client_s_dn_cn {
     default "";
-    ~/CN=(?<CN>[^/]+) $CN;
+    ~CN=(?<CN>[^/,]+) $CN;
   }
 
   # Server block for controller
@@ -51,7 +71,7 @@ http {
     root                /var/www;
 
     error_log  /var/log/nginx/error.log info;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log json_custom;
 
     ssl_certificate     /var/opt/magma/certs/controller.crt;
     ssl_certificate_key /var/opt/magma/certs/controller.key;
@@ -77,7 +97,7 @@ http {
     root                /var/www;
 
     error_log  /var/log/nginx/error.log info;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log json_custom;
 
     ssl_certificate     /var/opt/magma/certs/controller.crt;
     ssl_certificate_key /var/opt/magma/certs/controller.key;
@@ -97,7 +117,7 @@ http {
     server_name _;
 
     error_log  /var/log/nginx/error.log info;
-    access_log /var/log/nginx/access.log;
+    access_log /var/log/nginx/access.log json_custom;
 
     ssl_certificate     /var/opt/magma/certs/controller.crt;
     ssl_certificate_key /var/opt/magma/certs/controller.key;

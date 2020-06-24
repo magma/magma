@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"magma/orc8r/lib/go/metrics"
 )
@@ -87,7 +86,7 @@ var forbiddenKeyLabelNames = []string{metrics.NetworkLabelName}
 
 func labelIsForbidden(labelName string, forbiddenLabels []string) bool {
 	for _, forbidden := range forbiddenLabels {
-		if strings.Compare(labelName, forbidden) == 0 {
+		if labelName == forbidden {
 			return true
 		}
 	}

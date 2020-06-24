@@ -50,6 +50,7 @@ receivers:
 - name: test_receiver
 - name: receiver
 - name: other_tenant_base_route
+- name: sample_tenant_base_route
 - name: test_slack
   slack_configs:
   - api_url: http://slack.com/12345
@@ -87,11 +88,6 @@ func TestClient_CreateReceiver(t *testing.T) {
 	assert.NoError(t, err)
 	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
 
-	// Create Pushover Receiver
-	err = client.CreateReceiver(testNID, tc.SamplePushoverReceiver)
-	assert.NoError(t, err)
-	fsClient.AssertCalled(t, "WriteFile", "test/alertmanager.yml", mock.Anything, mock.Anything)
-
 	// Create Email receiver
 	err = client.CreateReceiver(testNID, tc.SampleEmailReceiver)
 	assert.NoError(t, err)
@@ -105,7 +101,6 @@ func TestClient_CreateReceiver(t *testing.T) {
 func TestClient_GetReceivers(t *testing.T) {
 	client, _ := newTestClient()
 	recs, err := client.GetReceivers(testNID)
-
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(recs))
 	assert.Equal(t, "receiver", recs[0].Name)
@@ -180,8 +175,16 @@ func TestClient_GetRoute(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, config.Route{Receiver: "other_tenant_base_route", Match: map[string]string{"tenantID": "other"}}, *route)
 
-	route, err = client.GetRoute("no-network")
+	_, err = client.GetRoute("no-network")
 	assert.Error(t, err)
+}
+
+func TestClient_GetTenants(t *testing.T) {
+	client, _ := newTestClient()
+
+	tenants, err := client.GetTenants()
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"other", "sample"}, tenants)
 }
 
 func newTestClient() (AlertmanagerClient, *mocks.FSClient) {

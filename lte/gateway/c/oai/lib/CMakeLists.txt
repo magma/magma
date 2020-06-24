@@ -9,7 +9,7 @@ add_subdirectory(message_utils) # LIB_MESSAGE_UTILS
 add_subdirectory(openflow) # LIB_OPENFLOW
 add_subdirectory(openflow/controller) # LIB_OPENFLOW_CONTROLLER
 add_subdirectory(pcef) # LIB_PCEF
-add_subdirectory(rpc_client) # LIB_RPC_CLIENT
+add_subdirectory(mobility_client) # LIB_MOBILITY_CLIENT
 add_subdirectory(s6a_proxy) # LIB_S6A_PROXY
 add_subdirectory(secu) # LIB_SECU
 add_subdirectory(sgs_client) # LIB_SGS_CLIENT

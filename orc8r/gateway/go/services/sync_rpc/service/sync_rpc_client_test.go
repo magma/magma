@@ -11,12 +11,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 
@@ -52,7 +52,7 @@ func (svc *testSyncRpcService) SyncRPC(stream protos.SyncRPCService_SyncRPCServe
 func runTestSyncRpcService(server *testSyncRpcService, grpcPortCh chan string) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":0"))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		glog.Fatalf("failed to listen: %v", err)
 	}
 
 	v := strings.Split(lis.Addr().String(), ":")

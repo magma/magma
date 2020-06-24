@@ -64,6 +64,7 @@ class SymphonyClient(GraphqlClient):
             else SYMPHONY_URI.format(tenant)
         )
         graphql_endpoint_address = self.address + SYMPHONY_GRAPHQL
+        self.app = app
 
         self.session: Session = Session()
         auth = HTTPBasicAuth(email, password)
@@ -88,15 +89,15 @@ class SymphonyClient(GraphqlClient):
             params={"contentType": file_type},
             headers={"Is-Global": str(is_global)},
         )
-        sign_response = sign_response.json()
-        signed_url = sign_response["URL"]
+        sign_response_json = sign_response.json()
+        signed_url = sign_response_json["URL"]
         with open(file_path, "rb") as f:
             file_data = f.read()
         response = self.session.put(
             signed_url, data=file_data, headers={"Content-Type": file_type}
         )
         response.raise_for_status()
-        return sign_response["key"]
+        return sign_response_json["key"]
 
     def delete_file(self, key: str, is_global: bool) -> None:
         # TODO(T64504906): Remove after basic auth is enabled
@@ -117,13 +118,17 @@ class SymphonyClient(GraphqlClient):
         # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
             self._login()
-        return self.session.post("".join([self.address, url]), json=json)
+        return self.session.post(
+            "".join([self.address, url]), json=json, headers={"User-Agent": self.app}
+        )
 
     def put(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
         # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
             self._login()
-        return self.session.put("".join([self.address, url]), json=json)
+        return self.session.put(
+            "".join([self.address, url]), json=json, headers={"User-Agent": self.app}
+        )
 
     def _login(self) -> None:
         login_endpoint = self.address + SYMPHONY_LOGIN

@@ -5,11 +5,12 @@
 
 import sys
 from argparse import ArgumentParser, Namespace
+from typing import List
 from unittest import TestLoader, TestSuite, TextTestRunner
 
 from xmlrunner import XMLTestRunner
 
-from . import pyinventory_tests, utils
+from . import pyinventory_tests, pyworkforce_tests, utils
 from .utils.constant import TESTS_PATTERN, XML_OUTPUT_DIRECTORY, TestMode
 
 
@@ -57,13 +58,15 @@ if __name__ == "__main__":
     #     utils.TENANT = args.remote
 
     loader = TestLoader()
-    loader.testNamePatterns = [args.pattern]
-    suite: TestSuite = loader.loadTestsFromModule(pyinventory_tests)
+    loader.testNamePatterns = [args.pattern]  # type: ignore
+    suite_list: List[TestSuite] = []
+    suite_list.append(loader.loadTestsFromModule(pyinventory_tests))
+    suite_list.append(loader.loadTestsFromModule(pyworkforce_tests))
+    suite: TestSuite = TestSuite(suite_list)
 
+    runner: TextTestRunner = TextTestRunner(verbosity=2)
     if args.output:
-        runner: TextTestRunner = XMLTestRunner(output=args.output, verbosity=2)
-    else:
-        runner: TextTestRunner = TextTestRunner(verbosity=2)
+        runner = XMLTestRunner(output=args.output, verbosity=2)
     result = runner.run(suite)
     if len(result.errors) != 0 or len(result.failures) != 0:
         sys.exit(1)

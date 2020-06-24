@@ -201,19 +201,19 @@ const arrayConfigs = [
     enabledByDefault: true,
   },
   {
-    id: 'graph_event_logging',
-    title: 'Graph Event Loggng',
-    enabledByDefault: false,
-  },
-  {
     id: 'dashboard_v2',
     title: 'V2 LTE Dashboard',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'work_order_activities',
-    title: 'Work Order Activities',
+    id: 'move_work_order_activities_to_async_service',
+    title: 'Move Work Order Activities To Async Service',
+    enabledByDefault: false,
+  },
+  {
+    id: 'work_order_activities_display',
+    title: 'Work Order Activities Display',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },

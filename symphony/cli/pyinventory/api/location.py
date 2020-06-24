@@ -3,13 +3,14 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Optional, Sequence, Tuple
+from numbers import Number
+from typing import Dict, List, Optional, Sequence, Tuple, cast
 
 from pysymphony import SymphonyClient
 
-from .._utils import deprecated, get_graphql_property_inputs
+from .._utils import get_graphql_property_inputs
 from ..common.cache import LOCATION_TYPES
-from ..common.constant import LOCATION_PAGINATION_STEP, LOCATIONS_TO_SEARCH
+from ..common.constant import LOCATIONS_TO_SEARCH, PAGINATION_STEP
 from ..common.data_class import Document, ImageEntity, Location, PropertyValue
 from ..common.data_enum import Entity
 from ..exceptions import (
@@ -92,7 +93,7 @@ def add_location(
     properties_dict: Dict[str, PropertyValue],
     lat: Optional[float] = None,
     long: Optional[float] = None,
-    externalID: Optional[str] = None,
+    external_id: Optional[str] = None,
 ) -> Location:
     """Create a new location of a specific type with a specific name.
         It will also get the requested location specifiers for hirerchy
@@ -112,7 +113,7 @@ def add_location(
 
             lat (float): latitude
             long (float): longitude
-            externalID (str): location external ID
+            external_id (str): location external ID
 
         Returns:
             `pyinventory.common.data_class.Location` object
@@ -141,7 +142,7 @@ def add_location(
                 },
                 lat=-11.32,
                 long=98.32,
-                externalID=None)
+                external_id=None)
             ```
     """
 
@@ -158,8 +159,8 @@ def add_location(
         if i == len(location_hirerchy) - 1:
             property_types = LOCATION_TYPES[location_type].property_types
             properties = get_graphql_property_inputs(property_types, properties_dict)
-            lat_val = lat
-            long_val = long
+            lat_val = cast(Number, lat)
+            long_val = cast(Number, long)
 
         location_search_result = _get_location_children_by_name_and_type(
             client=client,
@@ -177,7 +178,7 @@ def add_location(
                     longitude=long_val,
                     parent=last_location.id if last_location else None,
                     properties=properties,
-                    externalID=externalID,
+                    externalID=external_id,
                 ),
             )
 
@@ -198,8 +199,8 @@ def add_location(
         name=last_location.name,
         latitude=last_location.latitude,
         longitude=last_location.longitude,
-        externalId=last_location.externalId,
-        locationTypeName=last_location.locationType.name,
+        external_id=last_location.externalId,
+        location_type_name=last_location.locationType.name,
         properties=last_location.properties,
     )
 
@@ -273,8 +274,8 @@ def get_location(
         name=last_location.name,
         latitude=last_location.latitude,
         longitude=last_location.longitude,
-        externalId=last_location.externalId,
-        locationTypeName=last_location.locationType.name,
+        external_id=last_location.externalId,
+        location_type_name=last_location.locationType.name,
         properties=last_location.properties,
     )
 
@@ -290,11 +291,11 @@ def get_locations(client: SymphonyClient) -> List[Location]:
             all_locations = client.get_locations()
             ```
     """
-    locations = GetLocationsQuery.execute(client, first=LOCATION_PAGINATION_STEP)
+    locations = GetLocationsQuery.execute(client, first=PAGINATION_STEP)
     edges = locations.edges if locations else []
     while locations is not None and locations.pageInfo.hasNextPage:
         locations = GetLocationsQuery.execute(
-            client, after=locations.pageInfo.endCursor, first=LOCATION_PAGINATION_STEP
+            client, after=locations.pageInfo.endCursor, first=PAGINATION_STEP
         )
         if locations is not None:
             edges.extend(locations.edges)
@@ -309,8 +310,8 @@ def get_locations(client: SymphonyClient) -> List[Location]:
                     id=node.id,
                     latitude=node.latitude,
                     longitude=node.longitude,
-                    externalId=node.externalId,
-                    locationTypeName=node.locationType.name,
+                    external_id=node.externalId,
+                    location_type_name=node.locationType.name,
                     properties=node.properties,
                 )
             )
@@ -349,8 +350,8 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             id=location.id,
             latitude=location.latitude,
             longitude=location.longitude,
-            externalId=location.externalId,
-            locationTypeName=location.locationType.name,
+            external_id=location.externalId,
+            location_type_name=location.locationType.name,
             properties=location.properties,
         )
         for location in location_with_children.children
@@ -399,17 +400,19 @@ def edit_location(
             ```
     """
     properties = []
-    location_type = location.locationTypeName
+    location_type = location.location_type_name
     property_types = LOCATION_TYPES[location_type].property_types
     if new_properties:
         properties = get_graphql_property_inputs(property_types, new_properties)
     if new_external_id is None:
-        new_external_id = location.externalId
+        new_external_id = location.external_id
     edit_location_input = EditLocationInput(
         id=location.id,
         name=new_name if new_name is not None else location.name,
-        latitude=new_lat if new_lat is not None else location.latitude,
-        longitude=new_long if new_long is not None else location.longitude,
+        latitude=cast(Number, new_lat) if new_lat is not None else location.latitude,
+        longitude=cast(Number, new_long)
+        if new_long is not None
+        else location.longitude,
         properties=properties,
         externalID=new_external_id,
     )
@@ -419,8 +422,8 @@ def edit_location(
         id=result.id,
         latitude=result.latitude,
         longitude=result.longitude,
-        externalId=result.externalId,
-        locationTypeName=result.locationType.name,
+        external_id=result.externalId,
+        location_type_name=result.locationType.name,
         properties=result.properties,
     )
 
@@ -492,20 +495,10 @@ def move_location(
         id=result.id,
         latitude=result.latitude,
         longitude=result.longitude,
-        externalId=result.externalId,
-        locationTypeName=result.locationType.name,
+        external_id=result.externalId,
+        location_type_name=result.locationType.name,
         properties=result.properties,
     )
-
-
-@deprecated(deprecated_in="2.4.0", deprecated_by="get_location_by_external_id")
-def get_locations_by_external_id(
-    client: SymphonyClient, external_id: str
-) -> List[Location]:
-
-    locations = []
-    locations.append(get_location_by_external_id(client, external_id))
-    return locations
 
 
 def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
@@ -553,8 +546,8 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
         id=location_details.id,
         latitude=location_details.latitude,
         longitude=location_details.longitude,
-        externalId=location_details.externalId,
-        locationTypeName=location_details.locationType.name,
+        external_id=location_details.externalId,
+        location_type_name=location_details.locationType.name,
         properties=location_details.properties,
     )
 
@@ -588,8 +581,8 @@ def get_location_documents(
         Document(
             name=file.fileName,
             id=file.id,
-            parentId=location.id,
-            parentEntity=ImageEntity.LOCATION,
+            parent_id=location.id,
+            parent_entity=ImageEntity.LOCATION,
             category=file.category,
         )
         for file in location_with_documents.files
@@ -598,8 +591,8 @@ def get_location_documents(
         Document(
             name=file.fileName,
             id=file.id,
-            parentId=location.id,
-            parentEntity=ImageEntity.LOCATION,
+            parent_id=location.id,
+            parent_entity=ImageEntity.LOCATION,
             category=file.category,
         )
         for file in location_with_documents.images

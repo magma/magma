@@ -38,7 +38,8 @@ const styles = theme => ({
     flexWrap: 'wrap',
   },
   position: {
-    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(1),
+    marginBottom: theme.spacing(1),
     marginRight: theme.spacing(2),
   },
 });

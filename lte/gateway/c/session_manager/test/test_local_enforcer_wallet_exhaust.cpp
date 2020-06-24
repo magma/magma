@@ -42,12 +42,11 @@ protected:
     session_store = std::make_shared<SessionStore>(rule_store);
     pipelined_client = std::make_shared<MockPipelinedClient>();
     directoryd_client = std::make_shared<MockDirectorydClient>();
-    eventd_client = std::make_shared<MockEventdClient>();
     spgw_client = std::make_shared<MockSpgwServiceClient>();
     aaa_client = std::make_shared<MockAAAClient>();
     local_enforcer = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, eventd_client, spgw_client,
+        directoryd_client, MockEventdClient::getInstance(), spgw_client,
         aaa_client, 0, 0, mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
@@ -87,7 +86,6 @@ protected:
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<MockDirectorydClient> directoryd_client;
-  std::shared_ptr<MockEventdClient> eventd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   SessionMap session_map;
@@ -96,10 +94,11 @@ protected:
 
 MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "") {
   auto updates = static_cast<const std::vector<SubscriberQuotaUpdate>>(arg);
-  if (updates.size() != size) {
+  int updates_size = updates.size();
+  if (updates_size != size) {
     return false;
   }
-  for (int i = 0; i < updates.size(); i++) {
+  for (int i = 0; i < updates_size; i++) {
     if (updates[i].update_type() != expected_states[i]) {
       return false;
     }

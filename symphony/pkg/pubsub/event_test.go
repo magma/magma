@@ -1,15 +1,20 @@
-package pubsub
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package pubsub_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/stretchr/testify/require"
 	"gocloud.dev/gcerrors"
 )
 
 func TestPipe(t *testing.T) {
-	emitter, subscriber := Pipe()
+	emitter, subscriber := pubsub.Pipe()
 	require.NotNil(t, emitter)
 	require.NotNil(t, subscriber)
 	ctx := context.Background()
@@ -20,8 +25,8 @@ func TestPipe(t *testing.T) {
 	require.NoError(t, err)
 	msg, err := subscription.Receive(ctx)
 	require.NoError(t, err)
-	require.Equal(t, t.Name(), msg.Metadata[TenantHeader])
-	require.Equal(t, t.Name(), msg.Metadata[NameHeader])
+	require.Equal(t, t.Name(), msg.Metadata[pubsub.TenantHeader])
+	require.Equal(t, t.Name(), msg.Metadata[pubsub.NameHeader])
 	require.Empty(t, msg.Body)
 
 	err = emitter.Shutdown(ctx)

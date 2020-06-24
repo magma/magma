@@ -11,6 +11,7 @@ from enum import Enum
 import sys
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
                         sudo, shell_env)
+from fabric.contrib import files
 sys.path.append('../../orc8r')
 
 from tools.fab.hosts import ansible_setup, vagrant_setup
@@ -74,6 +75,13 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # vagrant machine
     _switch_to_vm(gateway_host, "cwag", "cwag_dev.yml", destroy_vm)
 
+    # We will direct coredumps to be placed in this directory
+    # Clean up before every run
+    if files.exists("/var/opt/magma/cores/"):
+        run("sudo rm /var/opt/magma/cores/*", warn_only=True)
+    else:
+        run("sudo mkdir -p /var/opt/magma/cores", warn_only=True)
+
     if not skip_unit_tests:
         execute(_run_unit_tests)
 
@@ -123,6 +131,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_set_cwag_test_networking, cwag_br_mac)
 
     if run_tests == "False":
+        execute(_add_docker_host_remote_network_envvar)
         print("run_test was set to false. Test will not be run\n"
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
@@ -152,7 +161,14 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     print('Integration Test Passed for "{}"!'.format(tests_to_run.value))
     sys.exit(0)
 
-def transfer_service_logs(services="sessiond session_proxy"):
+
+def transfer_artifacts(services="sessiond session_proxy", get_core_dump=False):
+    """
+    Fetches service logs from Docker and optionally gets core dumps
+    Args:
+        services: A list of services for which services logs are requested
+        get_core_dump: When set to True, it will fetch a tar of the core dumps
+    """
     services = services.strip().split(' ')
     print("Transferring logs for " + str(services))
 
@@ -162,6 +178,20 @@ def transfer_service_logs(services="sessiond session_proxy"):
         for service in services:
             run("docker logs -t " + service + " &> " + service + ".log")
             # For vagrant the files should already be in CWAG_ROOT
+    if get_core_dump == "True":
+        execute(_tar_coredump)
+
+
+def _tar_coredump():
+    _switch_to_vm_no_destroy(None, "cwag", "cwag_dev.yml")
+    with cd(CWAG_ROOT):
+        core_dump_dir = run('ls /var/opt/magma/cores/')
+        num_of_dumps = len(core_dump_dir.split())
+        print(f'Found {num_of_dumps} core dumps')
+        if num_of_dumps > 0:
+            run("sudo tar -czvf coredump.tar.gz /var/opt/magma/cores/*",
+                warn_only=True)
+
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
     if not addr:
@@ -324,7 +354,7 @@ def _check_docker_services():
 def _start_ue_simulator():
     """ Starts the UE Sim Service """
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
-        run('tmux new -d \'go run main.go\'')
+        run('tmux new -d \'go run main.go -logtostderr=true -v=10\'')
 
 
 def _start_trfserver():
@@ -336,6 +366,13 @@ def _run_unit_tests():
     """ Run the cwag unit tests """
     with cd(CWAG_ROOT):
         run('make test')
+
+
+def _add_docker_host_remote_network_envvar():
+    sudo(
+        "grep -q 'DOCKER_HOST=tcp://%s:2375' /etc/environment || "
+        "echo 'DOCKER_HOST=tcp://%s:2375' >> /etc/environment && "
+        "echo 'DOCKER_API_VERSION=1.40' >> /etc/environment" % (CWAG_IP, CWAG_IP))
 
 
 def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,

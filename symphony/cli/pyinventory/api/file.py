@@ -125,4 +125,4 @@ def delete_document(client: SymphonyClient, document: Document) -> None:
             client.delete_document(document=document)
             ```
     """
-    delete_image(client, document.parentEntity, document.parentId, document.id)
+    delete_image(client, document.parent_entity, document.parent_id, document.id)

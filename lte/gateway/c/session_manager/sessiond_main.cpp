@@ -72,10 +72,13 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
   }
 }
 
-static uint32_t get_log_verbosity(const YAML::Node &config)
+static uint32_t get_log_verbosity(const YAML::Node &config, magma::mconfig::SessionD mconfig)
 {
   if (!config["log_level"].IsDefined()) {
-    return MINFO;
+    if(mconfig.log_level() < 0 || mconfig.log_level() > 4){
+      return MINFO;
+    }
+    return mconfig.log_level();
   }
   std::string log_level = config["log_level"].as<std::string>();
   if (log_level == "DEBUG") {
@@ -106,7 +109,7 @@ int main(int argc, char *argv[])
   auto mconfig = load_mconfig();
   auto config =
     magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
-  magma::set_verbosity(get_log_verbosity(config));
+  magma::set_verbosity(get_log_verbosity(config, mconfig));
 
   folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
 
@@ -135,10 +138,10 @@ int main(int argc, char *argv[])
     directoryd_client->rpc_response_loop();
   });
 
-  auto eventd_client = std::make_shared<magma::AsyncEventdClient>();
+  auto& eventd_client = magma::AsyncEventdClient::getInstance();
   std::thread eventd_thread([&]() {
     MLOG(MINFO) << "Started eventd response thread";
-    eventd_client->rpc_response_loop();
+    eventd_client.rpc_response_loop();
   });
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;

@@ -12,9 +12,9 @@ package protos
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -125,7 +125,7 @@ func (id *Identity) HashString() string {
 			if typ.Kind() == reflect.Ptr {
 				typ = typ.Elem() // dereference if ptr
 			}
-			log.Printf(
+			glog.Errorf(
 				"Magma Identity ERROR: type '%s' is missing Hashable Type Name",
 				typ.Name())
 		}

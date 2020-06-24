@@ -7,7 +7,7 @@
 ## LICENSE file in the root directory of this source tree. An additional grant
 ## of patent rights can be found in the PATENTS file in the same directory.
 
-log_level: INFO
+# log_level is set in mconfig. it can be overridden here
 fluent_bit_port: 5170
 tcp_timeout: 5
 event_registry:
@@ -30,5 +30,11 @@ event_registry:
     module: orc8r
     filename: magmad_events.v1.yml
   restarted_services:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  established_sync_rpc_stream:
+    module: orc8r
+    filename: magmad_events.v1.yml
+  disconnected_sync_rpc_stream:
     module: orc8r
     filename: magmad_events.v1.yml

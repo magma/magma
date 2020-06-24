@@ -15,7 +15,6 @@ import type {
 import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import UserDetailsCard from './UserDetailsCard';
@@ -27,13 +26,12 @@ import {
   USER_STATUSES,
   userFullName,
 } from '../utils/UserManagementUtils';
+import {editUser, useUsers} from '../data/Users';
 import {haveDifferentValues} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {useContext} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useHistory, useRouteMatch} from 'react-router-dom';
-import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -54,7 +52,6 @@ const useStyles = makeStyles(() => ({
 }));
 
 type UserTableRow = TableRowDataType<{|data: User|}>;
-type UserTableData = Array<UserTableRow>;
 
 const user2UserTableRow: User => UserTableRow = user => ({
   key: user.authID,
@@ -66,13 +63,11 @@ function UsersTable() {
   const history = useHistory();
   const match = useRouteMatch();
 
-  const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
-
-  const [usersTableData, setUsersTableData] = useState<UserTableData>([]);
-  const {users, editUser} = useUserManagement();
-  useEffect(() => setUsersTableData(users.map(user2UserTableRow)), [users]);
-  const [selectedUserIds, setSelectedUserIds] = useState<Array<TableRowId>>([]);
+  const users = useUsers();
+  const usersTableData = useMemo(() => users.map(user2UserTableRow), [users]);
+  const [selectedUserIds, setSelectedUserIds] = useState<
+    $ReadOnlyArray<TableRowId>,
+  >([]);
 
   const userRow2UserRole = useCallback(
     userRow =>
@@ -129,38 +124,8 @@ function UsersTable() {
         ),
       },
     ];
-    if (userManagementDevMode) {
-      returnCols.push(
-        ...[
-          {
-            key: 'job_title',
-            title: (
-              <fbt desc="Job Title column header in users table">Job Title</fbt>
-            ),
-            getSortingValue: userRow => userRow.data.jobTitle ?? '',
-            render: userRow => userRow.data.jobTitle ?? '',
-          },
-          {
-            key: 'employment',
-            title: (
-              <fbt desc="Employment column header in users table">
-                Employment
-              </fbt>
-            ),
-            getSortingValue: userRow => userRow.data.employmentType ?? '',
-            render: userRow => userRow.data.employmentType ?? '',
-          },
-        ],
-      );
-    }
     return returnCols;
-  }, [
-    classes.nameColumn,
-    classes.field,
-    userRow2UserRole,
-    userManagementDevMode,
-    activeUserId,
-  ]);
+  }, [classes.nameColumn, classes.field, userRow2UserRole, activeUserId]);
 
   const enqueueSnackbar = useEnqueueSnackbar();
   const handleError = useCallback(
@@ -189,7 +154,7 @@ function UsersTable() {
         }}
       />
     );
-  }, [activeUserId, editUser, handleError, users]);
+  }, [activeUserId, handleError, users]);
 
   const navigateToUser = useCallback(
     userId => {

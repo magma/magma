@@ -648,6 +648,10 @@ declare module "@material-ui/icons/Cancel" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/CancelOutlined" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/CardGiftcard" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -713,6 +717,10 @@ declare module "@material-ui/icons/CheckBoxOutlineBlank" {
 }
 
 declare module "@material-ui/icons/CheckCircle" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
+declare module "@material-ui/icons/CheckCircleOutlineOutlined" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
@@ -2936,6 +2944,10 @@ declare module "@material-ui/icons/Save" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
 
+declare module "@material-ui/icons/SaveAlt" {
+  declare module.exports: React$ComponentType<SvgIconExports>;
+}
+
 declare module "@material-ui/icons/Scanner" {
   declare module.exports: React$ComponentType<SvgIconExports>;
 }
@@ -4056,6 +4068,7 @@ declare module "@material-ui/icons" {
       CameraRear: $Exports<"@material-ui/icons/CameraRear">,
       CameraRoll: $Exports<"@material-ui/icons/CameraRoll">,
       Cancel: $Exports<"@material-ui/icons/Cancel">,
+      CancelOutlined: $Exports<"@material-ui/icons/CancelOutlined">,
       CardGiftcard: $Exports<"@material-ui/icons/CardGiftcard">,
       CardMembership: $Exports<"@material-ui/icons/CardMembership">,
       CardTravel: $Exports<"@material-ui/icons/CardTravel">,
@@ -4073,6 +4086,7 @@ declare module "@material-ui/icons" {
       CheckBox: $Exports<"@material-ui/icons/CheckBox">,
       CheckBoxOutlineBlank: $Exports<"@material-ui/icons/CheckBoxOutlineBlank">,
       CheckCircle: $Exports<"@material-ui/icons/CheckCircle">,
+      CheckCircleOutlineOutlined: $Exports<"@material-ui/icons/CheckCircleOutlineOutlined">,
       ChevronLeft: $Exports<"@material-ui/icons/ChevronLeft">,
       ChevronRight: $Exports<"@material-ui/icons/ChevronRight">,
       ChildCare: $Exports<"@material-ui/icons/ChildCare">,
@@ -4627,6 +4641,7 @@ declare module "@material-ui/icons" {
       RvHookup: $Exports<"@material-ui/icons/RvHookup">,
       Satellite: $Exports<"@material-ui/icons/Satellite">,
       Save: $Exports<"@material-ui/icons/Save">,
+      SaveAlt: $Exports<"@material-ui/icons/SaveAlt">,
       Scanner: $Exports<"@material-ui/icons/Scanner">,
       Schedule: $Exports<"@material-ui/icons/Schedule">,
       School: $Exports<"@material-ui/icons/School">,

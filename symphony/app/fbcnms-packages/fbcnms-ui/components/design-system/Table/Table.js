@@ -89,6 +89,9 @@ const useStyles = makeStyles(() => ({
 export type TableRowDataType<T> = $ReadOnly<{|
   key?: string,
   alwaysShowOnTop?: ?boolean,
+  className?: ?string,
+  disabled?: ?boolean,
+  tooltip?: ?string,
   ...T,
 |}>;
 
@@ -98,7 +101,7 @@ export type TableRowId = string | number;
 export type NullableTableRowId = TableRowId | null;
 
 export type SelectionCallbackType = (
-  selectedIds: Array<TableRowId>,
+  selectedIds: $ReadOnlyArray<TableRowId>,
   selection: TableSelectionType,
   toggledItem?: ?{id: TableRowId, change: SelectionType},
 ) => void;
@@ -110,6 +113,18 @@ export const TABLE_VARIANT_TYPES = {
 };
 export type TableVariantTypes = $Keys<typeof TABLE_VARIANT_TYPES>;
 
+export type TableDesignProps = $ReadOnly<{|
+  showSelection?: boolean,
+  className?: string,
+  variant?: TableVariantTypes,
+  dataRowsSeparator?: RowsSeparationTypes,
+  dataRowClassName?: string,
+|}>;
+
+export type TableSelectionProps = $ReadOnly<{|
+  selectedIds?: $ReadOnlyArray<TableRowId>,
+  onSelectionChanged?: SelectionCallbackType,
+|}>;
 /*
   detailsCard:
     When passed, will be shown on as part of the table content.
@@ -120,16 +135,11 @@ type Props<T> = $ReadOnly<{|
   ...TableHeaderData<T>,
   data: $ReadOnlyArray<TableRowDataType<T>>,
   sortSettings?: ?TableSortSettings,
-  showSelection?: boolean,
-  className?: string,
-  variant?: TableVariantTypes,
-  dataRowsSeparator?: RowsSeparationTypes,
-  dataRowClassName?: string,
-  selectedIds?: Array<TableRowId>,
-  onSelectionChanged?: SelectionCallbackType,
   activeRowId?: NullableTableRowId,
   onActiveRowIdChanged?: ActiveCallbackType,
   detailsCard?: ?React.Node,
+  ...TableDesignProps,
+  ...TableSelectionProps,
 |}>;
 
 const Table = <T>(props: Props<T>) => {

@@ -47,14 +47,6 @@
 <dd>
 <div class="desc"></div>
 </dd>
-<dt><code class="name"><a title="pyinventory.site_survey" href="site_survey.html">pyinventory.site_survey</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="pyinventory.site_survey_schema" href="site_survey_schema.html">pyinventory.site_survey_schema</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 </dl>
 </section>
 <section>
@@ -100,13 +92,13 @@ discards reports</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li><a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a></li>
+<li>pysymphony.SymphonyClient</li>
 <li>gql.gql.graphql_client.GraphqlClient</li>
 </ul>
 <h3>Methods</h3>
 <dl>
 <dt id="pyinventory.InventoryClient.activate_user"><code class="name flex">
-<span>def <span class="ident">activate_user</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>) -> NoneType</span>
+<span>def <span class="ident">activate_user</span></span>(<span>client: pysymphony.SymphonyClient, user: <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Activate the user which would allow the user to login again to symphony</p>
@@ -123,7 +115,7 @@ client.activate_user(user=user)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_customer"><code class="name flex">
-<span>def <span class="ident">add_customer</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Customer" href="common/data_class.html#pyinventory.common.data_class.Customer">Customer</a></span>
+<span>def <span class="ident">add_customer</span></span>(<span>client: pysymphony.SymphonyClient, name: str, external_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Customer" href="common/data_class.html#pyinventory.common.data_class.Customer">Customer</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function adds Customer.</p>
@@ -144,7 +136,7 @@ client.activate_user(user=user)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment"><code class="name flex">
-<span>def <span class="ident">add_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">add_equipment</span></span>(<span>client: pysymphony.SymphonyClient, name: str, equipment_type: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a new equipment in a given <code>location</code>.
@@ -203,7 +195,7 @@ equipment = client.add_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], link_properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">add_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], link_properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>]) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function creates an equipment port type.</p>
@@ -211,11 +203,9 @@ equipment = client.add_equipment(
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>equipment port type name</dd>
-<dt><strong><code>properties</code></strong></dt>
-<dd>(List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dd>
-<dt><strong><code>link_properties</code></strong></dt>
-<dd>(List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dd>
 </dl>
+<p>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions
+link_properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</p>
 <h2 id="returns">Returns</h2>
 <p><code><a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></code> object</p>
 <h2 id="raises">Raises</h2>
@@ -225,24 +215,30 @@ equipment = client.add_equipment(
 </dl>
 <h2 id="example">Example</h2>
 <pre><code>from pyinventory.common.data_class import PropertyDefinition
-from pyinventory.graphql.property_kind_enum import PropertyKind
+from pyinventory.graphql.enum.property_kind import PropertyKind
 port_type1 = client.add_equipment_port_type(
     name=&quot;port type 1&quot;,
-    properties=[PropertyDefinition(
-        property_name=&quot;port property&quot;,
-        property_kind=PropertyKind.string,
-        default_value=None,
-        is_fixed=True)],
-    link_properties=[PropertyDefinition(
-        property_name=&quot;link port property&quot;,
-        property_kind=PropertyKind.string,
-        default_value=None,
-        is_fixed=True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;port property&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
+    link_properties=[
+        PropertyDefinition(
+            property_name=&quot;link port property&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment_to_position"><code class="name flex">
-<span>def <span class="ident">add_equipment_to_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, position_name: str, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">add_equipment_to_position</span></span>(<span>client: pysymphony.SymphonyClient, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, position_name: str, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a new equipment inside a given <code>position_name</code> of the given <code>existing_equipment</code>.
@@ -305,7 +301,7 @@ equipment = client.add_equipment_to_position(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_equipment_type"><code class="name flex">
-<span>def <span class="ident">add_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: Sequence[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">add_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, category: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function creates new equipment type.</p>
@@ -315,14 +311,7 @@ equipment = client.add_equipment_to_position(
 <dd>equipment type name</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
 <dd>category name</dd>
-</dl>
-<p>properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-- str - type name
-- str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-- PropertyValue - default property value
-- bool - fixed value flag</p>
-<dl>
+<dt>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dt>
 <dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict[str, str]</code></dt>
 <dd>dictionary of port name to port type name</dd>
 </dl>
@@ -345,14 +334,21 @@ equipment = client.add_equipment_to_position(
 <pre><code>e_type = client.add_equipment_type(
     name=&quot;Tp-Link T1600G&quot;,
     category=&quot;Router&quot;,
-    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;IP&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
     ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
     position_list=[],
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_file"><code class="name flex">
-<span>def <span class="ident">add_file</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, entity_type: str, entity_id: str, category: Union[str, NoneType] = None) -> NoneType</span>
+<span>def <span class="ident">add_file</span></span>(<span>client: pysymphony.SymphonyClient, local_file_path: str, entity_type: str, entity_id: str, category: Union[str, NoneType] = None) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function adds file to an entity of a given type.</p>
@@ -383,7 +379,7 @@ client.add_file(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_files"><code class="name flex">
-<span>def <span class="ident">add_files</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_directory_path: str, entity_type: str, entity_id: str, category: Union[str, NoneType] = None) -> NoneType</span>
+<span>def <span class="ident">add_files</span></span>(<span>client: pysymphony.SymphonyClient, local_directory_path: str, entity_type: str, entity_id: str, category: Union[str, NoneType] = None) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function adds all files located in folder to an entity of a given type.</p>
@@ -409,7 +405,7 @@ client.add_files(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_link"><code class="name flex">
-<span>def <span class="ident">add_link</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_a: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_a: str, equipment_b: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_b: str) -> <a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
+<span>def <span class="ident">add_link</span></span>(<span>client: pysymphony.SymphonyClient, equipment_a: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_a: str, equipment_b: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name_b: str) -> <a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Connects a link between two ports of two equipments.</p>
@@ -456,7 +452,7 @@ client.add_link(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_location"><code class="name flex">
-<span>def <span class="ident">add_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, externalID: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">add_location</span></span>(<span>client: pysymphony.SymphonyClient, location_hirerchy: List[Tuple[str, str]], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], lat: Union[float, NoneType] = None, long: Union[float, NoneType] = None, external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Create a new location of a specific type with a specific name.
@@ -487,7 +483,7 @@ the property type, otherwise exception is raised</dd>
 <dd>latitude</dd>
 <dt><strong><code>long</code></strong> :&ensp;<code>float</code></dt>
 <dd>longitude</dd>
-<dt><strong><code>externalID</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>str</code></dt>
 <dd>location external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
@@ -518,11 +514,11 @@ inside the chain and it is not clear where to create or what to return</dd>
     },
     lat=-11.32,
     long=98.32,
-    externalID=None)
+    external_id=None)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_location_image"><code class="name flex">
-<span>def <span class="ident">add_location_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
+<span>def <span class="ident">add_location_image</span></span>(<span>client: pysymphony.SymphonyClient, local_file_path: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function adds image to existing location.</p>
@@ -546,7 +542,7 @@ client.add_location_image(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_location_type"><code class="name flex">
-<span>def <span class="ident">add_location_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], map_zoom_level: int = 8) -> <a title="pyinventory.common.data_class.LocationType" href="common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a></span>
+<span>def <span class="ident">add_location_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], map_zoom_level: int = 8) -> <a title="pyinventory.common.data_class.LocationType" href="common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function creates new location type.</p>
@@ -554,14 +550,7 @@ client.add_location_image(
 <dl>
 <dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
 <dd>location type name</dd>
-</dl>
-<p>properties (List[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-- str - type name
-- str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-- PropertyValue - default property value
-- bool - fixed value flag</p>
-<dl>
+<dt>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dt>
 <dt><strong><code>map_zoom_level</code></strong> :&ensp;<code>int</code></dt>
 <dd>map zoom level</dd>
 </dl>
@@ -575,55 +564,153 @@ client.add_location_image(
 <h2 id="example">Example</h2>
 <pre><code>location_type = client.add_location_type(
     name=&quot;city&quot;,
-    properties=[(&quot;Contact&quot;, &quot;email&quot;, None, True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;Contact&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
     map_zoom_level=5,
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.add_service"><code class="name flex">
-<span>def <span class="ident">add_service</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, external_id: Union[str, NoneType], service_type: str, customer: Union[pyinventory.common.data_class.Customer, NoneType], properties_dict: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], links: List[<a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a>]) -> <a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a></span>
+<span>def <span class="ident">add_service</span></span>(<span>client: pysymphony.SymphonyClient, name: str, external_id: Union[str, NoneType], service_type: str, customer: Union[pyinventory.common.data_class.Customer, NoneType], properties_dict: Union[Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType]) -> <a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.add_service_endpoint"><code class="name flex">
-<span>def <span class="ident">add_service_endpoint</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service: <a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a>, port: <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a>) -> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.add_service_type"><code class="name flex">
-<span>def <span class="ident">add_service_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, hasCustomer: bool, properties: List[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]]) -> <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.add_site_survey_image"><code class="name flex">
-<span>def <span class="ident">add_site_survey_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, local_file_path: str, id: str) -> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>This function adds image to existing site survey.</p>
+<div class="desc"><p>This function creates service.</p>
 <h2 id="args">Args</h2>
 <dl>
-<dt><strong><code>local_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>local system path to the file</dd>
-<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
-<dd>site survey ID</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>service name</dd>
+<dt><strong><code>external_id</code></strong> :&ensp;<code>Optional[str]</code></dt>
+<dd>service external ID</dd>
+<dt><strong><code>service_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service type name</dd>
+</dl>
+<p>customer (Optional[ <code>pyinventory.common.data_class.Customer</code> ]): existing customer object</p>
+<dl>
+<dt><strong><code>properties_dict</code></strong> :&ensp;<code>Optional[ Mapping[ str, PropertyValue ] ]</code></dt>
+<dd>dictionary of property name to property value</dd>
+</dl>
+<ul>
+<li>str - property name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
+<h2 id="returns">Returns</h2>
+<p><code><a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a></code></p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>FailedOperationException</code></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>service = client.add_service(
+    name=&quot;Room 202 Internet Access&quot;,
+    external_id=&quot;S32325&quot;,
+    service_type=self.service_type.name,
+    customer=None,
+    properties_dict={&quot;Address Family&quot;: &quot;v4&quot;},
+)
+</code></pre></div>
+</dd>
+<dt id="pyinventory.InventoryClient.add_service_endpoint"><code class="name flex">
+<span>def <span class="ident">add_service_endpoint</span></span>(<span>client: pysymphony.SymphonyClient, service: <a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a>, equipment_id: str, endpoint_definition_id: str) -> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This function adds existing endpoint to existing service.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>service</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service object</dd>
+<dt><strong><code>equipment_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing equipment ID</dd>
+<dt><strong><code>endpoint_definition_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing endpoint definition ID</dd>
 </dl>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><code>FailedOperationException</code></dt>
-<dd>on operation failure</dd>
+<dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>client.add_site_survey_image(
-    local_file_path=&quot;./document.pdf&quot;,
-    id=&quot;123456&quot;
+<pre><code>service = client.get_service(id=&quot;service_id&quot;)
+location = client.get_location(location_hirerchy=[(&quot;Country&quot;, &quot;LS_IND_Prod_Copy&quot;)])
+equipment = client.get_equipment(name=&quot;indProdCpy1_AIO&quot;, location=location)
+client.add_service_endpoint(
+    service=service,
+    equipment_id=equipment.id,
+    endpoint_definition_id=&quot;endpoint_definition_id,
 )
 </code></pre></div>
 </dd>
+<dt id="pyinventory.InventoryClient.add_service_link"><code class="name flex">
+<span>def <span class="ident">add_service_link</span></span>(<span>client: pysymphony.SymphonyClient, service_id: str, link_id: str) -> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>This function adds existing link to existing service.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>service_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service ID</dd>
+<dt><strong><code>link_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing link ID</dd>
+</dl>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>FailedOperationException</code></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>client.add_service_link(service_id=service.id, link_id=link.id)
+</code></pre></div>
+</dd>
+<dt id="pyinventory.InventoryClient.add_service_type"><code class="name flex">
+<span>def <span class="ident">add_service_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, has_customer: bool, properties: Union[List[pyinventory.common.data_class.PropertyDefinition], NoneType], endpoint_definitions: Union[List[pyinventory.common.data_class.ServiceEndpointDefinition], NoneType]) -> <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>This function creates new service type.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>service type name</dd>
+<dt><strong><code>has_customer</code></strong> :&ensp;<code>bool</code></dt>
+<dd>flag for customenr existance</dd>
+<dt><strong><code>properties</code></strong></dt>
+<dd>(Optional[ List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ] ]): list of property definitions</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><code><a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></code></p>
+<h2 id="raises">Raises</h2>
+<dl>
+<dt><code>FailedOperationException</code></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>service_type = client.add_service_type(
+    client=self.client,
+    name=&quot;Internet Access&quot;,
+    has_customer=True,
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;Service Package&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=&quot;Public 5G&quot;,
+            is_fixed=False,
+        ),
+        PropertyDefinition(
+            property_name=&quot;Address Family&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=False,
+        ),
+    )
+</code></pre></div>
+</dd>
 <dt id="pyinventory.InventoryClient.add_user"><code class="name flex">
-<span>def <span class="ident">add_user</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, email: str, password: str) -> <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a></span>
+<span>def <span class="ident">add_user</span></span>(<span>client: pysymphony.SymphonyClient, email: str, password: str) -> <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Adds new user to inventory with its email and password</p>
@@ -651,19 +738,13 @@ client.add_location_image(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.apply_location_template_to_location"><code class="name flex">
-<span>def <span class="ident">apply_location_template_to_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, template_location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.build_site_survey_from_survey_response"><code class="name flex">
-<span>def <span class="ident">build_site_survey_from_survey_response</span></span>(<span>survey: <a title="pyinventory.graphql.survey_fragment.SurveyFragment" href="graphql/survey_fragment.html#pyinventory.graphql.survey_fragment.SurveyFragment">SurveyFragment</a>) -> <a title="pyinventory.common.data_class.SiteSurvey" href="common/data_class.html#pyinventory.common.data_class.SiteSurvey">SiteSurvey</a></span>
+<span>def <span class="ident">apply_location_template_to_location</span></span>(<span>client: pysymphony.SymphonyClient, template_location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment"><code class="name flex">
-<span>def <span class="ident">copy_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, new_external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">copy_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, new_external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Copy equipment.</p>
@@ -687,7 +768,7 @@ copied_equipment = client.copy_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">copy_equipment_in_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_parent_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_position_name: str, new_external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">copy_equipment_in_position</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_parent_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_position_name: str, new_external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Copy equipment in position.</p>
@@ -714,7 +795,7 @@ copied_equipment = client.copy_equipment_in_position(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment_type"><code class="name flex">
-<span>def <span class="ident">copy_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, curr_equipment_type_name: str, new_equipment_type_name: str) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">copy_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, curr_equipment_type_name: str, new_equipment_type_name: str) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Copy existing equipment type.</p>
@@ -740,7 +821,7 @@ copied_equipment = client.copy_equipment_in_position(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.copy_equipment_with_all_attachments"><code class="name flex">
-<span>def <span class="ident">copy_equipment_with_all_attachments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> Dict[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>]</span>
+<span>def <span class="ident">copy_equipment_with_all_attachments</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, dest_location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> Dict[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Copy the equipment to the new location with all its attachments</p>
@@ -766,7 +847,7 @@ copied_equipment = client.copy_equipment_in_position(
 attached to it</p></div>
 </dd>
 <dt id="pyinventory.InventoryClient.deactivate_user"><code class="name flex">
-<span>def <span class="ident">deactivate_user</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>) -> NoneType</span>
+<span>def <span class="ident">deactivate_user</span></span>(<span>client: pysymphony.SymphonyClient, user: <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Deactivate the user which would prevent the user from login in to symphony
@@ -780,7 +861,7 @@ FailedOperationException: internal inventory error</p>
 client.deactivate_user(user=user)</code></p></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_all_equipments"><code class="name flex">
-<span>def <span class="ident">delete_all_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> NoneType</span>
+<span>def <span class="ident">delete_all_equipments</span></span>(<span>client: pysymphony.SymphonyClient) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function delete all Equipments.</p>
@@ -789,7 +870,7 @@ client.deactivate_user(user=user)</code></p></div>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_customer"><code class="name flex">
-<span>def <span class="ident">delete_customer</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, customer: <a title="pyinventory.common.data_class.Customer" href="common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>) -> NoneType</span>
+<span>def <span class="ident">delete_customer</span></span>(<span>client: pysymphony.SymphonyClient, customer: <a title="pyinventory.common.data_class.Customer" href="common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function delete Customer.</p>
@@ -800,7 +881,7 @@ client.deactivate_user(user=user)</code></p></div>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_document"><code class="name flex">
-<span>def <span class="ident">delete_document</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, document: <a title="pyinventory.common.data_class.Document" href="common/data_class.html#pyinventory.common.data_class.Document">Document</a>) -> NoneType</span>
+<span>def <span class="ident">delete_document</span></span>(<span>client: pysymphony.SymphonyClient, document: <a title="pyinventory.common.data_class.Document" href="common/data_class.html#pyinventory.common.data_class.Document">Document</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function deletes existing document.</p>
@@ -816,7 +897,7 @@ client.deactivate_user(user=user)</code></p></div>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_equipment"><code class="name flex">
-<span>def <span class="ident">delete_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> NoneType</span>
+<span>def <span class="ident">delete_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function delete Equipment.</p>
@@ -827,7 +908,7 @@ client.deactivate_user(user=user)</code></p></div>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">delete_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> NoneType</span>
+<span>def <span class="ident">delete_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_port_type_id: str) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function deletes an equipment port type.
@@ -842,7 +923,7 @@ It can get only the requested equipment port type ID</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_equipment_type_with_equipments"><code class="name flex">
-<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type: <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a>) -> NoneType</span>
+<span>def <span class="ident">delete_equipment_type_with_equipments</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type: <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete equipment type with existing equipments.</p>
@@ -862,7 +943,7 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_location"><code class="name flex">
-<span>def <span class="ident">delete_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
+<span>def <span class="ident">delete_location</span></span>(<span>client: pysymphony.SymphonyClient, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This delete existing location.</p>
@@ -883,7 +964,7 @@ client.delete_location(location=location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_location_type_with_locations"><code class="name flex">
-<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.common.data_class.LocationType" href="common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
+<span>def <span class="ident">delete_location_type_with_locations</span></span>(<span>client: pysymphony.SymphonyClient, location_type: <a title="pyinventory.common.data_class.LocationType" href="common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete locaton type with existing locations.</p>
@@ -896,7 +977,7 @@ client.delete_location(location=location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.delete_locations_by_location_type"><code class="name flex">
-<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_type: <a title="pyinventory.common.data_class.LocationType" href="common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
+<span>def <span class="ident">delete_locations_by_location_type</span></span>(<span>client: pysymphony.SymphonyClient, location_type: <a title="pyinventory.common.data_class.LocationType" href="common/data_class.html#pyinventory.common.data_class.LocationType">LocationType</a>) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Delete locatons by location type.</p>
@@ -908,36 +989,33 @@ client.delete_location(location=location)
 <pre><code>client.delete_locations_by_location_type(location_type=location_type)
 </code></pre></div>
 </dd>
-<dt id="pyinventory.InventoryClient.delete_service_type_with_services"><code class="name flex">
-<span>def <span class="ident">delete_service_type_with_services</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, service_type: <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a>) -> NoneType</span>
+<dt id="pyinventory.InventoryClient.delete_service_type"><code class="name flex">
+<span>def <span class="ident">delete_service_type</span></span>(<span>client: pysymphony.SymphonyClient, service_type: <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a>) -> NoneType</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.delete_site_survey"><code class="name flex">
-<span>def <span class="ident">delete_site_survey</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, site_survey: <a title="pyinventory.common.data_class.SiteSurvey" href="common/data_class.html#pyinventory.common.data_class.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.delete_site_survey_image"><code class="name flex">
-<span>def <span class="ident">delete_site_survey_image</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, survey: <a title="pyinventory.common.data_class.SiteSurvey" href="common/data_class.html#pyinventory.common.data_class.SiteSurvey">SiteSurvey</a>) -> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>This function deletes image from existing site survey.</p>
+<div class="desc"><p>This function deletes an service type.
+It can get only the requested service type ID</p>
 <h2 id="args">Args</h2>
-<p>survey ( <code><a title="pyinventory.common.data_class.SiteSurvey" href="common/data_class.html#pyinventory.common.data_class.SiteSurvey">SiteSurvey</a></code> ): site survey object</p>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>FailedOperationException</code></dt>
-<dd>on operation failure</dd>
-</dl>
+<p>service_type ( <code><a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></code> ): service type object</p>
 <h2 id="example">Example</h2>
-<pre><code>client.delete_site_survey_image(survey=survey)
+<pre><code>client.delete_service_type(service_type_id=service_type.id)
+</code></pre></div>
+</dd>
+<dt id="pyinventory.InventoryClient.delete_service_type_with_services"><code class="name flex">
+<span>def <span class="ident">delete_service_type_with_services</span></span>(<span>client: pysymphony.SymphonyClient, service_type: <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a>) -> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Delete service type with existing services.</p>
+<h2 id="args">Args</h2>
+<p>service_type ( <code><a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></code> ): service type object</p>
+<h2 id="raises">Raises</h2>
+<p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: if service_type does not exist</p>
+<h2 id="example">Example</h2>
+<pre><code>client.delete_service_type_with_services(service_type=service_type)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_equipment"><code class="name flex">
-<span>def <span class="ident">edit_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">edit_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit existing equipment.</p>
@@ -969,17 +1047,17 @@ edited_equipment = client.edit_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, port_type: <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None, new_link_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">edit_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, port_type: <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a>, new_name: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None, new_link_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function edits an existing equipment port type.</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt>port_type ( <code><a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></code> ): existing eqipment port type object</dt>
-<dt><strong><code>new_name</code></strong> :&ensp;<code>str</code></dt>
+<dt><strong><code>new_name</code></strong> :&ensp;<code>Optional[ str ]</code></dt>
 <dd>new name</dd>
 <dt><strong><code>new_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): dictionary</dd>
+<dd>(Optional[ Dict[ str, PropertyValue ] ]): dictionary</dd>
 </dl>
 <ul>
 <li>str - property type name</li>
@@ -987,7 +1065,7 @@ edited_equipment = client.edit_equipment(
 </ul>
 <dl>
 <dt><strong><code>new_link_properties</code></strong></dt>
-<dd>(Dict[str, PropertyValue]): dictionary</dd>
+<dd>(Optional[ Dict[ str, PropertyValue ] ]): dictionary</dd>
 </dl>
 <ul>
 <li>str - link property type name</li>
@@ -1010,7 +1088,7 @@ edited_equipment = client.edit_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_equipment_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, new_positions_list: List[str], new_ports_dict: Dict[str, str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">edit_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, new_positions_list: List[str], new_ports_dict: Dict[str, str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit existing equipment type.</p>
@@ -1043,7 +1121,7 @@ edited_equipment = client.edit_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_equipment_type_property_type"><code class="name flex">
-<span>def <span class="ident">edit_equipment_type_property_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">edit_equipment_type_property_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_name: str, property_type_id: str, new_property_definition: <a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit specific property type on specific equipment type.</p>
@@ -1051,8 +1129,8 @@ edited_equipment = client.edit_equipment(
 <dl>
 <dt><strong><code>equipment_type_name</code></strong> :&ensp;<code>str</code></dt>
 <dd>existing equipment type name</dd>
-<dt><strong><code>property_type_name</code></strong> :&ensp;<code>str</code></dt>
-<dd>existing property type name</dd>
+<dt><strong><code>property_type_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing property type id</dd>
 </dl>
 <p>new_property_definition ( <code><a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code> ): new property definition</p>
 <h2 id="returns">Returns</h2>
@@ -1064,15 +1142,21 @@ edited_equipment = client.edit_equipment(
 <dd>internal inventory error</dd>
 </dl>
 <h2 id="example">Example</h2>
-<pre><code>e_type = client.edit_equipment_type_property_type_name(
+<pre><code>e_type = client.edit_equipment_type_property_type(
     equipment_type_name=&quot;Card&quot;,
-    property_type_name=&quot;contact&quot;,
-    new_name=&quot;contact information&quot;,
+    property_type_id=&quot;111669149698&quot;,
+    new_property_definition=PropertyDefinition(
+        property_name=property_type_name,
+        property_kind=PropertyKind.string,
+        default_raw_value=None,
+        is_fixed=False,
+        external_id=&quot;12345&quot;,
+    ),
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_link_properties"><code class="name flex">
-<span>def <span class="ident">edit_link_properties</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_link_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
+<span>def <span class="ident">edit_link_properties</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_link_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns edited port in equipment based on its name.</p>
@@ -1104,7 +1188,7 @@ edited_port = client.edit_link_properties(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_location"><code class="name flex">
-<span>def <span class="ident">edit_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">edit_location</span></span>(<span>client: pysymphony.SymphonyClient, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, new_name: Union[str, NoneType] = None, new_lat: Union[float, NoneType] = None, new_long: Union[float, NoneType] = None, new_external_id: Union[str, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns edited location.</p>
@@ -1147,7 +1231,7 @@ edited_location = client.edit_location(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.edit_port_properties"><code class="name flex">
-<span>def <span class="ident">edit_port_properties</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
+<span>def <span class="ident">edit_port_properties</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str, new_properties: Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]) -> <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns edited port in equipment based on its name.</p>
@@ -1182,8 +1266,48 @@ edited_port = client.edit_port_properties(
 )
 </code></pre></div>
 </dd>
+<dt id="pyinventory.InventoryClient.edit_service_type"><code class="name flex">
+<span>def <span class="ident">edit_service_type</span></span>(<span>client: pysymphony.SymphonyClient, service_type: <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a>, new_name: Union[str, NoneType] = None, new_has_customer: Union[bool, NoneType] = None, new_properties: Union[Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], NoneType] = None, new_endpoints: Union[List[pyinventory.common.data_class.ServiceEndpointDefinition], NoneType] = None) -> <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Edit existing service type by ID.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt>service_type ( <code><a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></code> ): existing service type object</dt>
+<dt><strong><code>new_name</code></strong> :&ensp;<code>Optional[ str ]</code></dt>
+<dd>new name</dd>
+<dt><strong><code>new_has_customer</code></strong> :&ensp;<code>Optional[ bool ]</code></dt>
+<dd>flag customer existance</dd>
+<dt><strong><code>new_properties</code></strong></dt>
+<dd>(Optional[ Dict[ str, PropertyValue ] ]): dictionary</dd>
+</dl>
+<ul>
+<li>str - property type name</li>
+<li>PropertyValue - new value of the same type for this property</li>
+</ul>
+<p>new_endpoints (Optional[ List[ <code>pyinventory.common.data_class.ServiceEndpointDefinition</code> ] ]): endpoint definitions list</p>
+<h2 id="returns">Returns</h2>
+<p><code><a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></code></p>
+<h2 id="raises">Raises</h2>
+<p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: if service type with id=<code>service_type_id</code> does not found</p>
+<h2 id="example">Example</h2>
+<pre><code>service_type = client.edit_service_type(
+    service_type=service_type,
+    new_name=&quot;new service type name&quot;,
+    new_properties={&quot;existing property name&quot;: &quot;new value&quot;},
+    new_endpoints=[
+        ServiceEndpointDefinition(
+            id=&quot;endpoint_def_id&quot;,
+            name=&quot;endpoint_def_name&quot;,
+            role=&quot;endpoint_def_role&quot;,
+            index=1,
+        ),
+    ],
+)
+</code></pre></div>
+</dd>
 <dt id="pyinventory.InventoryClient.edit_user"><code class="name flex">
-<span>def <span class="ident">edit_user</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, user: <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>, new_password: Union[str, NoneType] = None, new_role: Union[pyinventory.graphql.user_role_enum.UserRole, NoneType] = None) -> NoneType</span>
+<span>def <span class="ident">edit_user</span></span>(<span>client: pysymphony.SymphonyClient, user: <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>, new_password: Union[str, NoneType] = None, new_role: Union[pyinventory.graphql.enum.user_role.UserRole, NoneType] = None) -> NoneType</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Edit user password and role</p>
@@ -1193,7 +1317,7 @@ edited_port = client.edit_port_properties(
 <dt><strong><code>new_password</code></strong> :&ensp;<code>Optional[str]</code></dt>
 <dd>new password the user would connect with</dd>
 </dl>
-<p>new_role ( <code><a title="pyinventory.graphql.user_role_enum.UserRole" href="graphql/user_role_enum.html#pyinventory.graphql.user_role_enum.UserRole">UserRole</a></code> ): user new role</p>
+<p>new_role ( <code><a title="pyinventory.graphql.enum.user_role.UserRole" href="graphql/enum/user_role.html#pyinventory.graphql.enum.user_role.UserRole">UserRole</a></code> ): user new role</p>
 <h2 id="raises">Raises</h2>
 <dl>
 <dt><code>FailedOperationException</code></dt>
@@ -1209,7 +1333,7 @@ client.edit_user(user=user, new_password=&quot;New_Password4Ever&quot;, new_role
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_active_users"><code class="name flex">
-<span>def <span class="ident">get_active_users</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>]</span>
+<span>def <span class="ident">get_active_users</span></span>(<span>client: pysymphony.SymphonyClient) -> List[<a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the list of the active users in the system</p>
@@ -1227,7 +1351,7 @@ for user in users:
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_all_customers"><code class="name flex">
-<span>def <span class="ident">get_all_customers</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.common.data_class.Customer" href="common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>]</span>
+<span>def <span class="ident">get_all_customers</span></span>(<span>client: pysymphony.SymphonyClient) -> List[<a title="pyinventory.common.data_class.Customer" href="common/data_class.html#pyinventory.common.data_class.Customer">Customer</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns all Customers.</p>
@@ -1238,7 +1362,7 @@ for user in users:
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_all_links_and_port_names_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> List[Tuple[<a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a>, str]]</span>
+<span>def <span class="ident">get_all_links_and_port_names_of_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> List[Tuple[<a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a>, str]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns all links and port names in equipment.</p>
@@ -1267,7 +1391,7 @@ client.get_all_links_and_port_names_of_equipment(equipment=equipment)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment"><code class="name flex">
-<span>def <span class="ident">get_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_equipment</span></span>(<span>client: pysymphony.SymphonyClient, name: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get equipment by name in a given location.</p>
@@ -1299,7 +1423,7 @@ equipment = client.get_equipment(&quot;indProdCpy1_AIO&quot;, location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_equipment_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, external_id: str) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_equipment_by_external_id</span></span>(<span>client: pysymphony.SymphonyClient, external_id: str) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get equipment by external ID.</p>
@@ -1326,7 +1450,7 @@ more than one equipment with the same external ID</dd>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">get_equipment_in_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, parent_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, position_name: str) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_equipment_in_position</span></span>(<span>client: pysymphony.SymphonyClient, parent_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, position_name: str) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the equipment attached in a given <code>position_name</code> of a given <code>parent_equipment</code></p>
@@ -1361,7 +1485,7 @@ equipment = client.get_equipment_in_position(p_equipment, &quot;some_position&qu
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_port_type"><code class="name flex">
-<span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_port_type_id: str) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
+<span>def <span class="ident">get_equipment_port_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_port_type_id: str) -> <a title="pyinventory.common.data_class.EquipmentPortType" href="common/data_class.html#pyinventory.common.data_class.EquipmentPortType">EquipmentPortType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns an equipment port type.
@@ -1380,7 +1504,7 @@ It can get only the requested equipment port type ID</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_properties"><code class="name flex">
-<span>def <span class="ident">get_equipment_properties</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]</span>
+<span>def <span class="ident">get_equipment_properties</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> Dict[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get specific equipment properties.</p>
@@ -1402,7 +1526,7 @@ properties = client.get_equipment_properties(equipment=equipment)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_type_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">get_equipment_type_of_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns equipment type object of equipment.</p>
@@ -1417,7 +1541,7 @@ equipment_type = client.get_equipment_type_of_equipment(equipment=equipment)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_type_property_type"><code class="name flex">
-<span>def <span class="ident">get_equipment_type_property_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+<span>def <span class="ident">get_equipment_type_property_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_name: str, property_type_id: str) -> <a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type by ID on specific equipment type.</p>
@@ -1429,7 +1553,7 @@ equipment_type = client.get_equipment_type_of_equipment(equipment=equipment)
 <dd>property type ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code>
+<p><code><a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code>
 object</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: property type with id=<code>property_type_id</code> is not found</p>
@@ -1441,7 +1565,7 @@ object</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipment_type_property_type_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_equipment_type_property_type_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_name: str, property_type_external_id: str) -> <a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></span>
+<span>def <span class="ident">get_equipment_type_property_type_by_external_id</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_name: str, property_type_external_id: str) -> <a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type by external ID on specific equipment type.</p>
@@ -1453,7 +1577,7 @@ object</p>
 <dd>property type external ID</dd>
 </dl>
 <h2 id="returns">Returns</h2>
-<p><code><a title="pyinventory.graphql.property_type_fragment.PropertyTypeFragment" href="graphql/property_type_fragment.html#pyinventory.graphql.property_type_fragment.PropertyTypeFragment">PropertyTypeFragment</a></code>
+<p><code><a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a></code>
 object</p>
 <h2 id="raises">Raises</h2>
 <p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: property type with external_id=<code>property_type_external_id</code> is not found</p>
@@ -1465,7 +1589,7 @@ object</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipments_by_location"><code class="name flex">
-<span>def <span class="ident">get_equipments_by_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str) -> List[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>]</span>
+<span>def <span class="ident">get_equipments_by_location</span></span>(<span>client: pysymphony.SymphonyClient, location_id: str) -> List[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get equipments by ID of specific location.</p>
@@ -1483,7 +1607,7 @@ object</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_equipments_by_type"><code class="name flex">
-<span>def <span class="ident">get_equipments_by_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment_type_id: str) -> List[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>]</span>
+<span>def <span class="ident">get_equipments_by_type</span></span>(<span>client: pysymphony.SymphonyClient, equipment_type_id: str) -> List[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get equipments by ID of specific type.</p>
@@ -1501,7 +1625,7 @@ object</p>
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_link_in_port_of_equipment"><code class="name flex">
-<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
+<span>def <span class="ident">get_link_in_port_of_equipment</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.Link" href="common/data_class.html#pyinventory.common.data_class.Link">Link</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns link in specific port by name in equipment.</p>
@@ -1534,7 +1658,7 @@ client.get_link_in_port_of_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location"><code class="name flex">
-<span>def <span class="ident">get_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">get_location</span></span>(<span>client: pysymphony.SymphonyClient, location_hirerchy: List[Tuple[str, str]]) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns a location of a specific type with a specific name.
@@ -1575,7 +1699,7 @@ location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletc
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, external_id: str) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">get_location_by_external_id</span></span>(<span>client: pysymphony.SymphonyClient, external_id: str) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns location by external ID.</p>
@@ -1599,7 +1723,7 @@ location = client.get_location(location_hirerchy=[(&quot;Site&quot;, &quot;Bletc
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location_children"><code class="name flex">
-<span>def <span class="ident">get_location_children</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str) -> List[<a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
+<span>def <span class="ident">get_location_children</span></span>(<span>client: pysymphony.SymphonyClient, location_id: str) -> List[<a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns all children locations of the given location</p>
@@ -1621,7 +1745,7 @@ children_locations = client.get_location_children(location_id=parent_location.id
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_location_documents"><code class="name flex">
-<span>def <span class="ident">get_location_documents</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> List[<a title="pyinventory.common.data_class.Document" href="common/data_class.html#pyinventory.common.data_class.Document">Document</a>]</span>
+<span>def <span class="ident">get_location_documents</span></span>(<span>client: pysymphony.SymphonyClient, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> List[<a title="pyinventory.common.data_class.Document" href="common/data_class.html#pyinventory.common.data_class.Document">Document</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns locations documents.</p>
@@ -1642,7 +1766,7 @@ location = client.get_location_documents(location=location)
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_locations"><code class="name flex">
-<span>def <span class="ident">get_locations</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
+<span>def <span class="ident">get_locations</span></span>(<span>client: pysymphony.SymphonyClient) -> List[<a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns all existing locations</p>
@@ -1652,14 +1776,8 @@ location = client.get_location_documents(location=location)
 <pre><code>all_locations = client.get_locations()
 </code></pre></div>
 </dd>
-<dt id="pyinventory.InventoryClient.get_locations_by_external_id"><code class="name flex">
-<span>def <span class="ident">get_locations_by_external_id</span></span>(<span>*args: str, **kwargs: int) -> Callable[..., ~ReturnType]</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_or_create_equipment</span></span>(<span>client: pysymphony.SymphonyClient, name: str, equipment_type: str, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function checks equipment existence by name in specific location,
@@ -1713,7 +1831,7 @@ equipment = client.get_or_create_equipment(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment_in_position"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, position_name: str, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
+<span>def <span class="ident">get_or_create_equipment_in_position</span></span>(<span>client: pysymphony.SymphonyClient, name: str, equipment_type: str, existing_equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, position_name: str, properties_dict: Mapping[str, Union[datetime.date, float, int, str, bool, Tuple[float, float]]], external_id: Union[str, NoneType] = None) -> <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function checks equipment existence by name in specific location,
@@ -1767,7 +1885,7 @@ equipment_in_position = client.get_or_create_equipment_in_position(
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_or_create_equipment_type"><code class="name flex">
-<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, name: str, category: str, properties: Sequence[Tuple[str, str, Union[datetime.date, float, int, str, bool, Tuple[float, float], NoneType], Union[bool, NoneType]]], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
+<span>def <span class="ident">get_or_create_equipment_type</span></span>(<span>client: pysymphony.SymphonyClient, name: str, category: str, properties: List[<a title="pyinventory.common.data_class.PropertyDefinition" href="common/data_class.html#pyinventory.common.data_class.PropertyDefinition">PropertyDefinition</a>], ports_dict: Dict[str, str], position_list: List[str]) -> <a title="pyinventory.common.data_class.EquipmentType" href="common/data_class.html#pyinventory.common.data_class.EquipmentType">EquipmentType</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function checks equipment type existence,
@@ -1778,14 +1896,7 @@ in case it is not found, creates one.</p>
 <dd>equipment name</dd>
 <dt><strong><code>category</code></strong> :&ensp;<code>str</code></dt>
 <dd>category name</dd>
-</dl>
-<p>properties (Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]):
-- str - type name
-- str - enum["string", "int", "bool", "float", "date", "enum", "range",
-"email", "gps_location", "equipment", "location", "service", "datetime_local"]
-- PropertyValue - default property value
-- bool - fixed value flag</p>
-<dl>
+<dt>properties (List[ <code>pyinventory.common.data_class.PropertyDefinition</code> ]): list of property definitions</dt>
 <dt><strong><code>ports_dict</code></strong> :&ensp;<code>Dict[str, str]</code></dt>
 <dd>dict of property name to property value</dd>
 </dl>
@@ -1808,14 +1919,21 @@ in case it is not found, creates one.</p>
 <pre><code>e_type = client.get_or_create_equipment_type(
     name=&quot;Tp-Link T1600G&quot;,
     category=&quot;Router&quot;,
-    properties=[(&quot;IP&quot;, &quot;string&quot;, None, True)],
+    properties=[
+        PropertyDefinition(
+            property_name=&quot;IP&quot;,
+            property_kind=PropertyKind.string,
+            default_raw_value=None,
+            is_fixed=True
+        )
+    ],
     ports_dict={&quot;Port 1&quot;: &quot;eth port&quot;, &quot;port 2&quot;: &quot;eth port&quot;},
     position_list=[],
 )
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_port"><code class="name flex">
-<span>def <span class="ident">get_port</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
+<span>def <span class="ident">get_port</span></span>(<span>client: pysymphony.SymphonyClient, equipment: <a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>, port_name: str) -> <a title="pyinventory.common.data_class.EquipmentPort" href="common/data_class.html#pyinventory.common.data_class.EquipmentPort">EquipmentPort</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function returns port in equipment based on its name.</p>
@@ -1840,7 +1958,7 @@ port = client.get_port(equipment=equipment, port_name=&quot;Z AIO - Port 1&quot;
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_property_type_id"><code class="name flex">
-<span>def <span class="ident">get_property_type_id</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, entity_type: <a title="pyinventory.common.data_enum.Entity" href="common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_name: str) -> str</span>
+<span>def <span class="ident">get_property_type_id</span></span>(<span>client: pysymphony.SymphonyClient, entity_type: <a title="pyinventory.common.data_enum.Entity" href="common/data_enum.html#pyinventory.common.data_enum.Entity">Entity</a>, entity_name: str, property_type_name: str) -> str</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get property type ID on specific entity. <code>entity_type</code> - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]</p>
@@ -1868,25 +1986,49 @@ port = client.get_port(equipment=equipment, port_name=&quot;Z AIO - Port 1&quot;
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_service"><code class="name flex">
-<span>def <span class="ident">get_service</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, id: str) -> <a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a></span>
+<span>def <span class="ident">get_service</span></span>(<span>client: pysymphony.SymphonyClient, id: str) -> <a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt id="pyinventory.InventoryClient.get_site_surveys"><code class="name flex">
-<span>def <span class="ident">get_site_surveys</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>) -> List[<a title="pyinventory.common.data_class.SiteSurvey" href="common/data_class.html#pyinventory.common.data_class.SiteSurvey">SiteSurvey</a>]</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Retrieve all site survey completed in the location.</p>
+<div class="desc"><p>This function returns service by ID.</p>
 <h2 id="args">Args</h2>
-<p>location ( <code><a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></code> ): could be retrieved from getLocation or addLocation api</p>
+<dl>
+<dt><strong><code>id</code></strong> :&ensp;<code>str</code></dt>
+<dd>existing service ID</dd>
+</dl>
 <h2 id="returns">Returns</h2>
-<p>List[ <code>pyinventory.common.data_class.SiteSurvey</code> ]</p>
+<p><code><a title="pyinventory.common.data_class.Service" href="common/data_class.html#pyinventory.common.data_class.Service">Service</a></code></p>
 <h2 id="raises">Raises</h2>
-<p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: location does not exist</p></div>
+<dl>
+<dt><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: service does not exist</dt>
+<dt><code>FailedOperationException</code></dt>
+<dd>internal inventory error</dd>
+</dl>
+<h2 id="example">Example</h2>
+<pre><code>service = client.get_service(id=&quot;12345&quot;)
+</code></pre></div>
+</dd>
+<dt id="pyinventory.InventoryClient.get_service_type"><code class="name flex">
+<span>def <span class="ident">get_service_type</span></span>(<span>client: pysymphony.SymphonyClient, service_type_id: str) -> <a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get service type by ID.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>service_type_id</code></strong> :&ensp;<code>str</code></dt>
+<dd>service type ID</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p><code><a title="pyinventory.common.data_class.ServiceType" href="common/data_class.html#pyinventory.common.data_class.ServiceType">ServiceType</a></code></p>
+<h2 id="raises">Raises</h2>
+<p><code><a title="pyinventory.exceptions.EntityNotFoundError" href="exceptions.html#pyinventory.exceptions.EntityNotFoundError">EntityNotFoundError</a></code>: if service type with id=<code>service_type_id</code> does not found</p>
+<h2 id="example">Example</h2>
+<pre><code>service_type = client.get_service_type(
+    service_type_id=&quot;12345&quot;,
+)
+</code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_user"><code class="name flex">
-<span>def <span class="ident">get_user</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, email: str) -> <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a></span>
+<span>def <span class="ident">get_user</span></span>(<span>client: pysymphony.SymphonyClient, email: str) -> <a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Returns <code><a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a></code> object by its email</p>
@@ -1908,7 +2050,7 @@ port = client.get_port(equipment=equipment, port_name=&quot;Z AIO - Port 1&quot;
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.get_users"><code class="name flex">
-<span>def <span class="ident">get_users</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>) -> List[<a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>]</span>
+<span>def <span class="ident">get_users</span></span>(<span>client: pysymphony.SymphonyClient) -> List[<a title="pyinventory.common.data_class.User" href="common/data_class.html#pyinventory.common.data_class.User">User</a>]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the list of users in the system (both active and deactivate)</p>
@@ -1926,7 +2068,7 @@ for user in users:
 </code></pre></div>
 </dd>
 <dt id="pyinventory.InventoryClient.move_location"><code class="name flex">
-<span>def <span class="ident">move_location</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
+<span>def <span class="ident">move_location</span></span>(<span>client: pysymphony.SymphonyClient, location_id: str, new_parent_id: Union[str, NoneType]) -> <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function moves existing location to another existing parent location.</p>
@@ -1960,7 +2102,7 @@ moved_location = client.move_locatoin(
 <div class="desc"></div>
 </dd>
 <dt id="pyinventory.InventoryClient.search_for_equipments"><code class="name flex">
-<span>def <span class="ident">search_for_equipments</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, limit: int) -> Tuple[List[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>], int]</span>
+<span>def <span class="ident">search_for_equipments</span></span>(<span>client: pysymphony.SymphonyClient, limit: int) -> Tuple[List[<a title="pyinventory.common.data_class.Equipment" href="common/data_class.html#pyinventory.common.data_class.Equipment">Equipment</a>], int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Search for equipments.</p>
@@ -1974,58 +2116,6 @@ moved_location = client.move_locatoin(
 <h2 id="example">Example</h2>
 <pre><code>client.search_for_equipments(limit=10)
 </code></pre></div>
-</dd>
-<dt id="pyinventory.InventoryClient.upload_site_survey"><code class="name flex">
-<span>def <span class="ident">upload_site_survey</span></span>(<span>client: <a title="pyinventory.client.SymphonyClient" href="client.html#pyinventory.client.SymphonyClient">SymphonyClient</a>, location: <a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a>, name: str, completion_date: datetime.datetime, excel_file_path: str, json_file_path: str) -> NoneType</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Upload the site survey to the given completion with the data in the
-given excel file. We use the schema file to validate the input in the
-excel is as needed for upload.</p>
-<h2 id="args">Args</h2>
-<dl>
-<dt>location ( <code><a title="pyinventory.common.data_class.Location" href="common/data_class.html#pyinventory.common.data_class.Location">Location</a></code> ): could be retrieved from getLocation or addLocation api</dt>
-<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
-<dd>name of the site survey</dd>
-<dt><strong><code>completion_date</code></strong> :&ensp;<code>datetime.datetime object</code></dt>
-<dd>the time the site survey was completed</dd>
-<dt><strong><code>excel_file_path</code></strong> :&ensp;<code>str</code></dt>
-<dd>the path for the excel with the site survey information
-The format of this excel should be created by calling site_survey.exportToExcel
-with the paremeter jsonFilePath (the next parameter of this function)</dd>
-</dl>
-<p>json_file_path(str): the path for the json file of the schema of the site survey
-the json file should comply to the schema found in survey_schema.json
-Example of the format:</p>
-<pre><code>{
-    &quot;forms&quot;: [
-    {
-        &quot;formTitle&quot;: &quot;Site Management - General Information&quot;,
-        &quot;questions&quot;: [
-        {
-            &quot;questionName&quot;: &quot;Exact address&quot;,
-            &quot;questionType&quot;: &quot;TEXT&quot;
-        },
-        {
-            &quot;questionName&quot;: &quot;Reference for address&quot;,
-            &quot;questionType&quot;: &quot;TEXT&quot;
-        },
-        {
-            &quot;questionName&quot;: &quot;Ubigeo&quot;,
-            &quot;questionType&quot;: &quot;TEXT&quot;
-        }
-        ]
-    }
-    ]
-}
-</code></pre>
-<h2 id="raises">Raises</h2>
-<dl>
-<dt><code>AssertionException</code></dt>
-<dd>if input values in the excel are incorrect</dd>
-<dt><code>FailedOperationException</code></dt>
-<dd>internal inventory error</dd>
-</dl></div>
 </dd>
 </dl>
 </dd>
@@ -2045,8 +2135,6 @@ Example of the format:</p>
 <li><code><a title="pyinventory.common" href="common/index.html">pyinventory.common</a></code></li>
 <li><code><a title="pyinventory.exceptions" href="exceptions.html">pyinventory.exceptions</a></code></li>
 <li><code><a title="pyinventory.graphql" href="graphql/index.html">pyinventory.graphql</a></code></li>
-<li><code><a title="pyinventory.site_survey" href="site_survey.html">pyinventory.site_survey</a></code></li>
-<li><code><a title="pyinventory.site_survey_schema" href="site_survey_schema.html">pyinventory.site_survey_schema</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
@@ -2068,11 +2156,10 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.add_location_type" href="#pyinventory.InventoryClient.add_location_type">add_location_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_service" href="#pyinventory.InventoryClient.add_service">add_service</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_service_endpoint" href="#pyinventory.InventoryClient.add_service_endpoint">add_service_endpoint</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.add_service_link" href="#pyinventory.InventoryClient.add_service_link">add_service_link</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_service_type" href="#pyinventory.InventoryClient.add_service_type">add_service_type</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.add_site_survey_image" href="#pyinventory.InventoryClient.add_site_survey_image">add_site_survey_image</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.add_user" href="#pyinventory.InventoryClient.add_user">add_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.apply_location_template_to_location" href="#pyinventory.InventoryClient.apply_location_template_to_location">apply_location_template_to_location</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.build_site_survey_from_survey_response" href="#pyinventory.InventoryClient.build_site_survey_from_survey_response">build_site_survey_from_survey_response</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment" href="#pyinventory.InventoryClient.copy_equipment">copy_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment_in_position" href="#pyinventory.InventoryClient.copy_equipment_in_position">copy_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.copy_equipment_type" href="#pyinventory.InventoryClient.copy_equipment_type">copy_equipment_type</a></code></li>
@@ -2087,9 +2174,8 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.delete_location" href="#pyinventory.InventoryClient.delete_location">delete_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_location_type_with_locations" href="#pyinventory.InventoryClient.delete_location_type_with_locations">delete_location_type_with_locations</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_locations_by_location_type" href="#pyinventory.InventoryClient.delete_locations_by_location_type">delete_locations_by_location_type</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.delete_service_type" href="#pyinventory.InventoryClient.delete_service_type">delete_service_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.delete_service_type_with_services" href="#pyinventory.InventoryClient.delete_service_type_with_services">delete_service_type_with_services</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.delete_site_survey" href="#pyinventory.InventoryClient.delete_site_survey">delete_site_survey</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.delete_site_survey_image" href="#pyinventory.InventoryClient.delete_site_survey_image">delete_site_survey_image</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_equipment" href="#pyinventory.InventoryClient.edit_equipment">edit_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_equipment_port_type" href="#pyinventory.InventoryClient.edit_equipment_port_type">edit_equipment_port_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_equipment_type" href="#pyinventory.InventoryClient.edit_equipment_type">edit_equipment_type</a></code></li>
@@ -2097,6 +2183,7 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.edit_link_properties" href="#pyinventory.InventoryClient.edit_link_properties">edit_link_properties</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_location" href="#pyinventory.InventoryClient.edit_location">edit_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_port_properties" href="#pyinventory.InventoryClient.edit_port_properties">edit_port_properties</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.edit_service_type" href="#pyinventory.InventoryClient.edit_service_type">edit_service_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.edit_user" href="#pyinventory.InventoryClient.edit_user">edit_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_active_users" href="#pyinventory.InventoryClient.get_active_users">get_active_users</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_all_customers" href="#pyinventory.InventoryClient.get_all_customers">get_all_customers</a></code></li>
@@ -2117,20 +2204,18 @@ Example of the format:</p>
 <li><code><a title="pyinventory.InventoryClient.get_location_children" href="#pyinventory.InventoryClient.get_location_children">get_location_children</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_location_documents" href="#pyinventory.InventoryClient.get_location_documents">get_location_documents</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_locations" href="#pyinventory.InventoryClient.get_locations">get_locations</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.get_locations_by_external_id" href="#pyinventory.InventoryClient.get_locations_by_external_id">get_locations_by_external_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment" href="#pyinventory.InventoryClient.get_or_create_equipment">get_or_create_equipment</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_in_position" href="#pyinventory.InventoryClient.get_or_create_equipment_in_position">get_or_create_equipment_in_position</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_or_create_equipment_type" href="#pyinventory.InventoryClient.get_or_create_equipment_type">get_or_create_equipment_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_port" href="#pyinventory.InventoryClient.get_port">get_port</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_property_type_id" href="#pyinventory.InventoryClient.get_property_type_id">get_property_type_id</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_service" href="#pyinventory.InventoryClient.get_service">get_service</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.get_site_surveys" href="#pyinventory.InventoryClient.get_site_surveys">get_site_surveys</a></code></li>
+<li><code><a title="pyinventory.InventoryClient.get_service_type" href="#pyinventory.InventoryClient.get_service_type">get_service_type</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_user" href="#pyinventory.InventoryClient.get_user">get_user</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.get_users" href="#pyinventory.InventoryClient.get_users">get_users</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.move_location" href="#pyinventory.InventoryClient.move_location">move_location</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.populate_types" href="#pyinventory.InventoryClient.populate_types">populate_types</a></code></li>
 <li><code><a title="pyinventory.InventoryClient.search_for_equipments" href="#pyinventory.InventoryClient.search_for_equipments">search_for_equipments</a></code></li>
-<li><code><a title="pyinventory.InventoryClient.upload_site_survey" href="#pyinventory.InventoryClient.upload_site_survey">upload_site_survey</a></code></li>
 </ul>
 </li>
 </ul>

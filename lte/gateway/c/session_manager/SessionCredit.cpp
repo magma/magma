@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "DiameterCodes.h"
+#include "EnumToString.h"
 #include "SessionCredit.h"
 #include "magma_logging.h"
 
@@ -17,9 +18,6 @@ namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
-std::string final_action_to_str(ChargingCredit_FinalAction final_action);
-std::string service_state_to_str(ServiceState state);
-std::string reauth_state_to_str(ReAuthState state);
 
 std::unique_ptr<SessionCredit>
 SessionCredit::unmarshal(const StoredSessionCredit &marshaled,
@@ -92,16 +90,15 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 }
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
-    : credit_type_(credit_type), reporting_(false),
-      reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(false), buckets_{}, is_final_grant_(false){}
+    : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      service_state_(start_state), buckets_{}, reporting_(false),
+      unlimited_quota_(false), is_final_grant_(false){}
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state,
                              bool unlimited_quota)
-    : credit_type_(credit_type), reporting_(false),
-      reauth_state_(REAUTH_NOT_NEEDED), service_state_(start_state),
-      unlimited_quota_(unlimited_quota), buckets_{}, is_final_grant_(false) {}
-
+    : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      service_state_(start_state), buckets_{}, reporting_(false),
+      unlimited_quota_(unlimited_quota), is_final_grant_(false) {}
 
 // by default, enable service
 SessionCredit::SessionCredit(CreditType credit_type)
@@ -205,6 +202,7 @@ void SessionCredit::receive_credit(
     set_reauth(REAUTH_NOT_NEEDED, update_criteria);
   }
   if (!is_quota_exhausted() && (service_state_ == SERVICE_DISABLED ||
+                                service_state_ == SERVICE_REDIRECTED ||
                                 service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
     // if quota no longer exhausted, reenable services as needed
     MLOG(MINFO) << "Quota available. Activating service";
@@ -214,7 +212,6 @@ void SessionCredit::receive_credit(
 }
 
 void SessionCredit::log_quota_and_usage() const {
-  auto reported_sum = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
   MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
                << " Rx: " << buckets_[USED_RX]
                << " Total: " << buckets_[USED_TX] + buckets_[USED_RX];
@@ -288,18 +285,29 @@ bool SessionCredit::should_deactivate_service() const {
   if (unlimited_quota_) {
     return false;
   }
-  if (!SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
-    // configured in sessiond.yml
+  if ((final_action_info_.final_action ==
+        ChargingCredit_FinalAction_TERMINATE) &&
+      !SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
+      // configured in sessiond.yml
+      return false;
+  }
+  if (service_state_ != SERVICE_ENABLED){
+    // service is not enabled
     return false;
   }
   if (is_final_grant_ && is_quota_exhausted()) {
-    // We only terminate when we receive a Final Unit Indication (final Grant)
-    // and we've exhausted all quota
-    MLOG(MINFO) << "Terminating service because we have exhausted the given "
-                << "quota and it is the final grant";
+    // We only deactivate service when we receive a Final Unit
+    // Indication (final Grant) and we've exhausted all quota
+    MLOG(MINFO) << "Deactivating service because we have exhausted the given "
+      << "quota and it is the final grant."
+      << "action=" << final_action_to_str(final_action_info_.final_action);
     return true;
   }
   return false;
+}
+
+bool SessionCredit::is_service_redirected() const {
+  return service_state_ == SERVICE_REDIRECTED;
 }
 
 bool SessionCredit::validity_timer_expired() const {
@@ -335,14 +343,15 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
   return usage;
 }
 
+// Todo Return Proto CreditUsage
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
-  if (is_final_grant_) {
-    return get_all_unreported_usage_for_reporting(update_criteria);
-  }
-
   if (reauth_state_ == REAUTH_REQUIRED) {
     set_reauth(REAUTH_PROCESSING, update_criteria);
+  }
+
+  if (is_final_grant_) {
+    return get_all_unreported_usage_for_reporting(update_criteria);
   }
 
   auto usage = get_unreported_usage();
@@ -474,45 +483,5 @@ void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
                << " tx=" << buckets_[REPORTING_TX]
                << " rx=" << buckets_[REPORTING_RX];
 }
-
-std::string final_action_to_str(ChargingCredit_FinalAction final_action) {
-  switch (final_action) {
-  case ChargingCredit_FinalAction_TERMINATE:
-    return "TERMINATE";
-  case ChargingCredit_FinalAction_REDIRECT:
-    return "REDIRECT";
-  case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-    return "RESTRICT_ACCESS";
-  default:
-    return "";
-  }
+// magma namespace
 }
-
-std::string service_state_to_str(ServiceState state) {
-  switch (state) {
-  case SERVICE_ENABLED:
-    return "SERVICE_ENABLED";
-  case SERVICE_NEEDS_DEACTIVATION:
-    return "SERVICE_NEEDS_DEACTIVATION";
-  case SERVICE_DISABLED:
-    return "SERVICE_DISABLED";
-  case SERVICE_NEEDS_ACTIVATION:
-    return "SERVICE_NEEDS_ACTIVATION";
-  default:
-    return "INVALID SERVICE STATE";
-  }
-}
-
-std::string reauth_state_to_str(ReAuthState state) {
-  switch (state) {
-  case REAUTH_NOT_NEEDED:
-    return "REAUTH_NOT_NEEDED";
-  case REAUTH_REQUIRED:
-    return "REAUTH_REQUIRED";
-  case REAUTH_PROCESSING:
-    return "REAUTH_PROCESSING";
-  default:
-    return "INVALID REAUTH STATE";
-  }
-}
-} // namespace magma

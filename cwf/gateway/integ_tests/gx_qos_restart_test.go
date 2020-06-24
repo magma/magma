@@ -13,14 +13,14 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
+	"math/rand"
+	"os"
+	"testing"
+	"time"
+
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
-	"os"
-
-	"math/rand"
-	"testing"
-	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -67,6 +67,8 @@ const (
 func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg string) {
 	tr := NewTestRunner(t)
 
+	// do not use restartPipeline functon. Otherwise we are not testing the case where attach
+	// comes while pipelined is still rebooting.
 	err := tr.RestartService("pipelined")
 	if err != nil {
 		fmt.Printf("error restarting pipelined %v", err)
@@ -110,7 +112,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation},
 		protos.NewGxCCAnswer(diam.Success)))
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("500k")},
@@ -123,22 +125,10 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	record := recordsBySubID["IMSI"+imsi][ruleKey]
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
-	// restart the pipelined service and verify that Qos is still enforced
-	oldCnt := tr.ScanContainerLogs("pipelined", "Starting pipelined")
-
 	// modify pipelined yml to set clean_restart
 	cfgCh <- restartCfg
-	err = tr.RestartService("pipelined")
-	if err != nil {
-		fmt.Printf("error restarting pipelined %v", err)
-		assert.Fail(t, "failed restarting pipelined")
-	}
-	waitForPipelinedRestart := func() bool {
-		cnt := tr.ScanContainerLogs("pipelined", "Starting pipelined")
-		fmt.Printf("curr restart count %d old count %d\n", cnt, oldCnt)
-		return ((oldCnt + 1) == cnt)
-	}
-	assert.Eventually(t, waitForPipelinedRestart, time.Minute, 2*time.Second)
+
+	restartPipelined(t, tr)
 
 	// verify the egress rate after the restart of pipelined
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
@@ -148,8 +138,23 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	time.Sleep(3 * time.Second)
 }
 
-func TestQosRestartMeter(t *testing.T) {
-	fmt.Println("\nRunning TestQosRestartMeter")
+func restartPipelined(t *testing.T, tr *TestRunner) {
+	oldCount := tr.ScanContainerLogs("pipelined", "Starting pipelined")
+	err := tr.RestartService("pipelined")
+	if err != nil {
+		fmt.Printf("error restarting pipelined %v", err)
+		assert.Fail(t, "failed restarting pipelined")
+	}
+	waitForPipelinedRestart := func() bool {
+		cnt := tr.ScanContainerLogs("pipelined", "Starting pipelined")
+		fmt.Printf("curr restart count %d old count %d\n", cnt, oldCount)
+		return ((oldCount + 1) == cnt)
+	}
+	assert.Eventually(t, waitForPipelinedRestart, time.Minute, 2*time.Second)
+}
+
+func TestQosRestartMeterClean(t *testing.T) {
+	fmt.Println("\nRunning TestQosRestartMeterClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)
@@ -164,8 +169,8 @@ func TestQosRestartMeter(t *testing.T) {
 	testQosEnforcementRestart(t, cfgCh, cleanRestartYaml)
 }
 
-func TestQosRestartMeterNonCleanRestart(t *testing.T) {
-	fmt.Println("\nRunning TestQosRestartMeterNonCleanRestart...")
+func TestQosRestartMeterNonClean(t *testing.T) {
+	fmt.Println("\nRunning TestQosRestartMeterNonClean...")
 	cfgCh, err := configFileManager(pipelinedCfgFn)
 	defer func() {
 		close(cfgCh)

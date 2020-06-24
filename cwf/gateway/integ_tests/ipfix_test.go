@@ -12,13 +12,13 @@ package integration
 
 import (
 	"fmt"
+	"io/ioutil"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
+	"strings"
 	"testing"
 	"time"
-    "io/ioutil"
-	"strings"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -85,7 +85,7 @@ func TestIpfixEnforcement(t *testing.T) {
 	// On unexpected requests, just return the default update answer
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
 	_, err = tr.GenULTraffic(req)

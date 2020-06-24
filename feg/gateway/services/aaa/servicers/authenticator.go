@@ -10,13 +10,10 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"log"
 	"time"
 
-	"magma/gateway/directoryd"
-	orcprotos "magma/orc8r/lib/go/protos"
-
 	"github.com/emakeev/snowflake"
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
@@ -26,6 +23,8 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/client"
+	"magma/gateway/directoryd"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 type eapAuth struct {
@@ -68,7 +67,7 @@ func NewEapAuthenticator(
 func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := client.HandleIdentityResponse(uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
-		log.Printf("EAP HandleIdentity Error: %v", err)
+		glog.Errorf("EAP HandleIdentity Error: %v", err)
 		err = nil
 	}
 	return resp, err
@@ -92,7 +91,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 
 	if err != nil && len(resp.GetPayload()) > 0 {
 		// log error, but do not return it to Radius. EAP will carry its own error
-		log.Printf("EAP Handle Error: %v", err)
+		glog.Errorf("EAP Handle Error: %v", err)
 		return resp, nil
 	}
 	if srv.sessions != nil && eap.Packet(resp.Payload).IsSuccess() {
@@ -100,13 +99,13 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
 			if srv.accounting == nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
-				log.Printf("Cannot Create Session on Auth: accounting service is missing")
+				glog.Errorf("Cannot Create Session on Auth: accounting service is missing")
 				return resp, nil
 			}
 			csResp, err := srv.accounting.CreateSession(ctx, resp.Ctx)
 			if err != nil {
 				resp.Payload[eap.EapMsgCode] = eap.FailureCode
-				log.Printf("Failed to create session: %v", err)
+				glog.Errorf("Failed to create session: %v", err)
 				return resp, nil
 			}
 			resp.Ctx.AcctSessionId = csResp.GetSessionId()
@@ -115,7 +114,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
 		_, err := srv.sessions.AddSession(resp.Ctx, srv.sessionTout, srv.accounting.timeoutSessionNotifier, true)
 		if err != nil {
-			log.Printf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
+			glog.Errorf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)
 			return resp, nil // log error, but don't pass to caller, the auth only users will still be able to connect
 		}
 		updateRequest := &orcprotos.UpdateRecordRequest{

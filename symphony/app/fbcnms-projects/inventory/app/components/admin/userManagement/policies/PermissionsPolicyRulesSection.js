@@ -11,7 +11,7 @@
 import type {
   BasicPermissionRule,
   CUDPermissions,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import HierarchicalCheckbox, {
@@ -23,7 +23,7 @@ import fbt from 'fbt';
 import {
   bool2PermissionRuleValue,
   permissionRuleValue2Bool,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useState} from 'react';
 

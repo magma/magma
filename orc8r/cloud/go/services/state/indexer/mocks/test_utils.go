@@ -19,16 +19,15 @@ import (
 // NewMockIndexer returns a do-nothing test indexer with specified elements.
 // 	- id		-- GetID return
 //	- version	-- GetVersion return
-//	- subs		-- GetSubscriptions return
+//	- types		-- GetTypes return
 //	- prepare	-- write PrepareReindex args to chan when called
 //	- complete	-- write CompleteReindex args to chan when called
 //	- index		-- write Index args to chan when called
-func NewMockIndexer(id string, version indexer.Version, subs []indexer.Subscription, prepare, complete, index chan mock.Arguments) *Indexer {
+func NewMockIndexer(id string, version indexer.Version, types []string, prepare, complete, index chan mock.Arguments) *Indexer {
 	idx := &Indexer{}
-
 	idx.On("GetID").Return(id)
 	idx.On("GetVersion").Return(version)
-	idx.On("GetSubscriptions").Return(subs)
+	idx.On("GetTypes").Return(types)
 	idx.On("PrepareReindex", mock.Anything, mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
 		if prepare != nil {
 			prepare <- args

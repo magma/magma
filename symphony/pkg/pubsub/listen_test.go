@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package pubsub
+package pubsub_test
 
 import (
 	"context"
@@ -12,50 +12,50 @@ import (
 	"time"
 
 	"github.com/AlekSi/pointer"
-
+	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
-	"gocloud.dev/pubsub"
+	gcpubsub "gocloud.dev/pubsub"
 	"gocloud.dev/pubsub/mempubsub"
 )
 
 func TestNewListener(t *testing.T) {
 	ctx := context.Background()
-	cfg := ListenerConfig{
-		Subscriber: SubscriberFunc(func(context.Context) (*pubsub.Subscription, error) {
+	cfg := pubsub.ListenerConfig{
+		Subscriber: pubsub.SubscriberFunc(func(context.Context) (*gcpubsub.Subscription, error) {
 			return nil, nil
 		}),
 		Logger: zaptest.NewLogger(t),
 		Tenant: pointer.ToString("test"),
 		Events: []string{t.Name()},
-		Handler: HandlerFunc(func(context.Context, string, string, []byte) error {
+		Handler: pubsub.HandlerFunc(func(context.Context, string, string, []byte) error {
 			return nil
 		}),
 	}
-	listener, err := NewListener(ctx, cfg)
+	listener, err := pubsub.NewListener(ctx, cfg)
 	assert.NoError(t, err)
 	assert.NotNil(t, listener)
 
 	t.Run("NoEvents", func(t *testing.T) {
 		config := cfg
 		config.Events = nil
-		_, err := NewListener(ctx, config)
+		_, err := pubsub.NewListener(ctx, config)
 		assert.Error(t, err)
 	})
 	t.Run("NoSubscription", func(t *testing.T) {
 		config := cfg
-		config.Subscriber = SubscriberFunc(func(context.Context) (*pubsub.Subscription, error) {
+		config.Subscriber = pubsub.SubscriberFunc(func(context.Context) (*gcpubsub.Subscription, error) {
 			return nil, errors.New("no subscription")
 		})
-		_, err := NewListener(ctx, config)
+		_, err := pubsub.NewListener(ctx, config)
 		assert.Error(t, err)
 	})
 	t.Run("NoLogger", func(t *testing.T) {
 		config := cfg
 		config.Logger = nil
-		listener, err := NewListener(ctx, config)
+		listener, err := pubsub.NewListener(ctx, config)
 		assert.NoError(t, err)
 		assert.NotNil(t, listener)
 	})
@@ -75,7 +75,7 @@ func TestSubscribeAndListen(t *testing.T) {
 	defer topic.Shutdown(context.Background())
 
 	subscription := mempubsub.NewSubscription(topic, time.Second)
-	subscriber := SubscriberFunc(func(context.Context) (*pubsub.Subscription, error) {
+	subscriber := pubsub.SubscriberFunc(func(context.Context) (*gcpubsub.Subscription, error) {
 		return subscription, nil
 	})
 
@@ -96,8 +96,8 @@ func TestSubscribeAndListen(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		err := SubscribeAndListen(ctx,
-			ListenerConfig{
+		err := pubsub.SubscribeAndListen(ctx,
+			pubsub.ListenerConfig{
 				Subscriber: subscriber,
 				Logger:     zaptest.NewLogger(t),
 				Tenant:     pointer.ToString(tenant),
@@ -108,21 +108,21 @@ func TestSubscribeAndListen(t *testing.T) {
 	}()
 	defer wg.Wait()
 
-	msgs := []pubsub.Message{
+	msgs := []gcpubsub.Message{
 		{
 			Metadata: map[string]string{
-				NameHeader: t.Name(),
+				pubsub.NameHeader: t.Name(),
 			},
 		},
 		{
 			Metadata: map[string]string{
-				TenantHeader: tenant,
+				pubsub.TenantHeader: tenant,
 			},
 		},
 		{
 			Metadata: map[string]string{
-				TenantHeader: tenant,
-				NameHeader:   t.Name(),
+				pubsub.TenantHeader: tenant,
+				pubsub.NameHeader:   t.Name(),
 			},
 			Body: testBody,
 		},

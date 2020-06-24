@@ -113,12 +113,10 @@ def apply_location_template_to_location(
             copy_equipment_with_all_attachments(client, equipment, location)
         )
 
-    equipments = equipments_to_new_equipments.keys()
-
     link_to_equipment_and_port = {}
     connected_links = []
 
-    for equipment in equipments:
+    for equipment in equipments_to_new_equipments.keys():
         links_and_ports = get_all_links_and_port_names_of_equipment(client, equipment)
         for link, port_name in links_and_ports:
             if link not in link_to_equipment_and_port:

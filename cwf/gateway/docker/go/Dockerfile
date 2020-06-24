@@ -1,4 +1,4 @@
-ARG baseImage="ubuntu:xenial"
+ARG baseImage="ubuntu:bionic"
 FROM ${baseImage} as base
 
 # Add the magma apt repo
@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install Golang 1.12.
 WORKDIR /usr/local
-RUN curl https://dl.google.com/go/go1.12.4.linux-amd64.tar.gz -O && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.12.4.linux-amd64.tar.gz -O && \
     tar xf go1.12.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 

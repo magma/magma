@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/pubsub"
 	"github.com/facebookincubator/symphony/pkg/server"
 	"github.com/facebookincubator/symphony/pkg/telemetry"
+	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -39,6 +40,7 @@ type cliFlags struct {
 	LogConfig       log.Config
 	TelemetryConfig telemetry.Config
 	Orc8rConfig     orc8r.Config
+	TenancyConfig   viewer.Config
 }
 
 func main() {
@@ -69,16 +71,11 @@ func main() {
 	).
 		Envar("WS_AUTH_URL").
 		URLVar(&cf.AuthURL)
-	kingpin.Flag(
-		"event.pubsub-url",
-		"events pubsub url",
-	).
-		Envar("EVENT_PUBSUB_URL").
-		Default("mem://events").
-		SetValue(&cf.EventConfig)
+	pubsub.AddFlagsVar(kingpin.CommandLine, &cf.EventConfig)
 	log.AddFlagsVar(kingpin.CommandLine, &cf.LogConfig)
 	telemetry.AddFlagsVar(kingpin.CommandLine, &cf.TelemetryConfig)
 	orc8r.AddFlagsVar(kingpin.CommandLine, &cf.Orc8rConfig)
+	viewer.AddFlagsVar(kingpin.CommandLine, &cf.TenancyConfig)
 	kingpin.Parse()
 
 	ctx := ctxutil.WithSignal(
