@@ -8,6 +8,8 @@
  * @format
  */
 
+import type {DialogPosition} from './DialogFrame';
+
 import * as React from 'react';
 import DialogFrame from './DialogFrame';
 import IconButton from '../IconButton';
@@ -41,7 +43,11 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+// TODO(T68894541)
+// Consider Moving the stick-right option to separate component
 export type BaseDialogProps = $ReadOnly<{|
+  position?: ?DialogPosition,
+  isModal?: ?boolean,
   title: React.Node,
   children: React.Node,
   showCloseButton?: ?boolean,
@@ -55,7 +61,14 @@ export type BaseDialogComponentProps = $ReadOnly<{|
 |}>;
 
 function BaseDialog(props: BaseDialogComponentProps) {
-  const {className, title, children, onClose, hidden, showCloseButton} = props;
+  const {
+    className,
+    title,
+    children,
+    onClose,
+    showCloseButton,
+    ...rootProps
+  } = props;
   const classes = useStyles();
 
   const callOnClose = onClose ?? undefined;
@@ -64,7 +77,7 @@ function BaseDialog(props: BaseDialogComponentProps) {
     <DialogFrame
       className={classNames(classes.root, className)}
       onClose={callOnClose}
-      hidden={hidden}>
+      {...rootProps}>
       <div className={classes.titleContainer}>
         <Text className={classes.titleText} weight="medium">
           {title}

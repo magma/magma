@@ -16,7 +16,7 @@ import emptyFunction from '@fbcnms/util/emptyFunction';
 import {createContext, useCallback, useContext, useMemo, useState} from 'react';
 
 export type DialogShowingContextValue = $ReadOnly<{|
-  showDialog: BaseDialogProps => void,
+  showDialog: (props: BaseDialogProps, replaceExisting?: ?boolean) => void,
   hideDialog: () => void,
 |}>;
 
@@ -47,8 +47,8 @@ export function DialogShowingContextProvider(props: Props) {
   ] = useState<BaseDialogComponentProps>(EMPTY_HIDDEN_DIALOG_PROPS);
 
   const showDialog = useCallback(
-    (props: BaseDialogProps) => {
-      if (baseDialogProps.hidden !== true) {
+    (props: BaseDialogProps, replaceExisting?: ?boolean) => {
+      if (baseDialogProps.hidden !== true && replaceExisting !== true) {
         return;
       }
       setBaseDialogProps(props);

@@ -14,24 +14,9 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
+const SIDE_PANEL_WIDTH = '452px';
+
 const useStyles = makeStyles(() => ({
-  anchor: {
-    alignItems: 'flex-start',
-    display: 'flex',
-    justifyContent: 'center',
-    pointerEvents: 'none',
-  },
-  dialog: {
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    pointerEvents: 'all',
-    position: 'relative',
-    zIndex: 0,
-    backgroundColor: symphony.palette.white,
-    borderRadius: '4px',
-    boxShadow: symphony.shadows.DP3,
-  },
   root: {
     alignItems: 'stretch',
     boxSizing: 'border-box',
@@ -41,10 +26,45 @@ const useStyles = makeStyles(() => ({
     minHeight: '100vh',
     zIndex: 1,
     position: 'fixed',
-    left: 0,
+    left: `calc(100% - ${SIDE_PANEL_WIDTH})`,
     right: 0,
     top: 0,
     bottom: 0,
+  },
+  withMask: {
+    left: 0,
+    '& > $anchor$right > $dialog': {
+      width: SIDE_PANEL_WIDTH,
+    },
+  },
+  anchor: {
+    alignItems: 'flex-start',
+    display: 'flex',
+    pointerEvents: 'none',
+  },
+  center: {
+    justifyContent: 'center',
+    '& > $dialog': {
+      borderRadius: '4px',
+    },
+  },
+  right: {
+    justifyContent: 'flex-end',
+    flexGrow: 1,
+    '& > $dialog': {
+      height: '100%',
+      width: '100%',
+    },
+  },
+  dialog: {
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    pointerEvents: 'all',
+    position: 'relative',
+    zIndex: 0,
+    backgroundColor: symphony.palette.white,
+    boxShadow: symphony.shadows.DP3,
   },
   hidden: {
     visibility: 'hidden',
@@ -59,21 +79,44 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+export const POSITION = {
+  center: 'center',
+  right: 'right',
+};
+export type DialogPosition = $Keys<typeof POSITION>;
+
 type Props = $ReadOnly<{|
   children: React.Node,
+  position?: ?DialogPosition,
+  isModal?: ?boolean,
   hidden?: boolean,
   onClose?: () => void,
   className?: string,
 |}>;
 
 function DialogFrame(props: Props) {
-  const {children, className, hidden = false, onClose} = props;
+  const {
+    children,
+    className,
+    hidden = false,
+    position: positionProp,
+    isModal: isModalProp,
+    onClose,
+  } = props;
   const classes = useStyles();
+
+  const position = positionProp ?? POSITION.center;
+  const isModal = isModalProp !== false;
+
   return (
     <Portal target={document.body}>
-      <div className={classNames(classes.root, {[classes.hidden]: hidden})}>
-        <div className={classes.mask} onClick={() => onClose && onClose()} />
-        <div className={classes.anchor}>
+      <div
+        className={classNames(classes.root, {
+          [classes.hidden]: hidden,
+          [classes.withMask]: isModal,
+        })}>
+        {isModal && <div className={classes.mask} onClick={onClose} />}
+        <div className={classNames(classes.anchor, classes[position])}>
           <div className={classNames(classes.dialog, className)}>
             {children}
           </div>

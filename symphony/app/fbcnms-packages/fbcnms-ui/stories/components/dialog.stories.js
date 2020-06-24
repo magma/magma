@@ -8,10 +8,12 @@
  * @format
  */
 
+import BaseDialog from '../../components/design-system/Dialog/BaseDialog';
 import Button from '../../components/design-system/Button';
 import MessageDialog from '../../components/design-system/Dialog/MessageDialog';
 import React, {useState} from 'react';
 import Text from '../../components/design-system/Text';
+import {POSITION} from '../../components/design-system/Dialog/DialogFrame';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
 import {storiesOf} from '@storybook/react';
@@ -20,12 +22,20 @@ const useStyles = makeStyles(() => ({
   root: {
     width: '100%',
   },
+  menuContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    '& > *': {
+      marginBottom: '16px',
+    },
+  },
   content: {
     display: 'flex',
     flexDirection: 'column',
   },
   pageContent: {
-    height: 'calc(100vh + 50px)',
+    height: 'calc(100vh - 400px)',
     background: 'white',
     display: 'flex',
     flexDirection: 'row',
@@ -36,14 +46,31 @@ const useStyles = makeStyles(() => ({
 
 const DialogsRoot = () => {
   const classes = useStyles();
+  const [isMessageDialogShown, setIsMessageDialogShown] = useState(false);
   const [isDialogShown, setIsDialogShown] = useState(false);
+  const [isRightDialogShown, setIsRightDialogShown] = useState(false);
+  const [isNoMaskDialogShown, setIsNoMaskDialogShown] = useState(false);
   const closeDialog = () => {
+    setIsMessageDialogShown(false);
     setIsDialogShown(false);
+    setIsRightDialogShown(false);
+    setIsNoMaskDialogShown(false);
   };
 
   return (
     <div className={classes.root}>
-      <Button onClick={() => setIsDialogShown(true)}>Open Dialog</Button>
+      <div className={classes.menuContainer}>
+        <Button onClick={() => setIsDialogShown(true)}>Open Dialog</Button>
+        <Button onClick={() => setIsRightDialogShown(true)}>
+          Open Right Dialog
+        </Button>
+        <Button onClick={() => setIsNoMaskDialogShown(true)}>
+          Open Dialog with No Mask
+        </Button>
+        <Button onClick={() => setIsMessageDialogShown(true)}>
+          Open Message Dialog
+        </Button>
+      </div>
       <div className={classes.pageContent}>
         <Text>Page Content</Text>
       </div>
@@ -61,12 +88,34 @@ const DialogsRoot = () => {
         confirmLabel="Save"
         onCancel={closeDialog}
         onConfirm={closeDialog}
-        hidden={!isDialogShown}
+        hidden={!isMessageDialogShown}
       />
+      <BaseDialog
+        title="Base Dialog"
+        onClose={closeDialog}
+        hidden={!isDialogShown}>
+        <Text>This is the dialog content.</Text>
+      </BaseDialog>
+      <BaseDialog
+        title="Base Dialog - on side!"
+        position={POSITION.right}
+        onClose={closeDialog}
+        hidden={!isRightDialogShown}>
+        <Text>This is the dialog content.</Text>
+      </BaseDialog>
+      <BaseDialog
+        title="Base Dialog - no masked background"
+        position={POSITION.right}
+        isModal={false}
+        onClose={closeDialog}
+        hidden={!isNoMaskDialogShown}>
+        <Text>This is the dialog content.</Text>
+        <Text>Clicking out side of panel will not close it.</Text>
+      </BaseDialog>
     </div>
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('MessageDialog', () => (
+storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Dialog', () => (
   <DialogsRoot />
 ));
