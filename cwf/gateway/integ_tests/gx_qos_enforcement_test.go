@@ -179,6 +179,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		Imsi:        imsi,
 		ReverseMode: true,
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
+		Timeout:     60,
 	}
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 

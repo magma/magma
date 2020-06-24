@@ -18,7 +18,7 @@ import FormActionWithPermissions from '../../common/FormActionWithPermissions';
 import InventorySuspense from '../../common/InventorySuspense';
 import InventoryView, {DisplayOptions} from '../InventoryViewContainer';
 import PowerSearchBar from '../power_search/PowerSearchBar';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import WorkOrderCard from './WorkOrderCard';
 import WorkOrderComparisonViewQueryRenderer from './WorkOrderComparisonViewQueryRenderer';
 import fbt from 'fbt';
@@ -55,7 +55,6 @@ const WorkOrderComparisonView = () => {
   const [filters, setFilters] = useState([]);
   const [dialogKey, setDialogKey] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [workOrderKey, setWorkOrderKey] = useState(1);
   const [resultsDisplayMode, setResultsDisplayMode] = useState(
     DisplayOptions.table,
   );
@@ -76,30 +75,65 @@ const WorkOrderComparisonView = () => {
   const locationTypesFilterConfigs = useLocationTypes();
   const filterBookmarksFilterConfig = useFilterBookmarks('WORK_ORDER');
 
-  const filterConfigs = WorkOrderSearchConfig.map(ent => ent.filters)
-    .reduce((allFilters, currentFilter) => allFilters.concat(currentFilter), [])
-    .concat(locationTypesFilterConfigs ?? []);
+  const filterConfigs = useMemo(
+    () =>
+      WorkOrderSearchConfig.map(ent => ent.filters)
+        .reduce(
+          (allFilters, currentFilter) => allFilters.concat(currentFilter),
+          [],
+        )
+        .concat(locationTypesFilterConfigs ?? []),
+    [locationTypesFilterConfigs],
+  );
 
-  function navigateToAddWorkOrder(selectedWorkOrderTypeId: ?string) {
-    history.push(
-      match.url +
-        (selectedWorkOrderTypeId
-          ? `?workorderType=${selectedWorkOrderTypeId}`
-          : ''),
-    );
-  }
+  const navigateToAddWorkOrder = useCallback(
+    (selectedWorkOrderTypeId: ?string) => {
+      history.push(
+        match.url +
+          (selectedWorkOrderTypeId
+            ? `?workorderType=${selectedWorkOrderTypeId}`
+            : ''),
+      );
+    },
+    [history, match.url],
+  );
 
-  function navigateToWorkOrder(selectedWorkOrderCardId: ?string) {
-    history.push(InventoryAPIUrls.workorder(selectedWorkOrderCardId));
-  }
+  const navigateToWorkOrder = useCallback(
+    (selectedWorkOrderCardId: ?string) => {
+      history.push(InventoryAPIUrls.workorder(selectedWorkOrderCardId));
+    },
+    [history],
+  );
 
   const showDialog = () => {
     setDialogOpen(true);
     setDialogKey(dialogKey + 1);
-    setWorkOrderKey(workOrderKey + 1);
   };
 
   const hideDialog = () => setDialogOpen(false);
+
+  const shouldRenderTable =
+    selectedWorkOrderCardId == null && selectedWorkOrderTypeId == null;
+
+  const workOrdersTable = useMemo(
+    () =>
+      shouldRenderTable === false ? null : (
+        <WorkOrderComparisonViewQueryRenderer
+          limit={QUERY_LIMIT}
+          filters={filters}
+          onWorkOrderSelected={selectedWorkOrderCardId =>
+            navigateToWorkOrder(selectedWorkOrderCardId)
+          }
+          displayMode={
+            resultsDisplayMode === DisplayOptions.map
+              ? DisplayOptions.map
+              : DisplayOptions.table
+          }
+          onQueryReturn={c => setCount(c)}
+        />
+      ),
+    [filters, navigateToWorkOrder, resultsDisplayMode, shouldRenderTable],
+  );
 
   if (selectedWorkOrderTypeId != null) {
     return (
@@ -183,20 +217,7 @@ const WorkOrderComparisonView = () => {
         permissions={{entity: 'workorder'}}
         header={header}
         onViewToggleClicked={setResultsDisplayMode}>
-        <WorkOrderComparisonViewQueryRenderer
-          limit={QUERY_LIMIT}
-          filters={filters}
-          onWorkOrderSelected={selectedWorkOrderCardId =>
-            navigateToWorkOrder(selectedWorkOrderCardId)
-          }
-          workOrderKey={workOrderKey}
-          displayMode={
-            resultsDisplayMode === DisplayOptions.map
-              ? DisplayOptions.map
-              : DisplayOptions.table
-          }
-          onQueryReturn={c => setCount(c)}
-        />
+        {workOrdersTable}
         <AddWorkOrderDialog
           key={`new_work_order_${dialogKey}`}
           open={dialogOpen}

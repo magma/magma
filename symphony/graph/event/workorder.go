@@ -12,8 +12,6 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/hook"
-	"github.com/facebookincubator/symphony/pkg/event"
-	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
 // Work order events.
@@ -28,19 +26,8 @@ func (e *Eventer) workOrderHook() ent.Hook {
 		e.workOrderCreateHook(),
 		e.workOrderUpdateHook(),
 		e.workOrderUpdateOneHook(),
-		e.workOrderActivityHook(),
 	)
 	return chain.Hook()
-}
-
-func (e *Eventer) workOrderActivityHook() ent.Hook {
-	return event.LogHook(func(ctx context.Context, entry event.LogEntry) error {
-		v := viewer.FromContext(ctx)
-		if v != nil && !v.Features().Enabled(viewer.FeatureMoveWorkOrderActivitiesToAsyncService) {
-			return event.HandleActivityLog(ctx, entry)
-		}
-		return nil
-	}, e.Logger)
 }
 
 func (e *Eventer) workOrderCreateHook() ent.Hook {

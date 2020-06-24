@@ -3,12 +3,13 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict
+from typing import Dict, List
 
 from pysymphony import SymphonyClient
 
 from .._utils import get_graphql_property_inputs
 from ..common.cache import PORT_TYPES
+from ..common.constant import PAGINATION_STEP
 from ..common.data_class import (
     Equipment,
     EquipmentPort,
@@ -23,6 +24,7 @@ from ..graphql.input.link_side import LinkSide
 from ..graphql.mutation.edit_equipment_port import EditEquipmentPortMutation
 from ..graphql.mutation.edit_link import EditLinkInput, EditLinkMutation
 from ..graphql.query.equipment_ports import EquipmentPortsQuery
+from ..graphql.query.ports import PortsQuery
 
 
 def get_port(
@@ -84,6 +86,58 @@ def get_port(
         if link
         else None,
     )
+
+
+def get_ports(client: SymphonyClient) -> List[EquipmentPort]:
+    """This function returns all existing ports
+
+        Returns:
+            List[ `pyinventory.common.data_class.EquipmentPort` ]
+
+        Example:
+            ```
+            all_ports = client.get_ports()
+            ```
+    """
+    ports = PortsQuery.execute(client, first=PAGINATION_STEP)
+    edges = ports.edges if ports else []
+    while ports is not None and ports.pageInfo.hasNextPage:
+        ports = PortsQuery.execute(
+            client, after=ports.pageInfo.endCursor, first=PAGINATION_STEP
+        )
+        if ports is not None:
+            edges.extend(ports.edges)
+
+    result = []
+    for edge in edges:
+        node = edge.node
+        if node is not None:
+            port_type = None
+            if node.definition.portType is not None:
+                port_type = node.definition.portType
+            link = None
+            if node.link is not None:
+                link = node.link
+            result.append(
+                EquipmentPort(
+                    id=node.id,
+                    properties=node.properties,
+                    definition=EquipmentPortDefinition(
+                        id=node.definition.id,
+                        name=node.definition.name,
+                        port_type_name=port_type.name if port_type else None,
+                    ),
+                    link=Link(
+                        id=link.id,
+                        properties=link.properties,
+                        service_ids=[s.id for s in link.services],
+                    )
+                    if link
+                    else None,
+                )
+            )
+
+    return result
 
 
 def edit_port_properties(

@@ -40,8 +40,8 @@ const CONFIGS: Array<MetricGraphConfig> = [
   {
     basicQueryConfigs: [
       {
-        metric: 'enodeb_rf_tx_enabled',
-        filters: [{name: 'service', value: 'enodebd'}],
+        metric: 's1_connection',
+        filters: [{name: 'service', value: 'mme'}],
       },
     ],
     label: 'E-Node B Status',
@@ -138,6 +138,16 @@ const CONFIGS: Array<MetricGraphConfig> = [
       },
     ],
     label: 's6a Auth Failure',
+    unit: '',
+  },
+  {
+    basicQueryConfigs: [
+      {
+        metric: 'enodeb_rf_tx_enabled',
+        filters: [{name: 'service', value: 'enodebd'}],
+      },
+    ],
+    label: 'E-NodeB Transmitting',
     unit: '',
   },
 ];

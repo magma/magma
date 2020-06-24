@@ -173,6 +173,9 @@ class TestService(BaseTest):
         )
         self.assertFalse(endpoints)
         endpoint_definition_id = endpoint_definitions[0].id
+        assert (
+            endpoint_definition_id is not None
+        ), f"service type {self.service_type.name} has no endpoints"
         add_service_endpoint(
             client=self.client,
             service=self.service,

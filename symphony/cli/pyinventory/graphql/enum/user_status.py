@@ -9,5 +9,5 @@ class UserStatus(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "UserStatus":
+    def _missing_(cls, value: object) -> "UserStatus":
         return cls.MISSING_ENUM

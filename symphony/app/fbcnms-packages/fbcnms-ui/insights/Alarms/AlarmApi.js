@@ -114,4 +114,6 @@ export const MagmaAlarmsApiUtil: ApiUtil = {
 
   // Tenants
   getTenants: _ => Promise.reject('Disabled feature'),
+  getAlertmanagerTenancy: _ => Promise.reject('Disabled feature'),
+  getPrometheusTenancy: _ => Promise.reject('Disabled feature'),
 };

@@ -16,6 +16,7 @@ import type {
   AlertSuppression,
   FiringAlarm,
   PrometheusLabelset,
+  TenancyConfig,
 } from './AlarmAPIType';
 import type {CancelToken} from 'axios';
 
@@ -76,4 +77,7 @@ export type ApiUtil = {|
 
   // tenants
   getTenants: (req: ApiRequest) => Promise<Array<string>>,
+
+  getAlertmanagerTenancy: (req: ApiRequest) => Promise<TenancyConfig>,
+  getPrometheusTenancy: (req: ApiRequest) => Promise<TenancyConfig>,
 |};

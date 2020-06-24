@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from typing import Dict
+from typing import Dict, List
 
 from graphql import GraphQLSchema
 
@@ -35,7 +35,7 @@ class DataclassesRenderer:
         buffer.write("from gql.gql.reporter import FailedOperationException")
         buffer.write("from functools import partial")
         buffer.write("from numbers import Number")
-        buffer.write("from typing import Any, Callable, List, Mapping, Optional")
+        buffer.write("from typing import Any, Callable, List, Mapping, Optional, Dict")
         buffer.write("from time import perf_counter")
         buffer.write("from dataclasses_json import DataClassJsonMixin")
         buffer.write("")
@@ -113,7 +113,7 @@ class DataclassesRenderer:
                 buffer.write("")
                 buffer.write("@classmethod")
                 with buffer.write_block(
-                    f'def _missing_(cls, value: str) -> "{enum.name}":'
+                    f'def _missing_(cls, value: object) -> "{enum.name}":'
                 ):
                     buffer.write("return cls.MISSING_ENUM")
             buffer.write("")
@@ -184,7 +184,7 @@ class DataclassesRenderer:
                 children_names.add(child_object.name)
 
             # render fields
-            sorted_fields = sorted(obj.fields, key=lambda f: 1 if f.nullable else 0)
+            sorted_fields = self.__sort_fields(parsed_query, obj.fields, is_input)
             for field in sorted_fields:
                 self.__render_field(parsed_query, buffer, field, is_input)
 
@@ -212,7 +212,7 @@ class DataclassesRenderer:
                 children_names.add(child_object.name)
 
             # render fields
-            sorted_fields = sorted(obj.fields, key=lambda f: 1 if f.nullable else 0)
+            sorted_fields = self.__sort_fields(parsed_query, obj.fields)
             for field in sorted_fields:
                 self.__render_field(parsed_query, buffer, field)
 
@@ -280,7 +280,7 @@ class DataclassesRenderer:
                 f" -> {query_result_type}:"
             ):
                 buffer.write("# fmt: off")
-                buffer.write(f"variables = {variables_dict}")
+                buffer.write(f"variables: Dict[str, Any] = {variables_dict}")
                 with buffer.write_block("try:"):
                     buffer.write("network_start = perf_counter()")
                     buffer.write(
@@ -304,6 +304,21 @@ class DataclassesRenderer:
                         buffer.write("variables,")
                     buffer.write(")")
             buffer.write("")
+
+    @staticmethod
+    def __sort_fields(
+        parsed_query: ParsedQuery, fields: List[ParsedField], is_input: bool = False
+    ) -> List[ParsedField]:
+        enum_names = [e.name for e in parsed_query.enums + parsed_query.internal_enums]
+
+        def sort_key(field) -> int:
+            if field.type in enum_names or field.type == "DateTime":
+                return 1
+            if field.nullable and is_input:
+                return 2
+            return 0
+
+        return sorted(fields, key=sort_key)
 
     @staticmethod
     def __render_variable_definition(var: ParsedVariableDefinition):

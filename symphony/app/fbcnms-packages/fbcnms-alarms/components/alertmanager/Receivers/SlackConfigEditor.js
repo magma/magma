@@ -20,11 +20,6 @@ export default function SlackConfigEditor({
   onUpdate,
   ...props
 }: EditorProps<ReceiverSlackConfig>) {
-  const channelValue = React.useMemo(
-    () => formatChannel(config.channel, false),
-    [config.channel],
-  );
-
   return (
     <ConfigEditor
       {...props}
@@ -34,23 +29,10 @@ export default function SlackConfigEditor({
             <TextField
               required
               id="apiurl"
-              label="API URL"
+              label="Webhook URL"
               placeholder="Ex: https://hooks.slack.com/services/a/b"
               value={config.api_url}
               onChange={e => onUpdate({api_url: (e.target.value: string)})}
-              fullWidth
-            />
-          </Grid>
-          <Grid item>
-            <TextField
-              required
-              id="channel"
-              label="Channel"
-              placeholder="Ex: #OPS"
-              value={channelValue}
-              onChange={e =>
-                onUpdate({channel: formatChannel(e.target.value, true)})
-              }
               fullWidth
             />
           </Grid>
@@ -60,14 +42,11 @@ export default function SlackConfigEditor({
         <>
           <Grid item>
             <TextField
-              required
               id="title"
               label="Message Title"
               placeholder="Ex: Urgent"
               value={config.title}
-              onChange={e =>
-                onUpdate({title: formatChannel(e.target.value, true)})
-              }
+              onChange={e => onUpdate({title: e.target.value})}
               fullWidth
             />
           </Grid>
@@ -76,17 +55,4 @@ export default function SlackConfigEditor({
       data-testid="slack-config-editor"
     />
   );
-}
-
-/**
- * Ensures that the hash is added or removed. It should be added when
- * submitting but removed when editing
- */
-function formatChannel(channel?: string, useHash: boolean) {
-  if (!channel) {
-    return '';
-  }
-
-  const channelName = channel[0] === '#' ? channel.slice(1) : channel;
-  return `${useHash ? '#' : ''}${channelName}`;
 }

@@ -11,7 +11,7 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 
 import ActionTable from '../../components/ActionTable';
-import EnodebThroughputChart from './EnodebThroughputChart';
+import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
@@ -73,7 +73,7 @@ export default function Enodeb({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
     <div className={classes.dashboardRoot}>
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
-          <EnodebThroughputChart
+          <DateTimeMetricChart
             title={CHART_TITLE}
             queries={[
               `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,

@@ -3,7 +3,8 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Sequence
+from numbers import Number
+from typing import List, Sequence, cast
 
 from ..graphql.fragment.property_type import PropertyTypeFragment
 from ..graphql.input.property_type import PropertyTypeInput
@@ -100,15 +101,15 @@ def format_to_property_type_input(
         elif kind == "bool":
             boolean_value = True if default_raw_value.lower() == "true" else False
         elif kind == "float":
-            float_value = float(default_raw_value)
+            float_value = cast(Number, float(default_raw_value))
         elif kind == "range":
             string_range = default_raw_value.split(" - ")
-            range_from_value = float(string_range[0])
-            range_to_value = float(string_range[1])
+            range_from_value = cast(Number, float(string_range[0]))
+            range_to_value = cast(Number, float(string_range[1]))
         elif kind == "gps_location":
             string_coordinates = default_raw_value.split(", ")
-            latitude_value = float(string_coordinates[0])
-            longitude_value = float(string_coordinates[1])
+            latitude_value = cast(Number, float(string_coordinates[0]))
+            longitude_value = cast(Number, float(string_coordinates[1]))
         else:
             string_value = default_raw_value
 

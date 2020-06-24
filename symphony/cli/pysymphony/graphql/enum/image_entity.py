@@ -13,5 +13,5 @@ class ImageEntity(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "ImageEntity":
+    def _missing_(cls, value: object) -> "ImageEntity":
         return cls.MISSING_ENUM

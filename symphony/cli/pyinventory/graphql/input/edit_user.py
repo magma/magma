@@ -17,8 +17,8 @@ from ..enum.user_status import UserStatus
 @dataclass
 class EditUserInput(DataClassJsonMixin):
     id: str
-    firstName: Optional[str] = None
-    lastName: Optional[str] = None
     status: Optional[UserStatus] = None
     role: Optional[UserRole] = None
+    firstName: Optional[str] = None
+    lastName: Optional[str] = None
 

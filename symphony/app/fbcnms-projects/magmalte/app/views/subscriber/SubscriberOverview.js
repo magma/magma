@@ -8,6 +8,8 @@
  * @flow strict-local
  * @format
  */
+import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+
 import ActionTable from '../../components/ActionTable';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -17,6 +19,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
+import SubscriberDetail from './SubscriberDetail';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -74,8 +77,55 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function SubscriberDashboard() {
+  const {match, relativePath, relativeUrl} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+
+  const {response: subscriberMap, isLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdSubscribers,
+    {
+      networkId: networkId,
+    },
+  );
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
+  return (
+    <Switch>
+      <Route
+        path={relativePath('/overview/:subscriberId')}
+        render={() => <SubscriberDetail subscriberMap={subscriberMap} />}
+      />
+
+      <Route
+        path={relativePath('/overview')}
+        render={() => (
+          <SubscriberDashboardInternal subscriberMap={subscriberMap} />
+        )}
+      />
+      <Redirect to={relativeUrl('/overview')} />
+    </Switch>
+  );
+}
+
+type SubscriberRowType = {
+  name: string,
+  imsi: string,
+  service: string,
+  currentUsage: string,
+  dailyAvg: string,
+  lastReportedTime: Date,
+};
+
+function SubscriberDashboardInternal({
+  subscriberMap,
+}: {
+  subscriberMap: ?{[string]: subscriber} | void,
+}) {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
+  const {history, relativeUrl} = useRouter();
+  const [currRow, setCurrRow] = useState<SubscriberRowType>({});
 
   return (
     <>
@@ -84,7 +134,6 @@ export default function SubscriberDashboard() {
           {TITLE}
         </Text>
       </div>
-
       <AppBar position="static" color="default" className={classes.tabBar}>
         <Grid container>
           <Grid item xs={6}>
@@ -123,102 +172,65 @@ export default function SubscriberDashboard() {
           </Grid>
         </Grid>
       </AppBar>
+      <div className={classes.dashboardRoot}>
+        <Grid container spacing={3}>
+          <Grid item xs={12}>
+            <Text key="title">
+              <PeopleIcon /> {TITLE}
+            </Text>
+          </Grid>
 
-      <Switch>
-        <Route
-          path={relativePath('/subscriber')}
-          component={SubscriberDashboardInternal}
-        />
-        <Redirect to={relativeUrl('/subscriber')} />
-      </Switch>
+          <Grid item xs={12}>
+            {subscriberMap ? (
+              <ActionTable
+                data={Object.keys(subscriberMap).map((imsi: string) => {
+                  const subscriberInfo = subscriberMap[imsi];
+                  return {
+                    name: subscriberInfo.id,
+                    imsi: imsi,
+                    service: subscriberInfo.lte.state,
+                    currentUsage: '0',
+                    dailyAvg: '0',
+                    lastReportedTime: new Date(
+                      subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
+                    ),
+                  };
+                })}
+                columns={[
+                  {title: 'Name', field: 'name'},
+                  {title: 'IMSI', field: 'imsi'},
+                  {title: 'Service', field: 'service'},
+                  {title: 'Current Usage', field: 'currentUsage'},
+                  {title: 'Daily Average', field: 'dailyAvg'},
+                  {
+                    title: 'Last Reported Time',
+                    field: 'lastReportedTime',
+                    type: 'datetime',
+                  },
+                ]}
+                handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
+                menuItems={[
+                  {
+                    name: 'View',
+                    handleFunc: () => {
+                      history.push(relativeUrl('/' + currRow.imsi));
+                    },
+                  },
+                  {name: 'Edit'},
+                  {name: 'Remove'},
+                ]}
+                options={{
+                  actionsColumnIndex: -1,
+                  pageSizeOptions: [5, 10],
+                }}
+              />
+            ) : (
+              '<Text>No Subscribers Found</Text>'
+            )}
+          </Grid>
+        </Grid>
+      </div>
     </>
-  );
-}
-
-type SubscriberRowType = {
-  name: string,
-  imsi: string,
-  service: string,
-  currentUsage: string,
-  dailyAvg: string,
-  lastReportedTime: Date,
-};
-
-function SubscriberDashboardInternal() {
-  const classes = useStyles();
-  const {history, relativeUrl, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [currRow, setCurrRow] = useState<SubscriberRowType>({});
-
-  const {response, isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscribers,
-    {
-      networkId: networkId,
-    },
-  );
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  const subscriberRows: Array<SubscriberRowType> = response
-    ? Object.keys(response).map((imsi: string) => {
-        const subscriberInfo = response[imsi];
-        return {
-          name: subscriberInfo.id,
-          imsi: imsi,
-          service: subscriberInfo.lte.state,
-          currentUsage: '0',
-          dailyAvg: '0',
-          lastReportedTime: new Date(
-            subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
-          ),
-        };
-      })
-    : [];
-  return (
-    <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Text key="title">
-            <PeopleIcon /> {TITLE}
-          </Text>
-        </Grid>
-
-        <Grid item xs={12}>
-          <ActionTable
-            data={subscriberRows}
-            columns={[
-              {title: 'Name', field: 'name'},
-              {title: 'IMSI', field: 'imsi'},
-              {title: 'Service', field: 'service'},
-              {title: 'Current Usage', field: 'currentUsage'},
-              {title: 'Daily Average', field: 'dailyAvg'},
-              {
-                title: 'Last Reported Time',
-                field: 'lastReportedTime',
-                type: 'datetime',
-              },
-            ]}
-            handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
-            menuItems={[
-              {
-                name: 'View',
-                handleFunc: () => {
-                  history.push(relativeUrl('/' + currRow.imsi));
-                },
-              },
-              {name: 'Edit'},
-              {name: 'Remove'},
-            ]}
-            options={{
-              actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
-            }}
-          />
-        </Grid>
-      </Grid>
-    </div>
   );
 }
 

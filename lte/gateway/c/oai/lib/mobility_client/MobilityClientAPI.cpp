@@ -36,11 +36,6 @@
 
 using grpc::Channel;
 using grpc::Status;
-
-// TODO: MobilityService IP:port config (t14002037)
-#define MOBILITYD_ENDPOINT "localhost:60051"
-
-using grpc::Channel;
 using grpc::ChannelCredentials;
 using grpc::CreateChannel;
 using grpc::InsecureChannelCredentials;

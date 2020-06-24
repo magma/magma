@@ -10,16 +10,6 @@ package magma.orc8r.state;
 
 option go_package = "protos";
 
-// IndexerInfo provides info about a state indexer.
-message IndexerInfo {
-  // indexer_id is the indexer's ID.
-  string indexer_id = 1;
-  // actual_version is the indexer's current version.
-  uint32 actual_version = 2;
-  // desired_version is the version to which the indexer will be reindexed.
-  uint32 desired_version = 3;
-}
-
 // IndexerManager provides methods for manually viewing and managing state indexers.
 service IndexerManager {
   // GetIndexers returns indexer info for all tracked indexers.
@@ -50,4 +40,14 @@ message StartReindexRequest {
 message StartReindexResponse {
     // update contains a human-readable update on reindex progress
     string update = 1;
+}
+
+// IndexerInfo provides info about a state indexer.
+message IndexerInfo {
+  // indexer_id is the indexer's ID.
+  string indexer_id = 1;
+  // actual_version is the indexer's current version.
+  uint32 actual_version = 2;
+  // desired_version is the version to which the indexer will be reindexed.
+  uint32 desired_version = 3;
 }

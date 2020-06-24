@@ -15,8 +15,8 @@ import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
+import NetworkKPI from './NetworkKPIs';
 import NetworkRanConfig from './NetworkRanConfig';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -134,9 +134,7 @@ function NetworkDashboardInternal() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Paper>
-            <div className={classes.contentPlaceholder}>Network KPI Tray</div>
-          </Paper>
+          <NetworkKPI />
         </Grid>
 
         <Grid container item xs={6} spacing={3}>

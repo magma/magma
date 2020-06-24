@@ -9,7 +9,6 @@
  */
 import type {ComponentType} from 'react';
 
-import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
@@ -55,7 +54,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export type KPIData = {category: string, value: number | string, unit?: string};
+export type KPIData = {
+  category: string,
+  value: number | string,
+  unit?: string,
+  icon?: ComponentType<SvgIconExports>,
+};
 type Props = {
   icon?: ComponentType<SvgIconExports>,
   description?: string,
@@ -65,6 +69,7 @@ type Props = {
 export default function KPITray(props: Props) {
   const classes = useStyles();
   const kpiTray = [];
+
   if (props.icon) {
     const KpiIcon = props.icon;
     kpiTray.push(
@@ -89,7 +94,7 @@ export default function KPITray(props: Props) {
         container
         xs
         zeroMinWidth
-        key={i}
+        key={'data-' + i}
         className={classes.kpiBlock}
         alignItems="center">
         <CardHeader
@@ -110,6 +115,7 @@ export default function KPITray(props: Props) {
       </Grid>
     )),
   );
+
   return (
     <Grid container zeroMinWidth>
       {kpiTray}

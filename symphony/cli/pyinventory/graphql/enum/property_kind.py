@@ -18,5 +18,5 @@ class PropertyKind(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "PropertyKind":
+    def _missing_(cls, value: object) -> "PropertyKind":
         return cls.MISSING_ENUM

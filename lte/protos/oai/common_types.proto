@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
 
 // Proto file to serialize the structures in
 // magma/lte/gateway/c/oai/common/common_types.h

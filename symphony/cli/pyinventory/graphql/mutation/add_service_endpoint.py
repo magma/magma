@@ -9,7 +9,7 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 from functools import partial
 from numbers import Number
-from typing import Any, Callable, List, Mapping, Optional
+from typing import Any, Callable, List, Mapping, Optional, Dict
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
@@ -42,7 +42,7 @@ class AddServiceEndpointMutation(DataClassJsonMixin):
     # fmt: off
     def execute(cls, client: GraphqlClient, input: AddServiceEndpointInput) -> AddServiceEndpointMutationData.Service:
         # fmt: off
-        variables = {"input": input}
+        variables: Dict[str, Any] = {"input": input}
         try:
             network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)

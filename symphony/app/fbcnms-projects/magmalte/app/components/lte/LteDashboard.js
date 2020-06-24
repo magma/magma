@@ -14,6 +14,7 @@ import DashboardAlertTable from '../DashboardAlertTable';
 import DashboardKPIs from '../DashboardKPIs';
 import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
+import EventsTable, {magmaEventTypes} from '../../views/events/EventsTable';
 import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import moment from 'moment';
@@ -66,9 +67,8 @@ const useStyles = makeStyles(theme => ({
   dateTimeText: {
     color: colors.primary.selago,
   },
-  // TODO: remove this when we actually fill out the grid sections
-  contentPlaceholder: {
-    padding: '50px 0',
+  input: {
+    color: colors.primary.white,
   },
 }));
 
@@ -179,6 +179,13 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
 
         <Grid item xs={12}>
+          {/* <Text>
+            <GpsFixed /> Events
+          </Text>
+          <EventsTable
+            eventTypes={magmaEventTypes.NETWORK}
+            gatewayHardwareId={'f9a9fc7c-7977-474d-9617-8a309479f2bb'}
+          /> */}
           <DashboardKPIs />
         </Grid>
       </Grid>

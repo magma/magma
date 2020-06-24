@@ -204,7 +204,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Log("Finished Authenticating UE")
+	fmt.Println("Finished Authenticating UE")
 	return radiusP, nil
 }
 
@@ -223,7 +223,7 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	tr.t.Log("Finished Discconnecting UE")
+	fmt.Println("Finished Discconnecting UE")
 	return radiusP, nil
 }
 
@@ -281,18 +281,18 @@ func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
 func (tr *TestRunner) WaitForEnforcementStatsToSync() {
 	// TODO load this value from pipelined.yml
 	enforcementPollPeriod := 1 * time.Second
-	time.Sleep(3 * enforcementPollPeriod)
+	time.Sleep(4 * enforcementPollPeriod)
 }
 
 func (tr *TestRunner) WaitForPoliciesToSync() {
 	// TODO load this value from sessiond.yml (rule_update_interval_sec)
 	ruleUpdatePeriod := 1 * time.Second
-	time.Sleep(2 * ruleUpdatePeriod)
+	time.Sleep(4 * ruleUpdatePeriod)
 }
 
 func (tr *TestRunner) WaitForReAuthToProcess() {
 	// Todo figure out the best way to figure out when RAR is processed
-	time.Sleep(3 * time.Second)
+	time.Sleep(4 * time.Second)
 }
 
 // generateRandomIMSIS creates a slice of unique Random IMSIs taking into consideration a previous list with IMSIS

@@ -41,15 +41,14 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   className?: string,
   onWorkOrderSelected: (workOrderId: string) => void,
   limit?: number,
   filters: Array<any>,
-  workOrderKey: number,
   displayMode?: DisplayOptionTypes,
   onQueryReturn?: (resultCount: number) => void,
-};
+|}>;
 
 const workOrderSearchQuery = graphql`
   query WorkOrderComparisonViewQueryRendererSearchQuery(
@@ -72,7 +71,6 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
     filters,
     limit,
     onWorkOrderSelected,
-    workOrderKey,
     displayMode,
     className,
     onQueryReturn,
@@ -91,7 +89,6 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
           idSet: f.idSet,
           stringSet: f.stringSet,
         })),
-        workOrderKey: workOrderKey,
       }}
       render={props => {
         const {count, workOrders} = props.workOrderSearch;

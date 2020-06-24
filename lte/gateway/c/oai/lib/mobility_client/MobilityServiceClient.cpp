@@ -22,7 +22,6 @@
 #include "MobilityServiceClient.h"
 
 #include <cassert>
-#include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <netinet/in.h>
@@ -30,7 +29,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <log.h>
 #include <thread>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
@@ -38,15 +36,14 @@
 #include "orc8r/protos/common.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 
+#include "ServiceRegistrySingleton.h"
+
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
 using grpc::ChannelCredentials;
 using grpc::InsecureChannelCredentials;
 using magma::orc8r::Void;
-
-// TODO: MobilityService IP:port config (t14002037)
-#define MOBILITYD_ENDPOINT "localhost:60051"
 
 namespace magma {
 namespace lte {
@@ -197,9 +194,8 @@ void MobilityServiceClient::ReleaseIPv4AddressRPC(
 
 MobilityServiceClient::MobilityServiceClient()
 {
-  const std::shared_ptr<ChannelCredentials> cred = InsecureChannelCredentials();
-  const std::shared_ptr<Channel> channel =
-    CreateChannel(MOBILITYD_ENDPOINT, cred);
+  auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+      "mobilityd", ServiceRegistrySingleton::LOCAL);
   stub_ = MobilityService::NewStub(channel);
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
   resp_loop_thread.detach();

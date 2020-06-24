@@ -67,37 +67,6 @@ services:
 #        fluentd-retry-wait: '1s'
 #        fluentd-max-retries: '120'
 
-  proxy:
-    # Leaving this commented out for now, but we will delete this service in
-    # favor of nginx.
-    # While nginx soaks if you find a bug you can revert to nghttpx
-    #ports:
-      #- 9443:9443/tcp  # API/controller port
-      #- 9444:9444/tcp  # Bootstrapper port
-    volumes:
-      - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
-    environment:
-      CONTROLLER_HOSTNAME: controller.magma.test
-      PROXY_BACKENDS: controller  # Uses Docker internal DNS for controller
-      # HTTP_PROXY_HOSTNAME: proxy.magma.test
-      # HTTP_PROXY_BACKEND: www.magma.test
-      HTTP_PROXY_DOCKER_HOSTNAME: docker.io
-      HTTP_PROXY_GITHUB_HOSTNAME: github.com
-      TEST_MODE: "1"  # Used to run dev scripts on startup
-    depends_on:
-      - fluentd
-    links:
-      - fluentd
-    restart: always
-    # See comment block for the 'controller' service about logging
-#    logging:
-#      driver: fluentd
-#      options:
-#        fluentd-address: 'host.docker.internal:24225'
-#        tag: orc8r.proxy
-#        fluentd-retry-wait: '1s'
-#        fluentd-max-retries: '120'
-
   nginx:
     ports:
       - 7443:8443/tcp   # controller GRPC port

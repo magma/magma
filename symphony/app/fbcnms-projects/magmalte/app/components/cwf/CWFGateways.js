@@ -29,6 +29,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -83,6 +84,21 @@ const useStyles = makeStyles(theme => ({
 
 const FIVE_MINS = 5 * 60 * 1000;
 const REFRESH_INTERVAL = 2 * 60 * 1000;
+
+function gatewayStatus(gateway: cwf_gateway): string {
+  const gatewayHealthy =
+    Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) < FIVE_MINS;
+  let status = '';
+  if (!gatewayHealthy) {
+    const checkInTime = new Date(gateway.status?.checkin_time ?? 0);
+    status = 'Last refreshed ' + checkInTime.toLocaleString();
+  } else {
+    if (gateway.carrier_wifi.allowed_gre_peers.length == 0) {
+      status = 'Gateway is not functional. No GRE peers configured';
+    }
+  }
+  return status;
+}
 
 function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
@@ -161,27 +177,31 @@ function CWFGateways(props: WithAlert & {}) {
   const rows = gateways.map(gateway => (
     <>
       <TableRow key={gateway.id}>
-        <TableCell className={classes.gatewayCell}>
-          <IconButton
-            className={classes.expandIconButton}
-            onClick={() => {
-              const newExpanded = new Set(expanded);
-              expanded.has(gateway.id)
-                ? newExpanded.delete(gateway.id)
-                : newExpanded.add(gateway.id);
-              setExpanded(newExpanded);
-            }}>
-            {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
-          </IconButton>
-          <span className={classes.gatewayName}>{gateway.name}</span>
-          <DeviceStatusCircle
-            isGrey={!gateway.status?.checkin_time}
-            isActive={
-              Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <
-              FIVE_MINS
-            }
-          />
-        </TableCell>
+        <Tooltip title={gatewayStatus(gateway)} placement={'bottom-start'}>
+          <TableCell className={classes.gatewayCell}>
+            <IconButton
+              className={classes.expandIconButton}
+              onClick={() => {
+                const newExpanded = new Set(expanded);
+                expanded.has(gateway.id)
+                  ? newExpanded.delete(gateway.id)
+                  : newExpanded.add(gateway.id);
+                setExpanded(newExpanded);
+              }}>
+              {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
+            </IconButton>
+
+            <span className={classes.gatewayName}>{gateway.name}</span>
+            <DeviceStatusCircle
+              isGrey={!gateway.status?.checkin_time}
+              isActive={
+                Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <
+                  FIVE_MINS && gateway.carrier_wifi.allowed_gre_peers.length > 0
+              }
+            />
+          </TableCell>
+        </Tooltip>
+
         <TableCell>{gateway.device.hardware_id}</TableCell>
         <TableCell>
           <IconButton

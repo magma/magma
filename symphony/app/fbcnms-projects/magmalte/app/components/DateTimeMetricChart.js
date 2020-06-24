@@ -16,13 +16,19 @@ import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import moment from 'moment';
 import React from 'react';
-import Text from '../../theme/design-system/Text';
+import Text from '../theme/design-system/Text';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
-import {colors} from '../../theme/default';
+import {CardTitleFilterRow} from './layout/CardTitleRow';
+import {colors} from '../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
+
+export type DateTimeMetricChartProps = {
+  title: string,
+  queries: Array<string>,
+  legendLabels: Array<string>,
+};
 
 const useStyles = makeStyles(theme => ({
   dateTimeText: {
@@ -30,13 +36,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export type EnbThroughputChartProps = {
-  title: string,
-  queries: Array<string>,
-  legendLabels: Array<string>,
-};
-
-export default function EnodebThroughputChart(props: EnbThroughputChartProps) {
+export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const classes = useStyles();
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());

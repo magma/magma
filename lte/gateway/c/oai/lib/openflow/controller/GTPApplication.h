@@ -124,6 +124,24 @@ class GTPApplication : public Application {
    */
   uint32_t convert_precedence_to_priority(const uint32_t precedence);
 
+  /**
+   * Add Arp flow for UE IP address
+   * @param ev - AddGTPTunnelEvent containing ue ip
+   */
+  void add_downlink_arp_flow(
+    const AddGTPTunnelEvent &ev,
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
+
+  /**
+   * Delete arp flow of the UE.
+   * @param ev - AddGTPTunnelEvent containing ue ip
+   */
+  void delete_downlink_arp_flow(
+    const DeleteGTPTunnelEvent &ev,
+    const OpenflowMessenger &messenger,
+    uint32_t port_number);
+
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;

@@ -10,6 +10,8 @@
 package main
 
 import (
+	"flag"
+
 	"magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
 	"magma/cwf/gateway/services/uesim/servicers"
@@ -19,7 +21,12 @@ import (
 	"github.com/golang/glog"
 )
 
+func init() {
+	flag.Parse()
+}
+
 func main() {
+	glog.Info("Starting UESim service")
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.UeSim)
 	if err != nil {
 		glog.Fatalf("Error creating UeSim service: %s", err)
