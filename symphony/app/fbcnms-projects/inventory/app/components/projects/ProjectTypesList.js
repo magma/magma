@@ -8,10 +8,6 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {ProjectTypesListQuery_projectType} from './__generated__/ProjectTypesListQuery_projectType.graphql';
-import type {WithStyles} from '@material-ui/core';
-
 import Avatar from '@material-ui/core/Avatar';
 import List from '@material-ui/core/List';
 import ListIcon from '@material-ui/icons/List';
@@ -19,15 +15,16 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemText from '@material-ui/core/ListItemText';
 import React from 'react';
-import RelayEnvironment from '../../common/RelayEnvironment.js';
-import {fetchQuery, graphql} from 'relay-runtime';
+import symphony from '@fbcnms/ui/theme/symphony';
+import withSuspense from '../../common/withSuspense';
+import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {useCallback, useMemo, useState} from 'react';
+import {useProjectTemplateNodes} from '../../common/Project';
 
-const styles = _theme => ({
+const useStyles = makeStyles(() => ({
   avatar: {
-    backgroundColor: '#e4f2ff',
+    backgroundColor: symphony.palette.B50,
   },
   list: {
     paddingTop: 0,
@@ -40,89 +37,64 @@ const styles = _theme => ({
   listAvatar: {
     minWidth: '52px',
   },
-});
+}));
 
-type Props = ContextRouter & {
+type Props = $ReadOnly<{|
   onSelect: ?(projectTypeId: ?string) => void,
-} & WithStyles<typeof styles>;
+|}>;
 
-type State = {
-  errorMessage: ?string,
-  projectTypes: Array<ProjectTypesListQuery_projectType>,
-  selectedProjectTypeId: ?string,
-  showDialog: boolean,
-};
+function ProjectTypesList(props: Props) {
+  const {onSelect} = props;
+  const classes = useStyles();
 
-graphql`
-  fragment ProjectTypesListQuery_projectType on ProjectType {
-    id
-    name
-  }
-`;
+  const projectTypes = useProjectTemplateNodes();
 
-const projectTypesQuery = graphql`
-  query ProjectTypesListQuery {
-    projectTypes(first: 500)
-      @connection(key: "ProjectTypesListQuery_projectTypes") {
-      edges {
-        node {
-          ...ProjectTypesListQuery_projectType @relay(mask: false)
-        }
+  const [selectedProjectTypeId, setSelectedProjectTypeId] = useState(null);
+
+  const handleListItemClick = useCallback(
+    selectedProjectType => {
+      const selectedProjectTypeId = selectedProjectType?.id;
+      setSelectedProjectTypeId(selectedProjectTypeId);
+
+      if (onSelect != null) {
+        onSelect(selectedProjectTypeId);
       }
-    }
-  }
-`;
+    },
+    [onSelect],
+  );
 
-class ProjectTypesList extends React.Component<Props, State> {
-  state = {
-    errorMessage: null,
-    projectTypes: [],
-    selectedProjectTypeId: null,
-    showDialog: false,
-  };
-
-  componentDidMount() {
-    // $FlowFixMe (T62907961) Relay flow types
-    fetchQuery(RelayEnvironment, projectTypesQuery).then(response => {
-      this.setState({
-        projectTypes: response.projectTypes.edges.map(x => x.node),
-      });
-    });
-  }
-
-  render() {
-    const {selectedProjectTypeId} = this.state;
-    const {classes} = this.props;
-    const listItems = this.state.projectTypes
-      .slice()
-      .sort((projectTypeA, projectTypeB) =>
-        sortLexicographically(projectTypeA.name, projectTypeB.name),
-      )
-      .map(projectType => (
-        <ListItem
-          className={classes.listItem}
-          button
-          key={projectType.id}
-          selected={selectedProjectTypeId === projectType.id}
-          onClick={event => this.handleListItemClick(event, projectType)}>
-          <ListItemAvatar className={classes.listAvatar}>
-            <Avatar className={classes.avatar}>
-              <ListIcon />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText primary={projectType.name} />
-        </ListItem>
-      ));
-    return <List>{listItems}</List>;
-  }
-
-  handleListItemClick = (event, selectedProjectType) => {
-    const selectedProjectTypeId = selectedProjectType?.id;
-    this.setState(
-      {selectedProjectTypeId},
-      () => this.props.onSelect && this.props.onSelect(selectedProjectTypeId),
-    );
-  };
+  const listItems = useMemo(
+    () =>
+      projectTypes
+        .slice()
+        .sort((projectTypeA, projectTypeB) =>
+          sortLexicographically(projectTypeA.name, projectTypeB.name),
+        )
+        .map(projectType => (
+          <ListItem
+            className={classes.listItem}
+            button
+            key={projectType.id}
+            selected={selectedProjectTypeId === projectType.id}
+            onClick={() => handleListItemClick(projectType)}>
+            <ListItemAvatar className={classes.listAvatar}>
+              <Avatar className={classes.avatar}>
+                <ListIcon />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText primary={projectType.name} />
+          </ListItem>
+        )),
+    [
+      classes.avatar,
+      classes.listAvatar,
+      classes.listItem,
+      handleListItemClick,
+      projectTypes,
+      selectedProjectTypeId,
+    ],
+  );
+  return <List>{listItems}</List>;
 }
 
-export default withStyles(styles)(withRouter(ProjectTypesList));
+export default withSuspense(ProjectTypesList);
