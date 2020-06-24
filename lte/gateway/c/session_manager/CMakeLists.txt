@@ -125,6 +125,7 @@ add_library(SESSION_MANAGER
     SessionStore.h
     MemoryStoreClient.cpp
     MemoryStoreClient.h
+    Monitor.h
     RedisStoreClient.cpp
     RedisStoreClient.h
     StoreClient.h
