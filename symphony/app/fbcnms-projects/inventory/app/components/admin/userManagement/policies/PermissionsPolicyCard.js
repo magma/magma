@@ -30,6 +30,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withSuspense from '../../../../common/withSuspense';
 import {
   EMPTY_POLICY,
   PERMISSION_RULE_VALUES,
@@ -93,12 +94,20 @@ const initialCUDRule = {
   },
 };
 
+const initialLocationCUDRule = {
+  ...initialCUDRule,
+  update: {
+    ...initialBasicRule,
+    locationTypeIds: null,
+  },
+};
+
 const initialInventoryRules = {
   read: {
     isAllowed: PERMISSION_RULE_VALUES.YES,
   },
   location: {
-    ...initialCUDRule,
+    ...initialLocationCUDRule,
   },
   equipment: {
     ...initialCUDRule,
@@ -130,6 +139,8 @@ const initialWorkforceCUDRules = {
 const initialWorkforceRules = {
   read: {
     ...initialBasicRule,
+    projectTypeIds: null,
+    workOrderTypeIds: null,
   },
   data: {
     ...initialWorkforceCUDRules,
@@ -388,4 +399,4 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
   );
 }
 
-export default withAlert(PermissionsPolicyCard);
+export default withSuspense(withAlert(PermissionsPolicyCard));

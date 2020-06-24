@@ -27,7 +27,8 @@ export type UserManagementUtils_inventoryPolicy = {|
       +isAllowed: PermissionValue
     |},
     +update: {|
-      +isAllowed: PermissionValue
+      +isAllowed: PermissionValue,
+      +locationTypeIds: ?$ReadOnlyArray<string>,
     |},
     +delete: {|
       +isAllowed: PermissionValue
@@ -100,16 +101,17 @@ export type UserManagementUtils_inventoryPolicy$key = {
 
 
 const node/*: ReaderFragment*/ = (function(){
-var v0 = [
-  {
-    "kind": "ScalarField",
-    "alias": null,
-    "name": "isAllowed",
-    "args": null,
-    "storageKey": null
-  }
-],
+var v0 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isAllowed",
+  "args": null,
+  "storageKey": null
+},
 v1 = [
+  (v0/*: any*/)
+],
+v2 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -118,7 +120,7 @@ v1 = [
     "args": null,
     "concreteType": "BasicPermissionRule",
     "plural": false,
-    "selections": (v0/*: any*/)
+    "selections": (v1/*: any*/)
   },
   {
     "kind": "LinkedField",
@@ -128,7 +130,7 @@ v1 = [
     "args": null,
     "concreteType": "BasicPermissionRule",
     "plural": false,
-    "selections": (v0/*: any*/)
+    "selections": (v1/*: any*/)
   },
   {
     "kind": "LinkedField",
@@ -138,7 +140,7 @@ v1 = [
     "args": null,
     "concreteType": "BasicPermissionRule",
     "plural": false,
-    "selections": (v0/*: any*/)
+    "selections": (v1/*: any*/)
   }
 ];
 return {
@@ -156,7 +158,7 @@ return {
       "args": null,
       "concreteType": "BasicPermissionRule",
       "plural": false,
-      "selections": (v0/*: any*/)
+      "selections": (v1/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -175,7 +177,7 @@ return {
           "args": null,
           "concreteType": "LocationPermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -185,7 +187,16 @@ return {
           "args": null,
           "concreteType": "LocationPermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": [
+            (v0/*: any*/),
+            {
+              "kind": "ScalarField",
+              "alias": null,
+              "name": "locationTypeIds",
+              "args": null,
+              "storageKey": null
+            }
+          ]
         },
         {
           "kind": "LinkedField",
@@ -195,7 +206,7 @@ return {
           "args": null,
           "concreteType": "LocationPermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         }
       ]
     },
@@ -207,7 +218,7 @@ return {
       "args": null,
       "concreteType": "CUD",
       "plural": false,
-      "selections": (v1/*: any*/)
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -217,7 +228,7 @@ return {
       "args": null,
       "concreteType": "CUD",
       "plural": false,
-      "selections": (v1/*: any*/)
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -227,7 +238,7 @@ return {
       "args": null,
       "concreteType": "CUD",
       "plural": false,
-      "selections": (v1/*: any*/)
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -237,7 +248,7 @@ return {
       "args": null,
       "concreteType": "CUD",
       "plural": false,
-      "selections": (v1/*: any*/)
+      "selections": (v2/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -247,11 +258,11 @@ return {
       "args": null,
       "concreteType": "CUD",
       "plural": false,
-      "selections": (v1/*: any*/)
+      "selections": (v2/*: any*/)
     }
   ]
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e50c986b2421ebe08a5be0715e650bc8';
+(node/*: any*/).hash = '68ace9bf65bb53be9b160062c73a22d2';
 module.exports = node;

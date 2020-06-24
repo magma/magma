@@ -9,8 +9,8 @@
  */
 
 import type {
+  InventoryActionPermission,
   InventoryEntName,
-  InventoryPermissionEnforcement,
 } from '../admin/userManagement/utils/usePermissions';
 
 import * as React from 'react';
@@ -96,7 +96,7 @@ function ConfigureExpansionPanel(props: Props) {
   } = props;
   const classes = useStyles();
 
-  const editButtonPermissions: InventoryPermissionEnforcement = {
+  const editButtonPermissions: InventoryActionPermission = {
     entity: entityName,
     action: 'update',
   };
@@ -168,7 +168,7 @@ function DeleteButton(props: DeleteButtonProps) {
       ? !allowDelete
       : instanceCount > 0;
 
-  const deleteButtonPermissions: InventoryPermissionEnforcement = {
+  const deleteButtonPermissions: InventoryActionPermission = {
     entity: entityName,
     action: 'delete',
   };

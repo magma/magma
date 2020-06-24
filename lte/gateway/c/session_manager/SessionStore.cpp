@@ -290,7 +290,7 @@ bool SessionStore::merge_into_session(
     auto stored_monitor = it.second;
     auto uc             = get_default_update_criteria();
     session->set_monitor(
-        key, SessionState::unmarshal_monitor(stored_monitor), uc);
+        key, Monitor::unmarshal(stored_monitor), uc);
   }
   return true;
 }

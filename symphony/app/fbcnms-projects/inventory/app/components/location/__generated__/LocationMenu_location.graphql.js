@@ -20,6 +20,9 @@ declare export opaque type LocationMenu_location$fragmentType: LocationMenu_loca
 export type LocationMenu_location = {|
   +id: string,
   +name: string,
+  +locationType: {|
+    +id: string
+  |},
   +parentLocation: ?{|
     +id: string
   |},
@@ -74,6 +77,16 @@ return {
       "name": "name",
       "args": null,
       "storageKey": null
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "locationType",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "LocationType",
+      "plural": false,
+      "selections": (v1/*: any*/)
     },
     {
       "kind": "LinkedField",
@@ -139,5 +152,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'eff26a35c1e9acfc8f9a124eb0182a3c';
+(node/*: any*/).hash = '4155d2d7cef7ceef7b79a4639755fec9';
 module.exports = node;

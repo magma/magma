@@ -11,35 +11,16 @@
 import type {FilterProps} from '../comparison_view/ComparisonViewTypes';
 
 import PowerSearchFilter from '../comparison_view/PowerSearchFilter';
-import React, {useEffect, useState} from 'react';
-import RelayEnvironment from '../../common/RelayEnvironment';
+import React, {useState} from 'react';
 import Tokenizer from '@fbcnms/ui/components/Tokenizer';
-import {fetchQuery, graphql} from 'relay-runtime';
-
-const workOrdersQuery = graphql`
-  query PowerSearchWorkOrderTypeFilterQuery {
-    workOrderTypes {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
+import withSuspense from '../../common/withSuspense';
+import {useWorkOrderTemplateNodes} from '../../common/WorkOrder';
 
 const PowerSearchWorkOrderTypeFilter = (props: FilterProps) => {
-  const [workOrderTypes, setworkOrderTypes] = useState([]);
   const [searchEntries, setSearchEntries] = useState([]);
   const [tokens, setTokens] = useState([]);
 
-  useEffect(() => {
-    // $FlowFixMe (T62907961) Relay flow types
-    fetchQuery(RelayEnvironment, workOrdersQuery).then(data => {
-      setworkOrderTypes(data.workOrderTypes.edges.map(edge => edge.node));
-    });
-  }, []);
+  const workOrderTypes = useWorkOrderTemplateNodes();
 
   const {
     value,
@@ -89,4 +70,4 @@ const PowerSearchWorkOrderTypeFilter = (props: FilterProps) => {
   );
 };
 
-export default PowerSearchWorkOrderTypeFilter;
+export default withSuspense(PowerSearchWorkOrderTypeFilter);

@@ -74,10 +74,14 @@ export type BasicPermissionRule = $ReadOnly<{|
   isAllowed: PermissionValue,
 |}>;
 
-export type CUDPermissions = $ReadOnly<{|
+type BasicCUDPermissions = $ReadOnly<{|
   create: BasicPermissionRule,
-  update: BasicPermissionRule,
   delete: BasicPermissionRule,
+|}>;
+
+export type CUDPermissions = $ReadOnly<{|
+  ...BasicCUDPermissions,
+  update: BasicPermissionRule,
 |}>;
 
 export type InventoryCatalogPolicy = $ReadOnly<{|
@@ -87,8 +91,18 @@ export type InventoryCatalogPolicy = $ReadOnly<{|
   serviceType: CUDPermissions,
 |}>;
 
+type LocationUpdatePermissionRule = $ReadOnly<{|
+  ...BasicPermissionRule,
+  locationTypeIds: ?$ReadOnlyArray<string>,
+|}>;
+
+export type LocationCUDPermissions = $ReadOnly<{|
+  ...BasicCUDPermissions,
+  update: LocationUpdatePermissionRule,
+|}>;
+
 export type InventoryEntsPolicy = $ReadOnly<{|
-  location: CUDPermissions,
+  location: LocationCUDPermissions,
   equipment: CUDPermissions,
   ...InventoryCatalogPolicy,
 |}>;
@@ -98,23 +112,22 @@ export type InventoryPolicy = $ReadOnly<{|
   ...InventoryEntsPolicy,
 |}>;
 
-export type WorkforceBasicPermissions = BasicPermissionRule &
-  $ReadOnly<{|
-    ...BasicPermissionRule,
-    projectTypeIds?: ?$ReadOnlyArray<string>,
-    workOrderTypeIds?: ?$ReadOnlyArray<string>,
-  |}>;
-
 export type WorkforceCUDPermissions = $ReadOnly<{|
-  create: WorkforceBasicPermissions,
-  update: WorkforceBasicPermissions,
-  delete: WorkforceBasicPermissions,
-  assign: WorkforceBasicPermissions,
-  transferOwnership: WorkforceBasicPermissions,
+  create: BasicPermissionRule,
+  update: BasicPermissionRule,
+  delete: BasicPermissionRule,
+  assign: BasicPermissionRule,
+  transferOwnership: BasicPermissionRule,
+|}>;
+
+export type WorkforceReadPermissionRule = $ReadOnly<{|
+  isAllowed: PermissionValue,
+  projectTypeIds: ?$ReadOnlyArray<string>,
+  workOrderTypeIds: ?$ReadOnlyArray<string>,
 |}>;
 
 export type WorkforcePolicy = $ReadOnly<{|
-  read: BasicPermissionRule,
+  read: WorkforceReadPermissionRule,
   data: WorkforceCUDPermissions,
   templates: CUDPermissions,
 |}>;
@@ -176,12 +189,22 @@ function permissionsPolicy2PermissionsPolicyInput(
   };
 }
 
+type PermissionPolicyBasicRuleInput = {|
+  ...BasicPermissionRule,
+|};
+
 function permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
   rule: ?BasicPermissionRule,
-) {
+): PermissionPolicyBasicRuleInput {
   return {
-    isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
+    isAllowed: parsePermissionValue(rule?.isAllowed),
   };
+}
+
+function parsePermissionValue(
+  permissionValue?: ?PermissionValue,
+): PermissionValue {
+  return permissionValue ?? PERMISSION_RULE_VALUES.NO;
 }
 
 export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
@@ -200,9 +223,9 @@ export const permissionPolicyCUDRule2PermissionPolicyCUDRuleInput = (
   };
 };
 
-export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput: (
-  ?WorkforceCUDPermissions,
-) => WorkforceCUDInput = (rule: ?WorkforceCUDPermissions) => {
+export function permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
+  rule: ?WorkforceCUDPermissions,
+): WorkforceCUDInput {
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       rule?.create,
@@ -220,7 +243,7 @@ export const permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput: (
       rule?.transferOwnership,
     ),
   };
-};
+}
 
 export const initInventoryRulesInput: (
   ?InventoryPolicy,
@@ -229,7 +252,7 @@ export const initInventoryRulesInput: (
     read: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       policyRules?.read,
     ),
-    location: permissionPolicyCUDRule2LocationPermissionPolicyCUDRuleInput(
+    location: locationPolicyCUDRule2LocationPolicyCUDRuleInput(
       policyRules?.location,
     ),
     equipment: permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
@@ -250,38 +273,45 @@ export const initInventoryRulesInput: (
   };
 };
 
-export const permissionPolicyCUDRule2LocationPermissionPolicyCUDRuleInput: (
-  ?CUDPermissions,
-) => LocationCUDInput = (rule: ?CUDPermissions) => {
-  const partialInput = permissionPolicyCUDRule2PermissionPolicyCUDRuleInput(
-    rule,
-  );
+export function locationPolicyCUDRule2LocationPolicyCUDRuleInput(
+  rule: ?LocationCUDPermissions,
+): LocationCUDInput {
+  const updateIsAllowedValue = parsePermissionValue(rule?.update.isAllowed);
+
   return {
-    create: {
-      ...partialInput.create,
-    },
+    create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule?.create,
+    ),
     update: {
-      ...partialInput.update,
+      isAllowed: updateIsAllowedValue,
+      locationTypeIds:
+        updateIsAllowedValue === PERMISSION_RULE_VALUES.BY_CONDITION
+          ? rule?.update.locationTypeIds
+          : null,
     },
-    delete: {
-      ...partialInput.delete,
-    },
+    delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
+      rule?.delete,
+    ),
   };
-};
+}
 
-export const wfPermissionPolicyBasicRule2wfPermissionRuleInput: (
-  ?WorkforceBasicPermissions,
-) => WorkforcePermissionRuleInput = (rule: ?BasicPermissionRule) => {
+function workforceReadPermissionRule2WorkforcePermissionRuleInput(
+  policyRule?: ?WorkforceReadPermissionRule,
+): WorkforcePermissionRuleInput {
   return {
-    isAllowed: rule?.isAllowed ?? PERMISSION_RULE_VALUES.NO,
+    isAllowed: parsePermissionValue(policyRule?.isAllowed),
+    projectTypeIds: policyRule?.projectTypeIds,
+    workOrderTypeIds: policyRule?.workOrderTypeIds,
   };
-};
+}
 
-export const initWorkforceRulesInput: (
-  ?WorkforcePolicy,
-) => WorkforcePolicyInput = (policyRules?: ?WorkforcePolicy) => {
+export function initWorkforceRulesInput(
+  policyRules?: ?WorkforcePolicy,
+): WorkforcePolicyInput {
   return {
-    read: wfPermissionPolicyBasicRule2wfPermissionRuleInput(policyRules?.read),
+    read: workforceReadPermissionRule2WorkforcePermissionRuleInput(
+      policyRules?.read,
+    ),
     data: permissionPolicyWFCUDRule2PermissionPolicyWFCUDRuleInput(
       policyRules?.data,
     ),
@@ -289,7 +319,7 @@ export const initWorkforceRulesInput: (
       policyRules?.templates,
     ),
   };
-};
+}
 
 export function bool2PermissionRuleValue(value: ?boolean): PermissionValue {
   return value === true
@@ -298,7 +328,7 @@ export function bool2PermissionRuleValue(value: ?boolean): PermissionValue {
 }
 
 export function permissionRuleValue2Bool(value: PermissionValue) {
-  return value === PERMISSION_RULE_VALUES.YES;
+  return value !== PERMISSION_RULE_VALUES.NO;
 }
 
 function response2PermissionsPolicy(

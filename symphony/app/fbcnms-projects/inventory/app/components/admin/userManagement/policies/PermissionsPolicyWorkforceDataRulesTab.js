@@ -21,9 +21,12 @@ import HierarchicalCheckbox, {
 import PermissionsPolicyRulesSection, {
   DataRuleTitle,
 } from './PermissionsPolicyRulesSection';
+import PermissionsPolicyWorkforceDataRulesSpecification from './PermissionsPolicyWorkforceDataRulesSpecification';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {
   bool2PermissionRuleValue,
   permissionRuleValue2Bool,
@@ -50,6 +53,41 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     flexDirection: 'column',
   },
+  policySpecificationContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '16px',
+    paddingBottom: '8px',
+    backgroundColor: symphony.palette.background,
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    borderColor: symphony.palette.D100,
+    borderLeftWidth: '2px',
+    borderLeftColor: symphony.palette.primary,
+    borderRadius: '2px',
+    marginTop: '12px',
+  },
+  methodSelectionBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: 'fit-content',
+    marginBottom: '16px',
+    '& > *': {
+      marginBottom: '4px',
+    },
+  },
+  policyMethodSelect: {
+    '&&': {
+      paddingLeft: '8px',
+      marginRight: '16px',
+    },
+  },
+  templatesFieldContainer: {
+    minHeight: '78px',
+  },
+  hidden: {
+    display: 'none',
+  },
   rule: {
     marginTop: '8px',
     marginLeft: '4px',
@@ -62,7 +100,7 @@ const useStyles = makeStyles(() => ({
 type InventoryDataRulesSectionProps = $ReadOnly<{|
   rule: WorkforceCUDPermissions,
   disabled: boolean,
-  onChange: WorkforceCUDPermissions => void,
+  onChange?: WorkforceCUDPermissions => void,
 |}>;
 
 type WorkforceCUDPermissionsKey = $Keys<WorkforceCUDPermissions>;
@@ -76,7 +114,8 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
 
   const debouncedOnChange = useCallback(
     debounce(
-      (newRuleValue: WorkforceCUDPermissions) => onChange(newRuleValue),
+      (newRuleValue: WorkforceCUDPermissions) =>
+        onChange && onChange(newRuleValue),
       100,
     ),
     [],
@@ -138,14 +177,17 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
             </DataRuleTitle>
           }
           disabled={disabled}
-          value={!disabled && permissionRuleValue2Bool(rule.assign.isAllowed)}
-          onChange={checked =>
-            onChange({
-              ...rule,
-              assign: {
-                isAllowed: bool2PermissionRuleValue(checked),
-              },
-            })
+          value={permissionRuleValue2Bool(rule.assign.isAllowed)}
+          onChange={
+            onChange != null
+              ? checked =>
+                  onChange({
+                    ...rule,
+                    assign: {
+                      isAllowed: bool2PermissionRuleValue(checked),
+                    },
+                  })
+              : undefined
           }
           hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
           className={classes.rule}
@@ -182,21 +224,33 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
 
 type Props = $ReadOnly<{|
   policy: ?WorkforcePolicy,
-  onChange: WorkforcePolicy => void,
+  onChange?: WorkforcePolicy => void,
+  className?: ?string,
 |}>;
 
 export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
-  const {policy, onChange} = props;
+  const {policy, onChange, className} = props;
   const classes = useStyles();
+
+  const callOnChange = useCallback(
+    (updatedPolicy: WorkforcePolicy) => {
+      if (onChange == null) {
+        return;
+      }
+      onChange(updatedPolicy);
+    },
+    [onChange],
+  );
 
   if (policy == null) {
     return null;
   }
 
   const readAllowed = permissionRuleValue2Bool(policy.read.isAllowed);
+  const isDisabled = onChange == null;
 
   return (
-    <div className={classes.root}>
+    <div className={classNames(classes.root, className)}>
       <div className={classes.header}>
         <Text variant="subtitle1">
           <fbt desc="">Workforce Data</fbt>
@@ -212,20 +266,27 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
         className={classes.readRule}
         title={fbt('View work orders and projects', '')}
         checked={readAllowed}
+        disabled={isDisabled}
         onChange={checked =>
-          onChange({
+          callOnChange({
             ...policy,
             read: {
+              ...policy.read,
               isAllowed: bool2PermissionRuleValue(checked),
             },
           })
         }
       />
+      <PermissionsPolicyWorkforceDataRulesSpecification
+        policy={policy}
+        onChange={callOnChange}
+        disabled={isDisabled}
+      />
       <WorkforceDataRulesSection
-        disabled={!readAllowed}
+        disabled={isDisabled || !readAllowed}
         rule={policy.data}
         onChange={data =>
-          onChange({
+          callOnChange({
             ...policy,
             data,
           })

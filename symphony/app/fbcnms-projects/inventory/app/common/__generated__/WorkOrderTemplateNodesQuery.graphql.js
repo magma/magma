@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c27160cec3f78222bdba8e76696031c8
+ * @relayHash f37e5ef730af0aba2c33f6d696d312a1
  */
 
 /* eslint-disable */
@@ -15,8 +15,8 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type PowerSearchWorkOrderTypeFilterQueryVariables = {||};
-export type PowerSearchWorkOrderTypeFilterQueryResponse = {|
+export type WorkOrderTemplateNodesQueryVariables = {||};
+export type WorkOrderTemplateNodesQueryResponse = {|
   +workOrderTypes: ?{|
     +edges: $ReadOnlyArray<{|
       +node: ?{|
@@ -26,15 +26,15 @@ export type PowerSearchWorkOrderTypeFilterQueryResponse = {|
     |}>
   |}
 |};
-export type PowerSearchWorkOrderTypeFilterQuery = {|
-  variables: PowerSearchWorkOrderTypeFilterQueryVariables,
-  response: PowerSearchWorkOrderTypeFilterQueryResponse,
+export type WorkOrderTemplateNodesQuery = {|
+  variables: WorkOrderTemplateNodesQueryVariables,
+  response: WorkOrderTemplateNodesQueryResponse,
 |};
 */
 
 
 /*
-query PowerSearchWorkOrderTypeFilterQuery {
+query WorkOrderTemplateNodesQuery {
   workOrderTypes {
     edges {
       node {
@@ -100,7 +100,7 @@ return {
   "kind": "Request",
   "fragment": {
     "kind": "Fragment",
-    "name": "PowerSearchWorkOrderTypeFilterQuery",
+    "name": "WorkOrderTemplateNodesQuery",
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": [],
@@ -108,19 +108,19 @@ return {
   },
   "operation": {
     "kind": "Operation",
-    "name": "PowerSearchWorkOrderTypeFilterQuery",
+    "name": "WorkOrderTemplateNodesQuery",
     "argumentDefinitions": [],
     "selections": (v0/*: any*/)
   },
   "params": {
     "operationKind": "query",
-    "name": "PowerSearchWorkOrderTypeFilterQuery",
+    "name": "WorkOrderTemplateNodesQuery",
     "id": null,
-    "text": "query PowerSearchWorkOrderTypeFilterQuery {\n  workOrderTypes {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query WorkOrderTemplateNodesQuery {\n  workOrderTypes {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'd50e2d512e76bfdc0b0e7bb397d4ec3f';
+(node/*: any*/).hash = '7a892dd4443cb15717b92876c8c5989d';
 module.exports = node;

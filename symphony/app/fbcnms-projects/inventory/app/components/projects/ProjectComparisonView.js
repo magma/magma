@@ -79,6 +79,7 @@ const ProjectComparisonView = () => {
         permissions={{
           entity: 'project',
           action: 'create',
+          ignoreTypes: true,
         }}>
         <Button
           onClick={() => {
