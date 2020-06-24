@@ -19,31 +19,30 @@ namespace magma {
 float SessionCredit::USAGE_REPORTING_THRESHOLD = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
-std::unique_ptr<SessionCredit>
-SessionCredit::unmarshal(const StoredSessionCredit &marshaled,
-                         CreditType credit_type) {
-  auto session_credit = std::make_unique<SessionCredit>(credit_type);
+SessionCredit SessionCredit::unmarshal(
+  const StoredSessionCredit &marshaled, CreditType credit_type) {
+  SessionCredit session_credit(credit_type);
 
-  session_credit->reporting_ = marshaled.reporting;
-  session_credit->is_final_grant_ = marshaled.is_final;
-  session_credit->credit_limit_type_ = marshaled.credit_limit_type;
+  session_credit.reporting_ = marshaled.reporting;
+  session_credit.is_final_grant_ = marshaled.is_final;
+  session_credit.credit_limit_type_ = marshaled.credit_limit_type;
 
   // FinalActionInfo
   FinalActionInfo final_action_info;
   final_action_info.final_action = marshaled.final_action_info.final_action;
   final_action_info.redirect_server =
       marshaled.final_action_info.redirect_server;
-  session_credit->final_action_info_ = final_action_info;
+  session_credit.final_action_info_ = final_action_info;
 
-  session_credit->reauth_state_ = marshaled.reauth_state;
-  session_credit->service_state_ = marshaled.service_state;
-  session_credit->expiry_time_ = marshaled.expiry_time;
-  session_credit->grant_tracking_type_ = marshaled.grant_tracking_type;
+  session_credit.reauth_state_ = marshaled.reauth_state;
+  session_credit.service_state_ = marshaled.service_state;
+  session_credit.expiry_time_ = marshaled.expiry_time;
+  session_credit.grant_tracking_type_ = marshaled.grant_tracking_type;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     if (marshaled.buckets.find(bucket) != marshaled.buckets.end()) {
-      session_credit->buckets_[bucket] = marshaled.buckets.find(bucket)->second;
+      session_credit.buckets_[bucket] = marshaled.buckets.find(bucket)->second;
     }
   }
   return session_credit;

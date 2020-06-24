@@ -159,8 +159,7 @@ class SessionState {
     const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
 
   void set_charging_credit(
-    const CreditKey &key, std::unique_ptr<SessionCredit> credit,
-    SessionStateUpdateCriteria &update_criteria);
+    const CreditKey &key, SessionCredit credit, SessionStateUpdateCriteria &uc);
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,

@@ -38,7 +38,7 @@ struct Monitor {
   // Unmarshal from StoredMonitor structure used in SessionStore
   static std::unique_ptr<Monitor> unmarshal(const StoredMonitor &marshaled) {
     Monitor monitor;
-    monitor.credit = *SessionCredit::unmarshal(marshaled.credit, MONITORING);
+    monitor.credit = SessionCredit::unmarshal(marshaled.credit, MONITORING);
     monitor.level = marshaled.level;
     return std::make_unique<Monitor>(monitor);
   }

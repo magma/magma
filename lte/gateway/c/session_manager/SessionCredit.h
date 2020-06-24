@@ -45,8 +45,8 @@ public:
     uint64_t bytes_rx;
   };
 
-  static std::unique_ptr<SessionCredit>
-  unmarshal(const StoredSessionCredit &marshaled, CreditType credit_type);
+  static SessionCredit unmarshal(
+    const StoredSessionCredit &marshaled, CreditType credit_type);
 
   StoredSessionCredit marshal();
 
