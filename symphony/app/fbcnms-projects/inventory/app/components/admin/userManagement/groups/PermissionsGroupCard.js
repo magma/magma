@@ -69,7 +69,6 @@ function PermissionsGroupCard(props: Props) {
   const classes = useStyles();
   const match = useRouteMatch();
   const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const permissionPoliciesMode = isFeatureEnabled('permission_policies');
 
   const groupId = match.params.id;
@@ -204,9 +203,7 @@ function PermissionsGroupCard(props: Props) {
             xs={8}
             className={classNames(classes.container, classes.vertical)}>
             <PermissionsGroupDetailsPane group={group} onChange={setGroup} />
-            {userManagementDevMode ? (
-              <PermissionsGroupPoliciesPane group={group} onChange={setGroup} />
-            ) : null}
+            <PermissionsGroupPoliciesPane group={group} onChange={setGroup} />
           </Grid>
           <Grid item xs={4} className={classes.container}>
             <PermissionsGroupMembersPane group={group} onChange={setGroup} />
