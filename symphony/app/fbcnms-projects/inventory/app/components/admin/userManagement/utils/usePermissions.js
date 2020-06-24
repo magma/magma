@@ -38,11 +38,23 @@ export type InventoryEntName = InventoryEntWithPermission | 'service' | 'port';
 type WorkforceTemplateEntName = 'workorderTemplate' | 'projectTemplate';
 type InventoryActionName = $Keys<CUDPermissions>;
 
-export type InventoryPermissionEnforcement = $ReadOnly<{|
+type InventoryActionPermission = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: InventoryEntName | WorkforceTemplateEntName,
   action?: ?InventoryActionName,
 |}>;
+
+type LocationActionPermission = $ReadOnly<{|
+  ...BasePermissionEnforcement,
+  entity: 'location',
+  action: InventoryActionName,
+  locationTypeId?: ?string,
+  ignoreTypes?: ?boolean,
+|}>;
+
+export type InventoryPermissionEnforcement = $ReadOnly<
+  InventoryActionPermission | LocationActionPermission,
+>;
 
 type WorkforceEntName = 'workorder' | 'project';
 
@@ -104,13 +116,6 @@ const performCheck = (
   } else if (!permissionsEnforcement.action) {
     return PASSED_VALUE;
   } else if (
-    permissionsEnforcement.entity === 'location' &&
-    permissionsEnforcement.action === 'update'
-  ) {
-    actionPermissionValue = {
-      isAllowed: userPermissions.inventoryPolicy.location.update.isAllowed,
-    };
-  } else if (
     permissionsEnforcement.entity === 'workorder' ||
     permissionsEnforcement.entity === 'project'
   ) {
@@ -143,6 +148,23 @@ const performCheck = (
       permissionsEnforcement.entity === 'service'
         ? 'equipment'
         : permissionsEnforcement.entity;
+
+    if (entity === 'location' && permissionsEnforcement.ignoreTypes !== true) {
+      const allowedTypes =
+        userPermissions.inventoryPolicy.location[enforcement.action]
+          .locationTypeIds;
+
+      if (allowedTypes != null) {
+        if (permissionsEnforcement.locationTypeId == null) {
+          return FAILED_REGULAR_VALUE;
+        } else {
+          const typeAllowed = allowedTypes.includes(
+            permissionsEnforcement.locationTypeId,
+          );
+          return typeAllowed ? PASSED_VALUE : FAILED_REGULAR_VALUE;
+        }
+      }
+    }
 
     actionPermissionValue = {
       isAllowed:

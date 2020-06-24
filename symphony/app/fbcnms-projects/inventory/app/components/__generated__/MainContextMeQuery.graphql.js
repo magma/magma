@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 27c5a00ddded2fe164b0c837b33857db
+ * @relayHash ad1818bc711a496cc206f1b4fcde578a
  */
 
 /* eslint-disable */
@@ -39,14 +39,16 @@ export type MainContextMeQueryResponse = {|
         |},
         +location: {|
           +create: {|
-            +isAllowed: PermissionValue
+            +isAllowed: PermissionValue,
+            +locationTypeIds: ?$ReadOnlyArray<string>,
           |},
           +update: {|
             +isAllowed: PermissionValue,
             +locationTypeIds: ?$ReadOnlyArray<string>,
           |},
           +delete: {|
-            +isAllowed: PermissionValue
+            +isAllowed: PermissionValue,
+            +locationTypeIds: ?$ReadOnlyArray<string>,
           |},
         |},
         +equipment: {|
@@ -174,6 +176,7 @@ query MainContextMeQuery {
         location {
           create {
             isAllowed
+            locationTypeIds
           }
           update {
             isAllowed
@@ -181,6 +184,7 @@ query MainContextMeQuery {
           }
           delete {
             isAllowed
+            locationTypeIds
           }
         }
         equipment {
@@ -291,6 +295,16 @@ v1 = [
   (v0/*: any*/)
 ],
 v2 = [
+  (v0/*: any*/),
+  {
+    "kind": "ScalarField",
+    "alias": null,
+    "name": "locationTypeIds",
+    "args": null,
+    "storageKey": null
+  }
+],
+v3 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -322,7 +336,7 @@ v2 = [
     "selections": (v1/*: any*/)
   }
 ],
-v3 = [
+v4 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -451,7 +465,7 @@ v3 = [
                     "args": null,
                     "concreteType": "LocationPermissionRule",
                     "plural": false,
-                    "selections": (v1/*: any*/)
+                    "selections": (v2/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -461,16 +475,7 @@ v3 = [
                     "args": null,
                     "concreteType": "LocationPermissionRule",
                     "plural": false,
-                    "selections": [
-                      (v0/*: any*/),
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "locationTypeIds",
-                        "args": null,
-                        "storageKey": null
-                      }
-                    ]
+                    "selections": (v2/*: any*/)
                   },
                   {
                     "kind": "LinkedField",
@@ -480,7 +485,7 @@ v3 = [
                     "args": null,
                     "concreteType": "LocationPermissionRule",
                     "plural": false,
-                    "selections": (v1/*: any*/)
+                    "selections": (v2/*: any*/)
                   }
                 ]
               },
@@ -492,7 +497,7 @@ v3 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v2/*: any*/)
+                "selections": (v3/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -502,7 +507,7 @@ v3 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v2/*: any*/)
+                "selections": (v3/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -512,7 +517,7 @@ v3 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v2/*: any*/)
+                "selections": (v3/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -522,7 +527,7 @@ v3 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v2/*: any*/)
+                "selections": (v3/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -532,7 +537,7 @@ v3 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v2/*: any*/)
+                "selections": (v3/*: any*/)
               }
             ]
           },
@@ -579,7 +584,7 @@ v3 = [
                 "args": null,
                 "concreteType": "CUD",
                 "plural": false,
-                "selections": (v2/*: any*/)
+                "selections": (v3/*: any*/)
               },
               {
                 "kind": "LinkedField",
@@ -657,23 +662,23 @@ return {
     "type": "Query",
     "metadata": null,
     "argumentDefinitions": [],
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "operation": {
     "kind": "Operation",
     "name": "MainContextMeQuery",
     "argumentDefinitions": [],
-    "selections": (v3/*: any*/)
+    "selections": (v4/*: any*/)
   },
   "params": {
     "operationKind": "query",
     "name": "MainContextMeQuery",
     "id": null,
-    "text": "query MainContextMeQuery {\n  me {\n    user {\n      id\n      authID\n      email\n      firstName\n      lastName\n    }\n    permissions {\n      canWrite\n      adminPolicy {\n        access {\n          isAllowed\n        }\n      }\n      inventoryPolicy {\n        read {\n          isAllowed\n        }\n        location {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n            locationTypeIds\n          }\n          delete {\n            isAllowed\n          }\n        }\n        equipment {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        equipmentType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        locationType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        portType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        serviceType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n      }\n      workforcePolicy {\n        read {\n          isAllowed\n          projectTypeIds\n          workOrderTypeIds\n        }\n        templates {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        data {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n          assign {\n            isAllowed\n          }\n          transferOwnership {\n            isAllowed\n          }\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query MainContextMeQuery {\n  me {\n    user {\n      id\n      authID\n      email\n      firstName\n      lastName\n    }\n    permissions {\n      canWrite\n      adminPolicy {\n        access {\n          isAllowed\n        }\n      }\n      inventoryPolicy {\n        read {\n          isAllowed\n        }\n        location {\n          create {\n            isAllowed\n            locationTypeIds\n          }\n          update {\n            isAllowed\n            locationTypeIds\n          }\n          delete {\n            isAllowed\n            locationTypeIds\n          }\n        }\n        equipment {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        equipmentType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        locationType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        portType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        serviceType {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n      }\n      workforcePolicy {\n        read {\n          isAllowed\n          projectTypeIds\n          workOrderTypeIds\n        }\n        templates {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n        }\n        data {\n          create {\n            isAllowed\n          }\n          update {\n            isAllowed\n          }\n          delete {\n            isAllowed\n          }\n          assign {\n            isAllowed\n          }\n          transferOwnership {\n            isAllowed\n          }\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '6c0625d13f5b6688e667415cbdb92fc3';
+(node/*: any*/).hash = '5aea2c378611998a70ece0a7eb81c4c1';
 module.exports = node;

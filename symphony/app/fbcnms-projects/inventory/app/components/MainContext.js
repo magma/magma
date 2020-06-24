@@ -79,7 +79,78 @@ const meQuery = graphql`
           }
         }
         inventoryPolicy {
-          ...UserManagementUtils_inventoryPolicy @relay(mask: false)
+          read {
+            isAllowed
+          }
+          location {
+            create {
+              isAllowed
+              locationTypeIds
+            }
+            update {
+              isAllowed
+              locationTypeIds
+            }
+            delete {
+              isAllowed
+              locationTypeIds
+            }
+          }
+          equipment {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          equipmentType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          locationType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          portType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          serviceType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
         }
         workforcePolicy {
           ...UserManagementUtils_workforcePolicy @relay(mask: false)
