@@ -44,12 +44,6 @@ struct SessionConfig {
 };
 
 // Session Credit
-
-struct StoredRedirectServer {
-  RedirectServer_RedirectAddressType redirect_address_type;
-  std::string redirect_server_address;
-};
-
 struct FinalActionInfo {
   ChargingCredit_FinalAction final_action;
   RedirectServer redirect_server;
@@ -235,12 +229,6 @@ QoSInfo deserialize_stored_qos_info(const std::string &serialized);
 std::string serialize_stored_session_config(const SessionConfig &stored);
 
 SessionConfig deserialize_stored_session_config(const std::string &serialized);
-
-std::string
-serialize_stored_redirect_server(const StoredRedirectServer &stored);
-
-StoredRedirectServer
-deserialize_stored_redirect_server(const std::string &serialized);
 
 std::string serialize_stored_final_action_info(const FinalActionInfo &stored);
 

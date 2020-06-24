@@ -39,6 +39,7 @@ export type FeatureID =
   | 'saved_searches'
   | 'user_management_dev'
   | 'permission_policies'
+  | 'permission_policy_per_type'
   | 'permissions_ui_enforcement'
   | 'dashboard_v2'
   | 'move_work_order_activities_to_async_service'

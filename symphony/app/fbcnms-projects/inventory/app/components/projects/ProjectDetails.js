@@ -226,6 +226,7 @@ class ProjectDetails extends React.Component<Props, State> {
                 permissions={{
                   entity: 'project',
                   action: 'update',
+                  projectTypeId: project.type.id,
                   ignorePermissions: isOwner,
                 }}>
                 <div className={classes.nameHeader}>
@@ -379,6 +380,7 @@ class ProjectDetails extends React.Component<Props, State> {
                           permissions={{
                             entity: 'project',
                             action: 'transferOwnership',
+                            projectTypeId: project.type.id,
                             ignorePermissions: isOwner,
                           }}>
                           <UserTypeahead

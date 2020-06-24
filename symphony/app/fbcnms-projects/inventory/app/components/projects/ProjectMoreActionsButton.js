@@ -46,12 +46,13 @@ type Props = {
 
 class ProjectMoreActionsButton extends React.Component<Props> {
   render() {
-    const {className, classes} = this.props;
+    const {project, className, classes} = this.props;
     return (
       <FormActionWithPermissions
         permissions={{
           entity: 'project',
           action: 'delete',
+          projectTypeId: project.type.id,
         }}>
         <Button
           className={classNames(className, classes.deleteButton)}
@@ -118,6 +119,9 @@ export default withStyles(styles)(
             id
             name
             numberOfWorkOrders
+            type {
+              id
+            }
           }
         `,
       }),

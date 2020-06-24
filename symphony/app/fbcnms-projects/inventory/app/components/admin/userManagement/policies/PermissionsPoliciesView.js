@@ -11,6 +11,7 @@
 import * as React from 'react';
 import PermissionsPoliciesTable from './PermissionsPoliciesTable';
 import fbt from 'fbt';
+import withSuspense from '../../../../common/withSuspense';
 import {makeStyles} from '@material-ui/styles';
 import {usePermissionsPolicies} from '../data/PermissionsPolicies';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -26,7 +27,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export default function PermissionsPoliciesView() {
+function PermissionsPoliciesView() {
   const classes = useStyles();
   const {history} = useRouter();
 
@@ -43,3 +44,5 @@ export default function PermissionsPoliciesView() {
     </div>
   );
 }
+
+export default withSuspense(PermissionsPoliciesView);

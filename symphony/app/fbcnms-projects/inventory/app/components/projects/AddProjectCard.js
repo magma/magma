@@ -164,6 +164,7 @@ class AddProjectCard extends React.Component<Props, State> {
           permissions={{
             entity: 'project',
             action: 'create',
+            ignoreTypes: true,
           }}>
           <div className={classes.nameHeader}>
             <div className={classes.breadcrumbs}>

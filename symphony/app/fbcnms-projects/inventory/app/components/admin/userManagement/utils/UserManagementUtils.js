@@ -74,6 +74,7 @@ graphql`
       }
       update {
         isAllowed
+        locationTypeIds
       }
       delete {
         isAllowed
@@ -141,6 +142,8 @@ graphql`
   fragment UserManagementUtils_workforcePolicy on WorkforcePolicy {
     read {
       isAllowed
+      projectTypeIds
+      workOrderTypeIds
     }
     templates {
       create {

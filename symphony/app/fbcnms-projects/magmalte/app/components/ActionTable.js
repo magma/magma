@@ -85,6 +85,7 @@ export type ActionQuery = {
 
 export type ActionTableProps<T> = {
   titleIcon?: ComponentType<SvgIconExports>,
+  tableRef?: {},
   title?: string,
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
@@ -146,6 +147,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
     <>
       {actionTableJSX}
       <MaterialTable
+        tableRef={props.tableRef}
         title=""
         columns={props.columns}
         icons={tableIcons}

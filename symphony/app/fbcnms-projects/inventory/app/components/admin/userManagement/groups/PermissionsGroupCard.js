@@ -28,6 +28,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withSuspense from '../../../../common/withSuspense';
 import {GROUP_STATUSES, NEW_DIALOG_PARAM} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {addGroup, deleteGroup, editGroup} from '../data/UsersGroups';
@@ -69,7 +70,6 @@ function PermissionsGroupCard(props: Props) {
   const classes = useStyles();
   const match = useRouteMatch();
   const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const permissionPoliciesMode = isFeatureEnabled('permission_policies');
 
   const groupId = match.params.id;
@@ -202,16 +202,11 @@ function PermissionsGroupCard(props: Props) {
           <Grid
             item
             xs={8}
-            sm={8}
-            lg={8}
-            xl={8}
             className={classNames(classes.container, classes.vertical)}>
             <PermissionsGroupDetailsPane group={group} onChange={setGroup} />
-            {userManagementDevMode ? (
-              <PermissionsGroupPoliciesPane group={group} onChange={setGroup} />
-            ) : null}
+            <PermissionsGroupPoliciesPane group={group} onChange={setGroup} />
           </Grid>
-          <Grid item xs={4} sm={4} lg={4} xl={4} className={classes.container}>
+          <Grid item xs={4} className={classes.container}>
             <PermissionsGroupMembersPane group={group} onChange={setGroup} />
           </Grid>
         </Grid>
@@ -220,4 +215,4 @@ function PermissionsGroupCard(props: Props) {
   );
 }
 
-export default withAlert(PermissionsGroupCard);
+export default withSuspense(withAlert(PermissionsGroupCard));

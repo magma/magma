@@ -11,35 +11,15 @@
 import type {FilterProps} from './ComparisonViewTypes';
 
 import PowerSearchFilter from './PowerSearchFilter';
-import React, {useEffect, useState} from 'react';
-import RelayEnvironment from '../../common/RelayEnvironment';
+import React, {useState} from 'react';
 import Tokenizer from '@fbcnms/ui/components/Tokenizer';
-import {fetchQuery, graphql} from 'relay-runtime';
-
-const locationTypesQuery = graphql`
-  query PowerSearchLocationTypeFilterQuery {
-    locationTypes {
-      edges {
-        node {
-          id
-          name
-        }
-      }
-    }
-  }
-`;
+import withSuspense from '../../common/withSuspense';
+import {useLocationTypeNodes} from '../../common/LocationType';
 
 const PowerSearchLocationTypeFilter = (props: FilterProps) => {
-  const [locationTypes, setLocationTypes] = useState([]);
+  const locationTypes = useLocationTypeNodes();
   const [searchEntries, setSearchEntries] = useState([]);
   const [tokens, setTokens] = useState([]);
-
-  useEffect(() => {
-    // $FlowFixMe (T62907961) Relay flow types
-    fetchQuery(RelayEnvironment, locationTypesQuery).then(data => {
-      setLocationTypes(data.locationTypes.edges.map(edge => edge.node));
-    });
-  }, []);
 
   const {
     value,
@@ -88,4 +68,4 @@ const PowerSearchLocationTypeFilter = (props: FilterProps) => {
   );
 };
 
-export default PowerSearchLocationTypeFilter;
+export default withSuspense(PowerSearchLocationTypeFilter);

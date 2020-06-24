@@ -190,8 +190,14 @@ class BootstrapManager(SDWatchdogTask):
     async def _get_challenge_done_success(self, challenge):
         # create key
         try:
-            self._gateway_key = ec.generate_private_key(
-                ec.SECP384R1(), default_backend())
+            # GRPC python client only supports P256 elliptic curve cipher
+            # See https://github.com/grpc/grpc/issues/23235
+            # Behind the nghttpx control_proxy this isn't a problem because
+            # nghttpx handles the handshake, but if you have a P384 cert and
+            # don't proxy your cloud connections, every authenticated Python
+            # GRPC call will fail.
+            self._gateway_key = ec.generate_private_key(ec.SECP256R1(),
+                                                        default_backend())
         except InternalError as exp:
             logging.error('Fail to generate private key: %s', exp)
             BOOTSTRAP_EXCEPTION.labels(

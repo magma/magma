@@ -98,6 +98,7 @@ const LocationMenu = (props: Props) => {
       permissions: {
         entity: 'location',
         action: 'update',
+        locationTypeId: location.locationType.id,
         hideOnMissingPermissions: true,
       },
     },
@@ -120,6 +121,7 @@ const LocationMenu = (props: Props) => {
         entity: 'location',
         action: 'delete',
         hideOnMissingPermissions: true,
+        locationTypeId: location.locationType.id,
       },
     });
   }
@@ -154,6 +156,9 @@ export default withAlert(
       fragment LocationMenu_location on Location {
         id
         name
+        locationType {
+          id
+        }
         parentLocation {
           id
         }

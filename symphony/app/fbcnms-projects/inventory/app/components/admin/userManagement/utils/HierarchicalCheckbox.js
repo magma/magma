@@ -25,7 +25,7 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
   },
   children: {
-    marginLeft: '24px',
+    paddingLeft: '24px',
   },
 }));
 
@@ -42,6 +42,7 @@ type SubTreeProps = $ReadOnly<{|
   hierarchicalRelation: HierarchicalRelationType,
   children?: React.Node,
   className?: ?string,
+  childrenClassName?: ?string,
 |}>;
 
 function CheckboxSubTree(props: SubTreeProps) {
@@ -51,6 +52,7 @@ function CheckboxSubTree(props: SubTreeProps) {
     title,
     disabled,
     className,
+    childrenClassName,
     children,
   } = props;
   const classes = useStyles();
@@ -122,7 +124,9 @@ function CheckboxSubTree(props: SubTreeProps) {
         title={title}
         onChange={status => onChange(status === 'checked')}
       />
-      <div className={classes.children}>{children}</div>
+      <div className={classNames(classes.children, childrenClassName)}>
+        {children}
+      </div>
     </div>
   );
 }

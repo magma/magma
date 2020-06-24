@@ -8,7 +8,7 @@
 apiVersion: "1.0"
 description: Magma Carrier Gateway
 name: cwf
-version: 0.1.7
+version: 0.1.8
 home: https://github.com/facebookincubator/magma
 sources:
   - https://github.com/facebookincubator/magma

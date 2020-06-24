@@ -277,6 +277,7 @@ const WorkOrderDetails = ({
         permissions={{
           entity: 'workorder',
           action: 'update',
+          workOrderTypeId: propsWorkOrder.workOrderType.id,
           ignorePermissions: isOwner || isAssignee,
         }}>
         <WorkOrderHeader
@@ -533,6 +534,7 @@ const WorkOrderDetails = ({
                         permissions={{
                           entity: 'workorder',
                           action: 'transferOwnership',
+                          workOrderTypeId: propsWorkOrder.workOrderType.id,
                           ignorePermissions: isOwner,
                         }}
                         required={true}
@@ -551,6 +553,7 @@ const WorkOrderDetails = ({
                         permissions={{
                           entity: 'workorder',
                           action: 'assign',
+                          workOrderTypeId: propsWorkOrder.workOrderType.id,
                           ignorePermissions: isOwner || isAssignee,
                         }}>
                         <UserTypeahead

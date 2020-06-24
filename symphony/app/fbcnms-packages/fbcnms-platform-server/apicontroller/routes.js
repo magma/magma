@@ -158,6 +158,15 @@ router.use(
   }),
 );
 
+router.use(
+  '/magma/v1/events/:networkID/:streamName',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: networkIdFilter,
+    proxyErrorHandler,
+  }),
+);
+
 router.use('', (req: FBCNMSRequest, res: ExpressResponse) => {
   res.status(404).send('Not Found');
 });
