@@ -8,26 +8,22 @@
  * @format
  */
 
-import type {ContextRouter} from 'react-router-dom';
-import type {WithStyles} from '@material-ui/core';
-import type {WorkOrderTypesListQuery_workOrderType} from './__generated__/WorkOrderTypesListQuery_workOrderType.graphql';
-
 import Avatar from '@material-ui/core/Avatar';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemText from '@material-ui/core/ListItemText';
-import React from 'react';
-import RelayEnvironment from '../../common/RelayEnvironment.js';
+import React, {useCallback, useMemo, useState} from 'react';
 import WorkIcon from '@material-ui/icons/Work';
-import {fetchQuery, graphql} from 'relay-runtime';
+import symphony from '@fbcnms/ui/theme/symphony';
+import withSuspense from '../../common/withSuspense';
+import {makeStyles} from '@material-ui/styles';
 import {sortLexicographically} from '@fbcnms/ui/utils/displayUtils';
-import {withRouter} from 'react-router-dom';
-import {withStyles} from '@material-ui/core/styles';
+import {useWorkOrderTemplateNodes} from '../../common/WorkOrder';
 
-const styles = _theme => ({
+const useStyles = makeStyles(() => ({
   avatar: {
-    backgroundColor: '#e4f2ff',
+    backgroundColor: symphony.palette.B50,
   },
   list: {
     paddingTop: 0,
@@ -40,89 +36,62 @@ const styles = _theme => ({
   listAvatar: {
     minWidth: '52px',
   },
-});
+}));
 
-type Props = ContextRouter & {
+type Props = $ReadOnly<{|
   onSelect: ?(workOrderTypeId: ?string) => void,
-} & WithStyles<typeof styles>;
+|}>;
 
-type State = {
-  errorMessage: ?string,
-  workOrderTypes: Array<WorkOrderTypesListQuery_workOrderType>,
-  selectedWorkOrderTypeId: ?string,
-  showDialog: boolean,
-};
+function WorkOrderTypesList(props: Props) {
+  const {onSelect} = props;
+  const classes = useStyles();
+  const workOrderTypes = useWorkOrderTemplateNodes();
+  const [selectedWorkOrderTypeId, setSelectedWorkOrderTypeId] = useState(null);
 
-graphql`
-  fragment WorkOrderTypesListQuery_workOrderType on WorkOrderType {
-    id
-    name
-  }
-`;
-
-const workOrderTypesQuery = graphql`
-  query WorkOrderTypesListQuery {
-    workOrderTypes(first: 500)
-      @connection(key: "WorkOrderTypesListQuery_workOrderTypes") {
-      edges {
-        node {
-          ...WorkOrderTypesListQuery_workOrderType @relay(mask: false)
-        }
+  const handleListItemClick = useCallback(
+    clickedWorkOrderType => {
+      const selectedWorkOrderTypeId = clickedWorkOrderType?.id;
+      setSelectedWorkOrderTypeId(selectedWorkOrderTypeId);
+      if (onSelect) {
+        onSelect(selectedWorkOrderTypeId);
       }
-    }
-  }
-`;
+    },
+    [onSelect],
+  );
 
-class WorkOrderTypesList extends React.Component<Props, State> {
-  state = {
-    errorMessage: null,
-    workOrderTypes: [],
-    selectedWorkOrderTypeId: null,
-    showDialog: false,
-  };
+  const listItems = useMemo(
+    () =>
+      workOrderTypes
+        .slice()
+        .sort((workOrderTypeA, workOrderTypeB) =>
+          sortLexicographically(workOrderTypeA.name, workOrderTypeB.name),
+        )
+        .map(workOrderType => (
+          <ListItem
+            className={classes.listItem}
+            button
+            key={workOrderType.id}
+            selected={selectedWorkOrderTypeId === workOrderType.id}
+            onClick={() => handleListItemClick(workOrderType)}>
+            <ListItemAvatar className={classes.listAvatar}>
+              <Avatar className={classes.avatar}>
+                <WorkIcon />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText primary={workOrderType.name} />
+          </ListItem>
+        )),
+    [
+      classes.avatar,
+      classes.listAvatar,
+      classes.listItem,
+      handleListItemClick,
+      selectedWorkOrderTypeId,
+      workOrderTypes,
+    ],
+  );
 
-  componentDidMount() {
-    // $FlowFixMe (T62907961) Relay flow types
-    fetchQuery(RelayEnvironment, workOrderTypesQuery).then(response => {
-      this.setState({
-        workOrderTypes: response.workOrderTypes.edges.map(x => x.node),
-      });
-    });
-  }
-
-  render() {
-    const {selectedWorkOrderTypeId} = this.state;
-    const {classes} = this.props;
-    const listItems = this.state.workOrderTypes
-      .slice()
-      .sort((workOrderTypeA, workOrderTypeB) =>
-        sortLexicographically(workOrderTypeA.name, workOrderTypeB.name),
-      )
-      .map(workOrderType => (
-        <ListItem
-          className={classes.listItem}
-          button
-          key={workOrderType.id}
-          selected={selectedWorkOrderTypeId === workOrderType.id}
-          onClick={event => this.handleListItemClick(event, workOrderType)}>
-          <ListItemAvatar className={classes.listAvatar}>
-            <Avatar className={classes.avatar}>
-              <WorkIcon />
-            </Avatar>
-          </ListItemAvatar>
-          <ListItemText primary={workOrderType.name} />
-        </ListItem>
-      ));
-    return <List>{listItems}</List>;
-  }
-
-  handleListItemClick = (event, selectedWorkOrderType) => {
-    const selectedWorkOrderTypeId = selectedWorkOrderType?.id;
-    this.setState(
-      {selectedWorkOrderTypeId},
-      () => this.props.onSelect && this.props.onSelect(selectedWorkOrderTypeId),
-    );
-  };
+  return <List>{listItems}</List>;
 }
 
-export default withStyles(styles)(withRouter(WorkOrderTypesList));
+export default withSuspense(WorkOrderTypesList);
