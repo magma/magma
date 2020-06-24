@@ -154,14 +154,6 @@ SessionState::SessionState(
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
 
-std::unique_ptr<Monitor>
-SessionState::unmarshal_monitor(const StoredMonitor &marshaled) {
-  Monitor monitor;
-  monitor.credit = *SessionCredit::unmarshal(marshaled.credit, MONITORING);
-  monitor.level = marshaled.level;
-  return std::make_unique<Monitor>(monitor);
-}
-
 static CreditUsage
 get_usage_proto_from_struct(const SessionCredit::Usage &usage_in,
                             CreditUsage::UpdateType proto_update_type,
@@ -1046,13 +1038,6 @@ void SessionState::get_charging_updates(
 }
 
 // Monitors
-StoredMonitor SessionState::marshal_monitor(std::unique_ptr<Monitor> &monitor) {
-  StoredMonitor marshaled{};
-  marshaled.credit = monitor->credit.marshal();
-  marshaled.level = monitor->level;
-  return marshaled;
-}
-
 bool SessionState::receive_monitor(
     const UsageMonitoringUpdateResponse &update,
     SessionStateUpdateCriteria &update_criteria) {
@@ -1129,7 +1114,7 @@ void SessionState::set_monitor(
   const std::string &key,
   std::unique_ptr<Monitor> monitor,
   SessionStateUpdateCriteria &update_criteria) {
-  update_criteria.monitor_credit_to_install[key] = marshal_monitor(monitor);
+  update_criteria.monitor_credit_to_install[key] = monitor->marshal();
   monitor_map_[key] = std::move(monitor);
 }
 
@@ -1178,7 +1163,7 @@ bool SessionState::init_new_monitor(
   monitor->credit.receive_credit(gsu, 0, false, final_action_info, _);
 
   update_criteria.monitor_credit_to_install[update.credit().monitoring_key()] =
-      marshal_monitor(monitor);
+      monitor->marshal();
   monitor_map_[update.credit().monitoring_key()] = std::move(monitor);
   return true;
 }
