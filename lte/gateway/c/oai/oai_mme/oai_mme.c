@@ -128,8 +128,9 @@ int main(int argc, char *argv[])
   mme_config_display(&mme_config);
   spgw_config_display(&spgw_config);
 #endif
-  // TODO need to guard under stateless flag
-  itti_send_timer_recovery_message();
+  if (mme_config.use_stateless) {
+    itti_send_timer_recovery_message();
+  }
   /*
    * Handle signals here
    */
