@@ -66,7 +66,7 @@ type Props = $ReadOnly<{|
   className?: string,
 |}>;
 
-function DialogRoot(props: Props) {
+function DialogFrame(props: Props) {
   const {children, className, hidden = false, onClose} = props;
   const classes = useStyles();
   return (
@@ -83,4 +83,4 @@ function DialogRoot(props: Props) {
   );
 }
 
-export default DialogRoot;
+export default DialogFrame;
