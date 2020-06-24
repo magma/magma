@@ -16,17 +16,21 @@ import ChevronRight from '@material-ui/icons/ChevronRight';
 import Clear from '@material-ui/icons/Clear';
 import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
+import Grid from '@material-ui/core/Grid';
 import LastPage from '@material-ui/icons/LastPage';
 import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 
+import {CardTitleRow} from './layout/CardTitleRow';
+import {colors} from '../theme/default';
 import {forwardRef} from 'react';
 
 const tableIcons = {
@@ -112,12 +116,12 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
-      <Text key="title">
-        <TitleIcon /> {props.title} ({props.data.length})
-      </Text>,
+      <CardTitleRow
+        icon={TitleIcon}
+        label={`${props.title} (${props.data.length})`}
+      />,
     );
   }
-
   if (props.menuItems) {
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(
@@ -148,6 +152,9 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
       {actionTableJSX}
       <MaterialTable
         tableRef={props.tableRef}
+        components={{
+          Container: props => <Paper {...props} elevation={0} />,
+        }}
         title=""
         columns={props.columns}
         icons={tableIcons}
