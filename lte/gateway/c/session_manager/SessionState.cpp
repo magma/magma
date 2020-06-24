@@ -108,14 +108,15 @@ SessionState::SessionState(
       std::make_unique<std::string>(marshaled.session_level_key);
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
-    monitor.credit = *SessionCredit::unmarshal(it.second.credit, MONITORING);
+    monitor.credit = SessionCredit::unmarshal(it.second.credit, MONITORING);
     monitor.level = it.second.level;
 
     monitor_map_[it.first] = std::make_unique<Monitor>(monitor);
   }
 
   for (const auto &it : marshaled.credit_map) {
-    credit_map_[it.first] = SessionCredit::unmarshal(it.second, CHARGING);
+    credit_map_[it.first] =
+      std::make_unique<SessionCredit>(SessionCredit::unmarshal(it.second, CHARGING));
   }
 
   for (const std::string& rule_id : marshaled.static_rule_ids) {
@@ -951,10 +952,10 @@ void SessionState::merge_charging_credit_update(
 }
 
 void SessionState::set_charging_credit(
-    const CreditKey &key, std::unique_ptr<SessionCredit> credit,
-    SessionStateUpdateCriteria &update_criteria) {
-  update_criteria.charging_credit_to_install[key] = credit->marshal();
-  credit_map_[key] = std::move(credit);
+    const CreditKey &key, SessionCredit credit,
+    SessionStateUpdateCriteria &uc) {
+  uc.charging_credit_to_install[key] = credit.marshal();
+  credit_map_[key] = std::make_unique<SessionCredit>(credit);
 }
 
 CreditUsageUpdate SessionState::make_credit_usage_update_req(CreditUsage& usage) const {

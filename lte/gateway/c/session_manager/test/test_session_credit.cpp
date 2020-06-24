@@ -46,8 +46,8 @@ TEST_P(SessionCreditParameterizedTest, test_marshal_unmarshal) {
   auto marshaled = credit.marshal();
   auto credit_2 = SessionCredit::unmarshal(marshaled, credit_type);
 
-  EXPECT_EQ(credit_2->get_credit(USED_TX), (uint64_t)39u);
-  EXPECT_EQ(credit_2->get_credit(USED_RX), (uint64_t)40u);
+  EXPECT_EQ(credit_2.get_credit(USED_TX), (uint64_t)39u);
+  EXPECT_EQ(credit_2.get_credit(USED_RX), (uint64_t)40u);
 }
 
 TEST_P(SessionCreditParameterizedTest, test_track_credit) {
