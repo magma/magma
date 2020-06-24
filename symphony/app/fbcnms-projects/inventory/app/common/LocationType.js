@@ -60,7 +60,9 @@ const locationTypeNodesQuery = graphql`
   }
 `;
 
-export function useLocationTypeNodes(): $ReadOnlyArray<NamedNode> {
+export type LocationTypeNode = $Exact<NamedNode>;
+
+export function useLocationTypeNodes(): $ReadOnlyArray<LocationTypeNode> {
   const response = useLazyLoadQuery<LocationTypeNodesQuery>(
     locationTypeNodesQuery,
   );

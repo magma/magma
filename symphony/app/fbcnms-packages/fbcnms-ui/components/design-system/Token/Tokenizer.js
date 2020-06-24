@@ -54,15 +54,19 @@ export type NetworkDataSource<TEntry> = $ReadOnly<{|
   ) => Entries<TEntry>,
 |}>;
 
+export type TokenizerDisplayProps = $ReadOnly<{|
+  disabled?: boolean,
+  inputClassName?: string,
+  menuClassName?: string,
+|}>;
+
 type Props<TEntry> = $ReadOnly<{|
+  ...TokenizerDisplayProps,
   tokens: Entries<TEntry>,
   dataSource: NetworkDataSource<TEntry>,
   onTokensChange: (Entries<TEntry>) => void,
   queryString: string,
   onQueryStringChange: string => void,
-  disabled?: boolean,
-  inputClassName?: string,
-  menuClassName?: string,
 |}>;
 
 const Tokenizer = <TEntry>(props: Props<TEntry>) => {
