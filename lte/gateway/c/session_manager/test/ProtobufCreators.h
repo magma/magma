@@ -101,5 +101,8 @@ void create_policy_rule(
   uint32_t rating_group,
   PolicyRule* rule);
 
+void create_granted_units(
+  uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu);
+
 magma::mconfig::SessionD get_default_mconfig();
 } // namespace magma

@@ -151,7 +151,6 @@ class SessionStoreTest : public ::testing::Test {
     credit2.buckets[REPORTING_RX] = 6;
     credit2.buckets[REPORTED_TX] = 7;
     credit2.buckets[REPORTED_RX] = 8;
-    credit2.usage_reporting_limit = 12345;
     monitor2.level = SESSION_LEVEL;
     monitor2.credit = credit2;
     update_criteria.monitor_credit_to_install[monitoring_key2] = monitor2;
