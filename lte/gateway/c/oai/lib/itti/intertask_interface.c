@@ -168,7 +168,6 @@ MessageDef* itti_alloc_new_message_sized(
  \param message_p Pointer to the message to send
  @returns < 0 on failure, 0 otherwise
  **/
-int itti_send_broadcast_message(MessageDef* message_p);
 
 void* itti_malloc(
   task_id_t origin_task_id,

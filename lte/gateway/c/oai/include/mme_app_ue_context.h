@@ -419,6 +419,7 @@ typedef struct ue_mm_context_s {
    *             Stop when UE moves to connected state
    */
   struct mme_app_timer_t mobile_reachability_timer;
+  time_t time_mobile_reachability_timer_started;
   /* implicit_detach_timer: Start at the expiry of Mobile Reachability timer.
    * Stop when UE moves to connected state
    */
@@ -625,6 +626,7 @@ bool is_mme_ue_context_network_access_mode_packet_only(
   ue_mm_context_t* ue_context_p);
 int mme_app_send_s6a_update_location_req(
   struct ue_mm_context_s* const ue_context_pP);
+void mme_app_recover_timers_for_all_ues(void);
 
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */
 

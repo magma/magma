@@ -182,5 +182,6 @@ void *itti_malloc(
 
 void itti_free(task_id_t task_id, void *ptr);
 
+int itti_send_broadcast_message(MessageDef* message_p);
 #endif /* INTERTASK_INTERFACE_H_ */
 /* @} */

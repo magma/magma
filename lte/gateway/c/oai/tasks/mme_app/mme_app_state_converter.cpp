@@ -601,6 +601,8 @@ void MmeNasStateConverter::ue_context_to_proto(
   mme_app_timer_to_proto(
     state_ue_context->ulr_response_timer,
     ue_context_proto->mutable_ulr_response_timer());
+  ue_context_proto->mutable_time_mobile_reachability_timer_started()
+      ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
 }
 
 void MmeNasStateConverter::proto_to_ue_mm_context(
@@ -688,6 +690,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   proto_to_mme_app_timer(
     ue_context_proto.paging_response_timer(),
     &state_ue_mm_context->paging_response_timer);
+  state_ue_mm_context->time_mobile_reachability_timer_started =
+      ue_context_proto.time_mobile_reachability_timer_started().seconds();
 }
 
 /*********************************************************
