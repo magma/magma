@@ -104,6 +104,13 @@ const performCheck = (
   } else if (!permissionsEnforcement.action) {
     return PASSED_VALUE;
   } else if (
+    permissionsEnforcement.entity === 'location' &&
+    permissionsEnforcement.action === 'update'
+  ) {
+    actionPermissionValue = {
+      isAllowed: userPermissions.inventoryPolicy.location.update.isAllowed,
+    };
+  } else if (
     permissionsEnforcement.entity === 'workorder' ||
     permissionsEnforcement.entity === 'project'
   ) {
@@ -136,8 +143,11 @@ const performCheck = (
       permissionsEnforcement.entity === 'service'
         ? 'equipment'
         : permissionsEnforcement.entity;
-    actionPermissionValue =
-      userPermissions.inventoryPolicy[entity][enforcement.action];
+
+    actionPermissionValue = {
+      isAllowed:
+        userPermissions.inventoryPolicy[entity][enforcement.action].isAllowed,
+    };
   }
 
   if (actionPermissionValue == null) {

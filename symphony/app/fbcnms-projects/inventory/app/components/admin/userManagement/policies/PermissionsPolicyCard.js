@@ -93,12 +93,20 @@ const initialCUDRule = {
   },
 };
 
+const initialLocationCUDRule = {
+  ...initialCUDRule,
+  update: {
+    ...initialBasicRule,
+    locationTypeIds: null,
+  },
+};
+
 const initialInventoryRules = {
   read: {
     isAllowed: PERMISSION_RULE_VALUES.YES,
   },
   location: {
-    ...initialCUDRule,
+    ...initialLocationCUDRule,
   },
   equipment: {
     ...initialCUDRule,
@@ -130,6 +138,8 @@ const initialWorkforceCUDRules = {
 const initialWorkforceRules = {
   read: {
     ...initialBasicRule,
+    projectTypeIds: null,
+    workOrderTypeIds: null,
   },
   data: {
     ...initialWorkforceCUDRules,

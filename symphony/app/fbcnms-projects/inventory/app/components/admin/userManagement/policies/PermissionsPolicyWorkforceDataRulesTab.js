@@ -226,6 +226,7 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
                 onChange({
                   ...policy,
                   read: {
+                    ...policy.read,
                     isAllowed: bool2PermissionRuleValue(checked),
                   },
                 })

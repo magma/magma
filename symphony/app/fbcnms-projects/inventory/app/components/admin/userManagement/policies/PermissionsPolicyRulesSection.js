@@ -99,15 +99,19 @@ export function DataRuleTitle(props: DataRuleTitleProps) {
   );
 }
 
-type Props = $ReadOnly<{|
+export type PermissionsPolicyRulesSectionDisplayProps = $ReadOnly<{|
   title?: React.Node,
   subtitle?: React.Node,
   mainCheckHeaderPrefix?: React.Node,
-  rule: CUDPermissions,
   disabled?: ?boolean,
   className?: ?string,
-  onChange?: CUDPermissions => void,
   children?: React.Node,
+|}>;
+
+type Props = $ReadOnly<{|
+  ...PermissionsPolicyRulesSectionDisplayProps,
+  rule: CUDPermissions,
+  onChange?: CUDPermissions => void,
 |}>;
 
 export default function PermissionsPolicyRulesSection(props: Props) {

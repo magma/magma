@@ -12,8 +12,8 @@ import type {InventoryPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import PermissionsPolicyLocationRulesSection from './PermissionsPolicyLocationRulesSection';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
-
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import classNames from 'classnames';
 import fbt from 'fbt';
@@ -79,7 +79,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           }
         />
       ) : null}
-      <PermissionsPolicyRulesSection
+      <PermissionsPolicyLocationRulesSection
         title={fbt('Locations', '')}
         subtitle={fbt(
           'Location data includes location details, properties, floor plans and coverage maps.',
