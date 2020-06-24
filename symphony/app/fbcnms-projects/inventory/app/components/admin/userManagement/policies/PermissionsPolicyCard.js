@@ -30,6 +30,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withSuspense from '../../../../common/withSuspense';
 import {
   EMPTY_POLICY,
   PERMISSION_RULE_VALUES,
@@ -398,4 +399,4 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
   );
 }
 
-export default withAlert(PermissionsPolicyCard);
+export default withSuspense(withAlert(PermissionsPolicyCard));

@@ -28,6 +28,7 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withSuspense from '../../../../common/withSuspense';
 import {GROUP_STATUSES, NEW_DIALOG_PARAM} from '../utils/UserManagementUtils';
 import {PERMISSION_GROUPS_VIEW_NAME} from './PermissionsGroupsView';
 import {addGroup, deleteGroup, editGroup} from '../data/UsersGroups';
@@ -214,4 +215,4 @@ function PermissionsGroupCard(props: Props) {
   );
 }
 
-export default withAlert(PermissionsGroupCard);
+export default withSuspense(withAlert(PermissionsGroupCard));
