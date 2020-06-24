@@ -276,13 +276,18 @@ export const initInventoryRulesInput: (
 export function locationPolicyCUDRule2LocationPolicyCUDRuleInput(
   rule: ?LocationCUDPermissions,
 ): LocationCUDInput {
+  const updateIsAllowedValue = parsePermissionValue(rule?.update.isAllowed);
+
   return {
     create: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       rule?.create,
     ),
     update: {
-      isAllowed: parsePermissionValue(rule?.update.isAllowed),
-      locationTypeIds: rule?.update.locationTypeIds,
+      isAllowed: updateIsAllowedValue,
+      locationTypeIds:
+        updateIsAllowedValue === PERMISSION_RULE_VALUES.BY_CONDITION
+          ? rule?.update.locationTypeIds
+          : null,
     },
     delete: permissionPolicyBasicRule2PermissionPolicyBasicRuleInput(
       rule?.delete,
@@ -323,7 +328,7 @@ export function bool2PermissionRuleValue(value: ?boolean): PermissionValue {
 }
 
 export function permissionRuleValue2Bool(value: PermissionValue) {
-  return value === PERMISSION_RULE_VALUES.YES;
+  return value !== PERMISSION_RULE_VALUES.NO;
 }
 
 function response2PermissionsPolicy(

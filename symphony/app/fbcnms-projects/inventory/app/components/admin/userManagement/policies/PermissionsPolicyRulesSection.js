@@ -58,10 +58,19 @@ type InventoryDataRuleProps = $ReadOnly<{|
   disabled: boolean,
   onChange: BasicPermissionRule => void,
   children?: React.Node,
+  childrenClassName?: ?string,
 |}>;
 
 function InventoryDataRule(props: InventoryDataRuleProps) {
-  const {title, rule, cudAction, disabled, onChange, children} = props;
+  const {
+    title,
+    rule,
+    cudAction,
+    disabled,
+    onChange,
+    childrenClassName,
+    children,
+  } = props;
   const classes = useStyles();
 
   if (rule == null) {
@@ -80,7 +89,8 @@ function InventoryDataRule(props: InventoryDataRuleProps) {
         })
       }
       hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
-      className={classes.rule}>
+      className={classes.rule}
+      childrenClassName={childrenClassName}>
       {children}
     </HierarchicalCheckbox>
   );
@@ -105,6 +115,7 @@ export type PermissionsPolicyRulesSectionDisplayProps = $ReadOnly<{|
   mainCheckHeaderPrefix?: React.Node,
   disabled?: ?boolean,
   className?: ?string,
+  secondLevelRulesClassName?: ?string,
   children?: React.Node,
 |}>;
 
@@ -112,6 +123,8 @@ type Props = $ReadOnly<{|
   ...PermissionsPolicyRulesSectionDisplayProps,
   rule: CUDPermissions,
   onChange?: CUDPermissions => void,
+  secondLevelRulesClassName?: ?string,
+  policySpecifications?: React.Node,
 |}>;
 
 export default function PermissionsPolicyRulesSection(props: Props) {
@@ -120,8 +133,10 @@ export default function PermissionsPolicyRulesSection(props: Props) {
     subtitle,
     mainCheckHeaderPrefix,
     rule: ruleProp,
+    policySpecifications,
     disabled,
     className,
+    secondLevelRulesClassName,
     onChange,
     children,
   } = props;
@@ -187,7 +202,9 @@ export default function PermissionsPolicyRulesSection(props: Props) {
         rule={rule}
         cudAction="update"
         disabled={disabled == true}
-        onChange={updateRuleChange('update')}>
+        onChange={updateRuleChange('update')}
+        childrenClassName={secondLevelRulesClassName}>
+        {policySpecifications}
         {dependantDataRules.map(dRule => (
           <InventoryDataRule
             title={<DataRuleTitle>{dRule.title}</DataRuleTitle>}

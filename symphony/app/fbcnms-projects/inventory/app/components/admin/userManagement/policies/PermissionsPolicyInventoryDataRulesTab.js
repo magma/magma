@@ -86,7 +86,7 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           '',
         )}
         disabled={isDisabled || !readAllowed}
-        rule={policy.location}
+        locationRule={policy.location}
         className={classes.section}
         onChange={
           onChange != null
