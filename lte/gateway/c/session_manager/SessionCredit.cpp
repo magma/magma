@@ -26,7 +26,7 @@ SessionCredit::unmarshal(const StoredSessionCredit &marshaled,
 
   session_credit->reporting_ = marshaled.reporting;
   session_credit->is_final_grant_ = marshaled.is_final;
-  session_credit->unlimited_quota_ = marshaled.unlimited_quota;
+  session_credit->credit_limit_type_ = marshaled.credit_limit_type;
 
   // FinalActionInfo
   FinalActionInfo final_action_info;
@@ -53,7 +53,7 @@ StoredSessionCredit SessionCredit::marshal() {
   StoredSessionCredit marshaled{};
   marshaled.reporting = reporting_;
   marshaled.is_final = is_final_grant_;
-  marshaled.unlimited_quota = unlimited_quota_;
+  marshaled.credit_limit_type = credit_limit_type_;
 
   marshaled.final_action_info.final_action = final_action_info_.final_action;
   marshaled.final_action_info.redirect_server =
@@ -89,17 +89,18 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
     : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
       service_state_(start_state), buckets_{}, reporting_(false),
-      unlimited_quota_(false), is_final_grant_(false){}
+      credit_limit_type_(FINITE), is_final_grant_(false) {}
 
-SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state,
-                             bool unlimited_quota)
+SessionCredit::SessionCredit(
+  CreditType credit_type, ServiceState start_state,
+  CreditLimitType credit_limit_type)
     : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
       service_state_(start_state), buckets_{}, reporting_(false),
-      unlimited_quota_(unlimited_quota), is_final_grant_(false) {}
+      credit_limit_type_(credit_limit_type), is_final_grant_(false) {}
 
-// by default, enable service
+// by default, enable service & finite credit
 SessionCredit::SessionCredit(CreditType credit_type)
-    : SessionCredit(credit_type, SERVICE_ENABLED, false) {}
+    : SessionCredit(credit_type, SERVICE_ENABLED, FINITE) {}
 
 void SessionCredit::set_expiry_time(uint32_t validity_time,
                                     SessionCreditUpdateCriteria &uc) {
@@ -205,7 +206,7 @@ void SessionCredit::receive_credit(const GrantedUnits& gsu,
 }
 
 bool SessionCredit::is_quota_exhausted(float threshold) const {
-  if (unlimited_quota_) {
+  if (credit_limit_type_ != FINITE) {
     return false;
   }
   uint64_t total_reported = buckets_[REPORTED_TX] + buckets_[REPORTED_RX];
@@ -248,7 +249,7 @@ bool SessionCredit::should_deactivate_service() const {
     // we only terminate on charging quota exhaustion
     return false;
   }
-  if (unlimited_quota_) {
+  if (credit_limit_type_ != FINITE) {
     return false;
   }
   if ((final_action_info_.final_action ==

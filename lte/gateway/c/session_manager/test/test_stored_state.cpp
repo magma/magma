@@ -64,7 +64,7 @@ protected:
 
     stored.reporting = true;
     stored.is_final = true;
-    stored.unlimited_quota = true;
+    stored.credit_limit_type = INFINITE_METERED;
 
     stored.final_action_info.final_action =
         ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT;
@@ -188,7 +188,7 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
 
   EXPECT_EQ(deserialized.reporting, true);
   EXPECT_EQ(deserialized.is_final, true);
-  EXPECT_EQ(deserialized.unlimited_quota, true);
+  EXPECT_EQ(deserialized.credit_limit_type, INFINITE_METERED);
 
   EXPECT_EQ(deserialized.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
@@ -218,7 +218,7 @@ TEST_F(StoredStateTest, test_stored_monitor) {
 
   EXPECT_EQ(deserialized.credit.reporting, true);
   EXPECT_EQ(deserialized.credit.is_final, true);
-  EXPECT_EQ(deserialized.credit.unlimited_quota, true);
+  EXPECT_EQ(deserialized.credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(deserialized.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(deserialized.credit.final_action_info.redirect_server
@@ -245,7 +245,7 @@ TEST_F(StoredStateTest, test_stored_charging_credit_map) {
   auto stored_credit = deserialized[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
-  EXPECT_EQ(stored_credit.unlimited_quota, true);
+  EXPECT_EQ(stored_credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
@@ -271,7 +271,7 @@ TEST_F(StoredStateTest, test_stored_monitor_map) {
   auto stored_monitor = deserialized["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.is_final, true);
-  EXPECT_EQ(stored_monitor.credit.unlimited_quota, true);
+  EXPECT_EQ(stored_monitor.credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_monitor.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
@@ -315,7 +315,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
-  EXPECT_EQ(stored_credit.unlimited_quota, true);
+  EXPECT_EQ(stored_credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
@@ -336,7 +336,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   auto stored_monitor = deserialized.monitor_map["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.is_final, true);
-  EXPECT_EQ(stored_monitor.credit.unlimited_quota, true);
+  EXPECT_EQ(stored_monitor.credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_monitor.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
