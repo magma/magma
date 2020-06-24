@@ -21,10 +21,12 @@ import HierarchicalCheckbox, {
 import PermissionsPolicyRulesSection, {
   DataRuleTitle,
 } from './PermissionsPolicyRulesSection';
+import PermissionsPolicyWorkforceDataRulesSpecification from './PermissionsPolicyWorkforceDataRulesSpecification';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import fbt from 'fbt';
+import symphony from '@fbcnms/ui/theme/symphony';
 import {
   bool2PermissionRuleValue,
   permissionRuleValue2Bool,
@@ -50,6 +52,41 @@ const useStyles = makeStyles(() => ({
     marginLeft: '4px',
     display: 'flex',
     flexDirection: 'column',
+  },
+  policySpecificationContainer: {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '16px',
+    paddingBottom: '8px',
+    backgroundColor: symphony.palette.background,
+    borderStyle: 'solid',
+    borderWidth: '1px',
+    borderColor: symphony.palette.D100,
+    borderLeftWidth: '2px',
+    borderLeftColor: symphony.palette.primary,
+    borderRadius: '2px',
+    marginTop: '12px',
+  },
+  methodSelectionBox: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: 'fit-content',
+    marginBottom: '16px',
+    '& > *': {
+      marginBottom: '4px',
+    },
+  },
+  policyMethodSelect: {
+    '&&': {
+      paddingLeft: '8px',
+      marginRight: '16px',
+    },
+  },
+  templatesFieldContainer: {
+    minHeight: '78px',
+  },
+  hidden: {
+    display: 'none',
   },
   rule: {
     marginTop: '8px',
@@ -195,6 +232,16 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
   const {policy, onChange, className} = props;
   const classes = useStyles();
 
+  const callOnChange = useCallback(
+    (updatedPolicy: WorkforcePolicy) => {
+      if (onChange == null) {
+        return;
+      }
+      onChange(updatedPolicy);
+    },
+    [onChange],
+  );
+
   if (policy == null) {
     return null;
   }
@@ -220,30 +267,29 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
         title={fbt('View work orders and projects', '')}
         checked={readAllowed}
         disabled={isDisabled}
-        onChange={
-          onChange != null
-            ? checked =>
-                onChange({
-                  ...policy,
-                  read: {
-                    ...policy.read,
-                    isAllowed: bool2PermissionRuleValue(checked),
-                  },
-                })
-            : undefined
+        onChange={checked =>
+          callOnChange({
+            ...policy,
+            read: {
+              ...policy.read,
+              isAllowed: bool2PermissionRuleValue(checked),
+            },
+          })
         }
+      />
+      <PermissionsPolicyWorkforceDataRulesSpecification
+        policy={policy}
+        onChange={callOnChange}
+        disabled={isDisabled}
       />
       <WorkforceDataRulesSection
         disabled={isDisabled || !readAllowed}
         rule={policy.data}
-        onChange={
-          onChange != null
-            ? data =>
-                onChange({
-                  ...policy,
-                  data,
-                })
-            : undefined
+        onChange={data =>
+          callOnChange({
+            ...policy,
+            data,
+          })
         }
       />
     </div>
