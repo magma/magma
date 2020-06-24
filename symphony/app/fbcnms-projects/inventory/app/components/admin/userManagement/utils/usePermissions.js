@@ -38,13 +38,13 @@ export type InventoryEntName = InventoryEntWithPermission | 'service' | 'port';
 type WorkforceTemplateEntName = 'workorderTemplate' | 'projectTemplate';
 type InventoryActionName = $Keys<CUDPermissions>;
 
-type InventoryActionPermission = $ReadOnly<{|
+export type InventoryActionPermission = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: InventoryEntName | WorkforceTemplateEntName,
   action?: ?InventoryActionName,
 |}>;
 
-type LocationActionPermission = $ReadOnly<{|
+export type LocationActionPermission = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: 'location',
   action: InventoryActionName,
