@@ -63,12 +63,10 @@ const useStyles = makeStyles(theme => ({
   input: {
     color: colors.primary.white,
     backgroundColor: colors.primary.comet,
+    borderRadius: '4px',
   },
   dateTimeText: {
     color: colors.primary.selago,
-  },
-  input: {
-    color: colors.primary.white,
   },
 }));
 
