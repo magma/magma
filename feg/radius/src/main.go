@@ -25,7 +25,6 @@ import (
 	"syscall"
 
 	"go.uber.org/zap"
-	_ "magma/orc8r/lib/go/initflag"
 )
 
 func createLogger(encoding string) (*zap.Logger, error) {
