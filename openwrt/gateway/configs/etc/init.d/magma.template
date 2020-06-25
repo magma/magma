@@ -1,0 +1,25 @@
+# Copyright (c) Facebook, Inc. and its affiliates
+
+SERVICE_DAEMONIZE=1
+SERVICE_WRITE_PID=1
+SERVICE_QUIET=
+EXTRA_COMMANDS="status"
+EXTRA_HELP="        status  check service status"
+
+if [ -z $FLGS ]; then
+  FLGS="-logtostderr -stderr2syslog -stdout2stderr -v=2"
+fi
+
+start() {
+  ulimit -v 30000 -m 20000
+  export GODEBUG=madvdontneed=1
+  service_start /sbin/$CMD $FLGS
+}
+
+stop() {
+  service_stop /sbin/$CMD $FLGS
+}
+
+status() {
+  service_check /sbin/$CMD $FLGS
+}
