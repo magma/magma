@@ -25,6 +25,8 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "mme_events.h"
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -97,6 +99,7 @@ int main(int argc, char *argv[])
 
   // Service started, but not healthy yet
   send_app_health_to_service303(TASK_MME_APP, false);
+  event_client_init();
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
