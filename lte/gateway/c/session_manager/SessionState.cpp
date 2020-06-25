@@ -642,7 +642,6 @@ bool SessionState::deactivate_scheduled_static_rule(
 
 void SessionState::sync_rules_to_time(
     std::time_t current_time, SessionStateUpdateCriteria& update_criteria) {
-  PolicyRule _rule_unused;
   // Update active static rules
   for (const std::string& rule_id : active_static_rules_) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
@@ -664,7 +663,7 @@ void SessionState::sync_rules_to_time(
   dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_dynamic_rule(rule_id, &_rule_unused, update_criteria);
+      remove_dynamic_rule(rule_id, NULL, update_criteria);
     }
   }
   // Update scheduled dynamic rules
@@ -673,7 +672,7 @@ void SessionState::sync_rules_to_time(
     if (should_rule_be_active(rule_id, current_time)) {
       install_scheduled_dynamic_rule(rule_id, update_criteria);
     } else if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_scheduled_dynamic_rule(rule_id, &_rule_unused, update_criteria);
+      remove_scheduled_dynamic_rule(rule_id, NULL, update_criteria);
     }
   }
 }
