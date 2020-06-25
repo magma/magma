@@ -226,6 +226,7 @@ function PermissionsPolicyCard(props: Props) {
     fetchedPolicy,
     handleError,
     isOnNewPolicy,
+    isOnSystemDefault,
     policy,
     policyId,
     redirectToPoliciesView,
