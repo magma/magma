@@ -106,10 +106,10 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
 }
 
 char* MmeNasStateConverter::mme_app_convert_guti_to_string(guti_t* guti_p) {
-#define GUTI_STRING_LEN 20
+#define GUTI_STRING_LEN 21
   char* str = (char*) calloc(1, sizeof(char) * GUTI_STRING_LEN);
   snprintf(
-      str, GUTI_STRING_LEN, "%x%x%x%x%x%x%04x%x%08x",
+      str, GUTI_STRING_LEN, "%x%x%x%x%x%x%04x%02x%08x",
       guti_p->gummei.plmn.mcc_digit1, guti_p->gummei.plmn.mcc_digit2,
       guti_p->gummei.plmn.mcc_digit3, guti_p->gummei.plmn.mnc_digit1,
       guti_p->gummei.plmn.mnc_digit2, guti_p->gummei.plmn.mnc_digit3,
@@ -173,9 +173,10 @@ void MmeNasStateConverter::mme_app_convert_string_to_guti(
   guti_p->gummei.mme_gid = std::stoul(
       guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
   idx += chars_to_read;
-  chars_to_read           = 1;
+  chars_to_read           = 2;
   guti_p->gummei.mme_code = std::stoul(
-      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  idx += chars_to_read;
   chars_to_read = 8;
   guti_p->m_tmsi =
       std::stoul(guti_str.substr(idx, chars_to_read), 0, HEX_BASE_VAL);
