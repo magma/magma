@@ -8,11 +8,11 @@ of patent rights can be found in the PATENTS file in the same directory.
 """
 
 import unittest
-from typing import Any, Dict, List
+from typing import List
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest, \
-    CreditUpdateResponse
+    CreditUpdateResponse, CreditLimitType
 from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
 from orc8r.protos.common_pb2 import NetworkID
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
@@ -86,9 +86,7 @@ class SessionRpcServicerTest(unittest.TestCase):
 
         # Credit granted should be unlimited and un-metered
         credit_limit_type = resp.credits[0].limit_type
-        expected = CreditUpdateResponse.CreditLimitType.Value(
-            "INFINITE_UNMETERED",
-        )
+        expected = CreditLimitType.Value("INFINITE_UNMETERED")
         self.assertEqual(credit_limit_type, expected, 'There should be an '
                          'infinite, unmetered credit grant')
 

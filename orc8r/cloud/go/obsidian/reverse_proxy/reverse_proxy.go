@@ -35,10 +35,12 @@ func ReverseProxy(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 	reverseProxyMiddleware := middleware.Proxy(middleware.NewRoundRobinBalancer(targets))
 	return func(c echo.Context) error {
+		glog.V(1).Infof("Received request in the reverse proxy middleware with remote addr: %s", c.RealIP())
 		if err != nil {
 			return err
 		}
 		if c.RealIP() == "127.0.0.1" {
+			glog.V(1).Infof("Request IP addr is localhost. Sending to next middleware.")
 			return next(c)
 		}
 		// Re-route non-localhost requests to localhost:<obsidian_port>
@@ -52,6 +54,7 @@ func ReverseProxy(next echo.HandlerFunc) echo.HandlerFunc {
 		updatedRemoteAddr := fmt.Sprintf("127.0.0.1:%s", p)
 		c.Request().RemoteAddr = updatedRemoteAddr
 		reverseProxyHandler := reverseProxyMiddleware(next)
+		glog.V(1).Infof("Request IP addr is NOT localhost. Reverse proxying to %s", urlString)
 		return reverseProxyHandler(c)
 	}
 }

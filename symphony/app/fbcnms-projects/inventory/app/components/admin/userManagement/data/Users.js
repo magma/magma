@@ -47,7 +47,18 @@ const usersQuery = graphql`
 export function useUsers(): $ReadOnlyArray<User> {
   const data = useLazyLoadQuery<UsersQuery>(usersQuery);
   const usersData = data.users?.edges || [];
-  return usersData.map(p => p.node).filter(Boolean);
+  return usersData
+    .map(p => p.node)
+    .filter(Boolean)
+    .map(user => {
+      if (user.role === USER_ROLES.OWNER.key) {
+        user = {
+          ...user,
+          role: USER_ROLES.ADMIN.key,
+        };
+      }
+      return user;
+    });
 }
 
 function roleToNodeRole(role: UserRole): number {

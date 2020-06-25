@@ -24,6 +24,7 @@ import Paper from '@material-ui/core/Paper';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SubscriberDetailConfig from './SubscriberDetailConfig';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
@@ -132,6 +133,12 @@ export default function SubscriberDetail(props: {
         </Grid>
       </AppBar>
       <Switch>
+        <Route
+          path={relativePath('/config')}
+          render={() => (
+            <SubscriberDetailConfig subscriberInfo={subscriberInfo} />
+          )}
+        />
         <Route
           path={relativePath('/overview')}
           render={() => <Overview subscriberInfo={subscriberInfo} />}

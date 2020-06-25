@@ -124,20 +124,20 @@ std::string serialize_stored_session_credit(StoredSessionCredit &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["reporting"] = stored.reporting;
   marshaled["is_final"] = stored.is_final;
-  marshaled["unlimited_quota"] = stored.unlimited_quota;
+  marshaled["credit_limit_type"] = static_cast<int>(stored.credit_limit_type);
   marshaled["final_action_info"] =
       serialize_stored_final_action_info(stored.final_action_info);
   marshaled["reauth_state"] = static_cast<int>(stored.reauth_state);
   marshaled["service_state"] = static_cast<int>(stored.service_state);
   marshaled["expiry_time"] = std::to_string(stored.expiry_time);
   marshaled["buckets"] = folly::dynamic::object();
+  marshaled["grant_tracking_type"] =
+    static_cast<int>(stored.grant_tracking_type);
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
         std::to_string(stored.buckets[bucket]);
   }
-  marshaled["usage_reporting_limit"] =
-      std::to_string(stored.usage_reporting_limit);
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
@@ -151,7 +151,8 @@ deserialize_stored_session_credit(const std::string &serialized) {
   auto stored = StoredSessionCredit{};
   stored.reporting = marshaled["reporting"].getBool();
   stored.is_final = marshaled["is_final"].getBool();
-  stored.unlimited_quota = marshaled["unlimited_quota"].getBool();
+  stored.credit_limit_type =
+    static_cast<CreditLimitType>(marshaled["credit_limit_type"].getInt());
   stored.final_action_info = deserialize_stored_final_action_info(
       marshaled["final_action_info"].getString());
   stored.reauth_state =
@@ -160,13 +161,13 @@ deserialize_stored_session_credit(const std::string &serialized) {
       static_cast<ServiceState>(marshaled["service_state"].getInt());
   stored.expiry_time = static_cast<std::time_t>(
       std::stoul(marshaled["expiry_time"].getString()));
+  stored.grant_tracking_type = static_cast<GrantTrackingType>(
+    marshaled["grant_tracking_type"].getInt());
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(
         marshaled["buckets"][std::to_string(bucket_int)].getString()));
   }
-  stored.usage_reporting_limit = static_cast<uint32_t>(
-      std::stoul(marshaled["usage_reporting_limit"].getString()));
 
   return stored;
 }

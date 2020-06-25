@@ -56,15 +56,6 @@ const ROLES_OPTIONS: Array<RadioOption> = [
     label: USER_ROLES.ADMIN.value,
     label: fbt('Admin', ''),
     details: fbt(
-      'Can log in to desktop and mobile apps, update settings and manage users and permissions',
-      '',
-    ),
-  },
-  {
-    value: USER_ROLES.OWNER.key,
-    label: USER_ROLES.OWNER.value,
-    label: fbt('Owner', ''),
-    details: fbt(
       'Full access over everything, including inventory and workforce data',
       '',
     ),
@@ -123,9 +114,6 @@ const UserRoleAndStatusPane = (props: Props) => {
           break;
         case USER_ROLES.ADMIN.key:
           newUser.role = USER_ROLES.ADMIN.key;
-          break;
-        case USER_ROLES.OWNER.key:
-          newUser.role = USER_ROLES.OWNER.key;
           break;
         default:
           return;
