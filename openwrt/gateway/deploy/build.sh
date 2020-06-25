@@ -212,6 +212,8 @@ if [ -n "${deploy}" ]; then
       echo "Can't deploy. Missing binary: \"${f}\""
       return 1
     fi
+    echo "stop ${b}"
+    plink -4 -batch -pw "${password}" "${USER}@${ip}" "/etc/init.d/${b} stop 2>/dev/null >/dev/null;killall ${b} 2>/dev/null >/dev/null"
   done
   echo "Deploying magma binaries to gateway ${ip}"
   pscp -4 -batch -scp -pw "${password}" "${bin_dir}/magmad" "${bin_dir}/aaa_server" "${bin_dir}/radius" "${USER}@${ip}:${BIN_DEPLOY_DIR}/"
