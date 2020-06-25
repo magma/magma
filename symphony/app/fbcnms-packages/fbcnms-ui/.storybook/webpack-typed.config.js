@@ -9,6 +9,7 @@
  */
 
 require('@fbcnms/babel-register');
+const createCompiler = require('@storybook/addon-docs/mdx-compiler-plugin');
 
 const autoprefixer = require('autoprefixer');
 const paths = require('fbcnms-webpack-config/paths');
@@ -39,6 +40,41 @@ export default function builder({config}: BuilderParams): WebpackOptions {
             // rebuilds.
             cacheDirectory: true,
           },
+        },
+        {
+          test: /\.(stories|story)\.mdx$/,
+          use: [
+            {
+              loader: require.resolve('babel-loader'),
+              options: {
+                configFile: '../../babel.config.js',
+                cacheDirectory: true,
+              },
+            },
+            {
+              loader: '@mdx-js/loader',
+              options: {
+                compilers: [createCompiler({})],
+              },
+            },
+          ],
+        },
+        {
+          test: /\.(stories|story)\.[tj]sx?$/,
+          use: [
+            {
+              loader: require.resolve('@storybook/source-loader'),
+            },
+            {
+              loader: require.resolve('babel-loader'),
+              options: {
+                configFile: '../../babel.config.js',
+                cacheDirectory: true,
+              },
+            },
+          ],
+          exclude: [/node_modules/],
+          enforce: 'pre',
         },
         {
           test: /\.css$/,

@@ -12,7 +12,6 @@ import MultiSelectMenu from '../../components/design-system/Select/MultiSelectMe
 import React, {useMemo, useState} from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -76,7 +75,7 @@ const INITIAL_OPTIONS = [
   },
 ];
 
-const SelectMenuRoot = () => {
+export const SelectMenuRoot = () => {
   const classes = useStyles();
   const [options, setOptions] = useState(INITIAL_OPTIONS);
   const [selectedValues, setSelectedValues] = useState([]);
@@ -129,7 +128,10 @@ const SelectMenuRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add(
-  'Multi Select Menu',
-  () => <SelectMenuRoot />,
-);
+SelectMenuRoot.story = {
+  name: 'Multi Select Menu',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

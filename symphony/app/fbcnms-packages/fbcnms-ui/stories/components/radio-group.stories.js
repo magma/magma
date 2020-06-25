@@ -15,7 +15,6 @@ import RadioGroup from '../../components/design-system/RadioGroup/RadioGroup';
 import React, {useState} from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -51,7 +50,7 @@ const options: Array<RadioOption> = [
   },
 ];
 
-const RadioGroupRoot = () => {
+export const RadioGroupRoot = () => {
   const classes = useStyles();
   const [selectedValue, setSelectedValue] = useState(options[0].value);
   const [isDisabled, setIsDisabled] = useState(false);
@@ -90,6 +89,10 @@ const RadioGroupRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('RadioGroup', () => (
-  <RadioGroupRoot />
-));
+RadioGroupRoot.story = {
+  name: 'RadioGroup',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

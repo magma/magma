@@ -14,7 +14,6 @@ import React, {useState} from 'react';
 import ToggleButtonGroup from '../../components/design-system/ToggleButton/ToggleButtonGroup';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -25,7 +24,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const TablesRoot = () => {
+export const ToggleButtonsRoot = () => {
   const classes = useStyles();
   const [selectedTextButtonId, setSelectedTextButtonId] = useState('0');
   const [selectedIconButtonId, setSelectedIconButtonId] = useState('0');
@@ -55,7 +54,10 @@ const TablesRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add(
-  'ToggleButtonGroup',
-  () => <TablesRoot />,
-);
+ToggleButtonsRoot.story = {
+  name: 'ToggleButtonGroup',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};
