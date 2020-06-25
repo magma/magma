@@ -30,6 +30,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 
+import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {colors, typography} from '../../theme/default';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {makeStyles} from '@material-ui/styles';
@@ -38,8 +39,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
+    margin: theme.spacing(5),
   },
   topBar: {
     backgroundColor: colors.primary.mirage,
@@ -183,40 +183,38 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
   const perEnbMetricSupportAvailable = false;
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3} alignItems="stretch">
-        <Grid container spacing={3} alignItems="stretch" item xs={12}>
-          <Grid item xs={6}>
-            <Text>
-              <SettingsInputAntennaIcon /> {enbInfo.enb.name}
-            </Text>
-            <EnodebSummary enbInfo={enbInfo} />
-          </Grid>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6} alignItems="center">
+              <CardTitleRow
+                icon={SettingsInputAntennaIcon}
+                label={enbInfo.enb.name}
+              />
+              <EnodebSummary enbInfo={enbInfo} />
+            </Grid>
 
-          <Grid item xs={6}>
-            <Text>
-              <GraphicEqIcon />
-              Status
-            </Text>
-            <EnodebStatus enbInfo={enbInfo} />
+            <Grid item xs={6}>
+              <CardTitleRow icon={GraphicEqIcon} label="Status" />
+              <EnodebStatus enbInfo={enbInfo} />
+            </Grid>
           </Grid>
         </Grid>
-        <Grid container item spacing={3} alignItems="stretch" xs={12}>
-          <Grid item xs={12}>
-            {perEnbMetricSupportAvailable ? (
-              <DateTimeMetricChart
-                title={CHART_TITLE}
-                queries={[
-                  `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,
-                  `sum(pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
-                ]}
-                legendLabels={['Download', 'Upload']}
-              />
-            ) : (
-              <Paper className={classes.paper}>
-                Enodeb Throughput Chart Currently Unavailable
-              </Paper>
-            )}
-          </Grid>
+        <Grid item xs={12}>
+          {perEnbMetricSupportAvailable ? (
+            <DateTimeMetricChart
+              title={CHART_TITLE}
+              queries={[
+                `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,
+                `sum(pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+              ]}
+              legendLabels={['Download', 'Upload']}
+            />
+          ) : (
+            <Paper className={classes.paper} elevation={0}>
+              Enodeb Throughput Chart Currently Unavailable
+            </Paper>
+          )}
         </Grid>
         <Grid container spacing={3} alignItems="stretch" item xs={12}>
           <Grid item xs={6}>
