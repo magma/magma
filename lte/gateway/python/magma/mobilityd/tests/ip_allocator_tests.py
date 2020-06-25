@@ -15,12 +15,14 @@ from __future__ import unicode_literals
 import ipaddress
 import unittest
 import time
+import logging
 
-from magma.mobilityd.ip_allocator import IPAllocator, IPBlockNotFoundError, \
-    NoAvailableIPError, IPNotInUseError, MappingNotFoundError
+from magma.mobilityd.ip_address_man import IPAddressManager, \
+    IPNotInUseError, MappingNotFoundError
+from magma.mobilityd.ip_allocator_static import IPBlockNotFoundError, \
+    NoAvailableIPError
 
-
-# If the preallocated IP addresses in ip_allocator.py code
+# If the preallocated IP addresses in ip_address_man.py code
 # changes, then the test cases must be updated
 class IPAllocatorTests(unittest.TestCase):
     """
@@ -37,7 +39,7 @@ class IPAllocatorTests(unittest.TestCase):
         # don't persist to Redis during normal unit tests since they are run
         # in Sandcastle.
         persist_to_redis = False
-        self._allocator = IPAllocator(
+        self._allocator = IPAddressManager(
             recycling_interval=recycling_interval,
             persist_to_redis=persist_to_redis,
             redis_port=6379)

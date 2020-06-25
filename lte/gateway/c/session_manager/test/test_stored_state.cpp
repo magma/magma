@@ -47,14 +47,6 @@ protected:
     return stored;
   }
 
-  StoredRedirectServer get_stored_redirect_server() {
-    StoredRedirectServer stored;
-    stored.redirect_address_type = RedirectServer_RedirectAddressType::
-        RedirectServer_RedirectAddressType_IPV6;
-    stored.redirect_server_address = "redirect_server_address";
-    return stored;
-  }
-
   FinalActionInfo get_stored_final_action_info() {
     FinalActionInfo stored;
     stored.final_action =
@@ -72,7 +64,7 @@ protected:
 
     stored.reporting = true;
     stored.is_final = true;
-    stored.unlimited_quota = true;
+    stored.credit_limit_type = INFINITE_METERED;
 
     stored.final_action_info.final_action =
         ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT;
@@ -90,7 +82,7 @@ protected:
     stored.buckets[USED_TX] = 12345;
     stored.buckets[ALLOWED_TOTAL] = 54321;
 
-    stored.usage_reporting_limit = 4444;
+    stored.grant_tracking_type = TX_ONLY;
     return stored;
   };
 
@@ -101,22 +93,15 @@ protected:
     return stored;
   }
 
-  StoredChargingCreditPool get_stored_charging_credit_pool() {
-    StoredChargingCreditPool stored;
-    stored.imsi = "IMSI1";
-    auto credit_map =
-        std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
-                           decltype(&ccEqual)>(4, &ccHash, &ccEqual);
-    credit_map[CreditKey(1, 2)] = get_stored_session_credit();
-    stored.credit_map = credit_map;
+  StoredChargingCreditMap get_stored_charging_credit_map() {
+    StoredChargingCreditMap stored(4, &ccHash, &ccEqual);
+    stored[CreditKey(1, 2)] = get_stored_session_credit();
     return stored;
   }
 
-  StoredUsageMonitoringCreditPool get_stored_monitor_pool() {
-    StoredUsageMonitoringCreditPool stored;
-    stored.imsi = "IMSI1";
-    stored.session_level_key = "session_level_key";
-    stored.monitor_map["mk1"] = get_stored_monitor();
+  StoredMonitorMap get_stored_monitor_map() {
+    StoredMonitorMap stored;
+    stored["mk1"] = get_stored_monitor();
     return stored;
   }
 
@@ -124,8 +109,9 @@ protected:
     StoredSessionState stored;
 
     stored.config = get_stored_session_config();
-    stored.charging_pool = get_stored_charging_credit_pool();
-    stored.monitor_pool = get_stored_monitor_pool();
+    stored.credit_map = get_stored_charging_credit_map();
+    stored.monitor_map = get_stored_monitor_map();
+    stored.session_level_key = "session_level_key";
     stored.imsi = "IMSI1";
     stored.session_id = "session_id";
     stored.core_session_id = "core_session_id";
@@ -136,6 +122,9 @@ protected:
     tgpp_context.set_gx_dest_host("gx");
     tgpp_context.set_gy_dest_host("gy");
     stored.tgpp_context = tgpp_context;
+
+    stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
+    stored.revalidation_time.set_seconds(32);
 
     stored.request_number = 1;
 
@@ -176,18 +165,6 @@ TEST_F(StoredStateTest, test_stored_session_config) {
   EXPECT_EQ(deserialized.qos_info.qci, 123);
 }
 
-TEST_F(StoredStateTest, test_stored_redirect_server) {
-  auto stored = get_stored_redirect_server();
-
-  auto serialized = serialize_stored_redirect_server(stored);
-  auto deserialized = deserialize_stored_redirect_server(serialized);
-
-  EXPECT_EQ(deserialized.redirect_address_type,
-            RedirectServer_RedirectAddressType::
-                RedirectServer_RedirectAddressType_IPV6);
-  EXPECT_EQ(deserialized.redirect_server_address, "redirect_server_address");
-}
-
 TEST_F(StoredStateTest, test_stored_final_action_info) {
   auto stored = get_stored_final_action_info();
 
@@ -211,7 +188,7 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
 
   EXPECT_EQ(deserialized.reporting, true);
   EXPECT_EQ(deserialized.is_final, true);
-  EXPECT_EQ(deserialized.unlimited_quota, true);
+  EXPECT_EQ(deserialized.credit_limit_type, INFINITE_METERED);
 
   EXPECT_EQ(deserialized.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
@@ -230,7 +207,7 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
   EXPECT_EQ(deserialized.buckets[USED_TX], 12345);
   EXPECT_EQ(deserialized.buckets[ALLOWED_TOTAL], 54321);
 
-  EXPECT_EQ(deserialized.usage_reporting_limit, 4444);
+  EXPECT_EQ(deserialized.grant_tracking_type, TX_ONLY);
 }
 
 TEST_F(StoredStateTest, test_stored_monitor) {
@@ -241,7 +218,7 @@ TEST_F(StoredStateTest, test_stored_monitor) {
 
   EXPECT_EQ(deserialized.credit.reporting, true);
   EXPECT_EQ(deserialized.credit.is_final, true);
-  EXPECT_EQ(deserialized.credit.unlimited_quota, true);
+  EXPECT_EQ(deserialized.credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(deserialized.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(deserialized.credit.final_action_info.redirect_server
@@ -256,20 +233,19 @@ TEST_F(StoredStateTest, test_stored_monitor) {
   EXPECT_EQ(deserialized.credit.expiry_time, 0);
   EXPECT_EQ(deserialized.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(deserialized.credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(deserialized.credit.usage_reporting_limit, 4444);
   EXPECT_EQ(deserialized.level, MonitoringLevel::PCC_RULE_LEVEL);
 }
 
-TEST_F(StoredStateTest, test_stored_charging_credit_pool) {
-  auto stored = get_stored_charging_credit_pool();
+TEST_F(StoredStateTest, test_stored_charging_credit_map) {
+  auto stored = get_stored_charging_credit_map();
 
-  auto serialized = serialize_stored_charging_credit_pool(stored);
-  auto deserialized = deserialize_stored_charging_credit_pool(serialized);
+  auto serialized = serialize_stored_charging_credit_map(stored);
+  auto deserialized = deserialize_stored_charging_credit_map(serialized);
 
-  auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
+  auto stored_credit = deserialized[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
-  EXPECT_EQ(stored_credit.unlimited_quota, true);
+  EXPECT_EQ(stored_credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
@@ -284,22 +260,18 @@ TEST_F(StoredStateTest, test_stored_charging_credit_pool) {
   EXPECT_EQ(stored_credit.expiry_time, 0);
   EXPECT_EQ(stored_credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_credit.usage_reporting_limit, 4444);
 }
 
-TEST_F(StoredStateTest, test_stored_monitor_pool) {
-  auto stored = get_stored_monitor_pool();
+TEST_F(StoredStateTest, test_stored_monitor_map) {
+  auto stored = get_stored_monitor_map();
 
-  auto serialized = serialize_stored_usage_monitoring_pool(stored);
-  auto deserialized = deserialize_stored_usage_monitoring_pool(serialized);
+  auto serialized = serialize_stored_usage_monitor_map(stored);
+  auto deserialized = deserialize_stored_usage_monitor_map(serialized);
 
-  EXPECT_EQ(deserialized.imsi, "IMSI1");
-  EXPECT_EQ(deserialized.session_level_key, "session_level_key");
-
-  auto stored_monitor = deserialized.monitor_map["mk1"];
+  auto stored_monitor = deserialized["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.is_final, true);
-  EXPECT_EQ(stored_monitor.credit.unlimited_quota, true);
+  EXPECT_EQ(stored_monitor.credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_monitor.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
@@ -314,7 +286,6 @@ TEST_F(StoredStateTest, test_stored_monitor_pool) {
   EXPECT_EQ(stored_monitor.credit.expiry_time, 0);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_monitor.credit.usage_reporting_limit, 4444);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 }
 
@@ -341,11 +312,10 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(config.qos_info.enabled, true);
   EXPECT_EQ(config.qos_info.qci, 123);
 
-  auto charging_pool = deserialized.charging_pool;
-  auto stored_credit = charging_pool.credit_map[CreditKey(1, 2)];
+  auto stored_credit = deserialized.credit_map[CreditKey(1, 2)];
   EXPECT_EQ(stored_credit.reporting, true);
   EXPECT_EQ(stored_credit.is_final, true);
-  EXPECT_EQ(stored_credit.unlimited_quota, true);
+  EXPECT_EQ(stored_credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
@@ -360,15 +330,13 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_credit.expiry_time, 0);
   EXPECT_EQ(stored_credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_credit.usage_reporting_limit, 4444);
 
-  auto monitor_pool = deserialized.monitor_pool;
-  EXPECT_EQ(monitor_pool.imsi, "IMSI1");
-  EXPECT_EQ(monitor_pool.session_level_key, "session_level_key");
-  auto stored_monitor = monitor_pool.monitor_map["mk1"];
+  EXPECT_EQ(deserialized.session_level_key, "session_level_key");
+
+  auto stored_monitor = deserialized.monitor_map["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.is_final, true);
-  EXPECT_EQ(stored_monitor.credit.unlimited_quota, true);
+  EXPECT_EQ(stored_monitor.credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(stored_monitor.credit.final_action_info.final_action,
             ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
@@ -383,7 +351,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.expiry_time, 0);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
-  EXPECT_EQ(stored_monitor.credit.usage_reporting_limit, 4444);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
   EXPECT_EQ(stored.imsi, "IMSI1");
@@ -396,6 +363,10 @@ TEST_F(StoredStateTest, test_stored_session) {
 
   EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
   EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");
+
+  EXPECT_EQ(stored.pending_event_triggers.size(), 1);
+  EXPECT_EQ(stored.pending_event_triggers[REVALIDATION_TIMEOUT], READY);
+  EXPECT_EQ(stored.revalidation_time.seconds(), 32);
 
   EXPECT_EQ(stored.request_number, 1);
 }

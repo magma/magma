@@ -45,8 +45,8 @@ public:
     uint64_t bytes_rx;
   };
 
-  static std::unique_ptr<SessionCredit>
-  unmarshal(const StoredSessionCredit &marshaled, CreditType credit_type);
+  static SessionCredit unmarshal(
+    const StoredSessionCredit &marshaled, CreditType credit_type);
 
   StoredSessionCredit marshal();
 
@@ -57,7 +57,7 @@ public:
   SessionCredit(CreditType credit_type, ServiceState start_state);
 
   SessionCredit(CreditType credit_type, ServiceState start_state,
-                bool unlimited_quota);
+                CreditLimitType credit_limit_type);
 
   /**
    * add_used_credit increments USED_TX and USED_RX
@@ -82,8 +82,7 @@ public:
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
    */
-  void receive_credit(uint64_t total_volume, uint64_t tx_volume,
-                      uint64_t rx_volume, uint32_t validity_time,
+  void receive_credit(const GrantedUnits& gsu, uint32_t validity_time,
                       bool is_final_grant, FinalActionInfo final_action_info,
                       SessionCreditUpdateCriteria &update_criteria);
 
@@ -115,6 +114,11 @@ public:
    * Returns true if either of REPORTING_* buckets are more than 0
    */
   bool is_reporting() const;
+
+  /**
+   * Returns true if service is being redirected
+   */
+  bool is_service_redirected() const;
 
   /**
    * Helper function to get the credit in a particular bucket
@@ -165,6 +169,9 @@ public:
   void set_expiry_time(std::time_t expiry_time,
                        SessionCreditUpdateCriteria &update_criteria);
 
+  void set_grant_tracking_type(GrantTrackingType g_type,
+    SessionCreditUpdateCriteria& uc);
+
   /**
    * Add credit to the specified bucket. This does not necessarily correspond
    * to allowed or used credit.
@@ -174,6 +181,22 @@ public:
    */
   void add_credit(uint64_t credit, Bucket bucket,
                   SessionCreditUpdateCriteria &update_criteria);
+  /**
+   * is_quota_exhausted checks if any of the tx, rx, or combined tx+rx are
+   * exhausted. The exception to this is if ALLOWED_RX or ALLOWED_TX are 0,
+   * which occurs for an OCS/PCRF which do not individually track tx/rx. In this
+   * scenario, only the total matters.
+   *
+   * Quota usage is measured by reporting from pipelined since the last
+   * SessionUpdate.
+   * We mark quota as exhausted if usage_reporting_threshold * available quota
+   * is reached. (so the default is 100% of quota)
+   * Check if the session has exhausted its quota granted since the last report.
+   *
+   * @param usage_reporting_threshold
+   * @return true if quota is exhausted for the session
+   */
+  bool is_quota_exhausted(float usage_reporting_threshold) const;
 
   /**
    * A threshold represented as a ratio for triggering usage update before
@@ -192,39 +215,18 @@ public:
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
 private:
-  bool reporting_;
-  bool is_final_grant_;
-  bool unlimited_quota_;
-  FinalActionInfo final_action_info_;
+  CreditType credit_type_;
   ReAuthState reauth_state_;
   ServiceState service_state_;
-  std::time_t expiry_time_;
   uint64_t buckets_[MAX_VALUES];
-  /**
-   * Limit for the total usage (tx + rx) in credit updates to prevent
-   * session manager from reporting more usage than granted
-   */
-  uint64_t usage_reporting_limit_;
-  CreditType credit_type_;
+  bool reporting_;
+  CreditLimitType credit_limit_type_;
+  bool is_final_grant_;
+  GrantTrackingType grant_tracking_type_;
+  FinalActionInfo final_action_info_;
+  std::time_t expiry_time_;
 
 private:
-  /**
-   * is_quota_exhausted checks if any of the tx, rx, or combined tx+rx are
-   * exhausted. The exception to this is if ALLOWED_RX or ALLOWED_TX are 0,
-   * which occurs for an OCS/PCRF which do not individually track tx/rx. In this
-   * scenario, only the total matters.
-   *
-   * Quota usage is measured by reporting from pipelined since the last
-   * SessionUpdate.
-   * We mark quota as exhausted if usage_reporting_threshold * available quota
-   * is reached. (so the default is 100% of quota)
-   * Check if the session has exhausted its quota granted since the last report.
-   *
-   * @param usage_reporting_threshold
-   * @return true if quota is exhausted for the session
-   */
-  bool is_quota_exhausted(float usage_reporting_threshold = 1) const;
-
   void log_quota_and_usage() const;
 
   bool should_deactivate_service() const;
@@ -241,6 +243,16 @@ private:
   SessionCredit::Usage get_unreported_usage() const;
 
   void log_usage_report(SessionCredit::Usage) const;
+
+  GrantTrackingType determine_grant_tracking_type(const GrantedUnits& grant);
+
+  bool compute_quota_exhausted(const uint64_t allowed,
+    const uint64_t reported, const uint64_t used, float threshold_ratio) const;
+
+  uint64_t compute_reporting_limit(
+    const uint64_t allowed, const uint64_t reported) const;
+
+  void apply_reporting_limits(SessionCredit::Usage& usage);
 };
 
 } // namespace magma

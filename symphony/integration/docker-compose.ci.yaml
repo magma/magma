@@ -42,11 +42,25 @@ services:
     env_file:
       - conf/graph.env
       - conf/log.env
+    environment:
+      - WS_AUTH_URL=http://front/user/me
     depends_on:
       - mysql
       - nats
+      - async
     healthcheck: &healthcheck
       test: curl -If localhost/healthz/liveness
+    restart: on-failure
+
+  async:
+    image: ${DOCKER_REGISTRY}/async:${TAG}
+    env_file:
+      - conf/async.env
+      - conf/log.env
+    depends_on:
+      - mysql
+      - nats
+    healthcheck: *healthcheck
     restart: on-failure
 
   store:

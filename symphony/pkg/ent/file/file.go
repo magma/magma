@@ -26,7 +26,8 @@ const (
 	FieldUploadedAt  = "uploaded_at"  // FieldContentType holds the string denoting the content_type vertex property in the database.
 	FieldContentType = "content_type" // FieldStoreKey holds the string denoting the store_key vertex property in the database.
 	FieldStoreKey    = "store_key"    // FieldCategory holds the string denoting the category vertex property in the database.
-	FieldCategory    = "category"
+	FieldCategory    = "category"     // FieldAnnotation holds the string denoting the annotation vertex property in the database.
+	FieldAnnotation  = "annotation"
 
 	// EdgeLocation holds the string denoting the location edge name in mutations.
 	EdgeLocation = "location"
@@ -127,6 +128,7 @@ var Columns = []string{
 	FieldContentType,
 	FieldStoreKey,
 	FieldCategory,
+	FieldAnnotation,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the File type.

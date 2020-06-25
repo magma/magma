@@ -9,37 +9,20 @@
  */
 
 import * as React from 'react';
+import BaseDialog from './BaseDialog';
 import Button from '../Button';
 import Checkbox from '../Checkbox/Checkbox';
-import DialogBase from './DialogBase';
-import IconButton from '../IconButton';
 import Strings from '@fbcnms/strings/Strings';
 import Text from '../Text';
-import {CloseIcon} from '../Icons';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
-    padding: '24px',
     minWidth: '480px',
     minHeight: '210px',
     maxWidth: '600px',
     maxHeight: '600px',
-    display: 'flex',
-    flexDirection: 'column',
-    boxSizing: 'border-box',
-  },
-  titleContainer: {
-    display: 'flex',
-    flexDirection: 'row',
-    marginBottom: '16px',
-  },
-  titleText: {
-    flexGrow: 1,
-    maxWidth: '560px',
-    overflow: 'hidden',
-    marginRight: '16px',
   },
   checkboxContainer: {
     display: 'flex',
@@ -49,11 +32,18 @@ const useStyles = makeStyles(() => ({
   },
   content: {
     flexGrow: 1,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  body: {
+    flexGrow: 1,
     marginBottom: '40px',
   },
   footer: {
+    paddingBottom: '8px',
     display: 'flex',
     flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   cancelButton: {
     marginRight: '8px',
@@ -102,51 +92,51 @@ const MessageDialog = ({
   }, [hidden]);
 
   return (
-    <DialogBase className={classes.root} onClose={onClose} hidden={hidden}>
-      <div className={classes.titleContainer}>
-        <Text className={classes.titleText} weight="medium">
-          {title}
-        </Text>
-        <IconButton skin="gray" icon={CloseIcon} onClick={onClose} />
-      </div>
+    <BaseDialog
+      className={classes.root}
+      title={title}
+      onClose={onClose}
+      hidden={hidden}>
       <div className={classes.content}>
-        <Text>{message}</Text>
-      </div>
-      <div className={classes.footer}>
-        {verificationCheckbox && (
-          <div className={classes.checkboxContainer}>
-            <Checkbox
-              checked={checkboxChecked}
-              title={verificationCheckbox.label}
-              onChange={selection =>
-                setCheckboxChecked(selection === 'checked' ? true : false)
+        <div className={classes.body}>
+          <Text>{message}</Text>
+        </div>
+        <div className={classes.footer}>
+          {verificationCheckbox && (
+            <div className={classes.checkboxContainer}>
+              <Checkbox
+                checked={checkboxChecked}
+                title={verificationCheckbox.label}
+                onChange={selection =>
+                  setCheckboxChecked(selection === 'checked' ? true : false)
+                }
+              />
+            </div>
+          )}
+          {cancelLabel && (
+            <Button
+              skin="gray"
+              onClick={onCancel}
+              className={classes.cancelButton}>
+              {cancelLabel}
+            </Button>
+          )}
+          {confirmLabel && (
+            <Button
+              onClick={() =>
+                onConfirm &&
+                onConfirm(verificationCheckbox == null ? null : checkboxChecked)
               }
-            />
-          </div>
-        )}
-        {cancelLabel && (
-          <Button
-            skin="gray"
-            onClick={onCancel}
-            className={classes.cancelButton}>
-            {cancelLabel}
-          </Button>
-        )}
-        {confirmLabel && (
-          <Button
-            onClick={() =>
-              onConfirm &&
-              onConfirm(verificationCheckbox == null ? null : checkboxChecked)
-            }
-            skin={skin}
-            disabled={
-              verificationCheckbox?.isMandatory === true && !checkboxChecked
-            }>
-            {confirmLabel}
-          </Button>
-        )}
+              skin={skin}
+              disabled={
+                verificationCheckbox?.isMandatory === true && !checkboxChecked
+              }>
+              {confirmLabel}
+            </Button>
+          )}
+        </div>
       </div>
-    </DialogBase>
+    </BaseDialog>
   );
 };
 

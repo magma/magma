@@ -29,7 +29,6 @@
 #include "SpgwServiceClient.h"
 
 namespace magma {
-
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -48,7 +47,7 @@ class LocalEnforcer {
       std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-      std::shared_ptr<AsyncEventdClient> eventd_client,
+      AsyncEventdClient& eventd_client,
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
       long session_force_termination_timeout_ms,
@@ -106,12 +105,11 @@ class LocalEnforcer {
    * Collect any credit keys that are either exhausted, timed out, or terminated
    * and apply actions to the services if need be
    * @param updates_out (out) - vector to add usage updates to, if they exist
-   * @param force_update force updates if revalidation timer expires
    */
   UpdateSessionRequest collect_updates(
       SessionMap& session_map,
       std::vector<std::unique_ptr<ServiceAction>>& actions,
-      SessionUpdate& session_update, const bool force_update = false) const;
+      SessionUpdate& session_update) const;
 
   /**
    * Perform any rule installs/removals that need to be executed given a
@@ -232,7 +230,7 @@ class LocalEnforcer {
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
-  std::shared_ptr<AsyncEventdClient> eventd_client_;
+  AsyncEventdClient& eventd_client_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
@@ -397,7 +395,9 @@ class LocalEnforcer {
 
   void schedule_revalidation(
       const std::string& imsi,
-      const google::protobuf::Timestamp& revalidation_time);
+      SessionState& session,
+      const google::protobuf::Timestamp& revalidation_time,
+      SessionStateUpdateCriteria& update_criteria);
 
   void handle_add_ue_mac_flow_callback(
     const SubscriberID& sid,
@@ -406,10 +406,6 @@ class LocalEnforcer {
     const std::string& ap_mac_addr,
     const std::string& ap_name,
     Status status, FlowResponse resp);
-
-  void check_usage_for_reporting(
-      SessionMap& session_map, SessionUpdate& session_update,
-      const bool force_update = false);
 
   /**
    * Deactivate rules for certain IMSI.

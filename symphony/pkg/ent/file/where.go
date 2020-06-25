@@ -167,6 +167,13 @@ func Category(v string) predicate.File {
 	})
 }
 
+// Annotation applies equality check predicate on the "annotation" field. It's identical to AnnotationEQ.
+func Annotation(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAnnotation), v))
+	})
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
@@ -1155,6 +1162,131 @@ func CategoryEqualFold(v string) predicate.File {
 func CategoryContainsFold(v string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldCategory), v))
+	})
+}
+
+// AnnotationEQ applies the EQ predicate on the "annotation" field.
+func AnnotationEQ(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.EQ(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationNEQ applies the NEQ predicate on the "annotation" field.
+func AnnotationNEQ(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.NEQ(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationIn applies the In predicate on the "annotation" field.
+func AnnotationIn(vs ...string) predicate.File {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.File(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.In(s.C(FieldAnnotation), v...))
+	})
+}
+
+// AnnotationNotIn applies the NotIn predicate on the "annotation" field.
+func AnnotationNotIn(vs ...string) predicate.File {
+	v := make([]interface{}, len(vs))
+	for i := range v {
+		v[i] = vs[i]
+	}
+	return predicate.File(func(s *sql.Selector) {
+		// if not arguments were provided, append the FALSE constants,
+		// since we can't apply "IN ()". This will make this predicate falsy.
+		if len(vs) == 0 {
+			s.Where(sql.False())
+			return
+		}
+		s.Where(sql.NotIn(s.C(FieldAnnotation), v...))
+	})
+}
+
+// AnnotationGT applies the GT predicate on the "annotation" field.
+func AnnotationGT(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.GT(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationGTE applies the GTE predicate on the "annotation" field.
+func AnnotationGTE(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.GTE(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationLT applies the LT predicate on the "annotation" field.
+func AnnotationLT(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.LT(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationLTE applies the LTE predicate on the "annotation" field.
+func AnnotationLTE(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.LTE(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationContains applies the Contains predicate on the "annotation" field.
+func AnnotationContains(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.Contains(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationHasPrefix applies the HasPrefix predicate on the "annotation" field.
+func AnnotationHasPrefix(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.HasPrefix(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationHasSuffix applies the HasSuffix predicate on the "annotation" field.
+func AnnotationHasSuffix(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.HasSuffix(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationIsNil applies the IsNil predicate on the "annotation" field.
+func AnnotationIsNil() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.IsNull(s.C(FieldAnnotation)))
+	})
+}
+
+// AnnotationNotNil applies the NotNil predicate on the "annotation" field.
+func AnnotationNotNil() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.NotNull(s.C(FieldAnnotation)))
+	})
+}
+
+// AnnotationEqualFold applies the EqualFold predicate on the "annotation" field.
+func AnnotationEqualFold(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.EqualFold(s.C(FieldAnnotation), v))
+	})
+}
+
+// AnnotationContainsFold applies the ContainsFold predicate on the "annotation" field.
+func AnnotationContainsFold(v string) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		s.Where(sql.ContainsFold(s.C(FieldAnnotation), v))
 	})
 }
 

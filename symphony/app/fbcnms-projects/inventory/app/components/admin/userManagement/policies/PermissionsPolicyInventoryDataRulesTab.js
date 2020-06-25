@@ -8,18 +8,19 @@
  * @format
  */
 
-import type {InventoryPolicy} from '../utils/UserManagementUtils';
+import type {InventoryPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
+import PermissionsPolicyLocationRulesSection from './PermissionsPolicyLocationRulesSection';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
-
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
+import classNames from 'classnames';
 import fbt from 'fbt';
 import {
   bool2PermissionRuleValue,
   permissionRuleValue2Bool,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 
@@ -40,11 +41,12 @@ const useStyles = makeStyles(() => ({
 
 type Props = $ReadOnly<{|
   policy: ?InventoryPolicy,
-  onChange: InventoryPolicy => void,
+  onChange?: InventoryPolicy => void,
+  className?: ?string,
 |}>;
 
 export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
-  const {policy, onChange} = props;
+  const {policy, onChange, className} = props;
   const classes = useStyles();
   const {isFeatureEnabled} = useContext(AppContext);
   const userManagementDevMode = isFeatureEnabled('user_management_dev');
@@ -54,38 +56,46 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
   }
 
   const readAllowed = permissionRuleValue2Bool(policy.read.isAllowed);
+  const isDisabled = onChange == null;
 
   return (
-    <div className={classes.root}>
+    <div className={classNames(classes.root, className)}>
       {userManagementDevMode ? (
         <Switch
           className={classes.readRule}
           title={fbt('View inventory data', '')}
           checked={readAllowed}
-          onChange={checked =>
-            onChange({
-              ...policy,
-              read: {
-                isAllowed: bool2PermissionRuleValue(checked),
-              },
-            })
+          disabled={isDisabled}
+          onChange={
+            onChange != null
+              ? checked =>
+                  onChange({
+                    ...policy,
+                    read: {
+                      isAllowed: bool2PermissionRuleValue(checked),
+                    },
+                  })
+              : undefined
           }
         />
       ) : null}
-      <PermissionsPolicyRulesSection
+      <PermissionsPolicyLocationRulesSection
         title={fbt('Locations', '')}
         subtitle={fbt(
           'Location data includes location details, properties, floor plans and coverage maps.',
           '',
         )}
-        disabled={!readAllowed}
-        rule={policy.location}
+        disabled={isDisabled || !readAllowed}
+        locationRule={policy.location}
         className={classes.section}
-        onChange={location =>
-          onChange({
-            ...policy,
-            location,
-          })
+        onChange={
+          onChange != null
+            ? location =>
+                onChange({
+                  ...policy,
+                  location,
+                })
+            : undefined
         }
       />
       <PermissionsPolicyRulesSection
@@ -95,13 +105,16 @@ export default function PermissionsPolicyInventoryDataRulesTab(props: Props) {
           '',
         )}
         className={classes.section}
-        disabled={!readAllowed}
+        disabled={isDisabled || !readAllowed}
         rule={policy.equipment}
-        onChange={equipment =>
-          onChange({
-            ...policy,
-            equipment,
-          })
+        onChange={
+          onChange != null
+            ? equipment =>
+                onChange({
+                  ...policy,
+                  equipment,
+                })
+            : undefined
         }
       />
     </div>

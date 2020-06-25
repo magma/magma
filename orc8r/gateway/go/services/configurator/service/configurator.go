@@ -13,10 +13,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"log"
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
@@ -62,7 +62,7 @@ func (c *Configurator) GetName() string {
 
 func (c *Configurator) ReportError(e error) error {
 	if e != io.EOF {
-		log.Printf("gateway mconfig streaming error: %v", e)
+		glog.Errorf("gateway mconfig streaming error: %v", e)
 		sleepDuration := time.Second * time.Duration(config.GetMagmadConfigs().ConfigStreamErrorRetryInterval)
 		time.Sleep(sleepDuration)
 	}
@@ -77,30 +77,63 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 		return true // keep waiting for new configs
 	}
 	// There should be only one ...
-	u := updates[0]
+	update := updates[0]
 	// Validate the received mconfig payload
 	cfg := &protos.GatewayConfigs{}
-	err := protos.UnmarshalMconfig(u.GetValue(), cfg)
+	err := protos.UnmarshalMconfig(update.GetValue(), cfg)
 	if err != nil {
-		log.Printf("error unmarshaling mconfig update for GW %s: %v", u.GetKey(), err)
+		glog.Errorf("error unmarshaling mconfig update for GW %s: %v", update.GetKey(), err)
 		return false // re-establish stream on error
 	}
 	mdCfg, ok := cfg.GetConfigsByKey()["magmad"]
 	if !ok {
-		log.Printf("invalid mconfig update for GW %s - missing magmad configuration", u.GetKey())
+		glog.Errorf("invalid mconfig update for GW %s - missing magmad configuration", update.GetKey())
 		return false
 	}
 	if err = ptypes.UnmarshalAny(mdCfg, new(mconfig.MagmaD)); err != nil {
-		log.Printf("invalid magmad mconfig GW %s: %v", u.GetKey(), err)
+		glog.Errorf("invalid magmad mconfig GW %s: %v", update.GetKey(), err)
 		return false
 	}
-	c.Lock()
-	updateChan := c.updateChan
-	oldCfgJson, err := SaveConfigs(u.GetValue(), updateChan != nil)
-	if err != nil {
-		log.Printf("error saving new gateway mconfig: %v", err)
-		c.Unlock()
-		return false
+	// find out if any of the service configs changed
+	updatedServices := UpdateCompletion{}
+	newCfg := &rawMconfigMsg{ConfigsByKey: map[string]json.RawMessage{}}
+	oldCfg := &rawMconfigMsg{ConfigsByKey: map[string]json.RawMessage{}}
+	json.Unmarshal(update.GetValue(), newCfg)
+
+	c.Lock() // lock on all file operations
+
+	if oldCfgJson, err := readCfg(); err == nil {
+		json.Unmarshal(oldCfgJson, oldCfg)
+	}
+	newMap, oldMap := newCfg.ConfigsByKey, oldCfg.ConfigsByKey
+	for sn, val := range newMap {
+		if len(sn) > 0 {
+			oldVal, found := oldMap[sn]
+			if found && bytes.Equal(val, oldVal) {
+				continue
+			}
+			// old config didn't have it or had non matching values
+			updatedServices = append(updatedServices, sn)
+		}
+	}
+	// find all removed configs
+	for sn, _ := range oldMap {
+		if _, found := newMap[sn]; !found {
+			updatedServices = append(updatedServices, sn)
+		}
+	}
+	if len(updatedServices) > 0 {
+		glog.V(1).Infof("changes detected in configs for services: %v", updatedServices)
+		err = SaveConfigs(update.GetValue())
+		if err != nil {
+			glog.Errorf("error saving new gateway mconfig: %v", err)
+			c.Unlock()
+			return false
+		}
+		// check if we need to update static copy of configs & update them
+		updateStaticConfigs(update.GetValue())
+	} else {
+		glog.V(1).Info("no changes in cloud provided configs")
 	}
 	// everything succeeded, update digest for the next config stream
 	c.latestConfigDigest = nil
@@ -111,39 +144,16 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 		if digest, err = cfg.GetMconfigDigest(); err == nil {
 			c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 		} else {
-			log.Printf("error encoding mconfig digest: %v", err)
+			glog.Errorf("error encoding mconfig digest: %v", err)
 		}
 	}
-	// check if we need to update static copy of configs & update them
-	updateStaticConfigs(u.GetValue())
+	updateChan := c.updateChan
 
-	c.Unlock()
+	c.Unlock() // unlock before possibly blocking on updateChan
 
 	// Prepare a list of service names with changed mconfigs and
 	// notify with the list of updated service configs if requested (c.updateChan != nil)
 	if updateChan != nil {
-		updatedServices := UpdateCompletion{}
-		newCfg := &rawMconfigMsg{ConfigsByKey: map[string]json.RawMessage{}}
-		oldCfg := &rawMconfigMsg{ConfigsByKey: map[string]json.RawMessage{}}
-		json.Unmarshal(u.GetValue(), newCfg)
-		json.Unmarshal(oldCfgJson, oldCfg)
-		newMap, oldMap := newCfg.ConfigsByKey, oldCfg.ConfigsByKey
-		for sn, val := range newMap {
-			if len(sn) > 0 {
-				oldVal, found := oldMap[sn]
-				if !found { // old config didn't have it, service needs to be updated
-					updatedServices = append(updatedServices, sn)
-				} else if !bytes.Equal(val, oldVal) { // non-matching values
-					updatedServices = append(updatedServices, sn)
-				}
-			}
-		}
-		// find all removed configs
-		for sn, _ := range oldMap {
-			if _, found := newMap[sn]; !found {
-				updatedServices = append(updatedServices, sn)
-			}
-		}
 		updateChan <- updatedServices
 	}
 	return false
@@ -157,7 +167,7 @@ func (c *Configurator) GetExtraArgs() *any.Any {
 		if err == nil {
 			return extra
 		}
-		log.Printf("error marshaling latest mconfig digest: %v", err)
+		glog.Errorf("error marshaling latest mconfig digest: %v", err)
 	}
 	return nil
 }

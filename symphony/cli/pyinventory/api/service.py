@@ -109,10 +109,13 @@ def get_service(client: SymphonyClient, id: str) -> Service:
     result = ServiceDetailsQuery.execute(client, id=id)
     if result is None:
         raise EntityNotFoundError(entity=Entity.Service, entity_id=id)
-    customer = result.customer if result.customer is not None else None
-    if customer is not None:
+    customer_result = result.customer if result.customer is not None else None
+    customer: Optional[Customer] = None
+    if customer_result is not None:
         customer = Customer(
-            id=customer.id, name=customer.name, external_id=customer.externalId
+            id=customer_result.id,
+            name=customer_result.name,
+            external_id=customer_result.externalId,
         )
     return Service(
         id=result.id,

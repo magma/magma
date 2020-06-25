@@ -17,10 +17,10 @@ from ..enum.location_filter_type import LocationFilterType
 from ..input.property_type import PropertyTypeInput
 @dataclass
 class LocationFilterInput(DataClassJsonMixin):
-    filterType: LocationFilterType = enum_field(LocationFilterType)
-    operator: FilterOperator = enum_field(FilterOperator)
     idSet: List[str]
     stringSet: List[str]
+    filterType: LocationFilterType = enum_field(LocationFilterType)
+    operator: FilterOperator = enum_field(FilterOperator)
     boolValue: Optional[bool] = None
     stringValue: Optional[str] = None
     propertyValue: Optional[PropertyTypeInput] = None

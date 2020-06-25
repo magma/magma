@@ -111,6 +111,14 @@ func appendBasicPermissionRule(rule *models.BasicPermissionRule, addRule *models
 	return rule
 }
 
+func appendTopLevelLocationPermissionRuleInput(
+	rule *models.LocationPermissionRuleInput, bottomRule *models.BasicPermissionRuleInput) *models.LocationPermissionRuleInput {
+	if bottomRule == nil || bottomRule.IsAllowed == models.PermissionValueNo {
+		return &models.LocationPermissionRuleInput{IsAllowed: models.PermissionValueNo}
+	}
+	return rule
+}
+
 func appendLocationPermissionRule(rule *models.LocationPermissionRule, addRule *models.LocationPermissionRuleInput) *models.LocationPermissionRule {
 	if addRule == nil {
 		return rule
@@ -125,6 +133,14 @@ func appendLocationPermissionRule(rule *models.LocationPermissionRule, addRule *
 		rule.LocationTypeIds = nil
 	case models.PermissionValueByCondition:
 		rule.LocationTypeIds = append(rule.LocationTypeIds, addRule.LocationTypeIds...)
+	}
+	return rule
+}
+
+func appendTopLevelWorkforcePermissionRuleInput(
+	rule *models.WorkforcePermissionRuleInput, bottomRule *models.BasicPermissionRuleInput) *models.WorkforcePermissionRuleInput {
+	if bottomRule == nil || bottomRule.IsAllowed == models.PermissionValueNo {
+		return &models.WorkforcePermissionRuleInput{IsAllowed: models.PermissionValueNo}
 	}
 	return rule
 }
@@ -164,21 +180,24 @@ func appendLocationCUD(cud *models.LocationCud, addCUD *models.LocationCUDInput)
 	if addCUD == nil {
 		return cud
 	}
-	cud.Create = appendLocationPermissionRule(cud.Create, addCUD.Create)
-	cud.Delete = appendLocationPermissionRule(cud.Delete, addCUD.Delete)
+	cud.Create = appendLocationPermissionRule(
+		cud.Create, appendTopLevelLocationPermissionRuleInput(addCUD.Update, addCUD.Create))
 	cud.Update = appendLocationPermissionRule(cud.Update, addCUD.Update)
+	cud.Delete = appendLocationPermissionRule(
+		cud.Delete, appendTopLevelLocationPermissionRuleInput(addCUD.Update, addCUD.Delete))
 	return cud
 }
 
-func appendWorkforceCUD(cud *models.WorkforceCud, addCUD *models.WorkforceCUDInput) *models.WorkforceCud {
+func appendWorkforceCUD(cud *models.WorkforceCud, readRule *models.WorkforcePermissionRuleInput, addCUD *models.WorkforceCUDInput) *models.WorkforceCud {
 	if addCUD == nil {
 		return cud
 	}
-	cud.Create = appendWorkforcePermissionRule(cud.Create, addCUD.Create)
-	cud.Delete = appendWorkforcePermissionRule(cud.Delete, addCUD.Delete)
-	cud.Update = appendWorkforcePermissionRule(cud.Update, addCUD.Update)
-	cud.Assign = appendWorkforcePermissionRule(cud.Assign, addCUD.Assign)
-	cud.TransferOwnership = appendWorkforcePermissionRule(cud.TransferOwnership, addCUD.TransferOwnership)
+	cud.Create = appendWorkforcePermissionRule(cud.Create, appendTopLevelWorkforcePermissionRuleInput(readRule, addCUD.Create))
+	cud.Delete = appendWorkforcePermissionRule(cud.Delete, appendTopLevelWorkforcePermissionRuleInput(readRule, addCUD.Delete))
+	cud.Update = appendWorkforcePermissionRule(cud.Update, appendTopLevelWorkforcePermissionRuleInput(readRule, addCUD.Update))
+	cud.Assign = appendWorkforcePermissionRule(cud.Assign, appendTopLevelWorkforcePermissionRuleInput(readRule, addCUD.Assign))
+	cud.TransferOwnership = appendWorkforcePermissionRule(
+		cud.TransferOwnership, appendTopLevelWorkforcePermissionRuleInput(readRule, addCUD.TransferOwnership))
 	return cud
 }
 
@@ -206,7 +225,7 @@ func AppendWorkforcePolicies(policy *models.WorkforcePolicy, inputs ...*models.W
 			continue
 		}
 		policy.Read = appendWorkforcePermissionRule(policy.Read, input.Read)
-		policy.Data = appendWorkforceCUD(policy.Data, input.Data)
+		policy.Data = appendWorkforceCUD(policy.Data, input.Read, input.Data)
 		policy.Templates = appendCUD(policy.Templates, input.Templates)
 	}
 	return policy
@@ -243,7 +262,7 @@ func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.Inve
 
 func userHasWritePermissions(ctx context.Context) (bool, error) {
 	v := viewer.FromContext(ctx)
-	if v.Role() == user.RoleOWNER {
+	if userHasFullPermissions(v) {
 		return true, nil
 	}
 	if v, ok := v.(*viewer.UserViewer); ok && !v.Features().Enabled(viewer.FeaturePermissionPolicies) {
@@ -275,7 +294,7 @@ func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
 	res := models.PermissionSettings{
 		// TODO(T64743627): Deprecate CanWrite field
 		CanWrite:        writePermissions,
-		AdminPolicy:     NewAdministrativePolicy(v.Role() == user.RoleADMIN || v.Role() == user.RoleOWNER),
+		AdminPolicy:     NewAdministrativePolicy(userHasFullPermissions(v)),
 		InventoryPolicy: inventoryPolicy,
 		WorkforcePolicy: workforcePolicy,
 	}

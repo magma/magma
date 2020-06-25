@@ -26,6 +26,7 @@ from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import Tables
+from magma.pipelined.qos.common import QosManager
 from orc8r.protos.common_pb2 import Void
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
@@ -367,6 +368,8 @@ def create_debug_parser(apps):
                              'flows. If not set, all flows will be printed.')
     subcmd.set_defaults(func=display_flows)
 
+    subcmd = subparsers.add_parser('qos', help='Debug Qos')
+    subcmd.set_defaults(func=QosManager.debug)
 
 # --------------------------
 # Pipelined base CLI

@@ -7,15 +7,59 @@
  * @flow strict-local
  * @format
  */
-import Card from '@material-ui/core/Card';
+import type {ComponentType} from 'react';
+
 import CardContent from '@material-ui/core/CardContent';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import type {ComponentType} from 'react';
+import Text from '../theme/design-system/Text';
 
-export type KPIData = {category: string, value: number | string, unit?: string};
+import {colors} from '../theme/default';
+import {makeStyles} from '@material-ui/styles';
+
+const useStyles = makeStyles(theme => ({
+  kpiHeaderBlock: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: 0,
+  },
+  kpiHeaderContent: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+  kpiHeaderIcon: {
+    fill: colors.primary.comet,
+    marginRight: theme.spacing(1),
+  },
+  kpiBlock: {
+    '& + &': {
+      boxShadow: `-2px 0 0 ${colors.primary.concrete}`,
+    },
+  },
+  kpiLabel: {
+    color: colors.primary.comet,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  kpiValue: {
+    color: colors.primary.brightGray,
+  },
+  kpiBox: {
+    width: '100%',
+    '& div': {
+      width: '100%',
+    },
+  },
+}));
+
+export type KPIData = {
+  category: string,
+  value: number | string,
+  unit?: string,
+  icon?: ComponentType<SvgIconExports>,
+};
 type Props = {
   icon?: ComponentType<SvgIconExports>,
   description?: string,
@@ -23,44 +67,57 @@ type Props = {
 };
 
 export default function KPITray(props: Props) {
+  const classes = useStyles();
   const kpiTray = [];
+
   if (props.icon) {
     const KpiIcon = props.icon;
     kpiTray.push(
-      <Grid item key="kpiIcon">
-        <Card elevation={0}>
-          <CardContent>
-            <KpiIcon fontSize="large" />
-          </CardContent>
-        </Card>
-      </Grid>,
-      <Grid item key="kpiTitle">
-        <Card elevation={0}>
-          <CardContent>
-            <Text variant="h6">{props.description}</Text>
-          </CardContent>
-        </Card>
+      <Grid
+        item
+        alignItems="center"
+        className={classes.kpiHeaderBlock}
+        key="kpiTitle">
+        <CardContent className={classes.kpiHeaderContent}>
+          <KpiIcon className={classes.kpiHeaderIcon} />
+          <Text variant="body1">
+            {props.description}
+          </Text>
+        </CardContent>
       </Grid>,
     );
   }
 
   kpiTray.push(
     props.data.map((kpi, i) => (
-      <Grid item xs key={'data-' + i}>
-        <Card>
-          <CardHeader
-            title={kpi.category}
-            subheader={kpi.value + (kpi.unit ?? '')}
-            titleTypographyProps={{align: 'center', variant: 'body1'}}
-            subheaderTypographyProps={{variant: 'h5', align: 'center'}}
-            data-testid={kpi.category}
-          />
-        </Card>
+      <Grid
+        container
+        xs
+        zeroMinWidth
+        key={'data-' + i}
+        className={classes.kpiBlock}
+        alignItems="center">
+        <CardHeader
+          title={kpi.category}
+          className={classes.kpiBox}
+          subheader={kpi.value + (kpi.unit ?? '')}
+          titleTypographyProps={{
+            variant: 'body3',
+            className: classes.kpiLabel,
+            title: kpi.category,
+          }}
+          subheaderTypographyProps={{
+            variant: 'body1',
+            className: classes.kpiValue,
+          }}
+          data-testid={kpi.category}
+        />
       </Grid>
     )),
   );
+
   return (
-    <Grid container alignItems="center" justify="center">
+    <Grid container zeroMinWidth>
       {kpiTray}
     </Grid>
   );

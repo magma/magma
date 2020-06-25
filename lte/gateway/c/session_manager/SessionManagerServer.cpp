@@ -80,9 +80,9 @@ AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
   ServerCompletionQueue *cq,
   GRPCService &service):
   cq_(cq),
-  service_(service),
   status_(PROCESS),
-  responder_(&ctx_)
+  responder_(&ctx_),
+  service_(service)
 {
 }
 

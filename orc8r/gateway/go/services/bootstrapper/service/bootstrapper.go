@@ -16,13 +16,13 @@ import (
 	"crypto/sha256"
 	"encoding/pem"
 	"fmt"
-
-	"github.com/emakeev/snowflake"
-	"github.com/golang/protobuf/ptypes"
-	"log"
 	"os"
 	"sync"
 	"time"
+
+	"github.com/emakeev/snowflake"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/ptypes"
 
 	"magma/gateway/config"
 	"magma/orc8r/lib/go/protos"
@@ -195,7 +195,7 @@ func (b *Bootstrapper) PeriodicCheck(now time.Time) (err error) {
 		return err
 	}
 	// Done updating certificate
-	log.Printf("Successfully bootstrapped gateway '%s' with new certificate: %s and key: %s",
+	glog.Infof("Successfully bootstrapped gateway '%s' with new certificate: %s and key: %s",
 		b.HardwareId, certFile, certKeyFile)
 
 	// bootstrapped, return
@@ -301,7 +301,7 @@ func (b *Bootstrapper) validateCert(now time.Time, cfg *config.ControlProxyCfg) 
 	}
 	crt, err := cert.LoadCert(cfg.GwCertFile)
 	if err != nil {
-		log.Printf("Failed to load certificate & key from '%s', '%s'; error: %v; will bootstrap",
+		glog.Infof("Failed to load certificate & key from '%s', '%s'; error: %v; will bootstrap",
 			cfg.GwCertFile, cfg.GwCertKeyFile, err)
 		return false
 	}
@@ -319,7 +319,7 @@ func (b *Bootstrapper) validateCert(now time.Time, cfg *config.ControlProxyCfg) 
 		// Certificate is still valid, continue
 		return true
 	}
-	log.Printf("Certificate is valid from %s to %s, current time is %s; will bootstrap",
+	glog.Infof("Certificate is valid from %s to %s, current time is %s; will bootstrap",
 		crt.NotBefore, crt.NotAfter, now)
 
 	return false

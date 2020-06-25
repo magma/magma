@@ -158,7 +158,11 @@ const InventoryTreeView = (props: Props) => {
       <div className={classes.treeContainer}>
         <PerfectScrollbar>
           <FormContextProvider
-            permissions={{entity: 'location', action: 'create'}}>
+            permissions={{
+              entity: 'location',
+              action: 'create',
+              ignoreTypes: true,
+            }}>
             <div>
               {dummyRootTitle !== null && dummyRootTitle !== undefined
                 ? renderDummyTitleNode(dummyRootTitle)

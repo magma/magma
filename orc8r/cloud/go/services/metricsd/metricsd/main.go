@@ -35,7 +35,6 @@ func main() {
 	}
 	controllerServer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServer)
-	srv.GrpcServer.RegisterService(protos.GetLegacyMetricsdDesc(), controllerServer)
 
 	profileArg := srv.Config.MustGetString(metricsd.Profile)
 	selectedProfile, err := metricsd.GetMetricsProfile(profileArg)

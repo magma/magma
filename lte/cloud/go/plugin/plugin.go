@@ -47,6 +47,11 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
 		state.NewStateSerde(lte.ICMPStateType, &lteModels.IcmpStatus{}),
+		// MME state messages which use arbitrary untyped JSON serdes because
+		// they're defined/used as protos in the MME codebase
+		state.NewStateSerde(lte.MMEStateType, &state.ArbitaryJSON{}),
+		state.NewStateSerde(lte.SPGWStateType, &state.ArbitaryJSON{}),
+		state.NewStateSerde(lte.S1APStateType, &state.ArbitaryJSON{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),

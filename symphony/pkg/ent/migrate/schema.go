@@ -478,6 +478,7 @@ var (
 		{Name: "content_type", Type: field.TypeString},
 		{Name: "store_key", Type: field.TypeString},
 		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "annotation", Type: field.TypeString, Nullable: true},
 		{Name: "check_list_item_files", Type: field.TypeInt, Nullable: true},
 		{Name: "equipment_files", Type: field.TypeInt, Nullable: true},
 		{Name: "floor_plan_image", Type: field.TypeInt, Unique: true, Nullable: true},
@@ -496,63 +497,63 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:  "files_check_list_items_files",
-				Columns: []*schema.Column{FilesColumns[11]},
+				Columns: []*schema.Column{FilesColumns[12]},
 
 				RefColumns: []*schema.Column{CheckListItemsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_equipment_files",
-				Columns: []*schema.Column{FilesColumns[12]},
+				Columns: []*schema.Column{FilesColumns[13]},
 
 				RefColumns: []*schema.Column{EquipmentColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_floor_plans_image",
-				Columns: []*schema.Column{FilesColumns[13]},
+				Columns: []*schema.Column{FilesColumns[14]},
 
 				RefColumns: []*schema.Column{FloorPlansColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_locations_files",
-				Columns: []*schema.Column{FilesColumns[14]},
+				Columns: []*schema.Column{FilesColumns[15]},
 
 				RefColumns: []*schema.Column{LocationsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_surveys_source_file",
-				Columns: []*schema.Column{FilesColumns[15]},
+				Columns: []*schema.Column{FilesColumns[16]},
 
 				RefColumns: []*schema.Column{SurveysColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_survey_questions_photo_data",
-				Columns: []*schema.Column{FilesColumns[16]},
-
-				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
-				Symbol:  "files_survey_questions_images",
 				Columns: []*schema.Column{FilesColumns[17]},
 
 				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
-				Symbol:  "files_users_profile_photo",
+				Symbol:  "files_survey_questions_images",
 				Columns: []*schema.Column{FilesColumns[18]},
+
+				RefColumns: []*schema.Column{SurveyQuestionsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:  "files_users_profile_photo",
+				Columns: []*schema.Column{FilesColumns[19]},
 
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
 			{
 				Symbol:  "files_work_orders_files",
-				Columns: []*schema.Column{FilesColumns[19]},
+				Columns: []*schema.Column{FilesColumns[20]},
 
 				RefColumns: []*schema.Column{WorkOrdersColumns[0]},
 				OnDelete:   schema.SetNull,

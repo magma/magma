@@ -313,6 +313,12 @@ message CreditUsageUpdate {
   TgppContext tgpp_ctx = 15;
 }
 
+enum CreditLimitType {
+  FINITE = 0;
+  INFINITE_UNMETERED = 1;
+  INFINITE_METERED = 2;
+}
+
 message CreditUpdateResponse {
   bool success = 1;
   string sid = 2; // System Identification Number
@@ -320,11 +326,6 @@ message CreditUpdateResponse {
   ChargingCredit credit = 4;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
-  enum CreditLimitType {
-    FINITE = 0;
-    INFINITE_UNMETERED = 1;
-    INFINITE_METERED = 2;
-  }
   // When this is set to an infinite limit, field 'credit' should be ignored
   CreditLimitType limit_type = 9;
   TgppContext tgpp_ctx = 10;
@@ -358,6 +359,8 @@ message UsageMonitoringCredit {
 }
 
 // A request to update a usage monitor given its usage and session information
+// TODO this message name is misleading since we don't only use it for
+// usage reporting
 message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
@@ -367,6 +370,7 @@ message UsageMonitoringUpdateRequest {
   bytes hardware_addr = 6; // MAC Address for WLAN
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
+  EventTrigger event_trigger = 9;
 }
 
 // Response to a usage monitor update with the credit received and session info

@@ -29,12 +29,14 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import Text from '../../theme/design-system/Text';
+import {colors} from '../../theme/default';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
@@ -62,7 +64,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(3),
   },
   expandIconButton: {
-    color: theme.palette.primary.dark,
+    color: colors.primary.brightGray,
     padding: '5px',
   },
   tableCell: {
@@ -74,7 +76,7 @@ const useStyles = makeStyles(theme => ({
     verticalAlign: 'top',
   },
   gatewayName: {
-    color: theme.palette.primary.dark,
+    color: colors.primary.brightGray,
     fontWeight: 'bolder',
     paddingRight: '10px',
   },
@@ -82,6 +84,21 @@ const useStyles = makeStyles(theme => ({
 
 const FIVE_MINS = 5 * 60 * 1000;
 const REFRESH_INTERVAL = 2 * 60 * 1000;
+
+function gatewayStatus(gateway: cwf_gateway): string {
+  const gatewayHealthy =
+    Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) < FIVE_MINS;
+  let status = '';
+  if (!gatewayHealthy) {
+    const checkInTime = new Date(gateway.status?.checkin_time ?? 0);
+    status = 'Last refreshed ' + checkInTime.toLocaleString();
+  } else {
+    if (gateway.carrier_wifi.allowed_gre_peers.length == 0) {
+      status = 'Gateway is not functional. No GRE peers configured';
+    }
+  }
+  return status;
+}
 
 function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
@@ -160,27 +177,31 @@ function CWFGateways(props: WithAlert & {}) {
   const rows = gateways.map(gateway => (
     <>
       <TableRow key={gateway.id}>
-        <TableCell className={classes.gatewayCell}>
-          <IconButton
-            className={classes.expandIconButton}
-            onClick={() => {
-              const newExpanded = new Set(expanded);
-              expanded.has(gateway.id)
-                ? newExpanded.delete(gateway.id)
-                : newExpanded.add(gateway.id);
-              setExpanded(newExpanded);
-            }}>
-            {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
-          </IconButton>
-          <span className={classes.gatewayName}>{gateway.name}</span>
-          <DeviceStatusCircle
-            isGrey={!gateway.status?.checkin_time}
-            isActive={
-              Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <
-              FIVE_MINS
-            }
-          />
-        </TableCell>
+        <Tooltip title={gatewayStatus(gateway)} placement={'bottom-start'}>
+          <TableCell className={classes.gatewayCell}>
+            <IconButton
+              className={classes.expandIconButton}
+              onClick={() => {
+                const newExpanded = new Set(expanded);
+                expanded.has(gateway.id)
+                  ? newExpanded.delete(gateway.id)
+                  : newExpanded.add(gateway.id);
+                setExpanded(newExpanded);
+              }}>
+              {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
+            </IconButton>
+
+            <span className={classes.gatewayName}>{gateway.name}</span>
+            <DeviceStatusCircle
+              isGrey={!gateway.status?.checkin_time}
+              isActive={
+                Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <
+                  FIVE_MINS && gateway.carrier_wifi.allowed_gre_peers.length > 0
+              }
+            />
+          </TableCell>
+        </Tooltip>
+
         <TableCell>{gateway.device.hardware_id}</TableCell>
         <TableCell>
           <IconButton

@@ -448,7 +448,8 @@ func TestAddWorkOrderWithComment(t *testing.T) {
 func TestAddWorkOrderWithActivity(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
+	ctx := viewertest.NewContext(
+		context.Background(), r.client)
 	qr := r.Query()
 	w := createWorkOrder(ctx, t, *r, "Foo")
 
@@ -1662,6 +1663,7 @@ func TestEditCheckListItemFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 	indexValue := 0
+	annotation := "File Annotation"
 
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            longWorkOrderName,
@@ -1674,8 +1676,9 @@ func TestEditCheckListItemFiles(t *testing.T) {
 				Index: &indexValue,
 				Files: []*models.FileInput{
 					{
-						FileName: "File1",
-						StoreKey: "File1StoreKey",
+						FileName:   "File1",
+						StoreKey:   "File1StoreKey",
+						Annotation: &annotation,
 					},
 					{
 						FileName: "File2",
@@ -1694,6 +1697,9 @@ func TestEditCheckListItemFiles(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, file1)
 
+	annotationFile := workOrder.QueryCheckListCategories().QueryCheckListItems().QueryFiles().Where(file.Name("File1")).OnlyX(ctx)
+	require.Equal(t, annotation, annotationFile.Annotation, "verifying annotation is stored")
+
 	checklistCategoryID, err := workOrder.QueryCheckListCategories().OnlyID(ctx)
 	require.NoError(t, err)
 	filesItemID, err := workOrder.QueryCheckListCategories().QueryCheckListItems().OnlyID(ctx)
@@ -1710,9 +1716,10 @@ func TestEditCheckListItemFiles(t *testing.T) {
 				Index: &indexValue,
 				Files: []*models.FileInput{
 					{
-						ID:       &file1.ID,
-						FileName: "File1 Renamed",
-						StoreKey: "File1StoreKey",
+						ID:         &file1.ID,
+						FileName:   "File1 Renamed",
+						StoreKey:   "File1StoreKey",
+						Annotation: &annotation,
 					},
 					{
 						FileName: "File3",

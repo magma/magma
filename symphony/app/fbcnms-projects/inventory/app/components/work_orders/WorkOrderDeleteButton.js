@@ -39,6 +39,7 @@ const styles = () => ({
 type Props = {
   className?: string,
   workOrderId: string,
+  workOrderTypeId: string,
   ignorePermissions: boolean,
   onWorkOrderRemoved: () => void,
 } & WithStyles<typeof styles> &
@@ -47,12 +48,13 @@ type Props = {
 
 class WorkOrderDeleteButton extends React.Component<Props> {
   render() {
-    const {ignorePermissions, className, classes} = this.props;
+    const {workOrderTypeId, ignorePermissions, className, classes} = this.props;
     return (
       <FormActionWithPermissions
         permissions={{
           entity: 'workorder',
           action: 'delete',
+          workOrderTypeId,
           ignorePermissions,
         }}>
         <Button

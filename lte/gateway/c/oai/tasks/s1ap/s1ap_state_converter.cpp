@@ -21,9 +21,9 @@
  */
 #include "s1ap_state_converter.h"
 
-using magma::lte::gateway::s1ap::EnbDescription;
-using magma::lte::gateway::s1ap::S1apState;
-using magma::lte::gateway::s1ap::UeDescription;
+using magma::lte::oai::EnbDescription;
+using magma::lte::oai::S1apState;
+using magma::lte::oai::UeDescription;
 
 namespace magma {
 namespace lte {
@@ -86,7 +86,7 @@ void S1apStateConverter::proto_to_state(
 
 void S1apStateConverter::enb_to_proto(
   enb_description_t* enb,
-  gateway::s1ap::EnbDescription* proto)
+  oai::EnbDescription* proto)
 {
   proto->Clear();
 
@@ -109,7 +109,7 @@ void S1apStateConverter::enb_to_proto(
 }
 
 void S1apStateConverter::proto_to_enb(
-  const gateway::s1ap::EnbDescription& proto,
+  const oai::EnbDescription& proto,
   enb_description_t* enb)
 {
   memset(enb, 0, sizeof(*enb));
@@ -150,7 +150,7 @@ void S1apStateConverter::proto_to_enb(
 }
 void S1apStateConverter::ue_to_proto(
   const ue_description_t* ue,
-  gateway::s1ap::UeDescription* proto)
+  oai::UeDescription* proto)
 {
   proto->Clear();
 
@@ -166,7 +166,7 @@ void S1apStateConverter::ue_to_proto(
     ue->s1ap_ue_context_rel_timer.sec);
 }
 void S1apStateConverter::proto_to_ue(
-  const gateway::s1ap::UeDescription& proto,
+  const oai::UeDescription& proto,
   ue_description_t* ue)
 {
   memset(ue, 0, sizeof(*ue));
@@ -183,14 +183,14 @@ void S1apStateConverter::proto_to_ue(
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(
   const s1ap_imsi_map_t* s1ap_imsi_map,
-  gateway::s1ap::S1apImsiMap* s1ap_imsi_proto)
+  oai::S1apImsiMap* s1ap_imsi_proto)
 {
   hashtable_uint64_ts_to_proto(
     s1ap_imsi_map->mme_ue_id_imsi_htbl,
     s1ap_imsi_proto->mutable_mme_ue_id_imsi_map());
 }
 void S1apStateConverter::proto_to_s1ap_imsi_map(
-  const gateway::s1ap::S1apImsiMap& s1ap_imsi_proto,
+  const oai::S1apImsiMap& s1ap_imsi_proto,
   s1ap_imsi_map_t* s1ap_imsi_map)
 {
   proto_to_hashtable_uint64_ts(

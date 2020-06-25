@@ -19,7 +19,7 @@ from ..input.service_endpoint_definition import ServiceEndpointDefinitionInput
 class ServiceTypeCreateData(DataClassJsonMixin):
     name: str
     hasCustomer: bool
+    discoveryMethod: Optional[DiscoveryMethod] = None
     properties: Optional[List[PropertyTypeInput]] = None
     endpoints: Optional[List[ServiceEndpointDefinitionInput]] = None
-    discoveryMethod: Optional[DiscoveryMethod] = None
 

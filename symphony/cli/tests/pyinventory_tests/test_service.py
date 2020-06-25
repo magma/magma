@@ -30,9 +30,9 @@ from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 class TestService(BaseTest):
     def __init__(
-        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
+        self, test_name: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
-        super().__init__(testName, client, stub)
+        super().__init__(test_name, client, stub)
 
     def setUp(self) -> None:
         super().setUp()
@@ -44,13 +44,13 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="Service Package",
                     property_kind=PropertyKind.string,
-                    default_value="Public 5G",
+                    default_raw_value="Public 5G",
                     is_fixed=False,
                 ),
                 PropertyDefinition(
                     property_name="Address Family",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
             ],
@@ -97,7 +97,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -105,7 +105,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -117,7 +117,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="Contact",
                     property_kind=PropertyKind.email,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],
@@ -137,7 +137,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="IP",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],
@@ -173,6 +173,9 @@ class TestService(BaseTest):
         )
         self.assertFalse(endpoints)
         endpoint_definition_id = endpoint_definitions[0].id
+        assert (
+            endpoint_definition_id is not None
+        ), f"service type {self.service_type.name} has no endpoints"
         add_service_endpoint(
             client=self.client,
             service=self.service,
@@ -192,7 +195,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -200,7 +203,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -212,7 +215,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="Contact",
                     property_kind=PropertyKind.email,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],
@@ -232,7 +235,7 @@ class TestService(BaseTest):
                 PropertyDefinition(
                     property_name="IP",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],

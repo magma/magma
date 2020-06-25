@@ -2085,10 +2085,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type:       lte.CellularEnodebType,
-			Key:        "abcdefg",
-			Name:       "abc enodeb",
-			PhysicalID: "abcdefg",
+			Type:        lte.CellularEnodebType,
+			Key:         "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			PhysicalID:  "abcdefg",
 			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
@@ -2102,10 +2103,11 @@ func TestListAndGetEnodebs(t *testing.T) {
 			},
 		},
 		{
-			Type:       lte.CellularEnodebType,
-			Key:        "vwxyz",
-			Name:       "xyz enodeb",
-			PhysicalID: "vwxyz",
+			Type:        lte.CellularEnodebType,
+			Key:         "vwxyz",
+			Name:        "xyz enodeb",
+			Description: "xyz enodeb description",
+			PhysicalID:  "vwxyz",
 			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           15,
 				CellID:                 swag.Uint32(4321),
@@ -2139,8 +2141,9 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			Name:   "abc enodeb",
-			Serial: "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			Serial:      "abcdefg",
 		},
 		"vwxyz": {
 			Config: &lteModels.EnodebConfiguration{
@@ -2154,8 +2157,9 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    2,
 				TransmitEnabled:        swag.Bool(false),
 			},
-			Name:   "xyz enodeb",
-			Serial: "vwxyz",
+			Name:        "xyz enodeb",
+			Description: "xyz enodeb description",
+			Serial:      "vwxyz",
 		},
 	}
 	tc := tests.Test{
@@ -2234,8 +2238,9 @@ func TestCreateEnodeb(t *testing.T) {
 				Tac:                    2,
 				TransmitEnabled:        swag.Bool(false),
 			},
-			Name:   "foobar",
-			Serial: "abcdef",
+			Name:        "foobar",
+			Description: "foobar description",
+			Serial:      "abcdef",
 		},
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
@@ -2248,9 +2253,10 @@ func TestCreateEnodeb(t *testing.T) {
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
 		Type:      lte.CellularEnodebType, Key: "abcdef",
-		Name:       "foobar",
-		PhysicalID: "abcdef",
-		GraphID:    "2",
+		Name:        "foobar",
+		Description: "foobar description",
+		PhysicalID:  "abcdef",
+		GraphID:     "2",
 		Config: &lteModels.EnodebConfiguration{
 			BandwidthMhz:           15,
 			CellID:                 swag.Uint32(4321),
@@ -2310,10 +2316,11 @@ func TestUpdateEnodeb(t *testing.T) {
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type:       lte.CellularEnodebType,
-			Key:        "abcdefg",
-			Name:       "abc enodeb",
-			PhysicalID: "abcdefg",
+			Type:        lte.CellularEnodebType,
+			Key:         "abcdefg",
+			Name:        "abc enodeb",
+			Description: "abc enodeb description",
+			PhysicalID:  "abcdefg",
 			Config: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
 				CellID:                 swag.Uint32(1234),
@@ -2345,8 +2352,9 @@ func TestUpdateEnodeb(t *testing.T) {
 				Tac:                    2,
 				TransmitEnabled:        swag.Bool(false),
 			},
-			Name:   "foobar",
-			Serial: "abcdefg",
+			Name:        "foobar",
+			Description: "new description",
+			Serial:      "abcdefg",
 		},
 		ParamNames:     []string{"network_id", "enodeb_serial"},
 		ParamValues:    []string{"n1", "abcdefg"},
@@ -2359,9 +2367,10 @@ func TestUpdateEnodeb(t *testing.T) {
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
 		Type:      lte.CellularEnodebType, Key: "abcdefg",
-		Name:       "foobar",
-		PhysicalID: "abcdefg",
-		GraphID:    "2",
+		Name:        "foobar",
+		Description: "new description",
+		PhysicalID:  "abcdefg",
+		GraphID:     "2",
 		Config: &lteModels.EnodebConfiguration{
 			BandwidthMhz:           15,
 			CellID:                 swag.Uint32(4321),
@@ -2767,7 +2776,7 @@ func TestListSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP state for 1234567890
+	// Now create ICMP and some MME state for 1234567890
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -2777,9 +2786,16 @@ func TestListSubscribers(t *testing.T) {
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 	defer clock.UnfreezeClock(t)
+
 	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	mmeState := state.ArbitaryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	spgwState := state.ArbitaryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -2804,6 +2820,11 @@ func TestListSubscribers(t *testing.T) {
 						LastReportedTime: frozenClock,
 						LatencyMs:        f32Ptr(12.34),
 					},
+				},
+				State: &lteModels.SubscriberState{
+					Mme:  mmeState,
+					S1ap: s1apState,
+					Spgw: spgwState,
 				},
 			},
 			"IMSI0987654321": {
@@ -2896,7 +2917,7 @@ func TestGetSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP state
+	// Now create ICMP and MME state
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -2909,6 +2930,12 @@ func TestGetSubscriber(t *testing.T) {
 	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	mmeState := state.ArbitaryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	spgwState := state.ArbitaryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -2932,6 +2959,11 @@ func TestGetSubscriber(t *testing.T) {
 					LastReportedTime: frozenClock,
 					LatencyMs:        f32Ptr(12.34),
 				},
+			},
+			State: &lteModels.SubscriberState{
+				Mme:  mmeState,
+				S1ap: s1apState,
+				Spgw: spgwState,
 			},
 		},
 	}

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
+
+message S1apTimer {
+  int32 id = 1;  // long
+  int32 sec = 2; // long
+}
+
+message EnbDescription {
+  uint32 enb_id = 1;
+
+  int32 s1_state = 2;            // enum mme_s1_enb_state_s
+  bytes enb_name = 3;            // char[]
+  uint32 default_paging_drx = 4; // uint8_t
+  uint32 nb_ue_associated = 5;
+
+  S1apTimer s1ap_enb_assoc_clean_up_timer = 6; // struct s1ap_timer_t
+
+  uint32 sctp_assoc_id = 7;    // sctp_assoc_id_t
+  uint32 next_sctp_stream = 8; // sctp_stream_id_t
+  uint32 instreams = 9;        // sctp_stream_id_t
+  uint32 outstreams = 10;      // sctp_stream_id_t
+
+  map<uint64, uint64> ue_ids = 11; // enb_ue_s1ap_id -> comp_s1ap_id
+}
+
+message UeDescription {
+  int32 s1_ue_state = 2;     // enum s1_ue_state_s
+  uint32 enb_ue_s1ap_id = 3; // enb_ue_s1ap_id_t
+  uint32 mme_ue_s1ap_id = 4; // mme_ue_s1ap_id_t
+
+  uint32 sctp_stream_recv = 5; // sctp_stream_id_t
+  uint32 sctp_stream_send = 6; // sctp_stream_id_t
+
+  S1apTimer s1ap_ue_context_rel_timer = 7; // struct s1ap_timer_t
+
+  uint32 sctp_assoc_id = 8; // sctp_assoc_id_t
+}
+
+message S1apState {
+  map<uint32, EnbDescription> enbs = 1;  // enbid -> EnbDescription
+  map<uint32, uint32> mmeid2associd = 2; // mmeueid -> ue associd
+  uint32 num_enbs = 3;
+}
+
+message S1apImsiMap {
+  map<uint64, uint64> mme_ue_id_imsi_map = 1; // mme_s1ap_ue_id => IMSI64
+}

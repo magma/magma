@@ -14,9 +14,9 @@ from .grpc.rpc_pb2_grpc import TenantServiceStub
 
 class BaseTest(unittest.TestCase):
     def __init__(
-        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
+        self, test_name: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
-        super().__init__(testName)
+        super().__init__(test_name)
         self.client = client
         self.stub = stub
 

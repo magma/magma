@@ -68,16 +68,16 @@ func prepareData(ctx context.Context) (data testData) {
 	v := viewer.FromContext(ctx).(*viewer.UserViewer)
 	data.locationPolicyInput = &models.InventoryPolicyInput{
 		Location: &models.LocationCUDInput{
-			Create: newLocationPermissionRuleInput(models.PermissionValueYes, nil),
+			Create: newBasicPermissionRuleInput(true),
 			Update: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
-			Delete: newLocationPermissionRuleInput(models.PermissionValueNo, nil),
+			Delete: newBasicPermissionRuleInput(false),
 		},
 	}
 	data.locationPolicyInput2 = &models.InventoryPolicyInput{
 		Location: &models.LocationCUDInput{
-			Create: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
+			Create: newBasicPermissionRuleInput(true),
 			Update: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
-			Delete: newLocationPermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}),
+			Delete: newBasicPermissionRuleInput(true),
 		},
 	}
 	data.catalogInventoryInput = &models.InventoryPolicyInput{
@@ -93,23 +93,22 @@ func prepareData(ctx context.Context) (data testData) {
 		},
 	}
 	data.workforcePolicyInput1 = &models.WorkforcePolicyInput{
-		Read: newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
+		Read: newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
 		Data: &models.WorkforceCUDInput{
-			Create:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
-			Update:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
-			Delete:            newWorkforcePermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int()}, nil),
-			Assign:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
-			TransferOwnership: newWorkforcePermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int()}, []int{rand.Int()}),
+			Create:            newBasicPermissionRuleInput(false),
+			Update:            newBasicPermissionRuleInput(false),
+			Delete:            newBasicPermissionRuleInput(true),
+			Assign:            newBasicPermissionRuleInput(true),
+			TransferOwnership: newBasicPermissionRuleInput(true),
 		},
 	}
 	data.workforcePolicyInput2 = &models.WorkforcePolicyInput{
 		Read: newWorkforcePermissionRuleInput(models.PermissionValueByCondition, []int{rand.Int(), rand.Int()}, []int{rand.Int()}),
 		Data: &models.WorkforceCUDInput{
-			Create:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
-			Update:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
-			Delete:            newWorkforcePermissionRuleInput(models.PermissionValueNo, nil, nil),
-			Assign:            newWorkforcePermissionRuleInput(models.PermissionValueYes, nil, nil),
-			TransferOwnership: newWorkforcePermissionRuleInput(models.PermissionValueByCondition, nil, []int{rand.Int()}),
+			Create: newBasicPermissionRuleInput(false),
+			Update: newBasicPermissionRuleInput(true),
+			Delete: newBasicPermissionRuleInput(false),
+			Assign: newBasicPermissionRuleInput(true),
 		},
 	}
 
@@ -183,8 +182,8 @@ func TestGlobalPolicyIsAppliedForUsers(t *testing.T) {
 		permissions.InventoryPolicy,
 	)
 	require.EqualValues(t, authz.NewWorkforcePolicy(false, false), permissions.WorkforcePolicy)
-	require.Equal(t, models.PermissionValueYes, permissions.InventoryPolicy.Location.Create.IsAllowed)
-	require.Nil(t, permissions.InventoryPolicy.Location.Create.LocationTypeIds)
+	require.Equal(t, models.PermissionValueByCondition, permissions.InventoryPolicy.Location.Create.IsAllowed)
+	require.Len(t, permissions.InventoryPolicy.Location.Create.LocationTypeIds, 4)
 	require.Equal(t, models.PermissionValueByCondition, permissions.InventoryPolicy.Location.Update.IsAllowed)
 	require.Len(t, permissions.InventoryPolicy.Location.Update.LocationTypeIds, 4)
 	require.Equal(t, models.PermissionValueByCondition, permissions.InventoryPolicy.Location.Delete.IsAllowed)
@@ -280,24 +279,24 @@ func TestPoliciesAppendingOutput(t *testing.T) {
 		permissions.WorkforcePolicy,
 	)
 
-	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Read.IsAllowed)
-	require.Len(t, permissions.WorkforcePolicy.Read.WorkOrderTypeIds, 2)
-	require.Len(t, permissions.WorkforcePolicy.Read.ProjectTypeIds, 1)
+	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Read.IsAllowed)
+	require.Nil(t, permissions.WorkforcePolicy.Read.WorkOrderTypeIds)
+	require.Nil(t, permissions.WorkforcePolicy.Read.ProjectTypeIds)
 	require.Equal(t, models.PermissionValueNo, permissions.WorkforcePolicy.Data.Create.IsAllowed)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Create.WorkOrderTypeIds)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Create.ProjectTypeIds)
-	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.Update.IsAllowed)
-	require.Nil(t, permissions.WorkforcePolicy.Data.Update.WorkOrderTypeIds)
-	require.Nil(t, permissions.WorkforcePolicy.Data.Update.ProjectTypeIds)
-	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Data.Delete.IsAllowed)
-	require.Len(t, permissions.WorkforcePolicy.Data.Delete.WorkOrderTypeIds, 1)
+	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Data.Update.IsAllowed)
+	require.Len(t, permissions.WorkforcePolicy.Data.Update.WorkOrderTypeIds, 2)
+	require.Len(t, permissions.WorkforcePolicy.Data.Update.ProjectTypeIds, 1)
+	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.Delete.IsAllowed)
+	require.Nil(t, permissions.WorkforcePolicy.Data.Delete.WorkOrderTypeIds)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Delete.ProjectTypeIds)
 	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.Assign.IsAllowed)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Assign.WorkOrderTypeIds)
 	require.Nil(t, permissions.WorkforcePolicy.Data.Assign.ProjectTypeIds)
-	require.Equal(t, models.PermissionValueByCondition, permissions.WorkforcePolicy.Data.TransferOwnership.IsAllowed)
-	require.Len(t, permissions.WorkforcePolicy.Data.TransferOwnership.WorkOrderTypeIds, 1)
-	require.Len(t, permissions.WorkforcePolicy.Data.TransferOwnership.ProjectTypeIds, 2)
+	require.Equal(t, models.PermissionValueYes, permissions.WorkforcePolicy.Data.TransferOwnership.IsAllowed)
+	require.Nil(t, permissions.WorkforcePolicy.Data.TransferOwnership.WorkOrderTypeIds)
+	require.Nil(t, permissions.WorkforcePolicy.Data.TransferOwnership.ProjectTypeIds)
 }
 
 func TestAdminUserHasAdminEditPermissions(t *testing.T) {
@@ -315,7 +314,7 @@ func TestAdminUserHasAdminEditPermissions(t *testing.T) {
 	permissions, err := authz.Permissions(ctx)
 	require.NoError(t, err)
 	require.Equal(t, models.PermissionValueYes, permissions.AdminPolicy.Access.IsAllowed)
-	require.Equal(t, false, permissions.CanWrite)
+	require.True(t, permissions.CanWrite)
 }
 
 func TestUserHasNoReadonlyPermissions(t *testing.T) {

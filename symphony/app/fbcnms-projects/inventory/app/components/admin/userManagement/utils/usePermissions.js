@@ -8,19 +8,19 @@
  * @format
  */
 
-import type {BasicPermissionRule} from './UserManagementUtils';
 import type {
+  BasicPermissionRule,
   CUDPermissions,
   InventoryEntsPolicy,
   WorkforceCUDPermissions,
-} from './UserManagementUtils';
+} from '../data/PermissionsPolicies';
 import type {FormAlertsContextType} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import type {PermissionHandlingProps} from '@fbcnms/ui/components/design-system/Form/FormAction';
 import type {UserPermissions} from '../../../MainContext';
 
 import fbt from 'fbt';
 import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
-import {permissionRuleValue2Bool} from './UserManagementUtils';
+import {permissionRuleValue2Bool} from '../data/PermissionsPolicies';
 import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {useMainContext} from '../../../MainContext';
 
@@ -38,11 +38,23 @@ export type InventoryEntName = InventoryEntWithPermission | 'service' | 'port';
 type WorkforceTemplateEntName = 'workorderTemplate' | 'projectTemplate';
 type InventoryActionName = $Keys<CUDPermissions>;
 
-export type InventoryPermissionEnforcement = $ReadOnly<{|
+export type InventoryActionPermission = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: InventoryEntName | WorkforceTemplateEntName,
   action?: ?InventoryActionName,
 |}>;
+
+export type LocationActionPermission = $ReadOnly<{|
+  ...BasePermissionEnforcement,
+  entity: 'location',
+  action: InventoryActionName,
+  locationTypeId?: ?string,
+  ignoreTypes?: ?boolean,
+|}>;
+
+export type InventoryPermissionEnforcement = $ReadOnly<
+  InventoryActionPermission | LocationActionPermission,
+>;
 
 type WorkforceEntName = 'workorder' | 'project';
 
@@ -52,6 +64,9 @@ type WorkforcePermissionEnforcement = $ReadOnly<{|
   ...BasePermissionEnforcement,
   entity: WorkforceEntName,
   action?: ?WorkforceActionName,
+  projectTypeId?: ?string,
+  workOrderTypeId?: ?string,
+  ignoreTypes?: ?boolean,
 |}>;
 
 export type EntName = InventoryEntName | WorkforceEntName;
@@ -108,7 +123,51 @@ const performCheck = (
     permissionsEnforcement.entity === 'project'
   ) {
     const action: WorkforceActionName = permissionsEnforcement.action;
-    actionPermissionValue = userPermissions.workforcePolicy.data[action];
+
+    const allowedWorkOrderTemplates =
+      userPermissions.workforcePolicy.data[action].workOrderTypeIds;
+    const allowedProjectTemplates =
+      userPermissions.workforcePolicy.data[action].projectTypeIds;
+
+    if (
+      permissionsEnforcement.ignoreTypes !== true &&
+      (allowedWorkOrderTemplates != null || allowedProjectTemplates != null)
+    ) {
+      if (
+        permissionsEnforcement.workOrderTypeId == null &&
+        permissionsEnforcement.projectTypeId == null
+      ) {
+        return FAILED_REGULAR_VALUE;
+      }
+
+      if (permissionsEnforcement.workOrderTypeId != null) {
+        const typeAllowed =
+          allowedWorkOrderTemplates != null &&
+          allowedWorkOrderTemplates.includes(
+            permissionsEnforcement.workOrderTypeId,
+          );
+        if (typeAllowed === false) {
+          return FAILED_REGULAR_VALUE;
+        }
+      }
+
+      if (permissionsEnforcement.projectTypeId != null) {
+        const typeAllowed =
+          allowedProjectTemplates != null &&
+          allowedProjectTemplates.includes(
+            permissionsEnforcement.projectTypeId,
+          );
+        if (typeAllowed === false) {
+          return FAILED_REGULAR_VALUE;
+        }
+      }
+
+      return PASSED_VALUE;
+    }
+
+    actionPermissionValue = {
+      isAllowed: userPermissions.workforcePolicy.data[action].isAllowed,
+    };
   } else if (
     permissionsEnforcement.entity === 'workorderTemplate' ||
     permissionsEnforcement.entity === 'projectTemplate'
@@ -136,8 +195,28 @@ const performCheck = (
       permissionsEnforcement.entity === 'service'
         ? 'equipment'
         : permissionsEnforcement.entity;
-    actionPermissionValue =
-      userPermissions.inventoryPolicy[entity][enforcement.action];
+
+    if (entity === 'location' && permissionsEnforcement.ignoreTypes !== true) {
+      const allowedTypes =
+        userPermissions.inventoryPolicy.location[enforcement.action]
+          .locationTypeIds;
+
+      if (allowedTypes != null) {
+        if (permissionsEnforcement.locationTypeId == null) {
+          return FAILED_REGULAR_VALUE;
+        } else {
+          const typeAllowed = allowedTypes.includes(
+            permissionsEnforcement.locationTypeId,
+          );
+          return typeAllowed ? PASSED_VALUE : FAILED_REGULAR_VALUE;
+        }
+      }
+    }
+
+    actionPermissionValue = {
+      isAllowed:
+        userPermissions.inventoryPolicy[entity][enforcement.action].isAllowed,
+    };
   }
 
   if (actionPermissionValue == null) {

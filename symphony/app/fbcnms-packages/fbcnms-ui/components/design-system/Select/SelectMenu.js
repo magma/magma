@@ -20,12 +20,12 @@ import {useMenuContext} from './MenuContext';
 
 export type OptionProps<TValue> = $ReadOnly<{|
   ...SelectMenuItemBaseProps<TValue>,
-  key: string,
+  key: string | number,
 |}>;
 
 export type SelectMenuProps<TValue> = $ReadOnly<{|
   onChange: (value: TValue) => void | (() => void),
-  options: Array<OptionProps<TValue>>,
+  options: $ReadOnlyArray<OptionProps<TValue>>,
   onOptionsFetchRequested?: (searchTerm: string) => void,
   selectedValue?: ?TValue,
   ...MenuBaseProps,
@@ -70,6 +70,7 @@ const SelectMenu = <TValue>(props: SelectMenuProps<TValue>) => {
                 onChange(value);
                 onClose();
               }}
+              disabled={option.disabled === true}
               isSelected={selectedValue === option.value}
               {...menuItemProps}
             />

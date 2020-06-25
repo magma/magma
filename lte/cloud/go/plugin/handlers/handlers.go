@@ -311,11 +311,12 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
-		Type:       lte.CellularEnodebType,
-		Key:        payload.Serial,
-		Name:       payload.Name,
-		PhysicalID: payload.Serial,
-		Config:     payload.Config,
+		Type:        lte.CellularEnodebType,
+		Key:         payload.Serial,
+		Name:        payload.Name,
+		Description: payload.Description,
+		PhysicalID:  payload.Serial,
+		Config:      payload.Config,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -449,7 +450,12 @@ func addConnectedEnodeb(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-var subscriberStateTypes = []string{lte.ICMPStateType}
+var subscriberStateTypes = []string{
+	lte.ICMPStateType,
+	lte.S1APStateType,
+	lte.MMEStateType,
+	lte.SPGWStateType,
+}
 
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)

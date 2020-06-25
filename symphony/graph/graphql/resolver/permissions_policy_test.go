@@ -26,18 +26,18 @@ func getInventoryPolicyInput() *models2.InventoryPolicyInput {
 		Read: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
 		Equipment: &models2.BasicCUDInput{
 			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Update: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-			Delete: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+			Update: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Delete: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
 		},
 	}
 }
 
 func getWorkforcePolicyInput() *models2.WorkforcePolicyInput {
 	return &models2.WorkforcePolicyInput{
-		Read: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueNo},
+		Read: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
 		Data: &models2.WorkforceCUDInput{
-			Create: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Assign: &models2.WorkforcePermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Assign: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
 		},
 	}
 }
@@ -90,8 +90,8 @@ func TestAddInventoryPolicy(t *testing.T) {
 	require.Equal(t, models2.PermissionValueNo, inventoryPolicy.Location.Delete.IsAllowed)
 
 	require.Equal(t, models2.PermissionValueYes, inventoryPolicy.Equipment.Create.IsAllowed)
-	require.Equal(t, models2.PermissionValueNo, inventoryPolicy.Equipment.Update.IsAllowed)
-	require.Equal(t, models2.PermissionValueByCondition, inventoryPolicy.Equipment.Delete.IsAllowed)
+	require.Equal(t, models2.PermissionValueYes, inventoryPolicy.Equipment.Update.IsAllowed)
+	require.Equal(t, models2.PermissionValueNo, inventoryPolicy.Equipment.Delete.IsAllowed)
 }
 
 func TestAddWorkOrderPolicy(t *testing.T) {
@@ -115,11 +115,11 @@ func TestAddWorkOrderPolicy(t *testing.T) {
 	workforcePolicy, ok := res.(*models2.WorkforcePolicy)
 	require.True(t, ok)
 
-	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Read.IsAllowed)
+	require.Equal(t, models2.PermissionValueYes, workforcePolicy.Read.IsAllowed)
 
 	require.Equal(t, models2.PermissionValueYes, workforcePolicy.Data.Create.IsAllowed)
 	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Data.Delete.IsAllowed)
-	require.Equal(t, models2.PermissionValueByCondition, workforcePolicy.Data.Assign.IsAllowed)
+	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Data.Assign.IsAllowed)
 
 	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Templates.Create.IsAllowed)
 	require.Equal(t, models2.PermissionValueNo, workforcePolicy.Templates.Update.IsAllowed)
@@ -232,9 +232,9 @@ func TestEditPermissionsPolicy(t *testing.T) {
 	newDescription := "New " + policyDescription
 	newInventoryPolicy := &models2.InventoryPolicyInput{
 		Location: &models2.LocationCUDInput{
-			Create: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
-			Update: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
-			Delete: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueByCondition},
+			Create: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Update: &models2.LocationPermissionRuleInput{IsAllowed: models2.PermissionValueYes},
+			Delete: &models2.BasicPermissionRuleInput{IsAllowed: models2.PermissionValueNo},
 		},
 	}
 	fetchedPermissionsPolicy1, err := mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{
@@ -249,8 +249,8 @@ func TestEditPermissionsPolicy(t *testing.T) {
 	require.Equal(t, fetchedPermissionsPolicy1.Description, newDescription)
 	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy, newInventoryPolicy)
 	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Create.IsAllowed, models2.PermissionValueYes)
-	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Update.IsAllowed, models2.PermissionValueNo)
-	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Delete.IsAllowed, models2.PermissionValueByCondition)
+	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Update.IsAllowed, models2.PermissionValueYes)
+	require.Equal(t, fetchedPermissionsPolicy1.InventoryPolicy.Location.Delete.IsAllowed, models2.PermissionValueNo)
 	require.Empty(t, fetchedPermissionsPolicy1.WorkforcePolicy)
 
 	fetchedPermissionsPolicy2, err := mr.EditPermissionsPolicy(ctx, models.EditPermissionsPolicyInput{

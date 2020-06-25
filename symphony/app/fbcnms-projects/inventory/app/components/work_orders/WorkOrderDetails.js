@@ -134,8 +134,8 @@ const useStyles = makeStyles(() => ({
     padding: '0px',
   },
   inExpandingPanelFix: {
-    paddingLeft: '24px',
-    paddingRight: '24px',
+    paddingLeft: '16px',
+    paddingRight: '40px',
   },
   commentsLog: {
     maxHeight: '400px',
@@ -277,6 +277,7 @@ const WorkOrderDetails = ({
         permissions={{
           entity: 'workorder',
           action: 'update',
+          workOrderTypeId: propsWorkOrder.workOrderType.id,
           ignorePermissions: isOwner || isAssignee,
         }}>
         <WorkOrderHeader
@@ -533,6 +534,7 @@ const WorkOrderDetails = ({
                         permissions={{
                           entity: 'workorder',
                           action: 'transferOwnership',
+                          workOrderTypeId: propsWorkOrder.workOrderType.id,
                           ignorePermissions: isOwner,
                         }}
                         required={true}
@@ -551,6 +553,7 @@ const WorkOrderDetails = ({
                         permissions={{
                           entity: 'workorder',
                           action: 'assign',
+                          workOrderTypeId: propsWorkOrder.workOrderType.id,
                           ignorePermissions: isOwner || isAssignee,
                         }}>
                         <UserTypeahead
@@ -572,6 +575,7 @@ const WorkOrderDetails = ({
                         relatedEntityId={propsWorkOrder.id}
                         relatedEntityType="WORK_ORDER"
                         comments={propsWorkOrder.comments}
+                        activities={propsWorkOrder.activities}
                       />
                     </ExpandingPanel>
                   </Grid>
@@ -672,6 +676,7 @@ export default withRouter(
                 fileType
                 storeKey
                 category
+                annotation
               }
               cellData {
                 id

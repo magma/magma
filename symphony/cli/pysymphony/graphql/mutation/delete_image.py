@@ -9,7 +9,7 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 from functools import partial
 from numbers import Number
-from typing import Any, Callable, List, Mapping, Optional
+from typing import Any, Callable, List, Mapping, Optional, Dict
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
@@ -48,7 +48,7 @@ class DeleteImageMutation(DataClassJsonMixin):
     # fmt: off
     def execute(cls, client: GraphqlClient, entityType: ImageEntity, entityId: str, id: str) -> DeleteImageMutationData.File:
         # fmt: off
-        variables = {"entityType": entityType, "entityId": entityId, "id": id}
+        variables: Dict[str, Any] = {"entityType": entityType, "entityId": entityId, "id": id}
         try:
             network_start = perf_counter()
             response_text = client.call(''.join(set(QUERY)), variables=variables)

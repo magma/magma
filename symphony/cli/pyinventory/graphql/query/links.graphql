@@ -1,0 +1,12 @@
+query LinksQuery($after: Cursor, $first: Int) {
+  links(after: $after, first: $first) {
+    edges {
+      node {
+        ...LinkFragment
+      }
+    }
+    pageInfo {
+      ...PageInfoFragment
+    }
+  }
+}

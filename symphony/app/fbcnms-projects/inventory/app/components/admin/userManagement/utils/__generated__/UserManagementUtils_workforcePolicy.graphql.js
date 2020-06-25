@@ -20,7 +20,9 @@ declare export opaque type UserManagementUtils_workforcePolicy$ref: FragmentRefe
 declare export opaque type UserManagementUtils_workforcePolicy$fragmentType: UserManagementUtils_workforcePolicy$ref;
 export type UserManagementUtils_workforcePolicy = {|
   +read: {|
-    +isAllowed: PermissionValue
+    +isAllowed: PermissionValue,
+    +projectTypeIds: ?$ReadOnlyArray<string>,
+    +workOrderTypeIds: ?$ReadOnlyArray<string>,
   |},
   +templates: {|
     +create: {|
@@ -62,14 +64,15 @@ export type UserManagementUtils_workforcePolicy$key = {
 
 
 const node/*: ReaderFragment*/ = (function(){
-var v0 = [
-  {
-    "kind": "ScalarField",
-    "alias": null,
-    "name": "isAllowed",
-    "args": null,
-    "storageKey": null
-  }
+var v0 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "isAllowed",
+  "args": null,
+  "storageKey": null
+},
+v1 = [
+  (v0/*: any*/)
 ];
 return {
   "kind": "Fragment",
@@ -86,7 +89,23 @@ return {
       "args": null,
       "concreteType": "WorkforcePermissionRule",
       "plural": false,
-      "selections": (v0/*: any*/)
+      "selections": [
+        (v0/*: any*/),
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "projectTypeIds",
+          "args": null,
+          "storageKey": null
+        },
+        {
+          "kind": "ScalarField",
+          "alias": null,
+          "name": "workOrderTypeIds",
+          "args": null,
+          "storageKey": null
+        }
+      ]
     },
     {
       "kind": "LinkedField",
@@ -105,7 +124,7 @@ return {
           "args": null,
           "concreteType": "BasicPermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -115,7 +134,7 @@ return {
           "args": null,
           "concreteType": "BasicPermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -125,7 +144,7 @@ return {
           "args": null,
           "concreteType": "BasicPermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         }
       ]
     },
@@ -146,7 +165,7 @@ return {
           "args": null,
           "concreteType": "WorkforcePermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -156,7 +175,7 @@ return {
           "args": null,
           "concreteType": "WorkforcePermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -166,7 +185,7 @@ return {
           "args": null,
           "concreteType": "WorkforcePermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -176,7 +195,7 @@ return {
           "args": null,
           "concreteType": "WorkforcePermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         },
         {
           "kind": "LinkedField",
@@ -186,7 +205,7 @@ return {
           "args": null,
           "concreteType": "WorkforcePermissionRule",
           "plural": false,
-          "selections": (v0/*: any*/)
+          "selections": (v1/*: any*/)
         }
       ]
     }
@@ -194,5 +213,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '1fe6ffd822ae78d075bfdeae4a46f59a';
+(node/*: any*/).hash = 'd110f4f516c9551f09b4cd7f70c6849b';
 module.exports = node;

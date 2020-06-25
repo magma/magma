@@ -13,6 +13,7 @@ import type {LocationType} from '../common/LocationType';
 import type {WithStyles} from '@material-ui/core';
 
 import Avatar from '@material-ui/core/Avatar';
+import FormActionWithPermissions from '../common/FormActionWithPermissions';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
@@ -78,20 +79,28 @@ class LocationTypesList extends React.Component<Props, State> {
     const {classes} = this.props;
     const {selectedLocationType} = this.state;
     const listItems = this.state.locationTypes.map(locationType => (
-      <ListItem
-        classes={{gutters: classes.gutters}}
-        dense
-        button
-        key={locationType.id}
-        selected={
-          selectedLocationType && selectedLocationType.id === locationType.id
-        }
-        onClick={event => this.handleListItemClick(event, locationType)}>
-        <Avatar className={classes.avatar}>
-          <LocationOnIcon />
-        </Avatar>
-        <ListItemText primary={locationType.name} />
-      </ListItem>
+      <FormActionWithPermissions
+        permissions={{
+          entity: 'location',
+          action: 'create',
+          locationTypeId: locationType.id,
+          hideOnMissingPermissions: true,
+        }}>
+        <ListItem
+          classes={{gutters: classes.gutters}}
+          dense
+          button
+          key={locationType.id}
+          selected={
+            selectedLocationType && selectedLocationType.id === locationType.id
+          }
+          onClick={event => this.handleListItemClick(event, locationType)}>
+          <Avatar className={classes.avatar}>
+            <LocationOnIcon />
+          </Avatar>
+          <ListItemText primary={locationType.name} />
+        </ListItem>
+      </FormActionWithPermissions>
     ));
 
     return <List>{listItems}</List>;

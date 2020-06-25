@@ -20,7 +20,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	"magma/orc8r/cloud/go/services/state/metrics"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
-	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/services/state/servicers"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -50,8 +49,8 @@ func main() {
 
 	stateServicer := newStateServicer(store)
 	protos.RegisterStateServiceServer(srv.GrpcServer, stateServicer)
-	indexerServicer := newIndexerServicer(db, store)
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, indexerServicer)
+	indexerManagerServer := newIndexerManagerServicer(srv.Config, db, store)
+	indexer_protos.RegisterIndexerManagerServer(srv.GrpcServer, indexerManagerServer)
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
 
@@ -68,7 +67,7 @@ func newStateServicer(store blobstore.BlobStorageFactory) protos.StateServiceSer
 	return servicer
 }
 
-func newIndexerServicer(db *sql.DB, store blobstore.BlobStorageFactory) state_protos.IndexerServer {
+func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstore.BlobStorageFactory) indexer_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {
@@ -79,9 +78,9 @@ func newIndexerServicer(db *sql.DB, store blobstore.BlobStorageFactory) state_pr
 		glog.Fatalf("Unexpected error initializing reindex job queue: %s", err)
 	}
 
-	autoReindex := config.MustGetServiceConfig(orc8r.ModuleName, state.ServiceName).MustGetBool(state_config.EnableAutomaticReindexing)
+	autoReindex := cfg.MustGetBool(state_config.EnableAutomaticReindexing)
 	reindexer := reindex.NewReindexer(queue, reindex.NewStore(store))
-	servicer := servicers.NewIndexerServicer(reindexer, autoReindex)
+	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
 	if autoReindex {
 		glog.Info("Automatic reindexing enabled for state service")

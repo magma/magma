@@ -60,7 +60,7 @@ class AsyncDirectorydClient : public GRPCReceiver {
    * Get all directory records
    * @return true if the operation was successful
    */
-  bool get_all_directoryd_records(
+  void get_all_directoryd_records(
     std::function<void(Status status, AllDirectoryRecords)> callback);
 
  private:

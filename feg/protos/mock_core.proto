@@ -246,6 +246,7 @@ message GxCreditControlRequest {
     // value. We will accept a request as matching if
     // (expected report - delta) < actual report < (expected report + delta)
     uint64 usage_report_delta = 12;
+    google.protobuf.Int32Value event_trigger = 13;
 }
 
 message GxCreditControlAnswer {
@@ -327,6 +328,7 @@ message UsageMonitoringInformation {
 message MultipleServicesCreditControl {
     uint32 rating_group = 1;
     Octets used_service_unit = 2;
+    int32 update_type = 3;
 }
 
 message QosInfo {

@@ -6,7 +6,7 @@
 
 from pyinventory.api.equipment import add_equipment
 from pyinventory.api.equipment_type import add_equipment_type
-from pyinventory.api.link import add_link, get_link_in_port_of_equipment
+from pyinventory.api.link import add_link, get_link_in_port_of_equipment, get_links
 from pyinventory.api.location import add_location
 from pyinventory.api.location_type import add_location_type
 from pyinventory.api.port import edit_link_properties, get_port
@@ -22,9 +22,9 @@ from ..utils.grpc.rpc_pb2_grpc import TenantServiceStub
 
 class TestLink(BaseTest):
     def __init__(
-        self, testName: str, client: SymphonyClient, stub: TenantServiceStub
+        self, test_name: str, client: SymphonyClient, stub: TenantServiceStub
     ) -> None:
-        super().__init__(testName, client, stub)
+        super().__init__(test_name, client, stub)
 
     def setUp(self) -> None:
         super().setUp()
@@ -35,7 +35,7 @@ class TestLink(BaseTest):
                 PropertyDefinition(
                     property_name="port property",
                     property_kind=PropertyKind.string,
-                    default_value="port property value",
+                    default_raw_value="port property value",
                     is_fixed=False,
                 )
             ],
@@ -43,7 +43,7 @@ class TestLink(BaseTest):
                 PropertyDefinition(
                     property_name="link property",
                     property_kind=PropertyKind.string,
-                    default_value="link property value",
+                    default_raw_value="link property value",
                     is_fixed=False,
                 )
             ],
@@ -55,13 +55,13 @@ class TestLink(BaseTest):
                 PropertyDefinition(
                     property_name="Mayor",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
                 PropertyDefinition(
                     property_name="Contact",
                     property_kind=PropertyKind.email,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 ),
             ],
@@ -81,7 +81,7 @@ class TestLink(BaseTest):
                 PropertyDefinition(
                     property_name="IP",
                     property_kind=PropertyKind.string,
-                    default_value=None,
+                    default_raw_value=None,
                     is_fixed=False,
                 )
             ],
@@ -109,40 +109,46 @@ class TestLink(BaseTest):
             location=self.location,
             properties_dict={"IP": "192.688.0.2"},
         )
+        self.link1 = add_link(
+            client=self.client,
+            equipment_a=self.equipment1,
+            port_name_a="Port 1",
+            equipment_b=self.equipment2,
+            port_name_b="Port 1",
+        )
 
     def test_add_link(self) -> None:
-        link = add_link(
-            client=self.client,
-            equipment_a=self.equipment1,
-            port_name_a="Port 1",
-            equipment_b=self.equipment2,
-            port_name_b="Port 1",
-        )
         fetched_link1 = get_link_in_port_of_equipment(
             client=self.client, equipment=self.equipment1, port_name="Port 1"
         )
         fetched_link2 = get_link_in_port_of_equipment(
             client=self.client, equipment=self.equipment2, port_name="Port 1"
         )
-        self.assertEqual(link, fetched_link1)
-        self.assertEqual(link, fetched_link2)
+        self.assertEqual(self.link1, fetched_link1)
+        self.assertEqual(self.link1, fetched_link2)
+
+    def test_get_links(self) -> None:
+        links = get_links(client=self.client)
+        self.assertEqual(len(links), 1)
+        link = add_link(
+            client=self.client,
+            equipment_a=self.equipment2,
+            port_name_a="Port 2",
+            equipment_b=self.equipment3,
+            port_name_b="Port 1",
+        )
+        links = get_links(client=self.client)
+        self.assertEqual(len(links), 2)
 
     def test_cannot_create_link_if_port_occupied(self) -> None:
-        link = add_link(
-            client=self.client,
-            equipment_a=self.equipment1,
-            port_name_a="Port 1",
-            equipment_b=self.equipment2,
-            port_name_b="Port 1",
-        )
         fetched_link1 = get_link_in_port_of_equipment(
             client=self.client, equipment=self.equipment1, port_name="Port 1"
         )
         fetched_link2 = get_link_in_port_of_equipment(
             client=self.client, equipment=self.equipment2, port_name="Port 1"
         )
-        self.assertEqual(link, fetched_link1)
-        self.assertEqual(link, fetched_link2)
+        self.assertEqual(self.link1, fetched_link1)
+        self.assertEqual(self.link1, fetched_link2)
 
         self.assertRaises(
             PortAlreadyOccupiedException,
@@ -171,13 +177,6 @@ class TestLink(BaseTest):
         self.assertEqual(link, fetched_link2)
 
     def test_edit_link_properties(self) -> None:
-        add_link(
-            client=self.client,
-            equipment_a=self.equipment1,
-            port_name_a="Port 1",
-            equipment_b=self.equipment2,
-            port_name_b="Port 1",
-        )
         fetched_port = get_port(
             client=self.client, equipment=self.equipment1, port_name="Port 1"
         )

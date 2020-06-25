@@ -11,5 +11,5 @@ class ServiceStatus(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "ServiceStatus":
+    def _missing_(cls, value: object) -> "ServiceStatus":
         return cls.MISSING_ENUM

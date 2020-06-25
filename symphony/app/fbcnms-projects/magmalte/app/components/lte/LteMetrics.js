@@ -19,18 +19,20 @@ import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   bar: {
-    backgroundColor: theme.palette.blueGrayDark,
+    backgroundColor: colors.primary.brightGray,
   },
   tabs: {
     flex: 1,
-    color: 'white',
+    color: colors.primary.white,
   },
 }));
 
@@ -38,8 +40,8 @@ const CONFIGS: Array<MetricGraphConfig> = [
   {
     basicQueryConfigs: [
       {
-        metric: 'enodeb_rf_tx_enabled',
-        filters: [{name: 'service', value: 'enodebd'}],
+        metric: 's1_connection',
+        filters: [{name: 'service', value: 'mme'}],
       },
     ],
     label: 'E-Node B Status',
@@ -136,6 +138,16 @@ const CONFIGS: Array<MetricGraphConfig> = [
       },
     ],
     label: 's6a Auth Failure',
+    unit: '',
+  },
+  {
+    basicQueryConfigs: [
+      {
+        metric: 'enodeb_rf_tx_enabled',
+        filters: [{name: 'service', value: 'enodebd'}],
+      },
+    ],
+    label: 'E-NodeB Transmitting',
     unit: '',
   },
 ];

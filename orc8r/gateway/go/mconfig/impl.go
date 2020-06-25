@@ -12,7 +12,6 @@ package mconfig
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -20,7 +19,10 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/golang/glog"
+
 	"magma/gateway/config"
+	_ "magma/orc8r/lib/go/initflag"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -41,9 +43,9 @@ func init() {
 			<-refreshTicker.C
 			cfgPath, err := RefreshConfigs()
 			if err == nil {
-				log.Print("Mconfig refresh succeeded from: ", cfgPath)
+				glog.V(1).Info("Mconfig refresh succeeded from: ", cfgPath)
 			} else {
-				log.Printf("Mconfig refresh error: %v", err)
+				glog.Errorf("Mconfig refresh error: %v", err)
 			}
 		}
 	}()
@@ -58,7 +60,7 @@ func RefreshConfigs() (string, error) {
 	configPath := ConfigFilePath()
 	err := RefreshConfigsFrom(configPath)
 	if err != nil {
-		log.Printf("Cannot load configs from %s: %v", configPath, err)
+		glog.Errorf("Cannot load configs from %s: %v", configPath, err)
 		configPath = DefaultConfigFilePath()
 		err = RefreshConfigsFrom(configPath)
 	}
@@ -88,6 +90,7 @@ func RefreshConfigsFrom(mcpath string) error {
 		return fmt.Errorf("Managed Config File '%s' stat error: %v", mcpath, err)
 	}
 	if sameFile(lastFileInfo, fi) {
+		glog.V(1).Infof("mconfig '%s' is unchanged from %s", mcpath, lastFileInfo.ModTime().Format(time.RFC822))
 		return nil
 	}
 	err = loadFromFile(mcpath)

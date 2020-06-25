@@ -7,12 +7,12 @@
  * @flow
  * @format
  */
-import type {ContextRouter} from 'react-router';
 import type {NavigatableView} from '@fbcnms/ui/components/design-system/View/NavigatableViews';
 
 import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@fbcnms/ui/components/design-system/Button';
+import InventorySuspense from '../../../common/InventorySuspense';
 import NavigatableViews from '@fbcnms/ui/components/design-system/View/NavigatableViews';
 import NewUserDialog from './users/NewUserDialog';
 import PermissionsGroupCard from './groups/PermissionsGroupCard';
@@ -27,21 +27,20 @@ import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu'
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
+import {DialogShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/DialogShowingContext';
 import {FormContextProvider} from '../../../common/FormContext';
 import {NEW_DIALOG_PARAM, POLICY_TYPES} from './utils/UserManagementUtils';
-import {UserManagementContextProvider} from './UserManagementContext';
 import {useCallback, useContext, useMemo, useState} from 'react';
-import {useHistory, withRouter} from 'react-router-dom';
+import {useHistory, useRouteMatch} from 'react-router-dom';
 
 const USERS_HEADER = fbt(
   'Users & Roles',
   'Header for view showing system users settings',
 );
 
-type Props = ContextRouter;
-
-const UserManaementView = ({match}: Props) => {
+const UserManaementForm = () => {
   const history = useHistory();
+  const match = useRouteMatch();
   const basePath = match.path;
   const [addingNewUser, setAddingNewUser] = useState(false);
   const gotoGroupsPage = useCallback(() => history.push(`${basePath}/groups`), [
@@ -171,7 +170,7 @@ const UserManaementView = ({match}: Props) => {
   }, [gotoGroupsPage, gotoPoliciesPage, history, permissionPoliciesMode]);
 
   return (
-    <UserManagementContextProvider>
+    <>
       <FormContextProvider permissions={{adminRightsRequired: true}}>
         <NavigatableViews
           header={Strings.admin.users.viewHeader}
@@ -182,8 +181,16 @@ const UserManaementView = ({match}: Props) => {
       {addingNewUser && (
         <NewUserDialog onClose={() => setAddingNewUser(false)} />
       )}
-    </UserManagementContextProvider>
+    </>
   );
 };
 
-export default withRouter(UserManaementView);
+const UserManaementView = () => (
+  <InventorySuspense isTopLevel={true}>
+    <DialogShowingContextProvider>
+      <UserManaementForm />
+    </DialogShowingContextProvider>
+  </InventorySuspense>
+);
+
+export default UserManaementView;

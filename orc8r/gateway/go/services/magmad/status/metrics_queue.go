@@ -12,6 +12,7 @@ package status
 import (
 	"sync"
 
+	"github.com/golang/glog"
 	prometheus "github.com/prometheus/client_model/go"
 )
 
@@ -24,13 +25,14 @@ type MetricsQueue struct {
 }
 
 // Append adds elements to the end of the queue
-func (q *MetricsQueue) Append(elems ...*prometheus.MetricFamily) *MetricsQueue {
+func (q *MetricsQueue) Append(elems ...*prometheus.MetricFamily) (qlen int) {
 	if q != nil {
 		q.Lock()
 		q.items = append(q.items, elems...)
+		qlen = len(q.items)
 		q.Unlock()
 	}
-	return q
+	return qlen
 }
 
 // Collect returns the que items and empties the queue
@@ -53,6 +55,7 @@ func (q *MetricsQueue) Prepend(elems []*prometheus.MetricFamily, maxQueueLen int
 	}
 	el := len(elems)
 	q.Lock()
+	defer q.Unlock()
 	startIdx := el + len(q.items) - maxQueueLen
 	if startIdx < el {
 		if startIdx <= 0 {
@@ -60,6 +63,7 @@ func (q *MetricsQueue) Prepend(elems []*prometheus.MetricFamily, maxQueueLen int
 		} else {
 			q.items = append(elems[startIdx:], q.items...)
 			el -= startIdx
+			glog.V(1).Infof("prepended queue will exceed max of %d by %d elements, will truncate", maxQueueLen, startIdx)
 		}
 		return el
 	}

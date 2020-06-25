@@ -15,6 +15,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
@@ -33,6 +34,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -42,15 +44,15 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
+    backgroundColor: colors.primary.brightGray,
     padding: '0 0 0 20px',
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
@@ -71,7 +73,6 @@ const useStyles = makeStyles(theme => ({
     height: 100,
     padding: theme.spacing(10),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
 }));
 
@@ -98,7 +99,7 @@ export function GatewayDetail({
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
-              onChange={(event, v) => setTabPos(v)}
+              onChange={(_, v) => setTabPos(v)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -196,7 +197,9 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
               <GraphicEqIcon />
               Status
             </Text>
-            <Paper className={classes.paper}>Status KPI Tray</Paper>
+            <Paper>
+              <GatewayDetailStatus gwInfo={gwInfo} />
+            </Paper>
           </Grid>
           <Grid item xs={12}>
             <Text>

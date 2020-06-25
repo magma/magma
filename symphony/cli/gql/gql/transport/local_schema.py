@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
-from graphql.execution import execute
+from graphql.execution import ExecutionResult, execute
 from graphql.language.ast import DocumentNode
 from graphql.type.schema import GraphQLSchema
 
@@ -16,4 +16,7 @@ class LocalSchemaTransport(Transport):
     def execute(
         self, document: DocumentNode, variable_values: Dict[str, Any] = {}  # noqa: B006
     ) -> ExtendedExecutionResult:
-        return execute(self.schema, document)
+        result = cast(ExecutionResult, execute(self.schema, document))
+        return ExtendedExecutionResult(
+            response="", data=result.data, errors={}, extensions={}
+        )

@@ -17,6 +17,42 @@ This is template for release notes
 
 
 ***
+## 3.0.0 - release date 10.6.2020
+### Features
+- ServiceType
+    - `add_service_type`
+    - `get_service_type`
+    - `edit_service_type`
+    - `delete_service_type`
+    - `delete_service_type_with_services`
+- Service
+    - `add_service`
+    - `add_service_endpoint_definition`
+    - `add_service_endpoint`
+    - `add_service_link`
+    - `get_service`
+### Breaking Changes
+- Customer
+    - `Customer` DataClass attribute `externalId` renamed to `external_id`
+    - `add_customer` changed attribute `externalId` to `external_id`
+- Document
+    - `Document` DataClass attribute `parentId` renamed to `parent_id`
+    - `Document` DataClass attribute `parentEntity` renamed to `parent_entity`
+- EquipmentType
+    - `add_equipment_type` - the type of `properties` attribute `Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]` changed to `List[PropertyDefinition]`
+- LocationType
+    - `add_location_type` - the type of `properties` attribute `Sequence[Tuple[str, str, Optional[PropertyValue], Optional[bool]]]` changed to `List[PropertyDefinition]`
+- Location
+    - `Location` DataClass attribute `externalId` renamed to `external_id`
+    - `Location` DataClass attribute `locationTypeName` renamed to `location_type_name`
+    - `add_location` changed attribute `externalID` to `external_id`
+### Removed
+- `get_locations_by_external_id` - deprecated in 2.4.0
+### Bug fixes
+***
+
+
+***
 ## 2.6.1 - release date 23.04.2020
 ### Changes
 - `get_location` and `get_location_by_external_id` performance is improved (`get_location_by_external_id` had 3X time improvement from 0.9 seconds to 0.3 seconds)

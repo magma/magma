@@ -79,10 +79,123 @@ const meQuery = graphql`
           }
         }
         inventoryPolicy {
-          ...UserManagementUtils_inventoryPolicy @relay(mask: false)
+          read {
+            isAllowed
+          }
+          location {
+            create {
+              isAllowed
+              locationTypeIds
+            }
+            update {
+              isAllowed
+              locationTypeIds
+            }
+            delete {
+              isAllowed
+              locationTypeIds
+            }
+          }
+          equipment {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          equipmentType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          locationType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          portType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          serviceType {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
         }
         workforcePolicy {
-          ...UserManagementUtils_workforcePolicy @relay(mask: false)
+          read {
+            isAllowed
+            projectTypeIds
+            workOrderTypeIds
+          }
+          templates {
+            create {
+              isAllowed
+            }
+            update {
+              isAllowed
+            }
+            delete {
+              isAllowed
+            }
+          }
+          data {
+            create {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            update {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            delete {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            assign {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+            transferOwnership {
+              isAllowed
+              projectTypeIds
+              workOrderTypeIds
+            }
+          }
         }
       }
     }

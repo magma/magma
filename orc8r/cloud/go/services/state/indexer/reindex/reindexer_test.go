@@ -7,13 +7,13 @@
 */
 
 // NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
-// ensure postgres_test and maria_test containers are running, and use the
-// following environment variables to point to the relevant DB endpoints:
+// ensure postgres_test container is running, and use the following environment
+// variables to point to the relevant DB endpoints:
 //	- TEST_DATABASE_HOST=localhost
 //	- TEST_DATABASE_PORT_POSTGRES=5433
-//	- TEST_DATABASE_PORT_MARIA=3307
 
-// reindex_test.go also contains the consts and vars shared by reindex testing code.
+// reindex_test.go tests reindexing with local indexers.
+// Also contains the consts and vars shared by reindex testing code.
 
 package reindex_test
 
@@ -57,10 +57,11 @@ const (
 	defaultTestTimeout = 5 * time.Second
 
 	// Cause 3 batches per network
-	numStatesToReindexPerCall = 100 // copied from reindex.go
-	numBatches                = numNetworks * 3
-	numNetworks               = 3
-	statesPerNetwork          = 2*numStatesToReindexPerCall + 1
+	// 200 directory records + 1 gw status => ceil(201 / 100) = 3 batches per network
+	nStatesToReindexPerCall    = 100 // copied from reindex.go
+	directoryRecordsPerNetwork = 2 * nStatesToReindexPerCall
+	nNetworks                  = 3
+	nBatches                   = 9
 
 	nid0 = "some_networkid_0"
 	nid1 = "some_networkid_1"
@@ -95,9 +96,9 @@ var (
 	someErr2 = errors.New("some_error_2")
 	someErr3 = errors.New("some_error_3")
 
-	matchAll  = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.MatchAll}}
-	matchOne  = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("imsi0")}}
-	matchNone = []indexer.Subscription{{Type: orc8r.DirectoryRecordType, KeyMatcher: indexer.NewMatchExact("0xdeadbeef")}}
+	allTypes    = []string{orc8r.DirectoryRecordType, orc8r.GatewayStateType}
+	gwStateType = []string{orc8r.GatewayStateType}
+	noTypes     []string
 )
 
 func init() {
@@ -123,7 +124,7 @@ func TestRun(t *testing.T) {
 	// Single indexer
 	// Populate
 	idx0 := getIndexer(id0, zero, version0, true)
-	idx0.On("GetSubscriptions").Return(matchAll).Once()
+	idx0.On("GetTypes").Return(allTypes).Once()
 	registerAndPopulate(t, q, idx0)
 	// Check
 	recvCh(t, ch)
@@ -133,8 +134,8 @@ func TestRun(t *testing.T) {
 	// Bump existing indexer version
 	// Populate
 	idx0a := getIndexerNoIndex(id0, version0, version0a, false)
-	idx0a.On("GetSubscriptions").Return(matchOne).Once()
-	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(numNetworks)
+	idx0a.On("GetTypes").Return(gwStateType).Once()
+	idx0a.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
 	registerAndPopulate(t, q, idx0a)
 	// Check
 	recvCh(t, ch)
@@ -145,18 +146,18 @@ func TestRun(t *testing.T) {
 	// Populate
 	// Fail1 at PrepareReindex
 	fail1 := getBasicIndexer(id1, version1)
-	fail1.On("GetSubscriptions").Return(matchAll).Once()
+	fail1.On("GetTypes").Return(allTypes).Once()
 	fail1.On("PrepareReindex", zero, version1, true).Return(someErr1).Once()
 	// Fail2 at first Reindex
 	fail2 := getBasicIndexer(id2, version2)
-	fail2.On("GetSubscriptions").Return(matchAll).Once()
+	fail2.On("GetTypes").Return(allTypes).Once()
 	fail2.On("PrepareReindex", zero, version2, true).Return(nil).Once()
 	fail2.On("Index", mock.Anything, mock.Anything).Return(nil, someErr2).Once()
 	// Fail3 at CompleteReindex
 	fail3 := getBasicIndexer(id3, version3)
-	fail3.On("GetSubscriptions").Return(matchAll).Once()
+	fail3.On("GetTypes").Return(allTypes).Once()
 	fail3.On("PrepareReindex", zero, version3, true).Return(nil).Once()
-	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(numBatches)
+	fail3.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
 	fail3.On("CompleteReindex", zero, version3).Return(someErr3).Once()
 	registerAndPopulate(t, q, fail1, fail2, fail3)
 	// Check
@@ -178,7 +179,7 @@ func TestRunUnsafe(t *testing.T) {
 
 	// New indexer => reindex
 	idx0 := getIndexer(id0, zero, version0, true)
-	idx0.On("GetSubscriptions").Return(matchAll).Once()
+	idx0.On("GetTypes").Return(allTypes).Once()
 	register(t, idx0)
 
 	updates := func(m string) {
@@ -190,7 +191,7 @@ func TestRunUnsafe(t *testing.T) {
 
 	// Old version => reindex
 	idx0a := getIndexer(id0, version0, version0a, false)
-	idx0a.On("GetSubscriptions").Return(matchAll).Once()
+	idx0a.On("GetTypes").Return(allTypes).Once()
 	register(t, idx0a)
 	err = r.RunUnsafe(nil, id0, nil)
 	assert.NoError(t, err)
@@ -198,7 +199,7 @@ func TestRunUnsafe(t *testing.T) {
 
 	// Up-to-date version => no reindex
 	idx0b := getIndexer(id0, version0a, version0a, false)
-	idx0b.On("GetSubscriptions").Return(matchAll).Once()
+	idx0b.On("GetTypes").Return(allTypes).Once()
 	register(t, idx0b)
 	err = r.RunUnsafe(nil, id0, nil)
 	assert.NoError(t, err)
@@ -206,8 +207,8 @@ func TestRunUnsafe(t *testing.T) {
 
 	// Reindex: filter all but one state
 	idx1 := getIndexerNoIndex(id1, zero, version1, true)
-	idx1.On("GetSubscriptions").Return(matchOne).Once()
-	idx1.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(numNetworks)
+	idx1.On("GetTypes").Return(gwStateType).Once()
+	idx1.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nNetworks)
 	register(t, idx1)
 	err = r.RunUnsafe(nil, id1, nil)
 	assert.NoError(t, err)
@@ -215,7 +216,7 @@ func TestRunUnsafe(t *testing.T) {
 
 	// Reindex: filter all
 	idx2 := getIndexerNoIndex(id2, zero, version2, true)
-	idx2.On("GetSubscriptions").Return(matchNone).Once()
+	idx2.On("GetTypes").Return(noTypes).Once()
 	register(t, idx2)
 	err = r.RunUnsafe(nil, id2, nil)
 	assert.NoError(t, err)
@@ -224,8 +225,8 @@ func TestRunUnsafe(t *testing.T) {
 	// Two new indexers => reindex
 	idx3 := getIndexer(id3, zero, version3, true)
 	idx4 := getIndexer(id4, zero, version4, true)
-	idx3.On("GetSubscriptions").Return(matchAll).Once()
-	idx4.On("GetSubscriptions").Return(matchAll).Once()
+	idx3.On("GetTypes").Return(allTypes).Once()
+	idx4.On("GetTypes").Return(allTypes).Once()
 	register(t, idx3, idx4)
 	err = r.RunUnsafe(nil, "", nil)
 	assert.NoError(t, err)
@@ -247,28 +248,35 @@ func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.Jo
 	configurator_test.RegisterGateway(t, nid2, hwid2, &models.GatewayDevice{HardwareID: hwid2})
 
 	reindexer, q := state_test_init.StartTestServiceInternal(t, dbName, sqorc.PostgresDriver)
-
 	ctxByNetwork := map[string]context.Context{
 		nid0: state_test.GetContextWithCertificate(t, hwid0),
 		nid1: state_test.GetContextWithCertificate(t, hwid1),
 		nid2: state_test.GetContextWithCertificate(t, hwid2),
 	}
+
+	// Report enough directory records to cause 3 batches per network (with the +1 gateway status per network)
 	for _, nid := range []string{nid0, nid1, nid2} {
 		var records []*directoryd.DirectoryRecord
 		var deviceIDs []string
-		for i := 0; i < statesPerNetwork; i++ {
+		for i := 0; i < directoryRecordsPerNetwork; i++ {
 			hwid := fmt.Sprintf("hwid%d", i)
 			imsi := fmt.Sprintf("imsi%d", i)
 			records = append(records, &directoryd.DirectoryRecord{LocationHistory: []string{hwid}})
 			deviceIDs = append(deviceIDs, imsi)
 		}
-		reportStates(t, ctxByNetwork[nid], deviceIDs, records)
+		reportDirectoryRecord(t, ctxByNetwork[nid], deviceIDs, records)
+	}
+
+	// Report one gateway status per network
+	gwStatus := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
+	for _, nid := range []string{nid0, nid1, nid2} {
+		reportGatewayStatus(t, ctxByNetwork[nid], gwStatus)
 	}
 
 	return reindexer, q
 }
 
-func reportStates(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd.DirectoryRecord) {
+func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd.DirectoryRecord) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
@@ -276,14 +284,26 @@ func reportStates(t *testing.T, ctx context.Context, deviceIDs []string, records
 	for i, st := range records {
 		serialized, err := serde.Serialize(state.SerdeDomain, orc8r.DirectoryRecordType, st)
 		assert.NoError(t, err)
-		pState := &protos.State{
-			Type:     orc8r.DirectoryRecordType,
-			DeviceID: deviceIDs[i],
-			Value:    serialized,
-		}
+		pState := &protos.State{Type: orc8r.DirectoryRecordType, DeviceID: deviceIDs[i], Value: serialized}
 		states = append(states, pState)
 	}
+	_, err = client.ReportStates(ctx, &protos.ReportStatesRequest{States: states})
+	assert.NoError(t, err)
+}
 
+func reportGatewayStatus(t *testing.T, ctx context.Context, gwStatus *models.GatewayStatus) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serialized, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, gwStatus)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     orc8r.GatewayStateType,
+			DeviceID: hwid0,
+			Value:    serialized,
+		},
+	}
 	_, err = client.ReportStates(ctx, &protos.ReportStatesRequest{States: states})
 	assert.NoError(t, err)
 }
@@ -309,14 +329,14 @@ func getIndexer(id string, from, to indexer.Version, isFirstReindex bool) *mocks
 	idx.On("GetID").Return(id)
 	idx.On("GetVersion").Return(to)
 	idx.On("PrepareReindex", from, to, isFirstReindex).Return(nil).Once()
-	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(numBatches)
+	idx.On("Index", mock.Anything, mock.Anything).Return(nil, nil).Times(nBatches)
 	idx.On("CompleteReindex", from, to).Return(nil).Once()
 	return idx
 }
 
 func register(t *testing.T, idx ...indexer.Indexer) {
 	indexer.DeregisterAllForTest(t)
-	err := indexer.RegisterAll(idx...)
+	err := indexer.RegisterIndexers(idx...)
 	assert.NoError(t, err)
 }
 

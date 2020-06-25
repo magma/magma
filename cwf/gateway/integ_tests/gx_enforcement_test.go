@@ -16,6 +16,8 @@ import (
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/plugin/models"
+	lteProtos "magma/lte/cloud/go/protos"
+
 	"math/rand"
 	"testing"
 	"time"
@@ -69,7 +71,8 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(250 * KiloBytes * 0.2)
+		SetUsageReportDelta(250 * KiloBytes * 0.2).
+		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
@@ -188,7 +191,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	updateRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(250 * KiloBytes * 0.5)
+		SetUsageReportDelta(250 * KiloBytes * 0.5).
+		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo).
 		SetStaticRuleInstalls([]string{"static-pass-all-2"}, []string{}).
 		SetStaticRuleRemovals([]string{"static-pass-all-1"}, []string{"base-1"})
@@ -425,8 +429,7 @@ func TestGxRevalidationTime(t *testing.T) {
 
 	// We expect an update request with some usage update after revalidation timer expires
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
-		SetUsageReportDelta(250 * KiloBytes).
-		SetUsageMonitorReport(usageMonitorInfo)
+		SetEventTrigger(int32(lteProtos.EventTrigger_REVALIDATION_TIMEOUT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
 		SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)

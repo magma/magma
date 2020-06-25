@@ -11,17 +11,12 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 
 import ActionTable from '../../components/ActionTable';
-import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
-import Card from '@material-ui/core/Card';
-import CardHeader from '@material-ui/core/CardHeader';
-import DataUsageIcon from '@material-ui/icons/DataUsage';
+import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import moment from 'moment';
 
-import {DateTimePicker} from '@material-ui/pickers';
+import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -35,15 +30,15 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
+    backgroundColor: colors.primary.brightGray,
     padding: '0 0 0 20px',
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
@@ -64,7 +59,6 @@ const useStyles = makeStyles(theme => ({
     height: 100,
     padding: theme.spacing(10),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
   formControl: {
     margin: theme.spacing(1),
@@ -79,107 +73,19 @@ export default function Enodeb({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
     <div className={classes.dashboardRoot}>
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
-          <EnodebThroughputChart />
+          <DateTimeMetricChart
+            title={CHART_TITLE}
+            queries={[
+              `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+            ]}
+            legendLabels={['mbps']}
+          />
         </Grid>
         <Grid item xs={12}>
           <EnodeTable enbInfo={enbInfo} />
         </Grid>
       </Grid>
     </div>
-  );
-}
-
-function EnodebThroughputChart() {
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
-
-  return (
-    <>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid item xs={6}>
-          <Text>
-            <DataUsageIcon />
-            {CHART_TITLE}
-          </Text>
-        </Grid>
-        <Grid item xs={6}>
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <Text>Filter By Date</Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="inline"
-                inputVariant="outlined"
-                maxDate={endDate}
-                disableFuture
-                value={startDate}
-                onChange={setStartDate}
-              />
-            </Grid>
-            <Grid item>
-              <Text>To</Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="inline"
-                inputVariant="outlined"
-                disableFuture
-                value={endDate}
-                onChange={setEndDate}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-      <Card>
-        <CardHeader
-          title={<Text variant="h6">{CHART_TITLE}</Text>}
-          subheader={
-            <AsyncMetric
-              style={{
-                data: {
-                  lineTension: 0.2,
-                  pointRadius: 0.1,
-                },
-                options: {
-                  xAxes: {
-                    gridLines: {
-                      display: false,
-                    },
-                    ticks: {
-                      maxTicksLimit: 10,
-                    },
-                  },
-                  yAxes: {
-                    gridLines: {
-                      drawBorder: true,
-                    },
-                    ticks: {
-                      maxTicksLimit: 1,
-                    },
-                  },
-                },
-                legend: {
-                  position: 'top',
-                  align: 'end',
-                },
-              }}
-              label={CHART_TITLE}
-              unit=""
-              queries={[
-                `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
-              ]}
-              timeRange={'3_hours'}
-              startEnd={[startDate, endDate]}
-              legendLabels={['mbps']}
-            />
-          }
-        />
-      </Card>
-    </>
   );
 }
 

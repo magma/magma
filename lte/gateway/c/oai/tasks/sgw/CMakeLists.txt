@@ -4,11 +4,11 @@ set(asn1c_call "${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1")
 set(S1AP_C_DIR ${asn1_generated_dir}/${ASN1RELDIR})
 
 # compile required protos
-set(SPGW_LTE_CPP_PROTOS spgw_state common_types 3gpp_types)
+set(SPGW_LTE_CPP_PROTOS spgw_state common_types std_3gpp_types)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-create_proto_dir("lte/gateway/c/oai" STATE_OUT_DIR)
+set(STATE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${SPGW_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
         "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
 
@@ -43,9 +43,9 @@ target_compile_definitions(TASK_SGW PRIVATE
 target_link_libraries(TASK_SGW
     COMMON
     ${GTPNL_LIBRARIES}
-    LIB_BSTR LIB_HASHTABLE LIB_RPC_CLIENT LIB_PCEF
+    LIB_BSTR LIB_HASHTABLE LIB_MOBILITY_CLIENT LIB_PCEF
     TASK_GTPV1U
-    cpp_redis tacopie protobuf
+    cpp_redis tacopie protobuf redis_utils
 )
 target_include_directories(TASK_SGW PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}

@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../utils/UserManagementUtils';
+import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import * as React from 'react';
@@ -30,14 +30,19 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {FormContextProvider} from '../../../../common/FormContext';
+import withSuspense from '../../../../common/withSuspense';
 import {
-  NEW_DIALOG_PARAM,
+  EMPTY_POLICY,
   PERMISSION_RULE_VALUES,
-  POLICY_TYPES,
-} from '../utils/UserManagementUtils';
+  addPermissionsPolicy,
+  deletePermissionsPolicy,
+  editPermissionsPolicy,
+  usePermissionsPolicy,
+} from '../data/PermissionsPolicies';
+import {FormContextProvider} from '../../../../common/FormContext';
+import {NEW_DIALOG_PARAM, POLICY_TYPES} from '../utils/UserManagementUtils';
 import {PERMISSION_POLICIES_VIEW_NAME} from './PermissionsPoliciesView';
-import {SYSTEM_DEFAULT_POLICY_PREFIX} from './PermissionsPoliciesView';
+import {SYSTEM_DEFAULT_POLICY_PREFIX} from './PermissionsPoliciesTable';
 import {generateTempId} from '../../../../common/EntUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useMemo, useState} from 'react';
@@ -45,7 +50,6 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 import {useLocation} from 'react-router-dom';
 import {useParams} from 'react-router';
-import {useUserManagement} from '../UserManagementContext';
 
 const useStyles = makeStyles(() => ({
   container: {
@@ -90,12 +94,20 @@ const initialCUDRule = {
   },
 };
 
+const initialLocationCUDRule = {
+  ...initialCUDRule,
+  update: {
+    ...initialBasicRule,
+    locationTypeIds: null,
+  },
+};
+
 const initialInventoryRules = {
   read: {
     isAllowed: PERMISSION_RULE_VALUES.YES,
   },
   location: {
-    ...initialCUDRule,
+    ...initialLocationCUDRule,
   },
   equipment: {
     ...initialCUDRule,
@@ -127,6 +139,8 @@ const initialWorkforceCUDRules = {
 const initialWorkforceRules = {
   read: {
     ...initialBasicRule,
+    projectTypeIds: null,
+    workOrderTypeIds: null,
   },
   data: {
     ...initialWorkforceCUDRules,
@@ -151,6 +165,7 @@ const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
     type,
     isGlobal: false,
     groups: [],
+    policy: EMPTY_POLICY,
     inventoryRules:
       type === POLICY_TYPES.InventoryPolicy.key ? initialInventoryRules : null,
     workforceRules:
@@ -161,30 +176,13 @@ const getInitialNewPolicy: (policyType: ?string) => PermissionsPolicy = (
 function PermissionsPolicyCard(props: Props) {
   const {redirectToPoliciesView, onClose} = props;
   const location = useLocation();
-  const {
-    policies,
-    addPermissionsPolicy,
-    editPermissionsPolicy,
-    deletePermissionsPolicy,
-  } = useUserManagement();
   const {id: policyId} = useParams();
+  const fetchedPolicy = usePermissionsPolicy(policyId || '');
   const isOnNewPolicy = policyId?.startsWith(NEW_DIALOG_PARAM) || false;
   const queryParams = new URLSearchParams(location.search);
   const [policy, setPolicy] = useState<?PermissionsPolicy>(
     isOnNewPolicy ? getInitialNewPolicy(queryParams.get('type')) : null,
   );
-
-  useEffect(() => {
-    if (isOnNewPolicy) {
-      return;
-    }
-    const requestedPolicy =
-      policyId == null ? null : policies.find(policy => policy.id === policyId);
-    if (requestedPolicy == null) {
-      redirectToPoliciesView();
-    }
-    setPolicy(requestedPolicy);
-  }, [policyId, isOnNewPolicy, redirectToPoliciesView, policies]);
 
   const enqueueSnackbar = useEnqueueSnackbar();
   const handleError = useCallback(
@@ -193,6 +191,37 @@ function PermissionsPolicyCard(props: Props) {
     },
     [enqueueSnackbar],
   );
+
+  useEffect(() => {
+    if (isOnNewPolicy) {
+      return;
+    }
+    if (fetchedPolicy == null) {
+      if (policyId != null) {
+        handleError(
+          `${fbt(
+            `Policy with id ${fbt.param(
+              'policy id url param',
+              policyId,
+            )} does not exist.`,
+            '',
+          )}`,
+        );
+      }
+      redirectToPoliciesView();
+    }
+    if (fetchedPolicy?.id == policy?.id) {
+      return;
+    }
+    setPolicy(fetchedPolicy);
+  }, [
+    fetchedPolicy,
+    handleError,
+    isOnNewPolicy,
+    policy,
+    policyId,
+    redirectToPoliciesView,
+  ]);
 
   const header = useMemo(() => {
     const breadcrumbs = [
@@ -277,16 +306,14 @@ function PermissionsPolicyCard(props: Props) {
     isOnNewPolicy,
     policy,
     onClose,
-    addPermissionsPolicy,
-    editPermissionsPolicy,
     handleError,
     props,
-    deletePermissionsPolicy,
   ]);
 
   if (policy == null) {
     return null;
   }
+
   return (
     <InventoryErrorBoundary>
       <FormContextProvider permissions={{adminRightsRequired: true}}>
@@ -372,4 +399,4 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
   );
 }
 
-export default withAlert(PermissionsPolicyCard);
+export default withSuspense(withAlert(PermissionsPolicyCard));

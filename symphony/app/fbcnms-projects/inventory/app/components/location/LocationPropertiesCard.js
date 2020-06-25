@@ -10,7 +10,7 @@
 
 import type {AppContextType} from '@fbcnms/ui/context/AppContext';
 import type {Equipment} from '../../common/Equipment';
-import type {LocationMoreActionsButton_location} from './__generated__/LocationMoreActionsButton_location.graphql';
+import type {LocationMenu_location} from './__generated__/LocationMenu_location.graphql';
 import type {WithSnackbarProps} from 'notistack';
 import type {WithStyles} from '@material-ui/core';
 
@@ -25,7 +25,7 @@ import LocationCoverageMapTab from './LocationCoverageMapTab';
 import LocationDetailsTab from './LocationDetailsTab';
 import LocationDocumentsCard from './LocationDocumentsCard';
 import LocationFloorPlansTab from './LocationFloorPlansTab';
-import LocationMoreActionsButton from './LocationMoreActionsButton';
+import LocationMenu from './LocationMenu';
 import LocationNetworkMapTab from './LocationNetworkMapTab';
 import LocationSiteSurveyTab from './LocationSiteSurveyTab';
 import React from 'react';
@@ -45,9 +45,8 @@ type Props = {
   onWorkOrderSelected: (workOrderId: string) => void,
   onEdit: () => void,
   onAddEquipment: () => void,
-  onLocationRemoved: (
-    removedLocation: LocationMoreActionsButton_location,
-  ) => void,
+  onLocationMoved: (movedLocation: LocationMenu_location) => void,
+  onLocationRemoved: (removedLocation: LocationMenu_location) => void,
 } & WithStyles<typeof styles> &
   WithSnackbarProps;
 
@@ -158,7 +157,7 @@ const locationsPropertiesCardQuery = graphql`
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
         ...LocationFloorPlansTab_location
-        ...LocationMoreActionsButton_location
+        ...LocationMenu_location
       }
     }
   }
@@ -174,7 +173,13 @@ class LocationPropertiesCard extends React.Component<Props, State> {
   context: AppContextType;
 
   render() {
-    const {classes, locationId, onLocationRemoved, onAddEquipment} = this.props;
+    const {
+      classes,
+      locationId,
+      onLocationMoved,
+      onLocationRemoved,
+      onAddEquipment,
+    } = this.props;
     if (!locationId) {
       return null;
     }
@@ -207,6 +212,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
               permissions={{
                 entity: 'location',
                 action: 'update',
+                locationTypeId: location.locationType.id,
               }}>
               <div className={classes.root}>
                 <div className={classes.cardHeader}>
@@ -215,10 +221,14 @@ class LocationPropertiesCard extends React.Component<Props, State> {
                       locationDetails={location}
                       hideTypes={false}
                     />
-                    <LocationMoreActionsButton
-                      location={location}
-                      onLocationRemoved={onLocationRemoved}
-                    />
+                    <FormAction>
+                      <LocationMenu
+                        location={location}
+                        popoverMenuClassName={classes.popoverMenu}
+                        onLocationMoved={onLocationMoved}
+                        onLocationRemoved={onLocationRemoved}
+                      />
+                    </FormAction>
                     <FormAction>
                       <Button onClick={this.props.onEdit}>
                         <fbt desc="">Edit Location</fbt>

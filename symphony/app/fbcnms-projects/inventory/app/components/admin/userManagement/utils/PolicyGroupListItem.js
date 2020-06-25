@@ -8,11 +8,9 @@
  * @format
  */
 
-import type {
-  PermissionsPolicy,
-  UserPermissionsGroup,
-} from './UserManagementUtils';
+import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {ToggleButtonDisplay} from './ListItem';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import GroupIcon from '@fbcnms/ui/components/design-system/Icons/Indications/GroupIcon';
@@ -66,7 +64,7 @@ export type AssigenmentButtonProp = $ReadOnly<{|
 |}>;
 
 type Props = $ReadOnly<{|
-  group: UserPermissionsGroup,
+  group: UsersGroup,
   isMember?: ?boolean,
   policy?: ?PermissionsPolicy,
   onChange: PermissionsPolicy => void,
@@ -74,10 +72,8 @@ type Props = $ReadOnly<{|
   ...AssigenmentButtonProp,
 |}>;
 
-const checkIsGroupInPolicy = (
-  group: UserPermissionsGroup,
-  policy?: ?PermissionsPolicy,
-) => policy == null || policy.groups.find(g => g.id === group.id) != null;
+const checkIsGroupInPolicy = (group: UsersGroup, policy?: ?PermissionsPolicy) =>
+  policy == null || policy.groups.find(g => g.id === group.id) != null;
 
 export default function PolicyGroupListItem(props: Props) {
   const {group, policy, assigmentButton, className, onChange} = props;
@@ -90,7 +86,7 @@ export default function PolicyGroupListItem(props: Props) {
   ]);
 
   const toggleAssigment = useCallback(
-    (group: UserPermissionsGroup, shouldAssign) => {
+    (group: UsersGroup, shouldAssign) => {
       if (policy == null) {
         return;
       }

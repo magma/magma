@@ -25,7 +25,7 @@ const ActionButton = (props: Props) => {
     case 'add':
       return <IconButton icon={AddIcon} onClick={onClick} />;
     case 'remove':
-      return <IconButton icon={RemoveIcon} skin="regular" onClick={onClick} />;
+      return <IconButton icon={RemoveIcon} skin="gray" onClick={onClick} />;
     default:
       return null;
   }

@@ -112,7 +112,6 @@
    "ueIpBlock": "192.168.128.0/24",
    "natEnabled": true,
    "defaultRuleId": "default_rule_1",
-   "relayEnabled": true,
    "services": [
       "ENFORCEMENT"
    ],

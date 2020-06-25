@@ -11,11 +11,12 @@
 import type {
   CUDPermissions,
   WorkforcePolicy,
-} from '../utils/UserManagementUtils';
+} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
@@ -49,7 +50,7 @@ type InventoryDataRulesSectionProps = $ReadOnly<{|
   title: React.Node,
   subtitle: React.Node,
   rule: ?CUDPermissions,
-  onChange: CUDPermissions => void,
+  onChange?: CUDPermissions => void,
 |}>;
 
 function WorkforceTemplatesRulesSection(props: InventoryDataRulesSectionProps) {
@@ -59,6 +60,8 @@ function WorkforceTemplatesRulesSection(props: InventoryDataRulesSectionProps) {
   if (rule == null) {
     return null;
   }
+
+  const isDisabled = onChange == null;
 
   return (
     <div className={classes.section}>
@@ -75,11 +78,15 @@ function WorkforceTemplatesRulesSection(props: InventoryDataRulesSectionProps) {
           update: rule.update,
         }}
         className={classes.section}
-        onChange={ruleCUD =>
-          onChange({
-            ...rule,
-            ...ruleCUD,
-          })
+        disabled={isDisabled}
+        onChange={
+          onChange != null
+            ? ruleCUD =>
+                onChange({
+                  ...rule,
+                  ...ruleCUD,
+                })
+            : undefined
         }
       />
     </div>
@@ -88,13 +95,14 @@ function WorkforceTemplatesRulesSection(props: InventoryDataRulesSectionProps) {
 
 type Props = $ReadOnly<{|
   policy: ?WorkforcePolicy,
-  onChange: WorkforcePolicy => void,
+  onChange?: WorkforcePolicy => void,
+  className?: ?string,
 |}>;
 
 export default function PermissionsPolicyWorkforceTemplatesRulesTab(
   props: Props,
 ) {
-  const {policy, onChange} = props;
+  const {policy, onChange, className} = props;
   const classes = useStyles();
 
   if (policy == null) {
@@ -102,7 +110,7 @@ export default function PermissionsPolicyWorkforceTemplatesRulesTab(
   }
 
   return (
-    <div className={classes.root}>
+    <div className={classNames(classes.root, className)}>
       <WorkforceTemplatesRulesSection
         title={fbt('Workforce Templates', '')}
         subtitle={fbt(
@@ -110,11 +118,14 @@ export default function PermissionsPolicyWorkforceTemplatesRulesTab(
           '',
         )}
         rule={policy.templates}
-        onChange={templates =>
-          onChange({
-            ...policy,
-            templates,
-          })
+        onChange={
+          onChange != null
+            ? templates =>
+                onChange({
+                  ...policy,
+                  templates,
+                })
+            : undefined
         }
       />
     </div>

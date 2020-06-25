@@ -133,13 +133,12 @@ class SessionStoreTest : public ::testing::Test {
     update_criteria.new_rule_lifetimes[dynamic_rule_id_1] = lifetime;
 
     // Monitoring credit installation
-    update_criteria.monitor_credit_to_install =
-      std::unordered_map<std::string, StoredMonitor>{};
+    update_criteria.monitor_credit_to_install = StoredMonitorMap{};
     auto monitor2 = StoredMonitor{};
     auto credit2 = StoredSessionCredit{};
     credit2.reporting = false;
     credit2.is_final = false;
-    credit2.unlimited_quota = false;
+    credit2.credit_limit_type = INFINITE_METERED;
     credit2.service_state = SERVICE_ENABLED;
     credit2.expiry_time = 0;
     credit2.buckets = std::unordered_map<Bucket, uint64_t>{};
@@ -152,7 +151,6 @@ class SessionStoreTest : public ::testing::Test {
     credit2.buckets[REPORTING_RX] = 6;
     credit2.buckets[REPORTED_TX] = 7;
     credit2.buckets[REPORTED_RX] = 8;
-    credit2.usage_reporting_limit = 12345;
     monitor2.level = SESSION_LEVEL;
     monitor2.credit = credit2;
     update_criteria.monitor_credit_to_install[monitoring_key2] = monitor2;
@@ -305,12 +303,12 @@ TEST_F(SessionStoreTest, test_read_and_write)
 
   auto credit_update = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
-  session->get_monitor_pool().receive_credit(credit_update_ref, uc);
+  session->receive_monitor(credit_update_ref, uc);
 
   // Add some used credit
-  session->get_monitor_pool().add_used_credit(monitoring_key, uint64_t(111), uint64_t(333), uc);
-  EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_TX), 111);
-  EXPECT_EQ(session->get_monitor_pool().get_credit(monitoring_key, USED_RX), 333);
+  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
+  EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
+  EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = std::vector<std::unique_ptr<SessionState>>{};
@@ -322,7 +320,7 @@ TEST_F(SessionStoreTest, test_read_and_write)
   // 4) Read session for IMSI1 from SessionStore
   SessionRead read_req = {};
   read_req.insert(imsi);
-  auto session_map = session_store->read_sessions_for_reporting(read_req);
+  auto session_map = session_store->read_sessions(read_req);
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
@@ -358,37 +356,21 @@ TEST_F(SessionStoreTest, test_read_and_write)
             false);
 
   // Check for installation of new monitoring credit
-  session_map[imsi].front()->get_monitor_pool().add_monitor(monitoring_key2,
-    UsageMonitoringCreditPool::unmarshal_monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_TX), 100);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key2, USED_RX), 200);
+  session_map[imsi].front()->set_monitor(monitoring_key2,
+    Monitor::unmarshal(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key2, USED_TX), 100);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key2, USED_RX), 200);
 
   // Check monitoring credit usage
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, USED_TX), 222);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, USED_RX), 666);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, ALLOWED_TOTAL), 1002);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, ALLOWED_TX), 1003);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, ALLOWED_RX), 1004);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTING_TX), 5);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTING_RX), 6);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_TX), 7);
-  EXPECT_EQ(session_map[imsi].front()->get_monitor_pool().get_credit(monitoring_key, REPORTED_RX), 8);
-
-  // 9) Check request numbers again
-  // This request number should increment in storage every time a read is done.
-  // The incremented value is set by the read request to the storage interface.
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 2);
-
-  // 10) Read sessions for reporting to update request numbers for the session
-  // The request number should be incremented by 2 for the session, 1 for
-  // each monitoring key and charging key associated to it.
-  session_map = session_store->read_sessions_for_reporting(read_req);
-  EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-
-  session_map = session_store->read_sessions(read_req);
-  EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 4);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, USED_TX), 222);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, USED_RX), 666);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, ALLOWED_TOTAL), 1002);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, ALLOWED_TX), 1003);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, ALLOWED_RX), 1004);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTING_TX), 5);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTING_RX), 6);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_TX), 7);
+  EXPECT_EQ(session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_RX), 8);
 
   // 11) Delete sessions for IMSI1
   update_req = SessionUpdate{};
@@ -398,9 +380,59 @@ TEST_F(SessionStoreTest, test_read_and_write)
   session_store->update_sessions(update_req);
 
   // 12) Verify that IMSI1 no longer has a session
-  session_map = session_store->read_sessions_for_reporting(read_req);
+  session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 0);
+}
+
+TEST_F(SessionStoreTest, test_sync_request_numbers)
+{
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+  auto session_store = new SessionStore(rule_store);
+
+  // 2) Create bare-bones session for IMSI1
+  auto session = get_session(sid, rule_store);
+  auto uc = get_default_update_criteria();
+
+  // 3) Commit session for IMSI1 into SessionStore
+  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  EXPECT_EQ(sessions.size(), 0);
+  sessions.push_back(std::move(session));
+  EXPECT_EQ(sessions.size(), 1);
+  session_store->create_sessions(imsi, std::move(sessions));
+
+  // 4) Read session for IMSI1 from SessionStore
+  SessionRead read_req = {};
+  read_req.insert(imsi);
+  auto session_map = session_store->read_sessions(read_req);
+
+  // 5) Verify that state was written for IMSI1 and has been retrieved.
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+
+  // 6) Make updates to session via SessionUpdateCriteria
+  auto update_req = SessionUpdate{};
+  update_req[imsi] = std::unordered_map<std::string,
+      SessionStateUpdateCriteria>{};
+  auto update_criteria = get_update_criteria();
+  update_criteria.request_number_increment = 3;
+  update_req[imsi][sid] = update_criteria;
+
+  // 7) Sync updated request_numbers to SessionStore
+  session_store->sync_request_numbers(update_req);
+
+  // And then here a gRPC request would be made to another service.
+  // The callback would be scheduled onto the event loop, and in the
+  // interim, other callbacks can run and make reads to the SessionStore
+
+  // 8) Read in session for IMSI1 again to check that the update was successful
+  auto session_map_2 = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map_2.size(), 1);
+  EXPECT_EQ(session_map_2[imsi].size(), 1);
+  EXPECT_EQ(session_map_2[imsi].front()->get_session_id(), sid);
+  EXPECT_EQ(session_map_2[imsi].front()->get_request_number(), 4);
 }
 
 TEST_F(SessionStoreTest, test_get_default_session_update)

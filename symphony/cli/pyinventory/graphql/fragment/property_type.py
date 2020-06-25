@@ -9,7 +9,7 @@ from gql.gql.client import OperationException
 from gql.gql.reporter import FailedOperationException
 from functools import partial
 from numbers import Number
-from typing import Any, Callable, List, Mapping, Optional
+from typing import Any, Callable, List, Mapping, Optional, Dict
 from time import perf_counter
 from dataclasses_json import DataClassJsonMixin
 
@@ -24,14 +24,7 @@ fragment PropertyTypeFragment on PropertyType {
   type
   index
   category
-  stringValue
-  intValue
-  booleanValue
-  floatValue
-  latitudeValue
-  longitudeValue
-  rangeFromValue
-  rangeToValue
+  rawValue
   isEditable
   isInstanceProperty
   isMandatory
@@ -43,20 +36,13 @@ fragment PropertyTypeFragment on PropertyType {
 @dataclass
 class PropertyTypeFragment(DataClassJsonMixin):
     id: str
-    name: str
-    type: PropertyKind = enum_field(PropertyKind)
     externalId: Optional[str]
+    name: str
     index: Optional[int]
     category: Optional[str]
-    stringValue: Optional[str]
-    intValue: Optional[int]
-    booleanValue: Optional[bool]
-    floatValue: Optional[Number]
-    latitudeValue: Optional[Number]
-    longitudeValue: Optional[Number]
-    rangeFromValue: Optional[Number]
-    rangeToValue: Optional[Number]
+    rawValue: Optional[str]
     isEditable: Optional[bool]
     isInstanceProperty: Optional[bool]
     isMandatory: Optional[bool]
     isDeleted: Optional[bool]
+    type: PropertyKind = enum_field(PropertyKind)

@@ -75,7 +75,7 @@ func TestOmnipresentRules(t *testing.T) {
 	expectations := []*protos.GxCreditControlExpectation{initExpectation}
 	assert.NoError(t, setPCRFExpectations(expectations, nil)) // we don't expect any update requests
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
 	_, err = tr.GenULTraffic(req)

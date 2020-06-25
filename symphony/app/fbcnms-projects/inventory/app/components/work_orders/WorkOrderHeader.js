@@ -109,6 +109,7 @@ const WorkOrderHeader = (props: Props) => {
         <WorkOrderDeleteButton
           className={classes.deleteButton}
           workOrderId={workOrder.id}
+          workOrderTypeId={workOrder.workOrderType.id}
           onWorkOrderRemoved={onWorkOrderRemoved}
           ignorePermissions={isOwner}
         />

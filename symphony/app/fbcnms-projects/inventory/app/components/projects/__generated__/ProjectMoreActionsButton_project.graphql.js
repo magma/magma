@@ -21,6 +21,9 @@ export type ProjectMoreActionsButton_project = {|
   +id: string,
   +name: string,
   +numberOfWorkOrders: number,
+  +type: {|
+    +id: string
+  |},
   +$refType: ProjectMoreActionsButton_project$ref,
 |};
 export type ProjectMoreActionsButton_project$data = ProjectMoreActionsButton_project;
@@ -32,20 +35,22 @@ export type ProjectMoreActionsButton_project$key = {
 */
 
 
-const node/*: ReaderFragment*/ = {
+const node/*: ReaderFragment*/ = (function(){
+var v0 = {
+  "kind": "ScalarField",
+  "alias": null,
+  "name": "id",
+  "args": null,
+  "storageKey": null
+};
+return {
   "kind": "Fragment",
   "name": "ProjectMoreActionsButton_project",
   "type": "Project",
   "metadata": null,
   "argumentDefinitions": [],
   "selections": [
-    {
-      "kind": "ScalarField",
-      "alias": null,
-      "name": "id",
-      "args": null,
-      "storageKey": null
-    },
+    (v0/*: any*/),
     {
       "kind": "ScalarField",
       "alias": null,
@@ -59,9 +64,22 @@ const node/*: ReaderFragment*/ = {
       "name": "numberOfWorkOrders",
       "args": null,
       "storageKey": null
+    },
+    {
+      "kind": "LinkedField",
+      "alias": null,
+      "name": "type",
+      "storageKey": null,
+      "args": null,
+      "concreteType": "ProjectType",
+      "plural": false,
+      "selections": [
+        (v0/*: any*/)
+      ]
     }
   ]
 };
+})();
 // prettier-ignore
-(node/*: any*/).hash = 'a087beefd40f47f0a1bc08f83e8c0667';
+(node/*: any*/).hash = 'fab778d2924d1e0b30c094cc7dfa5572';
 module.exports = node;

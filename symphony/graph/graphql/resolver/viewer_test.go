@@ -60,7 +60,7 @@ func TestAdminViewer(t *testing.T) {
 	permissions, err := vr.Permissions(ctx, v)
 	require.NoError(t, err)
 	require.Equal(t, &models.BasicPermissionRule{IsAllowed: models.PermissionValueYes}, permissions.AdminPolicy.Access)
-	require.False(t, permissions.CanWrite)
+	require.True(t, permissions.CanWrite)
 }
 
 func TestOwnerViewer(t *testing.T) {

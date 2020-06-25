@@ -32,9 +32,10 @@ import (
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
-	"magma/orc8r/cloud/go/services/directoryd/storage"
+	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
+	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
-	storage2 "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -48,28 +49,28 @@ func main() {
 	}
 
 	// Init storage
-	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
+	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %s", err)
 	}
 
-	fact := blobstore.NewEntStorage(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewEntStorage(dstorage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing directory storage: %s", err)
 	}
 
-	store := storage.NewDirectorydBlobstore(fact)
+	store := dstorage.NewDirectorydBlobstore(fact)
 
 	// Add servicers
+	// Cloud lookup service
 	servicer, err := servicers.NewDirectoryLookupServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating initializing directory servicer: %s", err)
 	}
 	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
-
-	// Register GatewayDirectoryServiceServer on the same server port
 	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
+	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewDirectoryIndexer())
 
 	// Run service
 	err = srv.Run()

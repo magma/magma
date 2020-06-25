@@ -61,7 +61,7 @@ func TestIdleTimer(t *testing.T) {
 	defaultAnswer := protos.NewGxCCAnswer(2001).SetUsageMonitorInfo(usageMonitorInfo)
 	assert.NoError(t, setPCRFExpectations([]*protos.GxCreditControlExpectation{initExpectation}, defaultAnswer))
 
-	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 5)
 
 	tr.AssertAllGxExpectationsMetNoError()
 

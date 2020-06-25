@@ -9,16 +9,17 @@
  */
 
 import type {TableRowDataType} from '@fbcnms/ui/components/design-system/Table/Table';
-import type {UserPermissionsGroup} from '../utils/UserManagementUtils';
+import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
+import withSuspense from '../../../../common/withSuspense';
 import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useMemo} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
-import {useUserManagement} from '../UserManagementContext';
+import {useUsersGroups} from '../data/UsersGroups';
 
 export const PERMISSION_GROUPS_VIEW_NAME = fbt(
   'Groups',
@@ -37,23 +38,20 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type GroupTableRow = TableRowDataType<UserPermissionsGroup>;
-type GroupTableData = Array<GroupTableRow>;
+type GroupTableRow = TableRowDataType<UsersGroup>;
 
 const group2GroupTableRow: (
-  UserPermissionsGroup | GroupTableRow,
+  UsersGroup | GroupTableRow,
 ) => GroupTableRow = group => ({
   key: group.key || group.id,
   ...group,
 });
 
-export default function PermissionsGroupsView() {
+function PermissionsGroupsView() {
   const classes = useStyles();
   const {history} = useRouter();
-  const {groups} = useUserManagement();
-  const [groupsTable, _setGroupsTable] = useState<GroupTableData>(
-    groups.map(group2GroupTableRow),
-  );
+  const groups = useUsersGroups();
+  const groupsTable = useMemo(() => groups.map(group2GroupTableRow), [groups]);
 
   const columns = [
     {
@@ -74,7 +72,7 @@ export default function PermissionsGroupsView() {
         </fbt>
       ),
       getSortingValue: groupRow => groupRow.description,
-      render: groupRow => groupRow.description,
+      render: groupRow => groupRow.description || '',
       titleClassName: classes.wideColumn,
       className: classes.wideColumn,
     },
@@ -116,3 +114,5 @@ export default function PermissionsGroupsView() {
     </div>
   );
 }
+
+export default withSuspense(PermissionsGroupsView);

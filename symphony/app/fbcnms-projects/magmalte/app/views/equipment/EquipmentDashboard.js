@@ -15,6 +15,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
+import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
 import Grid from '@material-ui/core/Grid';
@@ -25,9 +26,10 @@ import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import {colors, typography} from '../../theme/default';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -41,26 +43,44 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
-    padding: '0 0 0 20px',
+    backgroundColor: colors.primary.brightGray,
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
+  },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
+  appBarBtnSecondary: {
+    color: colors.primary.white,
   },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
@@ -70,7 +90,6 @@ const useStyles = makeStyles(theme => ({
     height: 100,
     padding: theme.spacing(10),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
   formControl: {
     margin: theme.spacing(1),
@@ -82,6 +101,8 @@ function EquipmentDashboard() {
   const {match, relativePath, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const [enbInfo, setEnbInfo] = useState<{[string]: EnodebInfo}>({});
+  const [isEnbStLoading, setIsEnbStLoading] = useState(true);
+
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {response: lteGatwayResp, isLoading: isLteRespLoading} = useMagmaAPI(
@@ -100,11 +121,10 @@ function EquipmentDashboard() {
 
   useEffect(() => {
     const fetchEnodebState = async () => {
+      let err = false;
       if (!enb) {
         return;
       }
-
-      let err = false;
       const requests = Object.keys(enb).map(async k => {
         const {serial} = enb[k];
         try {
@@ -137,15 +157,19 @@ function EquipmentDashboard() {
           };
         });
         setEnbInfo(enbInfoLocal);
+        setIsEnbStLoading(false);
       });
     };
+    if (!enb && !isEnbRespLoading) {
+      setIsEnbStLoading(false);
+      return;
+    }
     fetchEnodebState();
-  }, [networkId, enb, enqueueSnackbar]);
+  }, [networkId, enb, isEnbRespLoading, enqueueSnackbar]);
 
-  if (isLteRespLoading || isEnbRespLoading) {
+  if (isLteRespLoading || isEnbStLoading) {
     return <LoadingFiller />;
   }
-
   const lteGateways: {[string]: lte_gateway} = lteGatwayResp ?? {};
   return (
     <>
@@ -153,6 +177,10 @@ function EquipmentDashboard() {
         <Route
           path={relativePath('/overview/gateway/:gatewayId')}
           render={() => <GatewayDetail lteGateways={lteGateways} />}
+        />
+        <Route
+          path={relativePath('/overview/enodeb/:enodebSerial')}
+          render={() => <EnodebDetail enbInfo={enbInfo} />}
         />
         <Route
           path={relativePath('/overview')}
@@ -182,13 +210,11 @@ function EquipmentDashboardInternal({
   return (
     <>
       <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Equipment
-        </Text>
+        <Text variant="body2">Equipment</Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
@@ -198,14 +224,14 @@ function EquipmentDashboardInternal({
               textColor="inherit"
               className={classes.tabs}>
               <Tab
-                key="Gateway"
+                key="Gateways"
                 component={NestedRouteLink}
                 label={<GatewayTabLabel />}
                 to="/gateway"
                 className={classes.tab}
               />
               <Tab
-                key="EnodeB"
+                key="EnodeBs"
                 component={NestedRouteLink}
                 label={<EnodebTabLabel />}
                 to="/enodeb"
@@ -213,13 +239,21 @@ function EquipmentDashboardInternal({
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
+          <Grid
+            item
+            xs={6}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Text color="light">Secondary Action</Text>
+                {/* TODO: these button styles need to be localized */}
+                <Button variant="text" className={classes.appBarBtnSecondary}>
+                  Secondary Action
+                </Button>
               </Grid>
               <Grid item>
-                <Button color="primary" variant="contained">
+                <Button variant="contained" className={classes.appBarBtn}>
                   Create New
                 </Button>
               </Grid>

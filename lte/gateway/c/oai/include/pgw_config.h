@@ -83,6 +83,8 @@
 #define PGW_CONFIG_P_CSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
 #define PGW_CONFIG_P_CSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
 
+#define PGW_CONFIG_STRING_NAT_ENABLED "ENABLE_NAT"
+
 // may be more
 #define PGW_MAX_ALLOCATED_PDN_ADDRESSES 1024
 #define PGW_NUM_UE_POOL_MAX 16
@@ -119,6 +121,7 @@ typedef struct pgw_config_s {
   bool force_push_pco;
   uint16_t ue_mtu;
   bool relay_enabled;
+  bool enable_nat;
 
   struct {
     bool enabled;

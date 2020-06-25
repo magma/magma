@@ -41,6 +41,9 @@ cwf:
     cloud_port: 9443
     bootstrap_address: bootstrap-legacy.magma.svc.cluster.local
     bootstrap_port: 443
+  redis:
+    port: 6380
+    bind: 127.0.0.1
   repo:
     url: https://github.com/facebookincubator/magma.git
     branch: master
