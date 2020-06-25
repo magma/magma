@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
     paddingTop: '15px',
   },
   iconButton: {
-    color: theme.palette.secondary.light,
+    // color: theme.palette.secondary.light,
     padding: '5px',
   },
   subrowCell: {

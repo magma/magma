@@ -12,7 +12,7 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import moment from 'moment';
 import type {ChartStyle} from '@fbcnms/ui/insights/AsyncMetric';
 
@@ -60,16 +60,16 @@ export default function({startEnd}: Props) {
   };
   return (
     <Grid>
-      <Card>
+      <Card elevation={0}>
         <CardHeader
-          title={<Text variant="h6">{state.title}</Text>}
+          title={<Text variant="body2">{state.title}</Text>}
           subheader={
             <AsyncMetric
               style={chartStyle}
               label={state.title}
               unit=""
               queries={['sum(ALERTS)']}
-              timeRange={'3_hours'}
+              timeRange={'3_days'}
               startEnd={isValid(start, end) ? startEnd : undefined}
               legendLabels={state.legendLabels}
             />

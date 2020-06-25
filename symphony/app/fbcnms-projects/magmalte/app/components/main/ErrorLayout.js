@@ -9,7 +9,7 @@
  */
 
 import * as React from 'react';
-import AppContent from '@fbcnms/ui/components/layout/AppContent';
+import AppContent from '../layout/AppContent';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import AppSideBar from '@fbcnms/ui/components/layout/AppSideBar';
 

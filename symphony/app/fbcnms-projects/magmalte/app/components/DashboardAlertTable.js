@@ -8,18 +8,23 @@
  * @format
  */
 
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import Paper from '@material-ui/core/Paper';
-import React from 'react';
-import TabbedTable from './TabbedTable';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import {Alarm} from '@material-ui/icons';
-import {useRouter} from '@fbcnms/ui/hooks';
 import type {RowData} from './TabbedTable';
 import type {prom_firing_alert} from '@fbcnms/magma-api';
+
+import Card from '@material-ui/core/Card';
+import Grid from '@material-ui/core/Grid';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import nullthrows from '@fbcnms/util/nullthrows';
+import React from 'react';
+import TabbedTable from './TabbedTable';
+import Text from '../theme/design-system/Text';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
+import {Alarm} from '@material-ui/icons';
+import {CardTitleRow} from './layout/CardTitleRow';
+import {colors} from '../theme/default';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 type AlertTable = {[string]: Array<RowData>};
 
@@ -80,12 +85,8 @@ export default function() {
 
   return (
     <>
-      <Text>
-        <Alarm /> Alerts ({alerts.length})
-      </Text>
-      <Paper>
-        <TabbedTable data={data} />
-      </Paper>
+      <CardTitleRow icon={Alarm} label={`Alerts (${alerts.length})`} />
+      <TabbedTable data={data} />
     </>
   );
 }
