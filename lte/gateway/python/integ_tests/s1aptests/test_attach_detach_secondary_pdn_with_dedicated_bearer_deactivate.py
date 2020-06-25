@@ -69,7 +69,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
 
             # Add dedicated bearer for default bearer 5
             print(
-                "********************** Adding dedicated bearer to oai.ipv4"
+                "********************** Adding dedicated bearer to magma.ipv4"
                 " PDN"
             )
             self._spgw_util.create_bearer(
@@ -157,7 +157,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
                 deactv_bearer_req.bearerId,
             )
             time.sleep(5)
-            # Delete dedicated bearer of secondary PDN (oai.ipv4 apn)
+            # Delete dedicated bearer of default PDN (magma.ipv4 apn)
             self._spgw_util.delete_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 5,
