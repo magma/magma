@@ -14,7 +14,7 @@ import type {UserSearchContextQuery} from './__generated__/UserSearchContextQuer
 
 import RelayEnvironment from '../../../../../common/RelayEnvironment';
 import createSearchContext from './SearchContext';
-import {USER_STATUSES} from '../UserManagementUtils';
+import {USER_ROLES, USER_STATUSES} from '../UserManagementUtils';
 import {fetchQuery, graphql} from 'relay-runtime';
 
 const userSearchQuery = graphql`
@@ -45,7 +45,15 @@ const searchCallback = (searchTerm: string) =>
     if (response?.userSearch == null) {
       return [];
     }
-    return response.userSearch.users.filter(Boolean);
+    return response.userSearch.users.filter(Boolean).map(user => {
+      if (user.role === USER_ROLES.OWNER.key) {
+        return {
+          ...user,
+          role: USER_ROLES.ADMIN.key,
+        };
+      }
+      return user;
+    });
   });
 
 const {
