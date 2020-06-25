@@ -32,6 +32,7 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if c == nil || c.Request() == nil {
 			return handleError(c, http.StatusBadRequest, "Invalid Request")
 		}
+		glog.V(1).Infof("Received request in the access middleware. Req: %v", c.Request())
 		// find out request's access type (READ|WRITE|READ & WRITE)
 		perm := requestPermissions(c)
 
@@ -75,6 +76,7 @@ func Middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 		// all good, call next handler
 		if next != nil {
+			glog.V(1).Info("Access middleware successfully verified permissions. Sending request to the next middleware.")
 			return next(c)
 		}
 		return nil
