@@ -16,7 +16,6 @@ import ChevronRight from '@material-ui/icons/ChevronRight';
 import Clear from '@material-ui/icons/Clear';
 import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
-import Grid from '@material-ui/core/Grid';
 import LastPage from '@material-ui/icons/LastPage';
 import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
@@ -27,10 +26,7 @@ import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from '../theme/design-system/Text';
-
 import {CardTitleRow} from './layout/CardTitleRow';
-import {colors} from '../theme/default';
 import {forwardRef} from 'react';
 
 const tableIcons = {
@@ -118,7 +114,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
     actionTableJSX.push(
       <CardTitleRow
         icon={TitleIcon}
-        label={`${props.title} (${props.data.length})`}
+        label={`${props.title || ''} (${props.data.length})`}
       />,
     );
   }

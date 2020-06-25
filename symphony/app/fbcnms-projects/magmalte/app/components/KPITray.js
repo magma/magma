@@ -80,7 +80,7 @@ export default function KPITray(props: Props) {
         key="kpiTitle">
         <CardContent className={classes.kpiHeaderContent}>
           <KpiIcon className={classes.kpiHeaderIcon} />
-          <Text variant="body1" className={classes.kpiTitle}>
+          <Text variant="body1">
             {props.description}
           </Text>
         </CardContent>

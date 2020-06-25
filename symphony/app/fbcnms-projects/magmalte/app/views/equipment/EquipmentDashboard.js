@@ -27,9 +27,9 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import {colors, typography} from '../../theme/default';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import {colors, typography} from '../../theme/default';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';

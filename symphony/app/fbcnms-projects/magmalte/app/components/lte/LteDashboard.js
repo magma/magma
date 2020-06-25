@@ -12,24 +12,20 @@
 import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
 import DashboardKPIs from '../DashboardKPIs';
-import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
-import EventsTable, {magmaEventTypes} from '../../views/events/EventsTable';
-import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
-import moment from 'moment';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
+import moment from 'moment';
 
-import {colors} from '../../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
-import {GpsFixed, NetworkCheck, People} from '@material-ui/icons';
-import {makeStyles} from '@material-ui/styles';
+import {NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
+import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -66,9 +62,6 @@ const useStyles = makeStyles(theme => ({
   },
   dateTimeText: {
     color: colors.primary.selago,
-  },
-  input: {
-    color: colors.primary.white,
   },
 }));
 

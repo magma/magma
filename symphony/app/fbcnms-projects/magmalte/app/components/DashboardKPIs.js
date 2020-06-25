@@ -17,7 +17,6 @@ import React from 'react';
 import Text from '../theme/design-system/Text';
 
 import {CardTitleRow} from './layout/CardTitleRow';
-import {colors} from '../theme/default';
 import {GpsFixed} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/styles';
 

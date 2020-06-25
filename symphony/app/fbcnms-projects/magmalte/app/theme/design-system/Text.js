@@ -10,8 +10,8 @@
 
 import * as React from 'react';
 import classNames from 'classnames';
-import {typography} from '../default';
 import {makeStyles} from '@material-ui/styles';
+import {typography} from '../default';
 
 const styles = {
   h1: typography.h1,
@@ -25,6 +25,7 @@ const styles = {
   subtitle3: typography.subtitle3,
   body1: typography.body1,
   body2: typography.body2,
+  body3: typography.body3,
   caption: typography.caption,
   overline: typography.overline,
   lightWeight: {
@@ -62,6 +63,7 @@ type Props = {
     | 'subtitle3'
     | 'body1'
     | 'body2'
+    | 'body3'
     | 'caption'
     | 'overline',
   className?: string,

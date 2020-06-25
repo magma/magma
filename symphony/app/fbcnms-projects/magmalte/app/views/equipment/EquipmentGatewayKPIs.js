@@ -10,15 +10,12 @@
 import type {KPIData} from '../../components/KPITray';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-import isGatewayHealthy from '../../components/GatewayUtils';
 import KPITray from '../../components/KPITray';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import nullthrows from '@fbcnms/util/nullthrows';
 import React from 'react';
+import isGatewayHealthy from '../../components/GatewayUtils';
+import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-
-import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const getLatency = (resp, fn) => {

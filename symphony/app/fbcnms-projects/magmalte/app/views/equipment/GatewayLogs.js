@@ -23,9 +23,8 @@ import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
-import {getStep} from '../../components/CustomHistogram';
-import {Bar} from 'react-chartjs-2';
 import {colors} from '../../theme/default';
+import {getStep} from '../../components/CustomHistogram';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';

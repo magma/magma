@@ -33,9 +33,9 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
