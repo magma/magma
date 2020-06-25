@@ -11,9 +11,16 @@ package initflag
 
 import (
 	"flag"
+	"fmt"
+	"os"
 )
 
 func init() {
+	flag.Var(
+		&syslogDest,
+		syslogFlag,
+		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)")
+
 	// only if not already parsed
 	if !flag.Parsed() {
 		// save original settings
@@ -31,6 +38,17 @@ func init() {
 		flag.CommandLine.Init(flag.CommandLine.Name(), origErrorHandling)
 		flag.CommandLine.Usage = orgUsage
 		flag.CommandLine.SetOutput(origOut)
+	}
+	// Check if the process needs to redirect stderr to syslog
+	if flag.Lookup(syslogFlag) != nil {
+		if err := redirectToSyslog(); err != nil {
+			// Cannot use glog here, it should not be initialized yet
+			fmt.Fprintf(os.Stderr, "ERROR redirecting to syslog: %v\n", err)
+		}
+	}
+	// Check if the process needs to redirect stdout to stderr
+	if *stdoutToStderr {
+		stdout, os.Stdout = os.Stderr, os.Stdout
 	}
 }
 
