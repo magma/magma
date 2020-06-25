@@ -84,11 +84,15 @@ func cudBasedRule(cud *models.Cud, m ent.Mutation) error {
 	return privacyDecision(cudBasedCheck(cud, m))
 }
 
+func userHasFullPermissions(v viewer.Viewer) bool {
+	return v.Role() == user.RoleOWNER || v.Role() == user.RoleADMIN
+}
+
 func allowWritePermissionsRule() privacy.MutationRule {
 	return privacy.MutationRuleFunc(func(ctx context.Context, _ ent.Mutation) error {
 		v := viewer.FromContext(ctx)
 		if v != nil && v.Features().Enabled(viewer.FeaturePermissionPolicies) {
-			return privacyDecision(v.Role() == user.RoleOWNER)
+			return privacyDecision(userHasFullPermissions(v))
 		}
 		return privacyDecision(FromContext(ctx).CanWrite)
 	})
@@ -100,7 +104,7 @@ func allowReadPermissionsRule() privacy.QueryRule {
 		case v == nil:
 			return privacy.Skip
 		case !v.Features().Enabled(viewer.FeaturePermissionPolicies),
-			v.Role() == user.RoleOWNER:
+			userHasFullPermissions(v):
 			return privacy.Allow
 		default:
 			return privacy.Skip

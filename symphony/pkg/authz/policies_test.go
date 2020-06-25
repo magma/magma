@@ -314,7 +314,7 @@ func TestAdminUserHasAdminEditPermissions(t *testing.T) {
 	permissions, err := authz.Permissions(ctx)
 	require.NoError(t, err)
 	require.Equal(t, models.PermissionValueYes, permissions.AdminPolicy.Access.IsAllowed)
-	require.Equal(t, false, permissions.CanWrite)
+	require.True(t, permissions.CanWrite)
 }
 
 func TestUserHasNoReadonlyPermissions(t *testing.T) {
