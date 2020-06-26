@@ -3,9 +3,11 @@
 MY_FULL_PATH="$(cd "$(dirname "${0}")" && pwd)"
 MAGMA_PATH=$(sed -E 's|fbcode/magma/.*|fbcode/magma|'  <<< "${MY_FULL_PATH}")
 SRC_ROOT="${MAGMA_PATH}/openwrt/gateway/configs"
+TGT_CONFIG_DIR="/etc/magma/configs"
 IP="192.168.1.1"
 USER="root"
 PASSWORD="facebook"
+CLOUD_KEYWORDS="ControllerAddr BootstrapperAddr"
 SERVICES="magmad aaa_server radius"
 
 check_deploy_tools() {
@@ -20,6 +22,7 @@ check_deploy_tools() {
 usage() {
   echo "Usage: $0 [options]"
   echo " Initialize OpenWrt gateway with configuration and init scripts"
+  echo "  --cloud          address of the controller and the bootstrapper"
   echo "  --dryrun         show the gateway updates"
   echo "  --help           show this message"
   echo "  --ip             gateway ip address"
@@ -36,6 +39,10 @@ password=${PASSWORD}
 autostart=enable
 while [ $# -gt 0 ]; do
   case $1 in
+    --cloud|-c)
+      shift
+      cloud=$1
+      ;;
     --dryrun|-n)
       dryrun=1
       ;;
@@ -65,13 +72,14 @@ while [ $# -gt 0 ]; do
 done
 
 # Sanity check the options
-if [ -z "${ip}" ] || [ -z "${password}" ]; then
+if [ -z "${ip}" ] || [ -z "${password}" ] || [ -z "${cloud}" ]; then
   echo "Invalid option value"
   usage
 fi
 
 # Dry run
 if [ -n "${dryrun}" ]; then
+  echo "Would set cloud address: ${cloud}"
   echo "Would update the following gateway files:"
   find "${SRC_ROOT}" -type f | sed "s|${SRC_ROOT}||"
   echo "autostart for magma services would be ${autostart}d"
@@ -92,6 +100,13 @@ done
 # Update the gateway
 echo "Copying files to gateway"
 pscp -4 -batch -scp -p -r -pw "${password}" "${SRC_ROOT}/" "${USER}@${ip}:/"
+
+# Set the cloud address
+echo "Setting cloud address"
+for k in ${CLOUD_KEYWORDS}; do
+  plink -4 -batch -pw "${password}" "${USER}@${ip}" \
+    "for f in \$(find ${TGT_CONFIG_DIR} -name \*.yml -type f); do sed -i s/{{\.${k}}}/${cloud}/ \${f}; done"
+done
 
 # Enable or disable auto start
 for s in ${SERVICES}; do
