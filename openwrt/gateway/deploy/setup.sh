@@ -7,7 +7,6 @@ TGT_CONFIG_DIR="/etc/magma/configs"
 IP="192.168.1.1"
 USER="root"
 PASSWORD="facebook"
-CLOUD_KEYWORDS="ControllerAddr BootstrapperAddr"
 SERVICES="magmad aaa_server radius"
 
 check_deploy_tools() {
@@ -22,7 +21,8 @@ check_deploy_tools() {
 usage() {
   echo "Usage: $0 [options]"
   echo " Initialize OpenWrt gateway with configuration and init scripts"
-  echo "  --cloud          address of the controller and the bootstrapper"
+  echo "  --boot           address of the bootstrapper"
+  echo "  --cloud          address of the cloud controller"
   echo "  --dryrun         show the gateway updates"
   echo "  --help           show this message"
   echo "  --ip             gateway ip address"
@@ -39,6 +39,10 @@ password=${PASSWORD}
 autostart=enable
 while [ $# -gt 0 ]; do
   case $1 in
+    --boot|-b)
+      shift
+      boot=$1
+      ;;
     --cloud|-c)
       shift
       cloud=$1
@@ -72,14 +76,15 @@ while [ $# -gt 0 ]; do
 done
 
 # Sanity check the options
-if [ -z "${ip}" ] || [ -z "${password}" ] || [ -z "${cloud}" ]; then
+if [ -z "${ip}" ] || [ -z "${password}" ] || [ -z "${cloud}" ] || [ -z "${boot}" ]; then
   echo "Invalid option value"
   usage
 fi
 
 # Dry run
 if [ -n "${dryrun}" ]; then
-  echo "Would set cloud address: ${cloud}"
+  echo "Would set cloud controller address: ${cloud}"
+  echo "Would set bootstrapper address: ${boot}"
   echo "Would update the following gateway files:"
   find "${SRC_ROOT}" -type f | sed "s|${SRC_ROOT}||"
   echo "autostart for magma services would be ${autostart}d"
@@ -101,12 +106,15 @@ done
 echo "Copying files to gateway"
 pscp -4 -batch -scp -p -r -pw "${password}" "${SRC_ROOT}/" "${USER}@${ip}:/"
 
-# Set the cloud address
-echo "Setting cloud address"
-for k in ${CLOUD_KEYWORDS}; do
-  plink -4 -batch -pw "${password}" "${USER}@${ip}" \
-    "for f in \$(find ${TGT_CONFIG_DIR} -name \*.yml -type f); do sed -i s/{{\.${k}}}/${cloud}/ \${f}; done"
-done
+# Set the cloud controller address
+echo "Setting cloud controller address"
+plink -4 -batch -pw "${password}" "${USER}@${ip}" \
+  "for f in \$(find ${TGT_CONFIG_DIR} -name \*.yml -type f); do sed -i s/{{\.ControllerAddr}}/${cloud}/ \${f}; done"
+
+# Set the bootstrapper address
+echo "Setting bootstrapper address"
+plink -4 -batch -pw "${password}" "${USER}@${ip}" \
+  "for f in \$(find ${TGT_CONFIG_DIR} -name \*.yml -type f); do sed -i s/{{\.BootstrapperAddr}}/${boot}/ \${f}; done"
 
 # Enable or disable auto start
 for s in ${SERVICES}; do
