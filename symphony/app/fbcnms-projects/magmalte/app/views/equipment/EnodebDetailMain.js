@@ -190,7 +190,7 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
               <EnodebSummary enbInfo={enbInfo} />
             </Grid>
 
-            <Grid item xs={6}>
+            <Grid item xs={12} md={6} alignItems="center">
               <CardTitleRow icon={GraphicEqIcon} label="Status" />
               <EnodebStatus enbInfo={enbInfo} />
             </Grid>
