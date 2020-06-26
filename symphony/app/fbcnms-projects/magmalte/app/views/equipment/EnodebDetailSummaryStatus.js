@@ -57,17 +57,19 @@ export function EnodebSummary({enbInfo}: {enbInfo: EnodebInfo}) {
   return (
     <Card elevation={0}>
       <CardHeader
+        className={classes.kpiBox}
         data-testid="eNodeB Serial Number"
         title="eNodeB Serial Number"
         subheader={enbInfo.enb.serial}
         titleTypographyProps={{
           variant: 'body3',
           className: classes.kpiLabel,
-          title: 'Health',
+          title: 'eNodeB Serial Number',
         }}
         subheaderTypographyProps={{
           variant: 'body1',
           className: classes.kpiValue,
+          title: enbInfo.enb.serial,
         }}
       />
     </Card>

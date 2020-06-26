@@ -86,9 +86,8 @@ const useStyles = makeStyles(theme => ({
     padding: '50px 0',
   },
   paper: {
-    height: 100,
-    padding: theme.spacing(10),
     textAlign: 'center',
+    padding: theme.spacing(10),
   },
   card: {
     variant: 'outlined',
@@ -212,23 +211,27 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
             />
           ) : (
             <Paper className={classes.paper} elevation={0}>
-              Enodeb Throughput Chart Currently Unavailable
+              <Text variant="body2">
+                Enodeb Throughput Chart Currently Unavailable
+              </Text>
             </Paper>
           )}
         </Grid>
-        <Grid container spacing={3} alignItems="stretch" item xs={12}>
-          <Grid item xs={6}>
-            <Text>
-              <MyLocationIcon /> Events
-            </Text>
-            <Paper className={classes.paper}>Event Information</Paper>
-          </Grid>
+        <Grid item xs={12}>
+          <Grid container spacing={4}>
+            <Grid item xs={6}>
+              <CardTitleRow icon={MyLocationIcon} label="Events" />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Event Information</Text>
+              </Paper>
+            </Grid>
 
-          <Grid item xs={6}>
-            <Text>
-              <PeopleIcon /> Subscribers
-            </Text>
-            <Paper className={classes.paper}>Subscribers data</Paper>
+            <Grid item xs={6}>
+              <CardTitleRow icon={PeopleIcon} label="Subscribers" />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Subscribers data</Text>
+              </Paper>
+            </Grid>
           </Grid>
         </Grid>
       </Grid>
