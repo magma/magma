@@ -26,10 +26,10 @@ import TableRow from '@material-ui/core/TableRow';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {Route} from 'react-router-dom';
 
-import nullthrows from '@fbcnms/util/nullthrows';
 import Text from '../../theme/design-system/Text';
-import {colors} from '../../theme/default';
+import nullthrows from '@fbcnms/util/nullthrows';
 import {augmentDevicesMap} from './DevicesUtils';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useInterval, useRouter} from '@fbcnms/ui/hooks';

@@ -241,12 +241,7 @@ function EquipmentDashboardInternal({
               />
             </Tabs>
           </Grid>
-          <Grid
-            item
-            xs={6}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
+          <Grid item xs={6}>
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 {/* TODO: these button styles need to be localized */}
