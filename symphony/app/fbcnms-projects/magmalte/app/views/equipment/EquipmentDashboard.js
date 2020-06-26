@@ -176,7 +176,9 @@ function EquipmentDashboard() {
       <Switch>
         <Route
           path={relativePath('/overview/gateway/:gatewayId')}
-          render={() => <GatewayDetail lteGateways={lteGateways} />}
+          render={() => (
+            <GatewayDetail lteGateways={lteGateways} enbInfo={enbInfo} />
+          )}
         />
         <Route
           path={relativePath('/overview/enodeb/:enodebSerial')}
