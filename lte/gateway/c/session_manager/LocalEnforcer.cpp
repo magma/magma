@@ -720,11 +720,10 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
                            << "during removal of dynamic rule "
                            << dynamic_rule.policy_rule().id();
           } else {
-            PolicyRule rule_dont_care;
             for (const auto& session : it->second) {
               auto& uc = session_update[imsi][session->get_session_id()];
               session->remove_dynamic_rule(
-                  dynamic_rule.policy_rule().id(), &rule_dont_care, uc);
+                  dynamic_rule.policy_rule().id(), NULL, uc);
             }
             session_store_.update_sessions(session_update);
           }
@@ -1600,9 +1599,8 @@ void LocalEnforcer::process_rules_to_install(
     if (deactivation_time > current_time) {
       schedule_dynamic_rule_deactivation(imsi, rule_install);
     } else if (deactivation_time > 0) {
-      PolicyRule rule_dont_care;
       session.remove_dynamic_rule(
-          rule_install.policy_rule().id(), &rule_dont_care, update_criteria);
+          rule_install.policy_rule().id(), NULL, update_criteria);
       rules_to_deactivate.dynamic_rules.push_back(rule_install.policy_rule());
     }
   }

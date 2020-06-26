@@ -134,23 +134,21 @@ void PolicyRuleBiMap::insert_rule(const PolicyRule& rule)
   }
 }
 
-bool PolicyRuleBiMap::get_rule(const std::string& rule_id, PolicyRule* rule)
-{
+bool PolicyRuleBiMap::get_rule(
+  const std::string& rule_id, PolicyRule* rule_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
   if (it == rules_by_rule_id_.end()) {
     return false;
   }
-  if (rule != NULL) {
-    rule->CopyFrom(*it->second);
+  if (rule_out != NULL) {
+    rule_out->CopyFrom(*it->second);
   }
   return true;
 }
 
 bool PolicyRuleBiMap::remove_rule(
-  const std::string& rule_id,
-  PolicyRule* rule_out)
-{
+  const std::string& rule_id, PolicyRule* rule_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   auto it = rules_by_rule_id_.find(rule_id);
   if (it == rules_by_rule_id_.end()) {
@@ -158,7 +156,7 @@ bool PolicyRuleBiMap::remove_rule(
   }
 
   auto rule_ptr = it->second;
-  if (rule_out) {
+  if (rule_out != NULL) {
     rule_out->CopyFrom(*rule_ptr);
   }
 

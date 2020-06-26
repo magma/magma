@@ -208,13 +208,12 @@ bool SessionStore::merge_into_session(
 
     }
   }
-  PolicyRule* _ = {};
   for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
     if (session->is_dynamic_rule_installed(rule_id)) {
-      session->remove_dynamic_rule(rule_id, _, uc);
+      session->remove_dynamic_rule(rule_id, NULL, uc);
     } else if (session->is_dynamic_rule_scheduled(rule_id)) {
       session->install_scheduled_static_rule(rule_id, uc);
-      session->remove_dynamic_rule(rule_id, _, uc);
+      session->remove_dynamic_rule(rule_id, NULL, uc);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
                 << " because dynamic rule already uninstalled: " << rule_id
@@ -256,7 +255,7 @@ bool SessionStore::merge_into_session(
   }
   for (const auto& rule_id : update_criteria.gy_dynamic_rules_to_uninstall) {
     if (session->is_gy_dynamic_rule_installed(rule_id)) {
-      session->remove_gy_dynamic_rule(rule_id, _, uc);
+      session->remove_gy_dynamic_rule(rule_id, NULL, uc);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
                 << " because gy dynamic rule already uninstalled: " << rule_id
