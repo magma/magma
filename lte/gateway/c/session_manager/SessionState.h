@@ -22,7 +22,7 @@
 #include "ChargingGrant.h"
 
 namespace magma {
-typedef std::unordered_map<CreditKey, std::unique_ptr<SessionCredit>,
+typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
                  decltype(&ccHash), decltype(&ccEqual)> CreditMap;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
