@@ -91,7 +91,7 @@ resource "helm_release" "fluentd" {
   ]
 }
 
-# helm chart for cleanning old indices.
+# helm chart for cleaning old indices.
 resource "helm_release" "elasticsearch_curator" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 

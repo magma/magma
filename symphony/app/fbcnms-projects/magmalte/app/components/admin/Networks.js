@@ -26,6 +26,7 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
+import axios from 'axios';
 
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {Route} from 'react-router-dom';
@@ -122,10 +123,23 @@ function Networks() {
           confirmationPhrase={networkToDelete}
           onClose={() => setNetworkToDelete(null)}
           onConfirm={async () => {
-            await MagmaV1API.deleteNetworksByNetworkId({
-              networkId: networkToDelete,
-            });
-
+            const payload = {
+              networkID: networkToDelete,
+            };
+            axios
+              .post('/nms/network/delete', payload)
+              .then(response => {
+                if (!response.data.success) {
+                  enqueueSnackbar('Network delete failed', {
+                    variant: 'error',
+                  });
+                }
+              })
+              .catch(() => {
+                enqueueSnackbar('Network delete failed', {
+                  variant: 'error',
+                });
+              });
             setNetworks(networks.filter(n => n != networkToDelete));
             setNetworkToDelete(null);
           }}

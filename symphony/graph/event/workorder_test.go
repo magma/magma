@@ -37,6 +37,7 @@ func (s *workOrderTestSuite) SetupSuite() {
 }
 
 func (s *workOrderTestSuite) TestWorkOrderCreate() {
+	s.T().Skip("Flaky test - T69052905")
 	var wg sync.WaitGroup
 	wg.Add(1)
 	ctx, cancel := context.WithCancel(s.ctx)
@@ -82,6 +83,7 @@ func (s *workOrderTestSuite) TestWorkOrderCreate() {
 }
 
 func (s *workOrderTestSuite) TestWorkOrderUpdate() {
+	s.T().Skip("Flaky test - T69052905")
 	err := s.client.WorkOrder.Update().
 		SetStatus(models.WorkOrderStatusDone.String()).
 		Exec(s.ctx)
@@ -90,6 +92,7 @@ func (s *workOrderTestSuite) TestWorkOrderUpdate() {
 }
 
 func (s *workOrderTestSuite) TestWorkOrderUpdateOne() {
+	s.T().Skip("Flaky test - T69052905")
 	var wg sync.WaitGroup
 	wg.Add(1)
 	ctx, cancel := context.WithCancel(s.ctx)

@@ -15,10 +15,13 @@ import CardHeader from '@material-ui/core/CardHeader';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../theme/design-system/Text';
 import moment from 'moment';
 
+import {CardTitleFilterRow} from './layout/CardTitleRow';
 import {DateTimePicker} from '@material-ui/pickers';
+import {colors} from '../theme/default';
+import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
 export type DateTimeMetricChartProps = {
@@ -27,54 +30,65 @@ export type DateTimeMetricChartProps = {
   legendLabels: Array<string>,
 };
 
+const useStyles = makeStyles(_ => ({
+  dateTimeText: {
+    color: colors.primary.comet,
+  },
+}));
+
 export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
+  const classes = useStyles();
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
 
-  return (
-    <>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid item xs={6}>
-          <Text>
-            <DataUsageIcon />
-            {props.title}
+  function Filter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Date
           </Text>
         </Grid>
-        <Grid item xs={6}>
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <Text>Filter By Date</Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="inline"
-                inputVariant="outlined"
-                maxDate={endDate}
-                disableFuture
-                value={startDate}
-                onChange={setStartDate}
-              />
-            </Grid>
-            <Grid item>
-              <Text>To</Text>
-            </Grid>
-            <Grid item>
-              <DateTimePicker
-                autoOk
-                variant="inline"
-                inputVariant="outlined"
-                disableFuture
-                value={endDate}
-                onChange={setEndDate}
-              />
-            </Grid>
-          </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            maxDate={endDate}
+            disableFuture
+            value={startDate}
+            onChange={setStartDate}
+          />
+        </Grid>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            to
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="outlined"
+            inputVariant="outlined"
+            disableFuture
+            value={endDate}
+            onChange={setEndDate}
+          />
         </Grid>
       </Grid>
-      <Card>
+    );
+  }
+
+  return (
+    <>
+      <CardTitleFilterRow
+        icon={DataUsageIcon}
+        label={props.title}
+        filter={Filter}
+      />
+      <Card elevation={0}>
         <CardHeader
-          title={<Text variant="h6">{props.title}</Text>}
+          title={<Text variant="body2">Frequency of {props.title}</Text>}
           subheader={
             <AsyncMetric
               style={{
@@ -105,7 +119,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
                   align: 'end',
                 },
               }}
-              label={props.title}
+              label={`Frequency of ${props.title}`}
               unit=""
               queries={props.queries}
               timeRange={'3_hours'}

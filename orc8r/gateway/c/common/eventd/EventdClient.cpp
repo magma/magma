@@ -6,14 +6,8 @@
  * LICENSE file in the root directory of this source tree. An additional grant
  * of patent rights can be found in the PATENTS file in the same directory.
  */
-#include <memory>
-#include <utility>
-
-#include <orc8r/protos/eventd.pb.h>
-#include <orc8r/protos/eventd.grpc.pb.h>
-
 #include "EventdClient.h"
-#include "GRPCReceiver.h"
+
 #include "ServiceRegistrySingleton.h"
 
 using grpc::ClientContext;

@@ -11,7 +11,6 @@
 
 ; Huge libraries that we dont need flow for, just speed up because we dont care
 .*/node_modules/@material-ui/.*
-.*/node_modules/@storybook/.*
 .*/node_modules/listr/.*
 .*/node_modules/pondjs/.*
 .*/node_modules/plotly.js/.*

@@ -19,6 +19,20 @@ import (
 	"github.com/facebookincubator/symphony/pkg/viewer"
 )
 
+func getProjectType(ctx context.Context, m *ent.ProjectMutation) (*int, error) {
+	id, exists := m.ID()
+	if !exists {
+		return nil, nil
+	}
+	projectTypeID, err := m.Client().ProjectType.Query().
+		Where(projecttype.HasProjectsWith(project.ID(id))).
+		OnlyID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch project type id: %w", err)
+	}
+	return &projectTypeID, nil
+}
+
 func projectCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.ProjectMutation) (bool, error) {
 	if m.Op().Is(ent.OpCreate) {
 		typeID, exists := m.TypeID()
@@ -27,23 +41,14 @@ func projectCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.
 		}
 		return checkWorkforce(cud.Create, nil, &typeID), nil
 	}
-	id, exists := m.ID()
-	if !exists {
-		return false, nil
-	}
-	projectTypeID, err := m.Client().ProjectType.Query().
-		Where(projecttype.HasProjectsWith(project.ID(id))).
-		OnlyID(ctx)
+	projectTypeID, err := getProjectType(ctx, m)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return false, nil
-		}
-		return false, fmt.Errorf("failed to fetch project type id: %w", err)
+		return false, err
 	}
 	if m.Op().Is(ent.OpUpdateOne) {
-		return checkWorkforce(cud.Update, nil, &projectTypeID), nil
+		return checkWorkforce(cud.Update, nil, projectTypeID), nil
 	}
-	return checkWorkforce(cud.Delete, nil, &projectTypeID), nil
+	return checkWorkforce(cud.Delete, nil, projectTypeID), nil
 }
 
 func projectReadPredicate(ctx context.Context) predicate.Project {
@@ -124,7 +129,11 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 				return privacy.Denyf(err.Error())
 			}
 			if creatorChanged {
-				allowed = allowed && (cud.TransferOwnership.IsAllowed == models.PermissionValueYes)
+				projectTypeID, err := getProjectType(ctx, m)
+				if err != nil {
+					return err
+				}
+				allowed = allowed && checkWorkforce(cud.TransferOwnership, nil, projectTypeID)
 			}
 		}
 		if allowed {

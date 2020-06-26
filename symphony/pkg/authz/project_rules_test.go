@@ -181,6 +181,30 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 			appendPermissions: appendTransferOwnership,
 			operation:         clearProjectCreator,
 		},
+		{
+			operationName: "UpdateWithCreatorWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				getCud(p).Update.IsAllowed = models.PermissionValueByCondition
+				getCud(p).Update.ProjectTypeIds = []int{projectType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				getCud(p).TransferOwnership.IsAllowed = models.PermissionValueByCondition
+				getCud(p).TransferOwnership.ProjectTypeIds = []int{projectType.ID}
+			},
+			operation: updateProjectCreator,
+		},
+		{
+			operationName: "ClearWorkOrderAssigneeWithType",
+			initialPermissions: func(p *models.PermissionSettings) {
+				getCud(p).Update.IsAllowed = models.PermissionValueByCondition
+				getCud(p).Update.ProjectTypeIds = []int{projectType.ID}
+			},
+			appendPermissions: func(p *models.PermissionSettings) {
+				getCud(p).TransferOwnership.IsAllowed = models.PermissionValueByCondition
+				getCud(p).TransferOwnership.ProjectTypeIds = []int{projectType.ID}
+			},
+			operation: clearProjectCreator,
+		},
 	}
 	runPolicyTest(t, tests)
 }

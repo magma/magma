@@ -11,52 +11,57 @@
 
 import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
-import EnodebKPIs from '../EnodebKPIs';
+import DashboardKPIs from '../DashboardKPIs';
 import EventAlertChart from '../EventAlertChart';
-import EventsTable, {magmaEventTypes} from '../../views/events/EventsTable';
-import GatewayKPIs from '../GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import moment from 'moment';
+
 import {DateTimePicker} from '@material-ui/pickers';
-import {GpsFixed, NetworkCheck} from '@material-ui/icons';
+import {NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
+    margin: theme.spacing(5),
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
-    padding: '0 0 0 20px',
+    backgroundColor: colors.primary.brightGray,
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
   },
   input: {
-    color: 'white',
+    color: colors.primary.white,
+    backgroundColor: colors.primary.comet,
+  },
+  dateTimeText: {
+    color: colors.primary.selago,
   },
 }));
 
@@ -65,19 +70,17 @@ function LteDashboard() {
   const {relativePath, relativeUrl} = useRouter();
 
   // datetime picker
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'days'));
   const [endDate, setEndDate] = useState(moment());
 
   return (
     <>
       <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Dashboard
-        </Text>
+        <Text variant="body2">Dashboard</Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
               value={0}
@@ -88,43 +91,54 @@ function LteDashboard() {
               <Tab
                 key="Network"
                 component={NestedRouteLink}
-                label={<NetworkDashboardTabLabel />}
+                label={<DashboardTabLabel label="Network" />}
                 to="/network"
+                className={classes.tab}
+              />
+              <Tab
+                key="Subscribers"
+                component={NestedRouteLink}
+                label={<DashboardTabLabel label="Subscribers" />}
+                to="#"
                 className={classes.tab}
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
-            <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid
+            item
+            xs={6}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
+            <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Text color="light">Filter By Date</Text>
+                <Text variant="body3" className={classes.dateTimeText}>
+                  Filter By Date
+                </Text>
               </Grid>
+              <DateTimePicker
+                autoOk
+                inputVariant="outlined"
+                maxDate={endDate}
+                disableFuture
+                value={startDate}
+                inputProps={{className: classes.input}}
+                onChange={setStartDate}
+              />
               <Grid item>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  maxDate={endDate}
-                  disableFuture
-                  value={startDate}
-                  inputProps={{className: classes.input}}
-                  onChange={setStartDate}
-                />
+                <Text variant="body3" className={classes.dateTimeText}>
+                  to
+                </Text>
               </Grid>
-              <Grid item>
-                <Text color="light">To</Text>
-              </Grid>
-              <Grid item>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  disableFuture
-                  value={endDate}
-                  inputProps={{className: classes.input}}
-                  onChange={setEndDate}
-                />
-              </Grid>
+              <DateTimePicker
+                autoOk
+                variant="inline"
+                inputVariant="outlined"
+                disableFuture
+                value={endDate}
+                inputProps={{className: classes.input}}
+                onChange={setEndDate}
+              />
             </Grid>
           </Grid>
         </Grid>
@@ -148,49 +162,41 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Paper>
-            <EventAlertChart startEnd={startEnd} />
-          </Paper>
+          <EventAlertChart startEnd={startEnd} />
         </Grid>
 
         <Grid item xs={12}>
           <DashboardAlertTable />
         </Grid>
 
-        <Grid item xs={6}>
-          <Paper elevation={2}>
-            <GatewayKPIs />
-          </Paper>
-        </Grid>
-
-        <Grid item xs={6}>
-          <Paper elevation={2}>
-            <EnodebKPIs />
-          </Paper>
-        </Grid>
-
         <Grid item xs={12}>
-          <Text>
+          {/* <Text>
             <GpsFixed /> Events
           </Text>
           <EventsTable
             eventTypes={magmaEventTypes.NETWORK}
             gatewayHardwareId={'f9a9fc7c-7977-474d-9617-8a309479f2bb'}
-          />
+          /> */}
+          <DashboardKPIs />
         </Grid>
       </Grid>
     </div>
   );
 }
 
-function NetworkDashboardTabLabel() {
+function DashboardTabLabel(props) {
   const classes = useStyles();
 
   return (
     <div className={classes.tabLabel}>
-      <NetworkCheck className={classes.tabIconLabel} /> Network
+      {props.label === 'Subscribers' ? (
+        <People className={classes.tabIconLabel} />
+      ) : props.label === 'Network' ? (
+        <NetworkCheck className={classes.tabIconLabel} />
+      ) : null}
+      {props.label}
     </div>
   );
 }

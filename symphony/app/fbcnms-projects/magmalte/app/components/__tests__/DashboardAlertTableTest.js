@@ -10,9 +10,12 @@
 import 'jest-dom/extend-expect';
 import DashboardAlertTable from '../DashboardAlertTable';
 import MagmaAPIBindings from '@fbcnms/magma-api';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
+import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
+import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import type {gettable_alert, prom_firing_alert} from '@fbcnms/magma-api';
 
@@ -129,7 +132,11 @@ describe('<DashboardAlertTable />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-      <Route path="/nms/:networkId" component={DashboardAlertTable} />
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <Route path="/nms/:networkId" component={DashboardAlertTable} />
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
     </MemoryRouter>
   );
 
@@ -144,16 +151,16 @@ describe('<DashboardAlertTable />', () => {
     const rowIdx = 0;
     // check if the default is critical alert sections
     expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert1');
-    fireEvent.click(getByText('Critical'));
+    fireEvent.click(getByText('1 Critical'));
     expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert1');
 
-    fireEvent.click(getByText('Major'));
+    fireEvent.click(getByText('1 Major'));
     expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert2');
 
-    fireEvent.click(getByText('Minor'));
+    fireEvent.click(getByText('1 Minor'));
     expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert3');
 
-    fireEvent.click(getByText('Other'));
+    fireEvent.click(getByText('1 Other'));
     expect(getByTestId('alertName' + rowIdx)).toHaveTextContent('TestAlert4');
 
     expect(getByText('Alerts (4)')).toBeInTheDocument();

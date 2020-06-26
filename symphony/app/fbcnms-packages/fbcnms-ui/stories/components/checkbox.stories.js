@@ -12,7 +12,6 @@ import Checkbox from '../../components/design-system/Checkbox/Checkbox';
 import React, {useState} from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -22,7 +21,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const TablesRoot = () => {
+export const CheckboxesRoot = () => {
   const classes = useStyles();
   const [checked, setChecked] = useState(true);
   const [checkedIndeterminate, setCheckedIndeterminate] = useState(false);
@@ -48,6 +47,10 @@ const TablesRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Checkbox', () => (
-  <TablesRoot />
-));
+CheckboxesRoot.story = {
+  name: 'Checkbox',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

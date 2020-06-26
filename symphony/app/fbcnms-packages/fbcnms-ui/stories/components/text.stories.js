@@ -13,7 +13,6 @@ import Text from '../../components/design-system/Text';
 import symphony from '../../theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -31,7 +30,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const TextRoot = () => {
+export const TextRoot = () => {
   const classes = useStyles();
   const param = 'much wow';
   return (
@@ -95,6 +94,10 @@ const TextRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Text', () => (
-  <TextRoot />
-));
+TextRoot.story = {
+  name: 'Text',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

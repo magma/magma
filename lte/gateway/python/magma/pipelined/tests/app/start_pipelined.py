@@ -102,6 +102,9 @@ class PipelinedController(Enum):
     DPI = Controller(
         'magma.pipelined.app.dpi', 'dpi'
     )
+    UplinkBridge = Controller(
+        'magma.pipelined.app.uplink_bridge', 'uplink_bridge'
+    )
 
 
 def assert_pipelined_not_running():

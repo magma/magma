@@ -27,6 +27,7 @@ import PopoverMenu from '@fbcnms/ui/components/design-system/Select/PopoverMenu'
 import Strings from '@fbcnms/strings/Strings';
 import UsersView from './users/UsersView';
 import fbt from 'fbt';
+import {ALL_USERS_PATH_PARAM, USER_PATH_PARAM} from './users/UsersTable';
 import {DialogShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/DialogShowingContext';
 import {FormContextProvider} from '../../../common/FormContext';
 import {NEW_DIALOG_PARAM, POLICY_TYPES} from './utils/UserManagementUtils';
@@ -58,8 +59,8 @@ const UserManaementForm = () => {
   const VIEWS: Array<NavigatableView> = useMemo(() => {
     const views = [
       {
-        routingPath: 'users/:id',
-        targetPath: 'users/all',
+        routingPath: `users/${USER_PATH_PARAM}`,
+        targetPath: `users/${ALL_USERS_PATH_PARAM}`,
         menuItem: {
           label: USERS_HEADER,
           tooltip: `${USERS_HEADER}`,

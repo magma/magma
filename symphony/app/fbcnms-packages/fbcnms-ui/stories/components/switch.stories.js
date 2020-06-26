@@ -14,7 +14,6 @@ import Switch from '../../components/design-system/switch/Switch';
 import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {},
@@ -35,7 +34,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const SwitchRoot = () => {
+export const SwitchRoot = () => {
   const classes = useStyles();
   const [checked, setChecked] = useState(true);
   const [isCritical, setIsCritical] = useState(false);
@@ -84,6 +83,10 @@ const SwitchRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Switch', () => (
-  <SwitchRoot />
-));
+SwitchRoot.story = {
+  name: 'Switch',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

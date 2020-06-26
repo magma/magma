@@ -63,6 +63,20 @@ func isViewerWorkOrderOwnerOrAssignee(ctx context.Context, workOrder *ent.WorkOr
 	return false, nil
 }
 
+func getWorkOrderType(ctx context.Context, m *ent.WorkOrderMutation) (*int, error) {
+	id, exists := m.ID()
+	if !exists {
+		return nil, nil
+	}
+	workOrderTypeID, err := m.Client().WorkOrderType.Query().
+		Where(workordertype.HasWorkOrdersWith(workorder.ID(id))).
+		OnlyID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch work order type id: %w", err)
+	}
+	return &workOrderTypeID, nil
+}
+
 func workOrderCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *ent.WorkOrderMutation) (bool, error) {
 	if m.Op().Is(ent.OpCreate) {
 		typeID, exists := m.TypeID()
@@ -71,23 +85,14 @@ func workOrderCudBasedCheck(ctx context.Context, cud *models.WorkforceCud, m *en
 		}
 		return checkWorkforce(cud.Create, &typeID, nil), nil
 	}
-	id, exists := m.ID()
-	if !exists {
-		return false, nil
-	}
-	workOrderTypeID, err := m.Client().WorkOrderType.Query().
-		Where(workordertype.HasWorkOrdersWith(workorder.ID(id))).
-		OnlyID(ctx)
+	workOrderTypeID, err := getWorkOrderType(ctx, m)
 	if err != nil {
-		if ent.IsNotFound(err) {
-			return false, nil
-		}
-		return false, fmt.Errorf("failed to fetch work order type id: %w", err)
+		return false, err
 	}
 	if m.Op().Is(ent.OpUpdateOne) {
-		return checkWorkforce(cud.Update, &workOrderTypeID, nil), nil
+		return checkWorkforce(cud.Update, workOrderTypeID, nil), nil
 	}
-	return checkWorkforce(cud.Delete, &workOrderTypeID, nil), nil
+	return checkWorkforce(cud.Delete, workOrderTypeID, nil), nil
 }
 
 func workOrderReadPredicate(ctx context.Context) predicate.WorkOrder {
@@ -221,19 +226,23 @@ func WorkOrderWritePolicyRule() privacy.MutationRule {
 			return privacy.Denyf(err.Error())
 		}
 		if !m.Op().Is(ent.OpCreate) {
+			workOrderTypeID, err := getWorkOrderType(ctx, m)
+			if err != nil {
+				return err
+			}
 			assigneeChanged, err := isAssigneeChanged(ctx, m)
 			if err != nil {
 				return privacy.Denyf(err.Error())
 			}
 			if assigneeChanged {
-				allowed = allowed && (cud.Assign.IsAllowed == models.PermissionValueYes)
+				allowed = allowed && checkWorkforce(cud.Assign, workOrderTypeID, nil)
 			}
 			ownerChanged, err := isOwnerChanged(ctx, m)
 			if err != nil {
 				return privacy.Denyf(err.Error())
 			}
 			if ownerChanged {
-				allowed = allowed && (cud.TransferOwnership.IsAllowed == models.PermissionValueYes)
+				allowed = allowed && checkWorkforce(cud.TransferOwnership, workOrderTypeID, nil)
 			}
 		}
 		if allowed {

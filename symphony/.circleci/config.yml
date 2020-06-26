@@ -664,7 +664,8 @@ workflows:
       - lint
       - validate-gql-test
       - pdoctest
-      - eslint
+      - eslint:
+          <<: *onlypr
       - unit
       - flowtest
       - yarntest:

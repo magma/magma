@@ -39,6 +39,7 @@ def main(secret_name: str, aws_region: str, certs_dir: str):
 
 
 def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
+    """Pull orc8r secrets from filesystem into name-mapped dict."""
     certs_dir_abs = os.path.abspath(
         os.path.expandvars(os.path.expanduser(certs_dir)),
     )
@@ -61,6 +62,7 @@ def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
 def set_orc8r_secretsmanager(secret_name: str,
                              region: str,
                              secret_contents: Dict[str, str]):
+    """Set secret_contents in AWS Secrets Manager."""
     secret_string = json.dumps(secret_contents)
 
     session = boto3.session.Session()
