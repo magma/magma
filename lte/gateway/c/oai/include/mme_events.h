@@ -33,6 +33,29 @@ extern "C" {
  */
 int event_client_init(void);
 
+/**
+ * Logs Attach successful event
+ * @param imsi
+ * @return response code
+ */
+int attach_success_event(imsi64_t imsi64);
+
+/**
+ * Logs Detach successful event
+ * @param imsi
+ * @param action Indicates whether explicit detach accept action was sent to UE
+ * @return response code
+ */
+int detach_success_event(imsi64_t imsi64, const char* action);
+
+/**
+ * Logs s1 setup success event
+ * @param enb_name name assigned to eNodeb
+ * @param enb_id unique identifier of eNodeb
+ * @return response code
+ */
+int s1_setup_success_event(const char* enb_name, uint32_t enb_id);
+
 #ifdef __cplusplus
 }
 #endif
