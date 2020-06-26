@@ -27,6 +27,8 @@ var (
 		strings.ToLower(DockerController{}.Name()):  DockerController{},
 		strings.ToLower(SystemdController{}.Name()): SystemdController{},
 		strings.ToLower(RunitController{}.Name()):   RunitController{},
+		strings.ToLower("initd"):                    InitdController{TailLogsCmd: DeafaultInitdLogTailCmd},
+		strings.ToLower("procd"):                    InitdController{TailLogsCmd: "logread -f"},
 	}
 	defaultController = DockerController{}
 )
