@@ -74,6 +74,16 @@ const handleReact = tab =>
   };
 
 router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));
+router.get('/authconfig', async (req: FBCNMSRequest, res) => {
+  const organization = req.organization
+    ? await req.organization().catch(() => null)
+    : null;
+  if (organization && organization.ssoSelectedType !== 'none') {
+    res.status(200).send({ssoEnabled: true});
+  } else {
+    res.status(200).send({ssoEnabled: false});
+  }
+});
 router.use(
   '/admin',
   access(AccessRoles.SUPERUSER),
