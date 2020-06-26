@@ -104,12 +104,7 @@ function LteDashboard() {
               />
             </Tabs>
           </Grid>
-          <Grid
-            item
-            xs={6}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
+          <Grid item xs={6}>
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 <Text variant="body3" className={classes.dateTimeText}>

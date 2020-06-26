@@ -32,13 +32,13 @@ import TableRow from '@material-ui/core/TableRow';
 import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import Text from '../../theme/design-system/Text';
-import {colors} from '../../theme/default';
 import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {Route} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {map} from 'lodash';
