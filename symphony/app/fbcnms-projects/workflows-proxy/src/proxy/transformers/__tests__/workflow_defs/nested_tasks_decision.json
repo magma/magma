@@ -38,9 +38,9 @@
       "decisionCases": {
         "200": [
           {
-            "name": "LAMBDA_TASK",
+            "name": "GLOBAL___js",
             "taskReferenceName": "lambdaTaskRef_4C88",
-            "type": "LAMBDA",
+            "type": "SIMPLE",
             "inputParameters": {
               "lambdaValue": "1",
               "scriptExpression": "if ($.lambdaValue == 1) {\n  return {testvalue: true} \n} else { \n  return {testvalue: false}\n}"
