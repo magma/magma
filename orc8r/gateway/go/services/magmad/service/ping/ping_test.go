@@ -51,6 +51,17 @@ round-trip min/avg/max/stddev = 15.070/24.514/65.760/14.965 ms
 10 packets transmitted, 10 received, 0% packet loss, time 9210ms
 rtt min/avg/max/mdev = 0.065/0.162/0.450/0.114 ms
 `)
+	pingResult3 = []byte(
+		`PING google.com (172.217.164.110): 56 data bytes
+64 bytes from 172.217.164.110: seq=0 ttl=116 time=12.605 ms
+64 bytes from 172.217.164.110: seq=1 ttl=116 time=11.947 ms
+64 bytes from 172.217.164.110: seq=2 ttl=116 time=15.435 ms
+64 bytes from 172.217.164.110: seq=3 ttl=116 time=15.160 ms
+
+--- google.com ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 11.947/13.786/15.435 ms
+`)
 	pingFailure = []byte(
 		`PING google.com (216.58.194.174) 56(84) bytes of data.
 
@@ -74,6 +85,12 @@ func TestPingResultParsing(t *testing.T) {
 	assert.Equal(t, int32(10), res.PacketsTransmitted)
 	assert.Equal(t, float32(0.162), res.AvgResponseMs)
 	assert.Equal(t, "127.0.0.1", res.HostOrIp)
+	ParseResult(pingResult3, res) // OpenWRT
+	assert.Empty(t, res.Error)
+	assert.Equal(t, int32(4), res.PacketsReceived)
+	assert.Equal(t, int32(4), res.PacketsTransmitted)
+	assert.Equal(t, float32(13.786), res.AvgResponseMs)
+	assert.Equal(t, "google.com", res.HostOrIp)
 	ParseResult(pingFailure, res)
 	assert.NotEmpty(t, res.Error)
 	assert.Equal(t, int32(0), res.PacketsReceived)
