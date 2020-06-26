@@ -160,8 +160,8 @@ class SessionState {
   void merge_charging_credit_update(
     const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
 
-  void set_charging_credit(
-    const CreditKey &key, SessionCredit credit, SessionStateUpdateCriteria &uc);
+  void set_charging_credit(const CreditKey &key,
+    ChargingGrant charging_grant, SessionStateUpdateCriteria &uc);
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,

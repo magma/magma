@@ -164,7 +164,7 @@ struct RuleLifetime {
 };
 
 typedef std::unordered_map<std::string, StoredMonitor> StoredMonitorMap;
-typedef std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+typedef std::unordered_map<CreditKey, StoredChargingGrant, decltype(&ccHash),
                      decltype(&ccEqual)> StoredChargingCreditMap;
 
 struct StoredSessionState {
@@ -255,6 +255,8 @@ std::string serialize_stored_session_credit(StoredSessionCredit &stored);
 
 StoredSessionCredit
 deserialize_stored_session_credit(const std::string &serialized);
+
+std::string serialize_stored_charging_grant(StoredChargingGrant &stored);
 
 std::string serialize_stored_monitor(StoredMonitor &stored);
 

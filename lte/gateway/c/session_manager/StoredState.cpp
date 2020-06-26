@@ -120,6 +120,40 @@ deserialize_stored_final_action_info(const std::string &serialized) {
   return stored;
 }
 
+std::string serialize_stored_charging_grant(StoredChargingGrant &stored) {
+  folly::dynamic marshaled = folly::dynamic::object;
+  marshaled["is_final"] = stored.is_final;
+  marshaled["final_action_info"] =
+      serialize_stored_final_action_info(stored.final_action_info);
+  marshaled["expiry_time"] = std::to_string(stored.expiry_time);
+  marshaled["reauth_state"] = static_cast<int>(stored.reauth_state);
+  marshaled["service_state"] = static_cast<int>(stored.service_state);
+  marshaled["credit"] = serialize_stored_session_credit(stored.credit);
+
+  std::string serialized = folly::toJson(marshaled);
+  return serialized;
+}
+
+StoredChargingGrant
+deserialize_stored_charging_grant(const std::string &serialized) {
+  auto folly_serialized = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+
+  auto stored = StoredChargingGrant{};
+  stored.is_final = marshaled["is_final"].getBool();
+  stored.final_action_info = deserialize_stored_final_action_info(
+      marshaled["final_action_info"].getString());
+  stored.reauth_state =
+      static_cast<ReAuthState>(marshaled["reauth_state"].getInt());
+  stored.service_state =
+      static_cast<ServiceState>(marshaled["service_state"].getInt());
+  stored.expiry_time = static_cast<std::time_t>(
+      std::stoul(marshaled["expiry_time"].getString()));
+  stored.credit = deserialize_stored_session_credit(marshaled["credit"].getString());
+
+  return stored;
+}
+
 std::string serialize_stored_session_credit(StoredSessionCredit &stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["reporting"] = stored.reporting;
@@ -209,7 +243,7 @@ serialize_stored_charging_credit_map(StoredChargingCreditMap &stored) {
 
     std::string key = std::to_string(credit_key.rating_group) +
                       std::to_string(credit_key.service_identifier);
-    credit_map[key] = serialize_stored_session_credit(credit_pair.second);
+    credit_map[key] = serialize_stored_charging_grant(credit_pair.second);
   }
   marshaled["credit_keys"] = credit_keys;
   marshaled["credit_map"] = credit_map;
@@ -234,7 +268,7 @@ deserialize_stored_charging_credit_map(std::string &serialized) {
     std::string key2 =
         key["rating_group"].getString() + key["service_identifier"].getString();
 
-    stored[credit_key] = deserialize_stored_session_credit(
+    stored[credit_key] = deserialize_stored_charging_grant(
         marshaled["credit_map"][key2].getString());
   }
   return stored;

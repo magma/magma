@@ -62,7 +62,7 @@ StoredSessionState SessionState::marshal() {
     auto key = CreditKey();
     key.rating_group = credit_pair.first.rating_group;
     key.service_identifier = credit_pair.first.service_identifier;
-    marshaled.credit_map[key] = credit_pair.second->credit.marshal();
+    marshaled.credit_map[key] = credit_pair.second->marshal();
   }
 
   for (auto& rule_id : active_static_rules_) {
@@ -115,9 +115,8 @@ SessionState::SessionState(
   }
 
   for (const auto &it : marshaled.credit_map) {
-    ChargingGrant charging_grant;
-    charging_grant.credit = SessionCredit::unmarshal(it.second, CHARGING);
-    credit_map_[it.first] = std::make_unique<ChargingGrant>(charging_grant);
+    credit_map_[it.first] =
+      std::make_unique<ChargingGrant>(ChargingGrant::unmarshal(it.second));
   }
 
   for (const std::string& rule_id : marshaled.static_rule_ids) {
@@ -883,7 +882,7 @@ bool SessionState::init_charging_credit(
     get_final_action_info(update.credit()), credit_uc);
 
   update_criteria.charging_credit_to_install[CreditKey(update)] =
-    charging_grant->credit.marshal();
+    charging_grant->marshal();
   credit_map_[CreditKey(update)] = std::move(charging_grant);
   return true;
 }
@@ -917,7 +916,7 @@ ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
   SessionCreditUpdateCriteria _{};
   charging_grant->credit.reauth(_);
   update_criteria.charging_credit_to_install[charging_key] =
-    charging_grant->credit.marshal();
+    charging_grant->marshal();
   credit_map_[charging_key] = std::move(charging_grant);
   return ReAuthResult::UPDATE_INITIATED;
 }
@@ -957,12 +956,10 @@ void SessionState::merge_charging_credit_update(
 }
 
 void SessionState::set_charging_credit(
-    const CreditKey &key, SessionCredit credit,
+    const CreditKey &key, ChargingGrant charging_grant,
     SessionStateUpdateCriteria &uc) {
-  uc.charging_credit_to_install[key] = credit.marshal();
-  ChargingGrant charging_grant;
-  charging_grant.credit = credit;
   credit_map_[key] = std::make_unique<ChargingGrant>(charging_grant);
+  uc.charging_credit_to_install[key] = credit_map_[key]->marshal();
 }
 
 CreditUsageUpdate SessionState::make_credit_usage_update_req(CreditUsage& usage) const {
