@@ -211,6 +211,9 @@ export default createMuiTheme({
     },
     blueGrayDark: colors.primary.brightGray,
   },
+  typography: {
+    ...typography,
+  },
   overrides: {
     MuiAppBar: {
       colorPrimary: {
@@ -266,6 +269,7 @@ export default createMuiTheme({
       root: {
         marginBottom: '0px',
         marginTop: '0px',
+        ...typography.body3
       },
     },
     MuiSelect: {
