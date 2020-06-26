@@ -237,6 +237,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
           schedule_dynamic_rule_deactivation(imsi, rule_install);
         }
       }
+      rule_ids.clear();
       session->get_scheduled_dynamic_rules().get_rule_ids(rule_ids);
       for (auto rule_id : rule_ids) {
         auto lifetime = session->get_rule_lifetime(rule_id);

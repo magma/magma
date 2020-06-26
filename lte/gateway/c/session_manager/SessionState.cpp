@@ -667,6 +667,7 @@ void SessionState::sync_rules_to_time(
     }
   }
   // Update scheduled dynamic rules
+  dynamic_rule_ids.clear();
   scheduled_dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
