@@ -12,9 +12,7 @@
 import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import ReactJson from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
@@ -81,10 +79,6 @@ export default function JsonEditor<T>(props: Props<T>) {
     setError(props.error);
   }, [props.error]);
 
-  const handleChange = data => {
-    setContent(data.updated_src);
-  };
-
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={3}>
@@ -121,23 +115,25 @@ export default function JsonEditor<T>(props: Props<T>) {
           </Grid>
         </Grid>
 
-        <Paper className={classes.configBody}>
-          <Grid container item spacing={3}>
-            <Grid item xs={12}>
-              {error !== '' && <FormLabel error>{error}</FormLabel>}
-            </Grid>
-            <Grid item xs={12}>
-              <ReactJson
-                src={content}
-                enableClipboard={false}
-                displayDataTypes={false}
-                onAdd={handleChange}
-                onEdit={handleChange}
-                onDelete={handleChange}
-              />
-            </Grid>
-          </Grid>
-        </Paper>
+        <Grid
+          container
+          className={classes.configBody}
+          alignItems="stretch"
+          item
+          xs={12}>
+          {error !== '' && <FormLabel error>{error}</FormLabel>}
+          <textarea
+            className={classes.jsonTextarea}
+            autoCapitalize="none"
+            autoComplete="none"
+            autoCorrect="none"
+            spellCheck={false}
+            value={content}
+            onChange={e => {
+              setContent(e.currentTarget.value);
+            }}
+          />
+        </Grid>
       </Grid>
     </div>
   );

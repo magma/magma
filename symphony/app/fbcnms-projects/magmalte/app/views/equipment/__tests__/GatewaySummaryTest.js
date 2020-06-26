@@ -7,11 +7,17 @@
  * @flow strict-local
  * @format
  */
-import 'jest-dom/extend-expect';
-import GatewaySummary from '../GatewaySummary';
-import React from 'react';
-import {cleanup, render} from '@testing-library/react';
 import type {lte_gateway} from '@fbcnms/magma-api';
+
+import 'jest-dom/extend-expect';
+
+import GatewaySummary from '../GatewaySummary';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import React from 'react';
+import defaultTheme from '../../../theme/default.js';
+
+import {MuiThemeProvider} from '@material-ui/core/styles';
+import {cleanup, render} from '@testing-library/react';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
@@ -63,7 +69,13 @@ const mockGatewaySt: lte_gateway = {
 
 describe('<GatewaySummary />', () => {
   it('renders', async () => {
-    const {container} = render(<GatewaySummary gwInfo={mockGatewaySt} />);
+    const {container} = render(
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <GatewaySummary gwInfo={mockGatewaySt} />
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>,
+    );
     expect(container).toHaveTextContent('mpk_dogfooding');
     expect(container).toHaveTextContent('1.1.0-1590005479-e6e781a9');
     expect(container).toHaveTextContent('e059637f-cd55-4109-816c-ce6ebc69020d');
