@@ -89,9 +89,6 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center',
     padding: theme.spacing(10),
   },
-  card: {
-    variant: 'outlined',
-  },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
