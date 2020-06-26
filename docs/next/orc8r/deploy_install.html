@@ -61,41 +61,44 @@ your Orchestrator deployment. These certificates will be uploaded to AWS
 Secretsmanager and you can delete them locally afterwards.</p>
 <pre><code class="hljs css language-bash">mkdir -p ~/secrets/certs
 </code></pre>
-<p>You will need the following certificates and private keys:</p>
+<p>You will need the following certificates and private keys</p>
 <ol>
 <li>The public SSL certificate for your Orchestrator domain,
 with CN=*.yourdomain.com. This can be an SSL certificate chain, but it must be
 in one file</li>
 <li>The private key which corresponds to the above SSL certificate</li>
-<li>The rootCA certificate which verifies your SSL certificate.</li>
+<li>The root CA certificate which verifies your SSL certificate</li>
 </ol>
-<p>If you already have these files, you can do the following:</p>
+<p>If you already have these files, rename and move them as follows</p>
 <ol>
 <li>Rename your public SSL certificate to <code>controller.crt</code></li>
 <li>Rename your SSL certificate's private key to <code>controller.key</code></li>
-<li>Rename your SSL certificate's root CA to <code>rootCA.pem</code></li>
-<li>Put these 3 files under the directory you created above</li>
+<li>Rename your SSL certificate's root CA certificate to <code>rootCA.pem</code></li>
+<li>Put these three files under the directory you created above</li>
 </ol>
-<p>If you aren't worried about a browser warning, you can also self-sign these
-certs:</p>
+<p>Alternatively, if you aren't worried about a browser warning, you can
+self-sign these certs</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/secrets/certs
 MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 </code></pre>
-<p>Regardless of if you've self-signed your certs or used existing ones, run
-one more script here:</p>
+<p>With the domain certs placed in the correct directory, next generate the
+application certificates</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/secrets/certs
 MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 </code></pre>
-<p>NOTE: <code>yourdomain.com</code> should match with what will be entered in <code>main.tf</code> in the subsequent sections. If in <code>main.tf</code> the orc8r_domain_name is <code>orc8r.yourdomain.com</code> then the same nomenclature should be used when creating new self-signed certs.</p>
+<p>NOTE: <code>yourdomain.com</code> should match the relevant Terraform variables in
+subsequent sections. For example, if in <code>main.tf</code> the <code>orc8r_domain_name</code> is
+<code>orc8r.yourdomain.com</code>, then that same domain should be used when requesting
+or generating all the above certs.</p>
 <h2><a class="anchor" aria-hidden="true" id="infrastructure-and-application-installation"></a><a href="#infrastructure-and-application-installation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Infrastructure and Application Installation</h2>
 <p>Create a new root Terraform module in a location of your choice by creating a
 new <code>main.tf</code> file. Follow the example Terraform root module at
 <code>orc8r/cloud/deploy/terraform/orc8r-helm-aws/examples/basic</code> but make sure to
-override the following parameters:</p>
+override the following parameters</p>
 <ul>
 <li><code>deploy_nms</code>: IMPORTANT - this should be <code>false</code> for now!</li>
-<li><code>nms_db_password</code></li>
-<li><code>orc8r_db_password</code></li>
+<li><code>nms_db_password</code> must be at least 8 characters</li>
+<li><code>orc8r_db_password</code> must be at least 8 characters</li>
 <li><code>orc8r_domain_name</code></li>
 <li><code>docker_registry</code></li>
 <li><code>docker_user</code></li>
@@ -113,25 +116,29 @@ containers that you built earlier.</li>
 Adjust any other parameters as you see fit - check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.</p>
 <h3><a class="anchor" aria-hidden="true" id="initial-infrastructure-terraform"></a><a href="#initial-infrastructure-terraform" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Initial Infrastructure Terraform</h3>
-<p>The 2 Terraform modules are organized so that <code>orc8r-aws</code> contains all the
+<p>If you haven't done an initial <code>terraform init</code>, do this now.</p>
+<p>The two Terraform modules are organized so that <code>orc8r-aws</code> contains all the
 resource definitions for the cloud infrastructure that you'll need to run
 Orchestrator and <code>orc8r-helm-aws</code> contains all of the application components
 behind Orchestrator. On the very first installation, you'll have to
 <code>terraform apply</code> the infrastructure before the application. On later changes
 to your Terraform root module, you can make all changes at once with a single
 <code>terraform apply</code>.</p>
-<p>With your root module set up, simply run</p>
+<p>With your root module set up, run</p>
 <pre><code class="hljs css language-bash">$ terraform apply -target=module.orc8r
 
 <span class="hljs-comment"># Note: actual resource count will depend on your root module variables</span>
 Apply complete! Resources: 70 added, 0 changed, 0 destroyed.
 </code></pre>
-<p>This <code>terraform apply</code> will create a Kubeconfig file in the same directory as
-your root Terraform module. To get access to the k8s cluster, either set your
-KUBECONFIG environment variable to point to this file or pull this file into
-your default kubeconfig file at <code>~/.kube/config</code>. See
-<a href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/">https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/</a>
-for more details.</p>
+<p>This <code>terraform apply</code> will create a
+<a href="https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/">kubeconfig</a>
+file in the same directory as your root Terraform module. To access the
+k8s cluster, either set your KUBECONFIG environment variable to point to this
+file or pull this file into your default kubeconfig file at <code>~/.kube/config</code>.</p>
+<p>E.g., with the <a href="https://linux.die.net/man/1/realpath"><code>realpath</code></a> utility
+installed, you can set the kubeconfig with</p>
+<pre><code class="hljs css language-bash">$ <span class="hljs-built_in">export</span> KUBECONFIG=$(realpath kubeconfig_orc8r)
+</code></pre>
 <h3><a class="anchor" aria-hidden="true" id="initial-application-terraform"></a><a href="#initial-application-terraform" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Initial Application Terraform</h3>
 <p>We can now move on to the first application installation. From your same root
 Terraform module, run</p>
@@ -143,13 +150,16 @@ $ terraform apply
 
 Apply complete! Resources: 16 added, 0 changed, 0 destroyed.
 </code></pre>
-<h3><a class="anchor" aria-hidden="true" id="creating-an-admin-user"></a><a href="#creating-an-admin-user" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Creating an Admin User</h3>
+<h3><a class="anchor" aria-hidden="true" id="create-an-admin-user"></a><a href="#create-an-admin-user" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Create an Admin User</h3>
 <p>Before we deploy the NMS, we need to create an admin user for the NMS backend
 server inside Orchestrator.</p>
 <p>NOTE: In all the below <code>kubectl</code> commands, use the <code>-n</code> flag or <code>kubens</code> to
-select the appropriate k8s namespace (by default this is <code>orc8r</code>).</p>
+select the appropriate k8s namespace (by default this is <code>orc8r</code>). Also,
+assumes kubeconfig is set correctly from above.</p>
+<p>First, create the admin user in a controller pod, exporting the private key
+and certificate combination under a chosen password.</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
-kubectl <span class="hljs-built_in">exec</span> -it <span class="hljs-variable">${CNTLR_POD}</span> bash
+kubectl <span class="hljs-built_in">exec</span> -it <span class="hljs-variable">${CNTLR_POD}</span> -- bash
 
 <span class="hljs-comment"># The following commands are to be run inside the pod</span>
 (pod)$ <span class="hljs-built_in">cd</span> /var/opt/magma/bin
@@ -162,7 +172,7 @@ Verifying - Enter Export Password:
 (pod)$ <span class="hljs-built_in">exit</span>
 </code></pre>
 <p>Now on your host, copy down the client certificates for the admin operator we
-just created into the secrets directory:</p>
+just created into the secrets directory</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/secrets/certs
 <span class="hljs-keyword">for</span> certfile <span class="hljs-keyword">in</span> admin_operator.pem admin_operator.key.pem admin_operator.pfx
 <span class="hljs-keyword">do</span>
@@ -173,7 +183,7 @@ just created into the secrets directory:</p>
 use to authenticate itself with the Orchestrator API. <code>admin_operator.pfx</code> is
 for you to add to your keychain if you'd like to use the Orchestrator REST API
 directly (on MacOS, double-click this file and add it to your keychain).</p>
-<p>We can now upload these new certificates to AWS Secretsmanager:</p>
+<p>We can now upload these new certificates to AWS Secretsmanager</p>
 <pre><code class="hljs css language-bash">$ terraform taint module.orc8r-app.null_resource.orc8r_seed_secrets
 $ terraform apply
 
@@ -190,10 +200,9 @@ module, set the <code>deploy_nms</code> variable to <code>true</code> now, and</
 
 Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
 </code></pre>
-<p>Finally, create an admin user for the &quot;master&quot; organization on the NMS:</p>
-<pre><code class="hljs css language-bash">kubectl <span class="hljs-built_in">exec</span> -it \
-  $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>) -- \
-  yarn setAdminPassword master &lt;admin user email&gt; &lt;admin user password&gt;
+<p>Finally, create an admin user for the <code>master</code> organization on the NMS</p>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath=<span class="hljs-string">'{.items[0].metadata.name}'</span>)
+kubectl <span class="hljs-built_in">exec</span> -it <span class="hljs-variable">${NMS_POD}</span> -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="dns-resolution"></a><a href="#dns-resolution" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>DNS Resolution</h2>
 <p>EKS has been set up with <code>external-dns</code> so AWS Route53 will already have the
@@ -201,8 +210,9 @@ appropriate CNAME records for the relevant subdomains of Orchestrator at this
 point. You will need to configure your DNS records on your managed domain name
 to use the Route53 nameservers in order to resolve these subdmains.</p>
 <p>The example terraform root module has an output <code>nameservers</code> which will list
-the Route53 nameservers for the hosted zone for Orchestrator. You have probably
-already noticed some output with every <code>terraform apply</code> that looks like</p>
+the Route53 nameservers for the hosted zone for Orchestrator. Access these
+via <code>terraform output</code> (you have probably already noticed identical output
+from every <code>terraform apply</code>). Output should be of the form</p>
 <pre><code class="hljs"><span class="hljs-section">Outputs:</span>
 
 nameservers = [
@@ -212,23 +222,36 @@ nameservers = [
   <span class="hljs-string">"ns-xxxx.awsdns-yy.net"</span>,
 ]
 </code></pre>
-<p>For each of these following subdomains, add an NS Record to the above
-nameservers on your domain registrar:</p>
+<p>If you chose a subdomain prefix for your Orchestrator domain name in your
+root Terraform mdule, you only need to provide a single NS record to your
+domain registrar, mapping the subdomain to the above name servers.
+E.g., for the subdomain <code>orc8r</code>, this record would notionally take
+the form <code>{ orc8r -&gt; [ns-xxxx.awsdns-yy.org, ...] }</code></p>
+<p>If you didn't choose a subdomain prefix, then you can still point the whole
+domain to AWS via the single NS record. Alternatively, if this is undesirable,
+provide NS records for each of the following subdomains</p>
 <ol>
 <li>nms</li>
 <li>controller</li>
 <li>bootstrapper-controller</li>
 <li>api</li>
 </ol>
-<p>If you chose a subdomain prefix for your Orchestrator domain name in your
-root Terraform module, you'll have to append that subdomain prefix to your
-NS Record names. For example, if you chose <code>orc8r.yourdomain.com</code> for your
-Route53 zone, you'll have to add NS Records for <code>nms.orc8r</code>, <code>api.orc8r</code>, and
-so on.</p>
+<p>E.g., for the domain <code>mydomain</code>, these records would notionally take the form
+<code>{ nms -&gt; [ns-xxxx.awsdns-yy.org, ...], controller -&gt; [ns-xxxx.awsdns-yy.org, ...], ... }</code></p>
+<h2><a class="anchor" aria-hidden="true" id="verifying-the-deployment"></a><a href="#verifying-the-deployment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Verifying the Deployment</h2>
+<p>After a few minutes the NS records should propagate. Confirm successful
+deployment by visiting the master NMS organization at e.g.
+<code>https://master.nms.yoursubdomain.yourdomain.com</code> and logging in with the
+<code>ADMIN_USER_EMAIL</code> and <code>ADMIN_USER_PASSWORD</code> provided above.</p>
+<p>Note the <code>https</code> is required. If you self-signed certs above, the browser will
+rightfully complain. Either ignore the browser warnings at your own risk (some
+versions of Chrome won't allow this at all), or e.g.
+<a href="https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate">import the root CA from above on a per-browser basis
+</a></p>
 <h2><a class="anchor" aria-hidden="true" id="upgrading-the-deployment"></a><a href="#upgrading-the-deployment" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Upgrading the Deployment</h2>
 <p>You can upgrade the deployment simply by changing the <code>orc8r_tag</code> variable in
 your root Terraform module to the new software version that you want to run
 and running <code>terraform apply</code>. Changes to the Terraform modules between
 releases may require some updates to your root Terraform module - these will
 be communicated in release notes.</p>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_build"><span class="arrow-prev">← </span><span>Building Orchestrator</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/deploy_upgrade"><span>Upgrading from 1.0</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#ssl-certificates">SSL Certificates</a></li><li><a href="#infrastructure-and-application-installation">Infrastructure and Application Installation</a><ul class="toc-headings"><li><a href="#initial-infrastructure-terraform">Initial Infrastructure Terraform</a></li><li><a href="#initial-application-terraform">Initial Application Terraform</a></li><li><a href="#creating-an-admin-user">Creating an Admin User</a></li><li><a href="#final-application-terraform">Final Application Terraform</a></li></ul></li><li><a href="#dns-resolution">DNS Resolution</a></li><li><a href="#upgrading-the-deployment">Upgrading the Deployment</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_build"><span class="arrow-prev">← </span><span>Building Orchestrator</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/deploy_upgrade"><span>Upgrading from 1.0</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#ssl-certificates">SSL Certificates</a></li><li><a href="#infrastructure-and-application-installation">Infrastructure and Application Installation</a><ul class="toc-headings"><li><a href="#initial-infrastructure-terraform">Initial Infrastructure Terraform</a></li><li><a href="#initial-application-terraform">Initial Application Terraform</a></li><li><a href="#create-an-admin-user">Create an Admin User</a></li><li><a href="#final-application-terraform">Final Application Terraform</a></li></ul></li><li><a href="#dns-resolution">DNS Resolution</a></li><li><a href="#verifying-the-deployment">Verifying the Deployment</a></li><li><a href="#upgrading-the-deployment">Upgrading the Deployment</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/fb.png" alt="Magma" width="66" height="58"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><a href="https://code.facebook.com/projects/" target="_blank" rel="noreferrer noopener" class="fbOpenSource"><img src="/magma/img/oss_logo.png" alt="Facebook Open Source" width="170" height="45"/></a><section class="copyright">Copyright © 2020 Facebook</section></footer></div></body></html>
