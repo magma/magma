@@ -25,7 +25,7 @@ var (
 	packetReStr = fmt.Sprintf(
 		`^(\d+) packets transmitted, (\d+) (?:packets )?received, (%s)%% packet loss`, decReStr)
 	rttReStr = fmt.Sprintf(
-		`^(?:rtt|round-trip) min/avg/max/(?:mdev|stddev) = (%[1]s)/(%[1]s)/(%[1]s)/(%[1]s) ms`, decReStr)
+		`^(?:rtt|round-trip) min/avg/max(?:/mdev|/stddev|) = (%[1]s)/(%[1]s)/(%[1]s).* ms`, decReStr)
 	packetLineRe = regexp.MustCompile(packetReStr)
 	rttLineRe    = regexp.MustCompile(rttReStr)
 	statsRe      = regexp.MustCompile(`^--- ([\S]*)\s?ping statistics ---$`)
