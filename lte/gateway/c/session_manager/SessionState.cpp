@@ -182,18 +182,6 @@ convert_update_type_to_proto(CreditUpdateType update_type) {
   }
 }
 
-static FinalActionInfo get_final_action_info(const ChargingCredit &credit) {
-  FinalActionInfo final_action_info;
-  if (credit.is_final()) {
-    final_action_info.final_action = credit.final_action();
-    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = credit.redirect_server();
-    }
-  }
-
-  return final_action_info;
-}
-
 static UsageMonitorUpdate make_usage_monitor_update(
   const SessionCredit::Usage &usage_in, const std::string &monitoring_key,
   MonitoringLevel level) {
@@ -818,6 +806,18 @@ DynamicRuleInstall SessionState::get_dynamic_rule_install(
 }
 
 // Charging Credits
+static FinalActionInfo get_final_action_info(
+  const magma::lte::ChargingCredit &credit) {
+  FinalActionInfo final_action_info;
+  if (credit.is_final()) {
+    final_action_info.final_action = credit.final_action();
+    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
+      final_action_info.redirect_server = credit.redirect_server();
+    }
+  }
+  return final_action_info;
+}
+
 bool SessionState::reset_reporting_charging_credit(
     const CreditKey &key, SessionStateUpdateCriteria &update_criteria) {
   auto it = credit_map_.find(key);
@@ -852,10 +852,9 @@ bool SessionState::receive_charging_credit(
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " rating group "
                << update.charging_key();
-  it->second->receive_credit(gsu, update.credit().validity_time(),
-                             update.credit().is_final(),
-                             get_final_action_info(update.credit()),
-                             *credit_uc);
+  it->second->receive_credit(
+    gsu, update.credit().validity_time(), update.credit().is_final(),
+    get_final_action_info(update.credit()), *credit_uc);
   return true;
 }
 
@@ -884,10 +883,10 @@ bool SessionState::init_charging_credit(
   credit = std::make_unique<SessionCredit>(
     CreditType::CHARGING, SERVICE_ENABLED, update.limit_type());
   SessionCreditUpdateCriteria credit_uc{};
+  auto grant = update.credit();
   credit->receive_credit(
-    update.credit().granted_units(), update.credit().validity_time(),
-    update.credit().is_final(), get_final_action_info(update.credit()),
-    credit_uc);
+    grant.granted_units(), grant.validity_time(), grant.is_final(),
+    get_final_action_info(update.credit()), credit_uc);
 
   update_criteria.charging_credit_to_install[CreditKey(update)] =
     credit->marshal();
