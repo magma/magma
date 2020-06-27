@@ -17,16 +17,10 @@ from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match, flip_flow_match, flow_match_to_actions
-from lte.protos.policydb_pb2 import FlowMatch
+    flow_match_to_magma_match, flip_flow_match
 from lte.protos.pipelined_pb2 import FlowRequest
 
 from ryu.lib.packet import ether_types
-from ryu.lib.packet import packet
-from ryu.lib.packet import ethernet
-from ryu.lib.packet import ipv4
-from ryu.lib.packet import tcp
-from ryu.lib.packet import udp
 
 # TODO might move to config file
 # Current classification will finalize if found in APP_PROTOS, if found in
@@ -68,24 +62,13 @@ class DPIController(MagmaController):
         self._mon_port_number = kwargs['config']['dpi']['mon_port_number']
         self._idle_timeout = kwargs['config']['dpi']['idle_timeout']
         self._bridge_name = kwargs['config']['bridge_name']
+        self._classify_app_tbl_num = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self._app_set_tbl_num = self._service_manager.INTERNAL_APP_SET_TABLE_NUM
         self._imsi_set_tbl_num = \
             self._service_manager.INTERNAL_IMSI_SET_TABLE_NUM
         if self._dpi_enabled:
             self._create_monitor_port()
-
-        tcp_pkt = packet.Packet()
-        tcp_pkt.add_protocol(ethernet.ethernet(ethertype=ether_types.ETH_TYPE_IP))
-        tcp_pkt.add_protocol(ipv4.ipv4(proto=6))
-        tcp_pkt.add_protocol(tcp.tcp())
-        tcp_pkt.serialize()
-        self.tcp_pkt_data = tcp_pkt.data
-        udp_pkt = packet.Packet()
-        udp_pkt.add_protocol(ethernet.ethernet(ethertype=ether_types.ETH_TYPE_IP))
-        udp_pkt.add_protocol(ipv4.ipv4(proto=17))
-        udp_pkt.add_protocol(udp.udp())
-        udp_pkt.serialize()
-        self.udp_pkt_data = udp_pkt.data
 
     def initialize_on_connect(self, datapath):
         """
@@ -94,9 +77,9 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        self._datapath = datapath
         self.delete_all_flows(datapath)
         self._install_default_flows(datapath)
-        self._datapath = datapath
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -134,33 +117,13 @@ class DPIController(MagmaController):
             return
 
         actions = [parser.NXActionRegLoad2(dst=DPI_REG, value=app_id)]
-        actions_w_mirror = \
-            [parser.OFPActionOutput(self._mon_port_number)] + actions
         # No reason to create a flow here
         if flow_state != FlowRequest.FLOW_CREATED:
-            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-                ul_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
-            flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num,
-                dl_match, actions_w_mirror, priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self.next_table, idle_timeout=self._idle_timeout)
-
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            if (
-                flow_state == FlowRequest.FLOW_PARTIAL_CLASSIFICATION
-                and app_id == DEFAULT_DPI_ID
-            ):
-                return
-            self._generate_ipfix_sampling_pkt(flow_match, src_mac, dst_mac)
-            flows.add_resubmit_next_service_flow(
-                self._datapath, self._app_set_tbl_num, ul_match, actions,
-                priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self._imsi_set_tbl_num,
+            flows.add_flow(self._datapath, self._classify_app_tbl_num,
+                ul_match, actions, priority=flows.DEFAULT_PRIORITY,
                 idle_timeout=self._idle_timeout)
-            flows.add_resubmit_next_service_flow(
-                self._datapath, self._app_set_tbl_num,
+            flows.add_flow(self._datapath, self._classify_app_tbl_num,
                 dl_match, actions, priority=flows.DEFAULT_PRIORITY,
-                resubmit_table=self._imsi_set_tbl_num,
                 idle_timeout=self._idle_timeout)
 
     def remove_classify_flow(self, flow_match, src_mac: str, dst_mac: str):
@@ -173,45 +136,9 @@ class DPIController(MagmaController):
             self.logger.error(e)
             return False
 
-        flows.delete_flow(self._datapath, self.tbl_num, ul_match)
-        flows.delete_flow(self._datapath, self.tbl_num, dl_match)
+        flows.delete_flow(self._datapath, self._classify_app_tbl_num, ul_match)
 
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            self._generate_ipfix_sampling_pkt(flow_match, src_mac, dst_mac)
         return True
-
-    def _generate_ipfix_sampling_pkt(self, flow_match, src_mac: str,
-                                     dst_mac: str):
-        """
-        By generating a fake packet trigger the ipfix sampling OVS flow.
-        """
-        parser = self._datapath.ofproto_parser
-        ofproto = self._datapath.ofproto
-
-        if flow_match.ip_proto not in [FlowMatch.IPPROTO_TCP,
-                                       FlowMatch.IPPROTO_UDP]:
-            self.logger.warning("Ignoring non tcp/udp dpi classification")
-            self.logger.warning(flow_match)
-            return
-        actions = \
-            flow_match_to_actions(self._datapath, flow_match)
-        actions.extend([
-            parser.OFPActionSetField(eth_src=src_mac),
-            parser.OFPActionSetField(eth_dst=dst_mac),
-            parser.NXActionResubmitTable(table_id=self._app_set_tbl_num)
-        ])
-
-        if flow_match.ip_proto == FlowMatch.IPPROTO_TCP:
-            bin_packet = self.tcp_pkt_data
-        elif flow_match.ip_proto == FlowMatch.IPPROTO_UDP:
-            bin_packet = self.udp_pkt_data
-
-        out = parser.OFPPacketOut(datapath=self._datapath,
-                                  buffer_id=ofproto.OFP_NO_BUFFER,
-                                  in_port=ofproto.OFPP_CONTROLLER,
-                                  actions=actions,
-                                  data=bin_packet)
-        self._datapath.send_msg(out)
 
     def _install_default_flows(self, datapath):
         """
@@ -222,14 +149,17 @@ class DPIController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        parser = datapath.ofproto_parser
+        parser = self._datapath.ofproto_parser
+
+        # Setup flows to classify & mirror to sampling port
         inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                     direction=Direction.OUT)
 
-        actions = [parser.NXActionRegLoad2(dst=DPI_REG,
-                                           value=UNCLASSIFIED_PROTO_ID)]
+        actions = [
+            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
+
         if self._dpi_enabled:
             actions.append(parser.OFPActionOutput(self._mon_port_number))
 
@@ -241,6 +171,22 @@ class DPIController(MagmaController):
                                              outbound_match, actions,
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
+
+        # Setup flows for internal IPFIX sampling
+        actions = [
+            parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
+
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            flows.add_resubmit_next_service_flow(
+                self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
+                priority=flows.MINIMUM_PRIORITY,
+                resubmit_table=self._imsi_set_tbl_num)
+
+        # Setup flows for the application reg classifier tbl
+        actions = [parser.NXActionRegLoad2(dst=DPI_REG,
+                                           value=UNCLASSIFIED_PROTO_ID)]
+        flows.add_flow(datapath, self._classify_app_tbl_num, MagmaMatch(),
+                       actions, priority=flows.MINIMUM_PRIORITY)
 
     def _create_monitor_port(self):
         """
