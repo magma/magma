@@ -23,22 +23,29 @@ type EnodebRowType = {
   health: string,
 };
 
-export default function GatewayDetailEnodebs(
-  {gwInfo}: {gwInfo: lte_gateway},
+export default function GatewayDetailEnodebs({
+  gwInfo,
+  enbInfo,
+}: {
+  gwInfo: lte_gateway,
   enbInfo: {[string]: EnodebInfo},
-) {
+}) {
   const {history, match} = useRouter();
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
 
-  const enbRows: Array<EnodebRowType> = gwInfo.connected_enodeb_serials.map(
-    (serialNum: string) => {
-      const enbInf = enbInfo[serialNum];
-      return {
-        name: enbInf.enb.name,
-        id: serialNum,
-        health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
-      };
+  const enbRows: Array<EnodebRowType> = gwInfo.connected_enodeb_serials?.reduce(
+    (rows: Array<EnodebRowType>, serial: string) => {
+      if (enbInfo[serial]) {
+        const row = {
+          name: enbInfo[serial].enb.name,
+          id: serial,
+          health: isEnodebHealthy(enbInfo[serial]) ? 'Good' : 'Bad',
+        };
+        rows.push(row);
+      }
+      return rows;
     },
+    [],
   );
 
   return (
