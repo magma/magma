@@ -235,7 +235,8 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
   const std::string& imsi,
   const std::string& ip_addr,
   const std::vector<std::string>& static_rules,
-  const std::vector<PolicyRule>& dynamic_rules)
+  const std::vector<PolicyRule>& dynamic_rules,
+  std::function<void(Status status, ActivateFlowsResult)> callback)
 {
   MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
@@ -245,23 +246,11 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
   auto static_req = create_activate_req(
     imsi, ip_addr, static_rules, std::vector<PolicyRule>(),
     RequestOriginType::GX);
-  activate_flows_rpc(static_req,
-    [imsi](Status status, ActivateFlowsResult resp) {
-      if (!status.ok()) {
-        MLOG(MERROR) << "Could not activate flows through pipelined for UE "
-                     << imsi << ": " << status.error_message();
-      }
-  });
+  activate_flows_rpc(static_req, callback);
   auto dynamic_req = create_activate_req(
     imsi, ip_addr, std::vector<std::string>(), dynamic_rules,
     RequestOriginType::GX);
-  activate_flows_rpc(dynamic_req,
-    [imsi](Status status, ActivateFlowsResult resp) {
-      if (!status.ok()) {
-        MLOG(MERROR) << "Could not activate flows through pipelined for UE "
-                     << imsi << ": " << status.error_message();
-      }
-  });
+  activate_flows_rpc(dynamic_req, callback);
   return true;
 }
 
