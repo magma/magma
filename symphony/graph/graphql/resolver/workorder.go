@@ -54,6 +54,16 @@ func (workOrderTypeResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Wo
 	return obj.QueryWorkOrders().Count(ctx)
 }
 
+type workOrderTemplateResolver struct{}
+
+func (workOrderTemplateResolver) PropertyTypes(ctx context.Context, obj *ent.WorkOrderTemplate) ([]*ent.PropertyType, error) {
+	return obj.QueryPropertyTypes().All(ctx)
+}
+
+func (workOrderTemplateResolver) CheckListCategoryDefinitions(ctx context.Context, obj *ent.WorkOrderTemplate) ([]*ent.CheckListCategoryDefinition, error) {
+	return obj.QueryCheckListCategoryDefinitions().All(ctx)
+}
+
 type workOrderResolver struct{}
 
 func (r workOrderResolver) Activities(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Activity, error) {
@@ -62,6 +72,11 @@ func (r workOrderResolver) Activities(ctx context.Context, obj *ent.WorkOrder) (
 
 func (workOrderResolver) WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error) {
 	return obj.QueryType().Only(ctx)
+}
+
+func (workOrderResolver) WorkOrderTemplate(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderTemplate, error) {
+	t, err := obj.QueryTemplate().Only(ctx)
+	return t, ent.MaskNotFound(err)
 }
 
 func (workOrderResolver) Location(ctx context.Context, obj *ent.WorkOrder) (*ent.Location, error) {

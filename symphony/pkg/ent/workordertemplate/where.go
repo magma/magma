@@ -4,7 +4,7 @@
 
 // Code generated (@generated) by entc, DO NOT EDIT.
 
-package workordertype
+package workordertemplate
 
 import (
 	"github.com/facebookincubator/ent/dialect/sql"
@@ -13,29 +13,29 @@ import (
 )
 
 // ID filters vertices based on their identifier.
-func ID(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func ID(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDEQ applies the EQ predicate on the ID field.
-func IDEQ(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDEQ(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldID), id))
 	})
 }
 
 // IDNEQ applies the NEQ predicate on the ID field.
-func IDNEQ(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDNEQ(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldID), id))
 	})
 }
 
 // IDIn applies the In predicate on the ID field.
-func IDIn(ids ...int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDIn(ids ...int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
 		if len(ids) == 0 {
@@ -51,8 +51,8 @@ func IDIn(ids ...int) predicate.WorkOrderType {
 }
 
 // IDNotIn applies the NotIn predicate on the ID field.
-func IDNotIn(ids ...int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDNotIn(ids ...int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
 		if len(ids) == 0 {
@@ -68,68 +68,68 @@ func IDNotIn(ids ...int) predicate.WorkOrderType {
 }
 
 // IDGT applies the GT predicate on the ID field.
-func IDGT(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDGT(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldID), id))
 	})
 }
 
 // IDGTE applies the GTE predicate on the ID field.
-func IDGTE(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDGTE(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldID), id))
 	})
 }
 
 // IDLT applies the LT predicate on the ID field.
-func IDLT(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDLT(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldID), id))
 	})
 }
 
 // IDLTE applies the LTE predicate on the ID field.
-func IDLTE(id int) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func IDLTE(id int) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldID), id))
 	})
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func Name(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldName), v))
 	})
 }
 
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
-func Description(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func Description(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldDescription), v))
 	})
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameEQ(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldName), v))
 	})
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameNEQ(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldName), v))
 	})
 }
 
 // NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.WorkOrderType {
+func NameIn(vs ...string) predicate.WorkOrderTemplate {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
 		if len(vs) == 0 {
@@ -141,12 +141,12 @@ func NameIn(vs ...string) predicate.WorkOrderType {
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.WorkOrderType {
+func NameNotIn(vs ...string) predicate.WorkOrderTemplate {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
 		if len(vs) == 0 {
@@ -158,89 +158,89 @@ func NameNotIn(vs ...string) predicate.WorkOrderType {
 }
 
 // NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameGT(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldName), v))
 	})
 }
 
 // NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameGTE(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldName), v))
 	})
 }
 
 // NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameLT(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldName), v))
 	})
 }
 
 // NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameLTE(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldName), v))
 	})
 }
 
 // NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameContains(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.Contains(s.C(FieldName), v))
 	})
 }
 
 // NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameHasPrefix(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.HasPrefix(s.C(FieldName), v))
 	})
 }
 
 // NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameHasSuffix(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldName), v))
 	})
 }
 
 // NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameEqualFold(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EqualFold(s.C(FieldName), v))
 	})
 }
 
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func NameContainsFold(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldName), v))
 	})
 }
 
 // DescriptionEQ applies the EQ predicate on the "description" field.
-func DescriptionEQ(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionEQ(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionNEQ applies the NEQ predicate on the "description" field.
-func DescriptionNEQ(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionNEQ(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionIn applies the In predicate on the "description" field.
-func DescriptionIn(vs ...string) predicate.WorkOrderType {
+func DescriptionIn(vs ...string) predicate.WorkOrderTemplate {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
 		if len(vs) == 0 {
@@ -252,12 +252,12 @@ func DescriptionIn(vs ...string) predicate.WorkOrderType {
 }
 
 // DescriptionNotIn applies the NotIn predicate on the "description" field.
-func DescriptionNotIn(vs ...string) predicate.WorkOrderType {
+func DescriptionNotIn(vs ...string) predicate.WorkOrderTemplate {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
 	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
 		if len(vs) == 0 {
@@ -269,85 +269,85 @@ func DescriptionNotIn(vs ...string) predicate.WorkOrderType {
 }
 
 // DescriptionGT applies the GT predicate on the "description" field.
-func DescriptionGT(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionGT(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.GT(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionGTE applies the GTE predicate on the "description" field.
-func DescriptionGTE(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionGTE(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.GTE(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionLT applies the LT predicate on the "description" field.
-func DescriptionLT(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionLT(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.LT(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionLTE applies the LTE predicate on the "description" field.
-func DescriptionLTE(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionLTE(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.LTE(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionContains applies the Contains predicate on the "description" field.
-func DescriptionContains(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionContains(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.Contains(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionHasPrefix applies the HasPrefix predicate on the "description" field.
-func DescriptionHasPrefix(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionHasPrefix(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.HasPrefix(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionHasSuffix applies the HasSuffix predicate on the "description" field.
-func DescriptionHasSuffix(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionHasSuffix(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.HasSuffix(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionIsNil applies the IsNil predicate on the "description" field.
-func DescriptionIsNil() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionIsNil() predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.IsNull(s.C(FieldDescription)))
 	})
 }
 
 // DescriptionNotNil applies the NotNil predicate on the "description" field.
-func DescriptionNotNil() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionNotNil() predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.NotNull(s.C(FieldDescription)))
 	})
 }
 
 // DescriptionEqualFold applies the EqualFold predicate on the "description" field.
-func DescriptionEqualFold(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionEqualFold(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.EqualFold(s.C(FieldDescription), v))
 	})
 }
 
 // DescriptionContainsFold applies the ContainsFold predicate on the "description" field.
-func DescriptionContainsFold(v string) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func DescriptionContainsFold(v string) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s.Where(sql.ContainsFold(s.C(FieldDescription), v))
 	})
 }
 
 // HasPropertyTypes applies the HasEdge predicate on the "property_types" edge.
-func HasPropertyTypes() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func HasPropertyTypes() predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertyTypesTable, FieldID),
@@ -358,8 +358,8 @@ func HasPropertyTypes() predicate.WorkOrderType {
 }
 
 // HasPropertyTypesWith applies the HasEdge predicate on the "property_types" edge with a given conditions (other predicates).
-func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(PropertyTypesInverseTable, FieldID),
@@ -374,8 +374,8 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.WorkOrderTy
 }
 
 // HasCheckListCategoryDefinitions applies the HasEdge predicate on the "check_list_category_definitions" edge.
-func HasCheckListCategoryDefinitions() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func HasCheckListCategoryDefinitions() predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CheckListCategoryDefinitionsTable, FieldID),
@@ -386,8 +386,8 @@ func HasCheckListCategoryDefinitions() predicate.WorkOrderType {
 }
 
 // HasCheckListCategoryDefinitionsWith applies the HasEdge predicate on the "check_list_category_definitions" edge with a given conditions (other predicates).
-func HasCheckListCategoryDefinitionsWith(preds ...predicate.CheckListCategoryDefinition) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func HasCheckListCategoryDefinitionsWith(preds ...predicate.CheckListCategoryDefinition) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CheckListCategoryDefinitionsInverseTable, FieldID),
@@ -401,53 +401,25 @@ func HasCheckListCategoryDefinitionsWith(preds ...predicate.CheckListCategoryDef
 	})
 }
 
-// HasWorkOrders applies the HasEdge predicate on the "work_orders" edge.
-func HasWorkOrders() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+// HasType applies the HasEdge predicate on the "type" edge.
+func HasType() predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrdersTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, WorkOrdersTable, WorkOrdersColumn),
+			sqlgraph.To(TypeTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TypeTable, TypeColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasWorkOrdersWith applies the HasEdge predicate on the "work_orders" edge with a given conditions (other predicates).
-func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+// HasTypeWith applies the HasEdge predicate on the "type" edge with a given conditions (other predicates).
+func HasTypeWith(preds ...predicate.WorkOrderType) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrdersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, WorkOrdersTable, WorkOrdersColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasDefinitions applies the HasEdge predicate on the "definitions" edge.
-func HasDefinitions() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DefinitionsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, DefinitionsTable, DefinitionsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasDefinitionsWith applies the HasEdge predicate on the "definitions" edge with a given conditions (other predicates).
-func HasDefinitionsWith(preds ...predicate.WorkOrderDefinition) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DefinitionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, DefinitionsTable, DefinitionsColumn),
+			sqlgraph.To(TypeInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TypeTable, TypeColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
@@ -458,8 +430,8 @@ func HasDefinitionsWith(preds ...predicate.WorkOrderDefinition) predicate.WorkOr
 }
 
 // And groups list of predicates with the AND operator between them.
-func And(predicates ...predicate.WorkOrderType) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func And(predicates ...predicate.WorkOrderTemplate) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s1 := s.Clone().SetP(nil)
 		for _, p := range predicates {
 			p(s1)
@@ -469,8 +441,8 @@ func And(predicates ...predicate.WorkOrderType) predicate.WorkOrderType {
 }
 
 // Or groups list of predicates with the OR operator between them.
-func Or(predicates ...predicate.WorkOrderType) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func Or(predicates ...predicate.WorkOrderTemplate) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		s1 := s.Clone().SetP(nil)
 		for i, p := range predicates {
 			if i > 0 {
@@ -483,8 +455,8 @@ func Or(predicates ...predicate.WorkOrderType) predicate.WorkOrderType {
 }
 
 // Not applies the not operator on the given predicate.
-func Not(p predicate.WorkOrderType) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
+func Not(p predicate.WorkOrderTemplate) predicate.WorkOrderTemplate {
+	return predicate.WorkOrderTemplate(func(s *sql.Selector) {
 		p(s.Not())
 	})
 }

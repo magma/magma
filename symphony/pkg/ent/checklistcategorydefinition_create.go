@@ -16,6 +16,7 @@ import (
 	"github.com/facebookincubator/ent/schema/field"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitemdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -95,9 +96,36 @@ func (clcdc *CheckListCategoryDefinitionCreate) SetWorkOrderTypeID(id int) *Chec
 	return clcdc
 }
 
+// SetNillableWorkOrderTypeID sets the work_order_type edge to WorkOrderType by id if the given value is not nil.
+func (clcdc *CheckListCategoryDefinitionCreate) SetNillableWorkOrderTypeID(id *int) *CheckListCategoryDefinitionCreate {
+	if id != nil {
+		clcdc = clcdc.SetWorkOrderTypeID(*id)
+	}
+	return clcdc
+}
+
 // SetWorkOrderType sets the work_order_type edge to WorkOrderType.
 func (clcdc *CheckListCategoryDefinitionCreate) SetWorkOrderType(w *WorkOrderType) *CheckListCategoryDefinitionCreate {
 	return clcdc.SetWorkOrderTypeID(w.ID)
+}
+
+// SetWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id.
+func (clcdc *CheckListCategoryDefinitionCreate) SetWorkOrderTemplateID(id int) *CheckListCategoryDefinitionCreate {
+	clcdc.mutation.SetWorkOrderTemplateID(id)
+	return clcdc
+}
+
+// SetNillableWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id if the given value is not nil.
+func (clcdc *CheckListCategoryDefinitionCreate) SetNillableWorkOrderTemplateID(id *int) *CheckListCategoryDefinitionCreate {
+	if id != nil {
+		clcdc = clcdc.SetWorkOrderTemplateID(*id)
+	}
+	return clcdc
+}
+
+// SetWorkOrderTemplate sets the work_order_template edge to WorkOrderTemplate.
+func (clcdc *CheckListCategoryDefinitionCreate) SetWorkOrderTemplate(w *WorkOrderTemplate) *CheckListCategoryDefinitionCreate {
+	return clcdc.SetWorkOrderTemplateID(w.ID)
 }
 
 // Save creates the CheckListCategoryDefinition in the database.
@@ -117,9 +145,6 @@ func (clcdc *CheckListCategoryDefinitionCreate) Save(ctx context.Context) (*Chec
 		if err := checklistcategorydefinition.TitleValidator(v); err != nil {
 			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
 		}
-	}
-	if _, ok := clcdc.mutation.WorkOrderTypeID(); !ok {
-		return nil, errors.New("ent: missing required edge \"work_order_type\"")
 	}
 	var (
 		err  error
@@ -230,6 +255,25 @@ func (clcdc *CheckListCategoryDefinitionCreate) sqlSave(ctx context.Context) (*C
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := clcdc.mutation.WorkOrderTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   checklistcategorydefinition.WorkOrderTemplateTable,
+			Columns: []string{checklistcategorydefinition.WorkOrderTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
 				},
 			},
 		}

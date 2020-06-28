@@ -269,3 +269,10 @@ func WorkOrderTypeWritePolicyRule() privacy.MutationRule {
 		return cudBasedRule(FromContext(ctx).WorkforcePolicy.Templates, m)
 	})
 }
+
+// WorkOrderTemplateWritePolicyRule grants write permission to work order template based on policy.
+func WorkOrderTemplateWritePolicyRule() privacy.MutationRule {
+	return privacy.MutationRuleFunc(func(ctx context.Context, m ent.Mutation) error {
+		return cudBasedRule(FromContext(ctx).WorkforcePolicy.Templates, m)
+	})
+}

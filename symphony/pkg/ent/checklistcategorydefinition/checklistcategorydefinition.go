@@ -26,6 +26,8 @@ const (
 	EdgeCheckListItemDefinitions = "check_list_item_definitions"
 	// EdgeWorkOrderType holds the string denoting the work_order_type edge name in mutations.
 	EdgeWorkOrderType = "work_order_type"
+	// EdgeWorkOrderTemplate holds the string denoting the work_order_template edge name in mutations.
+	EdgeWorkOrderTemplate = "work_order_template"
 
 	// Table holds the table name of the checklistcategorydefinition in the database.
 	Table = "check_list_category_definitions"
@@ -43,6 +45,13 @@ const (
 	WorkOrderTypeInverseTable = "work_order_types"
 	// WorkOrderTypeColumn is the table column denoting the work_order_type relation/edge.
 	WorkOrderTypeColumn = "work_order_type_check_list_category_definitions"
+	// WorkOrderTemplateTable is the table the holds the work_order_template relation/edge.
+	WorkOrderTemplateTable = "check_list_category_definitions"
+	// WorkOrderTemplateInverseTable is the table name for the WorkOrderTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "workordertemplate" package.
+	WorkOrderTemplateInverseTable = "work_order_templates"
+	// WorkOrderTemplateColumn is the table column denoting the work_order_template relation/edge.
+	WorkOrderTemplateColumn = "work_order_template_check_list_category_definitions"
 )
 
 // Columns holds all SQL columns for checklistcategorydefinition fields.
@@ -56,6 +65,7 @@ var Columns = []string{
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the CheckListCategoryDefinition type.
 var ForeignKeys = []string{
+	"work_order_template_check_list_category_definitions",
 	"work_order_type_check_list_category_definitions",
 }
 

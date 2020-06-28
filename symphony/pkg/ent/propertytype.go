@@ -18,6 +18,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/projecttype"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -75,6 +76,7 @@ type PropertyType struct {
 	location_type_property_types            *int
 	project_type_properties                 *int
 	service_type_property_types             *int
+	work_order_template_property_types      *int
 	work_order_type_property_types          *int
 }
 
@@ -94,11 +96,13 @@ type PropertyTypeEdges struct {
 	ServiceType *ServiceType
 	// WorkOrderType holds the value of the work_order_type edge.
 	WorkOrderType *WorkOrderType
+	// WorkOrderTemplate holds the value of the work_order_template edge.
+	WorkOrderTemplate *WorkOrderTemplate
 	// ProjectType holds the value of the project_type edge.
 	ProjectType *ProjectType
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [8]bool
+	loadedTypes [9]bool
 }
 
 // PropertiesOrErr returns the Properties value or an error if the edge
@@ -194,10 +198,24 @@ func (e PropertyTypeEdges) WorkOrderTypeOrErr() (*WorkOrderType, error) {
 	return nil, &NotLoadedError{edge: "work_order_type"}
 }
 
+// WorkOrderTemplateOrErr returns the WorkOrderTemplate value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e PropertyTypeEdges) WorkOrderTemplateOrErr() (*WorkOrderTemplate, error) {
+	if e.loadedTypes[7] {
+		if e.WorkOrderTemplate == nil {
+			// The edge work_order_template was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workordertemplate.Label}
+		}
+		return e.WorkOrderTemplate, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order_template"}
+}
+
 // ProjectTypeOrErr returns the ProjectType value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e PropertyTypeEdges) ProjectTypeOrErr() (*ProjectType, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		if e.ProjectType == nil {
 			// The edge project_type was loaded in eager-loading,
 			// but was not found.
@@ -244,6 +262,7 @@ func (*PropertyType) fkValues() []interface{} {
 		&sql.NullInt64{}, // location_type_property_types
 		&sql.NullInt64{}, // project_type_properties
 		&sql.NullInt64{}, // service_type_property_types
+		&sql.NullInt64{}, // work_order_template_property_types
 		&sql.NullInt64{}, // work_order_type_property_types
 	}
 }
@@ -399,6 +418,12 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 			*pt.service_type_property_types = int(value.Int64)
 		}
 		if value, ok := values[6].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_template_property_types", value)
+		} else if value.Valid {
+			pt.work_order_template_property_types = new(int)
+			*pt.work_order_template_property_types = int(value.Int64)
+		}
+		if value, ok := values[7].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type_property_types", value)
 		} else if value.Valid {
 			pt.work_order_type_property_types = new(int)
@@ -441,6 +466,11 @@ func (pt *PropertyType) QueryServiceType() *ServiceTypeQuery {
 // QueryWorkOrderType queries the work_order_type edge of the PropertyType.
 func (pt *PropertyType) QueryWorkOrderType() *WorkOrderTypeQuery {
 	return (&PropertyTypeClient{config: pt.config}).QueryWorkOrderType(pt)
+}
+
+// QueryWorkOrderTemplate queries the work_order_template edge of the PropertyType.
+func (pt *PropertyType) QueryWorkOrderTemplate() *WorkOrderTemplateQuery {
+	return (&PropertyTypeClient{config: pt.config}).QueryWorkOrderTemplate(pt)
 }
 
 // QueryProjectType queries the project_type edge of the PropertyType.

@@ -1151,6 +1151,34 @@ func HasTypeWith(preds ...predicate.WorkOrderType) predicate.WorkOrder {
 	})
 }
 
+// HasTemplate applies the HasEdge predicate on the "template" edge.
+func HasTemplate() predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TemplateTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TemplateTable, TemplateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasTemplateWith applies the HasEdge predicate on the "template" edge with a given conditions (other predicates).
+func HasTemplateWith(preds ...predicate.WorkOrderTemplate) predicate.WorkOrder {
+	return predicate.WorkOrder(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(TemplateInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, TemplateTable, TemplateColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasEquipment applies the HasEdge predicate on the "equipment" edge.
 func HasEquipment() predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {

@@ -4,15 +4,15 @@
 
 // Code generated (@generated) by entc, DO NOT EDIT.
 
-package workordertype
+package workordertemplate
 
 import (
 	"github.com/facebookincubator/ent"
 )
 
 const (
-	// Label holds the string label denoting the workordertype type in the database.
-	Label = "work_order_type"
+	// Label holds the string label denoting the workordertemplate type in the database.
+	Label = "work_order_template"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID          = "id"   // FieldName holds the string denoting the name vertex property in the database.
 	FieldName        = "name" // FieldDescription holds the string denoting the description vertex property in the database.
@@ -22,48 +22,44 @@ const (
 	EdgePropertyTypes = "property_types"
 	// EdgeCheckListCategoryDefinitions holds the string denoting the check_list_category_definitions edge name in mutations.
 	EdgeCheckListCategoryDefinitions = "check_list_category_definitions"
-	// EdgeWorkOrders holds the string denoting the work_orders edge name in mutations.
-	EdgeWorkOrders = "work_orders"
-	// EdgeDefinitions holds the string denoting the definitions edge name in mutations.
-	EdgeDefinitions = "definitions"
+	// EdgeType holds the string denoting the type edge name in mutations.
+	EdgeType = "type"
 
-	// Table holds the table name of the workordertype in the database.
-	Table = "work_order_types"
+	// Table holds the table name of the workordertemplate in the database.
+	Table = "work_order_templates"
 	// PropertyTypesTable is the table the holds the property_types relation/edge.
 	PropertyTypesTable = "property_types"
 	// PropertyTypesInverseTable is the table name for the PropertyType entity.
 	// It exists in this package in order to avoid circular dependency with the "propertytype" package.
 	PropertyTypesInverseTable = "property_types"
 	// PropertyTypesColumn is the table column denoting the property_types relation/edge.
-	PropertyTypesColumn = "work_order_type_property_types"
+	PropertyTypesColumn = "work_order_template_property_types"
 	// CheckListCategoryDefinitionsTable is the table the holds the check_list_category_definitions relation/edge.
 	CheckListCategoryDefinitionsTable = "check_list_category_definitions"
 	// CheckListCategoryDefinitionsInverseTable is the table name for the CheckListCategoryDefinition entity.
 	// It exists in this package in order to avoid circular dependency with the "checklistcategorydefinition" package.
 	CheckListCategoryDefinitionsInverseTable = "check_list_category_definitions"
 	// CheckListCategoryDefinitionsColumn is the table column denoting the check_list_category_definitions relation/edge.
-	CheckListCategoryDefinitionsColumn = "work_order_type_check_list_category_definitions"
-	// WorkOrdersTable is the table the holds the work_orders relation/edge.
-	WorkOrdersTable = "work_orders"
-	// WorkOrdersInverseTable is the table name for the WorkOrder entity.
-	// It exists in this package in order to avoid circular dependency with the "workorder" package.
-	WorkOrdersInverseTable = "work_orders"
-	// WorkOrdersColumn is the table column denoting the work_orders relation/edge.
-	WorkOrdersColumn = "work_order_type"
-	// DefinitionsTable is the table the holds the definitions relation/edge.
-	DefinitionsTable = "work_order_definitions"
-	// DefinitionsInverseTable is the table name for the WorkOrderDefinition entity.
-	// It exists in this package in order to avoid circular dependency with the "workorderdefinition" package.
-	DefinitionsInverseTable = "work_order_definitions"
-	// DefinitionsColumn is the table column denoting the definitions relation/edge.
-	DefinitionsColumn = "work_order_definition_type"
+	CheckListCategoryDefinitionsColumn = "work_order_template_check_list_category_definitions"
+	// TypeTable is the table the holds the type relation/edge.
+	TypeTable = "work_order_templates"
+	// TypeInverseTable is the table name for the WorkOrderType entity.
+	// It exists in this package in order to avoid circular dependency with the "workordertype" package.
+	TypeInverseTable = "work_order_types"
+	// TypeColumn is the table column denoting the type relation/edge.
+	TypeColumn = "work_order_template_type"
 )
 
-// Columns holds all SQL columns for workordertype fields.
+// Columns holds all SQL columns for workordertemplate fields.
 var Columns = []string{
 	FieldID,
 	FieldName,
 	FieldDescription,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the WorkOrderTemplate type.
+var ForeignKeys = []string{
+	"work_order_template_type",
 }
 
 // Note that the variables below are initialized by the runtime

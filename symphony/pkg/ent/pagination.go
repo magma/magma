@@ -59,6 +59,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 	"github.com/ugorji/go/codec"
 )
@@ -4154,6 +4155,98 @@ func (wod *WorkOrderDefinitionQuery) collectConnectionFields(ctx context.Context
 		wod = wod.collectField(graphql.GetOperationContext(ctx), *field)
 	}
 	return wod
+}
+
+// WorkOrderTemplateEdge is the edge representation of WorkOrderTemplate.
+type WorkOrderTemplateEdge struct {
+	Node   *WorkOrderTemplate `json:"node"`
+	Cursor Cursor             `json:"cursor"`
+}
+
+// WorkOrderTemplateConnection is the connection containing edges to WorkOrderTemplate.
+type WorkOrderTemplateConnection struct {
+	Edges    []*WorkOrderTemplateEdge `json:"edges"`
+	PageInfo PageInfo                 `json:"pageInfo"`
+}
+
+// Paginate executes the query and returns a relay based cursor connection to WorkOrderTemplate.
+func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*WorkOrderTemplateConnection, error) {
+	if first != nil && last != nil {
+		return nil, ErrInvalidPagination
+	}
+	if first != nil {
+		if *first == 0 {
+			return &WorkOrderTemplateConnection{
+				Edges: []*WorkOrderTemplateEdge{},
+			}, nil
+		} else if *first < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+	if last != nil {
+		if *last == 0 {
+			return &WorkOrderTemplateConnection{
+				Edges: []*WorkOrderTemplateEdge{},
+			}, nil
+		} else if *last < 0 {
+			return nil, ErrInvalidPagination
+		}
+	}
+
+	if after != nil {
+		wot = wot.Where(workordertemplate.IDGT(after.ID))
+	}
+	if before != nil {
+		wot = wot.Where(workordertemplate.IDLT(before.ID))
+	}
+	if first != nil {
+		wot = wot.Order(Asc(workordertemplate.FieldID)).Limit(*first + 1)
+	}
+	if last != nil {
+		wot = wot.Order(Desc(workordertemplate.FieldID)).Limit(*last + 1)
+	}
+	wot = wot.collectConnectionFields(ctx)
+
+	nodes, err := wot.All(ctx)
+	if err != nil || len(nodes) == 0 {
+		return &WorkOrderTemplateConnection{
+			Edges: []*WorkOrderTemplateEdge{},
+		}, err
+	}
+	if last != nil {
+		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
+			nodes[left], nodes[right] = nodes[right], nodes[left]
+		}
+	}
+
+	var conn WorkOrderTemplateConnection
+	if first != nil && len(nodes) > *first {
+		conn.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && len(nodes) > *last {
+		conn.PageInfo.HasPreviousPage = true
+		nodes = nodes[1:]
+	}
+	conn.Edges = make([]*WorkOrderTemplateEdge, len(nodes))
+	for i, node := range nodes {
+		conn.Edges[i] = &WorkOrderTemplateEdge{
+			Node: node,
+			Cursor: Cursor{
+				ID: node.ID,
+			},
+		}
+	}
+	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
+	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
+
+	return &conn, nil
+}
+
+func (wot *WorkOrderTemplateQuery) collectConnectionFields(ctx context.Context) *WorkOrderTemplateQuery {
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		wot = wot.collectField(graphql.GetOperationContext(ctx), *field)
+	}
+	return wot
 }
 
 // WorkOrderTypeEdge is the edge representation of WorkOrderType.

@@ -26,6 +26,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -177,6 +178,25 @@ func (woc *WorkOrderCreate) SetNillableTypeID(id *int) *WorkOrderCreate {
 // SetType sets the type edge to WorkOrderType.
 func (woc *WorkOrderCreate) SetType(w *WorkOrderType) *WorkOrderCreate {
 	return woc.SetTypeID(w.ID)
+}
+
+// SetTemplateID sets the template edge to WorkOrderTemplate by id.
+func (woc *WorkOrderCreate) SetTemplateID(id int) *WorkOrderCreate {
+	woc.mutation.SetTemplateID(id)
+	return woc
+}
+
+// SetNillableTemplateID sets the template edge to WorkOrderTemplate by id if the given value is not nil.
+func (woc *WorkOrderCreate) SetNillableTemplateID(id *int) *WorkOrderCreate {
+	if id != nil {
+		woc = woc.SetTemplateID(*id)
+	}
+	return woc
+}
+
+// SetTemplate sets the template edge to WorkOrderTemplate.
+func (woc *WorkOrderCreate) SetTemplate(w *WorkOrderTemplate) *WorkOrderCreate {
+	return woc.SetTemplateID(w.ID)
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
@@ -537,6 +557,25 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := woc.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TemplateTable,
+			Columns: []string{workorder.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
 				},
 			},
 		}
