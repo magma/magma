@@ -14,14 +14,14 @@ def ds():
     return ds
 
 
-def test_hero_name_query(ds):
-    query = """
-hero {
-  name
-}
-    """.strip()
-    query_dsl = ds.Query.hero.select(ds.Character.name)
-    assert query == str(query_dsl)
+# def test_hero_name_query(ds):
+#     query = """
+# hero {
+#   name
+# }
+#     """.strip()
+#     query_dsl = ds.Query.hero.select(ds.Character.name)
+#     assert query == str(query_dsl)
 
 
 def test_hero_name_and_friends_query(ds):
