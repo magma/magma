@@ -78,7 +78,7 @@ func TestAssignCanEditWOWithOwnerAndDelete(t *testing.T) {
 	require.True(t, errors.Is(err, privacy.Deny))
 }
 
-func TestOwnerCanEditWO(t *testing.T) {
+func TestOwnerCanEditWOButNotDelete(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	_, workOrder := prepareWorkOrderData(ctx, c)
@@ -106,7 +106,7 @@ func TestOwnerCanEditWO(t *testing.T) {
 		viewertest.WithPermissions(authz.EmptyPermissions()))
 	err = c.WorkOrder.DeleteOne(workOrder).
 		Exec(ctx)
-	require.NoError(t, err)
+	require.Error(t, err)
 }
 
 func TestWorkOrderWritePolicyRule(t *testing.T) {

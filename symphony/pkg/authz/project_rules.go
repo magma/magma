@@ -146,6 +146,9 @@ func ProjectWritePolicyRule() privacy.MutationRule {
 // AllowProjectCreatorWrite grants write permission if user is creator of project
 func AllowProjectCreatorWrite() privacy.MutationRule {
 	return privacy.ProjectMutationRuleFunc(func(ctx context.Context, m *ent.ProjectMutation) error {
+		if m.Op().Is(ent.OpDeleteOne) {
+			return privacy.Skip
+		}
 		projectID, exists := m.ID()
 		if !exists {
 			return privacy.Skip

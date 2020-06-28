@@ -179,6 +179,9 @@ func isOwnerChanged(ctx context.Context, m *ent.WorkOrderMutation) (bool, error)
 // AllowWorkOrderOwnerOrAssigneeWrite grants write permission if user is owner or assignee of workorder
 func AllowWorkOrderOwnerOrAssigneeWrite() privacy.MutationRule {
 	return privacy.WorkOrderMutationRuleFunc(func(ctx context.Context, m *ent.WorkOrderMutation) error {
+		if m.Op().Is(ent.OpDeleteOne) {
+			return privacy.Skip
+		}
 		workOrderID, exists := m.ID()
 		if !exists {
 			return privacy.Skip
@@ -210,7 +213,7 @@ func AllowWorkOrderOwnerOrAssigneeWrite() privacy.MutationRule {
 		if err != nil {
 			return privacy.Denyf(err.Error())
 		}
-		if isAssignee && !m.Op().Is(ent.OpDeleteOne) && !ownerChanged {
+		if isAssignee && !ownerChanged {
 			return privacy.Allow
 		}
 		return privacy.Skip
