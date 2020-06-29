@@ -104,6 +104,8 @@ type Tx struct {
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
 	WorkOrderDefinition *WorkOrderDefinitionClient
+	// WorkOrderTemplate is the client for interacting with the WorkOrderTemplate builders.
+	WorkOrderTemplate *WorkOrderTemplateClient
 	// WorkOrderType is the client for interacting with the WorkOrderType builders.
 	WorkOrderType *WorkOrderTypeClient
 
@@ -207,6 +209,7 @@ func (tx *Tx) init() {
 	tx.UsersGroup = NewUsersGroupClient(tx.config)
 	tx.WorkOrder = NewWorkOrderClient(tx.config)
 	tx.WorkOrderDefinition = NewWorkOrderDefinitionClient(tx.config)
+	tx.WorkOrderTemplate = NewWorkOrderTemplateClient(tx.config)
 	tx.WorkOrderType = NewWorkOrderTypeClient(tx.config)
 }
 

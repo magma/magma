@@ -569,6 +569,34 @@ func HasWorkOrderTypeWith(preds ...predicate.WorkOrderType) predicate.CheckListC
 	})
 }
 
+// HasWorkOrderTemplate applies the HasEdge predicate on the "work_order_template" edge.
+func HasWorkOrderTemplate() predicate.CheckListCategoryDefinition {
+	return predicate.CheckListCategoryDefinition(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTemplateTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTemplateTable, WorkOrderTemplateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrderTemplateWith applies the HasEdge predicate on the "work_order_template" edge with a given conditions (other predicates).
+func HasWorkOrderTemplateWith(preds ...predicate.WorkOrderTemplate) predicate.CheckListCategoryDefinition {
+	return predicate.CheckListCategoryDefinition(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTemplateInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTemplateTable, WorkOrderTemplateColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups list of predicates with the AND operator between them.
 func And(predicates ...predicate.CheckListCategoryDefinition) predicate.CheckListCategoryDefinition {
 	return predicate.CheckListCategoryDefinition(func(s *sql.Selector) {

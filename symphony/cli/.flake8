@@ -108,6 +108,7 @@ ignore =
   # W606,  # ‘async’ and ‘await’ are reserved keywords starting with Python 3.7
 
 
+exclude=*/graphql/*
 # We should've silenced all of Flake8's line-length related lints, in favor of
 # Black. However, let's just set this to a large value just to be safe, in case
 # we accidentally left in a line-length related lint rule. If we don't set

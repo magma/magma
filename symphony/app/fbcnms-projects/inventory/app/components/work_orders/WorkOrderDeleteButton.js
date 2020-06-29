@@ -40,7 +40,7 @@ type Props = {
   className?: string,
   workOrderId: string,
   workOrderTypeId: string,
-  ignorePermissions: boolean,
+  ignorePermissions?: ?boolean,
   onWorkOrderRemoved: () => void,
 } & WithStyles<typeof styles> &
   WithAlert &

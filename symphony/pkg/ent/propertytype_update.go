@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -524,6 +525,25 @@ func (ptu *PropertyTypeUpdate) SetWorkOrderType(w *WorkOrderType) *PropertyTypeU
 	return ptu.SetWorkOrderTypeID(w.ID)
 }
 
+// SetWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id.
+func (ptu *PropertyTypeUpdate) SetWorkOrderTemplateID(id int) *PropertyTypeUpdate {
+	ptu.mutation.SetWorkOrderTemplateID(id)
+	return ptu
+}
+
+// SetNillableWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id if the given value is not nil.
+func (ptu *PropertyTypeUpdate) SetNillableWorkOrderTemplateID(id *int) *PropertyTypeUpdate {
+	if id != nil {
+		ptu = ptu.SetWorkOrderTemplateID(*id)
+	}
+	return ptu
+}
+
+// SetWorkOrderTemplate sets the work_order_template edge to WorkOrderTemplate.
+func (ptu *PropertyTypeUpdate) SetWorkOrderTemplate(w *WorkOrderTemplate) *PropertyTypeUpdate {
+	return ptu.SetWorkOrderTemplateID(w.ID)
+}
+
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (ptu *PropertyTypeUpdate) SetProjectTypeID(id int) *PropertyTypeUpdate {
 	ptu.mutation.SetProjectTypeID(id)
@@ -591,6 +611,12 @@ func (ptu *PropertyTypeUpdate) ClearServiceType() *PropertyTypeUpdate {
 // ClearWorkOrderType clears the work_order_type edge to WorkOrderType.
 func (ptu *PropertyTypeUpdate) ClearWorkOrderType() *PropertyTypeUpdate {
 	ptu.mutation.ClearWorkOrderType()
+	return ptu
+}
+
+// ClearWorkOrderTemplate clears the work_order_template edge to WorkOrderTemplate.
+func (ptu *PropertyTypeUpdate) ClearWorkOrderTemplate() *PropertyTypeUpdate {
+	ptu.mutation.ClearWorkOrderTemplate()
 	return ptu
 }
 
@@ -1176,6 +1202,41 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ptu.mutation.WorkOrderTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   propertytype.WorkOrderTemplateTable,
+			Columns: []string{propertytype.WorkOrderTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ptu.mutation.WorkOrderTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   propertytype.WorkOrderTemplateTable,
+			Columns: []string{propertytype.WorkOrderTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if ptu.mutation.ProjectTypeCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -1715,6 +1776,25 @@ func (ptuo *PropertyTypeUpdateOne) SetWorkOrderType(w *WorkOrderType) *PropertyT
 	return ptuo.SetWorkOrderTypeID(w.ID)
 }
 
+// SetWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id.
+func (ptuo *PropertyTypeUpdateOne) SetWorkOrderTemplateID(id int) *PropertyTypeUpdateOne {
+	ptuo.mutation.SetWorkOrderTemplateID(id)
+	return ptuo
+}
+
+// SetNillableWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id if the given value is not nil.
+func (ptuo *PropertyTypeUpdateOne) SetNillableWorkOrderTemplateID(id *int) *PropertyTypeUpdateOne {
+	if id != nil {
+		ptuo = ptuo.SetWorkOrderTemplateID(*id)
+	}
+	return ptuo
+}
+
+// SetWorkOrderTemplate sets the work_order_template edge to WorkOrderTemplate.
+func (ptuo *PropertyTypeUpdateOne) SetWorkOrderTemplate(w *WorkOrderTemplate) *PropertyTypeUpdateOne {
+	return ptuo.SetWorkOrderTemplateID(w.ID)
+}
+
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (ptuo *PropertyTypeUpdateOne) SetProjectTypeID(id int) *PropertyTypeUpdateOne {
 	ptuo.mutation.SetProjectTypeID(id)
@@ -1782,6 +1862,12 @@ func (ptuo *PropertyTypeUpdateOne) ClearServiceType() *PropertyTypeUpdateOne {
 // ClearWorkOrderType clears the work_order_type edge to WorkOrderType.
 func (ptuo *PropertyTypeUpdateOne) ClearWorkOrderType() *PropertyTypeUpdateOne {
 	ptuo.mutation.ClearWorkOrderType()
+	return ptuo
+}
+
+// ClearWorkOrderTemplate clears the work_order_template edge to WorkOrderTemplate.
+func (ptuo *PropertyTypeUpdateOne) ClearWorkOrderTemplate() *PropertyTypeUpdateOne {
+	ptuo.mutation.ClearWorkOrderTemplate()
 	return ptuo
 }
 
@@ -2357,6 +2443,41 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ptuo.mutation.WorkOrderTemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   propertytype.WorkOrderTemplateTable,
+			Columns: []string{propertytype.WorkOrderTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ptuo.mutation.WorkOrderTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   propertytype.WorkOrderTemplateTable,
+			Columns: []string{propertytype.WorkOrderTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
 				},
 			},
 		}

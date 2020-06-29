@@ -355,15 +355,15 @@ TEST_F(SessionStateTest, test_insert_credit) {
   receive_credit_from_ocs(1, 1024);
   EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL),
             1024);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-                .buckets[ALLOWED_TOTAL],
+  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)].
+            credit.buckets[ALLOWED_TOTAL],
             1024);
 
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
             1024);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],
+  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"].
+            credit.buckets[ALLOWED_TOTAL],
             1024);
 }
 
@@ -419,14 +419,14 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
   receive_credit_from_ocs(2, 6000);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 2);
   EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-                .buckets[ALLOWED_TOTAL],
+            .credit.buckets[ALLOWED_TOTAL],
             3000);
 
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   receive_credit_from_pcrf("m2", 6000, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(update_criteria.monitor_credit_to_install.size(), 2);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],
+            .credit.buckets[ALLOWED_TOTAL],
             3000);
 
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
@@ -483,7 +483,7 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
   receive_credit_from_ocs(3, 8000);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 2);
   EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(2)]
-                .buckets[ALLOWED_TOTAL],
+            .credit.buckets[ALLOWED_TOTAL],
             6000);
 
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
@@ -663,7 +663,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
   EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL),
             1024);
   EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-                .buckets[ALLOWED_TOTAL],
+                .credit.buckets[ALLOWED_TOTAL],
             1024);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
                 .credit.buckets[ALLOWED_TOTAL],

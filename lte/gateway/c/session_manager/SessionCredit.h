@@ -215,16 +215,18 @@ public:
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
 private:
-  CreditType credit_type_;
-  ReAuthState reauth_state_;
-  ServiceState service_state_;
   uint64_t buckets_[MAX_VALUES];
   bool reporting_;
   CreditLimitType credit_limit_type_;
-  bool is_final_grant_;
   GrantTrackingType grant_tracking_type_;
-  FinalActionInfo final_action_info_;
-  std::time_t expiry_time_;
+
+  CreditType credit_type_; // TODO remove
+
+  ReAuthState reauth_state_; // TODO move to ChargingGrant
+  ServiceState service_state_; // TODO move to ChargingGrant
+  bool is_final_grant_; // TODO move to ChargingGrant
+  FinalActionInfo final_action_info_; // TODO move to ChargingGrant
+  std::time_t expiry_time_; // TODO move to ChargingGrant
 
 private:
   void log_quota_and_usage() const;

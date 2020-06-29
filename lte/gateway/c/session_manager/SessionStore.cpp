@@ -274,7 +274,7 @@ bool SessionStore::merge_into_session(
     auto key           = it.first;
     auto stored_credit = it.second;
     session->set_charging_credit(
-        key, SessionCredit::unmarshal(stored_credit, CHARGING), _);
+        key, ChargingGrant::unmarshal(stored_credit), _);
   }
 
   // Monitoring credit
