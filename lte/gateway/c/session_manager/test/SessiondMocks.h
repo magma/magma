@@ -62,7 +62,7 @@ public:
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _))
       .WillByDefault(Return(true));
-    ON_CALL(*this, activate_flows_for_rules(_, _, _, _))
+    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
@@ -97,13 +97,14 @@ public:
       const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD4(
+  MOCK_METHOD5(
     activate_flows_for_rules,
     bool(
       const std::string& imsi,
       const std::string& ip_addr,
       const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules));
+      const std::vector<PolicyRule>& dynamic_rules,
+      std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
     add_ue_mac_flow,
     bool(
