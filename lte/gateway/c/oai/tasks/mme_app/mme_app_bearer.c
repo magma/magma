@@ -1246,10 +1246,9 @@ int mme_app_handle_create_sess_resp(
   }
   if (!nas_pdn_cs_respose_success.pdn_addr) {
     OAILOG_ERROR_UE(
-        LOG_MME_APP,
-        ue_context_p->emm_context._imsi64,
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Error in converting PAA to bstring\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);  
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   nas_pdn_cs_respose_success.pdn_type = create_sess_resp_pP->paa.pdn_type;
 

@@ -202,37 +202,30 @@ void handle_s5_create_session_request(
       // implement different logic between the PDN types.
       if (!pco_ids.ci_ipv4_address_allocation_via_dhcpv4) {
         pgw_handle_allocate_ipv4_address(
-          imsi,
-          apn,
-          &inaddr,
-          sgi_create_endpoint_resp,
-          "ipv4",
-          spgw_state,
-          new_bearer_ctxt_info_p,
-          s5_response);
+            imsi, apn, &inaddr, sgi_create_endpoint_resp, "ipv4", spgw_state,
+            new_bearer_ctxt_info_p, s5_response);
       }
       break;
 
     case IPv6:
       pgw_handle_allocate_ipv6_address(
-          imsi, apn, &in6addr, sgi_create_endpoint_resp, "ipv6",
-          spgw_state, new_bearer_ctxt_info_p, s5_response,
+          imsi, apn, &in6addr, sgi_create_endpoint_resp, "ipv6", spgw_state,
+          new_bearer_ctxt_info_p, s5_response,
           spgw_config.pgw_config.ipv6.ipv6_address_prefix,
           spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
- 
       break;
 
     case IPv4_AND_v6:
       pgw_handle_allocate_ipv4v6_address(
           imsi, apn, &inaddr, &in6addr, sgi_create_endpoint_resp, "ipv4v6",
-          spgw_state, new_bearer_ctxt_info_p,
-          s5_response, spgw_config.pgw_config.ipv6.ipv6_address_prefix,
+          spgw_state, new_bearer_ctxt_info_p, s5_response,
+          spgw_config.pgw_config.ipv6.ipv6_address_prefix,
           spgw_config.pgw_config.ipv6.ipv6_address_prefix_len);
       break;
 
     default:
       AssertFatal(
-        0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
+          0, "BAD paa.pdn_type %d", sgi_create_endpoint_resp.paa.pdn_type);
       break;
   }
 }

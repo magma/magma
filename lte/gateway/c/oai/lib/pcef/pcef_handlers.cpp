@@ -57,13 +57,14 @@ static void create_session_response(
   s5_response.failure_cause = S5_OK;
 
   if (!status.ok()) {
-    if ((sgi_response.paa.pdn_type == IPv4) || (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
-      release_ipv4_address(imsi.c_str(), apn.c_str(),
-                         &sgi_response.paa.ipv4_address);
+    if ((sgi_response.paa.pdn_type == IPv4) ||
+        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv4_address(
+          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv4_address);
     }
     if (sgi_response.paa.pdn_type == IPv6) {
-      release_ipv6_address(imsi.c_str(), apn.c_str(),
-                         &sgi_response.paa.ipv6_address);
+      release_ipv6_address(
+          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv6_address);
     }
     s5_response.failure_cause = PCEF_FAILURE;
   }

@@ -278,17 +278,16 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
   // PDN selection here
   // Because NAS knows APN selected by UE if any
   // default APN selection
-  struct apn_configuration_s* apn_config = mme_app_select_apn(
-      ue_mm_context, &esm_cause);
+  struct apn_configuration_s* apn_config =
+      mme_app_select_apn(ue_mm_context, &esm_cause);
 
   if (!apn_config) {
     /*
      * Unfortunately we didn't find our default APN...
      */
     OAILOG_ERROR(
-      LOG_NAS_ESM,
-      "No suitable APN found ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-      ue_mm_context->mme_ue_s1ap_id);
+        LOG_NAS_ESM, "No suitable APN found ue_id=" MME_UE_S1AP_ID_FMT ")\n",
+        ue_mm_context->mme_ue_s1ap_id);
     /*
      * If there is a mismatch between the APN sent by UE and the APN
      * provided by HSS or if we fail to select the APN provided
@@ -534,7 +533,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
   memset(&esm_msg, 0, sizeof(ESM_msg));
 
   is_standalone = emm_ctx->esm_ctx.is_standalone;
-  /* msg_pP->pdn_type enum is as per 29.272( S6a spec).Convert the PDN type 
+  /* msg_pP->pdn_type enum is as per 29.272( S6a spec).Convert the PDN type
    * to be aligned to 3gpp 24.301 before sending the NAS message to UE
    */
   switch (msg_pP->pdn_type) {
@@ -587,8 +586,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
    * Return default EPS bearer context request message
    */
   rc = esm_send_activate_default_eps_bearer_context_request(
-      msg_pP->pti,
-      msg_pP->ebi,
+      msg_pP->pti, msg_pP->ebi,
       &esm_msg.activate_default_eps_bearer_context_request,
       ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed, &msg_pP->pco,
       esm_pdn_type, msg_pP->pdn_addr, &qos,

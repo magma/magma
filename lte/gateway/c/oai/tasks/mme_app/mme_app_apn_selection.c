@@ -121,8 +121,10 @@ struct apn_configuration_s* mme_app_select_apn(
   int index;
   int rc = RETURNok;
 
-  const_bstring const ue_selected_apn = ue_context->emm_context.esm_ctx.esm_proc_data->apn;
-  esm_proc_pdn_type_t ue_selected_pdn_type = ue_context->emm_context.esm_ctx.esm_proc_data->pdn_type;
+  const_bstring const ue_selected_apn =
+      ue_context->emm_context.esm_ctx.esm_proc_data->apn;
+  esm_proc_pdn_type_t ue_selected_pdn_type =
+      ue_context->emm_context.esm_ctx.esm_proc_data->pdn_type;
 
   for (index = 0; index < ue_context->apn_config_profile.nb_apns; index++) {
     if (!ue_selected_apn) {

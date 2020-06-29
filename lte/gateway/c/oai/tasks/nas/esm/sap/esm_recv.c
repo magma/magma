@@ -308,10 +308,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
   if (is_standalone) {
     ue_mm_context_t* ue_mm_context_p =
-      mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
-    //Select APN
-    struct apn_configuration_s* apn_config = mme_app_select_apn(
-        ue_mm_context_p, &esm_cause);
+        mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+    // Select APN
+    struct apn_configuration_s* apn_config =
+        mme_app_select_apn(ue_mm_context_p, &esm_cause);
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */
