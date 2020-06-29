@@ -40,7 +40,7 @@ func init() {
 		flag.CommandLine.SetOutput(origOut)
 	}
 	// Check if the process needs to redirect stderr to syslog
-	if flag.Lookup(syslogFlag) != nil {
+	if f := flag.Lookup(syslogFlag); f != nil && len(f.Value.String()) > 3 {
 		if err := redirectToSyslog(); err != nil {
 			// Cannot use glog here, it should not be initialized yet
 			fmt.Fprintf(os.Stderr, "ERROR redirecting to syslog: %v\n", err)
