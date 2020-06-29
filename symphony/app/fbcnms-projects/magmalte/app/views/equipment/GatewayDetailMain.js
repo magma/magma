@@ -111,7 +111,7 @@ export function GatewayDetail({
 
       <AppBar position="static" color="default" className={classes.tabBar}>
         <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={6}>
+          <Grid item xs={8}>
             <Tabs
               value={tabPos}
               onChange={(_, v) => setTabPos(v)}
@@ -158,7 +158,7 @@ export function GatewayDetail({
           </Grid>
           <Grid
             item
-            xs={6}
+            xs={4}
             direction="row"
             justify="flex-end"
             alignItems="center">
@@ -198,27 +198,29 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
-        <Grid item xs={12}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6} alignItems="center">
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction="column">
+            <Grid item xs={12} alignItems="center">
               <CardTitleRow icon={CellWifiIcon} label={gatewayId} />
               <GatewaySummary gwInfo={gwInfo} />
             </Grid>
-            <Grid item xs={12} md={6} alignItems="center">
+            <Grid item xs={12} alignItems="center">
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <Paper className={classes.paper} elevation={0}>
                 <Text variant="body2">Event Information</Text>
               </Paper>
             </Grid>
           </Grid>
-          <Grid container spacing={3} alignItems="stretch" item xs={6}>
-            <Grid item xs={12}>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction="column">
+            <Grid item>
               <CardTitleRow icon={GraphicEqIcon} label="Status" />
               <Paper elevation={0}>
                 <GatewayDetailStatus gwInfo={gwInfo} />
               </Paper>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item>
               <CardTitleRow
                 icon={SettingsInputAntennaIcon}
                 label="Connected eNodeBs"
@@ -227,7 +229,7 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
                 <Text variant="body2">Connected eNodeB Information</Text>
               </Paper>
             </Grid>
-            <Grid item xs={12}>
+            <Grid item>
               <CardTitleRow icon={PeopleIcon} label="Subscribers" />
               <Paper className={classes.paper} elevation={0}>
                 <Text variant="body2">Subscribers data</Text>
