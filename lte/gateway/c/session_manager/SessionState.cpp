@@ -16,14 +16,13 @@
 #include <google/protobuf/util/time_util.h>
 
 #include "CreditKey.h"
+#include "EnumToString.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
 #include "magma_logging.h"
 
 namespace magma {
-
-std::string session_fsm_state_to_str(SessionFsmState state);
 
 std::unique_ptr<SessionState> SessionState::unmarshal(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store) {
@@ -92,31 +91,32 @@ StoredSessionState SessionState::marshal() {
 
 SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
-    : request_number_(marshaled.request_number),
-      curr_state_(marshaled.fsm_state),
-      config_(marshaled.config),
-      imsi_(marshaled.imsi),
+    : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
       core_session_id_(marshaled.core_session_id),
+      request_number_(marshaled.request_number),
+      curr_state_(marshaled.fsm_state),
+      config_(marshaled.config),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
-      credit_map_(4, &ccHash, &ccEqual),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
-      revalidation_time_(marshaled.revalidation_time) {
+      revalidation_time_(marshaled.revalidation_time),
+      credit_map_(4, &ccHash, &ccEqual) {
 
   session_level_key_ =
       std::make_unique<std::string>(marshaled.session_level_key);
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
-    monitor.credit = *SessionCredit::unmarshal(it.second.credit, MONITORING);
+    monitor.credit = SessionCredit::unmarshal(it.second.credit, MONITORING);
     monitor.level = it.second.level;
 
     monitor_map_[it.first] = std::make_unique<Monitor>(monitor);
   }
 
   for (const auto &it : marshaled.credit_map) {
-    credit_map_[it.first] = SessionCredit::unmarshal(it.second, CHARGING);
+    credit_map_[it.first] =
+      std::make_unique<ChargingGrant>(ChargingGrant::unmarshal(it.second));
   }
 
   for (const std::string& rule_id : marshaled.static_rule_ids) {
@@ -147,21 +147,13 @@ SessionState::SessionState(
     : imsi_(imsi),
       session_id_(session_id),
       core_session_id_(core_session_id),
-      config_(cfg),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
-      credit_map_(4, &ccHash, &ccEqual),
+      config_(cfg),
       tgpp_context_(tgpp_context),
-      static_rules_(rule_store) {}
-
-std::unique_ptr<Monitor>
-SessionState::unmarshal_monitor(const StoredMonitor &marshaled) {
-  Monitor monitor;
-  monitor.credit = *SessionCredit::unmarshal(marshaled.credit, MONITORING);
-  monitor.level = marshaled.level;
-  return std::make_unique<Monitor>(monitor);
-}
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual) {}
 
 static CreditUsage
 get_usage_proto_from_struct(const SessionCredit::Usage &usage_in,
@@ -190,23 +182,6 @@ convert_update_type_to_proto(CreditUpdateType update_type) {
   }
 }
 
-static uint64_t get_granted_units(const CreditUnit &unit,
-                                  uint64_t default_val) {
-  return unit.is_valid() ? unit.volume() : default_val;
-}
-
-static FinalActionInfo get_final_action_info(const ChargingCredit &credit) {
-  FinalActionInfo final_action_info;
-  if (credit.is_final()) {
-    final_action_info.final_action = credit.final_action();
-    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = credit.redirect_server();
-    }
-  }
-
-  return final_action_info;
-}
-
 static UsageMonitorUpdate make_usage_monitor_update(
   const SessionCredit::Usage &usage_in, const std::string &monitoring_key,
   MonitoringLevel level) {
@@ -233,7 +208,7 @@ void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
 SessionCreditUpdateCriteria* SessionState::get_credit_uc(
   const CreditKey &key, SessionStateUpdateCriteria &uc) {
   if (uc.charging_credit_map.find(key) == uc.charging_credit_map.end()) {
-    uc.charging_credit_map[key] = credit_map_[key]->get_update_criteria();
+    uc.charging_credit_map[key] = credit_map_[key]->credit.get_update_criteria();
   }
   return &(uc.charging_credit_map[key]);
 }
@@ -255,7 +230,7 @@ void SessionState::add_rule_usage(
     auto it = credit_map_.find(charging_key);
     if (it != credit_map_.end()) {
        auto credit_uc = get_credit_uc(charging_key, update_criteria);
-       it->second->add_used_credit(used_tx, used_rx, *credit_uc);
+       it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
     }
   }
   std::string monitoring_key;
@@ -428,7 +403,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   auto credit_uc = get_credit_uc(credit_pair.first, update_criteria);
   req.mutable_credit_usages()->Add()->CopyFrom(
       get_usage_proto_from_struct(
-          credit_pair.second->get_all_unreported_usage_for_reporting(
+          credit_pair.second->credit.get_all_unreported_usage_for_reporting(
               *credit_uc),
           CreditUsage::TERMINATED, credit_pair.first));
   }
@@ -478,8 +453,8 @@ SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
   for (auto charging_key : used_charging_keys) {
     auto it = credit_map_.find(charging_key);
     if (it != credit_map_.end()) {
-      usage.charging_tx += it->second->get_credit(USED_TX);
-      usage.charging_rx += it->second->get_credit(USED_RX);
+      usage.charging_tx += it->second->credit.get_credit(USED_TX);
+      usage.charging_rx += it->second->credit.get_credit(USED_RX);
     }
   }
   return usage;
@@ -655,7 +630,6 @@ bool SessionState::deactivate_scheduled_static_rule(
 
 void SessionState::sync_rules_to_time(
     std::time_t current_time, SessionStateUpdateCriteria& update_criteria) {
-  PolicyRule _rule_unused;
   // Update active static rules
   for (const std::string& rule_id : active_static_rules_) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
@@ -677,16 +651,17 @@ void SessionState::sync_rules_to_time(
   dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_dynamic_rule(rule_id, &_rule_unused, update_criteria);
+      remove_dynamic_rule(rule_id, NULL, update_criteria);
     }
   }
   // Update scheduled dynamic rules
+  dynamic_rule_ids.clear();
   scheduled_dynamic_rules_.get_rule_ids(dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
       install_scheduled_dynamic_rule(rule_id, update_criteria);
     } else if (should_rule_be_deactivated(rule_id, current_time)) {
-      remove_scheduled_dynamic_rule(rule_id, &_rule_unused, update_criteria);
+      remove_scheduled_dynamic_rule(rule_id, NULL, update_criteria);
     }
   }
 }
@@ -795,25 +770,6 @@ void SessionState::set_fsm_state(SessionFsmState new_state,
   }
 }
 
-std::string session_fsm_state_to_str(SessionFsmState state) {
-  switch (state) {
-  case SESSION_ACTIVE:
-    return "SESSION_ACTIVE";
-  case SESSION_TERMINATING_FLOW_ACTIVE:
-    return "SESSION_TERMINATING_FLOW_ACTIVE";
-  case SESSION_TERMINATING_AGGREGATING_STATS:
-    return "SESSION_TERMINATING_AGGREGATING_STATS";
-  case SESSION_TERMINATING_FLOW_DELETED:
-    return "SESSION_TERMINATING_FLOW_DELETED";
-  case SESSION_TERMINATED:
-    return "SESSION_TERMINATED";
-  case SESSION_TERMINATION_SCHEDULED:
-    return "SESSION_TERMINATION_SCHEDULED";
-  default:
-    return "INVALID SESSION FSM STATE";
-  }
-}
-
 bool SessionState::should_rule_be_active(
     const std::string& rule_id, std::time_t time) {
   auto lifetime = rule_lifetimes_[rule_id];
@@ -850,6 +806,18 @@ DynamicRuleInstall SessionState::get_dynamic_rule_install(
 }
 
 // Charging Credits
+static FinalActionInfo get_final_action_info(
+  const magma::lte::ChargingCredit &credit) {
+  FinalActionInfo final_action_info;
+  if (credit.is_final()) {
+    final_action_info.final_action = credit.final_action();
+    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
+      final_action_info.redirect_server = credit.redirect_server();
+    }
+  }
+  return final_action_info;
+}
+
 bool SessionState::reset_reporting_charging_credit(
     const CreditKey &key, SessionStateUpdateCriteria &update_criteria) {
   auto it = credit_map_.find(key);
@@ -859,22 +827,8 @@ bool SessionState::reset_reporting_charging_credit(
     return false;
   }
   auto credit_uc = get_credit_uc(key, update_criteria);
-  it->second->reset_reporting_credit(*credit_uc);
+  it->second->credit.reset_reporting_credit(*credit_uc);
   return true;
-}
-
-static void receive_charging_credit_with_default(
-    SessionCredit &credit, const GrantedUnits &gsu, uint64_t default_volume,
-    const ChargingCredit &charging_credit,
-    SessionCreditUpdateCriteria &update_criteria) {
-  uint64_t total = get_granted_units(gsu.total(), default_volume);
-  uint64_t tx = get_granted_units(gsu.tx(), default_volume);
-  uint64_t rx = get_granted_units(gsu.rx(), default_volume);
-
-  credit.receive_credit(total, tx, rx, charging_credit.validity_time(),
-                        charging_credit.is_final(),
-                        get_final_action_info(charging_credit),
-                        update_criteria);
 }
 
 bool SessionState::receive_charging_credit(
@@ -885,11 +839,12 @@ bool SessionState::receive_charging_credit(
     // new credit
     return init_charging_credit(update, update_criteria);
   }
+  auto& grant = it->second;
   auto credit_uc = get_credit_uc(CreditKey(update), update_criteria);
   if (!update.success()) {
     // update unsuccessful, reset credit and return
     MLOG(MDEBUG) << "Rececive_Credit_Update: Unsuccessfull";
-    it->second->mark_failure(update.result_code(), *credit_uc);
+    grant->credit.mark_failure(update.result_code(), *credit_uc);
     return false;
   }
   const auto &gsu = update.credit().granted_units();
@@ -898,19 +853,10 @@ bool SessionState::receive_charging_credit(
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " rating group "
                << update.charging_key();
-  uint64_t default_volume = 0; // default to not increasing credit
-  receive_charging_credit_with_default(*(it->second), gsu, default_volume,
-                                       update.credit(), *credit_uc);
+  grant->credit.receive_credit(
+    gsu, update.credit().validity_time(), update.credit().is_final(),
+    get_final_action_info(update.credit()), *credit_uc);
   return true;
-}
-
-uint64_t SessionState::get_charging_credit(const CreditKey &key,
-                                        Bucket bucket) const {
-  auto it = credit_map_.find(key);
-  if (it == credit_map_.end()) {
-    return 0;
-  }
-  return it->second->get_credit(bucket);
 }
 
 bool SessionState::init_charging_credit(
@@ -924,29 +870,30 @@ bool SessionState::init_charging_credit(
   }
   MLOG(MINFO) << "Initialized a charging credit for imsi " << imsi_
               << " and charging key " << update.charging_key();
-  // unless defined, volume is defined as the maximum possible value
-  // uint64_t default_volume = std::numeric_limits<uint64_t>::max();
-  /*
-   * Setting it to 0 otherwise it will lead to data transfer even if there
-   * in no GSUs present in Gy:CCA-I
-   */
-  uint64_t default_volume = 0;
-  std::unique_ptr<SessionCredit> credit;
-  if (update.limit_type() == CreditUpdateResponse::FINITE) {
-    credit = std::make_unique<SessionCredit>(CreditType::CHARGING);
-  } else {
-    credit = std::make_unique<SessionCredit>(CreditType::CHARGING,
-                                             SERVICE_ENABLED, true);
-  }
+
+  auto charging_grant = std::make_unique<ChargingGrant>();
+  charging_grant->credit =
+    SessionCredit(CreditType::CHARGING, SERVICE_ENABLED, update.limit_type());
+
   SessionCreditUpdateCriteria credit_uc{};
-  receive_charging_credit_with_default(*credit, update.credit().granted_units(),
-                                       default_volume, update.credit(),
-                                       credit_uc);
-  StoredSessionCredit stored_credit = credit->marshal();
+  auto grant = update.credit();
+  charging_grant->credit.receive_credit(
+    grant.granted_units(), grant.validity_time(), grant.is_final(),
+    get_final_action_info(update.credit()), credit_uc);
+
   update_criteria.charging_credit_to_install[CreditKey(update)] =
-      credit->marshal();
-  credit_map_[CreditKey(update)] = std::move(credit);
+    charging_grant->marshal();
+  credit_map_[CreditKey(update)] = std::move(charging_grant);
   return true;
+}
+
+uint64_t SessionState::get_charging_credit(const CreditKey &key,
+                                        Bucket bucket) const {
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    return 0;
+  }
+  return it->second->credit.get_credit(bucket);
 }
 
 ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
@@ -954,21 +901,23 @@ ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
     // if credit is already reporting, don't initiate update
-    if (it->second->is_reporting()) {
+    if (it->second->credit.is_reporting()) {
       return ReAuthResult::UPDATE_NOT_NEEDED;
     }
-    auto uc = it->second->get_update_criteria();
-    it->second->reauth(uc);
+    auto uc = it->second->credit.get_update_criteria();
+    it->second->credit.reauth(uc);
     update_criteria.charging_credit_map[charging_key] = uc;
     return ReAuthResult::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
-  auto credit =
-      std::make_unique<SessionCredit>(CreditType::CHARGING, SERVICE_DISABLED);
+  auto charging_grant = std::make_unique<ChargingGrant>();
+  charging_grant->credit =
+    SessionCredit(CreditType::CHARGING, SERVICE_DISABLED);
   SessionCreditUpdateCriteria _{};
-  credit->reauth(_);
-  update_criteria.charging_credit_to_install[charging_key] = credit->marshal();
-  credit_map_[charging_key] = std::move(credit);
+  charging_grant->credit.reauth(_);
+  update_criteria.charging_credit_to_install[charging_key] =
+    charging_grant->marshal();
+  credit_map_[charging_key] = std::move(charging_grant);
   return ReAuthResult::UPDATE_INITIATED;
 }
 
@@ -977,9 +926,9 @@ SessionState::reauth_all(SessionStateUpdateCriteria &update_criteria) {
   auto res = ReAuthResult::UPDATE_NOT_NEEDED;
   for (auto &credit_pair : credit_map_) {
     // Only update credits that aren't reporting
-    if (!credit_pair.second->is_reporting()) {
-      auto uc = credit_pair.second->get_update_criteria();
-      credit_pair.second->reauth(uc);
+    if (!credit_pair.second->credit.is_reporting()) {
+      auto uc = credit_pair.second->credit.get_update_criteria();
+      credit_pair.second->credit.reauth(uc);
       update_criteria.charging_credit_map[credit_pair.first] = uc;
       res = ReAuthResult::UPDATE_INITIATED;
     }
@@ -993,22 +942,24 @@ void SessionState::merge_charging_credit_update(
   if (it == credit_map_.end()) {
     return;
   }
-  it->second->set_is_final_grant_and_final_action(credit_update.is_final, credit_update.final_action_info, credit_update);
-  it->second->set_reauth(credit_update.reauth_state, credit_update);
-  it->second->set_service_state(credit_update.service_state, credit_update);
-  it->second->set_expiry_time(credit_update.expiry_time, credit_update);
+  auto& credit = it->second->credit;
+  credit.set_is_final_grant_and_final_action(credit_update.is_final, credit_update.final_action_info, credit_update);
+  credit.set_reauth(credit_update.reauth_state, credit_update);
+  credit.set_service_state(credit_update.service_state, credit_update);
+  credit.set_expiry_time(credit_update.expiry_time, credit_update);
+  credit.set_grant_tracking_type(credit_update.grant_tracking_type, credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
-    it->second->add_credit(credit_update.bucket_deltas.find(bucket)->second,
-                           bucket, credit_update);
+    credit.add_credit(
+      credit_update.bucket_deltas.find(bucket)->second, bucket, credit_update);
   }
 }
 
 void SessionState::set_charging_credit(
-    const CreditKey &key, std::unique_ptr<SessionCredit> credit,
-    SessionStateUpdateCriteria &update_criteria) {
-  update_criteria.charging_credit_to_install[key] = credit->marshal();
-  credit_map_[key] = std::move(credit);
+    const CreditKey &key, ChargingGrant charging_grant,
+    SessionStateUpdateCriteria &uc) {
+  credit_map_[key] = std::make_unique<ChargingGrant>(charging_grant);
+  uc.charging_credit_to_install[key] = credit_map_[key]->marshal();
 }
 
 CreditUsageUpdate SessionState::make_credit_usage_update_req(CreditUsage& usage) const {
@@ -1037,15 +988,15 @@ void SessionState::get_charging_updates(
     SessionStateUpdateCriteria& uc) {
   for (auto &credit_pair : credit_map_) {
     auto& key = credit_pair.first;
-    auto& credit = credit_pair.second;
+    auto& grant = credit_pair.second;
     auto credit_uc = get_credit_uc(key, uc);
 
-    auto action_type = credit->get_action(*credit_uc);
+    auto action_type = grant->credit.get_action(*credit_uc);
     auto action = std::make_unique<ServiceAction>(action_type);
     switch (action_type) {
       case CONTINUE_SERVICE:
         {
-          auto update_type = credit->get_update_type();
+          auto update_type = grant->credit.get_update_type();
           if (update_type == CREDIT_NO_UPDATE) {
             break;
           }
@@ -1053,7 +1004,7 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << key << " updating due to type "
                    << update_type;
-          auto usage = credit->get_usage_for_reporting(*credit_uc);
+          auto usage = grant->credit.get_usage_for_reporting(*credit_uc);
           auto p_update_type = convert_update_type_to_proto(update_type);
           auto update = get_usage_proto_from_struct(usage, p_update_type, key);
           auto credit_req = make_credit_usage_update_req(update);
@@ -1067,13 +1018,13 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Redirection already activated.";
           continue;
         }
-        credit->set_service_state(SERVICE_REDIRECTED, *credit_uc);
-        action->set_redirect_server(credit->get_redirect_server());
+        grant->credit.set_service_state(SERVICE_REDIRECTED, *credit_uc);
+        action->set_redirect_server(grant->credit.get_redirect_server());
       case TERMINATE_SERVICE:
       case ACTIVATE_SERVICE:
       case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
-                     << credit_pair.first << " action type " << action_type;
+                     << key << " action type " << action_type;
         action->set_credit_key(key);
         action->set_imsi(imsi_);
         action->set_ip_addr(config_.ue_ipv4);
@@ -1088,26 +1039,6 @@ void SessionState::get_charging_updates(
 }
 
 // Monitors
-StoredMonitor SessionState::marshal_monitor(std::unique_ptr<Monitor> &monitor) {
-  StoredMonitor marshaled{};
-  marshaled.credit = monitor->credit.marshal();
-  marshaled.level = monitor->level;
-  return marshaled;
-}
-
-static void receive_monitor_with_default(
-    SessionCredit &credit, const GrantedUnits &gsu, uint64_t default_volume,
-    SessionCreditUpdateCriteria &update_criteria) {
-  uint64_t total = get_granted_units(gsu.total(), default_volume);
-  uint64_t tx = get_granted_units(gsu.tx(), default_volume);
-  uint64_t rx = get_granted_units(gsu.rx(), default_volume);
-
-  FinalActionInfo final_action_info;
-
-  credit.receive_credit(total, tx, rx, 0, false, final_action_info,
-                        update_criteria);
-}
-
 bool SessionState::receive_monitor(
     const UsageMonitoringUpdateResponse &update,
     SessionStateUpdateCriteria &update_criteria) {
@@ -1132,10 +1063,9 @@ bool SessionState::receive_monitor(
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " monitoring key "
                << update.credit().monitoring_key();
-  uint64_t default_volume = 0;
-  receive_monitor_with_default(it->second->credit,
-                                         update.credit().granted_units(),
-                                         default_volume, *credit_uc);
+  FinalActionInfo final_action_info;
+  it->second->credit.receive_credit(
+    gsu, 0, false, final_action_info, *credit_uc);
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     monitor_map_.erase(update.credit().monitoring_key());
   }
@@ -1185,7 +1115,7 @@ void SessionState::set_monitor(
   const std::string &key,
   std::unique_ptr<Monitor> monitor,
   SessionStateUpdateCriteria &update_criteria) {
-  update_criteria.monitor_credit_to_install[key] = marshal_monitor(monitor);
+  update_criteria.monitor_credit_to_install[key] = monitor->marshal();
   monitor_map_[key] = std::move(monitor);
 }
 
@@ -1228,13 +1158,13 @@ bool SessionState::init_new_monitor(
   auto monitor = std::make_unique<Monitor>();
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
-  // unless defined, volume is defined as the maximum possible value
-  uint64_t default_volume = std::numeric_limits<uint64_t>::max();
   auto _ = SessionCreditUpdateCriteria{};
-  receive_monitor_with_default(
-      monitor->credit, update.credit().granted_units(), default_volume, _);
+  FinalActionInfo final_action_info;
+  auto gsu = update.credit().granted_units();
+  monitor->credit.receive_credit(gsu, 0, false, final_action_info, _);
+
   update_criteria.monitor_credit_to_install[update.credit().monitoring_key()] =
-      marshal_monitor(monitor);
+      monitor->marshal();
   monitor_map_[update.credit().monitoring_key()] = std::move(monitor);
   return true;
 }
@@ -1318,6 +1248,6 @@ bool SessionState::is_credit_state_redirected(
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->is_service_redirected();
+  return it->second->credit.is_service_redirected();
 }
 }  // namespace magma

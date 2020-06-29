@@ -142,5 +142,8 @@ type WorkOrder func(*sql.Selector)
 // WorkOrderDefinition is the predicate function for workorderdefinition builders.
 type WorkOrderDefinition func(*sql.Selector)
 
+// WorkOrderTemplate is the predicate function for workordertemplate builders.
+type WorkOrderTemplate func(*sql.Selector)
+
 // WorkOrderType is the predicate function for workordertype builders.
 type WorkOrderType func(*sql.Selector)

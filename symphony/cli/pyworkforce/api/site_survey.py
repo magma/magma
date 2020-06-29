@@ -82,8 +82,8 @@ def _extract_form_descriptions(content: Dict[str, Any]) -> Dict[str, str]:
     return form_name_to_description
 
 
-def rpad(l: List[str], char: str, size: int) -> List[str]:
-    return l + [char] * (size - len(l))
+def rpad(_list: List[str], char: str, size: int) -> List[str]:
+    return _list + [char] * (size - len(_list))
 
 
 def adjust_column_and_row_sizes(

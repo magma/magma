@@ -130,7 +130,7 @@ class TestLink(BaseTest):
     def test_get_links(self) -> None:
         links = get_links(client=self.client)
         self.assertEqual(len(links), 1)
-        link = add_link(
+        add_link(
             client=self.client,
             equipment_a=self.equipment2,
             port_name_a="Port 2",

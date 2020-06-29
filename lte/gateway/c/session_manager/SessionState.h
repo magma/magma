@@ -18,17 +18,14 @@
 #include "StoredState.h"
 #include "CreditKey.h"
 #include "SessionCredit.h"
+#include "Monitor.h"
+#include "ChargingGrant.h"
 
 namespace magma {
-typedef std::unordered_map<CreditKey, std::unique_ptr<SessionCredit>,
+typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
                  decltype(&ccHash), decltype(&ccEqual)> CreditMap;
+typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
-struct Monitor {
-  SessionCredit credit;
-  MonitoringLevel level;
-
-  Monitor() : credit(CreditType::MONITORING) {}
-};
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -63,7 +60,6 @@ class SessionState {
 
   StoredSessionState marshal();
 
-  static std::unique_ptr<Monitor> unmarshal_monitor(const StoredMonitor &marshaled);
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
    * specified time.
@@ -164,9 +160,8 @@ class SessionState {
   void merge_charging_credit_update(
     const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
 
-  void set_charging_credit(
-    const CreditKey &key, std::unique_ptr<SessionCredit> credit,
-    SessionStateUpdateCriteria &update_criteria);
+  void set_charging_credit(const CreditKey &key,
+    ChargingGrant charging_grant, SessionStateUpdateCriteria &uc);
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -416,8 +411,7 @@ class SessionState {
   * credit
   */
   CreditMap credit_map_;
-
-  std::unordered_map<std::string, std::unique_ptr<Monitor>> monitor_map_;
+  MonitorMap monitor_map_;
   std::unique_ptr<std::string> session_level_key_;
 
  private:
@@ -478,8 +472,6 @@ class SessionState {
 
   SessionCreditUpdateCriteria* get_monitor_uc(
     const std::string &key, SessionStateUpdateCriteria &uc);
-
-  StoredMonitor marshal_monitor(std::unique_ptr<Monitor> &monitor);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 };

@@ -14,7 +14,6 @@ import PopoverMenu from '../../components/design-system/Select/PopoverMenu';
 import React, {useState} from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -50,7 +49,7 @@ const OPTIONS = [
   },
 ];
 
-const PopoverMenuRoot = () => {
+export const PopoverMenuRoot = () => {
   const classes = useStyles();
   const [options, setOptions] = useState(OPTIONS);
 
@@ -113,6 +112,10 @@ const PopoverMenuRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Popover Menu', () => (
-  <PopoverMenuRoot />
-));
+PopoverMenuRoot.story = {
+  name: 'Popover Menu',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

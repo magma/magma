@@ -212,6 +212,7 @@ class LocationPropertiesCard extends React.Component<Props, State> {
               permissions={{
                 entity: 'location',
                 action: 'update',
+                locationTypeId: location.locationType.id,
               }}>
               <div className={classes.root}>
                 <div className={classes.cardHeader}>

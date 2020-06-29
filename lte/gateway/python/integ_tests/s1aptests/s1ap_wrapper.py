@@ -183,12 +183,14 @@ class TestWrapper(object):
             assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
             response = self._s1_util.get_response()
             assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            # APN configuration below can be overwritten in the test case
+            # after configuring UE device.
+            self.configAPN(
+                "IMSI" + "".join([str(j) for j in reqs[i].imsi]), None
+            )
             self._configuredUes.append(reqs[i])
-        self.check_gw_health_after_ue_load()
 
-    def configAPN(self, imsi, apn_list):
-        """ Configure the APN """
-        self._sub_util.config_apn_data(imsi, apn_list)
+        self.check_gw_health_after_ue_load()
 
     def configUEDevice_ues_same_imsi(self, num_ues):
         """ Configure the device on the UE side with same IMSI and
@@ -201,6 +203,11 @@ class TestWrapper(object):
             assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
             response = self._s1_util.get_response()
             assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            # APN configuration below can be overwritten in the test case
+            # after configuring UE device.
+            self.configAPN(
+                "IMSI" + "".join([str(j) for j in reqs[i].imsi]), None
+            )
             self._configuredUes.append(reqs[i])
         for i in range(num_ues):
             reqs[i].ue_id = 2
@@ -224,7 +231,32 @@ class TestWrapper(object):
             assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
             response = self._s1_util.get_response()
             assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            # APN configuration below can be overwritten in the test case
+            # after configuring UE device.
+            self.configAPN(
+                "IMSI" + "".join([str(j) for j in reqs[i].imsi]), None
+            )
             self._configuredUes.append(reqs[i])
+
+    def configAPN(self, imsi, apn_list, default=True):
+        """ Configure the APN """
+        # add a default APN to be used in attach requests
+        if default:
+            magma_default_apn = {
+                "apn_name": "magma.ipv4",  # APN-name
+                "qci": 9,  # qci
+                "priority": 15,  # priority
+                "pre_cap": 1,  # preemption-capability
+                "pre_vul": 0,  # preemption-vulnerability
+                "mbr_ul": 200000000,  # MBR UL
+                "mbr_dl": 100000000,  # MBR DL
+            }
+            # APN list to be configured
+            if apn_list is not None:
+                apn_list.insert(0, magma_default_apn)
+            else:
+                apn_list = [magma_default_apn]
+        self._sub_util.config_apn_data(imsi, apn_list)
 
     def check_gw_health_after_ue_load(self):
         """ Wait for the MME only after adding entries to HSS """

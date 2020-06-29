@@ -21,12 +21,13 @@ import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import MoreVertIcon from '@material-ui/icons/MoreVert';
+import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from '@fbcnms/ui/components/design-system/Text';
 
+import {CardTitleRow} from './layout/CardTitleRow';
 import {forwardRef} from 'react';
 
 const tableIcons = {
@@ -85,6 +86,7 @@ export type ActionQuery = {
 
 export type ActionTableProps<T> = {
   titleIcon?: ComponentType<SvgIconExports>,
+  tableRef?: {},
   title?: string,
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
@@ -93,10 +95,13 @@ export type ActionTableProps<T> = {
   options: ActionTableOptions,
 };
 
-export default function ActionTable<T>(props: ActionTableProps<T>) {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const actionTableJSX = [];
+export function PaperComponent(props: {}) {
+  return <Paper {...props} elevation={2} />;
+}
 
+export default function ActionTable<T>(props: ActionTableProps<T>) {
+  const actionTableJSX = [];
+  const [anchorEl, setAnchorEl] = useState(null);
   const handleClick = (event, row: T) => {
     setAnchorEl(event.currentTarget);
     if (props.handleCurrRow) {
@@ -107,16 +112,16 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
-      <Text key="title">
-        <TitleIcon /> {props.title} ({props.data.length})
-      </Text>,
+      <CardTitleRow
+        key="title"
+        icon={TitleIcon}
+        label={`${props.title || ''} (${props.data.length})`}
+      />,
     );
   }
-
   if (props.menuItems) {
     const menuItems: Array<ActionMenuItems> = props.menuItems;
     actionTableJSX.push(
@@ -146,6 +151,10 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
     <>
       {actionTableJSX}
       <MaterialTable
+        tableRef={props.tableRef}
+        components={{
+          Container: PaperComponent,
+        }}
         title=""
         columns={props.columns}
         icons={tableIcons}

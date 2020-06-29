@@ -9,7 +9,7 @@
  */
 
 import Admin from './admin/Admin';
-import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import ApplicationMain from './ApplicationMain';
 import ErrorLayout from './main/ErrorLayout';
 import Index, {ROOT_PATHS} from './main/Index';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';

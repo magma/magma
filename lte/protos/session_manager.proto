@@ -315,6 +315,12 @@ message CreditUsageUpdate {
   TgppContext tgpp_ctx = 15;
 }
 
+enum CreditLimitType {
+  FINITE = 0;
+  INFINITE_UNMETERED = 1;
+  INFINITE_METERED = 2;
+}
+
 message CreditUpdateResponse {
   bool success = 1;
   string sid = 2; // System Identification Number
@@ -322,11 +328,6 @@ message CreditUpdateResponse {
   ChargingCredit credit = 4;
   uint32 result_code = 6;
   ServiceIdentifier service_identifier = 7;
-  enum CreditLimitType {
-    FINITE = 0;
-    INFINITE_UNMETERED = 1;
-    INFINITE_METERED = 2;
-  }
   // When this is set to an infinite limit, field 'credit' should be ignored
   CreditLimitType limit_type = 9;
   TgppContext tgpp_ctx = 10;

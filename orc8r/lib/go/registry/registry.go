@@ -99,7 +99,11 @@ func (registry *ServiceRegistry) GetServiceAddress(service string) (string, erro
 
 	location, ok := registry.ServiceLocations[service]
 	if !ok {
-		return "", fmt.Errorf("Service '%s' not registered", service)
+		// uppercase the name and lookup again, local service keys are usually uppercased
+		ucService := strings.ToUpper(service)
+		if location, ok = registry.ServiceLocations[ucService]; !ok {
+			return "", fmt.Errorf("Service '%s|%s' not registered", service, ucService)
+		}
 	}
 	if location.Port == 0 {
 		return "", fmt.Errorf("Service %s is not available", service)

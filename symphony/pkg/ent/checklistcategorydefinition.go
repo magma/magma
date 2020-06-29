@@ -13,6 +13,7 @@ import (
 
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistcategorydefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -31,8 +32,9 @@ type CheckListCategoryDefinition struct {
 	Description string `json:"description,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the CheckListCategoryDefinitionQuery when eager-loading is set.
-	Edges                                           CheckListCategoryDefinitionEdges `json:"edges"`
-	work_order_type_check_list_category_definitions *int
+	Edges                                               CheckListCategoryDefinitionEdges `json:"edges"`
+	work_order_template_check_list_category_definitions *int
+	work_order_type_check_list_category_definitions     *int
 }
 
 // CheckListCategoryDefinitionEdges holds the relations/edges for other nodes in the graph.
@@ -41,9 +43,11 @@ type CheckListCategoryDefinitionEdges struct {
 	CheckListItemDefinitions []*CheckListItemDefinition
 	// WorkOrderType holds the value of the work_order_type edge.
 	WorkOrderType *WorkOrderType
+	// WorkOrderTemplate holds the value of the work_order_template edge.
+	WorkOrderTemplate *WorkOrderTemplate
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // CheckListItemDefinitionsOrErr returns the CheckListItemDefinitions value or an error if the edge
@@ -69,6 +73,20 @@ func (e CheckListCategoryDefinitionEdges) WorkOrderTypeOrErr() (*WorkOrderType, 
 	return nil, &NotLoadedError{edge: "work_order_type"}
 }
 
+// WorkOrderTemplateOrErr returns the WorkOrderTemplate value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e CheckListCategoryDefinitionEdges) WorkOrderTemplateOrErr() (*WorkOrderTemplate, error) {
+	if e.loadedTypes[2] {
+		if e.WorkOrderTemplate == nil {
+			// The edge work_order_template was loaded in eager-loading,
+			// but was not found.
+			return nil, &NotFoundError{label: workordertemplate.Label}
+		}
+		return e.WorkOrderTemplate, nil
+	}
+	return nil, &NotLoadedError{edge: "work_order_template"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*CheckListCategoryDefinition) scanValues() []interface{} {
 	return []interface{}{
@@ -83,6 +101,7 @@ func (*CheckListCategoryDefinition) scanValues() []interface{} {
 // fkValues returns the types for scanning foreign-keys values from sql.Rows.
 func (*CheckListCategoryDefinition) fkValues() []interface{} {
 	return []interface{}{
+		&sql.NullInt64{}, // work_order_template_check_list_category_definitions
 		&sql.NullInt64{}, // work_order_type_check_list_category_definitions
 	}
 }
@@ -122,6 +141,12 @@ func (clcd *CheckListCategoryDefinition) assignValues(values ...interface{}) err
 	values = values[4:]
 	if len(values) == len(checklistcategorydefinition.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
+			return fmt.Errorf("unexpected type %T for edge-field work_order_template_check_list_category_definitions", value)
+		} else if value.Valid {
+			clcd.work_order_template_check_list_category_definitions = new(int)
+			*clcd.work_order_template_check_list_category_definitions = int(value.Int64)
+		}
+		if value, ok := values[1].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field work_order_type_check_list_category_definitions", value)
 		} else if value.Valid {
 			clcd.work_order_type_check_list_category_definitions = new(int)
@@ -139,6 +164,11 @@ func (clcd *CheckListCategoryDefinition) QueryCheckListItemDefinitions() *CheckL
 // QueryWorkOrderType queries the work_order_type edge of the CheckListCategoryDefinition.
 func (clcd *CheckListCategoryDefinition) QueryWorkOrderType() *WorkOrderTypeQuery {
 	return (&CheckListCategoryDefinitionClient{config: clcd.config}).QueryWorkOrderType(clcd)
+}
+
+// QueryWorkOrderTemplate queries the work_order_template edge of the CheckListCategoryDefinition.
+func (clcd *CheckListCategoryDefinition) QueryWorkOrderTemplate() *WorkOrderTemplateQuery {
+	return (&CheckListCategoryDefinitionClient{config: clcd.config}).QueryWorkOrderTemplate(clcd)
 }
 
 // Update returns a builder for updating this CheckListCategoryDefinition.

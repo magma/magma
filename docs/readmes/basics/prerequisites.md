@@ -51,8 +51,8 @@ additional prerequisite tools (replace `brew` with your OS-appropriate package
 manager as necessary):
 
 ```bash
-brew install aws-iam-authenticator boto3 kubernetes-cli kubernetes-helm terraform
-pip3 install awscli
+brew install aws-iam-authenticator kubernetes-cli kubernetes-helm terraform
+pip3 install awscli boto3
 aws configure
 ```
 
@@ -68,7 +68,7 @@ Orchestrator deployment depends on the following components:
 \* See https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7
 to set up a private Github repository as a Helm repository.
 
-We recommend deploying the Orchestrator cloud component of magma into AWS.
+We recommend deploying the Orchestrator cloud component of Magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if
 you are familiar with devops and are willing to roll your own, Orchestrator can
 run on any public/private cloud with a Kubernetes cluster available to use.

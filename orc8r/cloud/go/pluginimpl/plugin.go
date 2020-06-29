@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
-	promeExp "magma/orc8r/cloud/go/services/metricsd/prometheus/exporters"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -85,7 +84,7 @@ func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilde
 }
 
 func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
-	return getMetricsProfiles(metricsConfig)
+	return getMetricsProfiles()
 }
 
 func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
@@ -128,7 +127,7 @@ const (
 	ProfileNameExportAll  = "exportall"
 )
 
-func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
+func getMetricsProfiles() []metricsd.MetricsProfile {
 	// Controller profile - 1 collector for each service
 	services := registry.ListControllerServices()
 
@@ -142,21 +141,18 @@ func getMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfi
 		allCollectors = append(allCollectors, c)
 	}
 
-	prometheusAddresses := metricsConfig.MustGetStrings(metricsd.PrometheusPushAddresses)
-	prometheusCustomPushExporter := promeExp.NewCustomPushExporter(prometheusAddresses)
-
 	// Prometheus profile - Exports all service metric to Prometheus
 	prometheusProfile := metricsd.MetricsProfile{
 		Name:       ProfileNamePrometheus,
 		Collectors: allCollectors,
-		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
+		Exporters:  []exporters.Exporter{exporters.NewRemoteExporter(metricsd.ServiceName)},
 	}
 
 	// ExportAllProfile - Exports to all exporters
 	exportAllProfile := metricsd.MetricsProfile{
 		Name:       ProfileNameExportAll,
 		Collectors: allCollectors,
-		Exporters:  []exporters.Exporter{prometheusCustomPushExporter},
+		Exporters:  []exporters.Exporter{exporters.NewRemoteExporter(metricsd.ServiceName)},
 	}
 
 	return []metricsd.MetricsProfile{

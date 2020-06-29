@@ -143,6 +143,10 @@ func (resolver) WorkOrderType() generated.WorkOrderTypeResolver {
 	return workOrderTypeResolver{}
 }
 
+func (resolver) WorkOrderTemplate() generated.WorkOrderTemplateResolver {
+	return workOrderTemplateResolver{}
+}
+
 func (resolver) WorkOrderDefinition() generated.WorkOrderDefinitionResolver {
 	return workOrderDefinitionResolver{}
 }

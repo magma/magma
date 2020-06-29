@@ -48,8 +48,8 @@ func MakeTestMetricFamily(metricType dto.MetricType, count int, labels []*dto.La
 		metrics = append(metrics, &testMetric)
 	}
 	return &dto.MetricFamily{
-		Name:   MakeStringPointer(familyName),
-		Help:   MakeStringPointer("testFamilyHelp"),
+		Name:   MakeStrPtr(familyName),
+		Help:   MakeStrPtr("testFamilyHelp"),
 		Type:   MakeMetricTypePointer(metricType),
 		Metric: metrics,
 	}
@@ -110,7 +110,7 @@ func MakePromoUntyped(value float64) dto.Metric {
 	return metric
 }
 
-func MakeStringPointer(s string) *string {
+func MakeStrPtr(s string) *string {
 	return &s
 }
 

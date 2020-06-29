@@ -29,6 +29,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -42,6 +43,7 @@ type WorkOrderQuery struct {
 	predicates []predicate.WorkOrder
 	// eager-loading edges.
 	withType                *WorkOrderTypeQuery
+	withTemplate            *WorkOrderTemplateQuery
 	withEquipment           *EquipmentQuery
 	withLinks               *LinkQuery
 	withFiles               *FileQuery
@@ -95,6 +97,24 @@ func (woq *WorkOrderQuery) QueryType() *WorkOrderTypeQuery {
 			sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
 			sqlgraph.To(workordertype.Table, workordertype.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, false, workorder.TypeTable, workorder.TypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryTemplate chains the current query on the template edge.
+func (woq *WorkOrderQuery) QueryTemplate() *WorkOrderTemplateQuery {
+	query := &WorkOrderTemplateQuery{config: woq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := woq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workorder.Table, workorder.FieldID, woq.sqlQuery()),
+			sqlgraph.To(workordertemplate.Table, workordertemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workorder.TemplateTable, workorder.TemplateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(woq.driver.Dialect(), step)
 		return fromU, nil
@@ -508,6 +528,17 @@ func (woq *WorkOrderQuery) WithType(opts ...func(*WorkOrderTypeQuery)) *WorkOrde
 	return woq
 }
 
+//  WithTemplate tells the query-builder to eager-loads the nodes that are connected to
+// the "template" edge. The optional arguments used to configure the query builder of the edge.
+func (woq *WorkOrderQuery) WithTemplate(opts ...func(*WorkOrderTemplateQuery)) *WorkOrderQuery {
+	query := &WorkOrderTemplateQuery{config: woq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	woq.withTemplate = query
+	return woq
+}
+
 //  WithEquipment tells the query-builder to eager-loads the nodes that are connected to
 // the "equipment" edge. The optional arguments used to configure the query builder of the edge.
 func (woq *WorkOrderQuery) WithEquipment(opts ...func(*EquipmentQuery)) *WorkOrderQuery {
@@ -710,8 +741,9 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 		nodes       = []*WorkOrder{}
 		withFKs     = woq.withFKs
 		_spec       = woq.querySpec()
-		loadedTypes = [13]bool{
+		loadedTypes = [14]bool{
 			woq.withType != nil,
+			woq.withTemplate != nil,
 			woq.withEquipment != nil,
 			woq.withLinks != nil,
 			woq.withFiles != nil,
@@ -726,7 +758,7 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			woq.withAssignee != nil,
 		}
 	)
-	if woq.withType != nil || woq.withLocation != nil || woq.withProject != nil || woq.withOwner != nil || woq.withAssignee != nil {
+	if woq.withType != nil || woq.withTemplate != nil || woq.withLocation != nil || woq.withProject != nil || woq.withOwner != nil || woq.withAssignee != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -777,6 +809,31 @@ func (woq *WorkOrderQuery) sqlAll(ctx context.Context) ([]*WorkOrder, error) {
 			}
 			for i := range nodes {
 				nodes[i].Edges.Type = n
+			}
+		}
+	}
+
+	if query := woq.withTemplate; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*WorkOrder)
+		for i := range nodes {
+			if fk := nodes[i].work_order_template; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertemplate.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_template" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.Template = n
 			}
 		}
 	}

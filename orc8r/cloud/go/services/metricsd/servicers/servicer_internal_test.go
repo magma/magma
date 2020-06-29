@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	testLabels = []*prometheusProto.LabelPair{{Name: tests.MakeStringPointer("labelName"), Value: tests.MakeStringPointer("labelValue")}}
+	testLabels = []*prometheusProto.LabelPair{{Name: tests.MakeStrPtr("labelName"), Value: tests.MakeStrPtr("labelValue")}}
 )
 
 func TestPreprocessCloudMetrics(t *testing.T) {

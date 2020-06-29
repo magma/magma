@@ -29,8 +29,7 @@ void create_charging_credit(
   bool is_final,
   ChargingCredit* credit)
 {
-  credit->mutable_granted_units()->mutable_total()->set_volume(volume);
-  credit->mutable_granted_units()->mutable_total()->set_is_valid(true);
+  create_granted_units(&volume, NULL, NULL, credit->mutable_granted_units());
   credit->set_type(ChargingCredit::BYTES);
   credit->set_is_final(is_final);
 }
@@ -214,6 +213,22 @@ void create_policy_rule(
     rule->set_tracking_type(PolicyRule::OCS_AND_PCRF);
   } else {
     rule->set_tracking_type(PolicyRule::NO_TRACKING);
+  }
+}
+
+void create_granted_units(
+  uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu) {
+  if (total != NULL) {
+    gsu->mutable_total()->set_is_valid(true);
+    gsu->mutable_total()->set_volume(*total);
+  }
+  if (tx != NULL) {
+    gsu->mutable_tx()->set_is_valid(true);
+    gsu->mutable_tx()->set_volume(*tx);
+  }
+  if (rx != NULL) {
+    gsu->mutable_rx()->set_is_valid(true);
+    gsu->mutable_rx()->set_volume(*rx);
   }
 }
 

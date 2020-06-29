@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
@@ -465,6 +466,7 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByT
 
 	if !funk.IsEmpty(statesByType) {
 		m.Monitoring = &SubscriberStatus{}
+		m.State = &SubscriberState{}
 	}
 
 	for stateType, stateVal := range statesByType {
@@ -474,6 +476,15 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByT
 			// reported time is unix timestamp in seconds, so divide ms by 1k
 			reportedState.LastReportedTime = int64(stateVal.TimeMs / uint64(time.Second/time.Millisecond))
 			m.Monitoring.Icmp = reportedState
+		case lte.SPGWStateType:
+			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			m.State.Spgw = reportedState
+		case lte.MMEStateType:
+			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			m.State.Mme = reportedState
+		case lte.S1APStateType:
+			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			m.State.S1ap = reportedState
 		default:
 			glog.Errorf("Loaded unrecognized subscriber state type %s", stateType)
 		}

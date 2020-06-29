@@ -52,6 +52,8 @@ const (
 	EdgeServiceType = "service_type"
 	// EdgeWorkOrderType holds the string denoting the work_order_type edge name in mutations.
 	EdgeWorkOrderType = "work_order_type"
+	// EdgeWorkOrderTemplate holds the string denoting the work_order_template edge name in mutations.
+	EdgeWorkOrderTemplate = "work_order_template"
 	// EdgeProjectType holds the string denoting the project_type edge name in mutations.
 	EdgeProjectType = "project_type"
 
@@ -106,6 +108,13 @@ const (
 	WorkOrderTypeInverseTable = "work_order_types"
 	// WorkOrderTypeColumn is the table column denoting the work_order_type relation/edge.
 	WorkOrderTypeColumn = "work_order_type_property_types"
+	// WorkOrderTemplateTable is the table the holds the work_order_template relation/edge.
+	WorkOrderTemplateTable = "property_types"
+	// WorkOrderTemplateInverseTable is the table name for the WorkOrderTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "workordertemplate" package.
+	WorkOrderTemplateInverseTable = "work_order_templates"
+	// WorkOrderTemplateColumn is the table column denoting the work_order_template relation/edge.
+	WorkOrderTemplateColumn = "work_order_template_property_types"
 	// ProjectTypeTable is the table the holds the project_type relation/edge.
 	ProjectTypeTable = "property_types"
 	// ProjectTypeInverseTable is the table name for the ProjectType entity.
@@ -148,6 +157,7 @@ var ForeignKeys = []string{
 	"location_type_property_types",
 	"project_type_properties",
 	"service_type_property_types",
+	"work_order_template_property_types",
 	"work_order_type_property_types",
 }
 

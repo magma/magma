@@ -7,7 +7,7 @@ hide_title: true
 # NMS Multi-Tenancy (Organizations)
 
 We introduced multitenancy support in the Magma LTE NMS starting from v1.1.0.
-Tentants in the Magma NMS are called "Organizations". Each organization owns
+Tenants in the Magma NMS are called "Organizations". Each organization owns
 a subset of the networks provisioned on Orchestrator and the special `master`
 organization administrates organizations in the system.
 
@@ -17,15 +17,21 @@ would access the NMS using `facebook.nms.yourdomain.com`.
 
 ## First-time Setup
 
-When you deploy the nms for the first time, you’ll need to create a user that
+When you deploy the nms for the first time, you'll need to create a user that
 has access to the master organization. Run the command
 
-* Docker:
-    * `docker-compose exec magmalte yarn setAdminPassword master <email> <password>`
-* Kubernetes:
-    * `kubectl exec -it \
-          $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
-          yarn setAdminPassword master <admin user email> <admin user password>`
+- Docker (development environment)
+    ```bash
+    docker-compose exec magmalte yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+    ```
+- Kubernetes (production environment)
+    ```bash
+    export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
+    kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+    ```
+          
+You can then log in to the master organization at `master.nms.yourdomain.com`
+to create additional organizations and users.
           
 ## DNS Resolution
 

@@ -203,6 +203,7 @@ const WorkOrderComparisonView = () => {
         permissions={{
           entity: 'workorder',
           action: 'create',
+          ignoreTypes: true,
         }}>
         <Button onClick={showDialog}>
           <fbt desc="">Create Work Order</fbt>

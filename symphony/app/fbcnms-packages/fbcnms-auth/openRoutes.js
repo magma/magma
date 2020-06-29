@@ -27,4 +27,5 @@ export default [
   /^\/([a-z_-]+\/)?user\/login\/saml\/callback/,
   /^\/([a-z_-]+\/)?user\/logout$/,
   /^\/([a-z_-]+\/)?__webpack_hmr.js/,
+  /^\/authconfig$/,
 ];

@@ -79,13 +79,12 @@ const ToggleButton = (props: ToggleButtonProps) => {
   return (
     <div className={classNames(classes.root, className)}>
       {buttons.map((button, i) => (
-        <>
+        <React.Fragment key={button.id}>
           <div
             className={classNames(classes.button, {
               [classes.iconButton]: typeof button.item !== 'string',
               [classes.selected]: button.id === selectedButtonId,
             })}
-            key={button.id}
             onClick={() => onItemClicked(button.id)}>
             <Text
               className={classes.buttonText}
@@ -95,7 +94,7 @@ const ToggleButton = (props: ToggleButtonProps) => {
             </Text>
           </div>
           {i !== buttons.length - 1 && <div className={classes.separator} />}
-        </>
+        </React.Fragment>
       ))}
     </div>
   );

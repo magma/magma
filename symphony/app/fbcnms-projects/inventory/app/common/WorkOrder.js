@@ -4,7 +4,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * @flow strict-local
+ * @flow
  * @format
  */
 
@@ -15,12 +15,16 @@ import type {Equipment, Link} from './Equipment';
 import type {FileAttachmentType} from './FileAttachment.js';
 import type {ImageAttachmentType} from './ImageAttachment.js';
 import type {Location} from './Location';
+import type {NamedNode} from './EntUtils';
 import type {Property} from './Property';
 import type {PropertyType} from './PropertyType';
 import type {ShortUser} from './EntUtils';
+import type {WorkOrderTemplateNodesQuery} from './__generated__/WorkOrderTemplateNodesQuery.graphql';
 
 import {convertPropertyTypeToMutationInput} from './PropertyType';
+import {graphql} from 'relay-runtime';
 import {isTempId} from './EntUtils';
+import {useLazyLoadQuery} from 'react-relay/hooks';
 
 export type WorkOrderStatus = 'PENDING' | 'PLANNED' | 'DONE';
 export type WorkOrderPriority = 'URGENT' | 'HIGH' | 'LOW' | 'NONE';
@@ -146,3 +150,30 @@ export const convertWorkOrderTypeToMutationInput = (
       })),
   };
 };
+
+const workOrderTemplateNodesQuery = graphql`
+  query WorkOrderTemplateNodesQuery {
+    workOrderTypes {
+      edges {
+        node {
+          id
+          name
+        }
+      }
+    }
+  }
+`;
+
+export type WorkOrderTemplateNode = $Exact<NamedNode>;
+
+// eslint-disable-next-line max-len
+export function useWorkOrderTemplateNodes(): $ReadOnlyArray<WorkOrderTemplateNode> {
+  const response = useLazyLoadQuery<WorkOrderTemplateNodesQuery>(
+    workOrderTemplateNodesQuery,
+  );
+  const workOrderTemplatesData = response.workOrderTypes?.edges || [];
+  const workOrderTemplates = workOrderTemplatesData
+    .map(p => p.node)
+    .filter(Boolean);
+  return workOrderTemplates;
+}

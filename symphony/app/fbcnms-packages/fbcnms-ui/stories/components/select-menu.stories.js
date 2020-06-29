@@ -14,7 +14,6 @@ import SelectMenu from '../../components/design-system/Select/SelectMenu';
 import {DeleteIcon, EditIcon} from '../../components/design-system/Icons';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -68,7 +67,7 @@ const INITIAL_OPTIONS = [
   },
 ];
 
-const SelectMenuRoot = () => {
+export const SelectMenuRoot = () => {
   const classes = useStyles();
   const [options, setOptions] = useState(INITIAL_OPTIONS);
 
@@ -154,6 +153,10 @@ const SelectMenuRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Select Menu', () => (
-  <SelectMenuRoot />
-));
+SelectMenuRoot.story = {
+  name: 'Select Menu',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

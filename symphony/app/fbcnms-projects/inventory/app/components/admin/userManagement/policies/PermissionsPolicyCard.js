@@ -30,9 +30,12 @@ import ViewContainer from '@fbcnms/ui/components/design-system/View/ViewContaine
 import classNames from 'classnames';
 import fbt from 'fbt';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import withSuspense from '../../../../common/withSuspense';
 import {
   EMPTY_POLICY,
   PERMISSION_RULE_VALUES,
+  WORKORDER_SYSTEM_POLICY,
+  WORKORDER_SYSTEM_POLICY_ID,
   addPermissionsPolicy,
   deletePermissionsPolicy,
   editPermissionsPolicy,
@@ -93,12 +96,20 @@ const initialCUDRule = {
   },
 };
 
+const initialLocationCUDRule = {
+  ...initialCUDRule,
+  update: {
+    ...initialBasicRule,
+    locationTypeIds: null,
+  },
+};
+
 const initialInventoryRules = {
   read: {
     isAllowed: PERMISSION_RULE_VALUES.YES,
   },
   location: {
-    ...initialCUDRule,
+    ...initialLocationCUDRule,
   },
   equipment: {
     ...initialCUDRule,
@@ -130,6 +141,8 @@ const initialWorkforceCUDRules = {
 const initialWorkforceRules = {
   read: {
     ...initialBasicRule,
+    projectTypeIds: null,
+    workOrderTypeIds: null,
   },
   data: {
     ...initialWorkforceCUDRules,
@@ -168,9 +181,15 @@ function PermissionsPolicyCard(props: Props) {
   const {id: policyId} = useParams();
   const fetchedPolicy = usePermissionsPolicy(policyId || '');
   const isOnNewPolicy = policyId?.startsWith(NEW_DIALOG_PARAM) || false;
+  const isOnSystemDefault =
+    policyId?.startsWith(WORKORDER_SYSTEM_POLICY_ID) || false;
   const queryParams = new URLSearchParams(location.search);
   const [policy, setPolicy] = useState<?PermissionsPolicy>(
-    isOnNewPolicy ? getInitialNewPolicy(queryParams.get('type')) : null,
+    isOnNewPolicy
+      ? getInitialNewPolicy(queryParams.get('type'))
+      : isOnSystemDefault
+      ? WORKORDER_SYSTEM_POLICY
+      : null,
   );
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -182,7 +201,7 @@ function PermissionsPolicyCard(props: Props) {
   );
 
   useEffect(() => {
-    if (isOnNewPolicy) {
+    if (isOnNewPolicy || isOnSystemDefault) {
       return;
     }
     if (fetchedPolicy == null) {
@@ -207,6 +226,7 @@ function PermissionsPolicyCard(props: Props) {
     fetchedPolicy,
     handleError,
     isOnNewPolicy,
+    isOnSystemDefault,
     policy,
     policyId,
     redirectToPoliciesView,
@@ -388,4 +408,4 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
   );
 }
 
-export default withAlert(PermissionsPolicyCard);
+export default withSuspense(withAlert(PermissionsPolicyCard));

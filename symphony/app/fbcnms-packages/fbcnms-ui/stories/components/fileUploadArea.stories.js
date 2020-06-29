@@ -12,7 +12,6 @@ import FileUploadArea from '../../components/design-system/Experimental/FileUplo
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -23,7 +22,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const FileUploadAreaRoot = () => {
+export const FileUploadAreaRoot = () => {
   const classes = useStyles();
 
   return (
@@ -33,7 +32,10 @@ const FileUploadAreaRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.EXPERIMENTAL}`, module).add(
-  'FileUploadArea',
-  () => <FileUploadAreaRoot />,
-);
+FileUploadAreaRoot.story = {
+  name: 'FileUploadArea',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.EXPERIMENTAL}`,
+};

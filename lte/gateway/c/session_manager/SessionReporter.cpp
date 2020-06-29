@@ -19,8 +19,8 @@ AsyncEvbResponse<ResponseType>::AsyncEvbResponse(
   folly::EventBase* base,
   std::function<void(grpc::Status, ResponseType)> callback,
   uint32_t timeout_sec):
-  base_(base),
-  AsyncGRPCResponse<ResponseType>(callback, timeout_sec)
+  AsyncGRPCResponse<ResponseType>(callback, timeout_sec),
+  base_(base)
 {
 }
 

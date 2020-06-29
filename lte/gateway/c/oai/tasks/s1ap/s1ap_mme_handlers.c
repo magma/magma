@@ -52,6 +52,7 @@
 #include "s1ap_mme_ta.h"
 #include "s1ap_mme_handlers.h"
 #include "mme_app_statistics.h"
+#include "mme_events.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "3gpp_36.401.h"
@@ -515,6 +516,7 @@ int s1ap_mme_handle_s1_setup_request(
     update_mme_app_stats_connected_enb_add();
     set_gauge("s1_connection", 1,  1, "enb_name", enb_association->enb_name);
     increment_counter("s1_setup", 1, 1, "result", "success");
+    s1_setup_success_event(enb_name, enb_id);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
@@ -1825,8 +1827,10 @@ int s1ap_mme_handle_path_switch_request(
 //------------------------------------------------------------------------------
 typedef struct arg_s1ap_send_enb_dereg_ind_s {
   uint8_t current_ue_index;
-  uint handled_ues;
+  uint32_t handled_ues;
   MessageDef* message_p;
+  uint32_t associated_enb_id;
+  uint32_t deregister_ue_count;
 } arg_s1ap_send_enb_dereg_ind_t;
 
 //------------------------------------------------------------------------------
@@ -1835,11 +1839,8 @@ static bool s1ap_send_enb_deregistered_ind(
     void* argP, void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*) argP;
   ue_description_t* ue_ref_p         = NULL;
-  imsi64_t imsi64                    = INVALID_IMSI64;
-  /*
-   * Ask for a release of each UE context associated to the eNB
-   */
 
+  // Ask for the release of each UE context associated to the eNB
   hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
   hashtable_ts_get(s1ap_ue_state, (const hash_key_t) dataP, (void**) &ue_ref_p);
   if (ue_ref_p) {
@@ -1848,15 +1849,12 @@ static bool s1ap_send_enb_deregistered_ind(
           itti_alloc_new_message(TASK_S1AP, S1AP_ENB_DEREGISTERED_IND);
     }
     if (ue_ref_p->mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
-      // Send deregistered ind for this also and let MMEAPP find the context
-      // using enb_ue_s1ap_id_key
+      /*
+       * Send deregistered ind for this also and let MMEAPP find the context
+       * using enb_ue_s1ap_id_key
+       */
       OAILOG_WARNING(LOG_S1AP, "UE with invalid MME s1ap id found");
     }
-
-    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_get(
-        imsi_map->mme_ue_id_imsi_htbl,
-        (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
 
     AssertFatal(
         arg->current_ue_index < S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE,
@@ -1868,15 +1866,26 @@ static bool s1ap_send_enb_deregistered_ind(
         .enb_ue_s1ap_id[arg->current_ue_index] = ue_ref_p->enb_ue_s1ap_id;
 
     arg->handled_ues++;
-    arg->current_ue_index =
-        (uint8_t)(arg->handled_ues % S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE);
+    arg->current_ue_index++;
 
-    // max ues reached
-    if (arg->current_ue_index == 0 && arg->handled_ues > 0) {
+    if (arg->handled_ues == arg->deregister_ue_count ||
+        arg->current_ue_index == S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE) {
+      // Sending INVALID_IMSI64 because message is not specific to any UE/IMSI
+      arg->message_p->ittiMsgHeader.imsi               = INVALID_IMSI64;
+      S1AP_ENB_DEREGISTERED_IND(arg->message_p).enb_id = arg->associated_enb_id;
       S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister =
-          S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE;
+          (uint8_t) arg->current_ue_index;
 
-      arg->message_p->ittiMsgHeader.imsi = imsi64;
+      // Max UEs reached for this ITTI message, send message to MME App
+      OAILOG_DEBUG(
+          LOG_S1AP,
+          "Reached maximum UE count for this ITTI message. Sending "
+          "deregistered indication to MME App for UE count = %u\n",
+          S1AP_ENB_DEREGISTERED_IND(arg->message_p).nb_ue_to_deregister);
+
+      if (arg->current_ue_index == S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE) {
+        arg->current_ue_index = 0;
+      }
       itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, arg->message_p);
       arg->message_p = NULL;
     }
@@ -1923,125 +1932,97 @@ static bool construct_s1ap_mme_full_reset_req(
 
 //------------------------------------------------------------------------------
 int s1ap_handle_sctp_disconnection(
-  s1ap_state_t *state,
-  const sctp_assoc_id_t assoc_id,
-  bool reset)
-{
-  arg_s1ap_send_enb_dereg_ind_t arg = {0};
-  int i = 0;
-  MessageDef *message_p = NULL;
-  enb_description_t *enb_association = NULL;
-  s1ap_timer_arg_t timer_arg = {0};
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset) {
+  arg_s1ap_send_enb_dereg_ind_t arg  = {0};
+  MessageDef* message_p              = NULL;
+  enb_description_t* enb_association = NULL;
+  s1ap_timer_arg_t timer_arg         = {0};
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  /*
-   * Checking that the assoc id has a valid eNB attached to.
-   */
-  enb_association = s1ap_state_get_enb(state, assoc_id);
-  OAILOG_INFO(
-    LOG_S1AP,
-    "SCTP disconnection request for association id %u. Reset Flag = %u \n",
-    assoc_id,
-    reset);
 
+  // Checking if the assoc id has a valid eNB attached to it
+  enb_association = s1ap_state_get_enb(state, assoc_id);
   if (enb_association == NULL) {
     OAILOG_ERROR(LOG_S1AP, "No eNB attached to this assoc_id: %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   OAILOG_INFO(
-    LOG_S1AP,
-    "SCTP disconnection request for association id %u. Reset Flag = "
-    "%u.Connected UEs = %d \n",
-    assoc_id,
-    reset,
-    enb_association->nb_ue_associated);
-  // First check if we can just reset the eNB state if there are no UEs.
+      LOG_S1AP,
+      "SCTP disconnection request for association id %u, Reset Flag = "
+      "%u. Connected UEs = %u \n",
+      assoc_id, reset, enb_association->nb_ue_associated);
+
+  // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
     if (reset) {
+      OAILOG_INFO(
+          LOG_S1AP,
+          "SCTP reset request for association id %u. No Connected UEs. "
+          "Reset Flag = %u\n",
+          assoc_id, reset);
+
+      OAILOG_INFO(
+          LOG_S1AP, "Moving eNB with assoc_id %u to INIT state\n", assoc_id);
       enb_association->s1_state = S1AP_INIT;
-      OAILOG_INFO(
-        LOG_S1AP,
-        "SCTP reset request for association id %u. No Connected UEs.  = %u \n",
-        assoc_id,
-        reset);
-      OAILOG_INFO(
-        LOG_S1AP,
-        "Moving eNB with association id %u to INIT state\n",
-        assoc_id);
       update_mme_app_stats_connected_enb_sub();
     } else {
+      OAILOG_INFO(
+          LOG_S1AP,
+          "SCTP Shutdown request for association id %u. No Connected UEs. "
+          "Reset Flag = %u\n",
+          assoc_id, reset);
+
+      OAILOG_INFO(LOG_S1AP, "Removing eNB with association id %u \n", assoc_id);
       s1ap_remove_enb(state, enb_association);
       update_mme_app_stats_connected_enb_sub();
-      OAILOG_INFO(
-        LOG_S1AP,
-        "SCTP Shutdown request for association id %u. No Connected UEs.  = %u "
-        "\n",
-        assoc_id,
-        reset);
-      OAILOG_INFO(LOG_S1AP, "Removing eNB with association id %u \n", assoc_id);
     }
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
+  /*
+   * Send S1ap deregister indication to MME app in batches of UEs where
+   * UE count in each batch <= S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE
+   */
+  arg.associated_enb_id   = enb_association->enb_id;
+  arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
   hashtable_uint64_ts_apply_callback_on_elements(
-    &enb_association->ue_id_coll,
-    s1ap_send_enb_deregistered_ind,
-    (void *) &arg,
-    (void **) &message_p);
+      &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind,
+      (void*) &arg, (void**) &message_p);
 
-  // The last batch of messages needs to be sent here
-  S1AP_ENB_DEREGISTERED_IND(message_p).nb_ue_to_deregister =
-    (uint8_t) arg.current_ue_index;
-
-  for (i = arg.current_ue_index; i < S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE; i++) {
-    S1AP_ENB_DEREGISTERED_IND(message_p).mme_ue_s1ap_id[arg.current_ue_index] =
-      0;
-    S1AP_ENB_DEREGISTERED_IND(message_p).enb_ue_s1ap_id[arg.current_ue_index] =
-      0;
-  }
-  S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_association->enb_id;
-
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
-  message_p = NULL;
-
-  // Mark the eNB's s1 state as appopriate, the eNB will be deleted or moved to init state when the last UE's s1
-  // state is cleaned up or clean-up timer expires
+  /*
+   * Mark the eNB's s1 state as appropriate, the eNB will be deleted or
+   * moved to init state when the last UE's s1 state is cleaned up or clean-up
+   * timer expires
+   */
   enb_association->s1_state = reset ? S1AP_RESETING : S1AP_SHUTDOWN;
   OAILOG_INFO(
-    LOG_S1AP,
-    "Marked enb s1 status to %s, attached to assoc_id: %d\n",
-    reset ? "Reset" : "Shutdown",
-    assoc_id);
+      LOG_S1AP, "Marked enb s1 status to %s, attached to assoc_id: %d\n",
+      reset ? "Reset" : "Shutdown", assoc_id);
+
   /*
-   * For sctp shutdown request start timer to wait for clean up of all the associated UEs.
-   * On the timer expiry remove the eNB association
+   * For sctp shutdown request start timer to wait for clean up of all the
+   * associated UEs. On the timer expiry remove the eNB association
    */
   if (enb_association->s1_state == S1AP_SHUTDOWN) {
     timer_arg.timer_class = S1AP_ENB_TIMER;
     timer_arg.instance_id = assoc_id;
-    if (
-      timer_setup(
-        enb_association->s1ap_enb_assoc_clean_up_timer.sec,
-        0,
-        TASK_S1AP,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        (void *) &(timer_arg),
-        sizeof(s1ap_timer_arg_t),
-        &(enb_association->s1ap_enb_assoc_clean_up_timer.id)) < 0) {
+    if (timer_setup(
+            enb_association->s1ap_enb_assoc_clean_up_timer.sec, 0, TASK_S1AP,
+            INSTANCE_DEFAULT, TIMER_ONE_SHOT, (void*) &(timer_arg),
+            sizeof(s1ap_timer_arg_t),
+            &(enb_association->s1ap_enb_assoc_clean_up_timer.id)) < 0) {
       OAILOG_ERROR(
-        LOG_S1AP,
-        "Failed to start wait_for_ue_cleanup timer for eNB association id  %u "
-        "\n",
-        assoc_id);
+          LOG_S1AP,
+          "Failed to start wait_for_ue_cleanup timer, eNB association id %u\n",
+          assoc_id);
       enb_association->s1ap_enb_assoc_clean_up_timer.id =
-        S1AP_TIMER_INACTIVE_ID;
+          S1AP_TIMER_INACTIVE_ID;
     } else {
       OAILOG_INFO(
-        LOG_S1AP,
-        "Started wait_for_ue_cleanup timer for eNB association id  %u \n",
-        assoc_id);
+          LOG_S1AP,
+          "Started wait_for_ue_cleanup timer for eNB association id %u\n",
+          assoc_id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);

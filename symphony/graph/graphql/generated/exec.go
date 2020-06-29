@@ -95,6 +95,7 @@ type ResolverRoot interface {
 	Viewer() ViewerResolver
 	WorkOrder() WorkOrderResolver
 	WorkOrderDefinition() WorkOrderDefinitionResolver
+	WorkOrderTemplate() WorkOrderTemplateResolver
 	WorkOrderType() WorkOrderTypeResolver
 }
 
@@ -1121,6 +1122,7 @@ type ComplexityRoot struct {
 		Project             func(childComplexity int) int
 		Properties          func(childComplexity int) int
 		Status              func(childComplexity int) int
+		WorkOrderTemplate   func(childComplexity int) int
 		WorkOrderType       func(childComplexity int) int
 	}
 
@@ -1152,6 +1154,13 @@ type ComplexityRoot struct {
 	WorkOrderSearchResult struct {
 		Count      func(childComplexity int) int
 		WorkOrders func(childComplexity int) int
+	}
+
+	WorkOrderTemplate struct {
+		CheckListCategoryDefinitions func(childComplexity int) int
+		Description                  func(childComplexity int) int
+		Name                         func(childComplexity int) int
+		PropertyTypes                func(childComplexity int) int
 	}
 
 	WorkOrderType struct {
@@ -1566,6 +1575,7 @@ type ViewerResolver interface {
 }
 type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
+	WorkOrderTemplate(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderTemplate, error)
 
 	OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error)
 	Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
@@ -1591,6 +1601,10 @@ type WorkOrderResolver interface {
 }
 type WorkOrderDefinitionResolver interface {
 	Type(ctx context.Context, obj *ent.WorkOrderDefinition) (*ent.WorkOrderType, error)
+}
+type WorkOrderTemplateResolver interface {
+	PropertyTypes(ctx context.Context, obj *ent.WorkOrderTemplate) ([]*ent.PropertyType, error)
+	CheckListCategoryDefinitions(ctx context.Context, obj *ent.WorkOrderTemplate) ([]*ent.CheckListCategoryDefinition, error)
 }
 type WorkOrderTypeResolver interface {
 	PropertyTypes(ctx context.Context, obj *ent.WorkOrderType) ([]*ent.PropertyType, error)
@@ -6923,6 +6937,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrder.Status(childComplexity), true
 
+	case "WorkOrder.workOrderTemplate":
+		if e.complexity.WorkOrder.WorkOrderTemplate == nil {
+			break
+		}
+
+		return e.complexity.WorkOrder.WorkOrderTemplate(childComplexity), true
+
 	case "WorkOrder.workOrderType":
 		if e.complexity.WorkOrder.WorkOrderType == nil {
 			break
@@ -7034,6 +7055,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WorkOrderSearchResult.WorkOrders(childComplexity), true
+
+	case "WorkOrderTemplate.checkListCategoryDefinitions":
+		if e.complexity.WorkOrderTemplate.CheckListCategoryDefinitions == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderTemplate.CheckListCategoryDefinitions(childComplexity), true
+
+	case "WorkOrderTemplate.description":
+		if e.complexity.WorkOrderTemplate.Description == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderTemplate.Description(childComplexity), true
+
+	case "WorkOrderTemplate.name":
+		if e.complexity.WorkOrderTemplate.Name == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderTemplate.Name(childComplexity), true
+
+	case "WorkOrderTemplate.propertyTypes":
+		if e.complexity.WorkOrderTemplate.PropertyTypes == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderTemplate.PropertyTypes(childComplexity), true
 
 	case "WorkOrderType.checkListCategoryDefinitions":
 		if e.complexity.WorkOrderType.CheckListCategoryDefinitions == nil {
@@ -8745,6 +8794,13 @@ input ReportFilterInput {
   filters: [GeneralFilterInput]
 }
 
+type WorkOrderTemplate {
+  name: String!
+  description: String
+  propertyTypes: [PropertyType]!
+  checkListCategoryDefinitions: [CheckListCategoryDefinition!]!
+}
+
 """
 Work Order type schema: e.g. construction work.
 """
@@ -8763,6 +8819,7 @@ Work Order instance - capturing information about a change in the network
 type WorkOrder implements Node & NamedNode {
   id: ID!
   workOrderType: WorkOrderType!
+  workOrderTemplate: WorkOrderTemplate
   name: String!
   description: String
   ownerName: String!
@@ -35250,6 +35307,37 @@ func (ec *executionContext) _WorkOrder_workOrderType(ctx context.Context, field 
 	return ec.marshalNWorkOrderType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _WorkOrder_workOrderTemplate(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrder",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrder().WorkOrderTemplate(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.WorkOrderTemplate)
+	fc.Result = res
+	return ec.marshalOWorkOrderTemplate2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderTemplate(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _WorkOrder_name(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -36581,6 +36669,139 @@ func (ec *executionContext) _WorkOrderSearchResult_count(ctx context.Context, fi
 	res := resTmp.(int)
 	fc.Result = res
 	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderTemplate_name(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTemplate) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrderTemplate",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderTemplate_description(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTemplate) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrderTemplate",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderTemplate_propertyTypes(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTemplate) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrderTemplate",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrderTemplate().PropertyTypes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.PropertyType)
+	fc.Result = res
+	return ec.marshalNPropertyType2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐPropertyType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderTemplate_checkListCategoryDefinitions(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTemplate) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrderTemplate",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.WorkOrderTemplate().CheckListCategoryDefinitions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.CheckListCategoryDefinition)
+	fc.Result = res
+	return ec.marshalNCheckListCategoryDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCheckListCategoryDefinitionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderType_id(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderType) (ret graphql.Marshaler) {
@@ -50124,6 +50345,17 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				}
 				return res
 			})
+		case "workOrderTemplate":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrder_workOrderTemplate(ctx, field, obj)
+				return res
+			})
 		case "name":
 			out.Values[i] = ec._WorkOrder_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -50587,6 +50819,63 @@ func (ec *executionContext) _WorkOrderSearchResult(ctx context.Context, sel ast.
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var workOrderTemplateImplementors = []string{"WorkOrderTemplate"}
+
+func (ec *executionContext) _WorkOrderTemplate(ctx context.Context, sel ast.SelectionSet, obj *ent.WorkOrderTemplate) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, workOrderTemplateImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("WorkOrderTemplate")
+		case "name":
+			out.Values[i] = ec._WorkOrderTemplate_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "description":
+			out.Values[i] = ec._WorkOrderTemplate_description(ctx, field, obj)
+		case "propertyTypes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrderTemplate_propertyTypes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "checkListCategoryDefinitions":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._WorkOrderTemplate_checkListCategoryDefinitions(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -58977,6 +59266,17 @@ func (ec *executionContext) marshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookin
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOWorkOrderTemplate2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderTemplate(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderTemplate) graphql.Marshaler {
+	return ec._WorkOrderTemplate(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOWorkOrderTemplate2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderTemplate(ctx context.Context, sel ast.SelectionSet, v *ent.WorkOrderTemplate) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._WorkOrderTemplate(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOWorkOrderType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderType(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderType) graphql.Marshaler {

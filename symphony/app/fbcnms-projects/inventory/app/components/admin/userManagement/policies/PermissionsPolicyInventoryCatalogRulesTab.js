@@ -16,6 +16,7 @@ import type {
 import * as React from 'react';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import classNames from 'classnames';
 import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 
@@ -57,21 +58,24 @@ const rules: Array<{key: RuleCatalogKey, title: React.Node}> = [
 
 type Props = $ReadOnly<{|
   policy: ?InventoryPolicy,
-  onChange: InventoryPolicy => void,
+  onChange?: InventoryPolicy => void,
+  className?: ?string,
 |}>;
 
 export default function PermissionsPolicyInventoryCatalogRulesTab(
   props: Props,
 ) {
-  const {policy, onChange} = props;
+  const {policy, onChange, className} = props;
   const classes = useStyles();
 
   if (policy == null) {
     return null;
   }
 
+  const isDisabled = onChange == null;
+
   return (
-    <div className={classes.root}>
+    <div className={classNames(classes.root, className)}>
       <div className={classes.header}>
         <Text variant="subtitle1">
           <fbt desc="">Inventory Catalog</fbt>
@@ -87,11 +91,15 @@ export default function PermissionsPolicyInventoryCatalogRulesTab(
         <PermissionsPolicyRulesSection
           mainCheckHeaderPrefix={rule.title}
           rule={policy[rule.key]}
-          onChange={cud =>
-            onChange({
-              ...policy,
-              [rule.key]: cud,
-            })
+          disabled={isDisabled}
+          onChange={
+            onChange != null
+              ? cud =>
+                  onChange({
+                    ...policy,
+                    [rule.key]: cud,
+                  })
+              : undefined
           }
         />
       ))}

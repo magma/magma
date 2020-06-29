@@ -57,6 +57,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 
 	"github.com/facebookincubator/ent/dialect"
@@ -157,6 +158,8 @@ type Client struct {
 	WorkOrder *WorkOrderClient
 	// WorkOrderDefinition is the client for interacting with the WorkOrderDefinition builders.
 	WorkOrderDefinition *WorkOrderDefinitionClient
+	// WorkOrderTemplate is the client for interacting with the WorkOrderTemplate builders.
+	WorkOrderTemplate *WorkOrderTemplateClient
 	// WorkOrderType is the client for interacting with the WorkOrderType builders.
 	WorkOrderType *WorkOrderTypeClient
 
@@ -219,6 +222,7 @@ func (c *Client) init() {
 	c.UsersGroup = NewUsersGroupClient(c.config)
 	c.WorkOrder = NewWorkOrderClient(c.config)
 	c.WorkOrderDefinition = NewWorkOrderDefinitionClient(c.config)
+	c.WorkOrderTemplate = NewWorkOrderTemplateClient(c.config)
 	c.WorkOrderType = NewWorkOrderTypeClient(c.config)
 }
 
@@ -294,6 +298,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderTemplate:           NewWorkOrderTemplateClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
 	}, nil
 }
@@ -354,6 +359,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderTemplate:           NewWorkOrderTemplateClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
 	}, nil
 }
@@ -427,6 +433,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.UsersGroup.Use(hooks...)
 	c.WorkOrder.Use(hooks...)
 	c.WorkOrderDefinition.Use(hooks...)
+	c.WorkOrderTemplate.Use(hooks...)
 	c.WorkOrderType.Use(hooks...)
 }
 
@@ -849,6 +856,22 @@ func (c *CheckListCategoryDefinitionClient) QueryWorkOrderType(clcd *CheckListCa
 			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, id),
 			sqlgraph.To(workordertype.Table, workordertype.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategorydefinition.WorkOrderTypeTable, checklistcategorydefinition.WorkOrderTypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(clcd.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrderTemplate queries the work_order_template edge of a CheckListCategoryDefinition.
+func (c *CheckListCategoryDefinitionClient) QueryWorkOrderTemplate(clcd *CheckListCategoryDefinition) *WorkOrderTemplateQuery {
+	query := &WorkOrderTemplateQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := clcd.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, id),
+			sqlgraph.To(workordertemplate.Table, workordertemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategorydefinition.WorkOrderTemplateTable, checklistcategorydefinition.WorkOrderTemplateColumn),
 		)
 		fromV = sqlgraph.Neighbors(clcd.driver.Dialect(), step)
 		return fromV, nil
@@ -4668,6 +4691,22 @@ func (c *PropertyTypeClient) QueryWorkOrderType(pt *PropertyType) *WorkOrderType
 	return query
 }
 
+// QueryWorkOrderTemplate queries the work_order_template edge of a PropertyType.
+func (c *PropertyTypeClient) QueryWorkOrderTemplate(pt *PropertyType) *WorkOrderTemplateQuery {
+	query := &WorkOrderTemplateQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := pt.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, id),
+			sqlgraph.To(workordertemplate.Table, workordertemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTemplateTable, propertytype.WorkOrderTemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(pt.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryProjectType queries the project_type edge of a PropertyType.
 func (c *PropertyTypeClient) QueryProjectType(pt *PropertyType) *ProjectTypeQuery {
 	query := &ProjectTypeQuery{config: c.config}
@@ -6532,6 +6571,22 @@ func (c *WorkOrderClient) QueryType(wo *WorkOrder) *WorkOrderTypeQuery {
 	return query
 }
 
+// QueryTemplate queries the template edge of a WorkOrder.
+func (c *WorkOrderClient) QueryTemplate(wo *WorkOrder) *WorkOrderTemplateQuery {
+	query := &WorkOrderTemplateQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wo.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workorder.Table, workorder.FieldID, id),
+			sqlgraph.To(workordertemplate.Table, workordertemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workorder.TemplateTable, workorder.TemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(wo.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryEquipment queries the equipment edge of a WorkOrder.
 func (c *WorkOrderClient) QueryEquipment(wo *WorkOrder) *EquipmentQuery {
 	query := &EquipmentQuery{config: c.config}
@@ -6846,6 +6901,138 @@ func (c *WorkOrderDefinitionClient) Hooks() []Hook {
 	return append(hooks[:len(hooks):len(hooks)], workorderdefinition.Hooks[:]...)
 }
 
+// WorkOrderTemplateClient is a client for the WorkOrderTemplate schema.
+type WorkOrderTemplateClient struct {
+	config
+}
+
+// NewWorkOrderTemplateClient returns a client for the WorkOrderTemplate from the given config.
+func NewWorkOrderTemplateClient(c config) *WorkOrderTemplateClient {
+	return &WorkOrderTemplateClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `workordertemplate.Hooks(f(g(h())))`.
+func (c *WorkOrderTemplateClient) Use(hooks ...Hook) {
+	c.hooks.WorkOrderTemplate = append(c.hooks.WorkOrderTemplate, hooks...)
+}
+
+// Create returns a create builder for WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) Create() *WorkOrderTemplateCreate {
+	mutation := newWorkOrderTemplateMutation(c.config, OpCreate)
+	return &WorkOrderTemplateCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Update returns an update builder for WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) Update() *WorkOrderTemplateUpdate {
+	mutation := newWorkOrderTemplateMutation(c.config, OpUpdate)
+	return &WorkOrderTemplateUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *WorkOrderTemplateClient) UpdateOne(wot *WorkOrderTemplate) *WorkOrderTemplateUpdateOne {
+	mutation := newWorkOrderTemplateMutation(c.config, OpUpdateOne, withWorkOrderTemplate(wot))
+	return &WorkOrderTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *WorkOrderTemplateClient) UpdateOneID(id int) *WorkOrderTemplateUpdateOne {
+	mutation := newWorkOrderTemplateMutation(c.config, OpUpdateOne, withWorkOrderTemplateID(id))
+	return &WorkOrderTemplateUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) Delete() *WorkOrderTemplateDelete {
+	mutation := newWorkOrderTemplateMutation(c.config, OpDelete)
+	return &WorkOrderTemplateDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a delete builder for the given entity.
+func (c *WorkOrderTemplateClient) DeleteOne(wot *WorkOrderTemplate) *WorkOrderTemplateDeleteOne {
+	return c.DeleteOneID(wot.ID)
+}
+
+// DeleteOneID returns a delete builder for the given id.
+func (c *WorkOrderTemplateClient) DeleteOneID(id int) *WorkOrderTemplateDeleteOne {
+	builder := c.Delete().Where(workordertemplate.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &WorkOrderTemplateDeleteOne{builder}
+}
+
+// Create returns a query builder for WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) Query() *WorkOrderTemplateQuery {
+	return &WorkOrderTemplateQuery{config: c.config}
+}
+
+// Get returns a WorkOrderTemplate entity by its id.
+func (c *WorkOrderTemplateClient) Get(ctx context.Context, id int) (*WorkOrderTemplate, error) {
+	return c.Query().Where(workordertemplate.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *WorkOrderTemplateClient) GetX(ctx context.Context, id int) *WorkOrderTemplate {
+	wot, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return wot
+}
+
+// QueryPropertyTypes queries the property_types edge of a WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) QueryPropertyTypes(wot *WorkOrderTemplate) *PropertyTypeQuery {
+	query := &PropertyTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wot.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workordertemplate.Table, workordertemplate.FieldID, id),
+			sqlgraph.To(propertytype.Table, propertytype.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workordertemplate.PropertyTypesTable, workordertemplate.PropertyTypesColumn),
+		)
+		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryCheckListCategoryDefinitions queries the check_list_category_definitions edge of a WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) QueryCheckListCategoryDefinitions(wot *WorkOrderTemplate) *CheckListCategoryDefinitionQuery {
+	query := &CheckListCategoryDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wot.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workordertemplate.Table, workordertemplate.FieldID, id),
+			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, workordertemplate.CheckListCategoryDefinitionsTable, workordertemplate.CheckListCategoryDefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryType queries the type edge of a WorkOrderTemplate.
+func (c *WorkOrderTemplateClient) QueryType(wot *WorkOrderTemplate) *WorkOrderTypeQuery {
+	query := &WorkOrderTypeQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wot.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workordertemplate.Table, workordertemplate.FieldID, id),
+			sqlgraph.To(workordertype.Table, workordertype.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, workordertemplate.TypeTable, workordertemplate.TypeColumn),
+		)
+		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *WorkOrderTemplateClient) Hooks() []Hook {
+	hooks := c.hooks.WorkOrderTemplate
+	return append(hooks[:len(hooks):len(hooks)], workordertemplate.Hooks[:]...)
+}
+
 // WorkOrderTypeClient is a client for the WorkOrderType schema.
 type WorkOrderTypeClient struct {
 	config
@@ -6924,22 +7111,6 @@ func (c *WorkOrderTypeClient) GetX(ctx context.Context, id int) *WorkOrderType {
 	return wot
 }
 
-// QueryWorkOrders queries the work_orders edge of a WorkOrderType.
-func (c *WorkOrderTypeClient) QueryWorkOrders(wot *WorkOrderType) *WorkOrderQuery {
-	query := &WorkOrderQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wot.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
-			sqlgraph.To(workorder.Table, workorder.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, workordertype.WorkOrdersTable, workordertype.WorkOrdersColumn),
-		)
-		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryPropertyTypes queries the property_types edge of a WorkOrderType.
 func (c *WorkOrderTypeClient) QueryPropertyTypes(wot *WorkOrderType) *PropertyTypeQuery {
 	query := &PropertyTypeQuery{config: c.config}
@@ -6956,22 +7127,6 @@ func (c *WorkOrderTypeClient) QueryPropertyTypes(wot *WorkOrderType) *PropertyTy
 	return query
 }
 
-// QueryDefinitions queries the definitions edge of a WorkOrderType.
-func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDefinitionQuery {
-	query := &WorkOrderDefinitionQuery{config: c.config}
-	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
-		id := wot.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
-			sqlgraph.To(workorderdefinition.Table, workorderdefinition.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, workordertype.DefinitionsTable, workordertype.DefinitionsColumn),
-		)
-		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // QueryCheckListCategoryDefinitions queries the check_list_category_definitions edge of a WorkOrderType.
 func (c *WorkOrderTypeClient) QueryCheckListCategoryDefinitions(wot *WorkOrderType) *CheckListCategoryDefinitionQuery {
 	query := &CheckListCategoryDefinitionQuery{config: c.config}
@@ -6981,6 +7136,38 @@ func (c *WorkOrderTypeClient) QueryCheckListCategoryDefinitions(wot *WorkOrderTy
 			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
 			sqlgraph.To(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, workordertype.CheckListCategoryDefinitionsTable, workordertype.CheckListCategoryDefinitionsColumn),
+		)
+		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryWorkOrders queries the work_orders edge of a WorkOrderType.
+func (c *WorkOrderTypeClient) QueryWorkOrders(wot *WorkOrderType) *WorkOrderQuery {
+	query := &WorkOrderQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wot.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
+			sqlgraph.To(workorder.Table, workorder.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, workordertype.WorkOrdersTable, workordertype.WorkOrdersColumn),
+		)
+		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryDefinitions queries the definitions edge of a WorkOrderType.
+func (c *WorkOrderTypeClient) QueryDefinitions(wot *WorkOrderType) *WorkOrderDefinitionQuery {
+	query := &WorkOrderDefinitionQuery{config: c.config}
+	query.path = func(ctx context.Context) (fromV *sql.Selector, _ error) {
+		id := wot.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(workordertype.Table, workordertype.FieldID, id),
+			sqlgraph.To(workorderdefinition.Table, workorderdefinition.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, workordertype.DefinitionsTable, workordertype.DefinitionsColumn),
 		)
 		fromV = sqlgraph.Neighbors(wot.driver.Dialect(), step)
 		return fromV, nil

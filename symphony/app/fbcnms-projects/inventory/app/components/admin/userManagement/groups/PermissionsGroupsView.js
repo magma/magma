@@ -14,6 +14,7 @@ import type {UsersGroup} from '../data/UsersGroups';
 import * as React from 'react';
 import Table from '@fbcnms/ui/components/design-system/Table/Table';
 import fbt from 'fbt';
+import withSuspense from '../../../../common/withSuspense';
 import {GROUP_STATUSES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
@@ -46,7 +47,7 @@ const group2GroupTableRow: (
   ...group,
 });
 
-export default function PermissionsGroupsView() {
+function PermissionsGroupsView() {
   const classes = useStyles();
   const {history} = useRouter();
   const groups = useUsersGroups();
@@ -113,3 +114,5 @@ export default function PermissionsGroupsView() {
     </div>
   );
 }
+
+export default withSuspense(PermissionsGroupsView);

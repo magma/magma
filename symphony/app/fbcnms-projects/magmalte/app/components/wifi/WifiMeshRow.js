@@ -34,12 +34,12 @@ import {groupBy} from 'lodash';
 import WifiDeviceDetails, {InfoRow} from './WifiDeviceDetails';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
-// import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   actionsCell: {
     textAlign: 'right',
   },
@@ -54,7 +54,6 @@ const useStyles = makeStyles(theme => ({
     paddingLeft: 40,
   },
   iconButton: {
-    color: theme.palette.secondary.light,
     padding: '5px',
   },
   meshButton: {
@@ -65,11 +64,11 @@ const useStyles = makeStyles(theme => ({
     padding: '5px',
   },
   meshID: {
-    color: theme.palette.primary.dark,
+    color: colors.primary.brightGray,
     fontWeight: 'bolder',
   },
   meshIconButton: {
-    color: theme.palette.primary.dark,
+    color: colors.primary.brightGray,
     padding: '5px',
   },
   tableCell: {

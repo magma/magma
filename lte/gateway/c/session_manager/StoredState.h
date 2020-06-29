@@ -44,12 +44,6 @@ struct SessionConfig {
 };
 
 // Session Credit
-
-struct StoredRedirectServer {
-  RedirectServer_RedirectAddressType redirect_address_type;
-  std::string redirect_server_address;
-};
-
 struct FinalActionInfo {
   ChargingCredit_FinalAction final_action;
   RedirectServer redirect_server;
@@ -95,6 +89,14 @@ enum ServiceState {
   SERVICE_RESTRICTED = 5,
 };
 
+enum GrantTrackingType {
+  TOTAL_ONLY = 0,
+  TX_ONLY = 1,
+  RX_ONLY = 2,
+  TX_AND_RX = 3,
+  NO_TRACKING = 4,
+};
+
 /**
  * State transitions of a session:
  * SESSION_ACTIVE  ---------
@@ -133,18 +135,27 @@ enum SessionFsmState {
 struct StoredSessionCredit {
   bool reporting;
   bool is_final;
-  bool unlimited_quota;
+  CreditLimitType credit_limit_type;
   FinalActionInfo final_action_info;
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t expiry_time;
   std::unordered_map<Bucket, uint64_t> buckets;
-  uint64_t usage_reporting_limit;
+  GrantTrackingType grant_tracking_type;
 };
 
 struct StoredMonitor {
   StoredSessionCredit credit;
   MonitoringLevel level;
+};
+
+struct StoredChargingGrant {
+  StoredSessionCredit credit;
+  bool is_final;
+  FinalActionInfo final_action_info;
+  ReAuthState reauth_state;
+  ServiceState service_state;
+  std::time_t expiry_time;
 };
 
 struct RuleLifetime {
@@ -153,7 +164,7 @@ struct RuleLifetime {
 };
 
 typedef std::unordered_map<std::string, StoredMonitor> StoredMonitorMap;
-typedef std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+typedef std::unordered_map<CreditKey, StoredChargingGrant, decltype(&ccHash),
                      decltype(&ccEqual)> StoredChargingCreditMap;
 
 struct StoredSessionState {
@@ -179,7 +190,6 @@ struct StoredSessionState {
 };
 
 // Update Criteria
-
 struct SessionCreditUpdateCriteria {
   bool is_final;
   FinalActionInfo final_action_info;
@@ -187,9 +197,9 @@ struct SessionCreditUpdateCriteria {
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t expiry_time;
+  GrantTrackingType grant_tracking_type;
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
-  uint64_t usage_reporting_limit;
 };
 
 struct SessionStateUpdateCriteria {
@@ -236,12 +246,6 @@ std::string serialize_stored_session_config(const SessionConfig &stored);
 
 SessionConfig deserialize_stored_session_config(const std::string &serialized);
 
-std::string
-serialize_stored_redirect_server(const StoredRedirectServer &stored);
-
-StoredRedirectServer
-deserialize_stored_redirect_server(const std::string &serialized);
-
 std::string serialize_stored_final_action_info(const FinalActionInfo &stored);
 
 FinalActionInfo
@@ -251,6 +255,8 @@ std::string serialize_stored_session_credit(StoredSessionCredit &stored);
 
 StoredSessionCredit
 deserialize_stored_session_credit(const std::string &serialized);
+
+std::string serialize_stored_charging_grant(StoredChargingGrant &stored);
 
 std::string serialize_stored_monitor(StoredMonitor &stored);
 
@@ -271,5 +277,4 @@ deserialize_stored_usage_monitor_map(std::string &serialized);
 std::string serialize_stored_session(StoredSessionState &stored);
 
 StoredSessionState deserialize_stored_session(std::string &serialized);
-
 } // namespace magma

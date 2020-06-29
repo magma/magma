@@ -12,7 +12,7 @@ resource "kubernetes_namespace" "orc8r" {
   }
 }
 
-# external dns maps route53 to ingress rosources
+# external dns maps route53 to ingress resources
 resource "helm_release" "external_dns" {
   name       = "external-dns"
   repository = local.stable_helm_repo

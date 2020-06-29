@@ -74,6 +74,7 @@ graphql`
       }
       update {
         isAllowed
+        locationTypeIds
       }
       delete {
         isAllowed
@@ -141,6 +142,8 @@ graphql`
   fragment UserManagementUtils_workforcePolicy on WorkforcePolicy {
     read {
       isAllowed
+      projectTypeIds
+      workOrderTypeIds
     }
     templates {
       create {
@@ -207,6 +210,8 @@ type KeyValueEnum<TValues> = {
   },
 };
 
+const ADMIN_LABEL = `${fbt('Admin', '')}`;
+
 export const USER_ROLES: KeyValueEnum<UserRole> = {
   USER: {
     key: 'USER',
@@ -214,11 +219,11 @@ export const USER_ROLES: KeyValueEnum<UserRole> = {
   },
   ADMIN: {
     key: 'ADMIN',
-    value: `${fbt('Admin', '')}`,
+    value: ADMIN_LABEL,
   },
   OWNER: {
     key: 'OWNER',
-    value: `${fbt('Owner', '')}`,
+    value: ADMIN_LABEL,
   },
 };
 export const USER_STATUSES: KeyValueEnum<UserStatus> = {

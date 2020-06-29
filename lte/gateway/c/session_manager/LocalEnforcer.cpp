@@ -74,12 +74,12 @@ LocalEnforcer::LocalEnforcer(
     magma::mconfig::SessionD mconfig)
     : reporter_(reporter),
       rule_store_(rule_store),
-      session_store_(session_store),
       pipelined_client_(pipelined_client),
       directoryd_client_(directoryd_client),
       eventd_client_(eventd_client),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
+      session_store_(session_store),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
@@ -237,6 +237,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
           schedule_dynamic_rule_deactivation(imsi, rule_install);
         }
       }
+      rule_ids.clear();
       session->get_scheduled_dynamic_rules().get_rule_ids(rule_ids);
       for (auto rule_id : rule_ids) {
         auto lifetime = session->get_rule_lifetime(rule_id);
@@ -720,11 +721,10 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
                            << "during removal of dynamic rule "
                            << dynamic_rule.policy_rule().id();
           } else {
-            PolicyRule rule_dont_care;
             for (const auto& session : it->second) {
               auto& uc = session_update[imsi][session->get_session_id()];
               session->remove_dynamic_rule(
-                  dynamic_rule.policy_rule().id(), &rule_dont_care, uc);
+                  dynamic_rule.policy_rule().id(), NULL, uc);
             }
             session_store_.update_sessions(session_update);
           }
@@ -1600,9 +1600,8 @@ void LocalEnforcer::process_rules_to_install(
     if (deactivation_time > current_time) {
       schedule_dynamic_rule_deactivation(imsi, rule_install);
     } else if (deactivation_time > 0) {
-      PolicyRule rule_dont_care;
       session.remove_dynamic_rule(
-          rule_install.policy_rule().id(), &rule_dont_care, update_criteria);
+          rule_install.policy_rule().id(), NULL, update_criteria);
       rules_to_deactivate.dynamic_rules.push_back(rule_install.policy_rule());
     }
   }
