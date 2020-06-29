@@ -42,13 +42,18 @@ const useStyles = makeStyles(theme => ({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    width: props => (props.hasStatus ? 'calc(100% - 16px)' : '100%'),
   },
   kpiValue: {
     color: colors.primary.brightGray,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   kpiBox: {
     width: '100%',
+    '& div': {
+      width: '100%',
+    },
   },
 }));
 
@@ -57,65 +62,69 @@ export default function GatewaySummary({gwInfo}: {gwInfo: lte_gateway}) {
   const version = gwInfo.status?.platform_info?.packages?.[0]?.version;
   return (
     <Card elevation={0}>
-      <Grid
-        container
-        zeroMinWidth
-        xs={12}
-        direction="column"
-        className={classes.kpiBlock}>
-        <CardHeader
-          className={classes.kpiBox}
-          title={gwInfo.description}
-          titleTypographyProps={{
-            variant: 'body2',
-            className: classes.kpiValue,
-            title: gwInfo.description,
-          }}
-        />
-        <CardHeader
-          title="Gateway ID"
-          subheader={gwInfo.id}
-          titleTypographyProps={{
-            variant: 'body3',
-            className: classes.kpiLabel,
-            title: 'Gateway ID',
-          }}
-          subheaderTypographyProps={{
-            variant: 'body1',
-            className: classes.kpiValue,
-            title: gwInfo.id,
-          }}
-        />
-
-        <CardHeader
-          title="Hardware UUID"
-          subheader={gwInfo.device.hardware_id}
-          titleTypographyProps={{
-            variant: 'body3',
-            className: classes.kpiLabel,
-            title: 'Hardware UUID',
-          }}
-          subheaderTypographyProps={{
-            variant: 'body1',
-            className: classes.kpiValue,
-            title: gwInfo.device.hardware_id,
-          }}
-        />
-
-        <CardHeader
-          title="Version"
-          subheader={version ?? 'null'}
-          titleTypographyProps={{
-            variant: 'body3',
-            className: classes.kpiLabel,
-            title: 'Version',
-          }}
-          subheaderTypographyProps={{
-            variant: 'body1',
-            className: classes.kpiValue,
-            title: version ?? 'null',
-          }}
-        />
+      <Grid container zeroMinWidth xs={12} direction="column">
+        <Grid item className={classes.kpiBlock} xs={12}>
+          <CardHeader
+            className={classes.kpiBox}
+            title={gwInfo.description}
+            titleTypographyProps={{
+              variant: 'body2',
+              className: classes.kpiValue,
+              title: gwInfo.description,
+            }}
+          />
+        </Grid>
+        <Grid item className={classes.kpiBlock} xs={12}>
+          <CardHeader
+            className={classes.kpiBox}
+            title="Gateway ID"
+            subheader={gwInfo.id}
+            titleTypographyProps={{
+              variant: 'body3',
+              className: classes.kpiLabel,
+              title: 'Gateway ID',
+            }}
+            subheaderTypographyProps={{
+              variant: 'body1',
+              className: classes.kpiValue,
+              title: gwInfo.id,
+            }}
+          />
+        </Grid>
+        <Grid item className={classes.kpiBlock} xs={12}>
+          <CardHeader
+            className={classes.kpiBox}
+            title="Hardware UUID"
+            subheader={gwInfo.device.hardware_id}
+            titleTypographyProps={{
+              variant: 'body3',
+              className: classes.kpiLabel,
+              title: 'Hardware UUID',
+            }}
+            subheaderTypographyProps={{
+              variant: 'body1',
+              className: classes.kpiValue,
+              title: gwInfo.device.hardware_id,
+            }}
+          />
+        </Grid>
+        <Grid item className={classes.kpiBlock} xs={12}>
+          <CardHeader
+            className={classes.kpiBox}
+            title="Version"
+            subheader={version ?? 'null'}
+            titleTypographyProps={{
+              variant: 'body3',
+              className: classes.kpiLabel,
+              title: 'Version',
+            }}
+            subheaderTypographyProps={{
+              variant: 'body1',
+              className: classes.kpiValue,
+              title: version ?? 'null',
+            }}
+          />
+        </Grid>
       </Grid>
     </Card>
   );
