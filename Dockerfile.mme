@@ -104,7 +104,7 @@ RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
 ##### Prometheus CPP
 RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
     cd prometheus-cpp && \
-    git checkout 57f4ce18bec8ed4f9d8ba262078693d583d5b369 && \
+    git checkout d8326b2bba945a435f299e7526c403d7a1f68c1f && \
     git submodule init && git submodule update && \
     mkdir _build && \
     cd _build/ && \
