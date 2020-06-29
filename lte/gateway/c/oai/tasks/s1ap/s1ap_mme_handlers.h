@@ -169,10 +169,6 @@ int s1ap_handle_enb_initiated_reset_ack(
   const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p,
   imsi64_t imsi64);
 
-void s1ap_enb_assoc_clean_up_timer_expiry(
-  s1ap_state_t *state,
-  enb_description_t *enb_ref_p);
-
 int s1ap_handle_paging_request(
   s1ap_state_t* state,
   const itti_s1ap_paging_request_t* paging_request,
