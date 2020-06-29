@@ -86,7 +86,6 @@ int select_pdn_type(
         *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
-
       break;
 
     case ESM_PDN_TYPE_IPV4V6:
@@ -110,19 +109,20 @@ int select_pdn_type(
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       break;
   }
-
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
 struct apn_configuration_s* mme_app_select_apn(
-    ue_mm_context_t* const ue_context, const_bstring const ue_selected_apn,
-    esm_proc_pdn_type_t ue_selected_pdn_type, int* esm_cause)
+    ue_mm_context_t* const ue_context, int* esm_cause)
 {
   context_identifier_t default_context_identifier =
       ue_context->apn_config_profile.context_identifier;
   int index;
   int rc = RETURNok;
+
+  const_bstring const ue_selected_apn = ue_context->emm_context.esm_ctx.esm_proc_data->apn;
+  esm_proc_pdn_type_t ue_selected_pdn_type = ue_context->emm_context.esm_ctx.esm_proc_data->pdn_type;
 
   for (index = 0; index < ue_context->apn_config_profile.nb_apns; index++) {
     if (!ue_selected_apn) {

@@ -76,8 +76,6 @@ int get_assigned_ipv4_block(
  * "host byte order"
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv4, ipv6...)
- * @param context_teid tunnel id
- * @param eps_bearer_id bearer id
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
@@ -89,8 +87,6 @@ int pgw_handle_allocate_ipv4_address(
   struct in_addr *addr,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
   const char* pdn_type,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
   spgw_state_t* spgw_state,
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
   s5_create_session_response_t s5_response);
@@ -103,8 +99,6 @@ int pgw_handle_allocate_ipv4_address(
  * @param ip6_prefix: contains the IPv6 prefix configured
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv6...)
- * @param context_teid tunnel id
- * @param eps_bearer_id bearer id
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
@@ -115,7 +109,7 @@ int pgw_handle_allocate_ipv4_address(
 int pgw_handle_allocate_ipv6_address(
     const char* subscriber_id, const char* apn, struct in6_addr* ip6_prefix,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    const char* pdn_type,
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response,
@@ -187,8 +181,6 @@ int get_subscriber_id_from_ipv4(
  * @param ip6_prefix: contains the IPv6 prefix configured
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv6...)
- * @param context_teid tunnel id
- * @param eps_bearer_id bearer id
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
@@ -200,7 +192,7 @@ int pgw_handle_allocate_ipv4v6_address(
     const char* subscriber_id, const char* apn, struct in_addr* ip4_addr,
     struct in6_addr* ip6_prefix,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    const char* pdn_type,
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response,

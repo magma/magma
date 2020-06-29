@@ -311,8 +311,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     //Select APN
     struct apn_configuration_s* apn_config = mme_app_select_apn(
-        ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn,
-        emm_context->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
+        ue_mm_context_p, &esm_cause);
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */

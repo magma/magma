@@ -123,6 +123,8 @@ typedef uint64_t imsi64_t;
 //------------------------------------------------------------------------------
 // IPv6 Interface Identifier length in bytes
 #define IPV6_INTERFACE_ID_LEN 8
+// IPv6 Prefix length in bites
+#define IPV6_PREFIX_LEN 64
 //------------------------------------------------------------------------------
 typedef uint8_t ksi_t;
 #define KSI_NO_KEY_AVAILABLE 0x07

@@ -279,8 +279,7 @@ static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP)
   // Because NAS knows APN selected by UE if any
   // default APN selection
   struct apn_configuration_s* apn_config = mme_app_select_apn(
-      ue_mm_context, emm_ctx->esm_ctx.esm_proc_data->apn,
-      emm_ctx->esm_ctx.esm_proc_data->pdn_type, &esm_cause);
+      ue_mm_context, &esm_cause);
 
   if (!apn_config) {
     /*
@@ -535,7 +534,9 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
   memset(&esm_msg, 0, sizeof(ESM_msg));
 
   is_standalone = emm_ctx->esm_ctx.is_standalone;
-
+  /* msg_pP->pdn_type enum is as per 29.272( S6a spec).Convert the PDN type 
+   * to be aligned to 3gpp 24.301 before sending the NAS message to UE
+   */
   switch (msg_pP->pdn_type) {
     case IPv4:
       OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4\n");
@@ -587,7 +588,7 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
    */
   rc = esm_send_activate_default_eps_bearer_context_request(
       msg_pP->pti,
-      msg_pP->ebi,  // msg_pP->ebi,
+      msg_pP->ebi,
       &esm_msg.activate_default_eps_bearer_context_request,
       ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed, &msg_pP->pco,
       esm_pdn_type, msg_pP->pdn_addr, &qos,

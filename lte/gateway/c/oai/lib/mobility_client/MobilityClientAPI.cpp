@@ -79,8 +79,6 @@ int pgw_handle_allocate_ipv4_address(
   struct in_addr* addr,
   itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
   const char* pdn_type,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
   spgw_state_t* spgw_state,
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
   s5_create_session_response_t s5_response)
@@ -97,8 +95,8 @@ int pgw_handle_allocate_ipv4_address(
       if (sgi_resp.status == SGI_STATUS_OK) {
         // create session in PCEF and return
         s5_create_session_request_t session_req = {0};
-        session_req.context_teid = context_teid;
-        session_req.eps_bearer_id = eps_bearer_id;
+        session_req.context_teid = sgi_create_endpoint_resp.context_teid;
+        session_req.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
         char ip_str[INET_ADDRSTRLEN];
         inet_ntop(AF_INET, &(addr->s_addr), ip_str, INET_ADDRSTRLEN);
         struct pcef_create_session_data session_data;
@@ -118,8 +116,8 @@ int pgw_handle_allocate_ipv4_address(
         OAILOG_FUNC_OUT(LOG_PGW_APP);
       }
 
-      s5_response.eps_bearer_id = eps_bearer_id;
-      s5_response.context_teid = context_teid;
+      s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+      s5_response.context_teid = sgi_create_endpoint_resp.context_teid;
       handle_s5_create_session_response(
         spgw_state, new_bearer_ctxt_info_p, s5_response);
       OAILOG_FUNC_OUT(LOG_PGW_APP);
@@ -229,17 +227,18 @@ int get_subscriber_id_from_ipv4(
 struct in6_addr* generate_random_ip6_interface_id(
     struct in6_addr config_ipv6_prefix)
 {
-  char* ip6_addr = (char*) malloc(INET6_ADDRSTRLEN);
+  char str_ip6_addr[INET6_ADDRSTRLEN];
   char *temp_prefix[4], *temp_prefix_free[4];
-  char* buf_ipv6              = ip6_addr;
-  struct in6_addr* ip6_prefix = (struct in6_addr*) malloc(INET6_ADDRSTRLEN);
+  char* buf_ipv6              = str_ip6_addr;
+  struct in6_addr* ip6_addr = (struct in6_addr*) calloc(1,INET6_ADDRSTRLEN);
   unsigned int random[4]      = {0};
   int itrn                    = 0;
 
+  srand(time(0));
   // Fetch IPv6 prefix from the config
   inet_ntop(AF_INET6, &config_ipv6_prefix, buf_ipv6, INET6_ADDRSTRLEN);
   for (itrn = 0; itrn < 4; itrn++) {
-    temp_prefix[itrn] = (char*) malloc(4);
+    temp_prefix[itrn] = (char*) calloc(1,4);
     /* Take a copy of temp_prefix to be freed later because strsep function
      * updates the pointer and points right after the token it found
      */
@@ -251,24 +250,23 @@ struct in6_addr* generate_random_ip6_interface_id(
     random[itrn] = rand() % 0xffff;
   }
   sprintf(
-      ip6_addr, "%s:%s:%s:%s:%x:%x:%x:%x", temp_prefix[0], temp_prefix[1],
+      str_ip6_addr, "%s:%s:%s:%s:%x:%x:%x:%x", temp_prefix[0], temp_prefix[1],
       temp_prefix[2], temp_prefix[3], random[0], random[1], random[2],
       random[3]);
 
   // Convert the IPv6 address into in6_addr format
-  inet_pton(AF_INET6, ip6_addr, ip6_prefix);
+  inet_pton(AF_INET6, str_ip6_addr, ip6_addr);
 
   for (itrn = 0; itrn < 4; itrn++) {
     free_wrapper((void**) &temp_prefix_free[itrn]);
   }
-  free_wrapper((void**) &ip6_addr);
-  return ip6_prefix;
+  return ip6_addr;
 }
 
 int pgw_handle_allocate_ipv6_address(
     const char* subscriber_id, const char* apn, struct in6_addr* ip6_prefix,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    const char* pdn_type,
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response,
@@ -293,8 +291,8 @@ int pgw_handle_allocate_ipv6_address(
 
   // create session in PCEF and return
   s5_create_session_request_t session_req = {0};
-  session_req.context_teid                = context_teid;
-  session_req.eps_bearer_id               = eps_bearer_id;
+  session_req.context_teid                = sgi_create_endpoint_resp.context_teid;
+  session_req.eps_bearer_id               = sgi_create_endpoint_resp.eps_bearer_id;
   struct pcef_create_session_data session_data;
   get_session_req_data(
       spgw_state,
@@ -305,7 +303,7 @@ int pgw_handle_allocate_ipv6_address(
       session_req, new_bearer_ctxt_info_p);
   increment_counter("spgw_create_session", 1, 1, "result", "success");
   free_wrapper((void**) &ip6_prefix);
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);;
 }
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
@@ -327,7 +325,7 @@ int pgw_handle_allocate_ipv4v6_address(
     const char* subscriber_id, const char* apn, struct in_addr* ip4_addr,
     struct in6_addr* ip6_prefix,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    const char* pdn_type,
     spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response,
@@ -353,8 +351,8 @@ int pgw_handle_allocate_ipv4v6_address(
         // create session in PCEF and return
         if (sgi_resp.status == SGI_STATUS_OK) {
           s5_create_session_request_t session_req = {0};
-          session_req.context_teid                = context_teid;
-          session_req.eps_bearer_id               = eps_bearer_id;
+          session_req.context_teid                = sgi_create_endpoint_resp.context_teid;
+          session_req.eps_bearer_id               = sgi_create_endpoint_resp.eps_bearer_id;
           char ip4_str[INET_ADDRSTRLEN];
           inet_ntop(AF_INET, &(ip4_addr->s_addr), ip4_str, INET_ADDRSTRLEN);
           char ip6_str[INET6_ADDRSTRLEN];
@@ -374,19 +372,19 @@ int pgw_handle_allocate_ipv4v6_address(
           pcef_create_session(
               spgw_state, subscriber_id, ip4_str, ip6_str, &session_data,
               sgi_resp, session_req, new_bearer_ctxt_info_p);
-          s5_response.eps_bearer_id = eps_bearer_id;
-          s5_response.context_teid  = context_teid;
+          s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+          s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
           free_wrapper((void**) &ip6_prefix_temp);
           OAILOG_FUNC_OUT(LOG_PGW_APP);
         }
         // If status != SGI_STATUS_OK
-        s5_response.eps_bearer_id = eps_bearer_id;
-        s5_response.context_teid  = context_teid;
+        s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+        s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
         handle_s5_create_session_response(
             spgw_state, new_bearer_ctxt_info_p, s5_response);
         OAILOG_FUNC_OUT(LOG_PGW_APP);
       });
-  return 0;
+   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
 
 static itti_sgi_create_end_point_response_t

@@ -1244,9 +1244,16 @@ int mme_app_handle_create_sess_resp(
     }
     nas_pdn_cs_respose_success.pdn_addr = paa_to_bstring(&paa_temp);
   }
+  if (!nas_pdn_cs_respose_success.pdn_addr) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP,
+        ue_context_p->emm_context._imsi64,
+        "Error in converting PAA to bstring\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);  
+  }
   nas_pdn_cs_respose_success.pdn_type = create_sess_resp_pP->paa.pdn_type;
 
-  // ASSUME NO HO now, so assume 1 bearer only and is default bearer
+  // ASSUME NO HO now
 
   nas_pdn_cs_respose_success.ue_id = ue_context_p->mme_ue_s1ap_id;
   nas_pdn_cs_respose_success.ebi = bearer_id;
