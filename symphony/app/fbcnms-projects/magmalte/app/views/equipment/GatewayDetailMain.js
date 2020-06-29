@@ -216,9 +216,7 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
           <Grid container spacing={4} direction="column">
             <Grid item>
               <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <Paper elevation={0}>
-                <GatewayDetailStatus gwInfo={gwInfo} />
-              </Paper>
+              <GatewayDetailStatus gwInfo={gwInfo} />
             </Grid>
             <Grid item>
               <CardTitleRow
