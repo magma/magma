@@ -95,6 +95,7 @@ class StateManager {
     if (persist_state_enabled) {
       ProtoType state_proto = ProtoType();
       if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
+        OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
         return RETURNerror;
       }
       StateConverter::proto_to_state(state_proto, state_cache_p);

@@ -431,6 +431,18 @@ class ServiceManager:
         Instantiates and schedules the Ryu app eventlets in the service
         eventloop.
         """
+
+        # Some setups might not use REDIS
+        if (self._magma_service.config['redis_enabled']):
+            # Wait for redis as multiple controllers rely on it
+            while not redisAvailable(self.rule_id_mapper.redis_cli):
+                logging.warning("Pipelined waiting for redis...")
+                time.sleep(1)
+        else:
+            self.rule_id_mapper._rule_nums_by_rule = {}
+            self.rule_id_mapper._rules_by_rule_num = {}
+            self.session_rule_version_mapper._version_by_imsi_and_rule = {}
+
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
         contexts = manager.create_contexts()

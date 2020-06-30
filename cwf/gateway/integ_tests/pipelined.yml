@@ -133,6 +133,8 @@ li_local_iface: li_port
 li_mirror_all: false
 #li_dst_iface: eth4
 
+redis_enabled: true
+
 # Configuration for IPFIX sampling
 ipfix:
   enabled: true
