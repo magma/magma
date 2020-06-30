@@ -93,6 +93,7 @@ class DPIController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._classify_app_tbl_num)
 
     def add_classify_flow(self, flow_match, flow_state, app: str,
                           service_type: str, src_mac: str, dst_mac: str):
@@ -103,6 +104,9 @@ class DPIController(MagmaController):
         Example we care about google traffic, but don't neccessarily want to
         classify every specific google service.
         """
+        # TODO add error return
+        if self._datapath is None:
+            return
         parser = self._datapath.ofproto_parser
 
         app_id = get_app_id(app, service_type)
