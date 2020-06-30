@@ -28,6 +28,8 @@ class InternalPktIpfixExportTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    DPI_PORT = 'mon1'
+    DPI_IP = '1.1.1.1'
 
     @classmethod
     def setUpClass(cls):
@@ -92,6 +94,9 @@ class InternalPktIpfixExportTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
+                                          cls.DPI_IP)
+
         cls.thread = start_ryu_app_thread(test_setup)
 
         cls.ue_mac_controller = ue_mac_controller_reference.result()

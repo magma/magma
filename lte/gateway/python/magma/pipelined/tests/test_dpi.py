@@ -34,6 +34,8 @@ class DPITest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    DPI_PORT = 'mon1'
+    DPI_IP = '1.1.1.1'
 
     @classmethod
     def setUpClass(cls):
@@ -69,8 +71,8 @@ class DPITest(unittest.TestCase):
                 'clean_restart': True,
                 'setup_type': 'LTE',
                 'dpi': {
-                    'enabled': False,
-                    'mon_port': 'mon1',
+                    'enabled': True,
+                    'mon_port': cls.DPI_PORT,
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
@@ -82,6 +84,8 @@ class DPITest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
+                                          cls.DPI_IP)
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.dpi_controller = dpi_controller_reference.result()
