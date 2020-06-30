@@ -64,7 +64,9 @@ COPY protos $MAGMA_ROOT/protos
 COPY lte/gateway/Makefile $MAGMA_ROOT/lte/gateway/Makefile
 COPY orc8r/gateway/c/common $MAGMA_ROOT/orc8r/gateway/c/common
 COPY lte/gateway/c $MAGMA_ROOT/lte/gateway/c
-RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager
+ARG BUILD_TYPE=RelWithDebInfo
+ENV BUILD_TYPE=$BUILD_TYPE
+RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
