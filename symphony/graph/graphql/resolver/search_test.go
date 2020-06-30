@@ -50,12 +50,11 @@ type (
 	}
 
 	woSearchDataModels struct {
-		loc1        int
-		woType1     int
-		assignee1   int
-		wo1         int
-		owner       int
-		installDate time.Time
+		loc1      int
+		woType1   int
+		assignee1 int
+		wo1       int
+		owner     int
 	}
 
 	woSearchResult struct {
@@ -173,18 +172,16 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		LocationID:      &loc2.ID,
 	})
 
-	installDate := time.Now()
 	ownerName := "owner"
 	owner := viewer.MustGetOrCreateUser(ctx, ownerName, user.RoleOWNER)
 	_, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
-		ID:          wo1.ID,
-		Name:        wo1.Name,
-		OwnerID:     &owner.ID,
-		InstallDate: &installDate,
-		Status:      models.WorkOrderStatusDone,
-		Priority:    models.WorkOrderPriorityHigh,
-		LocationID:  &loc1.ID,
-		AssigneeID:  &assignee1.ID,
+		ID:         wo1.ID,
+		Name:       wo1.Name,
+		OwnerID:    &owner.ID,
+		Status:     models.WorkOrderStatusDone,
+		Priority:   models.WorkOrderPriorityHigh,
+		LocationID: &loc1.ID,
+		AssigneeID: &assignee1.ID,
 	})
 
 	return woSearchDataModels{
@@ -193,7 +190,6 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		assignee1.ID,
 		wo1.ID,
 		owner.ID,
-		installDate,
 	}
 }
 
@@ -681,32 +677,52 @@ func TestSearchWO(t *testing.T) {
 	require.Equal(t, 1, result.WorkOrderSearch.Count)
 
 	f8 := models.WorkOrderFilterInput{
-		FilterType: models.WorkOrderFilterTypeWorkOrderInstallDate,
-		Operator:   models.FilterOperatorIs,
-		StringValue: pointer.ToString(
-			strconv.FormatInt(data.installDate.Unix(), 10),
-		),
+		FilterType: models.WorkOrderFilterTypeWorkOrderCreationDate,
+		Operator:   models.FilterOperatorDateLessOrEqualThan,
+		TimeValue:  pointer.ToTime(time.Now()),
 	}
 	c.MustPost(
 		woCountQuery,
 		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f8}),
 	)
-	require.Equal(t, 1, result.WorkOrderSearch.Count)
+	require.Equal(t, 4, result.WorkOrderSearch.Count)
 
 	f9 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderCreationDate,
-		Operator:   models.FilterOperatorIs,
-		StringValue: pointer.ToString(
-			strconv.FormatInt(time.Now().Unix(), 10),
-		),
+		Operator:   models.FilterOperatorDateGreaterThan,
+		TimeValue:  pointer.ToTime(time.Now()),
 	}
 	c.MustPost(
 		woCountQuery,
 		&result,
 		client.Var("filters", []models.WorkOrderFilterInput{f9}),
 	)
-	require.Equal(t, 4, result.WorkOrderSearch.Count)
+	require.Zero(t, result.WorkOrderSearch.Count)
+
+	f10 := models.WorkOrderFilterInput{
+		FilterType: models.WorkOrderFilterTypeWorkOrderCloseDate,
+		Operator:   models.FilterOperatorDateLessOrEqualThan,
+		TimeValue:  pointer.ToTime(time.Now()),
+	}
+	c.MustPost(
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f10}),
+	)
+	require.Equal(t, 1, result.WorkOrderSearch.Count)
+
+	f11 := models.WorkOrderFilterInput{
+		FilterType: models.WorkOrderFilterTypeWorkOrderCloseDate,
+		Operator:   models.FilterOperatorDateGreaterThan,
+		TimeValue:  pointer.ToTime(time.Now()),
+	}
+	c.MustPost(
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f11}),
+	)
+	require.Zero(t, result.WorkOrderSearch.Count)
 }
 
 func TestSearchWOByPriority(t *testing.T) {

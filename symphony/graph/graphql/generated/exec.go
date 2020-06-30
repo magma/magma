@@ -9158,6 +9158,8 @@ enum FilterOperator {
   IS_NOT_ONE_OF
   DATE_GREATER_THAN
   DATE_LESS_THAN
+  DATE_GREATER_OR_EQUAL_THAN
+  DATE_LESS_OR_EQUAL_THAN
 }
 
 """
@@ -9370,7 +9372,7 @@ enum WorkOrderFilterType {
   WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
-  WORK_ORDER_INSTALL_DATE
+  WORK_ORDER_CLOSE_DATE
   WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
@@ -9384,6 +9386,7 @@ input WorkOrderFilterInput {
   idSet: [ID!]
   stringSet: [String!]
   propertyValue: PropertyTypeInput
+  timeValue: Time
   maxDepth: Int = 5
 }
 
@@ -43054,6 +43057,12 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 		case "propertyValue":
 			var err error
 			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timeValue":
+			var err error
+			it.TimeValue, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}

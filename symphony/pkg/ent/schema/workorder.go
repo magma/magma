@@ -157,6 +157,14 @@ func (WorkOrder) Edges() []ent.Edge {
 	}
 }
 
+// Indexes returns work order indexes.
+func (WorkOrder) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("creation_date"),
+		index.Fields("close_date"),
+	}
+}
+
 // Policy returns work order policy.
 func (WorkOrder) Policy() ent.Policy {
 	return authz.NewPolicy(

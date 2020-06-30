@@ -1622,6 +1622,18 @@ var (
 				OnDelete:   schema.SetNull,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "workorder_creation_date",
+				Unique:  false,
+				Columns: []*schema.Column{WorkOrdersColumns[8]},
+			},
+			{
+				Name:    "workorder_close_date",
+				Unique:  false,
+				Columns: []*schema.Column{WorkOrdersColumns[10]},
+			},
+		},
 	}
 	// WorkOrderDefinitionsColumns holds the columns for the "work_order_definitions" table.
 	WorkOrderDefinitionsColumns = []*schema.Column{
