@@ -846,27 +846,7 @@ bool LocalEnforcer::init_session_credit(
   }
   // We don't have to check 'success' field for monitors because command level
   // errors are handled in session proxy for the init exchange
-  // Since revalidation timer is session wide, we will only schedule one for
-  // the entire session
-
-  // TODO [REMOVE] We will log error in case we get an unexpected input here
-  // The expectation is that if event triggers should be included in all
-  // monitors or none
-  auto revalidation_scheduled = false;
-  google::protobuf::Timestamp revalidation_time;
-
   for (const auto& monitor : response.usage_monitors()) {
-    if (!revalidation_scheduled && revalidation_required(monitor.event_triggers())) {
-      revalidation_scheduled = true;
-      revalidation_time = monitor.revalidation_time();
-    } else if (revalidation_scheduled &&
-          !revalidation_required(monitor.event_triggers())) {
-        // TODO [Remove This Clause]
-        auto time_from_now_ms = time_difference_from_now(revalidation_time);
-        MLOG(MWARNING) << imsi << " received some usage monitors with a "
-                       << "revalidation timer in " << time_from_now_ms.count()
-                       << " and some without";
-      }
     auto uc = get_default_update_criteria();
     session_state->receive_monitor(monitor, uc);
   }
@@ -881,11 +861,12 @@ bool LocalEnforcer::init_session_credit(
     }
   }
 
-  if (revalidation_scheduled) {
+  if (revalidation_required(response.event_triggers())) {
     // TODO This might not work since the session is not initialized properly
     // at this point
     auto _ = get_default_update_criteria();
-    schedule_revalidation(imsi, *session_state, revalidation_time, _);
+    schedule_revalidation(
+      imsi, *session_state, response.revalidation_time(), _);
   }
 
   auto it = session_map.find(imsi);

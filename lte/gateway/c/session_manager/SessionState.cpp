@@ -296,18 +296,6 @@ void SessionState::get_monitor_updates(
     request_number_++;
     update_criteria.request_number_increment++;
   }
-  // todo We should also handle other event triggers here too
-  auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
-  if (it != pending_event_triggers_.end() && it->second == READY) {
-    auto new_req = update_request_out.mutable_usage_monitors()->Add();
-    add_common_fields_to_usage_monitor_update(new_req);
-    new_req->set_event_trigger(REVALIDATION_TIMEOUT);
-    request_number_++;
-    update_criteria.request_number_increment++;
-    // todo we might want to make sure that the update went successfully before
-    // clearing here
-    remove_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
-  }
 }
 
 void SessionState::add_common_fields_to_usage_monitor_update(
@@ -328,6 +316,7 @@ void SessionState::get_updates(
   if (curr_state_ != SESSION_ACTIVE) return;
   get_charging_updates(update_request_out, actions_out, update_criteria);
   get_monitor_updates(update_request_out, actions_out, update_criteria);
+  get_event_trigger_updates(update_request_out, actions_out, update_criteria);
 }
 
 void SessionState::start_termination(
@@ -1195,6 +1184,24 @@ SessionCreditUpdateCriteria* SessionState::get_monitor_uc(
 }
 
 // Event Triggers
+void SessionState::get_event_trigger_updates(
+    UpdateSessionRequest& update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+    SessionStateUpdateCriteria& update_criteria) {
+  // todo We should also handle other event triggers here too
+  auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
+  if (it != pending_event_triggers_.end() && it->second == READY) {
+    auto new_req = update_request_out.mutable_usage_monitors()->Add();
+    add_common_fields_to_usage_monitor_update(new_req);
+    new_req->set_event_trigger(REVALIDATION_TIMEOUT);
+    request_number_++;
+    update_criteria.request_number_increment++;
+    // todo we might want to make sure that the update went successfully before
+    // clearing here
+    remove_event_trigger(REVALIDATION_TIMEOUT, update_criteria);
+  }
+}
+
 void SessionState::add_new_event_trigger(
   magma::lte::EventTrigger trigger,
   SessionStateUpdateCriteria& update_criteria) {

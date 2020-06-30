@@ -89,6 +89,7 @@ func (srv *CentralSessionController) CreateSession(
 
 	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
 	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
+	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 
 	// These rules should not be tracked by OCS or PCRF, they come directly from the orc8r
 	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
@@ -120,12 +121,14 @@ func (srv *CentralSessionController) CreateSession(
 	usageMonitors := getUsageMonitorsFromCCA_I(imsi, gyOriginHost, request.SessionId, gxCCAInit)
 
 	return &protos.CreateSessionResponse{
-		Credits:       credits,
-		StaticRules:   staticRuleInstalls,
-		DynamicRules:  dynamicRuleInstalls,
-		UsageMonitors: usageMonitors,
-		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
-		SessionId:     request.SessionId,
+		Credits:          credits,
+		StaticRules:      staticRuleInstalls,
+		DynamicRules:     dynamicRuleInstalls,
+		UsageMonitors:    usageMonitors,
+		TgppCtx:          &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
+		SessionId:        request.SessionId,
+		EventTriggers:    eventTriggers,
+		RevalidationTime: revalidationTime,
 	}, nil
 }
 

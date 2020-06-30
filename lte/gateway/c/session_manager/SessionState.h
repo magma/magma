@@ -474,6 +474,11 @@ class SessionState {
     const std::string &key, SessionStateUpdateCriteria &uc);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
+
+  void get_event_trigger_updates(
+    UpdateSessionRequest& update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+    SessionStateUpdateCriteria& update_criteria);
 };
 
 }  // namespace magma
