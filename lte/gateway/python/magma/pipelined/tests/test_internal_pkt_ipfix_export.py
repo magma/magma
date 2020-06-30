@@ -122,7 +122,6 @@ class InternalPktIpfixExportTest(unittest.TestCase):
 
         self.ue_mac_controller.add_ue_mac_flow(imsi, ue_mac)
 
-        dst_mac = "5e:cc:cc:b1:49:4b"
         flow_match = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.1',
             ipv4_src='1.2.3.0', tcp_dst=80, tcp_src=51115,
@@ -130,10 +129,11 @@ class InternalPktIpfixExportTest(unittest.TestCase):
         )
         self.dpi_controller.add_classify_flow(
             flow_match, FlowRequest.FLOW_FINAL_CLASSIFICATION,
-            'base.ip.http.facebook', 'tbd', ue_mac, dst_mac)
+            'base.ip.http.facebook', 'tbd')
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+                                             self.service_manager,
+                                             include_stats=False)
 
         with snapshot_verifier:
             pass
