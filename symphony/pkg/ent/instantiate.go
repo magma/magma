@@ -271,6 +271,12 @@ func (c *WorkOrderDefinitionClient) Instantiate(wod *WorkOrderDefinition) *WorkO
 }
 
 // Instantiate entity configuration.
+func (c *WorkOrderTemplateClient) Instantiate(wot *WorkOrderTemplate) *WorkOrderTemplate {
+	wot.config = c.config
+	return wot
+}
+
+// Instantiate entity configuration.
 func (c *WorkOrderTypeClient) Instantiate(wot *WorkOrderType) *WorkOrderType {
 	wot.config = c.config
 	return wot

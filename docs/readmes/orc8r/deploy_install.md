@@ -15,49 +15,52 @@ Secretsmanager and you can delete them locally afterwards.
 mkdir -p ~/secrets/certs
 ```
 
-You will need the following certificates and private keys:
+You will need the following certificates and private keys
 
 1. The public SSL certificate for your Orchestrator domain,
 with CN=*.yourdomain.com. This can be an SSL certificate chain, but it must be
 in one file
 2. The private key which corresponds to the above SSL certificate
-3. The rootCA certificate which verifies your SSL certificate.
+3. The root CA certificate which verifies your SSL certificate
 
-If you already have these files, you can do the following:
+If you already have these files, rename and move them as follows
 
 1. Rename your public SSL certificate to `controller.crt`
 2. Rename your SSL certificate's private key to `controller.key`
-3. Rename your SSL certificate's root CA to `rootCA.pem`
-4. Put these 3 files under the directory you created above
+3. Rename your SSL certificate's root CA certificate to `rootCA.pem`
+4. Put these three files under the directory you created above
 
-If you aren't worried about a browser warning, you can also self-sign these
-certs:
+Alternatively, if you aren't worried about a browser warning, you can
+self-sign these certs
 
 ```bash
 cd ~/secrets/certs
 MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 ```
 
-Regardless of if you've self-signed your certs or used existing ones, run
-one more script here:
+With the domain certs placed in the correct directory, next generate the
+application certificates
 
 ```bash
 cd ~/secrets/certs
 MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 ```
 
-NOTE: `yourdomain.com` should match with what will be entered in `main.tf` in the subsequent sections. If in `main.tf` the orc8r_domain_name is `orc8r.yourdomain.com` then the same nomenclature should be used when creating new self-signed certs.
+NOTE: `yourdomain.com` should match the relevant Terraform variables in
+subsequent sections. For example, if in `main.tf` the `orc8r_domain_name` is
+`orc8r.yourdomain.com`, then that same domain should be used when requesting
+ or generating all the above certs.
 
 ## Infrastructure and Application Installation
 
 Create a new root Terraform module in a location of your choice by creating a
 new `main.tf` file. Follow the example Terraform root module at
 `orc8r/cloud/deploy/terraform/orc8r-helm-aws/examples/basic` but make sure to
-override the following parameters:
+override the following parameters
 
 - `deploy_nms`: IMPORTANT - this should be `false` for now!
-- `nms_db_password`
-- `orc8r_db_password`
+- `nms_db_password` must be at least 8 characters
+- `orc8r_db_password` must be at least 8 characters
 - `orc8r_domain_name`
 - `docker_registry`
 - `docker_user`
@@ -77,7 +80,9 @@ relevant Terraform modules to see additional variables that can be set.
 
 ### Initial Infrastructure Terraform
 
-The 2 Terraform modules are organized so that `orc8r-aws` contains all the
+If you haven't done an initial `terraform init`, do this now.
+
+The two Terraform modules are organized so that `orc8r-aws` contains all the
 resource definitions for the cloud infrastructure that you'll need to run
 Orchestrator and `orc8r-helm-aws` contains all of the application components
 behind Orchestrator. On the very first installation, you'll have to
@@ -85,7 +90,7 @@ behind Orchestrator. On the very first installation, you'll have to
 to your Terraform root module, you can make all changes at once with a single
 `terraform apply`.
 
-With your root module set up, simply run
+With your root module set up, run
 
 ```bash
 $ terraform apply -target=module.orc8r
@@ -94,12 +99,18 @@ $ terraform apply -target=module.orc8r
 Apply complete! Resources: 70 added, 0 changed, 0 destroyed.
 ```
 
-This `terraform apply` will create a Kubeconfig file in the same directory as
-your root Terraform module. To get access to the k8s cluster, either set your
-KUBECONFIG environment variable to point to this file or pull this file into
-your default kubeconfig file at `~/.kube/config`. See
-https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/
-for more details.
+This `terraform apply` will create a
+[kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+file in the same directory as your root Terraform module. To access the
+k8s cluster, either set your KUBECONFIG environment variable to point to this
+file or pull this file into your default kubeconfig file at `~/.kube/config`.
+
+E.g., with the [`realpath`](https://linux.die.net/man/1/realpath) utility
+installed, you can set the kubeconfig with
+
+```bash
+$ export KUBECONFIG=$(realpath kubeconfig_orc8r)
+```
 
 ### Initial Application Terraform
 
@@ -116,17 +127,21 @@ $ terraform apply
 Apply complete! Resources: 16 added, 0 changed, 0 destroyed.
 ```
 
-### Creating an Admin User
+### Create an Admin User
 
 Before we deploy the NMS, we need to create an admin user for the NMS backend
 server inside Orchestrator.
 
 NOTE: In all the below `kubectl` commands, use the `-n` flag or `kubens` to
-select the appropriate k8s namespace (by default this is `orc8r`).
+select the appropriate k8s namespace (by default this is `orc8r`). Also,
+assumes kubeconfig is set correctly from above.
+
+First, create the admin user in a controller pod, exporting the private key
+and certificate combination under a chosen password.
 
 ```bash
 export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -it ${CNTLR_POD} bash
+kubectl exec -it ${CNTLR_POD} -- bash
 
 # The following commands are to be run inside the pod
 (pod)$ cd /var/opt/magma/bin
@@ -140,7 +155,7 @@ Verifying - Enter Export Password:
 ```
 
 Now on your host, copy down the client certificates for the admin operator we
-just created into the secrets directory:
+just created into the secrets directory
 
 ```bash
 cd ~/secrets/certs
@@ -155,7 +170,7 @@ use to authenticate itself with the Orchestrator API. `admin_operator.pfx` is
 for you to add to your keychain if you'd like to use the Orchestrator REST API
 directly (on MacOS, double-click this file and add it to your keychain).
 
-We can now upload these new certificates to AWS Secretsmanager:
+We can now upload these new certificates to AWS Secretsmanager
 
 ```bash
 $ terraform taint module.orc8r-app.null_resource.orc8r_seed_secrets
@@ -180,12 +195,11 @@ $ terraform apply
 Apply complete! Resources: 1 added, 1 changed, 0 destroyed.
 ```
 
-Finally, create an admin user for the "master" organization on the NMS:
+Finally, create an admin user for the `master` organization on the NMS
 
 ```bash
-kubectl exec -it \
-  $(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
-  yarn setAdminPassword master <admin user email> <admin user password>
+export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 ## DNS Resolution
@@ -196,8 +210,9 @@ point. You will need to configure your DNS records on your managed domain name
 to use the Route53 nameservers in order to resolve these subdmains.
 
 The example terraform root module has an output `nameservers` which will list
-the Route53 nameservers for the hosted zone for Orchestrator. You have probably
-already noticed some output with every `terraform apply` that looks like
+the Route53 nameservers for the hosted zone for Orchestrator. Access these
+via `terraform output` (you have probably already noticed identical output
+from every `terraform apply`). Output should be of the form
 
 ```
 Outputs:
@@ -210,19 +225,36 @@ nameservers = [
 ]
 ```
 
-For each of these following subdomains, add an NS Record to the above
-nameservers on your domain registrar:
+If you chose a subdomain prefix for your Orchestrator domain name in your
+root Terraform mdule, you only need to provide a single NS record to your
+domain registrar, mapping the subdomain to the above name servers.
+E.g., for the subdomain `orc8r`, this record would notionally take
+the form `{ orc8r -> [ns-xxxx.awsdns-yy.org, ...] }`
+
+If you didn't choose a subdomain prefix, then you can still point the whole
+domain to AWS via the single NS record. Alternatively, if this is undesirable,
+provide NS records for each of the following subdomains
 
 1. nms
 2. controller
 3. bootstrapper-controller
 4. api
 
-If you chose a subdomain prefix for your Orchestrator domain name in your
-root Terraform module, you'll have to append that subdomain prefix to your
-NS Record names. For example, if you chose `orc8r.yourdomain.com` for your
-Route53 zone, you'll have to add NS Records for `nms.orc8r`, `api.orc8r`, and
-so on.
+E.g., for the domain `mydomain`, these records would notionally take the form
+`{ nms -> [ns-xxxx.awsdns-yy.org, ...], controller -> [ns-xxxx.awsdns-yy.org, ...], ... }`
+
+## Verifying the Deployment
+
+After a few minutes the NS records should propagate. Confirm successful
+deployment by visiting the master NMS organization at e.g.
+`https://master.nms.yoursubdomain.yourdomain.com` and logging in with the
+`ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` provided above.
+
+Note the `https` is required. If you self-signed certs above, the browser will
+rightfully complain. Either ignore the browser warnings at your own risk (some
+versions of Chrome won't allow this at all), or e.g.
+[import the root CA from above on a per-browser basis
+](https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate)
 
 ## Upgrading the Deployment
 

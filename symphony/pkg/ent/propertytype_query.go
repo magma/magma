@@ -24,6 +24,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -43,6 +44,7 @@ type PropertyTypeQuery struct {
 	withEquipmentType         *EquipmentTypeQuery
 	withServiceType           *ServiceTypeQuery
 	withWorkOrderType         *WorkOrderTypeQuery
+	withWorkOrderTemplate     *WorkOrderTemplateQuery
 	withProjectType           *ProjectTypeQuery
 	withFKs                   bool
 	// intermediate query (i.e. traversal path).
@@ -193,6 +195,24 @@ func (ptq *PropertyTypeQuery) QueryWorkOrderType() *WorkOrderTypeQuery {
 			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
 			sqlgraph.To(workordertype.Table, workordertype.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTypeTable, propertytype.WorkOrderTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkOrderTemplate chains the current query on the work_order_template edge.
+func (ptq *PropertyTypeQuery) QueryWorkOrderTemplate() *WorkOrderTemplateQuery {
+	query := &WorkOrderTemplateQuery{config: ptq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := ptq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(propertytype.Table, propertytype.FieldID, ptq.sqlQuery()),
+			sqlgraph.To(workordertemplate.Table, workordertemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, propertytype.WorkOrderTemplateTable, propertytype.WorkOrderTemplateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(ptq.driver.Dialect(), step)
 		return fromU, nil
@@ -474,6 +494,17 @@ func (ptq *PropertyTypeQuery) WithWorkOrderType(opts ...func(*WorkOrderTypeQuery
 	return ptq
 }
 
+//  WithWorkOrderTemplate tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order_template" edge. The optional arguments used to configure the query builder of the edge.
+func (ptq *PropertyTypeQuery) WithWorkOrderTemplate(opts ...func(*WorkOrderTemplateQuery)) *PropertyTypeQuery {
+	query := &WorkOrderTemplateQuery{config: ptq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	ptq.withWorkOrderTemplate = query
+	return ptq
+}
+
 //  WithProjectType tells the query-builder to eager-loads the nodes that are connected to
 // the "project_type" edge. The optional arguments used to configure the query builder of the edge.
 func (ptq *PropertyTypeQuery) WithProjectType(opts ...func(*ProjectTypeQuery)) *PropertyTypeQuery {
@@ -555,7 +586,7 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 		nodes       = []*PropertyType{}
 		withFKs     = ptq.withFKs
 		_spec       = ptq.querySpec()
-		loadedTypes = [8]bool{
+		loadedTypes = [9]bool{
 			ptq.withProperties != nil,
 			ptq.withLocationType != nil,
 			ptq.withEquipmentPortType != nil,
@@ -563,10 +594,11 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 			ptq.withEquipmentType != nil,
 			ptq.withServiceType != nil,
 			ptq.withWorkOrderType != nil,
+			ptq.withWorkOrderTemplate != nil,
 			ptq.withProjectType != nil,
 		}
 	)
-	if ptq.withLocationType != nil || ptq.withEquipmentPortType != nil || ptq.withLinkEquipmentPortType != nil || ptq.withEquipmentType != nil || ptq.withServiceType != nil || ptq.withWorkOrderType != nil || ptq.withProjectType != nil {
+	if ptq.withLocationType != nil || ptq.withEquipmentPortType != nil || ptq.withLinkEquipmentPortType != nil || ptq.withEquipmentType != nil || ptq.withServiceType != nil || ptq.withWorkOrderType != nil || ptq.withWorkOrderTemplate != nil || ptq.withProjectType != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -770,6 +802,31 @@ func (ptq *PropertyTypeQuery) sqlAll(ctx context.Context) ([]*PropertyType, erro
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrderType = n
+			}
+		}
+	}
+
+	if query := ptq.withWorkOrderTemplate; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*PropertyType)
+		for i := range nodes {
+			if fk := nodes[i].work_order_template_property_types; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertemplate.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_template_property_types" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrderTemplate = n
 			}
 		}
 	}

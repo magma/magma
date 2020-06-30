@@ -23,6 +23,7 @@ import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
 import {CWF, FEG, LTE, SYMPHONY, XWFM} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
+import {difference} from 'lodash';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
@@ -211,4 +212,43 @@ router.post(
   }),
 );
 
+router.post(
+  '/delete',
+  access(AccessRoles.SUPERUSER),
+  asyncHandler(async (req: FBCNMSRequest, res) => {
+    const {networkID} = req.body;
+
+    try {
+      await MagmaV1API.deleteNetworksByNetworkId({
+        networkId: networkID,
+      });
+
+      // Remove network from organization
+      if (req.organization) {
+        const organization = await req.organization();
+
+        const networkIDs = difference(organization.networkIDs, [networkID]);
+        await organization.update({networkIDs});
+      }
+    } catch (e) {
+      logger.error(e, {
+        response: e.response?.data,
+      });
+      res
+        .status(200)
+        .send({
+          success: false,
+        })
+        .end();
+      return;
+    }
+
+    res
+      .status(200)
+      .send({
+        success: true,
+      })
+      .end();
+  }),
+);
 export default router;

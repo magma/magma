@@ -14,7 +14,6 @@ import React, {useState} from 'react';
 import TabsBar from '../../components/design-system/Tabs/TabsBar';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -41,7 +40,7 @@ const tabs: Array<TabProps> = [
   },
 ];
 
-const TabsBarRoot = () => {
+export const TabsBarRoot = () => {
   const classes = useStyles();
   const [activeTab, setActiveTab] = useState(0);
 
@@ -82,6 +81,10 @@ const TabsBarRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('TabsBar', () => (
-  <TabsBarRoot />
-));
+TabsBarRoot.story = {
+  name: 'TabsBar',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

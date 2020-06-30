@@ -24,6 +24,7 @@ import {
 } from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo, useState} from 'react';
+import {useEffect} from 'react';
 import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 
 const ERROR_MESSAGE_HEIGHT = '6px';
@@ -97,9 +98,8 @@ export default function PermissionsPolicyLocationRulesSpecification(
       : METHOD_ALL_LOCATIONS_VALUE,
   );
 
-  const callSetPermissionMethod = useCallback(
+  const updateUpdateRuleByMethod = useCallback(
     newPermissionMethod => {
-      setPolicyMethod(newPermissionMethod);
       onChange({
         ...locationRule,
         update: {
@@ -113,6 +113,23 @@ export default function PermissionsPolicyLocationRulesSpecification(
     },
     [onChange, locationRule],
   );
+
+  const callSetPermissionMethod = useCallback(
+    newPermissionMethod => {
+      setPolicyMethod(newPermissionMethod);
+      updateUpdateRuleByMethod(newPermissionMethod);
+    },
+    [updateUpdateRuleByMethod],
+  );
+
+  useEffect(() => {
+    if (
+      locationRule.update.isAllowed === PERMISSION_RULE_VALUES.YES &&
+      policyMethod === METHOD_SELECTED_LOCATIONS_VALUE
+    ) {
+      updateUpdateRuleByMethod(policyMethod);
+    }
+  }, [locationRule.update.isAllowed, policyMethod, updateUpdateRuleByMethod]);
 
   const alerts = useFormAlertsContext();
   const emptyRequiredTypesSelectionErrorMessage = alerts.error.check({

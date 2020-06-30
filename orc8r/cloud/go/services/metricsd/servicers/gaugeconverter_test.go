@@ -1,35 +1,47 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-package exporters
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+*/
+
+package servicers
 
 import (
 	"testing"
 
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/lib/go/metrics"
 
-	dto "github.com/prometheus/client_model/go"
-	"github.com/stretchr/testify/assert"
+	prometheus_models "github.com/prometheus/client_model/go"
+	assert "github.com/stretchr/testify/require"
+)
+
+const (
+	sampleNetworkID = "sampleNetwork"
+)
+
+var (
+	sampleLabels = []*prometheus_models.LabelPair{
+		{Name: tests.MakeStrPtr(metrics.NetworkLabelName), Value: tests.MakeStrPtr(sampleNetworkID)},
+		{Name: tests.MakeStrPtr("testLabel"), Value: tests.MakeStrPtr("testValue")},
+	}
 )
 
 func TestCounterToGauge(t *testing.T) {
-	originalFamily := tests.MakeTestMetricFamily(dto.MetricType_COUNTER, 2, sampleLabels)
+	originalFamily := tests.MakeTestMetricFamily(prometheus_models.MetricType_COUNTER, 2, sampleLabels)
 	convertedGauge := counterToGauge(originalFamily)
-	assert.Equal(t, dto.MetricType_GAUGE, *convertedGauge.Type)
+	assert.Equal(t, prometheus_models.MetricType_GAUGE, *convertedGauge.Type)
 	assert.Equal(t, tests.CounterMetricName, convertedGauge.GetName())
 }
 
 func TestHistogramToGauge(t *testing.T) {
-	originalFamily := tests.MakeTestMetricFamily(dto.MetricType_HISTOGRAM, 1, sampleLabels)
+	originalFamily := tests.MakeTestMetricFamily(prometheus_models.MetricType_HISTOGRAM, 1, sampleLabels)
 	convertedFams := histogramToGauges(originalFamily)
 	assert.Equal(t, 3, len(convertedFams))
 	for _, family := range convertedFams {
-		assert.Equal(t, dto.MetricType_GAUGE, *family.Type)
+		assert.Equal(t, prometheus_models.MetricType_GAUGE, *family.Type)
 		name := family.GetName()
 		for _, metric := range family.Metric {
 			if name == (tests.HistogramMetricName + bucketPostfix) {
@@ -61,13 +73,13 @@ func TestHistogramToGaugeValues(t *testing.T) {
 		expectedSum += obs
 	}
 
-	metricType := dto.MetricType_HISTOGRAM
+	metricType := prometheus_models.MetricType_HISTOGRAM
 	famName := "hist"
-	origFam := &dto.MetricFamily{
+	origFam := &prometheus_models.MetricFamily{
 		Name:   &famName,
 		Help:   makeStringPointer("testFamilyHelp"),
 		Type:   &metricType,
-		Metric: []*dto.Metric{&origMetric},
+		Metric: []*prometheus_models.Metric{&origMetric},
 	}
 
 	convertedFams := histogramToGauges(origFam)
@@ -97,11 +109,11 @@ func TestHistogramToGaugeValues(t *testing.T) {
 }
 
 func TestSummaryToGauge(t *testing.T) {
-	originalFamily := tests.MakeTestMetricFamily(dto.MetricType_SUMMARY, 1, sampleLabels)
+	originalFamily := tests.MakeTestMetricFamily(prometheus_models.MetricType_SUMMARY, 1, sampleLabels)
 	convertedFams := summaryToGauges(originalFamily)
 	assert.Equal(t, 3, len(convertedFams))
 	for _, family := range convertedFams {
-		assert.Equal(t, dto.MetricType_GAUGE, *family.Type)
+		assert.Equal(t, prometheus_models.MetricType_GAUGE, *family.Type)
 		name := family.GetName()
 		for _, metric := range family.Metric {
 			if name == tests.SummaryMetricName {

@@ -30,6 +30,8 @@ const (
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
+	// EdgeTemplate holds the string denoting the template edge name in mutations.
+	EdgeTemplate = "template"
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
 	EdgeEquipment = "equipment"
 	// EdgeLinks holds the string denoting the links edge name in mutations.
@@ -64,6 +66,13 @@ const (
 	TypeInverseTable = "work_order_types"
 	// TypeColumn is the table column denoting the type relation/edge.
 	TypeColumn = "work_order_type"
+	// TemplateTable is the table the holds the template relation/edge.
+	TemplateTable = "work_orders"
+	// TemplateInverseTable is the table name for the WorkOrderTemplate entity.
+	// It exists in this package in order to avoid circular dependency with the "workordertemplate" package.
+	TemplateInverseTable = "work_order_templates"
+	// TemplateColumn is the table column denoting the template relation/edge.
+	TemplateColumn = "work_order_template"
 	// EquipmentTable is the table the holds the equipment relation/edge.
 	EquipmentTable = "equipment"
 	// EquipmentInverseTable is the table name for the Equipment entity.
@@ -169,6 +178,7 @@ var Columns = []string{
 var ForeignKeys = []string{
 	"project_work_orders",
 	"work_order_type",
+	"work_order_template",
 	"work_order_location",
 	"work_order_owner",
 	"work_order_assignee",

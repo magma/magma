@@ -214,7 +214,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   // 4) Now call PolicyReAuth
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
-  EXPECT_CALL(*pipelined_client, activate_flows_for_rules(_, _, _, _)).Times(1);
+  EXPECT_CALL(*pipelined_client, activate_flows_for_rules(_, _, _, _, _)).Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,
       [this](grpc::Status status, PolicyReAuthAnswer response_out) {});

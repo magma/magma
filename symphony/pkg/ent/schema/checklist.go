@@ -32,8 +32,10 @@ func (CheckListCategoryDefinition) Edges() []ent.Edge {
 		edge.To("check_list_item_definitions", CheckListItemDefinition.Type),
 		edge.From("work_order_type", WorkOrderType.Type).
 			Ref("check_list_category_definitions").
-			Unique().
-			Required(),
+			Unique(),
+		edge.From("work_order_template", WorkOrderTemplate.Type).
+			Ref("check_list_category_definitions").
+			Unique(),
 	}
 }
 

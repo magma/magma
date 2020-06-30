@@ -7,6 +7,7 @@
     "@material-ui/icons": "^4.0.0",
     "@material-ui/lab": "^4.0.0-alpha.30",
     "@material-ui/styles": "^4.0.0",
+    "@storybook/addon-actions": "^5.3.19",
     "beaver-logger": "^4.0.12",
     "notistack": "^0.8.5",
     "react": "^16.8.6",
@@ -24,10 +25,12 @@
     "@babel/preset-react": "^7.0.0",
     "@babel/runtime": "^7.3.4",
     "@fbcnms/types": "^0.1.0",
-    "@storybook/addon-actions": "^5.2.0",
+    "@storybook/addon-docs": "^6.0.0-beta.23",
     "@storybook/addon-links": "^5.2.0",
     "@storybook/addons": "^5.2.0",
-    "@storybook/react": "^5.2.0"
+    "@storybook/react": "^6.0.0-beta.23",
+    "babel-loader": "^8.0.5",
+    "react-is": "^16.8.6"
   },
   "scripts": {
     "storybook": "start-storybook -p 6006 -s public",

@@ -69,10 +69,11 @@ class PolicyRuleBiMap {
   // If the rule is found, copy the rule into the output parameter and return
   // true. Otherwise, return false.
   // If the output rule param is NULL, the rule object is not copied.
-  virtual bool get_rule(const std::string& rule_id, PolicyRule* rule);
+  virtual bool get_rule(const std::string& rule_id, PolicyRule* rule_out);
 
   // Remove a rule from the store by ID. Returns true if the rule ID was found.
-  // The removed rule will be copied into rule_out
+  // The removed rule will be copied into rule_out.
+  // If the output rule param is NULL, the rule object is not copied.
   virtual bool remove_rule(const std::string& rule_id, PolicyRule* rule_out);
 
   /**

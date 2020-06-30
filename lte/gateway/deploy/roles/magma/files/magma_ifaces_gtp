@@ -7,7 +7,7 @@ iface gtp_br0 inet static
     up iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     up iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     ovs_type OVSBridge
-    ovs_ports gtp0 mtr0
+    ovs_ports gtp0 mtr0 patch-up
 
 # Add GTP vport to gtp_br0 as port 32768
 allow-gtp_br0 gtp0
@@ -24,3 +24,28 @@ iface mtr0 inet static
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
     ovs_extra set interface ${IFACE} ofport_request=15577
+
+allow-gtp_br0 patch-up
+iface patch-up inet manual
+    ovs_bridge gtp_br0
+    ovs_type OVSPatchPort
+    ovs_patch_peer patch-agw
+    ovs_extra set interface ${IFACE} ofport_request=2
+
+allow-ovs uplink_br0
+iface uplink_br0 inet manual
+    ovs_type OVSBridge
+    ovs_ports dhcp0 patch-agw
+
+allow-uplink_br0 patch-agw
+iface patch-agw inet manual
+    ovs_bridge uplink_br0
+    ovs_type OVSPatchPort
+    ovs_patch_peer patch-up
+    ovs_extra set interface ${IFACE} ofport_request=2
+
+allow-uplink_br0 dhcp0
+iface dhcp0 inet manual
+    ovs_bridge uplink_br0
+    ovs_type OVSIntPort
+    ovs_extra set interface ${IFACE} ofport_request=3

@@ -8,21 +8,49 @@ import (
 	"github.com/facebookincubator/ent"
 	"github.com/facebookincubator/ent/schema/edge"
 	"github.com/facebookincubator/ent/schema/field"
+	"github.com/facebookincubator/ent/schema/index"
+	"github.com/facebookincubator/ent/schema/mixin"
 	"github.com/facebookincubator/symphony/pkg/authz"
 )
+
+// WorkOrderTemplateMixin defines the work order template mixin schema.
+type WorkOrderTemplateMixin struct {
+	mixin.Schema
+}
+
+// Fields returns work order template mixin fields.
+func (WorkOrderTemplateMixin) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("name"),
+		field.Text("description").
+			Optional(),
+	}
+}
+
+// Edges returns work order template mixin edges.
+func (WorkOrderTemplateMixin) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("property_types", PropertyType.Type),
+		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type),
+	}
+}
 
 // WorkOrderType defines the work order type schema.
 type WorkOrderType struct {
 	schema
 }
 
-// Fields returns work order type fields.
-func (WorkOrderType) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("name").
-			Unique(),
-		field.Text("description").
-			Optional(),
+// Mixin returns work order type mixins.
+func (WorkOrderType) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		WorkOrderTemplateMixin{},
+	}
+}
+
+// Indexes returns work order type indexes.
+func (WorkOrderType) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name").Unique(),
 	}
 }
 
@@ -31,10 +59,8 @@ func (WorkOrderType) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.From("work_orders", WorkOrder.Type).
 			Ref("type"),
-		edge.To("property_types", PropertyType.Type),
 		edge.From("definitions", WorkOrderDefinition.Type).
 			Ref("type"),
-		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type),
 	}
 }
 
@@ -43,6 +69,35 @@ func (WorkOrderType) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithMutationRules(
 			authz.WorkOrderTypeWritePolicyRule(),
+		),
+	)
+}
+
+// WorkOrderTemplate defines the work order template schema.
+type WorkOrderTemplate struct {
+	schema
+}
+
+// Mixin returns work order template mixins.
+func (WorkOrderTemplate) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		WorkOrderTemplateMixin{},
+	}
+}
+
+// Edges returns work order template edges.
+func (WorkOrderTemplate) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("type", WorkOrderType.Type).
+			Unique(),
+	}
+}
+
+// Policy returns work order template policy.
+func (WorkOrderTemplate) Policy() ent.Policy {
+	return authz.NewPolicy(
+		authz.WithMutationRules(
+			authz.WorkOrderTemplateWritePolicyRule(),
 		),
 	)
 }
@@ -76,6 +131,8 @@ func (WorkOrder) Fields() []ent.Field {
 func (WorkOrder) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", WorkOrderType.Type).
+			Unique(),
+		edge.To("template", WorkOrderTemplate.Type).
 			Unique(),
 		edge.From("equipment", Equipment.Type).
 			Ref("work_order"),

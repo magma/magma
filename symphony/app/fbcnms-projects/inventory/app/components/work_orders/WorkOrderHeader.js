@@ -23,7 +23,6 @@ import WorkOrderSaveButton from './WorkOrderSaveButton';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
 import {makeStyles} from '@material-ui/styles';
-import {useMainContext} from '../MainContext';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(_theme => ({
@@ -74,9 +73,6 @@ const WorkOrderHeader = (props: Props) => {
     onCancelClicked,
   } = props;
 
-  const {me} = useMainContext();
-  const isOwner = me?.user?.email === workOrder?.owner?.email;
-
   return (
     <div className={classes.nameHeader}>
       <div className={classes.breadcrumbs}>
@@ -111,7 +107,6 @@ const WorkOrderHeader = (props: Props) => {
           workOrderId={workOrder.id}
           workOrderTypeId={workOrder.workOrderType.id}
           onWorkOrderRemoved={onWorkOrderRemoved}
-          ignorePermissions={isOwner}
         />
         <Button
           className={classes.cancelButton}

@@ -8,6 +8,7 @@
  * @flow strict-local
  * @format
  */
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
@@ -15,6 +16,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
@@ -34,6 +36,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -43,15 +46,15 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
+    backgroundColor: colors.primary.brightGray,
     padding: '0 0 0 20px',
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
@@ -72,14 +75,15 @@ const useStyles = makeStyles(theme => ({
     height: 100,
     padding: theme.spacing(10),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
 }));
 
 export function GatewayDetail({
   lteGateways,
+  enbInfo,
 }: {
   lteGateways: {[string]: lte_gateway},
+  enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
   const [tabPos, setTabPos] = React.useState(0);
@@ -159,7 +163,7 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/overview')}
-          render={() => <GatewayOverview gwInfo={gwInfo} />}
+          render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={enbInfo} />}
         />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
@@ -168,7 +172,13 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayOverview({
+  gwInfo,
+  enbInfo,
+}: {
+  gwInfo: lte_gateway,
+  enbInfo: {[string]: EnodebInfo},
+}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -205,8 +215,8 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             <Text>
               <SettingsInputAntennaIcon /> Connected eNodeBs
             </Text>
-            <Paper className={classes.paper}>
-              Connected eNodeB Information
+            <Paper>
+              <GatewayDetailEnodebs gwInfo={gwInfo} enbInfo={enbInfo} />
             </Paper>
           </Grid>
           <Grid item xs={12}>

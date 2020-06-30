@@ -16,7 +16,6 @@ import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const getLatency = (resp, fn) => {

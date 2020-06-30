@@ -27,7 +27,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   actionsCell: {
     textAlign: 'right',
   },
@@ -38,7 +38,7 @@ const useStyles = makeStyles(theme => ({
     paddingTop: '15px',
   },
   iconButton: {
-    color: theme.palette.secondary.light,
+    // color: theme.palette.secondary.light,
     padding: '5px',
   },
   subrowCell: {

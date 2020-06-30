@@ -16,12 +16,17 @@ import CardHeader from '@material-ui/core/CardHeader';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import TimeRangeSelector from '@fbcnms/ui/insights/TimeRangeSelector';
+import Text from '../../theme/design-system/Text';
+import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(theme => ({
+  dateTimeText: {
+    color: colors.primary.comet,
+  },
   formControl: {
     margin: theme.spacing(1),
     minWidth: 150,
@@ -63,33 +68,37 @@ export default function() {
       align: 'end',
     },
   };
-  return (
-    <>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid item xs={6}>
-          <Text>
-            <DataUsageIcon />
-            Gateway Check-Ins
+
+  function Filter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Time
           </Text>
         </Grid>
-        <Grid item xs={6}>
-          <Grid container justify="flex-end" alignItems="center" spacing={1}>
-            <Grid item>
-              <Text>Filter By Time</Text>
-            </Grid>
-            <Grid item>
-              <TimeRangeSelector
-                className={classes.formControl}
-                value={timeRange}
-                onChange={setTimeRange}
-              />
-            </Grid>
-          </Grid>
+        <Grid item>
+          <TimeRangeSelector
+            variant="outlined"
+            className={classes.formControl}
+            value={timeRange}
+            onChange={setTimeRange}
+          />
         </Grid>
       </Grid>
-      <Card>
+    );
+  }
+
+  return (
+    <>
+      <CardTitleFilterRow
+        icon={DataUsageIcon}
+        label="Gateway Check-Ins"
+        filter={Filter}
+      />
+      <Card elevation={0}>
         <CardHeader
-          title={<Text variant="h6">{state.title}</Text>}
+          title={<Text variant="body2">{state.title}</Text>}
           subheader={
             <AsyncMetric
               style={chartStyle}

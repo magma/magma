@@ -59,6 +59,9 @@ const user2UserTableRow: User => UserTableRow = user => ({
   data: user,
 });
 
+export const USER_PATH_PARAM = ':id';
+export const ALL_USERS_PATH_PARAM = 'all';
+
 function UsersTable() {
   const classes = useStyles();
   const history = useHistory();
@@ -79,7 +82,7 @@ function UsersTable() {
   );
 
   const activeUserId =
-    match.params.id != null && match.params.id != 'all'
+    match.params.id != null && match.params.id != ALL_USERS_PATH_PARAM
       ? match.params.id
       : null;
 
@@ -159,7 +162,12 @@ function UsersTable() {
 
   const navigateToUser = useCallback(
     userId => {
-      history.push(match.path.replace(':id', `${userId ?? ''}`));
+      history.push(
+        match.path.replace(
+          USER_PATH_PARAM,
+          `${userId ?? ALL_USERS_PATH_PARAM}`,
+        ),
+      );
     },
     [history, match.path],
   );

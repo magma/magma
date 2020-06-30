@@ -103,7 +103,7 @@ extern int emm_cn_wrapper_attach_accept(emm_context_t *emm_context);
 static int _emm_cn_authentication_res(emm_cn_auth_res_t *const msg);
 static int _emm_cn_authentication_fail(const emm_cn_auth_fail_t *msg);
 static int _emm_cn_ula_success(emm_cn_ula_success_t *msg_pP);
-static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t *msg_pP);
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP);
 
 /*
    String representation of EMMCN-SAP primitives
@@ -510,20 +510,19 @@ static int _emm_proc_combined_attach_req(struct emm_context_s* emm_ctx_p, bstrin
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 //------------------------------------------------------------------------------
-static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
-{
+static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int rc = RETURNerror;
-  struct emm_context_s* emm_ctx = NULL;
+  int rc                           = RETURNerror;
+  struct emm_context_s* emm_ctx    = NULL;
   esm_proc_pdn_type_t esm_pdn_type = ESM_PDN_TYPE_IPV4;
-  ESM_msg esm_msg = {.header = {0}};
-  EpsQualityOfService qos = {0};
-  bstring rsp = NULL;
-  bool is_standalone = false;  // warning hardcoded
-  bool triggered_by_ue = true; // warning hardcoded
+  ESM_msg esm_msg                  = {.header = {0}};
+  EpsQualityOfService qos          = {0};
+  bstring rsp                      = NULL;
+  bool is_standalone               = false;  // warning hardcoded
+  bool triggered_by_ue             = true;   // warning hardcoded
 
   ue_mm_context_t* ue_mm_context =
-    mme_ue_context_exists_mme_ue_s1ap_id(msg_pP->ue_id);
+      mme_ue_context_exists_mme_ue_s1ap_id(msg_pP->ue_id);
 
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -533,10 +532,10 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
 
   if (emm_ctx == NULL) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "EMMCN-SAP  - "
-      "Failed to find UE associated to id " MME_UE_S1AP_ID_FMT "...\n",
-      msg_pP->ue_id);
+        LOG_NAS_EMM,
+        "EMMCN-SAP  - "
+        "Failed to find UE associated to id " MME_UE_S1AP_ID_FMT "...\n",
+        msg_pP->ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -562,8 +561,8 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
 
     default:
       OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4 (forced to default)\n");
+          LOG_NAS_EMM,
+          "EMM  -  esm_pdn_type = ESM_PDN_TYPE_IPV4 (forced to default)\n");
       esm_pdn_type = ESM_PDN_TYPE_IPV4;
   }
 
@@ -573,44 +572,35 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
   OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.mbrDL = %u \n", msg_pP->qos.mbrDL);
   OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.gbrUL = %u \n", msg_pP->qos.gbrUL);
   OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.gbrDL = %u \n", msg_pP->qos.gbrDL);
-  qos.bitRatesPresent = 0;
+  qos.bitRatesPresent    = 0;
   qos.bitRatesExtPresent = 0;
   //#pragma message "Some work to do here about qos"
-  qos.qci = msg_pP->qci;
-  qos.bitRates.maxBitRateForUL = msg_pP->qos.mbrUL;
-  qos.bitRates.maxBitRateForDL = msg_pP->qos.mbrDL;
-  qos.bitRates.guarBitRateForUL = msg_pP->qos.gbrUL;
-  qos.bitRates.guarBitRateForDL = msg_pP->qos.gbrDL;
-  qos.bitRatesExt.maxBitRateForUL = 0;
-  qos.bitRatesExt.maxBitRateForDL = 0;
+  qos.qci                          = msg_pP->qci;
+  qos.bitRates.maxBitRateForUL     = msg_pP->qos.mbrUL;
+  qos.bitRates.maxBitRateForDL     = msg_pP->qos.mbrDL;
+  qos.bitRates.guarBitRateForUL    = msg_pP->qos.gbrUL;
+  qos.bitRates.guarBitRateForDL    = msg_pP->qos.gbrDL;
+  qos.bitRatesExt.maxBitRateForUL  = 0;
+  qos.bitRatesExt.maxBitRateForDL  = 0;
   qos.bitRatesExt.guarBitRateForUL = 0;
   qos.bitRatesExt.guarBitRateForDL = 0;
 
   int def_bearer_index = EBI_TO_INDEX(msg_pP->ebi);
   pdn_cid_t pdn_cid =
-    ue_mm_context->bearer_contexts[def_bearer_index]->pdn_cx_id;
+      ue_mm_context->bearer_contexts[def_bearer_index]->pdn_cx_id;
 
-  /*
-   * Return default EPS bearer context request message
-   */
+  // Return default EPS bearer context request message
   rc = esm_send_activate_default_eps_bearer_context_request(
-    msg_pP->pti,
-    msg_pP->ebi, //msg_pP->ebi,
-    &esm_msg.activate_default_eps_bearer_context_request,
-    ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed,
-    &msg_pP->pco,
-    esm_pdn_type,
-    msg_pP->pdn_addr,
-    &qos,
-    ESM_CAUSE_SUCCESS);
+      msg_pP->pti, msg_pP->ebi,
+      &esm_msg.activate_default_eps_bearer_context_request,
+      ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed, &msg_pP->pco,
+      esm_pdn_type, msg_pP->pdn_addr, &qos, ESM_CAUSE_SUCCESS);
   clear_protocol_configuration_options(&msg_pP->pco);
   if (rc != RETURNerror) {
-    /*
-     * Encode the returned ESM response message
-     */
+    // Encode the returned ESM response message
     char emm_cn_sap_buffer[EMM_CN_SAP_BUFFER_SIZE];
     int size = esm_msg_encode(
-      &esm_msg, (uint8_t*) emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
+        &esm_msg, (uint8_t*) emm_cn_sap_buffer, EMM_CN_SAP_BUFFER_SIZE);
 
     OAILOG_DEBUG(LOG_NAS_EMM, "ESM encoded MSG size %d\n", size);
 
@@ -619,27 +609,24 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
       rsp = blk2bstr(emm_cn_sap_buffer, size);
     }
 
-    /*
-     * Complete the relevant ESM procedure
-     */
+    // Complete the relevant ESM procedure
     rc = esm_proc_default_eps_bearer_context_request(
-      is_standalone,
-      emm_ctx,
-      msg_pP->ebi, //0, //ESM_EBI_UNASSIGNED, //msg->ebi,
-      &rsp,
-      triggered_by_ue);
+        is_standalone, emm_ctx, msg_pP->ebi, &rsp, triggered_by_ue);
+
+    // Free protocol configuration options and its contents
+    clear_protocol_configuration_options(
+        &esm_msg.activate_default_eps_bearer_context_request
+             .protocolconfigurationoptions);
 
     if ((rc != RETURNok) || (is_standalone)) {
-      /*
-       * Return indication that ESM procedure failed
-       */
+      // Return indication that ESM procedure failed
       bdestroy_wrapper(&rsp);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   } else {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "ESM send activate_default_eps_bearer_context_request failed\n");
+        LOG_NAS_EMM,
+        "ESM send activate_default_eps_bearer_context_request failed\n");
   }
 
   /* Notify SGS Location update request to MME App
@@ -650,26 +637,21 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  //OAILOG_INFO (LOG_NAS_EMM, "EMM  -  APN = %s\n", (char *)bdata(msg_pP->apn));
-  nas_emm_attach_proc_t *attach_proc =
-    get_nas_specific_procedure_attach(emm_ctx);
+  // OAILOG_INFO (LOG_NAS_EMM, "EMM - APN = %s\n", (char *)bdata(msg_pP->apn));
+  nas_emm_attach_proc_t* attach_proc =
+      get_nas_specific_procedure_attach(emm_ctx);
 
   if (attach_proc) {
-    /*
-     * Setup the ESM message container
-     */
+    // Setup the ESM message container
     attach_proc->esm_msg_out = rsp;
 
-    /*
-     * Send attach accept message to the UE
-     */
+    // Send attach accept message to the UE
     rc = emm_cn_wrapper_attach_accept(emm_ctx);
 
     if (rc != RETURNerror) {
-      if (
-        IS_EMM_CTXT_PRESENT_OLD_GUTI(emm_ctx) &&
-        (memcmp(
-          &emm_ctx->_old_guti, &emm_ctx->_guti, sizeof(emm_ctx->_guti)))) {
+      if (IS_EMM_CTXT_PRESENT_OLD_GUTI(emm_ctx) &&
+          (memcmp(
+              &emm_ctx->_old_guti, &emm_ctx->_guti, sizeof(emm_ctx->_guti)))) {
         /*
          * Implicit GUTI reallocation;
          * Notify EMM that common procedure has been initiated
@@ -677,9 +659,9 @@ static int _emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP)
          */
         emm_sap_t emm_sap = {0};
 
-        emm_sap.primitive = EMMREG_COMMON_PROC_REQ;
+        emm_sap.primitive       = EMMREG_COMMON_PROC_REQ;
         emm_sap.u.emm_reg.ue_id = msg_pP->ue_id;
-        emm_sap.u.emm_reg.ctx = emm_ctx;
+        emm_sap.u.emm_reg.ctx   = emm_ctx;
 
         rc = emm_sap_send(&emm_sap);
       }

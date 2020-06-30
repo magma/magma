@@ -86,16 +86,16 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 }
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
-    : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
-      service_state_(start_state), buckets_{}, reporting_(false),
-      credit_limit_type_(FINITE), is_final_grant_(false) {}
+    : buckets_{}, reporting_(false), credit_limit_type_(FINITE),
+      credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      service_state_(start_state), is_final_grant_(false) {}
 
 SessionCredit::SessionCredit(
   CreditType credit_type, ServiceState start_state,
   CreditLimitType credit_limit_type)
-    : credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
-      service_state_(start_state), buckets_{}, reporting_(false),
-      credit_limit_type_(credit_limit_type), is_final_grant_(false) {}
+    : buckets_{}, reporting_(false), credit_limit_type_(credit_limit_type),
+      credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      service_state_(start_state), is_final_grant_(false) {}
 
 // by default, enable service & finite credit
 SessionCredit::SessionCredit(CreditType credit_type)
@@ -308,7 +308,6 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
   return usage;
 }
 
-// Todo Return Proto CreditUsage
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
   if (reauth_state_ == REAUTH_REQUIRED) {

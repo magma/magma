@@ -15,9 +15,11 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
 import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -27,15 +29,15 @@ const useStyles = makeStyles(theme => ({
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
+    backgroundColor: colors.primary.brightGray,
     padding: '0 0 0 20px',
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
@@ -56,7 +58,6 @@ const useStyles = makeStyles(theme => ({
     height: 100,
     padding: theme.spacing(10),
     textAlign: 'center',
-    color: theme.palette.text.secondary,
   },
   formControl: {
     margin: theme.spacing(1),
@@ -78,7 +79,9 @@ export default function Gateway({
           <GatewayCheckinChart />
         </Grid>
         <Grid item xs={12}>
-          <EquipmentGatewayKPIs lteGateways={lteGateways} />
+          <Paper elevation={0}>
+            <EquipmentGatewayKPIs lteGateways={lteGateways} />
+          </Paper>
         </Grid>
         <Grid item xs={12}>
           <GatewayTable lteGateways={lteGateways} />

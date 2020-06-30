@@ -86,7 +86,7 @@ func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_pro
 }
 
 func preprocessCloudMetrics(family *prom_proto.MetricFamily, hostName string) exporters.MetricAndContext {
-	ctx := exporters.MetricsContext{
+	ctx := exporters.MetricContext{
 		MetricName: protos.GetDecodedName(family),
 		AdditionalContext: &exporters.CloudMetricContext{
 			CloudHost: hostName,
@@ -110,7 +110,7 @@ func metricsContainerToMetricAndContexts(
 ) []exporters.MetricAndContext {
 	ret := make([]exporters.MetricAndContext, 0, len(in.Family))
 	for _, fam := range in.Family {
-		ctx := exporters.MetricsContext{
+		ctx := exporters.MetricContext{
 			MetricName: protos.GetDecodedName(fam),
 			AdditionalContext: &exporters.GatewayMetricContext{
 				NetworkID: networkID,
@@ -130,7 +130,7 @@ func metricsContainerToMetricAndContexts(
 func pushedMetricsToMetricsAndContext(in *protos.PushedMetricsContainer) []exporters.MetricAndContext {
 	ret := make([]exporters.MetricAndContext, 0, len(in.Metrics))
 	for _, metric := range in.Metrics {
-		ctx := exporters.MetricsContext{
+		ctx := exporters.MetricContext{
 			MetricName: metric.MetricName,
 			AdditionalContext: &exporters.PushedMetricContext{
 				NetworkID: in.NetworkId,

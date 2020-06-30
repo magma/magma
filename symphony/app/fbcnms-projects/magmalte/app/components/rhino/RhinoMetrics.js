@@ -18,17 +18,18 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   bar: {
-    backgroundColor: theme.palette.blueGrayDark,
+    backgroundColor: colors.primary.brightGray,
   },
   tabs: {
     flex: 1,
-    color: 'white',
+    color: colors.primary.white,
   },
 }));
 

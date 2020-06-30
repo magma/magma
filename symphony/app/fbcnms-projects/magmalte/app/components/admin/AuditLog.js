@@ -26,7 +26,8 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
+import {colors} from '../../theme/default';
 
 import {Route} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
@@ -49,7 +50,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(3),
   },
   iconButton: {
-    color: theme.palette.primary.dark,
+    color: colors.primary.brightGray,
     padding: '5px',
   },
 }));

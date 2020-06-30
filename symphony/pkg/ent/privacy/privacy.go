@@ -1270,6 +1270,30 @@ func (f WorkOrderDefinitionMutationRuleFunc) EvalMutation(ctx context.Context, m
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.WorkOrderDefinitionMutation", m)
 }
 
+// The WorkOrderTemplateQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type WorkOrderTemplateQueryRuleFunc func(context.Context, *ent.WorkOrderTemplateQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f WorkOrderTemplateQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.WorkOrderTemplateQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.WorkOrderTemplateQuery", q)
+}
+
+// The WorkOrderTemplateMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type WorkOrderTemplateMutationRuleFunc func(context.Context, *ent.WorkOrderTemplateMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f WorkOrderTemplateMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.WorkOrderTemplateMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.WorkOrderTemplateMutation", m)
+}
+
 // The WorkOrderTypeQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type WorkOrderTypeQueryRuleFunc func(context.Context, *ent.WorkOrderTypeQuery) error

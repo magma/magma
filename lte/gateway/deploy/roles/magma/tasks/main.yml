@@ -229,6 +229,7 @@
   shell: ifup --allow=ovs {{ item }}
   with_items:
     - gtp_br0
+    - uplink_br0
   when: full_provision
 
 - name: Bring up interfaces

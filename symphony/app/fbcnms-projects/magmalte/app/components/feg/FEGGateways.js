@@ -28,14 +28,15 @@ import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 import {Route} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
@@ -57,7 +58,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(3),
   },
   expandIconButton: {
-    color: theme.palette.primary.dark,
+    color: colors.primary.brightGray,
     padding: '5px',
   },
   tableCell: {

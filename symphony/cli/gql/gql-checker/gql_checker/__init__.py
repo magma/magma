@@ -14,7 +14,6 @@ from gql_checker.__about__ import (
     __uri__,
     __version__,
 )
-from gql_checker.stdlib_list import STDLIB_NAMES
 from graphql import Source, build_client_schema, parse, validate
 
 

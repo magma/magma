@@ -131,4 +131,3 @@ Under the location types tab, drag and drop the locations types so that it's arr
    * "External ID" - (optional) an ID from a third-party system 
    * "Latitude" - to specify the coordinates of the location
    * "Longitude" - to specify the coordinates of the location
-

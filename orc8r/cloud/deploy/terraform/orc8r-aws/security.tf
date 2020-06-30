@@ -6,8 +6,8 @@
 # LICENSE file in the root directory of this source tree.
 ################################################################################
 
-# Default SG for the entire VPC; allows all incoming SSH and all ingress from
-# this security group
+# Default SG for the entire VPC.
+# Allows all incoming SSH, and all ingress from this security group.
 resource "aws_security_group" "default" {
   name        = "orc8r-default-sg"
   description = "Default orc8r SG"

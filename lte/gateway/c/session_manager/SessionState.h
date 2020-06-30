@@ -19,10 +19,12 @@
 #include "CreditKey.h"
 #include "SessionCredit.h"
 #include "Monitor.h"
+#include "ChargingGrant.h"
 
 namespace magma {
-typedef std::unordered_map<CreditKey, std::unique_ptr<SessionCredit>,
+typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
                  decltype(&ccHash), decltype(&ccEqual)> CreditMap;
+typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
@@ -158,8 +160,8 @@ class SessionState {
   void merge_charging_credit_update(
     const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
 
-  void set_charging_credit(
-    const CreditKey &key, SessionCredit credit, SessionStateUpdateCriteria &uc);
+  void set_charging_credit(const CreditKey &key,
+    ChargingGrant charging_grant, SessionStateUpdateCriteria &uc);
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -409,8 +411,7 @@ class SessionState {
   * credit
   */
   CreditMap credit_map_;
-
-  std::unordered_map<std::string, std::unique_ptr<Monitor>> monitor_map_;
+  MonitorMap monitor_map_;
   std::unique_ptr<std::string> session_level_key_;
 
  private:

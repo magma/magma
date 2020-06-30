@@ -13,27 +13,30 @@ The team is currently working on:
 
 
 ### Release Notes
-* 5/22/2020
+* 6/5/2020
 	* Platform	
-		* **[User Management]** **[Roles & Policies]**	User management, Roles & Policies	Added the ability to define and customize more specific editing permissions via the Administrative tools. Specific roles and policies are enforced via both UI and GraphQL API
-		* **[Property type]**	Support of "User" property	Users can now add "user" as "property type" while creating/editing templates/catalog and assign a specific value from a drop-down list
+		* **[User Management]** **[Roles & Policies]**	User management, Roles & Policies:	Added the ability to create user groups and assign policies to them via the Administrative tools. Specific roles and policies are enforced via both UI and GraphQL API.
+		* **[Property type]**	Support of "User" property:	Users can now add "user" as "property type" while creating/editing templates/catalog and assign a specific value from a drop-down list.
 
 	* Inventory Management	
 		* **[Services]**	Added "discovery method" field in Services:	Users can now choose "inventory" as "discovery method" during the creation of a service type. When a new "service type" is defined and the option "inventory" is selected, all Services matching that specific "service type" definition will be automatically detected every hour and presented in the list of Services.
-		* **[Services]**	Added "export" for Services:	Users can now export the list of Services in csv format
-		* **[Services]**	Added "filter by location" for Services:	Users can now filter Services also by "location type"
+		* **[Services]**	Added "export" for Services:	Users can now export the list of Services in csv format.
+		* **[Services]**	Added "filter by location" for Services:	Users can now filter Services also by "location type".
 
 	* Workforce management	
 		* **[Work Orders]** **[UI]**	Work Order's location opened in a new tab:	When opening a Work order page, users can click on the work order's location and a new tab in the browser will be opened, allowing the user to keep both tabs (Work order and Location's tabs) opened at the same time.  
 		* **[Work Orders]** **[Templates]**	Checklist definition:	Users are now able to define checklist categories on a template and easily create work orders that inherit them. 
 		* **[Work Orders]** **[Checklist]**	Checklist response view enabled:	Users are now able to view the responses within the checklist categories even when the work order's is in "done" status.
 
-	* Mobile App	
+	* Mobile App
+		* **[Documentation]**	Symphony Mobile App user guide:		A first version 1.0.16 of the Mobile App user guide is available.  	
 		* **[My Tasks]** **[Checklist]**	Photos upload in checklist:	Users are now able to upload more than 1 photo per checklist item during site survey. The user can choose whether to upload photos from the phone gallery or take photos via the camera.
-		* **[My Tasks]**	Offline mode:	Users can now complete a work order tasks even if the device does not have internet connection.
-	
+		* **[My Tasks]**	Offline mode:	Users can now complete work order tasks even if the device does not have internet connection.
+
 	* API 	
+		* **[Python API]**	Python API new release:		A new version (3.0.0.) of the Python API is now available. More details [here](py-inventory-changelog.md)
 		* **[GraphQL API]**	Queries with pagination:	Users are now able to query all entities by using pagination and improving data handling. Queries are: "equipment", "ports", "links", "projects".
+		* **[GraphQL API]**	Improved "Property" data querying:	Users can now query "rawValue" to get property value. This feature provides users with an easier way to extract property data.
 
 
 * 4/30/2020
