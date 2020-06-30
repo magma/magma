@@ -1621,8 +1621,6 @@ void NasStateConverter::proto_to_emm_context(
     (emm_fsm_state_t) emm_context_proto.emm_fsm_state();
   state_emm_context->attach_type = emm_context_proto.attach_type();
   if (emm_context_proto.has_emm_procedures()) {
-    state_emm_context->emm_procedures =
-      (emm_procedures_t*) calloc(1, sizeof(*state_emm_context->emm_procedures));
     proto_to_emm_procedures(
       emm_context_proto.emm_procedures(), state_emm_context);
   }

@@ -105,23 +105,35 @@ void MmeNasStateConverter::proto_to_hashtable_ts(
   }
 }
 
+char* MmeNasStateConverter::mme_app_convert_guti_to_string(guti_t* guti_p) {
+#define GUTI_STRING_LEN 21
+  char* str = (char*) calloc(1, sizeof(char) * GUTI_STRING_LEN);
+  snprintf(
+      str, GUTI_STRING_LEN, "%x%x%x%x%x%x%04x%02x%08x",
+      guti_p->gummei.plmn.mcc_digit1, guti_p->gummei.plmn.mcc_digit2,
+      guti_p->gummei.plmn.mcc_digit3, guti_p->gummei.plmn.mnc_digit1,
+      guti_p->gummei.plmn.mnc_digit2, guti_p->gummei.plmn.mnc_digit3,
+      guti_p->gummei.mme_gid, guti_p->gummei.mme_code, guti_p->m_tmsi);
+  return (str);
+}
+
 void MmeNasStateConverter::guti_table_to_proto(
-  const obj_hash_table_uint64_t* guti_htbl,
-  google::protobuf::Map<std::string, unsigned long>* proto_map)
-{
+    const obj_hash_table_uint64_t* guti_htbl,
+    google::protobuf::Map<std::string, unsigned long>* proto_map) {
   void*** key_array_p = (void***) calloc(1, sizeof(void**));
-  unsigned int size = 0;
+  unsigned int size   = 0;
 
   hashtable_rc_t ht_rc =
-    obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
+      obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
   if ((!*key_array_p) || (ht_rc != HASH_TABLE_OK)) {
     return;
   }
   for (auto i = 0; i < size; i++) {
     uint64_t mme_ue_id;
-    oai::Guti guti_proto;
-    guti_to_proto(*(guti_t*) (*key_array_p)[i], &guti_proto);
-    const std::string& guti_str = guti_proto.SerializeAsString();
+
+    char* str = mme_app_convert_guti_to_string((guti_t*) (*key_array_p)[i]);
+    std::string guti_str(str);
+    free(str);
     OAILOG_TRACE(
       LOG_MME_APP,
       "Looking for key %p with value %u\n",
@@ -134,24 +146,54 @@ void MmeNasStateConverter::guti_table_to_proto(
     } else {
       OAILOG_ERROR(LOG_MME_APP, "Key %s not in guti_ue_context_htbl", guti_str);
     }
+    OAILOG_DEBUG(
+        LOG_MME_APP, "guti_str:%s mme_ue_id:%d\n", guti_str.c_str(), mme_ue_id);
   }
   FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
 }
 
-void MmeNasStateConverter::proto_to_guti_table(
-  const google::protobuf::Map<std::string, unsigned long>& proto_map,
-  obj_hash_table_uint64_t* guti_htbl)
-{
-  for (auto const& kv : proto_map) {
-    const std::string& guti_str = kv.first;
-    mme_ue_s1ap_id_t mme_ue_id = kv.second;
-    oai::Guti guti_proto;
-    guti_proto.ParseFromString(guti_str);
+void MmeNasStateConverter::mme_app_convert_string_to_guti(
+    guti_t* guti_p, const std::string& guti_str) {
+  int idx         = 0;
+  std::size_t chars_to_read = 1;
+#define HEX_BASE_VAL 16
+  guti_p->gummei.plmn.mcc_digit1 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_p->gummei.plmn.mcc_digit2 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_p->gummei.plmn.mcc_digit3 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_p->gummei.plmn.mnc_digit1 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_p->gummei.plmn.mnc_digit2 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  guti_p->gummei.plmn.mnc_digit3 = std::stoul(
+      guti_str.substr(idx++, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  chars_to_read          = 4;
+  guti_p->gummei.mme_gid = std::stoul(
+      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  idx += chars_to_read;
+  chars_to_read           = 2;
+  guti_p->gummei.mme_code = std::stoul(
+      guti_str.substr(idx, chars_to_read), &chars_to_read, HEX_BASE_VAL);
+  idx += chars_to_read;
+  chars_to_read = 8;
+  guti_p->m_tmsi =
+      std::stoul(guti_str.substr(idx, chars_to_read), 0, HEX_BASE_VAL);
 
-    guti_t* guti_p = (guti_t*) calloc(1, sizeof(guti_t));
-    NasStateConverter::proto_to_guti(guti_proto, guti_p);
+  OAILOG_DEBUG_GUTI(guti_p);
+}
+
+void MmeNasStateConverter::proto_to_guti_table(
+    const google::protobuf::Map<std::string, unsigned long>& proto_map,
+    obj_hash_table_uint64_t* guti_htbl) {
+  for (auto const& kv : proto_map) {
+    mme_ue_s1ap_id_t mme_ue_id  = kv.second;
+    guti_t* guti_p              = (guti_t*) calloc(1, sizeof(guti_t));
+
+    mme_app_convert_string_to_guti(guti_p, kv.first);
     hashtable_rc_t ht_rc = obj_hashtable_uint64_ts_insert(
-      guti_htbl, guti_p, sizeof(*guti_p), mme_ue_id);
+        guti_htbl, guti_p, sizeof(*guti_p), mme_ue_id);
     if (ht_rc != HASH_TABLE_OK) {
       OAILOG_ERROR(
         LOG_MME_APP,
@@ -731,10 +773,9 @@ void MmeNasStateConverter::state_to_proto(
   hashtable_uint64_ts_to_proto(
     mme_nas_state_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
     mme_ue_ctxts_proto->mutable_enb_ue_id_ue_id_htbl());
-  /* TODO: fix libprotobuf error
-    guti_table_to_proto(
-    mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
-    mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());*/
+  guti_table_to_proto(
+      mme_nas_state_p->mme_ue_contexts.guti_ue_context_htbl,
+      mme_ue_ctxts_proto->mutable_guti_ue_id_htbl());
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -779,10 +820,9 @@ void MmeNasStateConverter::proto_to_state(
   proto_to_hashtable_uint64_ts(
     mme_ue_ctxts_proto.enb_ue_id_ue_id_htbl(),
     mme_ue_ctxt_state->enb_ue_s1ap_id_ue_context_htbl);
-  /* TODO: fix libprotobuf error
-    proto_to_guti_table(
-    mme_ue_ctxts_proto.guti_ue_id_htbl(),
-    mme_ue_ctxt_state->guti_ue_context_htbl);*/
+  proto_to_guti_table(
+      mme_ue_ctxts_proto.guti_ue_id_htbl(),
+      mme_ue_ctxt_state->guti_ue_context_htbl);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
