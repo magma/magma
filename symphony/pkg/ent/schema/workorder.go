@@ -30,8 +30,10 @@ func (WorkOrderTemplateMixin) Fields() []ent.Field {
 // Edges returns work order template mixin edges.
 func (WorkOrderTemplateMixin) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("property_types", PropertyType.Type),
-		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type),
+		edge.To("property_types", PropertyType.Type).
+			StructTag(`gqlgen:"propertyTypes"`),
+		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type).
+			StructTag(`gqlgen:"checkListCategoryDefinitions"`),
 	}
 }
 
@@ -131,28 +133,39 @@ func (WorkOrder) Fields() []ent.Field {
 func (WorkOrder) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", WorkOrderType.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"workOrderType"`),
 		edge.To("template", WorkOrderTemplate.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"workOrderTemplate"`),
 		edge.From("equipment", Equipment.Type).
 			Ref("work_order"),
 		edge.From("links", Link.Type).
 			Ref("work_order"),
 		edge.To("files", File.Type),
-		edge.To("hyperlinks", Hyperlink.Type),
+		edge.To("hyperlinks", Hyperlink.Type).
+			StructTag(`gqlgen:"hyperlinks"`),
 		edge.To("location", Location.Type).
-			Unique(),
-		edge.To("comments", Comment.Type),
-		edge.To("activities", Activity.Type),
-		edge.To("properties", Property.Type),
-		edge.To("check_list_categories", CheckListCategory.Type),
+			Unique().
+			StructTag(`gqlgen:"location"`),
+		edge.To("comments", Comment.Type).
+			StructTag(`gqlgen:"comments"`),
+		edge.To("activities", Activity.Type).
+			StructTag(`gqlgen:"activities"`),
+		edge.To("properties", Property.Type).
+			StructTag(`gqlgen:"properties"`),
+		edge.To("check_list_categories", CheckListCategory.Type).
+			StructTag(`gqlgen:"checkListCategories"`),
 		edge.From("project", Project.Type).
 			Ref("work_orders").
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"project"`),
 		edge.To("owner", User.Type).
 			Required().
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"owner"`),
 		edge.To("assignee", User.Type).
+			StructTag(`gqlgen:"assignedTo"`).
 			Unique(),
 	}
 }

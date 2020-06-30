@@ -41,7 +41,11 @@ func (workOrderTypeResolver) CheckListCategoryDefinitions(ctx context.Context, o
 }
 
 func (workOrderDefinitionResolver) Type(ctx context.Context, obj *ent.WorkOrderDefinition) (*ent.WorkOrderType, error) {
-	return obj.QueryType().Only(ctx)
+	typ, err := obj.Edges.TypeOrErr()
+	if ent.IsNotLoaded(err) {
+		return obj.QueryType().Only(ctx)
+	}
+	return typ, err
 }
 
 type workOrderTypeResolver struct{}
@@ -71,7 +75,11 @@ func (r workOrderResolver) Activities(ctx context.Context, obj *ent.WorkOrder) (
 }
 
 func (workOrderResolver) WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error) {
-	return obj.QueryType().Only(ctx)
+	typ, err := obj.Edges.TypeOrErr()
+	if ent.IsNotLoaded(err) {
+		return obj.QueryType().Only(ctx)
+	}
+	return typ, err
 }
 
 func (workOrderResolver) WorkOrderTemplate(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderTemplate, error) {
@@ -80,13 +88,19 @@ func (workOrderResolver) WorkOrderTemplate(ctx context.Context, obj *ent.WorkOrd
 }
 
 func (workOrderResolver) Location(ctx context.Context, obj *ent.WorkOrder) (*ent.Location, error) {
-	l, err := obj.QueryLocation().Only(ctx)
-	return l, ent.MaskNotFound(err)
+	loc, err := obj.Edges.LocationOrErr()
+	if ent.IsNotLoaded(err) {
+		loc, err = obj.QueryLocation().Only(ctx)
+	}
+	return loc, ent.MaskNotFound(err)
 }
 
 func (workOrderResolver) Project(ctx context.Context, obj *ent.WorkOrder) (*ent.Project, error) {
-	p, err := obj.QueryProject().Only(ctx)
-	return p, ent.MaskNotFound(err)
+	prj, err := obj.Edges.ProjectOrErr()
+	if ent.IsNotLoaded(err) {
+		prj, err = obj.QueryProject().Only(ctx)
+	}
+	return prj, ent.MaskNotFound(err)
 }
 
 func (workOrderResolver) CreationDate(_ context.Context, obj *ent.WorkOrder) (int, error) {
@@ -120,7 +134,11 @@ func (workOrderResolver) LinksToRemove(ctx context.Context, obj *ent.WorkOrder) 
 }
 
 func (workOrderResolver) Properties(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Property, error) {
-	return obj.QueryProperties().All(ctx)
+	props, err := obj.Edges.PropertiesOrErr()
+	if ent.IsNotLoaded(err) {
+		return obj.QueryProperties().All(ctx)
+	}
+	return props, err
 }
 
 func (workOrderResolver) CheckListCategories(ctx context.Context, obj *ent.WorkOrder) ([]*ent.CheckListCategory, error) {
@@ -148,7 +166,10 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 }
 
 func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error) {
-	owner, err := obj.QueryOwner().Only(ctx)
+	owner, err := obj.Edges.OwnerOrErr()
+	if ent.IsNotLoaded(err) {
+		owner, err = obj.QueryOwner().Only(ctx)
+	}
 	if err != nil {
 		return "", err
 	}
@@ -156,15 +177,21 @@ func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (str
 }
 
 func (workOrderResolver) Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
-	o, err := obj.QueryOwner().Only(ctx)
+	owner, err := obj.Edges.OwnerOrErr()
+	if ent.IsNotLoaded(err) {
+		owner, err = obj.QueryOwner().Only(ctx)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("querying owner: %w", err)
 	}
-	return o, nil
+	return owner, nil
 }
 
 func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error) {
-	assignee, err := obj.QueryAssignee().Only(ctx)
+	assignee, err := obj.Edges.AssigneeOrErr()
+	if ent.IsNotLoaded(err) {
+		assignee, err = obj.QueryAssignee().Only(ctx)
+	}
 	if err != nil {
 		return nil, ent.MaskNotFound(err)
 	}
@@ -172,11 +199,14 @@ func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*str
 }
 
 func (workOrderResolver) AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
-	a, err := obj.QueryAssignee().Only(ctx)
+	assignee, err := obj.Edges.AssigneeOrErr()
+	if ent.IsNotLoaded(err) {
+		assignee, err = obj.QueryAssignee().Only(ctx)
+	}
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, fmt.Errorf("querying assignee: %w", err)
 	}
-	return a, nil
+	return assignee, nil
 }
 
 func (r mutationResolver) AddWorkOrder(

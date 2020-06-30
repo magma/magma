@@ -209,11 +209,11 @@ func (projectResolver) CreatedBy(ctx context.Context, obj *ent.Project) (*ent.Us
 }
 
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
-	typ, err := obj.QueryType().Only(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying project type: %w", err)
+	typ, err := obj.Edges.TypeOrErr()
+	if ent.IsNotLoaded(err) {
+		return obj.QueryType().Only(ctx)
 	}
-	return typ, nil
+	return typ, err
 }
 
 func (projectResolver) Location(ctx context.Context, obj *ent.Project) (*ent.Location, error) {

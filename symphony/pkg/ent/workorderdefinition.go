@@ -38,7 +38,7 @@ type WorkOrderDefinition struct {
 // WorkOrderDefinitionEdges holds the relations/edges for other nodes in the graph.
 type WorkOrderDefinitionEdges struct {
 	// Type holds the value of the type edge.
-	Type *WorkOrderType
+	Type *WorkOrderType `gqlgen:"type"`
 	// ProjectType holds the value of the project_type edge.
 	ProjectType *ProjectType
 	// loadedTypes holds the information for reporting if a

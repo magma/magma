@@ -521,6 +521,34 @@ func (pr *ProjectQuery) CollectFields(ctx context.Context, satisfies ...string) 
 }
 
 func (pr *ProjectQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *ProjectQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "comments":
+			pr = pr.WithComments(func(query *CommentQuery) {
+				query.collectField(ctx, field)
+			})
+		case "createdBy":
+			pr = pr.WithCreator(func(query *UserQuery) {
+				query.collectField(ctx, field)
+			})
+		case "location":
+			pr = pr.WithLocation(func(query *LocationQuery) {
+				query.collectField(ctx, field)
+			})
+		case "properties":
+			pr = pr.WithProperties(func(query *PropertyQuery) {
+				query.collectField(ctx, field)
+			})
+		case "type":
+			pr = pr.WithType(func(query *ProjectTypeQuery) {
+				query.collectField(ctx, field)
+			})
+		case "workOrders":
+			pr = pr.WithWorkOrders(func(query *WorkOrderQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return pr
 }
 
@@ -533,6 +561,22 @@ func (pt *ProjectTypeQuery) CollectFields(ctx context.Context, satisfies ...stri
 }
 
 func (pt *ProjectTypeQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *ProjectTypeQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "projects":
+			pt = pt.WithProjects(func(query *ProjectQuery) {
+				query.collectField(ctx, field)
+			})
+		case "properties":
+			pt = pt.WithProperties(func(query *PropertyTypeQuery) {
+				query.collectField(ctx, field)
+			})
+		case "workOrders":
+			pt = pt.WithWorkOrders(func(query *WorkOrderDefinitionQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return pt
 }
 
@@ -745,6 +789,54 @@ func (wo *WorkOrderQuery) CollectFields(ctx context.Context, satisfies ...string
 }
 
 func (wo *WorkOrderQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *WorkOrderQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "activities":
+			wo = wo.WithActivities(func(query *ActivityQuery) {
+				query.collectField(ctx, field)
+			})
+		case "assignedTo":
+			wo = wo.WithAssignee(func(query *UserQuery) {
+				query.collectField(ctx, field)
+			})
+		case "checkListCategories":
+			wo = wo.WithCheckListCategories(func(query *CheckListCategoryQuery) {
+				query.collectField(ctx, field)
+			})
+		case "comments":
+			wo = wo.WithComments(func(query *CommentQuery) {
+				query.collectField(ctx, field)
+			})
+		case "hyperlinks":
+			wo = wo.WithHyperlinks(func(query *HyperlinkQuery) {
+				query.collectField(ctx, field)
+			})
+		case "location":
+			wo = wo.WithLocation(func(query *LocationQuery) {
+				query.collectField(ctx, field)
+			})
+		case "owner":
+			wo = wo.WithOwner(func(query *UserQuery) {
+				query.collectField(ctx, field)
+			})
+		case "project":
+			wo = wo.WithProject(func(query *ProjectQuery) {
+				query.collectField(ctx, field)
+			})
+		case "properties":
+			wo = wo.WithProperties(func(query *PropertyQuery) {
+				query.collectField(ctx, field)
+			})
+		case "workOrderTemplate":
+			wo = wo.WithTemplate(func(query *WorkOrderTemplateQuery) {
+				query.collectField(ctx, field)
+			})
+		case "workOrderType":
+			wo = wo.WithType(func(query *WorkOrderTypeQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return wo
 }
 
@@ -757,6 +849,14 @@ func (wod *WorkOrderDefinitionQuery) CollectFields(ctx context.Context, satisfie
 }
 
 func (wod *WorkOrderDefinitionQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *WorkOrderDefinitionQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "type":
+			wod = wod.WithType(func(query *WorkOrderTypeQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return wod
 }
 
@@ -769,6 +869,18 @@ func (wot *WorkOrderTemplateQuery) CollectFields(ctx context.Context, satisfies 
 }
 
 func (wot *WorkOrderTemplateQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *WorkOrderTemplateQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "checkListCategoryDefinitions":
+			wot = wot.WithCheckListCategoryDefinitions(func(query *CheckListCategoryDefinitionQuery) {
+				query.collectField(ctx, field)
+			})
+		case "propertyTypes":
+			wot = wot.WithPropertyTypes(func(query *PropertyTypeQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return wot
 }
 
@@ -781,5 +893,17 @@ func (wot *WorkOrderTypeQuery) CollectFields(ctx context.Context, satisfies ...s
 }
 
 func (wot *WorkOrderTypeQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *WorkOrderTypeQuery {
+	for _, field := range graphql.CollectFields(ctx, field.Selections, satisfies) {
+		switch field.Name {
+		case "checkListCategoryDefinitions":
+			wot = wot.WithCheckListCategoryDefinitions(func(query *CheckListCategoryDefinitionQuery) {
+				query.collectField(ctx, field)
+			})
+		case "propertyTypes":
+			wot = wot.WithPropertyTypes(func(query *PropertyTypeQuery) {
+				query.collectField(ctx, field)
+			})
+		}
+	}
 	return wot
 }

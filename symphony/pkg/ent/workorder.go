@@ -59,9 +59,9 @@ type WorkOrder struct {
 // WorkOrderEdges holds the relations/edges for other nodes in the graph.
 type WorkOrderEdges struct {
 	// Type holds the value of the type edge.
-	Type *WorkOrderType
+	Type *WorkOrderType `gqlgen:"workOrderType"`
 	// Template holds the value of the template edge.
-	Template *WorkOrderTemplate
+	Template *WorkOrderTemplate `gqlgen:"workOrderTemplate"`
 	// Equipment holds the value of the equipment edge.
 	Equipment []*Equipment
 	// Links holds the value of the links edge.
@@ -69,23 +69,23 @@ type WorkOrderEdges struct {
 	// Files holds the value of the files edge.
 	Files []*File
 	// Hyperlinks holds the value of the hyperlinks edge.
-	Hyperlinks []*Hyperlink
+	Hyperlinks []*Hyperlink `gqlgen:"hyperlinks"`
 	// Location holds the value of the location edge.
-	Location *Location
+	Location *Location `gqlgen:"location"`
 	// Comments holds the value of the comments edge.
-	Comments []*Comment
+	Comments []*Comment `gqlgen:"comments"`
 	// Activities holds the value of the activities edge.
-	Activities []*Activity
+	Activities []*Activity `gqlgen:"activities"`
 	// Properties holds the value of the properties edge.
-	Properties []*Property
+	Properties []*Property `gqlgen:"properties"`
 	// CheckListCategories holds the value of the check_list_categories edge.
-	CheckListCategories []*CheckListCategory
+	CheckListCategories []*CheckListCategory `gqlgen:"checkListCategories"`
 	// Project holds the value of the project edge.
-	Project *Project
+	Project *Project `gqlgen:"project"`
 	// Owner holds the value of the owner edge.
-	Owner *User
+	Owner *User `gqlgen:"owner"`
 	// Assignee holds the value of the assignee edge.
-	Assignee *User
+	Assignee *User `gqlgen:"assignedTo"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [14]bool
