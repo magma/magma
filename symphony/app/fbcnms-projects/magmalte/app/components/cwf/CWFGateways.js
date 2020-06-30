@@ -19,29 +19,31 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import IconButton from '@material-ui/core/IconButton';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Tooltip from '@material-ui/core/Tooltip';
-
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+import Text from '../../theme/design-system/Text';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
-import {Route} from 'react-router-dom';
+
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
+import {
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
+import {MAGMAD_DEFAULT_CONFIGS} from '../AddGatewayDialog';
 import {map} from 'lodash';
+import {Route} from 'react-router-dom';
 import {useCallback, useState} from 'react';
 import {useInterval, useRouter} from '@fbcnms/ui/hooks';
 

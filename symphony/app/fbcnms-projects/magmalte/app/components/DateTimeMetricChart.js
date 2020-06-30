@@ -14,9 +14,9 @@ import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
+import moment from 'moment';
 import React from 'react';
 import Text from '../theme/design-system/Text';
-import moment from 'moment';
 
 import {CardTitleFilterRow} from './layout/CardTitleRow';
 import {DateTimePicker} from '@material-ui/pickers';

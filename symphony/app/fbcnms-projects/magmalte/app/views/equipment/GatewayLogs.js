@@ -10,8 +10,6 @@
 import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import LogChart from './GatewayLogChart';
@@ -21,9 +19,11 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {Bar} from 'react-chartjs-2';
+import {Button, Grid} from '@material-ui/core';
+import {colors} from '../../theme/default';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
-import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomHistogram';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';

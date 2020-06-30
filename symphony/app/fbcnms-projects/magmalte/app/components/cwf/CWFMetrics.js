@@ -19,10 +19,10 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 

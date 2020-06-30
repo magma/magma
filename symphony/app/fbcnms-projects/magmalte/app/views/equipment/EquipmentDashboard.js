@@ -11,28 +11,24 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
-import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import nullthrows from '@fbcnms/util/nullthrows';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import {colors, typography} from '../../theme/default';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {AppBar, Button, Grid, Tab, Tabs} from '@material-ui/core';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -241,7 +237,12 @@ function EquipmentDashboardInternal({
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
+          <Grid
+            item
+            xs={6}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 {/* TODO: these button styles need to be localized */}

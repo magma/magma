@@ -96,7 +96,7 @@ export type ActionTableProps<T> = {
 };
 
 export function PaperComponent(props: {}) {
-  return <Paper {...props} elevation={2} />;
+  return <Paper {...props} elevation={0} />;
 }
 
 export default function ActionTable<T>(props: ActionTableProps<T>) {

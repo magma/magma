@@ -13,9 +13,9 @@ import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
 
 import KPITray from './KPITray';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import nullthrows from '@fbcnms/util/nullthrows';
 import React, {useEffect, useState} from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {useRouter} from '@fbcnms/ui/hooks';

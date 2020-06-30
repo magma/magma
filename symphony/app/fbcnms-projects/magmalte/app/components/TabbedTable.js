@@ -8,19 +8,21 @@
  * @format
  */
 
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
-import Tab from '@material-ui/core/Tab';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableRow from '@material-ui/core/TableRow';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 
 import {colors, typography} from '../theme/default';
+import {
+  Grid,
+  Paper,
+  Tab,
+  Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+} from '@material-ui/core';
 import {makeStyles} from '@material-ui/styles';
 import {withStyles} from '@material-ui/core/styles';
 

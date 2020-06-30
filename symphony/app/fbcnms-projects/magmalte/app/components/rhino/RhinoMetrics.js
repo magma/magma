@@ -10,17 +10,15 @@
 
 import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
-import AppBar from '@material-ui/core/AppBar';
 import MultiMetrics from './MultiMetrics';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {AppBar, Tab, Tabs} from '@material-ui/core';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(_ => ({
