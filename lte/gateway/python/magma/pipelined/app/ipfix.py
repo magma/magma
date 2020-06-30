@@ -200,42 +200,34 @@ class IPFIXController(MagmaController):
             self.logger.debug('IPFIX export dst not setup for adding flows')
             return
 
-        imsi_hex = hex(encode_imsi(imsi))
-        pdp_start_epoch = int(time.time())
-        if self._dpi_enabled:
-            action_str = (
-                'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
-                'actions=sample(probability={},collector_set_id={},'
-                'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
-                'apn_name=\\\"{}\\\",pdp_start_epoch={}, ingress)"'
-            ).format(
-                self._bridge_name, self._ipfix_sample_tbl_num,
-                flows.UE_FLOW_PRIORITY, imsi_hex, self.ipfix_config.probability,
-                self.ipfix_config.collector_set_id,
-                self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
-                apn_mac_addr.replace("-", ":"), msisdn, apn_name,
-                pdp_start_epoch
-            )
+        parser = self._datapath.ofproto_parser
+        if not apn_mac_addr or '-' not in apn_mac_addr:
+            apn_mac_bytes = [0, 0, 0, 0, 0, 0]
         else:
-            action_str = (
-                'ovs-ofctl add-flow {} "table={},priority={},metadata={},'
-                'actions=sample(probability={},collector_set_id={},'
-                'obs_domain_id={},obs_point_id={},apn_mac_addr={},msisdn={},'
-                'apn_name=\\\"{}\\\",pdp_start_epoch={},sampling_port={}),'
-                'resubmit(,{})"'
-            ).format(
-                self._bridge_name, self._ipfix_sample_tbl_num,
-                flows.UE_FLOW_PRIORITY, imsi_hex, self.ipfix_config.probability,
-                self.ipfix_config.collector_set_id,
-                self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
-                apn_mac_addr.replace("-", ":"), msisdn, apn_name,
-                pdp_start_epoch, self.ipfix_config.sampling_port,
-                self.next_main_table
-            )
-        try:
-            subprocess.Popen(action_str, shell=True).wait()
-        except subprocess.CalledProcessError as e:
-            raise Exception('Error: {} failed with: {}'.format(action_str, e))
+            apn_mac_bytes = [int(a, 16) for a in apn_mac_addr.split('-')]
+        pdp_start_epoch = int(time.time())
+
+        actions = [parser.NXActionSample2(
+            probability=self.ipfix_config.probability,
+            collector_set_id=self.ipfix_config.collector_set_id,
+            obs_domain_id=self.ipfix_config.obs_domain_id,
+            obs_point_id=self.ipfix_config.obs_point_id,
+            apn_mac_addr=apn_mac_bytes,
+            msisdn=msisdn,
+            apn_name=apn_name,
+            pdp_start_epoch=pdp_start_epoch,
+            sampling_port=self.ipfix_config.sampling_port)]
+
+        if self._dpi_enabled:
+            match = MagmaMatch(imsi=encode_imsi(imsi))
+            flows.add_drop_flow(
+                self._datapath, self._ipfix_sample_tbl_num, match, actions,
+                priority=flows.UE_FLOW_PRIORITY)
+        else:
+            flows.add_resubmit_next_service_flow(
+                self._datapath, self._ipfix_sample_tbl_num, match, actions,
+                priority=flows.UE_FLOW_PRIORITY,
+                resubmit_table=self.next_main_table)
 
     def delete_ue_sample_flow(self, imsi: str) -> None:
         """
