@@ -13,6 +13,20 @@ add_compile_options(-std=c++14)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
+if (NOT BUILD_TESTS)
+  # Add AddressSanitizer (asan) support for debug builds of SessionD
+  set (CMAKE_CXX_FLAGS_DEBUG
+      "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+  set (CMAKE_LINKER_FLAGS_DEBUG
+      "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
+  # Add LeakSanitizer (lsan) support to the release build of SessionD so that
+  # we can find memory leaks in production.
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO
+     "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
+  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
+     "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+endif ()
+
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
@@ -20,9 +34,7 @@ add_definitions(-DLOG_WITH_GLOG)
 
 message("Build type is ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-unused-function"
-  )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-unused-function")
 endif ()
 
 include_directories("${OUTPUT_DIR}")
