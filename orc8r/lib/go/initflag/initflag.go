@@ -51,7 +51,7 @@ func init() {
 	}
 	// Check if the process needs to redirect stdout to stderr
 	if *stdoutToStderr {
-		stdout, os.Stdout = os.Stderr, os.Stdout
+		stdout, os.Stdout = os.Stdout, os.Stderr
 	}
 }
 

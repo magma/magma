@@ -107,8 +107,8 @@ func redirectToSyslog() error {
 		syslogWriter.Emerg(msg)
 		os.Stderr = stderr
 		log.SetOutput(stderr)
-		if *stdoutToStderr {
-			os.Stdout = stderr
+		if *stdoutToStderr && stdout != nil {
+			os.Stdout = stdout
 		}
 		log.Print(msg) // also log into stderr
 		writer.Close()
