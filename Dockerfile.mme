@@ -12,7 +12,7 @@ RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     apt-get upgrade -y && \
     apt-get install -y gnupg wget software-properties-common autoconf automake \
     libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
-    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim \
+    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim redis-server \
     libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev && \
     echo \"Configure C/C++ compiler v6.5 as primary\" && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && \
@@ -216,11 +216,14 @@ FROM ubuntu:bionic as conv-mme
 
 # Install a few tools (may not be necessary later on)
 ENV DEBIAN_FRONTEND=noninteractive
+# redis-server installation is temporary
+# once we resolve the issue when running it on a separate container, we will remove it
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
     psmisc \
     openssl \
     net-tools \
     tshark \
+    redis-server \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
@@ -267,8 +270,21 @@ COPY --from=conv-builder /build/c/sctpd/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
-COPY --from=conv-builder /magma/lte/gateway/configs/templates/mme.conf.template .
-COPY --from=conv-builder /magma/lte/gateway/configs/templates/mme_fd.conf.template .
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/docker/mme.cacert.pem .
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/docker/mme.cert.pem .
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/docker/mme.conf .
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/docker/mme.key.pem .
+COPY --from=conv-builder /magma/lte/gateway/configs/templates/docker/mme_fd.conf .
+
+# Create running dirs
+WORKDIR /var/opt/magma
+WORKDIR /usr/local/etc/redis
+COPY --from=conv-builder /magma/lte/gateway/configs/redis_for_container.conf redis.conf
+
+WORKDIR /etc/magma
+COPY --from=conv-builder /magma/lte/gateway/configs/control_proxy.yml .
+COPY --from=conv-builder /magma/lte/gateway/configs/redis.yml .
+COPY --from=conv-builder /magma/lte/gateway/configs/service_registry.yml .
 
 WORKDIR /conv-mme
 
