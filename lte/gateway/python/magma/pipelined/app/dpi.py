@@ -96,7 +96,7 @@ class DPIController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self._classify_app_tbl_num)
 
     def add_classify_flow(self, flow_match, flow_state, app: str,
-                          service_type: str, src_mac: str, dst_mac: str):
+                          service_type: str):
         """
         Parse DPI output and set the register for future packets matching this
         flow. APP is split into tokens as the top level app is not supported,
@@ -130,7 +130,7 @@ class DPIController(MagmaController):
                 dl_match, actions, priority=flows.DEFAULT_PRIORITY,
                 idle_timeout=self._idle_timeout)
 
-    def remove_classify_flow(self, flow_match, src_mac: str, dst_mac: str):
+    def remove_classify_flow(self, flow_match):
         try:
             ul_match = flow_match_to_magma_match(flow_match)
             ul_match.direction = None

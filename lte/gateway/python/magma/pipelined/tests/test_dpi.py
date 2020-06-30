@@ -32,8 +32,9 @@ from magma.pipelined.tests.pipelined_test_util import (
 class DPITest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
-    MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    DPI_PORT = 'mon1'
+    DPI_IP = '1.1.1.1'
 
     @classmethod
     def setUpClass(cls):
@@ -69,8 +70,8 @@ class DPITest(unittest.TestCase):
                 'clean_restart': True,
                 'setup_type': 'LTE',
                 'dpi': {
-                    'enabled': False,
-                    'mon_port': 'mon1',
+                    'enabled': True,
+                    'mon_port': cls.DPI_PORT,
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
@@ -82,6 +83,8 @@ class DPITest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
+                                          cls.DPI_IP)
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.dpi_controller = dpi_controller_reference.result()
@@ -104,7 +107,6 @@ class DPITest(unittest.TestCase):
                 google_docs other
                 viber audio
         """
-        MAC_DEST = "5e:cc:cc:b1:49:4b"
         flow_match1 = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.8',
             ipv4_src='1.2.3.4', tcp_dst=80, tcp_src=51115,
@@ -128,21 +130,19 @@ class DPITest(unittest.TestCase):
         )
         self.dpi_controller.add_classify_flow(
             flow_match_not_added, FlowRequest.FLOW_CREATED,
-            'nickproto', 'bestproto', MAC_DEST, MAC_DEST)
+            'nickproto', 'bestproto')
         self.dpi_controller.add_classify_flow(
             flow_match_for_no_proto, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'notanAPP', 'null', MAC_DEST, MAC_DEST)
+            'notanAPP', 'null')
         self.dpi_controller.add_classify_flow(
             flow_match1, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'base.ip.http.facebook', 'NotReal', MAC_DEST, MAC_DEST)
+            'base.ip.http.facebook', 'NotReal')
         self.dpi_controller.add_classify_flow(
             flow_match2, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'base.ip.https.google_gen.google_docs', 'MAGMA',
-            MAC_DEST, MAC_DEST)
+            'base.ip.https.google_gen.google_docs', 'MAGMA',)
         self.dpi_controller.add_classify_flow(
             flow_match3, FlowRequest.FLOW_PARTIAL_CLASSIFICATION,
-            'base.ip.udp.viber', 'AudioTransfer Receiving',
-            MAC_DEST, MAC_DEST)
+            'base.ip.udp.viber', 'AudioTransfer Receiving',)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -156,13 +156,12 @@ class DPITest(unittest.TestCase):
         Assert:
             Remove the facebook match flow
         """
-        MAC_DEST = "5e:cc:cc:b1:49:4b"
         flow_match1 = FlowMatch(
             ip_proto=FlowMatch.IPPROTO_TCP, ipv4_dst='45.10.0.8',
             ipv4_src='1.2.3.4', tcp_dst=80, tcp_src=51115,
             direction=FlowMatch.UPLINK
         )
-        self.dpi_controller.remove_classify_flow(flow_match1, MAC_DEST, MAC_DEST)
+        self.dpi_controller.remove_classify_flow(flow_match1)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
