@@ -1,11 +1,12 @@
 import Button from '../../components/design-system/Button';
-import PlusIcon from '../../components/design-system/Icons/Actions/PlusIcon';
 import classNames from 'classnames';
-import {STORY_CATEGORIES} from '../storybookUtils';
+import PlusIcon from '../../components/design-system/Icons/Actions/PlusIcon';
+import StoryFrame from '../StoryFrame';
+import symphony from '../../theme/symphony';
 import {fbt} from 'fbt';
 import {makeStyles} from '@material-ui/styles';
 import {Meta, Story, Preview} from '@storybook/addon-docs/blocks';
-import symphony from '../../theme/symphony';
+import {STORY_CATEGORIES} from '../storybookUtils';
 
 export const useStyles = makeStyles(_theme => ({
   grayButtonContainer: {
@@ -20,6 +21,10 @@ export const onButtonClicked = () => window.alert('clicked!');
 
 # Button
 
+```js
+import Button from '@fbcnms/ui/components/design-system/Button';
+```
+
 The `Button` component supports two variants: `contained` and `text`.
 
 The available skins are: `primary`, `regular`, `red`, `gray`, `secondaryGray`, `orange`, `green`.
@@ -28,97 +33,85 @@ You can also supply an optional left or right icons.
 
 ### Contained Buttons
 
+export const GrayButton = () => {
+  const classes = useStyles();
+  return (
+    <div className={classes.grayButtonContainer}>
+      <Button onClick={onButtonClicked} skin="gray">
+        Gray
+      </Button>
+    </div>
+  );
+};
+
+export const SecondaryGrayButton = () => {
+  const classes = useStyles();
+  return (
+    <div className={classes.grayButtonContainer}>
+      <Button onClick={onButtonClicked} skin="secondaryGray">
+        Secondary Gray
+      </Button>
+    </div>
+  );
+}
+
 <Preview>
-  <Story name="Primary">
-    <Button onClick={onButtonClicked}>Primary</Button>
-  </Story>
-  <Story name="Regular">
-    <Button onClick={onButtonClicked} skin="regular">
-      Regular
-    </Button>
-  </Story>
-  <Story name="Red">
-    <Button onClick={onButtonClicked} skin="red">
-      Red
-    </Button>
-  </Story>
-  <Story name="Gray">
-    {() => {
-      const classes = useStyles();
-      return (
-        <div className={classes.grayButtonContainer}>
-          <Button onClick={onButtonClicked} skin="gray">
-            Gray
-          </Button>
-        </div>
-      );
-    }}
-  </Story>
-  <Story name="Secondary Gray">
-    {() => {
-      const classes = useStyles();
-      return (
-        <div className={classes.grayButtonContainer}>
-          <Button onClick={onButtonClicked} skin="secondaryGray">
-            Secondary Gray
-          </Button>
-        </div>
-      );
-    }}
-  </Story>
-  <Story name="Orange">
-    <Button onClick={onButtonClicked} skin="orange">
-      Orange
-    </Button>
-  </Story>
-  <Story name="Green">
-    <Button onClick={onButtonClicked} skin="green">
-      Green
-    </Button>
+  <Story name="Contained">
+    <StoryFrame>
+      <Button onClick={onButtonClicked}>Primary</Button>
+      <Button onClick={onButtonClicked} skin="regular">
+        Regular
+      </Button>
+      <Button onClick={onButtonClicked} skin="red">
+        Red
+      </Button>
+      <GrayButton />
+      <SecondaryGrayButton />
+      <Button onClick={onButtonClicked} skin="orange">
+        Orange
+      </Button>
+      <Button onClick={onButtonClicked} skin="green">
+        Green
+      </Button>
+    </StoryFrame>
   </Story>
 </Preview>
 
 ### Text Buttons
 
 <Preview>
-  <Story name="Text - Primary">
-    <Button onClick={onButtonClicked} variant="text">
-      Primary
-    </Button>
-  </Story>
-  <Story name="Text - Regular">
-    <Button onClick={onButtonClicked} skin="regular" variant="text">
-      Regular
-    </Button>
-  </Story>
-  <Story name="Text - Gray">
-    <Button onClick={onButtonClicked} skin="gray" variant="text">
-      Gray
-    </Button>
-  </Story>
-   <Story name="Text - Red">
-    <Button onClick={onButtonClicked} skin="red" variant="text">
-      Red
-    </Button>
+  <Story name="Text">
+    <StoryFrame>
+      <Button onClick={onButtonClicked} variant="text">
+        Primary
+      </Button>
+      <Button onClick={onButtonClicked} skin="regular" variant="text">
+        Regular
+      </Button>
+      <Button onClick={onButtonClicked} skin="gray" variant="text">
+        Gray
+      </Button>
+      <Button onClick={onButtonClicked} skin="red" variant="text">
+        Red
+      </Button>
+    </StoryFrame>
   </Story>
 </Preview>
 
 ### Icons
 
 <Preview>
-  <Story name="Right Icon">
-    <Button onClick={onButtonClicked} rightIcon={PlusIcon}>
-      Right Icon
-    </Button>
-  </Story>
-  <Story name="Left Icon">
-    <Button onClick={onButtonClicked} leftIcon={PlusIcon}>
-      Left Icon
-    </Button>
-  </Story>
-  <Story name="Text - Left Icon">
-    <Button onClick={onButtonClicked} leftIcon={PlusIcon} variant="text">
-      Text - Left Icon
-    </Button>
+  <Story name="Icons">
+    <StoryFrame>
+      <Button onClick={onButtonClicked} rightIcon={PlusIcon}>
+        Right Icon
+      </Button>
+      <Button onClick={onButtonClicked} leftIcon={PlusIcon}>
+        Left Icon
+      </Button>
+      <Button onClick={onButtonClicked} leftIcon={PlusIcon} variant="text">
+        Text - Left Icon
+      </Button>
+    </StoryFrame>
   </Story>
 </Preview>
