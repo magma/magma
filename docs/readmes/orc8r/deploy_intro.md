@@ -5,6 +5,10 @@ hide_title: true
 ---
 # Deploying Orchestrator: Introduction
 
+Before deployment, it may be useful to read through the
+[prerequisites](../basics/prerequisites.md) and
+[quick start guide](../basics/quick_start_guide.md) sections.
+
 These pages will walk through the full process of spinning up a full
 Orchestrator deployment, from building the various containers that you'll need
 to deploying them onto Amazon Elastic Kubernetes Service (EKS). This

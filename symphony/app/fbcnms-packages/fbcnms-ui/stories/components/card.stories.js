@@ -18,7 +18,6 @@ import React from 'react';
 import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -31,7 +30,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const CardsRoot = () => {
+export const CardsRoot = () => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -61,6 +60,10 @@ const CardsRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Card', () => (
-  <CardsRoot />
-));
+CardsRoot.story = {
+  name: 'Card',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

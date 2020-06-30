@@ -12,7 +12,6 @@ import InfoTooltip from '../../components/design-system/Tooltip/InfoTooltip';
 import React from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -21,7 +20,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const InfoTooltipRoot = () => {
+export const InfoTooltipRoot = () => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -30,6 +29,10 @@ const InfoTooltipRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('InfoTooltip', () => (
-  <InfoTooltipRoot />
-));
+InfoTooltipRoot.story = {
+  name: 'InfoTooltip',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

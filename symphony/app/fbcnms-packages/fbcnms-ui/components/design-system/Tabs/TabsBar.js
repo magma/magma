@@ -14,6 +14,8 @@ import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
+const BORDER_BOTTOM_HEIGHT = 1;
+
 const useStyles = makeStyles(() => ({
   tabs: {
     position: 'relative',
@@ -32,11 +34,11 @@ const useStyles = makeStyles(() => ({
     left: 0,
     right: 0,
     bottom: 0,
-    borderBottom: `1px solid ${symphony.palette.D50}`,
+    borderBottom: `${BORDER_BOTTOM_HEIGHT}px solid ${symphony.palette.D50}`,
   },
   standard: {
-    minHeight: '48px',
-    height: '48px',
+    minHeight: `${48 + BORDER_BOTTOM_HEIGHT}px`,
+    height: `${48 + BORDER_BOTTOM_HEIGHT}px`,
     padding: '0px 16px',
     '& $tab': {
       margin: '0px 8px',
@@ -45,8 +47,8 @@ const useStyles = makeStyles(() => ({
     },
   },
   large: {
-    minHeight: '56px',
-    height: '56px',
+    minHeight: `${56 + BORDER_BOTTOM_HEIGHT}px`,
+    height: `${56 + BORDER_BOTTOM_HEIGHT}px`,
     padding: '0px 20px',
     '& $tab': {
       margin: '0px 8px',
@@ -89,8 +91,8 @@ const useStyles = makeStyles(() => ({
     zIndex: 2,
   },
   small: {
-    minHeight: '28px',
-    height: '28px',
+    minHeight: `${28 + BORDER_BOTTOM_HEIGHT}px`,
+    height: `${28 + BORDER_BOTTOM_HEIGHT}px`,
     '& $tab': {
       margin: '0px 12px',
       '&:first-child': {

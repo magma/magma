@@ -58,6 +58,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 
 	"github.com/facebookincubator/ent"
@@ -116,6 +117,7 @@ const (
 	TypeUsersGroup                  = "UsersGroup"
 	TypeWorkOrder                   = "WorkOrder"
 	TypeWorkOrderDefinition         = "WorkOrderDefinition"
+	TypeWorkOrderTemplate           = "WorkOrderTemplate"
 	TypeWorkOrderType               = "WorkOrderType"
 )
 
@@ -2054,6 +2056,8 @@ type CheckListCategoryDefinitionMutation struct {
 	removedcheck_list_item_definitions map[int]struct{}
 	work_order_type                    *int
 	clearedwork_order_type             bool
+	work_order_template                *int
+	clearedwork_order_template         bool
 	done                               bool
 	oldValue                           func(context.Context) (*CheckListCategoryDefinition, error)
 }
@@ -2379,6 +2383,45 @@ func (m *CheckListCategoryDefinitionMutation) ResetWorkOrderType() {
 	m.clearedwork_order_type = false
 }
 
+// SetWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id.
+func (m *CheckListCategoryDefinitionMutation) SetWorkOrderTemplateID(id int) {
+	m.work_order_template = &id
+}
+
+// ClearWorkOrderTemplate clears the work_order_template edge to WorkOrderTemplate.
+func (m *CheckListCategoryDefinitionMutation) ClearWorkOrderTemplate() {
+	m.clearedwork_order_template = true
+}
+
+// WorkOrderTemplateCleared returns if the edge work_order_template was cleared.
+func (m *CheckListCategoryDefinitionMutation) WorkOrderTemplateCleared() bool {
+	return m.clearedwork_order_template
+}
+
+// WorkOrderTemplateID returns the work_order_template id in the mutation.
+func (m *CheckListCategoryDefinitionMutation) WorkOrderTemplateID() (id int, exists bool) {
+	if m.work_order_template != nil {
+		return *m.work_order_template, true
+	}
+	return
+}
+
+// WorkOrderTemplateIDs returns the work_order_template ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderTemplateID instead. It exists only for internal usage by the builders.
+func (m *CheckListCategoryDefinitionMutation) WorkOrderTemplateIDs() (ids []int) {
+	if id := m.work_order_template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrderTemplate reset all changes of the "work_order_template" edge.
+func (m *CheckListCategoryDefinitionMutation) ResetWorkOrderTemplate() {
+	m.work_order_template = nil
+	m.clearedwork_order_template = false
+}
+
 // Op returns the operation name.
 func (m *CheckListCategoryDefinitionMutation) Op() Op {
 	return m.op
@@ -2554,12 +2597,15 @@ func (m *CheckListCategoryDefinitionMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *CheckListCategoryDefinitionMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.check_list_item_definitions != nil {
 		edges = append(edges, checklistcategorydefinition.EdgeCheckListItemDefinitions)
 	}
 	if m.work_order_type != nil {
 		edges = append(edges, checklistcategorydefinition.EdgeWorkOrderType)
+	}
+	if m.work_order_template != nil {
+		edges = append(edges, checklistcategorydefinition.EdgeWorkOrderTemplate)
 	}
 	return edges
 }
@@ -2578,6 +2624,10 @@ func (m *CheckListCategoryDefinitionMutation) AddedIDs(name string) []ent.Value 
 		if id := m.work_order_type; id != nil {
 			return []ent.Value{*id}
 		}
+	case checklistcategorydefinition.EdgeWorkOrderTemplate:
+		if id := m.work_order_template; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
@@ -2585,7 +2635,7 @@ func (m *CheckListCategoryDefinitionMutation) AddedIDs(name string) []ent.Value 
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *CheckListCategoryDefinitionMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedcheck_list_item_definitions != nil {
 		edges = append(edges, checklistcategorydefinition.EdgeCheckListItemDefinitions)
 	}
@@ -2609,9 +2659,12 @@ func (m *CheckListCategoryDefinitionMutation) RemovedIDs(name string) []ent.Valu
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *CheckListCategoryDefinitionMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedwork_order_type {
 		edges = append(edges, checklistcategorydefinition.EdgeWorkOrderType)
+	}
+	if m.clearedwork_order_template {
+		edges = append(edges, checklistcategorydefinition.EdgeWorkOrderTemplate)
 	}
 	return edges
 }
@@ -2622,6 +2675,8 @@ func (m *CheckListCategoryDefinitionMutation) EdgeCleared(name string) bool {
 	switch name {
 	case checklistcategorydefinition.EdgeWorkOrderType:
 		return m.clearedwork_order_type
+	case checklistcategorydefinition.EdgeWorkOrderTemplate:
+		return m.clearedwork_order_template
 	}
 	return false
 }
@@ -2632,6 +2687,9 @@ func (m *CheckListCategoryDefinitionMutation) ClearEdge(name string) error {
 	switch name {
 	case checklistcategorydefinition.EdgeWorkOrderType:
 		m.ClearWorkOrderType()
+		return nil
+	case checklistcategorydefinition.EdgeWorkOrderTemplate:
+		m.ClearWorkOrderTemplate()
 		return nil
 	}
 	return fmt.Errorf("unknown CheckListCategoryDefinition unique edge %s", name)
@@ -2647,6 +2705,9 @@ func (m *CheckListCategoryDefinitionMutation) ResetEdge(name string) error {
 		return nil
 	case checklistcategorydefinition.EdgeWorkOrderType:
 		m.ResetWorkOrderType()
+		return nil
+	case checklistcategorydefinition.EdgeWorkOrderTemplate:
+		m.ResetWorkOrderTemplate()
 		return nil
 	}
 	return fmt.Errorf("unknown CheckListCategoryDefinition edge %s", name)
@@ -23676,6 +23737,8 @@ type PropertyTypeMutation struct {
 	clearedservice_type             bool
 	work_order_type                 *int
 	clearedwork_order_type          bool
+	work_order_template             *int
+	clearedwork_order_template      bool
 	project_type                    *int
 	clearedproject_type             bool
 	done                            bool
@@ -25080,6 +25143,45 @@ func (m *PropertyTypeMutation) ResetWorkOrderType() {
 	m.clearedwork_order_type = false
 }
 
+// SetWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id.
+func (m *PropertyTypeMutation) SetWorkOrderTemplateID(id int) {
+	m.work_order_template = &id
+}
+
+// ClearWorkOrderTemplate clears the work_order_template edge to WorkOrderTemplate.
+func (m *PropertyTypeMutation) ClearWorkOrderTemplate() {
+	m.clearedwork_order_template = true
+}
+
+// WorkOrderTemplateCleared returns if the edge work_order_template was cleared.
+func (m *PropertyTypeMutation) WorkOrderTemplateCleared() bool {
+	return m.clearedwork_order_template
+}
+
+// WorkOrderTemplateID returns the work_order_template id in the mutation.
+func (m *PropertyTypeMutation) WorkOrderTemplateID() (id int, exists bool) {
+	if m.work_order_template != nil {
+		return *m.work_order_template, true
+	}
+	return
+}
+
+// WorkOrderTemplateIDs returns the work_order_template ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// WorkOrderTemplateID instead. It exists only for internal usage by the builders.
+func (m *PropertyTypeMutation) WorkOrderTemplateIDs() (ids []int) {
+	if id := m.work_order_template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetWorkOrderTemplate reset all changes of the "work_order_template" edge.
+func (m *PropertyTypeMutation) ResetWorkOrderTemplate() {
+	m.work_order_template = nil
+	m.clearedwork_order_template = false
+}
+
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (m *PropertyTypeMutation) SetProjectTypeID(id int) {
 	m.project_type = &id
@@ -25719,7 +25821,7 @@ func (m *PropertyTypeMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *PropertyTypeMutation) AddedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.properties != nil {
 		edges = append(edges, propertytype.EdgeProperties)
 	}
@@ -25740,6 +25842,9 @@ func (m *PropertyTypeMutation) AddedEdges() []string {
 	}
 	if m.work_order_type != nil {
 		edges = append(edges, propertytype.EdgeWorkOrderType)
+	}
+	if m.work_order_template != nil {
+		edges = append(edges, propertytype.EdgeWorkOrderTemplate)
 	}
 	if m.project_type != nil {
 		edges = append(edges, propertytype.EdgeProjectType)
@@ -25781,6 +25886,10 @@ func (m *PropertyTypeMutation) AddedIDs(name string) []ent.Value {
 		if id := m.work_order_type; id != nil {
 			return []ent.Value{*id}
 		}
+	case propertytype.EdgeWorkOrderTemplate:
+		if id := m.work_order_template; id != nil {
+			return []ent.Value{*id}
+		}
 	case propertytype.EdgeProjectType:
 		if id := m.project_type; id != nil {
 			return []ent.Value{*id}
@@ -25792,7 +25901,7 @@ func (m *PropertyTypeMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *PropertyTypeMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.removedproperties != nil {
 		edges = append(edges, propertytype.EdgeProperties)
 	}
@@ -25816,7 +25925,7 @@ func (m *PropertyTypeMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *PropertyTypeMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 8)
+	edges := make([]string, 0, 9)
 	if m.clearedlocation_type {
 		edges = append(edges, propertytype.EdgeLocationType)
 	}
@@ -25834,6 +25943,9 @@ func (m *PropertyTypeMutation) ClearedEdges() []string {
 	}
 	if m.clearedwork_order_type {
 		edges = append(edges, propertytype.EdgeWorkOrderType)
+	}
+	if m.clearedwork_order_template {
+		edges = append(edges, propertytype.EdgeWorkOrderTemplate)
 	}
 	if m.clearedproject_type {
 		edges = append(edges, propertytype.EdgeProjectType)
@@ -25857,6 +25969,8 @@ func (m *PropertyTypeMutation) EdgeCleared(name string) bool {
 		return m.clearedservice_type
 	case propertytype.EdgeWorkOrderType:
 		return m.clearedwork_order_type
+	case propertytype.EdgeWorkOrderTemplate:
+		return m.clearedwork_order_template
 	case propertytype.EdgeProjectType:
 		return m.clearedproject_type
 	}
@@ -25884,6 +25998,9 @@ func (m *PropertyTypeMutation) ClearEdge(name string) error {
 		return nil
 	case propertytype.EdgeWorkOrderType:
 		m.ClearWorkOrderType()
+		return nil
+	case propertytype.EdgeWorkOrderTemplate:
+		m.ClearWorkOrderTemplate()
 		return nil
 	case propertytype.EdgeProjectType:
 		m.ClearProjectType()
@@ -25917,6 +26034,9 @@ func (m *PropertyTypeMutation) ResetEdge(name string) error {
 		return nil
 	case propertytype.EdgeWorkOrderType:
 		m.ResetWorkOrderType()
+		return nil
+	case propertytype.EdgeWorkOrderTemplate:
+		m.ResetWorkOrderTemplate()
 		return nil
 	case propertytype.EdgeProjectType:
 		m.ResetProjectType()
@@ -39343,6 +39463,8 @@ type WorkOrderMutation struct {
 	clearedFields                map[string]struct{}
 	_type                        *int
 	cleared_type                 bool
+	template                     *int
+	clearedtemplate              bool
 	equipment                    map[int]struct{}
 	removedequipment             map[int]struct{}
 	links                        map[int]struct{}
@@ -39930,6 +40052,45 @@ func (m *WorkOrderMutation) TypeIDs() (ids []int) {
 func (m *WorkOrderMutation) ResetType() {
 	m._type = nil
 	m.cleared_type = false
+}
+
+// SetTemplateID sets the template edge to WorkOrderTemplate by id.
+func (m *WorkOrderMutation) SetTemplateID(id int) {
+	m.template = &id
+}
+
+// ClearTemplate clears the template edge to WorkOrderTemplate.
+func (m *WorkOrderMutation) ClearTemplate() {
+	m.clearedtemplate = true
+}
+
+// TemplateCleared returns if the edge template was cleared.
+func (m *WorkOrderMutation) TemplateCleared() bool {
+	return m.clearedtemplate
+}
+
+// TemplateID returns the template id in the mutation.
+func (m *WorkOrderMutation) TemplateID() (id int, exists bool) {
+	if m.template != nil {
+		return *m.template, true
+	}
+	return
+}
+
+// TemplateIDs returns the template ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// TemplateID instead. It exists only for internal usage by the builders.
+func (m *WorkOrderMutation) TemplateIDs() (ids []int) {
+	if id := m.template; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetTemplate reset all changes of the "template" edge.
+func (m *WorkOrderMutation) ResetTemplate() {
+	m.template = nil
+	m.clearedtemplate = false
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
@@ -40734,9 +40895,12 @@ func (m *WorkOrderMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this
 // mutation.
 func (m *WorkOrderMutation) AddedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m._type != nil {
 		edges = append(edges, workorder.EdgeType)
+	}
+	if m.template != nil {
+		edges = append(edges, workorder.EdgeTemplate)
 	}
 	if m.equipment != nil {
 		edges = append(edges, workorder.EdgeEquipment)
@@ -40783,6 +40947,10 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 	switch name {
 	case workorder.EdgeType:
 		if id := m._type; id != nil {
+			return []ent.Value{*id}
+		}
+	case workorder.EdgeTemplate:
+		if id := m.template; id != nil {
 			return []ent.Value{*id}
 		}
 	case workorder.EdgeEquipment:
@@ -40856,7 +41024,7 @@ func (m *WorkOrderMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this
 // mutation.
 func (m *WorkOrderMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.removedequipment != nil {
 		edges = append(edges, workorder.EdgeEquipment)
 	}
@@ -40943,9 +41111,12 @@ func (m *WorkOrderMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this
 // mutation.
 func (m *WorkOrderMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 13)
+	edges := make([]string, 0, 14)
 	if m.cleared_type {
 		edges = append(edges, workorder.EdgeType)
+	}
+	if m.clearedtemplate {
+		edges = append(edges, workorder.EdgeTemplate)
 	}
 	if m.clearedlocation {
 		edges = append(edges, workorder.EdgeLocation)
@@ -40968,6 +41139,8 @@ func (m *WorkOrderMutation) EdgeCleared(name string) bool {
 	switch name {
 	case workorder.EdgeType:
 		return m.cleared_type
+	case workorder.EdgeTemplate:
+		return m.clearedtemplate
 	case workorder.EdgeLocation:
 		return m.clearedlocation
 	case workorder.EdgeProject:
@@ -40986,6 +41159,9 @@ func (m *WorkOrderMutation) ClearEdge(name string) error {
 	switch name {
 	case workorder.EdgeType:
 		m.ClearType()
+		return nil
+	case workorder.EdgeTemplate:
+		m.ClearTemplate()
 		return nil
 	case workorder.EdgeLocation:
 		m.ClearLocation()
@@ -41010,6 +41186,9 @@ func (m *WorkOrderMutation) ResetEdge(name string) error {
 	switch name {
 	case workorder.EdgeType:
 		m.ResetType()
+		return nil
+	case workorder.EdgeTemplate:
+		m.ResetTemplate()
 		return nil
 	case workorder.EdgeEquipment:
 		m.ResetEquipment()
@@ -41641,6 +41820,575 @@ func (m *WorkOrderDefinitionMutation) ResetEdge(name string) error {
 	return fmt.Errorf("unknown WorkOrderDefinition edge %s", name)
 }
 
+// WorkOrderTemplateMutation represents an operation that mutate the WorkOrderTemplates
+// nodes in the graph.
+type WorkOrderTemplateMutation struct {
+	config
+	op                                     Op
+	typ                                    string
+	id                                     *int
+	name                                   *string
+	description                            *string
+	clearedFields                          map[string]struct{}
+	property_types                         map[int]struct{}
+	removedproperty_types                  map[int]struct{}
+	check_list_category_definitions        map[int]struct{}
+	removedcheck_list_category_definitions map[int]struct{}
+	_type                                  *int
+	cleared_type                           bool
+	done                                   bool
+	oldValue                               func(context.Context) (*WorkOrderTemplate, error)
+}
+
+var _ ent.Mutation = (*WorkOrderTemplateMutation)(nil)
+
+// workordertemplateOption allows to manage the mutation configuration using functional options.
+type workordertemplateOption func(*WorkOrderTemplateMutation)
+
+// newWorkOrderTemplateMutation creates new mutation for $n.Name.
+func newWorkOrderTemplateMutation(c config, op Op, opts ...workordertemplateOption) *WorkOrderTemplateMutation {
+	m := &WorkOrderTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeWorkOrderTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withWorkOrderTemplateID sets the id field of the mutation.
+func withWorkOrderTemplateID(id int) workordertemplateOption {
+	return func(m *WorkOrderTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *WorkOrderTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*WorkOrderTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().WorkOrderTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withWorkOrderTemplate sets the old WorkOrderTemplate of the mutation.
+func withWorkOrderTemplate(node *WorkOrderTemplate) workordertemplateOption {
+	return func(m *WorkOrderTemplateMutation) {
+		m.oldValue = func(context.Context) (*WorkOrderTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m WorkOrderTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m WorkOrderTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the id value in the mutation. Note that, the id
+// is available only if it was provided to the builder.
+func (m *WorkOrderTemplateMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// SetName sets the name field.
+func (m *WorkOrderTemplateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the name value in the mutation.
+func (m *WorkOrderTemplateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old name value of the WorkOrderTemplate.
+// If the WorkOrderTemplate object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *WorkOrderTemplateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldName is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName reset all changes of the "name" field.
+func (m *WorkOrderTemplateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the description field.
+func (m *WorkOrderTemplateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the description value in the mutation.
+func (m *WorkOrderTemplateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old description value of the WorkOrderTemplate.
+// If the WorkOrderTemplate object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *WorkOrderTemplateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldDescription is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of description.
+func (m *WorkOrderTemplateMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[workordertemplate.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the field description was cleared in this mutation.
+func (m *WorkOrderTemplateMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[workordertemplate.FieldDescription]
+	return ok
+}
+
+// ResetDescription reset all changes of the "description" field.
+func (m *WorkOrderTemplateMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, workordertemplate.FieldDescription)
+}
+
+// AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
+func (m *WorkOrderTemplateMutation) AddPropertyTypeIDs(ids ...int) {
+	if m.property_types == nil {
+		m.property_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.property_types[ids[i]] = struct{}{}
+	}
+}
+
+// RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
+func (m *WorkOrderTemplateMutation) RemovePropertyTypeIDs(ids ...int) {
+	if m.removedproperty_types == nil {
+		m.removedproperty_types = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedproperty_types[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedPropertyTypes returns the removed ids of property_types.
+func (m *WorkOrderTemplateMutation) RemovedPropertyTypesIDs() (ids []int) {
+	for id := range m.removedproperty_types {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// PropertyTypesIDs returns the property_types ids in the mutation.
+func (m *WorkOrderTemplateMutation) PropertyTypesIDs() (ids []int) {
+	for id := range m.property_types {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetPropertyTypes reset all changes of the "property_types" edge.
+func (m *WorkOrderTemplateMutation) ResetPropertyTypes() {
+	m.property_types = nil
+	m.removedproperty_types = nil
+}
+
+// AddCheckListCategoryDefinitionIDs adds the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (m *WorkOrderTemplateMutation) AddCheckListCategoryDefinitionIDs(ids ...int) {
+	if m.check_list_category_definitions == nil {
+		m.check_list_category_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.check_list_category_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveCheckListCategoryDefinitionIDs removes the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
+func (m *WorkOrderTemplateMutation) RemoveCheckListCategoryDefinitionIDs(ids ...int) {
+	if m.removedcheck_list_category_definitions == nil {
+		m.removedcheck_list_category_definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedcheck_list_category_definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCheckListCategoryDefinitions returns the removed ids of check_list_category_definitions.
+func (m *WorkOrderTemplateMutation) RemovedCheckListCategoryDefinitionsIDs() (ids []int) {
+	for id := range m.removedcheck_list_category_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CheckListCategoryDefinitionsIDs returns the check_list_category_definitions ids in the mutation.
+func (m *WorkOrderTemplateMutation) CheckListCategoryDefinitionsIDs() (ids []int) {
+	for id := range m.check_list_category_definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCheckListCategoryDefinitions reset all changes of the "check_list_category_definitions" edge.
+func (m *WorkOrderTemplateMutation) ResetCheckListCategoryDefinitions() {
+	m.check_list_category_definitions = nil
+	m.removedcheck_list_category_definitions = nil
+}
+
+// SetTypeID sets the type edge to WorkOrderType by id.
+func (m *WorkOrderTemplateMutation) SetTypeID(id int) {
+	m._type = &id
+}
+
+// ClearType clears the type edge to WorkOrderType.
+func (m *WorkOrderTemplateMutation) ClearType() {
+	m.cleared_type = true
+}
+
+// TypeCleared returns if the edge type was cleared.
+func (m *WorkOrderTemplateMutation) TypeCleared() bool {
+	return m.cleared_type
+}
+
+// TypeID returns the type id in the mutation.
+func (m *WorkOrderTemplateMutation) TypeID() (id int, exists bool) {
+	if m._type != nil {
+		return *m._type, true
+	}
+	return
+}
+
+// TypeIDs returns the type ids in the mutation.
+// Note that ids always returns len(ids) <= 1 for unique edges, and you should use
+// TypeID instead. It exists only for internal usage by the builders.
+func (m *WorkOrderTemplateMutation) TypeIDs() (ids []int) {
+	if id := m._type; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetType reset all changes of the "type" edge.
+func (m *WorkOrderTemplateMutation) ResetType() {
+	m._type = nil
+	m.cleared_type = false
+}
+
+// Op returns the operation name.
+func (m *WorkOrderTemplateMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (WorkOrderTemplate).
+func (m *WorkOrderTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during
+// this mutation. Note that, in order to get all numeric
+// fields that were in/decremented, call AddedFields().
+func (m *WorkOrderTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.name != nil {
+		fields = append(fields, workordertemplate.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, workordertemplate.FieldDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name.
+// The second boolean value indicates that this field was
+// not set, or was not define in the schema.
+func (m *WorkOrderTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case workordertemplate.FieldName:
+		return m.Name()
+	case workordertemplate.FieldDescription:
+		return m.Description()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database.
+// An error is returned if the mutation operation is not UpdateOne,
+// or the query to the database was failed.
+func (m *WorkOrderTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case workordertemplate.FieldName:
+		return m.OldName(ctx)
+	case workordertemplate.FieldDescription:
+		return m.OldDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown WorkOrderTemplate field %s", name)
+}
+
+// SetField sets the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *WorkOrderTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case workordertemplate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case workordertemplate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown WorkOrderTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented
+// or decremented during this mutation.
+func (m *WorkOrderTemplateMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was in/decremented
+// from a field with the given name. The second value indicates
+// that this field was not set, or was not define in the schema.
+func (m *WorkOrderTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value for the given name. It returns an
+// error if the field is not defined in the schema, or if the
+// type mismatch the field type.
+func (m *WorkOrderTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown WorkOrderTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared
+// during this mutation.
+func (m *WorkOrderTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(workordertemplate.FieldDescription) {
+		fields = append(fields, workordertemplate.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicates if this field was
+// cleared in this mutation.
+func (m *WorkOrderTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value for the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *WorkOrderTemplateMutation) ClearField(name string) error {
+	switch name {
+	case workordertemplate.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkOrderTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation regarding the
+// given field name. It returns an error if the field is not
+// defined in the schema.
+func (m *WorkOrderTemplateMutation) ResetField(name string) error {
+	switch name {
+	case workordertemplate.FieldName:
+		m.ResetName()
+		return nil
+	case workordertemplate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkOrderTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this
+// mutation.
+func (m *WorkOrderTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.property_types != nil {
+		edges = append(edges, workordertemplate.EdgePropertyTypes)
+	}
+	if m.check_list_category_definitions != nil {
+		edges = append(edges, workordertemplate.EdgeCheckListCategoryDefinitions)
+	}
+	if m._type != nil {
+		edges = append(edges, workordertemplate.EdgeType)
+	}
+	return edges
+}
+
+// AddedIDs returns all ids (to other nodes) that were added for
+// the given edge name.
+func (m *WorkOrderTemplateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case workordertemplate.EdgePropertyTypes:
+		ids := make([]ent.Value, 0, len(m.property_types))
+		for id := range m.property_types {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertemplate.EdgeCheckListCategoryDefinitions:
+		ids := make([]ent.Value, 0, len(m.check_list_category_definitions))
+		for id := range m.check_list_category_definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertemplate.EdgeType:
+		if id := m._type; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this
+// mutation.
+func (m *WorkOrderTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removedproperty_types != nil {
+		edges = append(edges, workordertemplate.EdgePropertyTypes)
+	}
+	if m.removedcheck_list_category_definitions != nil {
+		edges = append(edges, workordertemplate.EdgeCheckListCategoryDefinitions)
+	}
+	return edges
+}
+
+// RemovedIDs returns all ids (to other nodes) that were removed for
+// the given edge name.
+func (m *WorkOrderTemplateMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case workordertemplate.EdgePropertyTypes:
+		ids := make([]ent.Value, 0, len(m.removedproperty_types))
+		for id := range m.removedproperty_types {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertemplate.EdgeCheckListCategoryDefinitions:
+		ids := make([]ent.Value, 0, len(m.removedcheck_list_category_definitions))
+		for id := range m.removedcheck_list_category_definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this
+// mutation.
+func (m *WorkOrderTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.cleared_type {
+		edges = append(edges, workordertemplate.EdgeType)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean indicates if this edge was
+// cleared in this mutation.
+func (m *WorkOrderTemplateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case workordertemplate.EdgeType:
+		return m.cleared_type
+	}
+	return false
+}
+
+// ClearEdge clears the value for the given name. It returns an
+// error if the edge name is not defined in the schema.
+func (m *WorkOrderTemplateMutation) ClearEdge(name string) error {
+	switch name {
+	case workordertemplate.EdgeType:
+		m.ClearType()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkOrderTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes in the mutation regarding the
+// given edge name. It returns an error if the edge is not
+// defined in the schema.
+func (m *WorkOrderTemplateMutation) ResetEdge(name string) error {
+	switch name {
+	case workordertemplate.EdgePropertyTypes:
+		m.ResetPropertyTypes()
+		return nil
+	case workordertemplate.EdgeCheckListCategoryDefinitions:
+		m.ResetCheckListCategoryDefinitions()
+		return nil
+	case workordertemplate.EdgeType:
+		m.ResetType()
+		return nil
+	}
+	return fmt.Errorf("unknown WorkOrderTemplate edge %s", name)
+}
+
 // WorkOrderTypeMutation represents an operation that mutate the WorkOrderTypes
 // nodes in the graph.
 type WorkOrderTypeMutation struct {
@@ -41648,19 +42396,17 @@ type WorkOrderTypeMutation struct {
 	op                                     Op
 	typ                                    string
 	id                                     *int
-	create_time                            *time.Time
-	update_time                            *time.Time
 	name                                   *string
 	description                            *string
 	clearedFields                          map[string]struct{}
-	work_orders                            map[int]struct{}
-	removedwork_orders                     map[int]struct{}
 	property_types                         map[int]struct{}
 	removedproperty_types                  map[int]struct{}
-	definitions                            map[int]struct{}
-	removeddefinitions                     map[int]struct{}
 	check_list_category_definitions        map[int]struct{}
 	removedcheck_list_category_definitions map[int]struct{}
+	work_orders                            map[int]struct{}
+	removedwork_orders                     map[int]struct{}
+	definitions                            map[int]struct{}
+	removeddefinitions                     map[int]struct{}
 	done                                   bool
 	oldValue                               func(context.Context) (*WorkOrderType, error)
 }
@@ -41742,80 +42488,6 @@ func (m *WorkOrderTypeMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
-}
-
-// SetCreateTime sets the create_time field.
-func (m *WorkOrderTypeMutation) SetCreateTime(t time.Time) {
-	m.create_time = &t
-}
-
-// CreateTime returns the create_time value in the mutation.
-func (m *WorkOrderTypeMutation) CreateTime() (r time.Time, exists bool) {
-	v := m.create_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCreateTime returns the old create_time value of the WorkOrderType.
-// If the WorkOrderType object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WorkOrderTypeMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldCreateTime is allowed only on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldCreateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
-	}
-	return oldValue.CreateTime, nil
-}
-
-// ResetCreateTime reset all changes of the "create_time" field.
-func (m *WorkOrderTypeMutation) ResetCreateTime() {
-	m.create_time = nil
-}
-
-// SetUpdateTime sets the update_time field.
-func (m *WorkOrderTypeMutation) SetUpdateTime(t time.Time) {
-	m.update_time = &t
-}
-
-// UpdateTime returns the update_time value in the mutation.
-func (m *WorkOrderTypeMutation) UpdateTime() (r time.Time, exists bool) {
-	v := m.update_time
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpdateTime returns the old update_time value of the WorkOrderType.
-// If the WorkOrderType object wasn't provided to the builder, the object is fetched
-// from the database.
-// An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WorkOrderTypeMutation) OldUpdateTime(ctx context.Context) (v time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldUpdateTime is allowed only on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldUpdateTime requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpdateTime: %w", err)
-	}
-	return oldValue.UpdateTime, nil
-}
-
-// ResetUpdateTime reset all changes of the "update_time" field.
-func (m *WorkOrderTypeMutation) ResetUpdateTime() {
-	m.update_time = nil
 }
 
 // SetName sets the name field.
@@ -41905,48 +42577,6 @@ func (m *WorkOrderTypeMutation) ResetDescription() {
 	delete(m.clearedFields, workordertype.FieldDescription)
 }
 
-// AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
-func (m *WorkOrderTypeMutation) AddWorkOrderIDs(ids ...int) {
-	if m.work_orders == nil {
-		m.work_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.work_orders[ids[i]] = struct{}{}
-	}
-}
-
-// RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
-func (m *WorkOrderTypeMutation) RemoveWorkOrderIDs(ids ...int) {
-	if m.removedwork_orders == nil {
-		m.removedwork_orders = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.removedwork_orders[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedWorkOrders returns the removed ids of work_orders.
-func (m *WorkOrderTypeMutation) RemovedWorkOrdersIDs() (ids []int) {
-	for id := range m.removedwork_orders {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// WorkOrdersIDs returns the work_orders ids in the mutation.
-func (m *WorkOrderTypeMutation) WorkOrdersIDs() (ids []int) {
-	for id := range m.work_orders {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetWorkOrders reset all changes of the "work_orders" edge.
-func (m *WorkOrderTypeMutation) ResetWorkOrders() {
-	m.work_orders = nil
-	m.removedwork_orders = nil
-}
-
 // AddPropertyTypeIDs adds the property_types edge to PropertyType by ids.
 func (m *WorkOrderTypeMutation) AddPropertyTypeIDs(ids ...int) {
 	if m.property_types == nil {
@@ -41987,48 +42617,6 @@ func (m *WorkOrderTypeMutation) PropertyTypesIDs() (ids []int) {
 func (m *WorkOrderTypeMutation) ResetPropertyTypes() {
 	m.property_types = nil
 	m.removedproperty_types = nil
-}
-
-// AddDefinitionIDs adds the definitions edge to WorkOrderDefinition by ids.
-func (m *WorkOrderTypeMutation) AddDefinitionIDs(ids ...int) {
-	if m.definitions == nil {
-		m.definitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.definitions[ids[i]] = struct{}{}
-	}
-}
-
-// RemoveDefinitionIDs removes the definitions edge to WorkOrderDefinition by ids.
-func (m *WorkOrderTypeMutation) RemoveDefinitionIDs(ids ...int) {
-	if m.removeddefinitions == nil {
-		m.removeddefinitions = make(map[int]struct{})
-	}
-	for i := range ids {
-		m.removeddefinitions[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedDefinitions returns the removed ids of definitions.
-func (m *WorkOrderTypeMutation) RemovedDefinitionsIDs() (ids []int) {
-	for id := range m.removeddefinitions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// DefinitionsIDs returns the definitions ids in the mutation.
-func (m *WorkOrderTypeMutation) DefinitionsIDs() (ids []int) {
-	for id := range m.definitions {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetDefinitions reset all changes of the "definitions" edge.
-func (m *WorkOrderTypeMutation) ResetDefinitions() {
-	m.definitions = nil
-	m.removeddefinitions = nil
 }
 
 // AddCheckListCategoryDefinitionIDs adds the check_list_category_definitions edge to CheckListCategoryDefinition by ids.
@@ -42073,6 +42661,90 @@ func (m *WorkOrderTypeMutation) ResetCheckListCategoryDefinitions() {
 	m.removedcheck_list_category_definitions = nil
 }
 
+// AddWorkOrderIDs adds the work_orders edge to WorkOrder by ids.
+func (m *WorkOrderTypeMutation) AddWorkOrderIDs(ids ...int) {
+	if m.work_orders == nil {
+		m.work_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.work_orders[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveWorkOrderIDs removes the work_orders edge to WorkOrder by ids.
+func (m *WorkOrderTypeMutation) RemoveWorkOrderIDs(ids ...int) {
+	if m.removedwork_orders == nil {
+		m.removedwork_orders = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedwork_orders[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedWorkOrders returns the removed ids of work_orders.
+func (m *WorkOrderTypeMutation) RemovedWorkOrdersIDs() (ids []int) {
+	for id := range m.removedwork_orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// WorkOrdersIDs returns the work_orders ids in the mutation.
+func (m *WorkOrderTypeMutation) WorkOrdersIDs() (ids []int) {
+	for id := range m.work_orders {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetWorkOrders reset all changes of the "work_orders" edge.
+func (m *WorkOrderTypeMutation) ResetWorkOrders() {
+	m.work_orders = nil
+	m.removedwork_orders = nil
+}
+
+// AddDefinitionIDs adds the definitions edge to WorkOrderDefinition by ids.
+func (m *WorkOrderTypeMutation) AddDefinitionIDs(ids ...int) {
+	if m.definitions == nil {
+		m.definitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.definitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemoveDefinitionIDs removes the definitions edge to WorkOrderDefinition by ids.
+func (m *WorkOrderTypeMutation) RemoveDefinitionIDs(ids ...int) {
+	if m.removeddefinitions == nil {
+		m.removeddefinitions = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removeddefinitions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedDefinitions returns the removed ids of definitions.
+func (m *WorkOrderTypeMutation) RemovedDefinitionsIDs() (ids []int) {
+	for id := range m.removeddefinitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// DefinitionsIDs returns the definitions ids in the mutation.
+func (m *WorkOrderTypeMutation) DefinitionsIDs() (ids []int) {
+	for id := range m.definitions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetDefinitions reset all changes of the "definitions" edge.
+func (m *WorkOrderTypeMutation) ResetDefinitions() {
+	m.definitions = nil
+	m.removeddefinitions = nil
+}
+
 // Op returns the operation name.
 func (m *WorkOrderTypeMutation) Op() Op {
 	return m.op
@@ -42087,13 +42759,7 @@ func (m *WorkOrderTypeMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *WorkOrderTypeMutation) Fields() []string {
-	fields := make([]string, 0, 4)
-	if m.create_time != nil {
-		fields = append(fields, workordertype.FieldCreateTime)
-	}
-	if m.update_time != nil {
-		fields = append(fields, workordertype.FieldUpdateTime)
-	}
+	fields := make([]string, 0, 2)
 	if m.name != nil {
 		fields = append(fields, workordertype.FieldName)
 	}
@@ -42108,10 +42774,6 @@ func (m *WorkOrderTypeMutation) Fields() []string {
 // not set, or was not define in the schema.
 func (m *WorkOrderTypeMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case workordertype.FieldCreateTime:
-		return m.CreateTime()
-	case workordertype.FieldUpdateTime:
-		return m.UpdateTime()
 	case workordertype.FieldName:
 		return m.Name()
 	case workordertype.FieldDescription:
@@ -42125,10 +42787,6 @@ func (m *WorkOrderTypeMutation) Field(name string) (ent.Value, bool) {
 // or the query to the database was failed.
 func (m *WorkOrderTypeMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case workordertype.FieldCreateTime:
-		return m.OldCreateTime(ctx)
-	case workordertype.FieldUpdateTime:
-		return m.OldUpdateTime(ctx)
 	case workordertype.FieldName:
 		return m.OldName(ctx)
 	case workordertype.FieldDescription:
@@ -42142,20 +42800,6 @@ func (m *WorkOrderTypeMutation) OldField(ctx context.Context, name string) (ent.
 // type mismatch the field type.
 func (m *WorkOrderTypeMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case workordertype.FieldCreateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCreateTime(v)
-		return nil
-	case workordertype.FieldUpdateTime:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpdateTime(v)
-		return nil
 	case workordertype.FieldName:
 		v, ok := value.(string)
 		if !ok {
@@ -42229,12 +42873,6 @@ func (m *WorkOrderTypeMutation) ClearField(name string) error {
 // defined in the schema.
 func (m *WorkOrderTypeMutation) ResetField(name string) error {
 	switch name {
-	case workordertype.FieldCreateTime:
-		m.ResetCreateTime()
-		return nil
-	case workordertype.FieldUpdateTime:
-		m.ResetUpdateTime()
-		return nil
 	case workordertype.FieldName:
 		m.ResetName()
 		return nil
@@ -42249,17 +42887,17 @@ func (m *WorkOrderTypeMutation) ResetField(name string) error {
 // mutation.
 func (m *WorkOrderTypeMutation) AddedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.work_orders != nil {
-		edges = append(edges, workordertype.EdgeWorkOrders)
-	}
 	if m.property_types != nil {
 		edges = append(edges, workordertype.EdgePropertyTypes)
 	}
-	if m.definitions != nil {
-		edges = append(edges, workordertype.EdgeDefinitions)
-	}
 	if m.check_list_category_definitions != nil {
 		edges = append(edges, workordertype.EdgeCheckListCategoryDefinitions)
+	}
+	if m.work_orders != nil {
+		edges = append(edges, workordertype.EdgeWorkOrders)
+	}
+	if m.definitions != nil {
+		edges = append(edges, workordertype.EdgeDefinitions)
 	}
 	return edges
 }
@@ -42268,27 +42906,27 @@ func (m *WorkOrderTypeMutation) AddedEdges() []string {
 // the given edge name.
 func (m *WorkOrderTypeMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case workordertype.EdgeWorkOrders:
-		ids := make([]ent.Value, 0, len(m.work_orders))
-		for id := range m.work_orders {
-			ids = append(ids, id)
-		}
-		return ids
 	case workordertype.EdgePropertyTypes:
 		ids := make([]ent.Value, 0, len(m.property_types))
 		for id := range m.property_types {
 			ids = append(ids, id)
 		}
 		return ids
-	case workordertype.EdgeDefinitions:
-		ids := make([]ent.Value, 0, len(m.definitions))
-		for id := range m.definitions {
-			ids = append(ids, id)
-		}
-		return ids
 	case workordertype.EdgeCheckListCategoryDefinitions:
 		ids := make([]ent.Value, 0, len(m.check_list_category_definitions))
 		for id := range m.check_list_category_definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertype.EdgeWorkOrders:
+		ids := make([]ent.Value, 0, len(m.work_orders))
+		for id := range m.work_orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertype.EdgeDefinitions:
+		ids := make([]ent.Value, 0, len(m.definitions))
+		for id := range m.definitions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -42300,17 +42938,17 @@ func (m *WorkOrderTypeMutation) AddedIDs(name string) []ent.Value {
 // mutation.
 func (m *WorkOrderTypeMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 4)
-	if m.removedwork_orders != nil {
-		edges = append(edges, workordertype.EdgeWorkOrders)
-	}
 	if m.removedproperty_types != nil {
 		edges = append(edges, workordertype.EdgePropertyTypes)
 	}
-	if m.removeddefinitions != nil {
-		edges = append(edges, workordertype.EdgeDefinitions)
-	}
 	if m.removedcheck_list_category_definitions != nil {
 		edges = append(edges, workordertype.EdgeCheckListCategoryDefinitions)
+	}
+	if m.removedwork_orders != nil {
+		edges = append(edges, workordertype.EdgeWorkOrders)
+	}
+	if m.removeddefinitions != nil {
+		edges = append(edges, workordertype.EdgeDefinitions)
 	}
 	return edges
 }
@@ -42319,27 +42957,27 @@ func (m *WorkOrderTypeMutation) RemovedEdges() []string {
 // the given edge name.
 func (m *WorkOrderTypeMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case workordertype.EdgeWorkOrders:
-		ids := make([]ent.Value, 0, len(m.removedwork_orders))
-		for id := range m.removedwork_orders {
-			ids = append(ids, id)
-		}
-		return ids
 	case workordertype.EdgePropertyTypes:
 		ids := make([]ent.Value, 0, len(m.removedproperty_types))
 		for id := range m.removedproperty_types {
 			ids = append(ids, id)
 		}
 		return ids
-	case workordertype.EdgeDefinitions:
-		ids := make([]ent.Value, 0, len(m.removeddefinitions))
-		for id := range m.removeddefinitions {
-			ids = append(ids, id)
-		}
-		return ids
 	case workordertype.EdgeCheckListCategoryDefinitions:
 		ids := make([]ent.Value, 0, len(m.removedcheck_list_category_definitions))
 		for id := range m.removedcheck_list_category_definitions {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertype.EdgeWorkOrders:
+		ids := make([]ent.Value, 0, len(m.removedwork_orders))
+		for id := range m.removedwork_orders {
+			ids = append(ids, id)
+		}
+		return ids
+	case workordertype.EdgeDefinitions:
+		ids := make([]ent.Value, 0, len(m.removeddefinitions))
+		for id := range m.removeddefinitions {
 			ids = append(ids, id)
 		}
 		return ids
@@ -42375,17 +43013,17 @@ func (m *WorkOrderTypeMutation) ClearEdge(name string) error {
 // defined in the schema.
 func (m *WorkOrderTypeMutation) ResetEdge(name string) error {
 	switch name {
-	case workordertype.EdgeWorkOrders:
-		m.ResetWorkOrders()
-		return nil
 	case workordertype.EdgePropertyTypes:
 		m.ResetPropertyTypes()
 		return nil
-	case workordertype.EdgeDefinitions:
-		m.ResetDefinitions()
-		return nil
 	case workordertype.EdgeCheckListCategoryDefinitions:
 		m.ResetCheckListCategoryDefinitions()
+		return nil
+	case workordertype.EdgeWorkOrders:
+		m.ResetWorkOrders()
+		return nil
+	case workordertype.EdgeDefinitions:
+		m.ResetDefinitions()
 		return nil
 	}
 	return fmt.Errorf("unknown WorkOrderType edge %s", name)

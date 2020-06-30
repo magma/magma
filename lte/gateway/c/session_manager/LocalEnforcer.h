@@ -407,6 +407,13 @@ class LocalEnforcer {
     const std::string& ap_name,
     Status status, FlowResponse resp);
 
+  void handle_activate_ue_flows_callback(
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const std::vector<std::string>& static_rules,
+    const std::vector<PolicyRule>& dynamic_rules,
+    Status status, ActivateFlowsResult resp);
+
   /**
    * Deactivate rules for certain IMSI.
    * Notify AAA service if the session is a CWF session.

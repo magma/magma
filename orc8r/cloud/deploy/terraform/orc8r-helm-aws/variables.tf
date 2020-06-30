@@ -58,6 +58,12 @@ variable "orc8r_kubernetes_namespace" {
   default     = "orc8r"
 }
 
+variable "monitoring_kubernetes_namespace" {
+  description = "K8s namespace to install Orchestrator monitoring components into."
+  type        = string
+  default     = "monitoring"
+}
+
 ##############################################################################
 # General Orchestrator configuration
 ##############################################################################

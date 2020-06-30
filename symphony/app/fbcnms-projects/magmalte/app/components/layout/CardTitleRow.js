@@ -9,6 +9,7 @@
  * @format
  */
 import type {ComponentType} from 'react';
+
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
@@ -57,7 +58,7 @@ export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
 
   return (
     <Grid container alignItems="center" className={classes.cardTitleRow}>
-      <Grid container xs={6}>
+      <Grid item xs={6}>
         <Icon className={classes.cardTitleIcon} />
         <Text variant="body1">{props.label}</Text>
       </Grid>

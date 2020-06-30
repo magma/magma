@@ -102,6 +102,7 @@ find_library(ASYNC_GRPC ASYNC_GRPC ${MAGMA_LIB_DIR}/async_grpc)
 find_library(SERVICE303_LIB SERVICE303_LIB ${MAGMA_LIB_DIR}/service303)
 find_library(CONFIG CONFIG ${MAGMA_LIB_DIR}/config)
 find_library(SERVICE_REGISTRY SERVICE_REGISTRY ${MAGMA_LIB_DIR}/service_registry)
+find_library(EVENTD EVENTD ${MAGMA_LIB_DIR}/eventd)
 
 ################################################################
 # Add sub modules

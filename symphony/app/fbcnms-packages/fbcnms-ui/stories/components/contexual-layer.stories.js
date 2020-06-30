@@ -13,7 +13,6 @@ import React, {useCallback, useRef, useState} from 'react';
 import Text from '../../components/design-system/Text';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -29,7 +28,6 @@ const useStyles = makeStyles(_theme => ({
 type Props = {element: ?Element};
 
 const BelowContexualContainer = ({element}: Props) => {
-  console.log('element', element);
   if (element == null) {
     return null;
   }
@@ -57,7 +55,7 @@ const AboveContexualContainer = ({element}: Props) => {
   );
 };
 
-const ContextualLayersRoot = () => {
+export const ContextualLayersRoot = () => {
   const classes = useStyles();
   const [isVisible, setIsVisible] = useState(false);
   const contextRef = useRef<?HTMLElement>(null);
@@ -82,7 +80,10 @@ const ContextualLayersRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add(
-  'Contextual Layer',
-  () => <ContextualLayersRoot />,
-);
+ContextualLayersRoot.story = {
+  name: 'Contextual Layer',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

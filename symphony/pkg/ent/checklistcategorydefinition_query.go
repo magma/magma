@@ -19,6 +19,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/checklistcategorydefinition"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitemdefinition"
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -33,6 +34,7 @@ type CheckListCategoryDefinitionQuery struct {
 	// eager-loading edges.
 	withCheckListItemDefinitions *CheckListItemDefinitionQuery
 	withWorkOrderType            *WorkOrderTypeQuery
+	withWorkOrderTemplate        *WorkOrderTemplateQuery
 	withFKs                      bool
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -92,6 +94,24 @@ func (clcdq *CheckListCategoryDefinitionQuery) QueryWorkOrderType() *WorkOrderTy
 			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, clcdq.sqlQuery()),
 			sqlgraph.To(workordertype.Table, workordertype.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategorydefinition.WorkOrderTypeTable, checklistcategorydefinition.WorkOrderTypeColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(clcdq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryWorkOrderTemplate chains the current query on the work_order_template edge.
+func (clcdq *CheckListCategoryDefinitionQuery) QueryWorkOrderTemplate() *WorkOrderTemplateQuery {
+	query := &WorkOrderTemplateQuery{config: clcdq.config}
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := clcdq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(checklistcategorydefinition.Table, checklistcategorydefinition.FieldID, clcdq.sqlQuery()),
+			sqlgraph.To(workordertemplate.Table, workordertemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, checklistcategorydefinition.WorkOrderTemplateTable, checklistcategorydefinition.WorkOrderTemplateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(clcdq.driver.Dialect(), step)
 		return fromU, nil
@@ -300,6 +320,17 @@ func (clcdq *CheckListCategoryDefinitionQuery) WithWorkOrderType(opts ...func(*W
 	return clcdq
 }
 
+//  WithWorkOrderTemplate tells the query-builder to eager-loads the nodes that are connected to
+// the "work_order_template" edge. The optional arguments used to configure the query builder of the edge.
+func (clcdq *CheckListCategoryDefinitionQuery) WithWorkOrderTemplate(opts ...func(*WorkOrderTemplateQuery)) *CheckListCategoryDefinitionQuery {
+	query := &WorkOrderTemplateQuery{config: clcdq.config}
+	for _, opt := range opts {
+		opt(query)
+	}
+	clcdq.withWorkOrderTemplate = query
+	return clcdq
+}
+
 // GroupBy used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
 //
@@ -370,12 +401,13 @@ func (clcdq *CheckListCategoryDefinitionQuery) sqlAll(ctx context.Context) ([]*C
 		nodes       = []*CheckListCategoryDefinition{}
 		withFKs     = clcdq.withFKs
 		_spec       = clcdq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			clcdq.withCheckListItemDefinitions != nil,
 			clcdq.withWorkOrderType != nil,
+			clcdq.withWorkOrderTemplate != nil,
 		}
 	)
-	if clcdq.withWorkOrderType != nil {
+	if clcdq.withWorkOrderType != nil || clcdq.withWorkOrderTemplate != nil {
 		withFKs = true
 	}
 	if withFKs {
@@ -454,6 +486,31 @@ func (clcdq *CheckListCategoryDefinitionQuery) sqlAll(ctx context.Context) ([]*C
 			}
 			for i := range nodes {
 				nodes[i].Edges.WorkOrderType = n
+			}
+		}
+	}
+
+	if query := clcdq.withWorkOrderTemplate; query != nil {
+		ids := make([]int, 0, len(nodes))
+		nodeids := make(map[int][]*CheckListCategoryDefinition)
+		for i := range nodes {
+			if fk := nodes[i].work_order_template_check_list_category_definitions; fk != nil {
+				ids = append(ids, *fk)
+				nodeids[*fk] = append(nodeids[*fk], nodes[i])
+			}
+		}
+		query.Where(workordertemplate.IDIn(ids...))
+		neighbors, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, n := range neighbors {
+			nodes, ok := nodeids[n.ID]
+			if !ok {
+				return nil, fmt.Errorf(`unexpected foreign-key "work_order_template_check_list_category_definitions" returned %v`, n.ID)
+			}
+			for i := range nodes {
+				nodes[i].Edges.WorkOrderTemplate = n
 			}
 		}
 	}

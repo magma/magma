@@ -431,6 +431,8 @@ message CreateSessionResponse {
   repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules
   string session_id = 9;
   TgppContext tgpp_ctx = 10;
+  repeated EventTrigger event_triggers = 11;
+  google.protobuf.Timestamp revalidation_time = 12;
 }
 
 message StaticRuleInstall {

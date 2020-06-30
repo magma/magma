@@ -585,6 +585,19 @@ func (f WorkOrderDefinitionFunc) Mutate(ctx context.Context, m ent.Mutation) (en
 	return f(ctx, mv)
 }
 
+// The WorkOrderTemplateFunc type is an adapter to allow the use of ordinary
+// function as WorkOrderTemplate mutator.
+type WorkOrderTemplateFunc func(context.Context, *ent.WorkOrderTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f WorkOrderTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.WorkOrderTemplateMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.WorkOrderTemplateMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The WorkOrderTypeFunc type is an adapter to allow the use of ordinary
 // function as WorkOrderType mutator.
 type WorkOrderTypeFunc func(context.Context, *ent.WorkOrderTypeMutation) (ent.Value, error)

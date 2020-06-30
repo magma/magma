@@ -13,7 +13,6 @@ import Select from '../../components/design-system/Select/Select';
 import symphony from '../../theme/symphony';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -32,7 +31,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const SelectsRoot = () => {
+export const SelectsRoot = () => {
   const classes = useStyles();
   const [selectedValue, setSelectedValue] = useState(null);
   const renderSelect = (disabled: boolean = false, size = 'normal') => (
@@ -71,6 +70,10 @@ const SelectsRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Select', () => (
-  <SelectsRoot />
-));
+SelectsRoot.story = {
+  name: 'Select',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

@@ -72,7 +72,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
 
             # Add dedicated bearer for default bearer 5
             print(
-                "********************** Adding dedicated bearer to oai.ipv4"
+                "********************** Adding dedicated bearer to magma.ipv4"
                 " PDN"
             )
             self._spgw_util.create_bearer(

@@ -92,6 +92,9 @@ func (PropertyType) Edges() []ent.Edge {
 		edge.From("work_order_type", WorkOrderType.Type).
 			Ref("property_types").
 			Unique(),
+		edge.From("work_order_template", WorkOrderTemplate.Type).
+			Ref("property_types").
+			Unique(),
 		edge.From("project_type", ProjectType.Type).
 			Ref("properties").
 			Unique(),

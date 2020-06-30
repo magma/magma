@@ -30,9 +30,9 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {colors} from '../../theme/default';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 

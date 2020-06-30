@@ -176,7 +176,9 @@ function EquipmentDashboard() {
       <Switch>
         <Route
           path={relativePath('/overview/gateway/:gatewayId')}
-          render={() => <GatewayDetail lteGateways={lteGateways} />}
+          render={() => (
+            <GatewayDetail lteGateways={lteGateways} enbInfo={enbInfo} />
+          )}
         />
         <Route
           path={relativePath('/overview/enodeb/:enodebSerial')}
@@ -239,12 +241,7 @@ function EquipmentDashboardInternal({
               />
             </Tabs>
           </Grid>
-          <Grid
-            item
-            xs={6}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
+          <Grid item xs={6}>
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 {/* TODO: these button styles need to be localized */}

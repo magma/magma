@@ -15,6 +15,7 @@ from magma.pipelined.rule_mappers import SessionRuleToVersionMapper
 class RuleMappersTest(unittest.TestCase):
     def setUp(self):
         self._session_rule_version_mapper = SessionRuleToVersionMapper()
+        self._session_rule_version_mapper._version_by_imsi_and_rule = {}
 
     def test_session_rule_version_mapper(self):
         rule_ids = ['rule1', 'rule2']

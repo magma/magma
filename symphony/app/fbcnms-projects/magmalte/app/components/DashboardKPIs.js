@@ -32,13 +32,13 @@ export default function() {
   return (
     <>
       <CardTitleRow icon={GpsFixed} label="Events (388)" />
-      <Grid zeroMinWidth container alignItems="center" spacing={4}>
-        <Grid item xs={12} md={6} alignItems="center">
+      <Grid container item zeroMinWidth alignItems="center" spacing={4}>
+        <Grid item xs={12} md={6}>
           <Paper elevation={0}>
             <GatewayKPIs />
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6} alignItems="center">
+        <Grid item xs={12} md={6}>
           <Paper elevation={0}>
             <EnodebKPIs />
           </Paper>

@@ -5,9 +5,6 @@
 package resolverutil
 
 import (
-	"strconv"
-	"time"
-
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/location"
@@ -38,8 +35,8 @@ func handleWorkOrderFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilter
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderCreationDate {
 		return creationDateFilter(q, filter)
 	}
-	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderInstallDate {
-		return installDateFilter(q, filter)
+	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderCloseDate {
+		return closeDateFilter(q, filter)
 	}
 	if filter.FilterType == models.WorkOrderFilterTypeWorkOrderLocationInst {
 		return locationInstFilter(q, filter)
@@ -85,34 +82,30 @@ func assignedToFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
-func getStartAndEndOfDay(filterTime string) (*time.Time, *time.Time, error) {
-	mtime, err := strconv.ParseInt(filterTime, 10, 64)
-	if err != nil {
-		return nil, nil, err
-	}
-	unix := time.Unix(mtime, 0)
-	bod := unix.Truncate(time.Hour * 24).UTC()
-	eod := bod.Add(time.Hour*24 - 1).UTC()
-	return &bod, &eod, nil
-}
 func creationDateFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	bod, eod, err := getStartAndEndOfDay(*filter.StringValue)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parsing modification time: mtime=%q", *filter.StringValue)
-	}
-	if filter.Operator == models.FilterOperatorIs {
-		return q.Where(workorder.CreationDateGTE(*bod)).Where(workorder.CreationDateLTE(*eod)), nil
+	switch filter.Operator {
+	case models.FilterOperatorDateLessThan:
+		return q.Where(workorder.CreationDateLT(*filter.TimeValue)), nil
+	case models.FilterOperatorDateLessOrEqualThan:
+		return q.Where(workorder.CreationDateLTE(*filter.TimeValue)), nil
+	case models.FilterOperatorDateGreaterThan:
+		return q.Where(workorder.CreationDateGT(*filter.TimeValue)), nil
+	case models.FilterOperatorDateGreaterOrEqualThan:
+		return q.Where(workorder.CreationDateGTE(*filter.TimeValue)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
-func installDateFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	bod, eod, err := getStartAndEndOfDay(*filter.StringValue)
-	if err != nil {
-		return nil, errors.Wrapf(err, "parsing modification time: mtime=%q", *filter.StringValue)
-	}
-	if filter.Operator == models.FilterOperatorIs {
-		return q.Where(workorder.InstallDateGTE(*bod)).Where(workorder.InstallDateLTE(*eod)), nil
+func closeDateFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
+	switch filter.Operator {
+	case models.FilterOperatorDateLessThan:
+		return q.Where(workorder.CloseDateLT(*filter.TimeValue)), nil
+	case models.FilterOperatorDateLessOrEqualThan:
+		return q.Where(workorder.CloseDateLTE(*filter.TimeValue)), nil
+	case models.FilterOperatorDateGreaterThan:
+		return q.Where(workorder.CloseDateGT(*filter.TimeValue)), nil
+	case models.FilterOperatorDateGreaterOrEqualThan:
+		return q.Where(workorder.CloseDateGTE(*filter.TimeValue)), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }

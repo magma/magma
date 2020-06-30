@@ -55,6 +55,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 
 	"github.com/facebookincubator/ent"
@@ -1217,7 +1218,15 @@ func init() {
 	workorderdefinition.DefaultUpdateTime = workorderdefinitionDescUpdateTime.Default.(func() time.Time)
 	// workorderdefinition.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	workorderdefinition.UpdateDefaultUpdateTime = workorderdefinitionDescUpdateTime.UpdateDefault.(func() time.Time)
-	workordertypeMixin := schema.WorkOrderType{}.Mixin()
+	workordertemplate.Policy = schema.WorkOrderTemplate{}.Policy()
+	workordertemplate.Hooks[0] = func(next ent.Mutator) ent.Mutator {
+		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+			if err := workordertemplate.Policy.EvalMutation(ctx, m); err != nil {
+				return nil, err
+			}
+			return next.Mutate(ctx, m)
+		})
+	}
 	workordertype.Policy = schema.WorkOrderType{}.Policy()
 	workordertype.Hooks[0] = func(next ent.Mutator) ent.Mutator {
 		return ent.MutateFunc(func(ctx context.Context, m ent.Mutation) (ent.Value, error) {
@@ -1227,19 +1236,6 @@ func init() {
 			return next.Mutate(ctx, m)
 		})
 	}
-	workordertypeMixinFields0 := workordertypeMixin[0].Fields()
-	workordertypeFields := schema.WorkOrderType{}.Fields()
-	_ = workordertypeFields
-	// workordertypeDescCreateTime is the schema descriptor for create_time field.
-	workordertypeDescCreateTime := workordertypeMixinFields0[0].Descriptor()
-	// workordertype.DefaultCreateTime holds the default value on creation for the create_time field.
-	workordertype.DefaultCreateTime = workordertypeDescCreateTime.Default.(func() time.Time)
-	// workordertypeDescUpdateTime is the schema descriptor for update_time field.
-	workordertypeDescUpdateTime := workordertypeMixinFields0[1].Descriptor()
-	// workordertype.DefaultUpdateTime holds the default value on creation for the update_time field.
-	workordertype.DefaultUpdateTime = workordertypeDescUpdateTime.Default.(func() time.Time)
-	// workordertype.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
-	workordertype.UpdateDefaultUpdateTime = workordertypeDescUpdateTime.UpdateDefault.(func() time.Time)
 }
 
 const (

@@ -13,6 +13,7 @@ add_subdirectory(mobility_client) # LIB_MOBILITY_CLIENT
 add_subdirectory(s6a_proxy) # LIB_S6A_PROXY
 add_subdirectory(secu) # LIB_SECU
 add_subdirectory(sgs_client) # LIB_SGS_CLIENT
+add_subdirectory(event_client) # LIB_EVENT_CLIENT
 
 if (NOT EMBEDDED_SGW)
   add_subdirectory(gtpv2-c) # LIB_GTPV2C

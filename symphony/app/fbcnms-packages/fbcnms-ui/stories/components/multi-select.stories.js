@@ -12,7 +12,6 @@ import MultiSelect from '../../components/design-system/Select/MultiSelect';
 import React, {useMemo, useState} from 'react';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -110,7 +109,7 @@ const MultiSelectWithSearch = () => {
   );
 };
 
-const MultiSelectsRoot = () => {
+export const MultiSelectsRoot = () => {
   return (
     <div>
       <BasicMultiSelect />
@@ -119,6 +118,10 @@ const MultiSelectsRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Multi Select', () => (
-  <MultiSelectsRoot />
-));
+MultiSelectsRoot.story = {
+  name: 'Multi Select',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

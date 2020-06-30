@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7191b6634e06abbdc90ae53a7963f340
+ * @relayHash 49f0eb84a7ad07e53990cc0a0ab49f23
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
+export type FilterOperator = "CONTAINS" | "DATE_GREATER_OR_EQUAL_THAN" | "DATE_GREATER_THAN" | "DATE_LESS_OR_EQUAL_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type ProjectFilterType = "PROJECT_NAME" | "%future added value";
 export type ProjectFilterInput = {|
   filterType: ProjectFilterType,

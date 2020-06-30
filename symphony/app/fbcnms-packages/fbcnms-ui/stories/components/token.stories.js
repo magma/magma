@@ -12,7 +12,6 @@ import React from 'react';
 import Token from '../../components/design-system/Token/Token';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   token: {
@@ -20,7 +19,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const TokensRoot = () => {
+export const TokensRoot = () => {
   const classes = useStyles();
 
   return (
@@ -39,6 +38,10 @@ const TokensRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Token', () => (
-  <TokensRoot />
-));
+TokensRoot.story = {
+  name: 'Token',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

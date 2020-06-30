@@ -23,6 +23,7 @@ const syslogFlag = "stderr2syslog"
 
 type syslogTarget struct {
 	network, addr string
+	isSet         bool
 }
 
 var (
@@ -44,6 +45,7 @@ func (v *syslogTarget) Set(s string) error {
 	if v == nil {
 		return os.ErrInvalid
 	}
+	v.isSet = true
 	v.addr, v.network = "", ""
 	if len(s) > 0 && s != "true" { // "true" is a stub value for the flag without any value
 		parts := strings.Split(s, "::")
@@ -57,10 +59,16 @@ func (v *syslogTarget) Set(s string) error {
 			v.network = strings.TrimSpace(parts[0])
 			v.addr = strings.TrimSpace(parts[1])
 		default:
+			v.isSet = false
 			return os.ErrInvalid
 		}
 	}
 	return nil
+}
+
+// IsSet returns true if the flag was set
+func (v *syslogTarget) IsSet() bool {
+	return (v != nil) && v.isSet
 }
 
 // Allow empty values
@@ -99,8 +107,8 @@ func redirectToSyslog() error {
 		syslogWriter.Emerg(msg)
 		os.Stderr = stderr
 		log.SetOutput(stderr)
-		if *stdoutToStderr {
-			os.Stdout = stderr
+		if *stdoutToStderr && stdout != nil {
+			os.Stdout = stdout
 		}
 		log.Print(msg) // also log into stderr
 		writer.Close()

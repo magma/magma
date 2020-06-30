@@ -7,6 +7,7 @@
  * @flow strict-local
  * @format
  */
+
 import type {RowsSeparationTypes} from '../../components/design-system/Table/TableContent';
 import type {
   TableRowDataType,
@@ -25,7 +26,6 @@ import {STORY_CATEGORIES} from '../storybookUtils';
 import {TABLE_SORT_ORDER} from '../../components/design-system/Table/TableContext';
 import {TABLE_VARIANT_TYPES} from '../../components/design-system/Table/Table';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 type DataType = {|
   title?: string,
@@ -100,7 +100,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const TablesRoot = () => {
+export const TablesRoot = () => {
   const classes = useStyles();
   const [showSelection, setShowSelection] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
@@ -310,6 +310,10 @@ const TablesRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Table', () => (
-  <TablesRoot />
-));
+TablesRoot.story = {
+  name: 'Table',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

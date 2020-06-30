@@ -8,6 +8,7 @@
  * @flow strict-local
  * @format
  */
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
@@ -15,6 +16,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
@@ -78,8 +80,10 @@ const useStyles = makeStyles(theme => ({
 
 export function GatewayDetail({
   lteGateways,
+  enbInfo,
 }: {
   lteGateways: {[string]: lte_gateway},
+  enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
   const [tabPos, setTabPos] = React.useState(0);
@@ -159,7 +163,7 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/overview')}
-          render={() => <GatewayOverview gwInfo={gwInfo} />}
+          render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={enbInfo} />}
         />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
@@ -168,7 +172,13 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayOverview({
+  gwInfo,
+  enbInfo,
+}: {
+  gwInfo: lte_gateway,
+  enbInfo: {[string]: EnodebInfo},
+}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -205,8 +215,8 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             <Text>
               <SettingsInputAntennaIcon /> Connected eNodeBs
             </Text>
-            <Paper className={classes.paper}>
-              Connected eNodeB Information
+            <Paper>
+              <GatewayDetailEnodebs gwInfo={gwInfo} enbInfo={enbInfo} />
             </Paper>
           </Grid>
           <Grid item xs={12}>
