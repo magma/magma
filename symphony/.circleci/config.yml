@@ -60,7 +60,7 @@ executors:
   terraform:
     parameters:
       tag:
-        default: 0.12.26
+        default: 0.12.28
         type: string
     docker:
       - image: hashicorp/terraform:<<parameters.tag>>
@@ -596,6 +596,16 @@ jobs:
           <<: *clidir
           command: python3 -m test_gql_breaking_changes <<parameters.schema_directory>>
 
+  mypytest:
+    executor: python
+    steps:
+      - checkout
+      - pyinventory-setup
+      - run:
+          name: mypy check
+          <<: *clidir
+          command: python3 -m mypy
+
   pdoctest:
     executor: python
     steps:
@@ -605,6 +615,26 @@ jobs:
           name: pdoc3 check
           <<: *clidir
           command: python3 -m export_doc
+
+  blacktest:
+    executor: python
+    steps:
+      - checkout
+      - pyinventory-setup
+      - run:
+          name: black check
+          <<: *clidir
+          command: black . --exclude "(./graphql/.|.rpc_pb2.py|.rpc_pb2_grpc.py)" --check
+
+  flake8test:
+    executor: python
+    steps:
+      - checkout
+      - pyinventory-setup
+      - run:
+          name: flake8 check
+          <<: *clidir
+          command: python3 -m flake8
 
   yarntest:
     executor: yarnnode
@@ -663,7 +693,10 @@ workflows:
     jobs:
       - lint
       - validate-gql-test
+      - mypytest
       - pdoctest
+      - blacktest
+      - flake8test
       - eslint:
           <<: *onlypr
       - unit

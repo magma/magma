@@ -761,6 +761,18 @@ func (wod *WorkOrderDefinitionQuery) collectField(ctx *graphql.OperationContext,
 }
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (wot *WorkOrderTemplateQuery) CollectFields(ctx context.Context, satisfies ...string) *WorkOrderTemplateQuery {
+	if fc := graphql.GetFieldContext(ctx); fc != nil {
+		wot = wot.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)
+	}
+	return wot
+}
+
+func (wot *WorkOrderTemplateQuery) collectField(ctx *graphql.OperationContext, field graphql.CollectedField, satisfies ...string) *WorkOrderTemplateQuery {
+	return wot
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (wot *WorkOrderTypeQuery) CollectFields(ctx context.Context, satisfies ...string) *WorkOrderTypeQuery {
 	if fc := graphql.GetFieldContext(ctx); fc != nil {
 		wot = wot.collectField(graphql.GetOperationContext(ctx), fc.Field, satisfies...)

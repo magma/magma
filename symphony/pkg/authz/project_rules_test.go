@@ -209,7 +209,7 @@ func TestProjectTransferOwnershipWritePolicyRule(t *testing.T) {
 	runPolicyTest(t, tests)
 }
 
-func TestProjectCreatorCanEditProject(t *testing.T) {
+func TestProjectCreatorCanEditProjectButNoDelete(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 	projectType, _ := prepareProjectData(ctx, c)
@@ -243,7 +243,7 @@ func TestProjectCreatorCanEditProject(t *testing.T) {
 	require.NoError(t, err)
 	err = c.Project.DeleteOne(proj2).
 		Exec(ctx)
-	require.NoError(t, err)
+	require.Error(t, err)
 }
 
 func TestProjectCreatorUnchangedWritePolicyRule(t *testing.T) {

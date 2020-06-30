@@ -59,6 +59,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/ent/workorderdefinition"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 
 	"golang.org/x/sync/semaphore"
@@ -339,7 +340,7 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 		ID:     clcd.ID,
 		Type:   "CheckListCategoryDefinition",
 		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(clcd.CreateTime); err != nil {
@@ -396,6 +397,17 @@ func (clcd *CheckListCategoryDefinition) Node(ctx context.Context) (node *Node, 
 		IDs:  ids,
 		Type: "WorkOrderType",
 		Name: "work_order_type",
+	}
+	ids, err = clcd.QueryWorkOrderTemplate().
+		Select(workordertemplate.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrderTemplate",
+		Name: "work_order_template",
 	}
 	return node, nil
 }
@@ -3123,7 +3135,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		ID:     pt.ID,
 		Type:   "PropertyType",
 		Fields: make([]*Field, 20),
-		Edges:  make([]*Edge, 8),
+		Edges:  make([]*Edge, 9),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(pt.CreateTime); err != nil {
@@ -3364,13 +3376,24 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		Type: "WorkOrderType",
 		Name: "work_order_type",
 	}
+	ids, err = pt.QueryWorkOrderTemplate().
+		Select(workordertemplate.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[7] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrderTemplate",
+		Name: "work_order_template",
+	}
 	ids, err = pt.QueryProjectType().
 		Select(projecttype.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[7] = &Edge{
+	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "ProjectType",
 		Name: "project_type",
@@ -5013,7 +5036,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		ID:     wo.ID,
 		Type:   "WorkOrder",
 		Fields: make([]*Field, 10),
-		Edges:  make([]*Edge, 13),
+		Edges:  make([]*Edge, 14),
 	}
 	var buf []byte
 	if buf, err = json.Marshal(wo.CreateTime); err != nil {
@@ -5108,13 +5131,24 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		Type: "WorkOrderType",
 		Name: "type",
 	}
+	ids, err = wo.QueryTemplate().
+		Select(workordertemplate.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrderTemplate",
+		Name: "template",
+	}
 	ids, err = wo.QueryEquipment().
 		Select(equipment.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[2] = &Edge{
 		IDs:  ids,
 		Type: "Equipment",
 		Name: "equipment",
@@ -5125,7 +5159,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[2] = &Edge{
+	node.Edges[3] = &Edge{
 		IDs:  ids,
 		Type: "Link",
 		Name: "links",
@@ -5136,7 +5170,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[3] = &Edge{
+	node.Edges[4] = &Edge{
 		IDs:  ids,
 		Type: "File",
 		Name: "files",
@@ -5147,7 +5181,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[4] = &Edge{
+	node.Edges[5] = &Edge{
 		IDs:  ids,
 		Type: "Hyperlink",
 		Name: "hyperlinks",
@@ -5158,7 +5192,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[5] = &Edge{
+	node.Edges[6] = &Edge{
 		IDs:  ids,
 		Type: "Location",
 		Name: "location",
@@ -5169,7 +5203,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[6] = &Edge{
+	node.Edges[7] = &Edge{
 		IDs:  ids,
 		Type: "Comment",
 		Name: "comments",
@@ -5180,7 +5214,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[7] = &Edge{
+	node.Edges[8] = &Edge{
 		IDs:  ids,
 		Type: "Activity",
 		Name: "activities",
@@ -5191,7 +5225,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[8] = &Edge{
+	node.Edges[9] = &Edge{
 		IDs:  ids,
 		Type: "Property",
 		Name: "properties",
@@ -5202,7 +5236,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[9] = &Edge{
+	node.Edges[10] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategory",
 		Name: "check_list_categories",
@@ -5213,7 +5247,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[10] = &Edge{
+	node.Edges[11] = &Edge{
 		IDs:  ids,
 		Type: "Project",
 		Name: "project",
@@ -5224,7 +5258,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[11] = &Edge{
+	node.Edges[12] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "owner",
@@ -5235,7 +5269,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[12] = &Edge{
+	node.Edges[13] = &Edge{
 		IDs:  ids,
 		Type: "User",
 		Name: "assignee",
@@ -5325,34 +5359,18 @@ func (wod *WorkOrderDefinitionMutation) Node(ctx context.Context) (node *Node, e
 	return ent.Node(ctx)
 }
 
-func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
+func (wot *WorkOrderTemplate) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     wot.ID,
-		Type:   "WorkOrderType",
-		Fields: make([]*Field, 4),
-		Edges:  make([]*Edge, 4),
+		Type:   "WorkOrderTemplate",
+		Fields: make([]*Field, 2),
+		Edges:  make([]*Edge, 3),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(wot.CreateTime); err != nil {
-		return nil, err
-	}
-	node.Fields[0] = &Field{
-		Type:  "time.Time",
-		Name:  "create_time",
-		Value: string(buf),
-	}
-	if buf, err = json.Marshal(wot.UpdateTime); err != nil {
-		return nil, err
-	}
-	node.Fields[1] = &Field{
-		Type:  "time.Time",
-		Name:  "update_time",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(wot.Name); err != nil {
 		return nil, err
 	}
-	node.Fields[2] = &Field{
+	node.Fields[0] = &Field{
 		Type:  "string",
 		Name:  "name",
 		Value: string(buf),
@@ -5360,44 +5378,22 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(wot.Description); err != nil {
 		return nil, err
 	}
-	node.Fields[3] = &Field{
+	node.Fields[1] = &Field{
 		Type:  "string",
 		Name:  "description",
 		Value: string(buf),
 	}
 	var ids []int
-	ids, err = wot.QueryWorkOrders().
-		Select(workorder.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[0] = &Edge{
-		IDs:  ids,
-		Type: "WorkOrder",
-		Name: "work_orders",
-	}
 	ids, err = wot.QueryPropertyTypes().
 		Select(propertytype.FieldID).
 		Ints(ctx)
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[1] = &Edge{
+	node.Edges[0] = &Edge{
 		IDs:  ids,
 		Type: "PropertyType",
 		Name: "property_types",
-	}
-	ids, err = wot.QueryDefinitions().
-		Select(workorderdefinition.FieldID).
-		Ints(ctx)
-	if err != nil {
-		return nil, err
-	}
-	node.Edges[2] = &Edge{
-		IDs:  ids,
-		Type: "WorkOrderDefinition",
-		Name: "definitions",
 	}
 	ids, err = wot.QueryCheckListCategoryDefinitions().
 		Select(checklistcategorydefinition.FieldID).
@@ -5405,10 +5401,105 @@ func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
 	if err != nil {
 		return nil, err
 	}
-	node.Edges[3] = &Edge{
+	node.Edges[1] = &Edge{
 		IDs:  ids,
 		Type: "CheckListCategoryDefinition",
 		Name: "check_list_category_definitions",
+	}
+	ids, err = wot.QueryType().
+		Select(workordertype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrderType",
+		Name: "type",
+	}
+	return node, nil
+}
+
+func (wot *WorkOrderTemplateMutation) Node(ctx context.Context) (node *Node, err error) {
+	id, exists := wot.ID()
+	if !exists {
+		return nil, nil
+	}
+	ent, err := wot.Client().WorkOrderTemplate.Get(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return ent.Node(ctx)
+}
+
+func (wot *WorkOrderType) Node(ctx context.Context) (node *Node, err error) {
+	node = &Node{
+		ID:     wot.ID,
+		Type:   "WorkOrderType",
+		Fields: make([]*Field, 2),
+		Edges:  make([]*Edge, 4),
+	}
+	var buf []byte
+	if buf, err = json.Marshal(wot.Name); err != nil {
+		return nil, err
+	}
+	node.Fields[0] = &Field{
+		Type:  "string",
+		Name:  "name",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(wot.Description); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
+		Type:  "string",
+		Name:  "description",
+		Value: string(buf),
+	}
+	var ids []int
+	ids, err = wot.QueryPropertyTypes().
+		Select(propertytype.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[0] = &Edge{
+		IDs:  ids,
+		Type: "PropertyType",
+		Name: "property_types",
+	}
+	ids, err = wot.QueryCheckListCategoryDefinitions().
+		Select(checklistcategorydefinition.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[1] = &Edge{
+		IDs:  ids,
+		Type: "CheckListCategoryDefinition",
+		Name: "check_list_category_definitions",
+	}
+	ids, err = wot.QueryWorkOrders().
+		Select(workorder.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[2] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrder",
+		Name: "work_orders",
+	}
+	ids, err = wot.QueryDefinitions().
+		Select(workorderdefinition.FieldID).
+		Ints(ctx)
+	if err != nil {
+		return nil, err
+	}
+	node.Edges[3] = &Edge{
+		IDs:  ids,
+		Type: "WorkOrderDefinition",
+		Name: "definitions",
 	}
 	return node, nil
 }
@@ -5838,6 +5929,15 @@ func (c *Client) noder(ctx context.Context, tbl string, id int) (Noder, error) {
 		n, err := c.WorkOrderDefinition.Query().
 			Where(workorderdefinition.ID(id)).
 			CollectFields(ctx, "WorkOrderDefinition").
+			Only(ctx)
+		if err != nil {
+			return nil, err
+		}
+		return n, nil
+	case workordertemplate.Table:
+		n, err := c.WorkOrderTemplate.Query().
+			Where(workordertemplate.ID(id)).
+			CollectFields(ctx, "WorkOrderTemplate").
 			Only(ctx)
 		if err != nil {
 			return nil, err

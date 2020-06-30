@@ -125,6 +125,8 @@ const UserRoleAndStatusPane = (props: Props) => {
 
   const value = userIsDeactivated
     ? USER_STATUSES.DEACTIVATED.key
+    : user.role === USER_ROLES.OWNER.key
+    ? USER_ROLES.ADMIN.key
     : user.role ?? USER_ROLES.USER.key;
 
   return (

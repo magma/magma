@@ -72,6 +72,7 @@ type hooks struct {
 	UsersGroup                  []ent.Hook
 	WorkOrder                   []ent.Hook
 	WorkOrderDefinition         []ent.Hook
+	WorkOrderTemplate           []ent.Hook
 	WorkOrderType               []ent.Hook
 }
 

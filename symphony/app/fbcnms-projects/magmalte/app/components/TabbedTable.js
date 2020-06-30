@@ -22,7 +22,7 @@ import Text from '../theme/design-system/Text';
 
 import {colors, typography} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {withStyles} from '@material-ui/core/styles'
+import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
   tab: {
@@ -99,9 +99,8 @@ function TabPanel(props: TabPanelProps) {
           container
           alignItems="center"
           justify="center"
-          xs={12}
           className={classes.emptyTable}>
-          <Grid item className={classes.emptyTableContent}>
+          <Grid item xs={12} className={classes.emptyTableContent}>
             <Text variant="body2">You have 0 {label} Alerts</Text>
             <Text variant="body3">
               To add alert triggers click <a href="#">alert settings</a>.

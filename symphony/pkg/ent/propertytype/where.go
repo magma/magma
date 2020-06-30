@@ -2021,6 +2021,34 @@ func HasWorkOrderTypeWith(preds ...predicate.WorkOrderType) predicate.PropertyTy
 	})
 }
 
+// HasWorkOrderTemplate applies the HasEdge predicate on the "work_order_template" edge.
+func HasWorkOrderTemplate() predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTemplateTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTemplateTable, WorkOrderTemplateColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrderTemplateWith applies the HasEdge predicate on the "work_order_template" edge with a given conditions (other predicates).
+func HasWorkOrderTemplateWith(preds ...predicate.WorkOrderTemplate) predicate.PropertyType {
+	return predicate.PropertyType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrderTemplateInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, WorkOrderTemplateTable, WorkOrderTemplateColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // HasProjectType applies the HasEdge predicate on the "project_type" edge.
 func HasProjectType() predicate.PropertyType {
 	return predicate.PropertyType(func(s *sql.Selector) {

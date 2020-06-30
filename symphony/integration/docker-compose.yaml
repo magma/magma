@@ -20,6 +20,8 @@ services:
       MYSQL_PASS: root
       FB_TEST_USER: fbuser@fb.com
       USER_GRAFANA_ADDRESS: host.docker.internal:3000
+    env_file:
+      - conf/telemetry.env
     networks:
       - public
       - private

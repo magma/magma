@@ -172,10 +172,13 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview(
-  {gwInfo}: {gwInfo: lte_gateway},
-  {enbInfo}: {[string]: EnodebInfo},
-) {
+function GatewayOverview({
+  gwInfo,
+  enbInfo,
+}: {
+  gwInfo: lte_gateway,
+  enbInfo: {[string]: EnodebInfo},
+}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);

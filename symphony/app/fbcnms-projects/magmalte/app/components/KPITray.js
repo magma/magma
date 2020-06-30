@@ -66,6 +66,11 @@ type Props = {
   data: KPIData[],
 };
 
+function KPIIcon(Icon: ComponentType<SvgIconExports>) {
+  const classes = useStyles();
+  return <Icon className={classes.kpiHeaderIcon} />;
+}
+
 export default function KPITray(props: Props) {
   const classes = useStyles();
   const kpiTray = [];
@@ -73,16 +78,10 @@ export default function KPITray(props: Props) {
   if (props.icon) {
     const KpiIcon = props.icon;
     kpiTray.push(
-      <Grid
-        item
-        alignItems="center"
-        className={classes.kpiHeaderBlock}
-        key="kpiTitle">
+      <Grid item className={classes.kpiHeaderBlock} key="kpiTitle">
         <CardContent className={classes.kpiHeaderContent}>
           <KpiIcon className={classes.kpiHeaderIcon} />
-          <Text variant="body1">
-            {props.description}
-          </Text>
+          <Text variant="body1">{props.description}</Text>
         </CardContent>
       </Grid>,
     );
@@ -90,19 +89,17 @@ export default function KPITray(props: Props) {
 
   kpiTray.push(
     props.data.map((kpi, i) => (
-      <Grid
-        container
-        xs
-        zeroMinWidth
-        key={'data-' + i}
-        className={classes.kpiBlock}
-        alignItems="center">
+      <Grid item xs zeroMinWidth key={'data-' + i} className={classes.kpiBlock}>
         <CardHeader
           title={kpi.category}
           className={classes.kpiBox}
-          subheader={kpi.value + (kpi.unit ?? '')}
+          subheader={
+            <>
+              {kpi.icon ? KPIIcon(kpi.icon) : null} {kpi.value} {kpi.unit ?? ''}
+            </>
+          }
           titleTypographyProps={{
-            variant: 'body3',
+            variant: 'caption',
             className: classes.kpiLabel,
             title: kpi.category,
           }}
@@ -117,7 +114,7 @@ export default function KPITray(props: Props) {
   );
 
   return (
-    <Grid container zeroMinWidth>
+    <Grid container alignItems="center">
       {kpiTray}
     </Grid>
   );

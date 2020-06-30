@@ -76,8 +76,7 @@ static pdn_cid_t _pdn_connectivity_create(
   const bool is_emergency);
 
 proc_tid_t _pdn_connectivity_delete(
-  emm_context_t *emm_context,
-  pdn_cid_t pdn_cid);
+    emm_context_t* emm_context, pdn_cid_t pdn_cid);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -522,8 +521,8 @@ static int _pdn_connectivity_create(
  ** Description: Deletes PDN connection to the specified UE associated to  **
  **              PDN connection entry with given identifier                **
  **                                                                        **
- ** Inputs:          ue_id:      UE local identifier                        **
- **                  pdn_cid:       Identifier of the PDN connection to be     **
+ ** Inputs:          ue_id:     UE local identifier                        **
+ **                  pdn_cid:   Identifier of the PDN connection to be     **
  **                             released                                   **
  **                  Others:    _esm_data                                  **
  **                                                                        **
@@ -536,57 +535,54 @@ static int _pdn_connectivity_create(
  **                                                                        **
  ***************************************************************************/
 proc_tid_t _pdn_connectivity_delete(
-  emm_context_t *emm_context,
-  pdn_cid_t pdn_cid)
-{
+    emm_context_t* emm_context, pdn_cid_t pdn_cid) {
   proc_tid_t pti = ESM_PT_UNASSIGNED;
 
   if (!emm_context) {
     return pti;
   }
-  ue_mm_context_t *ue_mm_context =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+  ue_mm_context_t* ue_mm_context =
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
   if (pdn_cid < MAX_APN_PER_UE) {
     if (!ue_mm_context->pdn_contexts[pdn_cid]) {
       OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-PROC  - PDN connection has not been allocated\n");
+          LOG_NAS_ESM, "ESM-PROC  - PDN connection has not been allocated\n");
     } else if (ue_mm_context->pdn_contexts[pdn_cid]->is_active) {
       OAILOG_ERROR(LOG_NAS_ESM, "ESM-PROC  - PDN connection is active\n");
     } else {
       /*
        * Get the identity of the procedure transaction that created
-       * * * * the PDN connection
+       * the PDN connection
        */
       pti = ue_mm_context->pdn_contexts[pdn_cid]->esm_data.pti;
     }
   } else {
     OAILOG_ERROR(
-      LOG_NAS_ESM, "ESM-PROC  - PDN connection identifier is not valid\n");
+        LOG_NAS_ESM, "ESM-PROC  - PDN connection identifier is not valid\n");
   }
   if (pti != ESM_PT_UNASSIGNED) {
-    /*
-     * Decrement the number of PDN connections
-     */
+    // Decrement the number of PDN connections
     ue_mm_context->emm_context.esm_ctx.n_pdns -= 1;
 
-    /*
-     * Release allocated PDN connection data
-     */
+    // Release allocated PDN connection data
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_in_use);
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_oi_replacement);
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_subscribed);
     memset(
-      &ue_mm_context->pdn_contexts[pdn_cid]->esm_data,
-      0,
-      sizeof(ue_mm_context->pdn_contexts[pdn_cid]->esm_data));
+        &ue_mm_context->pdn_contexts[pdn_cid]->esm_data, 0,
+        sizeof(ue_mm_context->pdn_contexts[pdn_cid]->esm_data));
+
+    // Free protocol configuration options and its contents
+    if (ue_mm_context->pdn_contexts[pdn_cid]->pco) {
+      free_protocol_configuration_options(
+          &ue_mm_context->pdn_contexts[pdn_cid]->pco);
+    }
     // TODO Think about free ue_mm_context->pdn_contexts[pdn_cid]
     OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-PROC  - PDN connection %d released\n", pdn_cid);
+        LOG_NAS_ESM, "ESM-PROC  - PDN connection %d released\n", pdn_cid);
   }
 
-  /*
-   * Return the procedure transaction identity
-   */
+  // Return the procedure transaction identity
   return (pti);
 }

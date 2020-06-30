@@ -181,7 +181,8 @@ class StartThread(object):
         manager.load_apps(app_lists)
         contexts = manager.create_contexts()
         contexts['sids_by_ip'] = {}     # shared by both metering apps
-        contexts['rule_id_mapper'] = RuleIDToNumMapper()
+        contexts['rule_id_mapper'] = \
+            self._test_setup.service_manager.rule_id_mapper
         contexts['internal_ip_allocator'] = \
             InternalIPAllocator(self._test_setup.config)
         contexts['session_rule_version_mapper'] = \
