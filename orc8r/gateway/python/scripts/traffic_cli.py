@@ -16,15 +16,28 @@ def scan_wifi(interface):
     if out != 0:
         raise Exception()
 
+
+def connect_to_wifi(interface, password):
+    out = os.system('nmcli device wifi connect {} password {}'.format(interface, password))
+    if out != 0:
+        raise Exception()
+
+
 def send_traffic():
     pass
 
 
 def main(argv):
+    iface = argv[1]
+    pw = argv[2]
     try:
-        scan_wifi(argv[1])
+        scan_wifi(iface)
     except Exception:
-        print('Error interface {} not found'.format(argv[1]))
+        print('Error interface {} not found'.format(iface))
+    try:
+        connect_to_wifi(iface, pw)
+    except Exception:
+        print('Error could not connect to {}'.format(iface))
     send_traffic()
 
 
