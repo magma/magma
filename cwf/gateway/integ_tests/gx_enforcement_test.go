@@ -412,8 +412,6 @@ func TestGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
-
 	timeUntilRevalidation := 8 * time.Second
 	now := time.Now().Round(1 * time.Second)
 	revalidationTime, err := ptypes.TimestampProto(now.Add(timeUntilRevalidation))
@@ -422,7 +420,6 @@ func TestGxRevalidationTime(t *testing.T) {
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
 		SetStaticRuleInstalls([]string{"revalidation-time-static-pass-all"}, []string{}).
-		SetUsageMonitorInfo(usageMonitorInfo).
 		SetRevalidationTime(revalidationTime).
 		SetEventTriggers([]uint32{RevalidationTimeoutEvent})
 	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
@@ -430,8 +427,7 @@ func TestGxRevalidationTime(t *testing.T) {
 	// We expect an update request with some usage update after revalidation timer expires
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetEventTrigger(int32(lteProtos.EventTrigger_REVALIDATION_TIMEOUT))
-	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).
-		SetUsageMonitorInfo(usageMonitorInfo)
+	updateAnswer1 := protos.NewGxCCAnswer(diam.Success)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
 	expectations := []*protos.GxCreditControlExpectation{initExpectation, updateExpectation1}
 	// On unexpected requests, just return the default update answer
