@@ -294,6 +294,8 @@ export default createMuiTheme({
         },
       },
       input: {
+        height: '100%',
+        boxSizing: 'border-box',
         padding: '8px 16px',
         color: colors.primary.brightGray,
         fontFamily: typography.button.fontFamily,
