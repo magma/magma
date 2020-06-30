@@ -20,6 +20,7 @@ import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
+import nullthrows from '@fbcnms/util/nullthrows';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -28,26 +29,26 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
 
-import {colors} from '../../theme/default';
+import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {colors, typography} from '../../theme/default';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
-import {Redirect, Route, Switch} from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
+import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
+    margin: theme.spacing(5),
   },
   topBar: {
     backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: '0 0 0 20px',
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
     color: colors.primary.white,
@@ -57,23 +58,36 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
+  },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
+  appBarBtnSecondary: {
+    color: colors.primary.white,
   },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
     padding: '50px 0',
   },
   paper: {
-    height: 100,
-    padding: theme.spacing(10),
     textAlign: 'center',
-  },
-  card: {
-    variant: 'outlined',
+    padding: theme.spacing(10),
   },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
@@ -90,7 +104,7 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
@@ -122,13 +136,21 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
+          <Grid
+            item
+            xs={6}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Text color="light">Secondary Action</Text>
+                {/* TODO: these button styles need to be localized */}
+                <Button variant="text" className={classes.appBarBtnSecondary}>
+                  Secondary Action
+                </Button>
               </Grid>
               <Grid item>
-                <Button color="primary" variant="contained">
+                <Button variant="contained" className={classes.appBarBtn}>
                   Reboot
                 </Button>
               </Grid>
@@ -157,54 +179,56 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
   const perEnbMetricSupportAvailable = false;
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3} alignItems="stretch">
-        <Grid container spacing={3} alignItems="stretch" item xs={12}>
-          <Grid item xs={6}>
-            <Text>
-              <SettingsInputAntennaIcon /> {enbInfo.enb.name}
-            </Text>
-            <EnodebSummary enbInfo={enbInfo} />
-          </Grid>
-
-          <Grid item xs={6}>
-            <Text>
-              <GraphicEqIcon />
-              Status
-            </Text>
-            <EnodebStatus enbInfo={enbInfo} />
-          </Grid>
-        </Grid>
-        <Grid container item spacing={3} alignItems="stretch" xs={12}>
-          <Grid item xs={12}>
-            {perEnbMetricSupportAvailable ? (
-              <DateTimeMetricChart
-                title={CHART_TITLE}
-                queries={[
-                  `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,
-                  `sum(pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
-                ]}
-                legendLabels={['Download', 'Upload']}
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6} alignItems="center">
+              <CardTitleRow
+                icon={SettingsInputAntennaIcon}
+                label={enbInfo.enb.name}
               />
-            ) : (
-              <Paper className={classes.paper}>
-                Enodeb Throughput Chart Currently Unavailable
-              </Paper>
-            )}
+              <EnodebSummary enbInfo={enbInfo} />
+            </Grid>
+
+            <Grid item xs={12} md={6} alignItems="center">
+              <CardTitleRow icon={GraphicEqIcon} label="Status" />
+              <EnodebStatus enbInfo={enbInfo} />
+            </Grid>
           </Grid>
         </Grid>
-        <Grid container spacing={3} alignItems="stretch" item xs={12}>
-          <Grid item xs={6}>
-            <Text>
-              <MyLocationIcon /> Events
-            </Text>
-            <Paper className={classes.paper}>Event Information</Paper>
-          </Grid>
+        <Grid item xs={12}>
+          {perEnbMetricSupportAvailable ? (
+            <DateTimeMetricChart
+              title={CHART_TITLE}
+              queries={[
+                `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,
+                `sum(pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+              ]}
+              legendLabels={['Download', 'Upload']}
+            />
+          ) : (
+            <Paper className={classes.paper} elevation={0}>
+              <Text variant="body2">
+                Enodeb Throughput Chart Currently Unavailable
+              </Text>
+            </Paper>
+          )}
+        </Grid>
+        <Grid item xs={12}>
+          <Grid container spacing={4}>
+            <Grid item xs={6}>
+              <CardTitleRow icon={MyLocationIcon} label="Events" />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Event Information</Text>
+              </Paper>
+            </Grid>
 
-          <Grid item xs={6}>
-            <Text>
-              <PeopleIcon /> Subscribers
-            </Text>
-            <Paper className={classes.paper}>Subscribers data</Paper>
+            <Grid item xs={6}>
+              <CardTitleRow icon={PeopleIcon} label="Subscribers" />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Subscribers data</Text>
+              </Paper>
+            </Grid>
           </Grid>
         </Grid>
       </Grid>
