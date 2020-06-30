@@ -14,32 +14,43 @@ import sys
 def scan_wifi(interface):
     out = os.system('nmcli device wifi list | grep {}'.format(interface))
     if out != 0:
-        raise Exception()
+        raise OSError()
 
 
 def connect_to_wifi(interface, password):
     out = os.system('nmcli device wifi connect {} password {}'.format(interface, password))
     if out != 0:
-        raise Exception()
+        raise OSError()
 
 
-def send_traffic():
-    pass
+def send_traffic(endpt, num_pkts):
+    out = os.system('ping -c {} {}'.format(num_pkts, endpt))
+    if out != 0:
+        raise OSError()
 
 
-def main(argv):
+def main():
+    argv = sys.argv
+    if len(argv) < 5:
+        print('Usage: ./traffic_cli.py <iface> <password> <endpoint> <num_packets_to_send>')
+        sys.exit(1)
     iface = argv[1]
     pw = argv[2]
+    endpt = argv[3]
+    num_pkts = argv[4]
     try:
         scan_wifi(iface)
-    except Exception:
+    except OSError:
         print('Error interface {} not found'.format(iface))
     try:
         connect_to_wifi(iface, pw)
-    except Exception:
+    except OSError:
         print('Error could not connect to {}'.format(iface))
-    send_traffic()
+    try:
+        send_traffic(endpt, num_pkts)
+    except OSError:
+        print('Error pinging {}'.format(endpt))
 
 
 if __name__ == '__main__':
-    main(sys.argv)
+    main()
