@@ -10,22 +10,21 @@
 import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import LogChart from './GatewayLogChart';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {Button, Grid} from '@material-ui/core/';
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
+import {colors} from '../../theme/default';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {getStep} from '../../components/CustomHistogram';
-import {Bar} from 'react-chartjs-2';
-import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
@@ -46,46 +45,10 @@ const LOG_COLUMNS = [
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
+    margin: theme.spacing(5),
   },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: '0 0 0 20px',
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '20px 0 20px 0',
-  },
-  tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
-  },
-  // TODO: remove this when we actually fill out the grid sections
-  contentPlaceholder: {
-    padding: '50px 0',
-  },
-  paper: {
-    height: 100,
-    padding: theme.spacing(10),
-    textAlign: 'center',
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-  },
-  button: {
-    margin: theme.spacing(1),
+  dateTimeText: {
+    color: colors.primary.comet,
   },
 }));
 
@@ -255,77 +218,80 @@ export default function GatewayLogs() {
     };
   }, [startDate, endDate]);
 
+  function LogsFilter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Date
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="inline"
+            inputVariant="outlined"
+            maxDate={endDate}
+            disableFuture
+            value={startDate}
+            onChange={val => {
+              setStartDate(val);
+              tableRef.current && tableRef.current.onQueryChange();
+            }}
+          />
+        </Grid>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            To
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="inline"
+            inputVariant="outlined"
+            disableFuture
+            value={endDate}
+            onChange={val => {
+              setEndDate(val);
+              tableRef.current && tableRef.current.onQueryChange();
+            }}
+          />
+        </Grid>
+        <Grid item>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<LaunchIcon />}
+            onClick={() =>
+              exportLogs(
+                networkId,
+                gatewayId,
+                0,
+                MAX_PAGE_ROW_COUNT,
+                startDate,
+                endDate,
+                actionQuery,
+                enqueueSnackbar,
+              )
+            }>
+            Export
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  }
+
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container align="top" alignItems="flex-start">
-        <Grid container justify="space-between" spacing={3}>
-          <Grid item xs={6}>
-            <Text>
-              <ListAltIcon />
-              Logs({logCount})
-            </Text>
-          </Grid>
-          <Grid item xs={6}>
-            <Grid container justify="flex-end" alignItems="center" spacing={1}>
-              <Grid item>
-                <Text>Filter By Date</Text>
-              </Grid>
-              <Grid item>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  maxDate={endDate}
-                  disableFuture
-                  value={startDate}
-                  onChange={val => {
-                    setStartDate(val);
-                    tableRef.current && tableRef.current.onQueryChange();
-                  }}
-                />
-              </Grid>
-              <Grid item>
-                <Text>To</Text>
-              </Grid>
-              <Grid item>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  disableFuture
-                  value={endDate}
-                  onChange={val => {
-                    setEndDate(val);
-                    tableRef.current && tableRef.current.onQueryChange();
-                  }}
-                />
-              </Grid>
-              <Grid item>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                  startIcon={<LaunchIcon />}
-                  onClick={() =>
-                    exportLogs(
-                      networkId,
-                      gatewayId,
-                      0,
-                      MAX_PAGE_ROW_COUNT,
-                      startDate,
-                      endDate,
-                      actionQuery,
-                      enqueueSnackbar,
-                    )
-                  }>
-                  Export
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <LogChart {...startEnd} setLogCount={setLogCount} />
-          </Grid>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <CardTitleFilterRow
+            icon={ListAltIcon}
+            label={`Logs (${logCount})`}
+            filter={LogsFilter}
+          />
+          <LogChart {...startEnd} setLogCount={setLogCount} />
         </Grid>
         <Grid item xs={12}>
           <ActionTable
