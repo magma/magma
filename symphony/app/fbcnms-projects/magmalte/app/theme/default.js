@@ -215,6 +215,13 @@ export default createMuiTheme({
       contained: {
         boxShadow: 'none',
       },
+      containedPrimary: {
+        backgroundColor: colors.primary.comet,
+        '&:hover, &:focus': {
+          backgroundColor: colors.primary.brightGray,
+          boxShadow: 'none',
+        },
+      },
     },
     MuiFormControl: {
       marginDense: {
@@ -274,6 +281,7 @@ export default createMuiTheme({
     },
     MuiOutlinedInput: {
       root: {
+        height: '36px',
         '&$notchedOutline': {
           borderColor: '#CCD0D5',
         },
