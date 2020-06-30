@@ -29,6 +29,7 @@
           "lte/setup_deb",
           "lte/config_agw",
           "lte/enodebd",
+          "lte/config_apn",
           "lte/agw_110_upgrade"
         ]
       },

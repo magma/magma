@@ -18,10 +18,7 @@ You also should have completed all the steps in "[Access Gateway Setup (On Bare 
 For this part, we strongly recommend that you SSH into the AGW box from a host
 machine instead of using the AGW directly.
 
-Magma Access Gateway has a default APN "oai.ipv4" that can be used by
-UEs to access Magma in a non-federated set up. UEs must be configured
-manually with "oai.ipv4" as their APN to be able to complete the attach procedure
-at Magma Access Gateway out of the box.
+In this latest version, Magma Access Gateway no longer has a hardwired default Access Point Name (APN). Therefore, each UE must have a subscription profile that includes at least one APN to be able to attach to the network. Please follow the instructions in "[APN Configuration](config_apn.md)".
 
 ## Access Gateway Configuration
 
