@@ -17,7 +17,6 @@ import React from 'react';
 import Text from '../theme/design-system/Text';
 
 import {CardTitleRow} from './layout/CardTitleRow';
-import {colors} from '../theme/default';
 import {GpsFixed} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/styles';
 
@@ -33,13 +32,13 @@ export default function() {
   return (
     <>
       <CardTitleRow icon={GpsFixed} label="Events (388)" />
-      <Grid zeroMinWidth container alignItems="center" spacing={4}>
-        <Grid item xs={12} md={6} alignItems="center">
+      <Grid container item zeroMinWidth alignItems="center" spacing={4}>
+        <Grid item xs={12} md={6}>
           <Paper elevation={0}>
             <GatewayKPIs />
           </Paper>
         </Grid>
-        <Grid item xs={12} md={6} alignItems="center">
+        <Grid item xs={12} md={6}>
           <Paper elevation={0}>
             <EnodebKPIs />
           </Paper>

@@ -8,31 +8,28 @@
  * @flow strict-local
  * @format
  */
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
-import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {AppBar, Button, Grid, Paper, Tab, Tabs} from '@material-ui/core';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -78,8 +75,10 @@ const useStyles = makeStyles(theme => ({
 
 export function GatewayDetail({
   lteGateways,
+  enbInfo,
 }: {
   lteGateways: {[string]: lte_gateway},
+  enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
   const [tabPos, setTabPos] = React.useState(0);
@@ -159,7 +158,7 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/overview')}
-          render={() => <GatewayOverview gwInfo={gwInfo} />}
+          render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={enbInfo} />}
         />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
@@ -168,7 +167,13 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayOverview({
+  gwInfo,
+  enbInfo,
+}: {
+  gwInfo: lte_gateway,
+  enbInfo: {[string]: EnodebInfo},
+}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
@@ -205,8 +210,8 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             <Text>
               <SettingsInputAntennaIcon /> Connected eNodeBs
             </Text>
-            <Paper className={classes.paper}>
-              Connected eNodeB Information
+            <Paper>
+              <GatewayDetailEnodebs gwInfo={gwInfo} enbInfo={enbInfo} />
             </Paper>
           </Grid>
           <Grid item xs={12}>

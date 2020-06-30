@@ -65,6 +65,7 @@ func (c *Client) ReadOnly() *Client {
 		UsersGroup:                  NewUsersGroupClient(cfg),
 		WorkOrder:                   NewWorkOrderClient(cfg),
 		WorkOrderDefinition:         NewWorkOrderDefinitionClient(cfg),
+		WorkOrderTemplate:           NewWorkOrderTemplateClient(cfg),
 		WorkOrderType:               NewWorkOrderTypeClient(cfg),
 	}
 }

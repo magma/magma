@@ -12,9 +12,8 @@ import IconButton from '../../components/design-system/IconButton';
 import React from 'react';
 import {AddIcon} from '../../components/design-system/Icons';
 import {STORY_CATEGORIES} from '../storybookUtils';
-import {storiesOf} from '@storybook/react';
 
-const IconButtonsRoot = () => {
+export const IconButtonsRoot = () => {
   const onClick = () => window.alert('Clicked!');
   return (
     <div>
@@ -26,6 +25,10 @@ const IconButtonsRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('IconButton', () => (
-  <IconButtonsRoot />
-));
+IconButtonsRoot.story = {
+  name: 'IconButton',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

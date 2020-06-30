@@ -11,9 +11,12 @@ import 'jest-dom/extend-expect';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayKPIs from '../GatewayKPIs';
 import MagmaAPIBindings from '@fbcnms/magma-api';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
+import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
+import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {enodeb, enodeb_state, lte_gateway} from '@fbcnms/magma-api';
 
@@ -132,7 +135,11 @@ describe('<GatewaysKPIs />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-      <Route path="/nms/:networkId" component={GatewayKPIs} />
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <Route path="/nms/:networkId" component={GatewayKPIs} />
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
     </MemoryRouter>
   );
   it('renders', async () => {
@@ -166,7 +173,11 @@ describe('<EnodebKPIs />', () => {
 
   const Wrapper = () => (
     <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-      <Route path="/nms/:networkId" component={EnodebKPIs} />
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <Route path="/nms/:networkId" component={EnodebKPIs} />
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
     </MemoryRouter>
   );
   it('renders', async () => {

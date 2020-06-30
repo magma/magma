@@ -10,26 +10,21 @@
  */
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
-import Grid from '@material-ui/core/Grid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
+import nullthrows from '@fbcnms/util/nullthrows';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
 
+import {AppBar, Button, Grid, Paper, Tab, Tabs} from '@material-ui/core';
 import {colors} from '../../theme/default';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';

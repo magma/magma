@@ -45,6 +45,7 @@
 #include "esm_data.h"
 #include "esm_sapDef.h"
 #include "mme_api.h"
+#include "mme_events.h"
 #include "nas_procedures.h"
 
 /****************************************************************************/
@@ -374,6 +375,7 @@ int emm_proc_detach_request(
   if (params->switch_off) {
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_not_sent");
+    detach_success_event(emm_ctx->_imsi64, "detach_accept_not_sent");
     rc = RETURNok;
   } else {
     /*
@@ -403,6 +405,7 @@ int emm_proc_detach_request(
     rc = emm_sap_send(&emm_sap);
     increment_counter("ue_detach", 1, 1, "result", "success");
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_sent");
+    detach_success_event(emm_ctx->_imsi64, "detach_accept_sent");
     /*
     * If Detach request is recieved for IMSI only then don't trigger session release and
     * don't clear emm context return from here

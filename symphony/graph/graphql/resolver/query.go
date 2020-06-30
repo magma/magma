@@ -23,6 +23,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 
+	"github.com/99designs/gqlgen/graphql"
 	"go.uber.org/zap"
 )
 
@@ -142,6 +143,18 @@ func (r queryResolver) WorkOrders(
 	showCompleted *bool,
 ) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
+	// TODO(a8m): remove when the following fields are deprecated and removed from the schema.
+	if field := fieldForPath(ctx, "edges", "node"); field != nil {
+		fields := graphql.CollectFields(graphql.GetOperationContext(ctx), field.Selections, nil)
+		for i := range fields {
+			switch fields[i].Name {
+			case "assignee":
+				query.WithAssignee()
+			case "ownerName":
+				query.WithOwner()
+			}
+		}
+	}
 	if pointer.GetBool(showCompleted) {
 		query = query.Where(workorder.StatusIn(
 			models.WorkOrderStatusPending.String(),
@@ -361,4 +374,25 @@ func (queryResolver) PythonPackages(ctx context.Context) ([]*models.PythonPackag
 
 func (r queryResolver) Vertex(ctx context.Context, id int) (*ent.Node, error) {
 	return r.ClientFrom(ctx).Node(ctx, id)
+}
+
+func fieldForPath(ctx context.Context, path ...string) *graphql.CollectedField {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return nil
+	}
+	oc := graphql.GetOperationContext(ctx)
+	field := fc.Field
+
+walk:
+	for _, name := range path {
+		for _, f := range graphql.CollectFields(oc, field.Selections, nil) {
+			if f.Name == name {
+				field = f
+				continue walk
+			}
+		}
+		return nil
+	}
+	return &field
 }

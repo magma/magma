@@ -171,7 +171,7 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
 
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(0),
-                                       CheckCount(0)))
+                                       CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -197,7 +197,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
 
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(0),
-                                       CheckCount(0)))
+                                       CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
@@ -959,7 +959,8 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
   // the flow in pipelined
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(testing::_, testing::_, testing::_, testing::_))
+      activate_flows_for_rules(testing::_, testing::_, testing::_, testing::_,
+                               testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   actions.clear();
@@ -1020,7 +1021,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
 
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(0),
-                                       CheckCount(1)))
+                                       CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
@@ -1099,21 +1100,21 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   // static rules: rule4, rule6
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(2),
-                                       CheckCount(2)))
+                                       CheckCount(2), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // expect calling activate_flows_for_rules for activating a static rule later
   // static rules: rule5
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(1),
-                                       CheckCount(0)))
+                                       CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // expect calling activate_flows_for_rules for activating a dynamic rule later
   // dynamic rules: rule2
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules(testing::_, testing::_, CheckCount(0),
-                                       CheckCount(1)))
+                                       CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
@@ -1241,7 +1242,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   EXPECT_CALL(*pipelined_client,
               activate_flows_for_rules("IMSI1", testing::_,
                                        std::vector<std::string>{"pcrf_only"},
-                                       CheckCount(0)))
+                                       CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(session_map, update_response,
@@ -1312,8 +1313,6 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
 }
 
-/**
-// TODO enable once we fix revalidation timer on init
 TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
   const std::string imsi = "IMSI1";
   const std::string session_id = "1234";
@@ -1326,19 +1325,30 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
   auto monitor = response.mutable_usage_monitors()->Add();
   std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
   create_monitor_update_response(imsi, mkey, MonitoringLevel::PCC_RULE_LEVEL,
-                                 1024, event_triggers, time(NULL), monitor);
+                                 1024, monitor);
+
+  response.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
+  response.mutable_revalidation_time()->set_seconds(time(NULL));
+
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("rule1");
   response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
 
   local_enforcer->init_session_credit(session_map, imsi, session_id, test_cfg,
                                       response);
-
-  EXPECT_CALL(*reporter, report_updates(_, _)).Times(1);
+  bool success =
+    session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+  // schedule_revalidation puts two things on the event loop
+  // updates the session's state with revalidation_requested_ set to true
   evb->loopOnce();
   evb->loopOnce();
+  auto update = SessionStore::get_default_session_update(session_map);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto updates = local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(updates.usage_monitors_size(), 1);
 }
-**/
 
 TEST_F(LocalEnforcerTest, test_revalidation_timer_on_rar) {
   CreateSessionResponse response;
@@ -1434,6 +1444,59 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   monitor = update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(imsi1, mkey1, MonitoringLevel::PCC_RULE_LEVEL,
                                  1024, monitor);
+  auto update = SessionStore::get_default_session_update(session_map);
+  // This should trigger a revalidation to be scheduled
+  local_enforcer->update_session_credits_and_rules(session_map,
+                                                   update_response,
+                                                   update);
+  // Propagate the change to store
+  success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+
+  // a single schedule_revalidation puts two things on the event loop
+  // updates the session's state with revalidation_requested_ set to true
+  evb->loopOnce();
+  evb->loopOnce();
+
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto updates = local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(updates.usage_monitors_size(), 1);
+}
+
+TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update_no_monitor) {
+  CreateSessionResponse create_response;
+  UpdateSessionResponse update_response;
+  StaticRuleInstall rule_install;
+
+  rule_install.set_rule_id("rule1");
+  insert_static_rule(1, "m1", "rule1");
+
+  // create one sessions
+  const std::string imsi1 = "IMSI1";
+  const std::string session_id1 = "1234";
+
+  // Create a CreateSessionResponse with Revalidation Timeout, PCC rule
+  auto res = create_response.mutable_usage_monitors()->Add();
+  res->set_success(true);
+  res->set_sid(imsi1);
+  create_response.mutable_static_rules()->Add()->CopyFrom(rule_install);
+  local_enforcer->init_session_credit(session_map, imsi1, session_id1, test_cfg,
+                                      create_response);
+
+  // Write and read into session store, assert success
+  bool success = session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+  EXPECT_TRUE(success);
+
+  session_map = session_store->read_sessions(SessionRead{imsi1});
+  EXPECT_EQ(session_map[imsi1].size(), 1);
+
+  // IMSI1 has no monitor credit and a revalidation timeout
+  auto monitor = update_response.mutable_usage_monitor_responses()->Add();
+  monitor->set_success(true);
+  monitor->set_sid(imsi1);
+  monitor->add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
+  monitor->mutable_revalidation_time()->set_seconds(time(NULL));
   auto update = SessionStore::get_default_session_update(session_map);
   // This should trigger a revalidation to be scheduled
   local_enforcer->update_session_credits_and_rules(session_map,

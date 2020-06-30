@@ -1,17 +1,17 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-package exporters
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+*/
+
+package servicers
 
 import (
 	"fmt"
 
-	dto "github.com/prometheus/client_model/go"
+	prometheus_models "github.com/prometheus/client_model/go"
 )
 
 const (
@@ -24,21 +24,21 @@ const (
 )
 
 var (
-	gaugeType = dto.MetricType_GAUGE
+	gaugeType = prometheus_models.MetricType_GAUGE
 )
 
-func convertFamilyToGauges(baseFamily *dto.MetricFamily) []*dto.MetricFamily {
-	gaugeFamilies := make([]*dto.MetricFamily, 0)
+func convertFamilyToGauges(baseFamily *prometheus_models.MetricFamily) []*prometheus_models.MetricFamily {
+	gaugeFamilies := make([]*prometheus_models.MetricFamily, 0)
 	switch *baseFamily.Type {
-	case dto.MetricType_GAUGE:
+	case prometheus_models.MetricType_GAUGE:
 		gaugeFamilies = append(gaugeFamilies, baseFamily)
-	case dto.MetricType_COUNTER:
+	case prometheus_models.MetricType_COUNTER:
 		gaugeFamilies = append(gaugeFamilies, counterToGauge(baseFamily))
-	case dto.MetricType_HISTOGRAM:
+	case prometheus_models.MetricType_HISTOGRAM:
 		gaugeFamilies = append(gaugeFamilies, histogramToGauges(baseFamily)...)
-	case dto.MetricType_SUMMARY:
+	case prometheus_models.MetricType_SUMMARY:
 		gaugeFamilies = append(gaugeFamilies, summaryToGauges(baseFamily)...)
-	case dto.MetricType_UNTYPED:
+	case prometheus_models.MetricType_UNTYPED:
 		gaugeFamilies = append(gaugeFamilies, untypedToGauge(baseFamily))
 	}
 	return gaugeFamilies
@@ -46,8 +46,8 @@ func convertFamilyToGauges(baseFamily *dto.MetricFamily) []*dto.MetricFamily {
 
 // counterToGauge takes a counter and converts it to a gauge with the
 // same value
-func counterToGauge(family *dto.MetricFamily) *dto.MetricFamily {
-	counterFamily := dto.MetricFamily{
+func counterToGauge(family *prometheus_models.MetricFamily) *prometheus_models.MetricFamily {
+	counterFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(family.GetName()),
 		Type: &gaugeType,
 	}
@@ -56,9 +56,9 @@ func counterToGauge(family *dto.MetricFamily) *dto.MetricFamily {
 			continue
 		}
 		counterValue := float64(*metric.Counter.Value)
-		counterMetric := dto.Metric{
+		counterMetric := prometheus_models.Metric{
 			Label: metric.Label,
-			Gauge: &dto.Gauge{
+			Gauge: &prometheus_models.Gauge{
 				Value: &counterValue,
 			},
 		}
@@ -69,17 +69,17 @@ func counterToGauge(family *dto.MetricFamily) *dto.MetricFamily {
 
 // histogramToGauges converts a histogram into 3 families of gauges, one for the
 // buckets, sum, and count each.
-func histogramToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
+func histogramToGauges(family *prometheus_models.MetricFamily) []*prometheus_models.MetricFamily {
 	baseName := family.GetName()
-	bucketFamily := dto.MetricFamily{
+	bucketFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + bucketPostfix),
 		Type: &gaugeType,
 	}
-	sumFamily := dto.MetricFamily{
+	sumFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + sumPostfix),
 		Type: &gaugeType,
 	}
-	countFamily := dto.MetricFamily{
+	countFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + countPostfix),
 		Type: &gaugeType,
 	}
@@ -89,18 +89,18 @@ func histogramToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 			continue
 		}
 		sumValue := float64(*metric.Histogram.SampleSum)
-		sumMetric := dto.Metric{
+		sumMetric := prometheus_models.Metric{
 			Label: metric.Label,
-			Gauge: &dto.Gauge{
+			Gauge: &prometheus_models.Gauge{
 				Value: &sumValue,
 			},
 		}
 		sumFamily.Metric = append(sumFamily.Metric, &sumMetric)
 
 		countValue := float64(*metric.Histogram.SampleCount)
-		countMetric := dto.Metric{
+		countMetric := prometheus_models.Metric{
 			Label: metric.Label,
-			Gauge: &dto.Gauge{
+			Gauge: &prometheus_models.Gauge{
 				Value: &countValue,
 			},
 		}
@@ -108,34 +108,34 @@ func histogramToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 
 		for _, bucket := range metric.Histogram.Bucket {
 			bucketValue := float64(*bucket.CumulativeCount)
-			bucketMetric := dto.Metric{
-				Label: append(metric.Label, &dto.LabelPair{
+			bucketMetric := prometheus_models.Metric{
+				Label: append(metric.Label, &prometheus_models.LabelPair{
 					Name:  makeStringPointer(histogramBucketLabelName),
 					Value: makeStringPointer(fmt.Sprintf("%g", bucket.GetUpperBound())),
 				}),
-				Gauge: &dto.Gauge{
+				Gauge: &prometheus_models.Gauge{
 					Value: &bucketValue,
 				},
 			}
 			bucketFamily.Metric = append(bucketFamily.Metric, &bucketMetric)
 		}
 	}
-	return []*dto.MetricFamily{&bucketFamily, &sumFamily, &countFamily}
+	return []*prometheus_models.MetricFamily{&bucketFamily, &sumFamily, &countFamily}
 }
 
 // summaryToGauges converts a summary to 3 gauge families, one for the quantiles,
 // sum, and count each
-func summaryToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
+func summaryToGauges(family *prometheus_models.MetricFamily) []*prometheus_models.MetricFamily {
 	baseName := family.GetName()
-	quantFamily := dto.MetricFamily{
+	quantFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName),
 		Type: &gaugeType,
 	}
-	sumFamily := dto.MetricFamily{
+	sumFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + sumPostfix),
 		Type: &gaugeType,
 	}
-	countFamily := dto.MetricFamily{
+	countFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(baseName + countPostfix),
 		Type: &gaugeType,
 	}
@@ -145,18 +145,18 @@ func summaryToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 			continue
 		}
 		sumValue := float64(*metric.Summary.SampleSum)
-		sumMetric := dto.Metric{
+		sumMetric := prometheus_models.Metric{
 			Label: metric.Label,
-			Gauge: &dto.Gauge{
+			Gauge: &prometheus_models.Gauge{
 				Value: &sumValue,
 			},
 		}
 		sumFamily.Metric = append(sumFamily.Metric, &sumMetric)
 
 		countValue := float64(*metric.Summary.SampleCount)
-		countMetric := dto.Metric{
+		countMetric := prometheus_models.Metric{
 			Label: metric.Label,
-			Gauge: &dto.Gauge{
+			Gauge: &prometheus_models.Gauge{
 				Value: &countValue,
 			},
 		}
@@ -164,25 +164,25 @@ func summaryToGauges(family *dto.MetricFamily) []*dto.MetricFamily {
 
 		for _, quant := range metric.Summary.Quantile {
 			quantValue := *quant.Value
-			quantMetric := dto.Metric{
-				Label: append(metric.Label, &dto.LabelPair{
+			quantMetric := prometheus_models.Metric{
+				Label: append(metric.Label, &prometheus_models.LabelPair{
 					Name:  makeStringPointer(summaryQuantileLabelName),
 					Value: makeStringPointer(fmt.Sprintf("%g", *quant.Quantile)),
 				}),
-				Gauge: &dto.Gauge{
+				Gauge: &prometheus_models.Gauge{
 					Value: &quantValue,
 				},
 			}
 			quantFamily.Metric = append(quantFamily.Metric, &quantMetric)
 		}
 	}
-	return []*dto.MetricFamily{&quantFamily, &sumFamily, &countFamily}
+	return []*prometheus_models.MetricFamily{&quantFamily, &sumFamily, &countFamily}
 }
 
 // untypedToGauge takes an untyped metric and converts it to a gauge with the
 // same value
-func untypedToGauge(family *dto.MetricFamily) *dto.MetricFamily {
-	untypedFamily := dto.MetricFamily{
+func untypedToGauge(family *prometheus_models.MetricFamily) *prometheus_models.MetricFamily {
+	untypedFamily := prometheus_models.MetricFamily{
 		Name: makeStringPointer(family.GetName()),
 		Type: &gaugeType,
 	}
@@ -191,9 +191,9 @@ func untypedToGauge(family *dto.MetricFamily) *dto.MetricFamily {
 			continue
 		}
 		untypedValue := float64(*metric.Untyped.Value)
-		untypedMetric := dto.Metric{
+		untypedMetric := prometheus_models.Metric{
 			Label: metric.Label,
-			Gauge: &dto.Gauge{
+			Gauge: &prometheus_models.Gauge{
 				Value: &untypedValue,
 			},
 		}

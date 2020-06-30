@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ent"
@@ -207,11 +209,11 @@ func (projectResolver) CreatedBy(ctx context.Context, obj *ent.Project) (*ent.Us
 }
 
 func (projectResolver) Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error) {
-	typ, err := obj.QueryType().Only(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("querying project type: %w", err)
+	typ, err := obj.Edges.TypeOrErr()
+	if ent.IsNotLoaded(err) {
+		return obj.QueryType().Only(ctx)
 	}
-	return typ, nil
+	return typ, err
 }
 
 func (projectResolver) Location(ctx context.Context, obj *ent.Project) (*ent.Location, error) {
@@ -291,13 +293,47 @@ func (r mutationResolver) CreateProject(ctx context.Context, input models.AddPro
 		if err != nil {
 			return nil, fmt.Errorf("query work order definition type: %w", err)
 		}
+
+		clCategoryDefs, err := wot.QueryCheckListCategoryDefinitions().WithCheckListItemDefinitions().All(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("query work order checklist definitions: %w", err)
+		}
+
+		var categoryInputs []*models.CheckListCategoryInput
+		for _, categoryDef := range clCategoryDefs {
+			var clInputs []*models.CheckListItemInput
+			for _, cliDef := range categoryDef.Edges.CheckListItemDefinitions {
+				var enumSelectionMode *checklistitem.EnumSelectionModeValue
+				if cliDef.EnumSelectionModeValue != "" {
+					mode := checklistitem.EnumSelectionModeValue(cliDef.EnumSelectionModeValue.String())
+					enumSelectionMode = &mode
+				}
+
+				clInputs = append(clInputs, &models.CheckListItemInput{
+					Title:             cliDef.Title,
+					Type:              models.CheckListItemType(cliDef.Type),
+					Index:             pointer.ToInt(cliDef.Index),
+					HelpText:          cliDef.HelpText,
+					EnumValues:        cliDef.EnumValues,
+					EnumSelectionMode: enumSelectionMode,
+				})
+			}
+
+			categoryInputs = append(categoryInputs, &models.CheckListCategoryInput{
+				Title:       categoryDef.Title,
+				Description: pointer.ToString(categoryDef.Description),
+				CheckList:   clInputs,
+			})
+		}
+
 		_, err = r.internalAddWorkOrder(ctx, models.AddWorkOrderInput{
-			Name:            wot.Name,
-			Description:     &wot.Description,
-			WorkOrderTypeID: wot.ID,
-			ProjectID:       &proj.ID,
-			LocationID:      input.Location,
-			Index:           &wo.Index,
+			Name:                wot.Name,
+			Description:         &wot.Description,
+			WorkOrderTypeID:     wot.ID,
+			ProjectID:           &proj.ID,
+			LocationID:          input.Location,
+			Index:               &wo.Index,
+			CheckListCategories: categoryInputs,
 		}, true)
 		if err != nil {
 			return nil, fmt.Errorf("creating work order: %w", err)

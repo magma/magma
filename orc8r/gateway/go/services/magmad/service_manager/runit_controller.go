@@ -66,7 +66,7 @@ func (c RunitController) TailLogs(service string) (chan string, *os.Process, err
 	if len(service) == 0 {
 		cmd = exec.Command("logread", "-f")
 	} else {
-		cmd = exec.Command("sh", "-c", "logread | grep "+service)
+		cmd = exec.Command("sh", "-c", "logread -f | grep "+service)
 	}
 	return StartCmdWithStderrStdoutTailer(cmd)
 }

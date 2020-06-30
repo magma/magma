@@ -10,23 +10,21 @@
 
 import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 
-import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import GatewayMetrics from '@fbcnms/ui/insights/GatewayMetrics';
 import Grafana from '@fbcnms/ui/insights/Grafana';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 
+import {AppBar, Tab, Tabs} from '@material-ui/core';
 import {colors} from '../../theme/default';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   bar: {
     backgroundColor: colors.primary.brightGray,
   },

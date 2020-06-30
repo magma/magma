@@ -34,6 +34,8 @@ import withSuspense from '../../../../common/withSuspense';
 import {
   EMPTY_POLICY,
   PERMISSION_RULE_VALUES,
+  WORKORDER_SYSTEM_POLICY,
+  WORKORDER_SYSTEM_POLICY_ID,
   addPermissionsPolicy,
   deletePermissionsPolicy,
   editPermissionsPolicy,
@@ -179,9 +181,15 @@ function PermissionsPolicyCard(props: Props) {
   const {id: policyId} = useParams();
   const fetchedPolicy = usePermissionsPolicy(policyId || '');
   const isOnNewPolicy = policyId?.startsWith(NEW_DIALOG_PARAM) || false;
+  const isOnSystemDefault =
+    policyId?.startsWith(WORKORDER_SYSTEM_POLICY_ID) || false;
   const queryParams = new URLSearchParams(location.search);
   const [policy, setPolicy] = useState<?PermissionsPolicy>(
-    isOnNewPolicy ? getInitialNewPolicy(queryParams.get('type')) : null,
+    isOnNewPolicy
+      ? getInitialNewPolicy(queryParams.get('type'))
+      : isOnSystemDefault
+      ? WORKORDER_SYSTEM_POLICY
+      : null,
   );
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -193,7 +201,7 @@ function PermissionsPolicyCard(props: Props) {
   );
 
   useEffect(() => {
-    if (isOnNewPolicy) {
+    if (isOnNewPolicy || isOnSystemDefault) {
       return;
     }
     if (fetchedPolicy == null) {
@@ -218,6 +226,7 @@ function PermissionsPolicyCard(props: Props) {
     fetchedPolicy,
     handleError,
     isOnNewPolicy,
+    isOnSystemDefault,
     policy,
     policyId,
     redirectToPoliciesView,

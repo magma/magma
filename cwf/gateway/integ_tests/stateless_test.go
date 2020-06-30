@@ -38,7 +38,7 @@ import (
 // - Restart SessionD
 // - Assert that there's > 0 data usage in the rule
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received
-func TestBasicEnforcementWithSessionDRestarts(t *testing.T) {
+func testBasicEnforcementWithSessionDRestarts(t *testing.T) {
 	fmt.Println("\nRunning TestBasicEnforcementWithSessionDRestarts...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()

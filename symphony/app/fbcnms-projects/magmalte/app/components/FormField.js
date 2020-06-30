@@ -16,7 +16,7 @@ import Typography from '@material-ui/core/Typography';
 
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   root: {
     display: 'flex',
     marginBottom: '5px',

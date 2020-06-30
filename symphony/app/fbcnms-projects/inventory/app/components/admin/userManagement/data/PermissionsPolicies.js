@@ -376,6 +376,21 @@ export const EMPTY_POLICY = {
   __typename: '%other',
 };
 
+export const WORKORDER_SYSTEM_POLICY_ID = 'system_workorder';
+export const WORKORDER_SYSTEM_POLICY = {
+  id: WORKORDER_SYSTEM_POLICY_ID,
+  name: `${fbt('Work orders editing', '')}`,
+  description: `${fbt(
+    'All active users can view and edit work orders and projects assigned to and owned by them (including changing assignment). An active user who owns the work order can transfer ownership to other user. When a work order is part of a project, that project will be visible as well.',
+    '',
+  )}`,
+  type: POLICY_TYPES.WorkforcePolicy.key,
+  policy: EMPTY_POLICY,
+  isGlobal: true,
+  groups: [],
+  isSystemDefault: true,
+};
+
 function response2PermissionsPolicies(
   policiesResponse: PermissionsPoliciesQueryResponse,
 ): Array<PermissionsPolicy> {
@@ -384,19 +399,7 @@ function response2PermissionsPolicies(
     policiesData.map(p => p.node).filter(Boolean),
   );
 
-  policies.unshift({
-    id: 'system_workorder',
-    name: `${fbt('Work orders editing', '')}`,
-    description: `${fbt(
-      'All active users can view and edit work orders and projects assigned to and owned by them (including changing assignment). An active user who owns the work order can transfer ownership to other user and even delete it. When a work order is part of a project, that project will be visible as well.',
-      '',
-    )}`,
-    type: POLICY_TYPES.WorkforcePolicy.key,
-    policy: EMPTY_POLICY,
-    isGlobal: true,
-    groups: [],
-    isSystemDefault: true,
-  });
+  policies.unshift(WORKORDER_SYSTEM_POLICY);
 
   return policies;
 }

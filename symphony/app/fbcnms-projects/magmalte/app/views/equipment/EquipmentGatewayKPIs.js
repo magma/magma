@@ -17,8 +17,6 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import React from 'react';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const getLatency = (resp, fn) => {

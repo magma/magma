@@ -22,6 +22,7 @@ s1aptests/test_attach_security_mode_reject.py \
 s1aptests/test_attach_esm_information.py \
 s1aptests/test_attach_esm_information_wrong_apn.py \
 s1aptests/test_attach_ue_ctxt_release_cmp_delay.py \
+s1aptests/test_attach_auth_failure.py \
 s1aptests/test_nas_non_delivery_for_smc.py \
 s1aptests/test_nas_non_delivery_for_identity_req.py \
 s1aptests/test_attach_no_initial_context_resp.py \
@@ -63,6 +64,7 @@ s1aptests/test_sctp_abort_after_smc.py \
 s1aptests/test_sctp_shutdown_after_auth_req.py \
 s1aptests/test_sctp_shutdown_after_identity_req.py \
 s1aptests/test_sctp_shutdown_after_smc.py \
+s1aptests/test_sctp_shutdown_after_multi_ue_attach.py \
 s1aptests/test_attach_detach_dedicated.py \
 s1aptests/test_attach_detach_dedicated_qci_0.py \
 s1aptests/test_attach_detach_dedicated_multi_ue.py \
@@ -93,6 +95,8 @@ s1aptests/test_attach_detach_multiple_secondary_pdn.py \
 s1aptests/test_attach_detach_nw_triggered_delete_secondary_pdn.py \
 s1aptests/test_attach_detach_nw_triggered_delete_last_pdn.py \
 s1aptests/test_different_enb_s1ap_id_same_ue.py \
+s1aptests/test_attach_detach_with_pcscf_address.py \
+s1aptests/test_attach_detach_secondary_pdn_with_pcscf_address.py \
 s1aptests/test_multi_enb_multi_ue.py \
 s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
@@ -103,11 +107,13 @@ s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py
-#s1aptests/test_attach_dl_udp_data.py \
-#s1aptests/test_attach_dl_tcp_data.py
 
-# TODO Disabled because MME wont run without UEs in HSS
-#s1aptests/test_attach_missing_imsi.py \
+# These test cases pass without memory leaks, but needs DL-route in TRF server
+# sudo /sbin/route add -net 192.168.128.0 gw 192.168.60.142
+#     netmask 255.255.255.0 dev eth1
+# s1aptests/test_attach_dl_udp_data.py \
+# s1aptests/test_attach_dl_tcp_data.py \
+# s1aptests/test_attach_detach_attach_dl_tcp_data.py
 
 # TODO flaky tests we should look at
 # s1aptests/test_attach_detach_multi_ue_looped.py \

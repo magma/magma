@@ -1,15 +1,16 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- */
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-package exporters
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+*/
+
+package servicers
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,8 +19,7 @@ import (
 	"sync"
 	"time"
 
-	mxd_exp "magma/orc8r/cloud/go/services/metricsd/exporters"
-	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/cloud/go/services/metricsd/protos"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
@@ -35,59 +35,30 @@ var (
 	nonPromoChars       = regexp.MustCompile("[^a-zA-Z\\d_]")
 )
 
-// CustomPushExporter pushes metrics to one or more custom prometheus pushgateways
-type CustomPushExporter struct {
-	servicer *MetricsExporterServicer
-}
-
-type MetricsExporterServicer struct {
-	familiesByName map[string]*io_prometheus_client.MetricFamily
-	exportInterval time.Duration
-	pushAddresses  []string
+type PushExporterServicer struct {
+	FamiliesByName map[string]*io_prometheus_client.MetricFamily
+	ExportInterval time.Duration
+	PushAddresses  []string
 	sync.Mutex
 }
 
-// NewCustomPushExporter creates a new exporter to a custom pushgateway
-func NewCustomPushExporter(pushAddresses []string) mxd_exp.Exporter {
-	for i, addr := range pushAddresses {
-		if !strings.HasPrefix(addr, "http") {
-			pushAddresses[i] = fmt.Sprintf("http://%s", addr)
-		}
+// NewPushExporterServicer returns an exporter pushing metrics to Prometheus
+// pushgateways at the passed addresses.
+func NewPushExporterServicer(pushAddrs []string) protos.MetricsExporterServer {
+	srv := &PushExporterServicer{
+		FamiliesByName: make(map[string]*io_prometheus_client.MetricFamily),
+		ExportInterval: pushInterval,
+		PushAddresses:  ensureHTTP(pushAddrs),
 	}
-	exporter := &MetricsExporterServicer{
-		familiesByName: make(map[string]*io_prometheus_client.MetricFamily),
-		exportInterval: pushInterval,
-		pushAddresses:  pushAddresses,
-	}
-	return &CustomPushExporter{
-		servicer: exporter,
-	}
+	go srv.exportEvery()
+	return srv
 }
 
-// Submit takes in a MetricAndContext, adds labels and timestamps to the metrics
-// and stores them to be pushed later
-func (e *CustomPushExporter) Submit(metrics []mxd_exp.MetricAndContext) error {
-	metricAndContexts := []*protos.MetricAndContext{}
-	for _, metric := range metrics {
-		metricAndContext := mxd_exp.ConvertMetricAndContextToProto(metric)
-		metricAndContexts = append(metricAndContexts, metricAndContext)
-	}
-	submitRequest := &protos.SubmitMetricsRequest{
-		Metrics: metricAndContexts,
-	}
-	_, err := e.servicer.Submit(submitRequest)
-	return err
-}
-
-func (e *CustomPushExporter) Start() {
-	go e.servicer.ExportEvery()
-}
-
-func (s *MetricsExporterServicer) Submit(request *protos.SubmitMetricsRequest) (*protos.Void, error) {
+func (s *PushExporterServicer) Submit(ctx context.Context, req *protos.SubmitMetricsRequest) (*protos.SubmitMetricsResponse, error) {
 	s.Lock()
 	defer s.Unlock()
 
-	for _, metricAndContext := range request.GetMetrics() {
+	for _, metricAndContext := range req.GetMetrics() {
 		// Don't register family if it has 0 metrics. Would cause prometheus scrape
 		// to fail.
 		if len(metricAndContext.Family.Metric) == 0 {
@@ -111,14 +82,24 @@ func (s *MetricsExporterServicer) Submit(request *protos.SubmitMetricsRequest) (
 					metric.TimestampMs = &timeStamp
 				}
 			}
-			if baseFamily, ok := s.familiesByName[familyName]; ok {
+			if baseFamily, ok := s.FamiliesByName[familyName]; ok {
 				addMetricsToFamily(baseFamily, fam)
 			} else {
-				s.familiesByName[familyName] = fam
+				s.FamiliesByName[familyName] = fam
 			}
 		}
 	}
-	return &protos.Void{}, nil
+	return &protos.SubmitMetricsResponse{}, nil
+}
+
+func (s *PushExporterServicer) exportEvery() {
+	for range time.Tick(s.ExportInterval) {
+		errs := s.pushFamilies()
+		s.resetFamilies()
+		if len(errs) > 0 {
+			glog.Errorf("error in pushing to pushgateway: %v", errs)
+		}
+	}
 }
 
 // dropInvalidMetrics because invalid label names would cause the entire scrape
@@ -157,25 +138,15 @@ func familyToString(family *io_prometheus_client.MetricFamily) (string, error) {
 	return buf.String(), nil
 }
 
-func (s *MetricsExporterServicer) ExportEvery() {
-	for range time.Tick(s.exportInterval) {
-		errs := s.pushFamilies()
-		s.resetFamilies()
-		if len(errs) > 0 {
-			glog.Errorf("error in pushing to pushgateway: %v", errs)
-		}
-	}
-}
-
-func (s *MetricsExporterServicer) pushFamilies() []error {
+func (s *PushExporterServicer) pushFamilies() []error {
 	var errs []error
-	if len(s.familiesByName) == 0 {
+	if len(s.FamiliesByName) == 0 {
 		return []error{}
 	}
 	builder := strings.Builder{}
 
 	s.Lock()
-	for _, fam := range s.familiesByName {
+	for _, fam := range s.FamiliesByName {
 		familyString, err := familyToString(fam)
 		if err != nil {
 			errs = append(errs, err)
@@ -188,7 +159,7 @@ func (s *MetricsExporterServicer) pushFamilies() []error {
 
 	body := builder.String()
 	client := http.Client{}
-	for _, address := range s.pushAddresses {
+	for _, address := range s.PushAddresses {
 		resp, err := client.Post(address, "text/plain", bytes.NewBufferString(body))
 		if err != nil {
 			errs = append(errs, fmt.Errorf("error sending request to pushgateway %s: %v", address, err))
@@ -203,8 +174,17 @@ func (s *MetricsExporterServicer) pushFamilies() []error {
 	return errs
 }
 
-func (s *MetricsExporterServicer) resetFamilies() {
-	s.familiesByName = make(map[string]*io_prometheus_client.MetricFamily)
+func (s *PushExporterServicer) resetFamilies() {
+	s.FamiliesByName = make(map[string]*io_prometheus_client.MetricFamily)
+}
+
+func ensureHTTP(addrs []string) []string {
+	for i, addr := range addrs {
+		if !strings.HasPrefix(addr, "http") {
+			addrs[i] = fmt.Sprintf("http://%s", addr)
+		}
+	}
+	return addrs
 }
 
 func makeStringPointer(str string) *string {

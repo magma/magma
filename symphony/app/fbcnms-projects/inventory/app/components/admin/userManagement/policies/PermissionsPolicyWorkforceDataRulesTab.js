@@ -118,7 +118,7 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
         onChange && onChange(newRuleValue),
       100,
     ),
-    [],
+    [onChange],
   );
 
   const updateRuleChange = useCallback(
@@ -178,16 +178,15 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
           }
           disabled={disabled}
           value={permissionRuleValue2Bool(rule.assign.isAllowed)}
-          onChange={
-            onChange != null
-              ? checked =>
-                  onChange({
-                    ...rule,
-                    assign: {
-                      isAllowed: bool2PermissionRuleValue(checked),
-                    },
-                  })
-              : undefined
+          onChange={checked =>
+            updateRuleChange([
+              {
+                cudAction: 'assign',
+                actionValue: {
+                  isAllowed: bool2PermissionRuleValue(checked),
+                },
+              },
+            ])
           }
           hierarchicalRelation={HIERARCHICAL_RELATION.PARENT_REQUIRED}
           className={classes.rule}
@@ -200,10 +199,7 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
             </DataRuleTitle>
           }
           disabled={disabled}
-          value={
-            !disabled &&
-            permissionRuleValue2Bool(rule.transferOwnership.isAllowed)
-          }
+          value={permissionRuleValue2Bool(rule.transferOwnership.isAllowed)}
           onChange={checked =>
             updateRuleChange([
               {
@@ -279,7 +275,7 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
       />
       <PermissionsPolicyWorkforceDataRulesSpecification
         policy={policy}
-        onChange={callOnChange}
+        onChange={callOnChange.bind(this)}
         disabled={isDisabled}
       />
       <WorkforceDataRulesSection

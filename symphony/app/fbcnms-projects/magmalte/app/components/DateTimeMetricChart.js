@@ -19,8 +19,8 @@ import React from 'react';
 import Text from '../theme/design-system/Text';
 
 import {CardTitleFilterRow} from './layout/CardTitleRow';
-import {colors} from '../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -30,7 +30,7 @@ export type DateTimeMetricChartProps = {
   legendLabels: Array<string>,
 };
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   dateTimeText: {
     color: colors.primary.comet,
   },

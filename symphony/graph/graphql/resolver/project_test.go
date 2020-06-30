@@ -90,7 +90,20 @@ func TestProjectWithWorkOrders(t *testing.T) {
 	ctx := viewertest.NewContext(context.Background(), resolver.client)
 	mutation := resolver.Mutation()
 
-	woType, err := mutation.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a"})
+	woType, err := mutation.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{
+		Name: "example_type_a",
+		CheckListCategories: []*models.CheckListCategoryDefinitionInput{
+			{
+				Title: "Category",
+				CheckList: []*models.CheckListDefinitionInput{
+					{
+						Title: "Item 1",
+						Type:  models.CheckListItemTypeString,
+					},
+				},
+			},
+		},
+	})
 	require.NoError(t, err)
 	woDef := models.WorkOrderDefinitionInput{Type: woType.ID, Index: pointer.ToInt(1)}
 
@@ -114,13 +127,20 @@ func TestProjectWithWorkOrders(t *testing.T) {
 	input := models.AddProjectInput{Name: "test", Type: typ.ID, Location: &location.ID}
 	proj, err := mutation.CreateProject(ctx, input)
 	require.NoError(t, err)
-	wos, err := proj.QueryWorkOrders().All(ctx)
+	wos, err := proj.QueryWorkOrders().WithCheckListCategories().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, wos, 1)
 	wo := wos[0]
 	assert.EqualValues(t, wo.Name, woType.Name)
 	assert.EqualValues(t, wo.Index, *woDef.Index)
 	assert.EqualValues(t, wo.QueryLocation().FirstXID(ctx), location.ID)
+	assert.Len(t, wo.Edges.CheckListCategories, 1)
+
+	clItems, err := wo.QueryCheckListCategories().QueryCheckListItems().All(ctx)
+	require.NoError(t, err)
+	assert.Len(t, clItems, 1)
+	clItem := clItems[0]
+	assert.EqualValues(t, clItem.Title, "Item 1")
 }
 
 func TestEditProjectTypeWorkOrders(t *testing.T) {

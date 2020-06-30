@@ -14,7 +14,6 @@ import React, {useState} from 'react';
 import {FileUploadStatuses} from '../../components/design-system/Experimental/FileUploadStatus';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -22,7 +21,7 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const FilesUploadSnackbarRoot = () => {
+export const FilesUploadSnackbarRoot = () => {
   const classes = useStyles();
   const [isShown, setIsShown] = useState(true);
   return (
@@ -72,7 +71,10 @@ const FilesUploadSnackbarRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.EXPERIMENTAL}`, module).add(
-  'FilesUploadSnackbar',
-  () => <FilesUploadSnackbarRoot />,
-);
+FilesUploadSnackbarRoot.story = {
+  name: 'FilesUploadSnackbar',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.EXPERIMENTAL}`,
+};

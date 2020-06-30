@@ -22,7 +22,7 @@ import classNames from 'classnames';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles(_ => ({
   button: {
     backgroundColor: colors.primary.white,
     width: '28px',

@@ -16,7 +16,6 @@ import ChevronRight from '@material-ui/icons/ChevronRight';
 import Clear from '@material-ui/icons/Clear';
 import FilterList from '@material-ui/icons/FilterList';
 import FirstPage from '@material-ui/icons/FirstPage';
-import Grid from '@material-ui/core/Grid';
 import LastPage from '@material-ui/icons/LastPage';
 import MaterialTable from 'material-table';
 import Menu from '@material-ui/core/Menu';
@@ -27,10 +26,8 @@ import React, {useState} from 'react';
 import Remove from '@material-ui/icons/Remove';
 import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
-import Text from '../theme/design-system/Text';
 
 import {CardTitleRow} from './layout/CardTitleRow';
-import {colors} from '../theme/default';
 import {forwardRef} from 'react';
 
 const tableIcons = {
@@ -98,10 +95,13 @@ export type ActionTableProps<T> = {
   options: ActionTableOptions,
 };
 
-export default function ActionTable<T>(props: ActionTableProps<T>) {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const actionTableJSX = [];
+export function PaperComponent(props: {}) {
+  return <Paper {...props} elevation={0} />;
+}
 
+export default function ActionTable<T>(props: ActionTableProps<T>) {
+  const actionTableJSX = [];
+  const [anchorEl, setAnchorEl] = useState(null);
   const handleClick = (event, row: T) => {
     setAnchorEl(event.currentTarget);
     if (props.handleCurrRow) {
@@ -112,13 +112,13 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   if (props.titleIcon) {
     const TitleIcon = props.titleIcon;
     actionTableJSX.push(
       <CardTitleRow
+        key="title"
         icon={TitleIcon}
-        label={`${props.title} (${props.data.length})`}
+        label={`${props.title || ''} (${props.data.length})`}
       />,
     );
   }
@@ -153,7 +153,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
       <MaterialTable
         tableRef={props.tableRef}
         components={{
-          Container: props => <Paper {...props} elevation={0} />,
+          Container: PaperComponent,
         }}
         title=""
         columns={props.columns}

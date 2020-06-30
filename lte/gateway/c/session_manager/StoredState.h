@@ -149,13 +149,22 @@ struct StoredMonitor {
   MonitoringLevel level;
 };
 
+struct StoredChargingGrant {
+  StoredSessionCredit credit;
+  bool is_final;
+  FinalActionInfo final_action_info;
+  ReAuthState reauth_state;
+  ServiceState service_state;
+  std::time_t expiry_time;
+};
+
 struct RuleLifetime {
   std::time_t activation_time; // Unix timestamp
   std::time_t deactivation_time; // Unix timestamp
 };
 
 typedef std::unordered_map<std::string, StoredMonitor> StoredMonitorMap;
-typedef std::unordered_map<CreditKey, StoredSessionCredit, decltype(&ccHash),
+typedef std::unordered_map<CreditKey, StoredChargingGrant, decltype(&ccHash),
                      decltype(&ccEqual)> StoredChargingCreditMap;
 
 struct StoredSessionState {
@@ -246,6 +255,8 @@ std::string serialize_stored_session_credit(StoredSessionCredit &stored);
 
 StoredSessionCredit
 deserialize_stored_session_credit(const std::string &serialized);
+
+std::string serialize_stored_charging_grant(StoredChargingGrant &stored);
 
 std::string serialize_stored_monitor(StoredMonitor &stored);
 

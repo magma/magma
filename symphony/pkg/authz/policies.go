@@ -262,7 +262,7 @@ func permissionPolicies(ctx context.Context, v *viewer.UserViewer) (*models.Inve
 
 func userHasWritePermissions(ctx context.Context) (bool, error) {
 	v := viewer.FromContext(ctx)
-	if v.Role() == user.RoleOWNER {
+	if userHasFullPermissions(v) {
 		return true, nil
 	}
 	if v, ok := v.(*viewer.UserViewer); ok && !v.Features().Enabled(viewer.FeaturePermissionPolicies) {
@@ -294,7 +294,7 @@ func Permissions(ctx context.Context) (*models.PermissionSettings, error) {
 	res := models.PermissionSettings{
 		// TODO(T64743627): Deprecate CanWrite field
 		CanWrite:        writePermissions,
-		AdminPolicy:     NewAdministrativePolicy(v.Role() == user.RoleADMIN || v.Role() == user.RoleOWNER),
+		AdminPolicy:     NewAdministrativePolicy(userHasFullPermissions(v)),
 		InventoryPolicy: inventoryPolicy,
 		WorkforcePolicy: workforcePolicy,
 	}

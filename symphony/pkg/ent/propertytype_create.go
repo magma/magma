@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -424,6 +425,25 @@ func (ptc *PropertyTypeCreate) SetWorkOrderType(w *WorkOrderType) *PropertyTypeC
 	return ptc.SetWorkOrderTypeID(w.ID)
 }
 
+// SetWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id.
+func (ptc *PropertyTypeCreate) SetWorkOrderTemplateID(id int) *PropertyTypeCreate {
+	ptc.mutation.SetWorkOrderTemplateID(id)
+	return ptc
+}
+
+// SetNillableWorkOrderTemplateID sets the work_order_template edge to WorkOrderTemplate by id if the given value is not nil.
+func (ptc *PropertyTypeCreate) SetNillableWorkOrderTemplateID(id *int) *PropertyTypeCreate {
+	if id != nil {
+		ptc = ptc.SetWorkOrderTemplateID(*id)
+	}
+	return ptc
+}
+
+// SetWorkOrderTemplate sets the work_order_template edge to WorkOrderTemplate.
+func (ptc *PropertyTypeCreate) SetWorkOrderTemplate(w *WorkOrderTemplate) *PropertyTypeCreate {
+	return ptc.SetWorkOrderTemplateID(w.ID)
+}
+
 // SetProjectTypeID sets the project_type edge to ProjectType by id.
 func (ptc *PropertyTypeCreate) SetProjectTypeID(id int) *PropertyTypeCreate {
 	ptc.mutation.SetProjectTypeID(id)
@@ -807,6 +827,25 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ptc.mutation.WorkOrderTemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   propertytype.WorkOrderTemplateTable,
+			Columns: []string{propertytype.WorkOrderTemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
 				},
 			},
 		}

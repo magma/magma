@@ -98,6 +98,14 @@
   shell: ifup mtr0
   become: yes
 
+- name: Bring up uplink_br0
+  shell: ifup uplink_br0
+  become: yes
+
+- name: Bring up dhcp0
+  shell: ifup dhcp0
+  become: yes
+
 - name: Start service magma@magmad.
   become: yes
   service:

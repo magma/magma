@@ -8,22 +8,23 @@
  * @format
  */
 
-import Grid from '@material-ui/core/Grid';
-import Link from '@material-ui/core/Link';
-import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
-import TableBody from '@material-ui/core/TableBody';
-import Table from '@material-ui/core/Table';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableRow from '@material-ui/core/TableRow';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 
 import {colors, typography} from '../theme/default';
-import {makeStyles, withStyles} from '@material-ui/styles';
-import {MuiThemeProvider} from '@material-ui/core/styles';
+import {
+  Grid,
+  Paper,
+  Tab,
+  Tabs,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+} from '@material-ui/core';
+import {makeStyles} from '@material-ui/styles';
+import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
   tab: {
@@ -86,6 +87,7 @@ type TabPanelProps = {
   currTabIndex: number,
   index: number,
   itemData: Array<RowData>,
+  label: string,
 };
 
 function TabPanel(props: TabPanelProps) {
@@ -99,12 +101,11 @@ function TabPanel(props: TabPanelProps) {
           container
           alignItems="center"
           justify="center"
-          xs={12}
           className={classes.emptyTable}>
-          <Grid item className={classes.emptyTableContent}>
+          <Grid item xs={12} className={classes.emptyTableContent}>
             <Text variant="body2">You have 0 {label} Alerts</Text>
             <Text variant="body3">
-              To add alert triggers click <Link href="#">alert settings</Link>.
+              To add alert triggers click <a href="#">alert settings</a>.
             </Text>
           </Grid>
         </Grid>

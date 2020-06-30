@@ -11,34 +11,36 @@
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {federation_gateway} from '@fbcnms/magma-api';
 
-import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import DeleteIcon from '@material-ui/icons/Delete';
 import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import FEGGatewayDialog from './FEGGatewayDialog';
-import IconButton from '@material-ui/core/IconButton';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import StarIcon from '@material-ui/icons/Star';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import Tooltip from '@material-ui/core/Tooltip';
-
+import Text from '../../theme/design-system/Text';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
-import Text from '../../theme/design-system/Text';
+
+import {
+  Button,
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Tooltip,
+} from '@material-ui/core';
 import {colors} from '../../theme/default';
-import {Route} from 'react-router-dom';
 import {findIndex} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
+import {Route} from 'react-router-dom';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 

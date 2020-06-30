@@ -7,8 +7,6 @@
 package workordertype
 
 import (
-	"time"
-
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/ent/dialect/sql/sqlgraph"
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
@@ -97,20 +95,6 @@ func IDLTE(id int) predicate.WorkOrderType {
 	})
 }
 
-// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
-func CreateTime(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreateTime), v))
-	})
-}
-
-// UpdateTime applies equality check predicate on the "update_time" field. It's identical to UpdateTimeEQ.
-func UpdateTime(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
-	})
-}
-
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
@@ -122,158 +106,6 @@ func Name(v string) predicate.WorkOrderType {
 func Description(v string) predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldDescription), v))
-	})
-}
-
-// CreateTimeEQ applies the EQ predicate on the "create_time" field.
-func CreateTimeEQ(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldCreateTime), v))
-	})
-}
-
-// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
-func CreateTimeNEQ(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldCreateTime), v))
-	})
-}
-
-// CreateTimeIn applies the In predicate on the "create_time" field.
-func CreateTimeIn(vs ...time.Time) predicate.WorkOrderType {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldCreateTime), v...))
-	})
-}
-
-// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
-func CreateTimeNotIn(vs ...time.Time) predicate.WorkOrderType {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldCreateTime), v...))
-	})
-}
-
-// CreateTimeGT applies the GT predicate on the "create_time" field.
-func CreateTimeGT(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldCreateTime), v))
-	})
-}
-
-// CreateTimeGTE applies the GTE predicate on the "create_time" field.
-func CreateTimeGTE(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldCreateTime), v))
-	})
-}
-
-// CreateTimeLT applies the LT predicate on the "create_time" field.
-func CreateTimeLT(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldCreateTime), v))
-	})
-}
-
-// CreateTimeLTE applies the LTE predicate on the "create_time" field.
-func CreateTimeLTE(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldCreateTime), v))
-	})
-}
-
-// UpdateTimeEQ applies the EQ predicate on the "update_time" field.
-func UpdateTimeEQ(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldUpdateTime), v))
-	})
-}
-
-// UpdateTimeNEQ applies the NEQ predicate on the "update_time" field.
-func UpdateTimeNEQ(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.NEQ(s.C(FieldUpdateTime), v))
-	})
-}
-
-// UpdateTimeIn applies the In predicate on the "update_time" field.
-func UpdateTimeIn(vs ...time.Time) predicate.WorkOrderType {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.In(s.C(FieldUpdateTime), v...))
-	})
-}
-
-// UpdateTimeNotIn applies the NotIn predicate on the "update_time" field.
-func UpdateTimeNotIn(vs ...time.Time) predicate.WorkOrderType {
-	v := make([]interface{}, len(vs))
-	for i := range v {
-		v[i] = vs[i]
-	}
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		// if not arguments were provided, append the FALSE constants,
-		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
-			s.Where(sql.False())
-			return
-		}
-		s.Where(sql.NotIn(s.C(FieldUpdateTime), v...))
-	})
-}
-
-// UpdateTimeGT applies the GT predicate on the "update_time" field.
-func UpdateTimeGT(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldUpdateTime), v))
-	})
-}
-
-// UpdateTimeGTE applies the GTE predicate on the "update_time" field.
-func UpdateTimeGTE(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldUpdateTime), v))
-	})
-}
-
-// UpdateTimeLT applies the LT predicate on the "update_time" field.
-func UpdateTimeLT(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldUpdateTime), v))
-	})
-}
-
-// UpdateTimeLTE applies the LTE predicate on the "update_time" field.
-func UpdateTimeLTE(v time.Time) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldUpdateTime), v))
 	})
 }
 
@@ -513,34 +345,6 @@ func DescriptionContainsFold(v string) predicate.WorkOrderType {
 	})
 }
 
-// HasWorkOrders applies the HasEdge predicate on the "work_orders" edge.
-func HasWorkOrders() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrdersTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, WorkOrdersTable, WorkOrdersColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasWorkOrdersWith applies the HasEdge predicate on the "work_orders" edge with a given conditions (other predicates).
-func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(WorkOrdersInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, WorkOrdersTable, WorkOrdersColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasPropertyTypes applies the HasEdge predicate on the "property_types" edge.
 func HasPropertyTypes() predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
@@ -569,34 +373,6 @@ func HasPropertyTypesWith(preds ...predicate.PropertyType) predicate.WorkOrderTy
 	})
 }
 
-// HasDefinitions applies the HasEdge predicate on the "definitions" edge.
-func HasDefinitions() predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DefinitionsTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, DefinitionsTable, DefinitionsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasDefinitionsWith applies the HasEdge predicate on the "definitions" edge with a given conditions (other predicates).
-func HasDefinitionsWith(preds ...predicate.WorkOrderDefinition) predicate.WorkOrderType {
-	return predicate.WorkOrderType(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.To(DefinitionsInverseTable, FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, DefinitionsTable, DefinitionsColumn),
-		)
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
 // HasCheckListCategoryDefinitions applies the HasEdge predicate on the "check_list_category_definitions" edge.
 func HasCheckListCategoryDefinitions() predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
@@ -616,6 +392,62 @@ func HasCheckListCategoryDefinitionsWith(preds ...predicate.CheckListCategoryDef
 			sqlgraph.From(Table, FieldID),
 			sqlgraph.To(CheckListCategoryDefinitionsInverseTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, CheckListCategoryDefinitionsTable, CheckListCategoryDefinitionsColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasWorkOrders applies the HasEdge predicate on the "work_orders" edge.
+func HasWorkOrders() predicate.WorkOrderType {
+	return predicate.WorkOrderType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrdersTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, WorkOrdersTable, WorkOrdersColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasWorkOrdersWith applies the HasEdge predicate on the "work_orders" edge with a given conditions (other predicates).
+func HasWorkOrdersWith(preds ...predicate.WorkOrder) predicate.WorkOrderType {
+	return predicate.WorkOrderType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(WorkOrdersInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, WorkOrdersTable, WorkOrdersColumn),
+		)
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDefinitions applies the HasEdge predicate on the "definitions" edge.
+func HasDefinitions() predicate.WorkOrderType {
+	return predicate.WorkOrderType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(DefinitionsTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, DefinitionsTable, DefinitionsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDefinitionsWith applies the HasEdge predicate on the "definitions" edge with a given conditions (other predicates).
+func HasDefinitionsWith(preds ...predicate.WorkOrderDefinition) predicate.WorkOrderType {
+	return predicate.WorkOrderType(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(DefinitionsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, DefinitionsTable, DefinitionsColumn),
 		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {

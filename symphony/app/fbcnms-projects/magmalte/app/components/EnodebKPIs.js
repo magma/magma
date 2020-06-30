@@ -8,8 +8,8 @@
  * @format
  */
 
-import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
 import type {KPIData} from './KPITray';
+import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
 
 import KPITray from './KPITray';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';

@@ -16,21 +16,23 @@ import DevicesMetricsDialog from './DevicesMetricsDialog';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
-import React from 'react';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import {Route} from 'react-router-dom';
-
 import nullthrows from '@fbcnms/util/nullthrows';
+import React from 'react';
 import Text from '../../theme/design-system/Text';
-import {colors} from '../../theme/default';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
 import {augmentDevicesMap} from './DevicesUtils';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from '@material-ui/core';
+import {Route} from 'react-router-dom';
 import {useCallback, useState} from 'react';
 import {useInterval, useRouter} from '@fbcnms/ui/hooks';
 

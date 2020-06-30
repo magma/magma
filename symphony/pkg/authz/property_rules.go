@@ -33,6 +33,7 @@ func PropertyTypeWritePolicyRule() privacy.MutationRule {
 			WithLinkEquipmentPortType().
 			WithServiceType().
 			WithWorkOrderType().
+			WithWorkOrderTemplate().
 			WithProjectType().
 			Only(ctx)
 
@@ -55,6 +56,8 @@ func PropertyTypeWritePolicyRule() privacy.MutationRule {
 		case propType.Edges.ServiceType != nil:
 			return allowOrSkip(p.InventoryPolicy.ServiceType.Update)
 		case propType.Edges.WorkOrderType != nil:
+			return allowOrSkip(p.WorkforcePolicy.Templates.Update)
+		case propType.Edges.WorkOrderTemplate != nil:
 			return allowOrSkip(p.WorkforcePolicy.Templates.Update)
 		case propType.Edges.ProjectType != nil:
 			return allowOrSkip(p.WorkforcePolicy.Templates.Update)
@@ -87,6 +90,9 @@ func PropertyTypeCreatePolicyRule() privacy.MutationRule {
 			return allowOrSkip(p.InventoryPolicy.ServiceType.Update)
 		}
 		if _, exists := m.WorkOrderTypeID(); exists {
+			return allowOrSkip(p.WorkforcePolicy.Templates.Update)
+		}
+		if _, exists := m.WorkOrderTemplateID(); exists {
 			return allowOrSkip(p.WorkforcePolicy.Templates.Update)
 		}
 		if _, exists := m.ProjectTypeID(); exists {

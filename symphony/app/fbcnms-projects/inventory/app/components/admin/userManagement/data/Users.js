@@ -79,7 +79,7 @@ const userQuery = graphql`
 
 function getUserEntIdByAuthID(authID: string): Promise<string> {
   return fetchQuery<UsersByAuthIDQuery>(RelayEnvironment, userQuery, {
-    authID,
+    authID: authID.toLowerCase(),
   }).then(response => nullthrows(response.user?.id));
 }
 

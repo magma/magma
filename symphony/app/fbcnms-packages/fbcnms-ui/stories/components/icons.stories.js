@@ -17,7 +17,6 @@ import Text from '../../components/design-system/Text';
 import Grid from '@material-ui/core/Grid';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -58,7 +57,7 @@ const Icon = ({icon, name}: IconProps) => {
   );
 };
 
-const IconsRoot = () => {
+export const IconsRoot = () => {
   const classes = useStyles();
 
   return (
@@ -75,13 +74,17 @@ const IconsRoot = () => {
           .sort()
           .map((name: $Keys<typeof Icons>) => {
             const SvgIcon = Icons[name];
-            return <Icon icon={<SvgIcon />} name={name} />;
+            return <Icon key={name} icon={<SvgIcon />} name={name} />;
           })}
       </Grid>
     </div>
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.FOUNDATION}`, module).add('Icons', () => (
-  <IconsRoot />
-));
+IconsRoot.story = {
+  name: 'Icons',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.FOUNDATION}`,
+};

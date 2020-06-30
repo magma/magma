@@ -1,0 +1,8 @@
+#!/bin/sh /etc/rc.common
+# Copyright (c) Facebook, Inc. and its affiliates
+
+# shellcheck disable=SC1091,SC2034
+START=98
+CMD="radius"
+FLGS="-stderr2syslog -stdout2stderr -config /etc/magma/configs/radius.config.json -log_fmt console"
+. /etc/init.d/magma.template

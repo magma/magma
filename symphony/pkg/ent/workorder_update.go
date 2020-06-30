@@ -28,6 +28,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
 )
 
@@ -189,6 +190,25 @@ func (wou *WorkOrderUpdate) SetNillableTypeID(id *int) *WorkOrderUpdate {
 // SetType sets the type edge to WorkOrderType.
 func (wou *WorkOrderUpdate) SetType(w *WorkOrderType) *WorkOrderUpdate {
 	return wou.SetTypeID(w.ID)
+}
+
+// SetTemplateID sets the template edge to WorkOrderTemplate by id.
+func (wou *WorkOrderUpdate) SetTemplateID(id int) *WorkOrderUpdate {
+	wou.mutation.SetTemplateID(id)
+	return wou
+}
+
+// SetNillableTemplateID sets the template edge to WorkOrderTemplate by id if the given value is not nil.
+func (wou *WorkOrderUpdate) SetNillableTemplateID(id *int) *WorkOrderUpdate {
+	if id != nil {
+		wou = wou.SetTemplateID(*id)
+	}
+	return wou
+}
+
+// SetTemplate sets the template edge to WorkOrderTemplate.
+func (wou *WorkOrderUpdate) SetTemplate(w *WorkOrderTemplate) *WorkOrderUpdate {
+	return wou.SetTemplateID(w.ID)
 }
 
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
@@ -382,6 +402,12 @@ func (wou *WorkOrderUpdate) SetAssignee(u *User) *WorkOrderUpdate {
 // ClearType clears the type edge to WorkOrderType.
 func (wou *WorkOrderUpdate) ClearType() *WorkOrderUpdate {
 	wou.mutation.ClearType()
+	return wou
+}
+
+// ClearTemplate clears the template edge to WorkOrderTemplate.
+func (wou *WorkOrderUpdate) ClearTemplate() *WorkOrderUpdate {
+	wou.mutation.ClearTemplate()
 	return wou
 }
 
@@ -733,6 +759,41 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wou.mutation.TemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TemplateTable,
+			Columns: []string{workorder.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wou.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TemplateTable,
+			Columns: []string{workorder.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
 				},
 			},
 		}
@@ -1349,6 +1410,25 @@ func (wouo *WorkOrderUpdateOne) SetType(w *WorkOrderType) *WorkOrderUpdateOne {
 	return wouo.SetTypeID(w.ID)
 }
 
+// SetTemplateID sets the template edge to WorkOrderTemplate by id.
+func (wouo *WorkOrderUpdateOne) SetTemplateID(id int) *WorkOrderUpdateOne {
+	wouo.mutation.SetTemplateID(id)
+	return wouo
+}
+
+// SetNillableTemplateID sets the template edge to WorkOrderTemplate by id if the given value is not nil.
+func (wouo *WorkOrderUpdateOne) SetNillableTemplateID(id *int) *WorkOrderUpdateOne {
+	if id != nil {
+		wouo = wouo.SetTemplateID(*id)
+	}
+	return wouo
+}
+
+// SetTemplate sets the template edge to WorkOrderTemplate.
+func (wouo *WorkOrderUpdateOne) SetTemplate(w *WorkOrderTemplate) *WorkOrderUpdateOne {
+	return wouo.SetTemplateID(w.ID)
+}
+
 // AddEquipmentIDs adds the equipment edge to Equipment by ids.
 func (wouo *WorkOrderUpdateOne) AddEquipmentIDs(ids ...int) *WorkOrderUpdateOne {
 	wouo.mutation.AddEquipmentIDs(ids...)
@@ -1540,6 +1620,12 @@ func (wouo *WorkOrderUpdateOne) SetAssignee(u *User) *WorkOrderUpdateOne {
 // ClearType clears the type edge to WorkOrderType.
 func (wouo *WorkOrderUpdateOne) ClearType() *WorkOrderUpdateOne {
 	wouo.mutation.ClearType()
+	return wouo
+}
+
+// ClearTemplate clears the template edge to WorkOrderTemplate.
+func (wouo *WorkOrderUpdateOne) ClearTemplate() *WorkOrderUpdateOne {
+	wouo.mutation.ClearTemplate()
 	return wouo
 }
 
@@ -1889,6 +1975,41 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: workordertype.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if wouo.mutation.TemplateCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TemplateTable,
+			Columns: []string{workorder.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := wouo.mutation.TemplateIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   workorder.TemplateTable,
+			Columns: []string{workorder.TemplateColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeInt,
+					Column: workordertemplate.FieldID,
 				},
 			},
 		}

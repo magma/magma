@@ -9,134 +9,85 @@
  * @format
  */
 import ActionTable from '../../components/ActionTable';
-import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
-import RssFeedIcon from '@material-ui/icons/RssFeed';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const POLICY_TITLE = 'Policies';
-const APN_TITLE = 'APNs';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
   },
   topBar: {
-    backgroundColor: theme.palette.magmalte.background,
+    backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
-    backgroundColor: theme.palette.magmalte.appbar,
-    padding: '0 0 0 20px',
+    backgroundColor: colors.primary.brightGray,
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
-    color: 'white',
+    color: colors.primary.white,
   },
   tab: {
     fontSize: '18px',
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
+  },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
+  appBarBtnSecondary: {
+    textPrimary: colors.primary.mirage,
+    outlined: true,
+    contained: true,
+    color: colors.primary.mirage,
+  },
+  // TODO: remove this when we actually fill out the grid sections
+  contentPlaceholder: {
+    padding: '50px 0',
+  },
+  paper: {
+    height: 100,
+    padding: theme.spacing(10),
+    textAlign: 'center',
+  },
+  formControl: {
+    margin: theme.spacing(1),
+    minWidth: 120,
   },
 }));
-
-export default function PolicyDashboard() {
-  const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
-
-  return (
-    <>
-      <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Traffic
-        </Text>
-      </div>
-
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
-          <Grid item xs={6}>
-            <Tabs
-              value={0}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Policy"
-                component={NestedRouteLink}
-                label={<PolicyDashboardTabLabel />}
-                to="/policy"
-                className={classes.tab}
-              />
-              <Tab
-                key="APNs"
-                component={NestedRouteLink}
-                label={<APNDashboardTabLabel />}
-                to="/policy"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid
-            container
-            item
-            xs={6}
-            justify="flex-end"
-            alignItems="center"
-            spacing={2}>
-            <Grid item>
-              <Button color="secondary" variant="contained">
-                Download Template
-              </Button>
-            </Grid>
-
-            <Grid item>
-              <Button color="secondary" variant="contained">
-                Upload CSV
-              </Button>
-            </Grid>
-
-            <Grid item>
-              <Button color="primary" variant="contained">
-                Create New Policy
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
-
-      <Switch>
-        <Route
-          path={relativePath('/policy')}
-          component={PolicyDashboardInternal}
-        />
-        <Redirect to={relativeUrl('/policy')} />
-      </Switch>
-    </>
-  );
-}
-
 type PolicyRowType = {
   policyID: string,
   numFlows: number,
@@ -147,7 +98,7 @@ type PolicyRowType = {
   trackingType: string,
 };
 
-function PolicyDashboardInternal() {
+export default function PolicyOverview() {
   const classes = useStyles();
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
@@ -182,10 +133,33 @@ function PolicyDashboardInternal() {
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Text key="title">
-            <LibraryBooksIcon /> {POLICY_TITLE}
-          </Text>
+        <Grid container>
+          <Grid item xs={6}>
+            <Text key="title">
+              <LibraryBooksIcon /> {POLICY_TITLE}
+            </Text>
+          </Grid>
+          <Grid
+            container
+            item
+            xs={6}
+            justify="flex-end"
+            alignItems="center"
+            spacing={2}>
+            <Grid item>
+              <Button className={classes.appBarBtnSecondary}>
+                Download Template
+              </Button>
+            </Grid>
+
+            <Grid item>
+              <Button className={classes.appBarBtnSecondary}>Upload CSV</Button>
+            </Grid>
+
+            <Grid item>
+              <Button className={classes.appBarBtn}>Create New Policy</Button>
+            </Grid>
+          </Grid>
         </Grid>
 
         <Grid item xs={12}>
@@ -224,26 +198,6 @@ function PolicyDashboardInternal() {
           />
         </Grid>
       </Grid>
-    </div>
-  );
-}
-
-function PolicyDashboardTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <LibraryBooksIcon className={classes.tabIconLabel} /> {POLICY_TITLE}
-    </div>
-  );
-}
-
-function APNDashboardTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <RssFeedIcon className={classes.tabIconLabel} /> {APN_TITLE}
     </div>
   );
 }

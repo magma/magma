@@ -12,7 +12,6 @@ import React, {useState} from 'react';
 import Tokenizer from '../../components/design-system/Token/Tokenizer';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
 const useStyles = makeStyles(_theme => ({
   root: {
@@ -35,7 +34,7 @@ const ALL_TOKENS = [
   ,
 ];
 
-const TokenizerRoot = () => {
+export const TokenizerRoot = () => {
   const classes = useStyles();
   const [queryString, setQueryString] = useState('');
   const [tokens, setTokens] = useState([
@@ -73,6 +72,10 @@ const TokenizerRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.COMPONENTS}`, module).add('Tokenizer', () => (
-  <TokenizerRoot />
-));
+TokenizerRoot.story = {
+  name: 'Tokenizer',
+};
+
+export default {
+  title: `${STORY_CATEGORIES.COMPONENTS}`,
+};

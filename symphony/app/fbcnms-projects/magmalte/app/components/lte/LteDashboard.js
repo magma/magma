@@ -9,26 +9,19 @@
  * @format
  */
 
-import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
 import DashboardKPIs from '../DashboardKPIs';
-import EnodebKPIs from '../EnodebKPIs';
 import EventAlertChart from '../EventAlertChart';
-import EventsTable, {magmaEventTypes} from '../../views/events/EventsTable';
-import GatewayKPIs from '../GatewayKPIs';
-import Grid from '@material-ui/core/Grid';
 import moment from 'moment';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 
+import {AppBar, Grid, Tab, Tabs} from '@material-ui/core';
 import {colors} from '../../theme/default';
 import {DateTimePicker} from '@material-ui/pickers';
-import {GpsFixed, NetworkCheck, People} from '@material-ui/icons';
 import {makeStyles} from '@material-ui/styles';
+import {NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -63,7 +56,6 @@ const useStyles = makeStyles(theme => ({
   input: {
     color: colors.primary.white,
     backgroundColor: colors.primary.comet,
-    borderRadius: '4px',
   },
   dateTimeText: {
     color: colors.primary.selago,
@@ -109,12 +101,7 @@ function LteDashboard() {
               />
             </Tabs>
           </Grid>
-          <Grid
-            item
-            xs={6}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
+          <Grid item xs={6}>
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 <Text variant="body3" className={classes.dateTimeText}>

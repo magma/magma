@@ -11,25 +11,21 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
 import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
 import GatewayDetail from './GatewayDetailMain';
-import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import nullthrows from '@fbcnms/util/nullthrows';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {AppBar, Button, Grid, Tab, Tabs} from '@material-ui/core';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -176,7 +172,9 @@ function EquipmentDashboard() {
       <Switch>
         <Route
           path={relativePath('/overview/gateway/:gatewayId')}
-          render={() => <GatewayDetail lteGateways={lteGateways} />}
+          render={() => (
+            <GatewayDetail lteGateways={lteGateways} enbInfo={enbInfo} />
+          )}
         />
         <Route
           path={relativePath('/overview/enodeb/:enodebSerial')}

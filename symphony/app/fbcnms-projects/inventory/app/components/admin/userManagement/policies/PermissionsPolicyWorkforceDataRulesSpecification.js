@@ -23,7 +23,7 @@ import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
 import {PERMISSION_RULE_VALUES} from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {permissionRuleValue2Bool} from '../data/PermissionsPolicies';
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {useFormAlertsContext} from '@fbcnms/ui/components/design-system/Form/FormAlertsContext';
 
 const useStyles = makeStyles(() => ({
@@ -105,13 +105,9 @@ export default function PermissionsPolicyWorkforceDataRulesSpecification(
       : METHOD_ALL_TYPES_VALUE,
   );
 
-  const callSetPolicyMethod = useCallback(
-    newPolicyMethod => {
-      if (policy == null) {
-        return;
-      }
-
-      setPolicyMethod(newPolicyMethod);
+  const updateReadRuleByMethod = useCallback(
+    newPolicyMethod =>
+      policy &&
       onChange({
         ...policy,
         read: {
@@ -121,10 +117,26 @@ export default function PermissionsPolicyWorkforceDataRulesSpecification(
               ? PERMISSION_RULE_VALUES.BY_CONDITION
               : PERMISSION_RULE_VALUES.YES,
         },
-      });
-    },
+      }),
     [onChange, policy],
   );
+
+  const callSetPolicyMethod = useCallback(
+    newPolicyMethod => {
+      setPolicyMethod(newPolicyMethod);
+      updateReadRuleByMethod(newPolicyMethod);
+    },
+    [updateReadRuleByMethod],
+  );
+
+  useEffect(() => {
+    if (
+      policy?.read.isAllowed === PERMISSION_RULE_VALUES.YES &&
+      policyMethod === METHOD_SELECTED_TYPES_VALUE
+    ) {
+      updateReadRuleByMethod(policyMethod);
+    }
+  }, [policy, policyMethod, updateReadRuleByMethod]);
 
   const alerts = useFormAlertsContext();
   const emptyRequiredTypesSelectionErrorMessage = alerts.error.check({
