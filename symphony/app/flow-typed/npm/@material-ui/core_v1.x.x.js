@@ -2815,6 +2815,14 @@ declare module "@material-ui/core/Tabs/TabScrollButton" {
   }>;
 }
 
+declare module "@material-ui/core/Link" {
+  declare module.exports: $Exports<"@material-ui/core/OutlinedInput/Link">;
+}
+
+declare module "@material-ui/core/OutlinedInput" {
+  declare module.exports: $Exports<"@material-ui/core/OutlinedInput/OutlinedInput">;
+}
+
 declare module "@material-ui/core/TextField" {
   declare module.exports: $Exports<"@material-ui/core/TextField/TextField">;
 }
