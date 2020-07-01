@@ -280,10 +280,7 @@ COPY --from=conv-builder $C_BUILD/sctpd/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/templates/docker/mme.cacert.pem .
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/templates/docker/mme.cert.pem .
 COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/templates/docker/mme.conf .
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/templates/docker/mme.key.pem .
 COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/templates/docker/mme_fd.conf .
 
 # Create running dirs
@@ -296,6 +293,12 @@ COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
 COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
+WORKDIR /conv-mme/scripts
+COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
+RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+
 WORKDIR /conv-mme
+RUN openssl rand -out /root/.rnd 128
 
 # CMD []
