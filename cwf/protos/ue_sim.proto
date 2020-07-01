@@ -55,7 +55,10 @@ message GenTrafficRequest {
     uint64 timeInSecs = 4;    
     uint64 reportingIntervalInSecs = 5;    
     bool reverseMode = 6;
+    // Configure a max timeout iperf client will run
     uint32 timeout = 7;
+    // Enables/Disable a function to check if server is alive before sending any traffic
+    bool disableServerReachabilityCheck = 8;
 }
 
 message GenTrafficResponse {
