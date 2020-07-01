@@ -519,7 +519,7 @@ type ComplexityRoot struct {
 		Properties        func(childComplexity int) int
 		SiteSurveyNeeded  func(childComplexity int) int
 		Surveys           func(childComplexity int) int
-		Topology          func(childComplexity int, depth *int) int
+		Topology          func(childComplexity int, depth int) int
 		WifiData          func(childComplexity int) int
 	}
 
@@ -1323,7 +1323,7 @@ type LocationResolver interface {
 	Images(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
 	Files(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
 
-	Topology(ctx context.Context, obj *ent.Location, depth *int) (*models.NetworkTopology, error)
+	Topology(ctx context.Context, obj *ent.Location, depth int) (*models.NetworkTopology, error)
 	LocationHierarchy(ctx context.Context, obj *ent.Location) ([]*ent.Location, error)
 	Surveys(ctx context.Context, obj *ent.Location) ([]*ent.Survey, error)
 	WifiData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyWiFiScan, error)
@@ -3390,7 +3390,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Location.Topology(childComplexity, args["depth"].(*int)), true
+		return e.complexity.Location.Topology(childComplexity, args["depth"].(int)), true
 
 	case "Location.wifiData":
 		if e.complexity.Location.WifiData == nil {
@@ -7653,7 +7653,7 @@ type Location implements Node & NamedNode {
   images: [File]!
   files: [File]!
   siteSurveyNeeded: Boolean!
-  topology(depth: Int = 3): NetworkTopology!
+  topology(depth: Int! = 3): NetworkTopology!
   locationHierarchy: [Location!]!
   surveys: [Survey]!
   wifiData: [SurveyWiFiScan]!
@@ -10478,9 +10478,9 @@ func (ec *executionContext) field_Location_distanceKm_args(ctx context.Context, 
 func (ec *executionContext) field_Location_topology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
+	var arg0 int
 	if tmp, ok := rawArgs["depth"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -20903,7 +20903,7 @@ func (ec *executionContext) _Location_topology(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Location().Topology(rctx, obj, args["depth"].(*int))
+		return ec.resolvers.Location().Topology(rctx, obj, args["depth"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
