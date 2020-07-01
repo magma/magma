@@ -19,4 +19,5 @@ TESTS=magma/tests \
       magma/subscriberdb/tests \
       magma/monitord/tests
 
-SUDO_TESTS=magma/pipelined/tests
+SUDO_TESTS= magma/mobilityd/tests/ip_alloc_dhcp_test.py \
+	    magma/pipelined/tests \
