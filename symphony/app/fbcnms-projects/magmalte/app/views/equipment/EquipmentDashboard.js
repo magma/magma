@@ -103,6 +103,7 @@ function EquipmentDashboard() {
   const [enbInfo, setEnbInfo] = useState<{[string]: EnodebInfo}>({});
   const [isEnbStLoading, setIsEnbStLoading] = useState(true);
 
+  
   const enqueueSnackbar = useEnqueueSnackbar();
 
   const {response: lteGatwayResp, isLoading: isLteRespLoading} = useMagmaAPI(
