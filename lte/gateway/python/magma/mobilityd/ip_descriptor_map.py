@@ -1,5 +1,5 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
+Copyright (c) 2020-present, Facebook, Inc.
 All rights reserved.
 
 This source code is licensed under the BSD-style license found in the
@@ -67,7 +67,7 @@ class IpDescriptorMap:
                 lambda key: store.ip_states(client, key))
 
     def add_ip_to_state(self, ip: ip_address, ip_desc: IPDesc,
-                         state: IPState):
+                        state: IPState):
         """ Add ip=>ip_desc pairs to a internal dict """
         assert ip_desc.state == state, \
             "ip_desc.state %s does not match with state %s" \
@@ -127,11 +127,13 @@ class IpDescriptorMap:
         assert ip_desc.state != state, \
             "move IP to the same state %s" % state
         assert ip == ip_desc.ip, "Unmatching ip_desc for %s" % ip
+
         if ip_desc.state == IPState.FREE:
-            assert ip_desc.sid is None, "Unexpected sid in a freed IPDesc"
+            assert ip_desc.sid is None,\
+                "Unexpected sid in a freed IPDesc {}".format(ip_desc)
         else:
             assert ip_desc.sid is not None, \
-                "Missing sid in state %s IPDesc" % state
+                "Missing sid in state %s IPDesc {}".format(ip_desc)
 
         # remove, mark, add
         self.remove_ip_from_state(ip, old_state)
@@ -143,3 +145,12 @@ class IpDescriptorMap:
         """ A IP block is allocated if ANY IP is allocated from it """
         allocated_ips = self.ip_states[IPState.ALLOCATED]
         return {ip_desc.ip_block for ip_desc in allocated_ips.values()}
+
+    def __str__(self) -> str:
+        """ return the state of an IP """
+        ret_str = "{}:".format(self.__class__.__name__)
+        for state in IPState:
+            ret_str = ret_str + "\n{}".format(state)
+            for _ip, ip_desc in self.ip_states[state].items():
+                ret_str = ret_str + "\n{}".format(str(ip_desc))
+        return ret_str

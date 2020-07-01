@@ -1,5 +1,5 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
+Copyright (c) 2020-present, Facebook, Inc.
 All rights reserved.
 
 This source code is licensed under the BSD-style license found in the
@@ -36,21 +36,24 @@ during it's life cycle in the IP allocator:
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+from argparse import ArgumentError
+
 import logging
 import threading
 from collections import defaultdict
 from ipaddress import ip_address, ip_network
-from typing import List, Optional, Set, Tuple
+from typing import List, Optional, Tuple
 
-import redis
-from copy import deepcopy
 from magma.mobilityd import mobility_store as store
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-from random import choice
+from magma.common.redis.client import get_default_client
+
+from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_static import IpAllocatorStatic
 from .ip_descriptor_map import IpDescriptorMap
 from .ip_allocator_base import IPAllocatorType
+from .uplink_gw import UplinkGatewayInfo
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -105,11 +108,8 @@ class IPAddressManager:
 
     def __init__(self,
                  *,
-                 recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL,
-                 persist_to_redis: bool = True,
-                 redis_port: int = 6379,
-                 allocator_type: IPAllocatorType = IPAllocatorType.IP_POOL,
-                 dp: str = "up_br0"):
+                 config,
+                 recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL):
         """ Initializes a new IP allocator
 
         Args:
@@ -118,9 +118,21 @@ class IPAddressManager:
                 IPs.
 
                 Default: None, no recycling will occur automatically.
-            persist_to_redis (bool): store all state in local process if falsy,
-                else write state to Redis service
         """
+
+        persist_to_redis = config.get('persist_to_redis', True)
+        redis_port = config.get('redis_port', 6379)
+        if 'allocator_type' in config:
+            if config['allocator_type'] == 'ip_pool':
+                self.allocator_type = IPAllocatorType.IP_POOL
+            elif config['allocator_type'] == 'dhcp':
+                self.allocator_type = IPAllocatorType.DHCP
+            else:
+                raise ArgumentError("unknown allocator config {}"
+                                    .format(config['allocator_type']))
+        else:
+            self.allocator_type = IPAllocatorType.IP_POOL
+
         logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
 
@@ -134,15 +146,26 @@ class IPAddressManager:
             if not redis_port:
                 raise ValueError(
                     'Must specify a redis_port in mobilityd config.')
-            client = redis.Redis(host='localhost', port=redis_port)
+            client = get_default_client()
             self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
             self.sid_ips_map = store.IPDescDict(client)
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
-        if allocator_type == IPAllocatorType.IP_POOL:
+        if self.allocator_type == IPAllocatorType.IP_POOL:
             self.ip_allocator = IpAllocatorStatic(self._assigned_ip_blocks,
                                                   self.ip_state_map,
                                                   self.sid_ips_map)
+        elif self.allocator_type == IPAllocatorType.DHCP:
+            dhcp_store = store.MacToIP()  # mac => DHCP_State
+            dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
+            iface = config.get('dhcp_iface', 'dhcp0')
+            retry_limit = config.get('retry_limit', 300)
+            self.ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
+                                                self.ip_state_map,
+                                                iface=iface,
+                                                retry_limit=retry_limit,
+                                                dhcp_store=dhcp_store,
+                                                gw_info=dhcp_gw_info)
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -241,14 +264,17 @@ class IPAddressManager:
         with self._lock:
             # if an IP is reserved for the UE, this IP could be in the state of
             # ALLOCATED, RELEASED or REAPED.
+
             if sid in self.sid_ips_map:
                 old_ip_desc = self.sid_ips_map[sid]
                 if self.ip_state_map.test_ip_state(old_ip_desc.ip, IPState.ALLOCATED):
                     # MME state went out of sync with mobilityd!
                     # Recover gracefully by allocating the same IP
                     logging.warning("Re-allocate IP %s for sid %s without "
-                                    "MME releasing it first", old_ip_desc.ip,
+                                    "MME releasing it first ip-state-map",
+                                    old_ip_desc.ip,
                                     sid)
+
                     # TODO: enable strict checking after root causing the
                     # issue in MME
                     # raise DuplicatedIPAllocationError(
@@ -267,9 +293,9 @@ class IPAddressManager:
                                   sid, old_ip_desc.ip)
                 else:
                     raise AssertionError("Unexpected internal state")
+
                 logging.info("Allocating the same IP %s for sid %s",
                              old_ip_desc.ip, sid)
-
                 IP_ALLOCATED_TOTAL.inc()
                 return old_ip_desc.ip
 
@@ -281,8 +307,7 @@ class IPAddressManager:
             self.sid_ips_map[sid] = ip_desc
 
             IP_ALLOCATED_TOTAL.inc()
-
-        return ip_desc.ip
+            return ip_desc.ip
 
     def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
         """ Return list of tuples (sid, ip) """
@@ -355,11 +380,12 @@ class IPAddressManager:
             for ip in self.ip_state_map.list_ips(IPState.REAPED):
                 ip_desc = self.ip_state_map.mark_ip_state(ip, IPState.FREE)
                 sid = ip_desc.sid
+                ip_block = ip_desc.ip_block
                 ip_desc.sid = None
 
                 # update SID-IP map
                 del self.sid_ips_map[sid]
-                self.ip_allocator.release_ip(sid)
+                self.ip_allocator.release_ip(sid, ip, ip_block)
 
             # Set timer for the next round of recycling
             self._recycle_timer = None
