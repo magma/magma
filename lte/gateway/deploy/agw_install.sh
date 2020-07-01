@@ -8,6 +8,7 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
+MAGMA_VERSION="v1.1"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -71,7 +72,7 @@ fi
 if [ $NEED_REBOOT = 1 ]; then
   echo "Will reboot in a few seconds, loading a boot script in order to install magma"
   if [ ! -f "$AGW_SCRIPT_PATH" ]; then
-    wget --no-cache -O $AGW_SCRIPT_PATH https://raw.githubusercontent.com/facebookincubator/magma/master/lte/gateway/deploy/agw_install.sh
+    wget --no-cache -O $AGW_SCRIPT_PATH "https://raw.githubusercontent.com/facebookincubator/magma/$MAGMA_VERSION/lte/gateway/deploy/agw_install.sh"
   fi
   echo "[Unit]
 Description=AGW Installation
@@ -105,7 +106,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
 
   git clone https://github.com/facebookincubator/magma.git /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma
-  git checkout v1.0.1
+  git checkout "$MAGMA_VERSION"
 
   echo "Generating localhost hostfile for Ansible"
   echo "[ovs_build]

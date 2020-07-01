@@ -16,6 +16,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayConfig from './GatewayDetailConfig';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
@@ -161,6 +162,10 @@ export function GatewayDetail({
       </AppBar>
 
       <Switch>
+        <Route
+          path={relativePath('/config')}
+          render={() => <GatewayConfig gwInfo={gwInfo} />}
+        />
         <Route
           path={relativePath('/overview')}
           render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={enbInfo} />}

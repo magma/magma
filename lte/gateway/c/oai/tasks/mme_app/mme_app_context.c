@@ -100,6 +100,13 @@ static void _mme_app_handle_s1ap_ue_context_release(
   uint32_t enb_id,
   enum s1cause cause);
 
+static bool mme_app_recover_timers_for_ue(
+    const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
+    void** unused_result_pP);
+
+static void mme_app_resume_mobile_reachability_timer(
+    struct ue_mm_context_s* const ue_mm_context_pP);
+
 static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len)
 {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
@@ -1724,6 +1731,7 @@ void mme_ue_context_update_ue_sig_connection_state(
           ue_context_p->mme_ue_s1ap_id);
         ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
       } else {
+        ue_context_p->time_mobile_reachability_timer_started = time(NULL);
         OAILOG_DEBUG_UE(
           LOG_MME_APP,
           ue_context_p->emm_context._imsi64,
@@ -1767,6 +1775,7 @@ void mme_ue_context_update_ue_sig_connection_state(
           "id " MME_UE_S1AP_ID_FMT "\n",
           ue_context_p->mme_ue_s1ap_id);
       }
+      ue_context_p->time_mobile_reachability_timer_started = 0;
       if (timer_argP) {
         free_wrapper((void**) &timer_argP);
       }
@@ -2570,4 +2579,72 @@ bool mme_ue_context_get_ue_sgs_neaf(
   } else {
     return false;
   }
+}
+
+void mme_app_recover_timers_for_all_ues(void) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  hash_table_ts_t* mme_state_imsi_ht = get_mme_ue_state();
+  hashtable_ts_apply_callback_on_elements(
+      mme_state_imsi_ht, mme_app_recover_timers_for_ue, NULL, NULL);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+static bool mme_app_recover_timers_for_ue(
+    const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
+    void** unused_result_pP) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  struct ue_mm_context_s* const ue_mm_context_pP =
+      (struct ue_mm_context_s*) ue_context_pP;
+
+  if (ue_mm_context_pP &&
+      ue_mm_context_pP->time_mobile_reachability_timer_started) {
+    mme_app_resume_mobile_reachability_timer(ue_mm_context_pP);
+  }
+  OAILOG_FUNC_RETURN(LOG_MME_APP, false);
+}
+
+static void mme_app_resume_mobile_reachability_timer(
+    struct ue_mm_context_s* const ue_mm_context_pP) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  time_t current_time = time(NULL);
+  time_t lapsed_time =
+      current_time - ue_mm_context_pP->time_mobile_reachability_timer_started;
+  ue_mm_context_pP->mobile_reachability_timer.sec =
+      (((mme_config.nas_config.t3412_min) +
+        MME_APP_DELTA_T3412_REACHABILITY_TIMER) *
+       60) -
+      lapsed_time;
+
+  OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Current_time :%ld time mobile reachability timer "
+      "started:%ld lapsed time:%ld remaining time:%ld\n",
+      current_time, ue_mm_context_pP->time_mobile_reachability_timer_started,
+      lapsed_time, ue_mm_context_pP->mobile_reachability_timer.sec);
+
+  // Start Mobile reachability timer only for remaining duration
+  nas_itti_timer_arg_t timer_callback_arg = {0};
+  timer_callback_arg.nas_timer_callback =
+      mme_app_handle_mobile_reachability_timer_expiry;
+  timer_callback_arg.nas_timer_callback_arg =
+      (void*) &(ue_mm_context_pP->mme_ue_s1ap_id);
+  if (timer_setup(
+          ue_mm_context_pP->mobile_reachability_timer.sec, 0, TASK_MME_APP,
+          INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_arg,
+          sizeof(timer_callback_arg),
+          &(ue_mm_context_pP->mobile_reachability_timer.id)) < 0) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
+        "Failed to start Mobile Reachability timer for UE id "
+        " " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context_pP->mme_ue_s1ap_id);
+    ue_mm_context_pP->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  } else {
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
+        "Started Mobile Reachability timer for UE id  " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context_pP->mme_ue_s1ap_id);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
