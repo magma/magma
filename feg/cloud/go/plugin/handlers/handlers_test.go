@@ -21,7 +21,7 @@ import (
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
 	plugin3 "magma/lte/cloud/go/plugin"
-	models3 "magma/lte/cloud/go/plugin/models"
+	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"

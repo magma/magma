@@ -7,8 +7,8 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
-	models3 "magma/orc8r/cloud/go/models"
-	models4 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	models4 "magma/orc8r/cloud/go/models"
+	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -21,11 +21,11 @@ type FederationGateway struct {
 
 	// description
 	// Required: true
-	Description models3.GatewayDescription `json:"description"`
+	Description models4.GatewayDescription `json:"description"`
 
 	// device
 	// Required: true
-	Device *models4.GatewayDevice `json:"device"`
+	Device *models5.GatewayDevice `json:"device"`
 
 	// federation
 	// Required: true
@@ -33,22 +33,22 @@ type FederationGateway struct {
 
 	// id
 	// Required: true
-	ID models3.GatewayID `json:"id"`
+	ID models4.GatewayID `json:"id"`
 
 	// magmad
 	// Required: true
-	Magmad *models4.MagmadGatewayConfigs `json:"magmad"`
+	Magmad *models5.MagmadGatewayConfigs `json:"magmad"`
 
 	// name
 	// Required: true
-	Name models3.GatewayName `json:"name"`
+	Name models4.GatewayName `json:"name"`
 
 	// status
-	Status *models4.GatewayStatus `json:"status,omitempty"`
+	Status *models5.GatewayStatus `json:"status,omitempty"`
 
 	// tier
 	// Required: true
-	Tier models4.TierID `json:"tier"`
+	Tier models5.TierID `json:"tier"`
 }
 
 // Validate validates this federation gateway

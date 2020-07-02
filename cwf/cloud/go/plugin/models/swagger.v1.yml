@@ -6,7 +6,8 @@ magma-gen-meta:
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
-    - 'lte/cloud/go/plugin/models/swagger.v1.yml'
+    - 'lte/cloud/go/services/lte/obsidian/models/swagger.v1.yml'
+    - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
     - 'feg/cloud/go/plugin/models/swagger.v1.yml'
   temp-gen-filename: cwf-swagger.yml
   output-dir: cwf/cloud/go/plugin
@@ -243,7 +244,7 @@ paths:
         '200':
           description: Subscriber Config
           schema:
-            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -257,7 +258,7 @@ paths:
           description: Subscriber Config for the Network
           required: true
           schema:
-            $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+            $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
       responses:
         '204':
           description: Success
@@ -275,7 +276,7 @@ paths:
         '200':
           description: Subscriber Config
           schema:
-            $ref: './lte-swagger.yml#/definitions/rule_names'
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -289,7 +290,7 @@ paths:
           description: Subscriber Config for the Network
           required: true
           schema:
-            $ref: './lte-swagger.yml#/definitions/rule_names'
+            $ref: './lte-policydb-swagger.yml#/definitions/rule_names'
       responses:
         '204':
           description: Success
@@ -303,7 +304,7 @@ paths:
         - Carrier Wifi Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: './lte-swagger.yml#/parameters/rule_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
       responses:
         '201':
           description: Success
@@ -315,7 +316,7 @@ paths:
         - Carrier Wifi Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref: './lte-swagger.yml#/parameters/rule_id'
+        - $ref: './lte-policydb-swagger.yml#/parameters/rule_id'
       responses:
         '204':
           description: Success
@@ -333,7 +334,7 @@ paths:
         '200':
           description: Subscriber Config
           schema:
-            $ref: './lte-swagger.yml#/definitions/base_names'
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -347,7 +348,7 @@ paths:
           description: Subscriber Config for the Network
           required: true
           schema:
-            $ref: './lte-swagger.yml#/definitions/base_names'
+            $ref: './lte-policydb-swagger.yml#/definitions/base_names'
       responses:
         '204':
           description: Success
@@ -361,7 +362,7 @@ paths:
         - Carrier Wifi Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref:  './lte-swagger.yml#/parameters/base_name'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
       responses:
         '201':
           description: Success
@@ -373,7 +374,7 @@ paths:
         - Carrier Wifi Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - $ref:  './lte-swagger.yml#/parameters/base_name'
+        - $ref:  './lte-policydb-swagger.yml#/parameters/base_name'
       responses:
         '204':
           description: Success
@@ -762,7 +763,7 @@ definitions:
         $ref: './orc8r-swagger.yml#/definitions/network_features'
       subscriber_config:
         x-omitempty: true
-        $ref: './lte-swagger.yml#/definitions/network_subscriber_config'
+        $ref: './lte-policydb-swagger.yml#/definitions/network_subscriber_config'
 
   cwf_gateway:
     type: object

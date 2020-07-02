@@ -7,9 +7,9 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
-	models2 "magma/lte/cloud/go/plugin/models"
-	models3 "magma/orc8r/cloud/go/models"
-	models4 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	models3 "magma/lte/cloud/go/services/policydb/obsidian/models"
+	models4 "magma/orc8r/cloud/go/models"
+	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -22,14 +22,14 @@ type FegNetwork struct {
 
 	// description
 	// Required: true
-	Description models3.NetworkDescription `json:"description"`
+	Description models4.NetworkDescription `json:"description"`
 
 	// dns
 	// Required: true
-	DNS *models4.NetworkDNSConfig `json:"dns"`
+	DNS *models5.NetworkDNSConfig `json:"dns"`
 
 	// features
-	Features *models4.NetworkFeatures `json:"features,omitempty"`
+	Features *models5.NetworkFeatures `json:"features,omitempty"`
 
 	// federation
 	// Required: true
@@ -37,14 +37,14 @@ type FegNetwork struct {
 
 	// id
 	// Required: true
-	ID models3.NetworkID `json:"id"`
+	ID models4.NetworkID `json:"id"`
 
 	// name
 	// Required: true
-	Name models3.NetworkName `json:"name"`
+	Name models4.NetworkName `json:"name"`
 
 	// subscriber config
-	SubscriberConfig *models2.NetworkSubscriberConfig `json:"subscriber_config,omitempty"`
+	SubscriberConfig *models3.NetworkSubscriberConfig `json:"subscriber_config,omitempty"`
 }
 
 // Validate validates this feg network

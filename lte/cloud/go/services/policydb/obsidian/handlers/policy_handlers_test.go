@@ -14,8 +14,8 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lteplugin "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
@@ -60,7 +60,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.PolicyRule{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyRule{}),
 		ExpectedError:  "",
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -69,12 +69,12 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test add policy rule
-	testRule := &models.PolicyRule{
+	testRule := &policyModels.PolicyRule{
 		ID: "PolicyRule1",
-		FlowList: []*models.FlowDescription{
+		FlowList: []*policyModels.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
+				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_ICMP"),
 					IPV4Dst:   "42.42.42.42",
@@ -110,7 +110,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.PolicyRule{
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyRule{
 			"PolicyRule1": testRule,
 		}),
 	}
@@ -133,8 +133,8 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Update Rule Using URL based ID
-	testRule.FlowList = []*models.FlowDescription{
-		{Action: swag.String("PERMIT"), Match: &models.FlowMatch{IPProto: swag.String("IPPROTO_ICMP"), Direction: swag.String("DOWNLINK")}},
+	testRule.FlowList = []*policyModels.FlowDescription{
+		{Action: swag.String("PERMIT"), Match: &policyModels.FlowMatch{IPProto: swag.String("IPPROTO_ICMP"), Direction: swag.String("DOWNLINK")}},
 	}
 	testRule.Priority, testRule.RatingGroup, testRule.TrackingType = swag.Uint32(10), *swag.Uint32(3), "ONLY_OCS"
 	tc = tests.Test{
@@ -182,7 +182,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listPolicies,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.PolicyRule{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyRule{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 	tc.URL = "/magma/v1/networks/n1/policies/rules"
@@ -190,12 +190,12 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Multi Match Add Rule
-	testRule = &models.PolicyRule{
+	testRule = &policyModels.PolicyRule{
 		ID: "Test_mult",
-		FlowList: []*models.FlowDescription{
+		FlowList: []*policyModels.FlowDescription{
 			{
 				Action: swag.String("DENY"),
-				Match: &models.FlowMatch{
+				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_TCP"),
 					TCPDst:    2,
@@ -204,7 +204,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 			},
 			{
 				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
+				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_ICMP"),
 					IPV4Dst:   "42.42.42.42",
@@ -245,13 +245,13 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test adding a rule with QoS
-	testRule = &models.PolicyRule{
+	testRule = &policyModels.PolicyRule{
 		ID:           "Test_qos",
-		FlowList:     []*models.FlowDescription{},
+		FlowList:     []*policyModels.FlowDescription{},
 		Priority:     swag.Uint32(5),
 		RatingGroup:  *swag.Uint32(2),
 		TrackingType: "ONLY_OCS",
-		Qos: &models.FlowQos{
+		Qos: &policyModels.FlowQos{
 			MaxReqBwUl: swag.Uint32(2000),
 			MaxReqBwDl: swag.Uint32(1000),
 		},
@@ -281,13 +281,13 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test adding rule with redirect information
-	testRule = &models.PolicyRule{
+	testRule = &policyModels.PolicyRule{
 		ID:           "Test_redirect",
-		FlowList:     []*models.FlowDescription{},
+		FlowList:     []*policyModels.FlowDescription{},
 		Priority:     swag.Uint32(5),
 		RatingGroup:  *swag.Uint32(2),
 		TrackingType: "ONLY_OCS",
-		Redirect: &models.RedirectInformation{
+		Redirect: &policyModels.RedirectInformation{
 			Support:       swag.String("ENABLED"),
 			AddressType:   swag.String("URL"),
 			ServerAddress: swag.String("127.0.0.1"),
@@ -318,12 +318,12 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test add rule with app name match
-	testRule = &models.PolicyRule{
+	testRule = &policyModels.PolicyRule{
 		ID: "test_app_policy",
-		FlowList: []*models.FlowDescription{
+		FlowList: []*policyModels.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
+				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_ICMP"),
 					IPV4Dst:   "42.42.42.42",
@@ -376,7 +376,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listNames,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.BaseNameRecord{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 	tc.URL = "/magma/v1/networks/n1/policies/base_names"
@@ -384,9 +384,9 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Test Add BaseName
-	baseNameRecord := &models.BaseNameRecord{
+	baseNameRecord := &policyModels.BaseNameRecord{
 		Name:      "Test",
-		RuleNames: models.RuleNames{"Test_qos", "Test_redirect"},
+		RuleNames: policyModels.RuleNames{"Test_qos", "Test_redirect"},
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -408,7 +408,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1", "Test"},
 		Handler:        getName,
 		ExpectedStatus: 200,
-		ExpectedResult: &models.BaseNameRecord{
+		ExpectedResult: &policyModels.BaseNameRecord{
 			Name:      "Test",
 			RuleNames: []string{"Test_qos", "Test_redirect"},
 		},
@@ -419,7 +419,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tc = tests.Test{
 		Method: "PUT",
 		URL:    "/magma/v1/networks/n1/policies/base_names/Test",
-		Payload: &models.BaseNameRecord{
+		Payload: &policyModels.BaseNameRecord{
 			Name:      "Test",
 			RuleNames: []string{"Test_qos"},
 		},
@@ -439,7 +439,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1", "Test"},
 		Handler:        getName,
 		ExpectedStatus: 200,
-		ExpectedResult: &models.BaseNameRecord{
+		ExpectedResult: &policyModels.BaseNameRecord{
 			Name:      "Test",
 			RuleNames: []string{"Test_qos"},
 		},
@@ -455,7 +455,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listNames,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.BaseNameRecord{
 			"Test": {
 				Name:      "Test",
 				RuleNames: []string{"Test_qos"},
@@ -488,7 +488,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        listNames,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*models.BaseNameRecord{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.BaseNameRecord{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 	tc.URL = "/magma/v1/networks/n1/policies/base_names"
@@ -528,13 +528,13 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create rule assigned to s1, s2
-	expectedP1 := &models.PolicyRule{
-		AssignedSubscribers: []models.SubscriberID{models.SubscriberID(imsi2), models.SubscriberID(imsi1)},
+	expectedP1 := &policyModels.PolicyRule{
+		AssignedSubscribers: []policyModels.SubscriberID{policyModels.SubscriberID(imsi2), policyModels.SubscriberID(imsi1)},
 		ID:                  "p1",
-		FlowList: []*models.FlowDescription{
+		FlowList: []*policyModels.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
+				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
 				},
@@ -565,7 +565,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	)
 
 	// Update rule to assign to s3
-	expectedP1.AssignedSubscribers = []models.SubscriberID{models.SubscriberID(imsi3)}
+	expectedP1.AssignedSubscribers = []policyModels.SubscriberID{policyModels.SubscriberID(imsi3)}
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/networks/n1/policies/rules/p1",
@@ -590,12 +590,12 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	)
 
 	// Create another policy p2 unbound to subs
-	expectedP2 := &models.PolicyRule{
+	expectedP2 := &policyModels.PolicyRule{
 		ID: "p2",
-		FlowList: []*models.FlowDescription{
+		FlowList: []*policyModels.FlowDescription{
 			{
 				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
+				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
 				},
@@ -615,10 +615,10 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Create base name bound to p1 and imsi1, imsi2
-	expectedBN := &models.BaseNameRecord{
+	expectedBN := &policyModels.BaseNameRecord{
 		Name:                "b1",
-		RuleNames:           models.RuleNames{"p1"},
-		AssignedSubscribers: []models.SubscriberID{models.SubscriberID(imsi2), models.SubscriberID(imsi1)},
+		RuleNames:           policyModels.RuleNames{"p1"},
+		AssignedSubscribers: []policyModels.SubscriberID{policyModels.SubscriberID(imsi2), policyModels.SubscriberID(imsi1)},
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -647,10 +647,10 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	)
 
 	// Update base name to bind to p2 and s3
-	expectedBN = &models.BaseNameRecord{
+	expectedBN = &policyModels.BaseNameRecord{
 		Name:                "b1",
-		RuleNames:           models.RuleNames{"p2"},
-		AssignedSubscribers: []models.SubscriberID{models.SubscriberID(imsi3)},
+		RuleNames:           policyModels.RuleNames{"p2"},
+		AssignedSubscribers: []policyModels.SubscriberID{policyModels.SubscriberID(imsi3)},
 	}
 	tc = tests.Test{
 		Method:         "PUT",
@@ -679,10 +679,10 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	)
 
 	// Update base name to bind to p1, p2, s1, s2, s3
-	expectedBN = &models.BaseNameRecord{
+	expectedBN = &policyModels.BaseNameRecord{
 		Name:                "b1",
-		RuleNames:           models.RuleNames{"p1", "p2"},
-		AssignedSubscribers: []models.SubscriberID{models.SubscriberID(imsi2), models.SubscriberID(imsi3), models.SubscriberID(imsi1)},
+		RuleNames:           policyModels.RuleNames{"p1", "p2"},
+		AssignedSubscribers: []policyModels.SubscriberID{policyModels.SubscriberID(imsi2), policyModels.SubscriberID(imsi3), policyModels.SubscriberID(imsi1)},
 	}
 	tc = tests.Test{
 		Method:         "PUT",
@@ -715,7 +715,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 }
 
 // config will be filled from the expected model
-func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *models.PolicyRule, expectedEnt configurator.NetworkEntity) {
+func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *policyModels.PolicyRule, expectedEnt configurator.NetworkEntity) {
 	expectedEnt.Config = getExpectedRuleConfig(expectedModel)
 
 	actual, err := configurator.LoadEntity("n1", lte.PolicyRuleEntityType, string(expectedModel.ID), configurator.FullEntityLoadCriteria())
@@ -733,8 +733,8 @@ func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expect
 	tests.RunUnitTest(t, e, tc)
 }
 
-func getExpectedRuleConfig(m *models.PolicyRule) *models.PolicyRuleConfig {
-	return &models.PolicyRuleConfig{
+func getExpectedRuleConfig(m *policyModels.PolicyRule) *policyModels.PolicyRuleConfig {
+	return &policyModels.PolicyRuleConfig{
 		FlowList:      m.FlowList,
 		MonitoringKey: m.MonitoringKey,
 		Priority:      m.Priority,
@@ -745,7 +745,7 @@ func getExpectedRuleConfig(m *models.PolicyRule) *models.PolicyRuleConfig {
 	}
 }
 
-func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expectedModel *models.BaseNameRecord, expectedEnt configurator.NetworkEntity) {
+func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expectedModel *policyModels.BaseNameRecord, expectedEnt configurator.NetworkEntity) {
 	actual, err := configurator.LoadEntity("n1", lte.BaseNameEntityType, string(expectedModel.Name), configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)

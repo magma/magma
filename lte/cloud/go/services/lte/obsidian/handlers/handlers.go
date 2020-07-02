@@ -13,7 +13,8 @@ import (
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
-	ltemodels "magma/lte/cloud/go/plugin/models"
+	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
+	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -129,9 +130,9 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &ltemodels.GatewayRanConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &ltemodels.GatewayNonEpsConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &ltemodels.EnodebSerials{})...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &ltemodels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(ltemodels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(ltemodels.BaseNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policymodels.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policymodels.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policymodels.BaseNames), "")...)
 	return ret
 }
 
@@ -583,9 +584,9 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 	}
 	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
 	if !exists || iSubscriberConfig == nil {
-		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
+		network.Configs[lte.NetworkSubscriberConfigType] = &policymodels.NetworkSubscriberConfig{}
 	}
-	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*ltemodels.NetworkSubscriberConfig)
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*policymodels.NetworkSubscriberConfig)
 	if !ok {
 		return fmt.Errorf("Unable to convert config %v", subscriberConfig)
 	}
@@ -604,13 +605,13 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 	if len(baseName) != 0 {
 		bnAlreadyExists := false
 		for _, existing := range subscriberConfig.NetworkWideBaseNames {
-			if existing == ltemodels.BaseName(baseName) {
+			if existing == policymodels.BaseName(baseName) {
 				bnAlreadyExists = true
 				break
 			}
 		}
 		if !bnAlreadyExists {
-			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, ltemodels.BaseName(baseName))
+			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, policymodels.BaseName(baseName))
 		}
 	}
 	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
@@ -623,9 +624,9 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 	}
 	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
 	if !exists || iSubscriberConfig == nil {
-		network.Configs[lte.NetworkSubscriberConfigType] = &ltemodels.NetworkSubscriberConfig{}
+		network.Configs[lte.NetworkSubscriberConfigType] = &policymodels.NetworkSubscriberConfig{}
 	}
-	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*ltemodels.NetworkSubscriberConfig)
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*policymodels.NetworkSubscriberConfig)
 	if !ok {
 		return fmt.Errorf("Unable to convert config")
 	}
@@ -635,7 +636,7 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 	}
 	if len(baseName) != 0 {
 		subscriberConfig.NetworkWideBaseNames = funk.Filter(subscriberConfig.NetworkWideBaseNames,
-			func(b ltemodels.BaseName) bool { return string(b) != baseName }).([]ltemodels.BaseName)
+			func(b policymodels.BaseName) bool { return string(b) != baseName }).([]policymodels.BaseName)
 	}
 	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
 }

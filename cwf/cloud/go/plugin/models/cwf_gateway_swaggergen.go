@@ -7,8 +7,8 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
-	models4 "magma/orc8r/cloud/go/models"
-	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	models5 "magma/orc8r/cloud/go/models"
+	models6 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -25,30 +25,30 @@ type CwfGateway struct {
 
 	// description
 	// Required: true
-	Description models4.GatewayDescription `json:"description"`
+	Description models5.GatewayDescription `json:"description"`
 
 	// device
 	// Required: true
-	Device *models5.GatewayDevice `json:"device"`
+	Device *models6.GatewayDevice `json:"device"`
 
 	// id
 	// Required: true
-	ID models4.GatewayID `json:"id"`
+	ID models5.GatewayID `json:"id"`
 
 	// magmad
 	// Required: true
-	Magmad *models5.MagmadGatewayConfigs `json:"magmad"`
+	Magmad *models6.MagmadGatewayConfigs `json:"magmad"`
 
 	// name
 	// Required: true
-	Name models4.GatewayName `json:"name"`
+	Name models5.GatewayName `json:"name"`
 
 	// status
-	Status *models5.GatewayStatus `json:"status,omitempty"`
+	Status *models6.GatewayStatus `json:"status,omitempty"`
 
 	// tier
 	// Required: true
-	Tier models5.TierID `json:"tier"`
+	Tier models6.TierID `json:"tier"`
 }
 
 // Validate validates this cwf gateway

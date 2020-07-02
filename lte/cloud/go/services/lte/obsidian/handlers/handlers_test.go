@@ -17,8 +17,9 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
-	lteModels "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -740,12 +741,12 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		Handler:        getSubscriberConfig,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(&lteModels.NetworkSubscriberConfig{}),
+		ExpectedResult: tests.JSONMarshaler(&policyModels.NetworkSubscriberConfig{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	subscriberConfig := &lteModels.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []lteModels.BaseName{"base1"},
+	subscriberConfig := &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"base1"},
 		NetworkWideRuleNames: []string{"rule1"},
 	}
 	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, subscriberConfig))
@@ -812,8 +813,8 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	deleteRuleName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/rule_names/:rule_id", obsidian.DELETE).HandlerFunc
 	deleteBaseName := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/subscriber_config/base_names/:base_name", obsidian.DELETE).HandlerFunc
 
-	subscriberConfig := &lteModels.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []lteModels.BaseName{"base1"},
+	subscriberConfig := &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"base1"},
 		NetworkWideRuleNames: []string{"rule1"},
 	}
 
@@ -865,7 +866,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	iSubscriberConfig, err := configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
 	assert.NoError(t, err)
-	assert.Equal(t, subscriberConfig, iSubscriberConfig.(*lteModels.NetworkSubscriberConfig))
+	assert.Equal(t, subscriberConfig, iSubscriberConfig.(*policyModels.NetworkSubscriberConfig))
 
 	newRuleNames := []string{"rule2"}
 	// happy case
@@ -881,7 +882,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	newBaseNames := []lteModels.BaseName{"base2"}
+	newBaseNames := []policyModels.BaseName{"base2"}
 	// happy case
 	tc = tests.Test{
 		Method:         "PUT",
@@ -897,13 +898,13 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 
 	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
 	assert.NoError(t, err)
-	actualSubscriberConfig := iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	actualSubscriberConfig := iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 
 	assert.ElementsMatch(t, newRuleNames, actualSubscriberConfig.NetworkWideRuleNames)
 	assert.ElementsMatch(t, newBaseNames, actualSubscriberConfig.NetworkWideBaseNames)
 
-	newSubscriberConfig := &lteModels.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []lteModels.BaseName{"base3"},
+	newSubscriberConfig := &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"base3"},
 		NetworkWideRuleNames: []string{"rule3"},
 	}
 	// happy case
@@ -921,7 +922,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 
 	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
 	assert.NoError(t, err)
-	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	actualSubscriberConfig = iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 
 	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
 
@@ -973,13 +974,13 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	newSubscriberConfig = &lteModels.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []lteModels.BaseName{"base3", "base4"},
+	newSubscriberConfig = &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"base3", "base4"},
 		NetworkWideRuleNames: []string{"rule3", "rule4"},
 	}
 	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
 	assert.NoError(t, err)
-	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	actualSubscriberConfig = iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
 
 	tc = tests.Test{
@@ -1006,13 +1007,13 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	newSubscriberConfig = &lteModels.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []lteModels.BaseName{"base3"},
+	newSubscriberConfig = &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"base3"},
 		NetworkWideRuleNames: []string{"rule3"},
 	}
 	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
 	assert.NoError(t, err)
-	actualSubscriberConfig = iSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	actualSubscriberConfig = iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
 }
 

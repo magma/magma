@@ -15,8 +15,8 @@ import (
 	"magma/feg/cloud/go/feg"
 	fegModels "magma/feg/cloud/go/plugin/models"
 	"magma/feg/cloud/go/services/health"
-	lteModels "magma/lte/cloud/go/plugin/models"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -83,16 +83,16 @@ func GetHandlers() []obsidian.Handler {
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkFederationPath, &fegModels.NetworkFederationConfigs{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkSubscriberPath, &lteModels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkRuleNamesPath, new(lteModels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkBaseNamesPath, new(lteModels.BaseNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegModels.GatewayFederationConfigs{})...)
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegLteNetworksPath, ManageFegLteNetworkPath, feg.FederatedLteNetworkType, &fegModels.FegLteNetwork{})...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkFederationPath, &fegModels.FederatedNetworkConfigs{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkSubscriberPath, &lteModels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkRuleNamesPath, new(lteModels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkBaseNamesPath, new(lteModels.BaseNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
 
 	return ret
 }

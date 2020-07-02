@@ -13,7 +13,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	fegModels "magma/feg/cloud/go/plugin/models"
 	"magma/lte/cloud/go/lte"
-	lteModels "magma/lte/cloud/go/plugin/models"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -84,7 +84,7 @@ func (m *CwfNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 		m.Features = cfg.(*orc8rModels.NetworkFeatures)
 	}
 	if cfg := n.Configs[lte.NetworkSubscriberConfigType]; cfg != nil {
-		m.SubscriberConfig = cfg.(*lteModels.NetworkSubscriberConfig)
+		m.SubscriberConfig = cfg.(*policyModels.NetworkSubscriberConfig)
 	}
 	return m
 }

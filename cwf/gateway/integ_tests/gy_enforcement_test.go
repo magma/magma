@@ -19,7 +19,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/lte/obsidian/models"
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"

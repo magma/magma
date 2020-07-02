@@ -13,7 +13,6 @@ import (
 	"net"
 
 	"magma/lte/cloud/go/services/cellular/utils"
-	"magma/orc8r/cloud/go/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	errors2 "github.com/go-openapi/errors"
@@ -180,18 +179,6 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 	return nil
 }
 
-func (m *NetworkSubscriberConfig) ValidateModel() error {
-	return m.Validate(strfmt.Default)
-}
-
-func (m BaseNames) ValidateModel() error {
-	return m.Validate(strfmt.Default)
-}
-
-func (m RuleNames) ValidateModel() error {
-	return m.Validate(strfmt.Default)
-}
-
 func (m *GatewayCellularConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
@@ -290,35 +277,6 @@ const (
 	lteAuthOpcLength = 16
 )
 
-func (m *MutableSubscriber) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	if err := m.Lte.ValidateModel(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *LteSubscription) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-
-	authKeyLen := len([]byte(m.AuthKey))
-	if authKeyLen != lteAuthKeyLength {
-		return models.ValidateErrorf("expected lte auth key to be %d bytes but got %d bytes", lteAuthKeyLength, authKeyLen)
-	}
-
-	// OPc is optional, but if it's provided it should be 16 bytes
-	authOpcLen := len([]byte(m.AuthOpc))
-	if authOpcLen > 0 && authOpcLen != lteAuthOpcLength {
-		return models.ValidateErrorf("expected lte auth opc to be %d bytes but got %d bytes", lteAuthOpcLength, authOpcLen)
-	}
-
-	return nil
-}
-
 func (m *EnodebState) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
@@ -336,38 +294,7 @@ func validateIPBlocks(ipBlocks []string) error {
 }
 
 // ValidateModel does standard swagger validation and any custom validation
-func (m *PolicyRule) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
-}
-
-// ValidateModel does standard swagger validation and any custom validation
-func (m *RatingGroup) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
-}
-
-// ValidateModel does standard swagger validation and any custom validation
-func (m *MutableRatingGroup) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
-}
-
-// ValidateModel does standard swagger validation and any custom validation
 func (m *Apn) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *IcmpStatus) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
