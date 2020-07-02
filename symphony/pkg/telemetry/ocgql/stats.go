@@ -5,7 +5,7 @@
 package ocgql
 
 import (
-	"go.opencensus.io/plugin/ocgrpc"
+	"go.opencensus.io/plugin/ochttp"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/stats/view"
 	"go.opencensus.io/tag"
@@ -38,6 +38,11 @@ var (
 		"Latency of GraphQL resolves",
 		stats.UnitMilliseconds,
 	)
+	ServerRequestComplexity = stats.Int64(
+		"graphql/server/request_complexity",
+		"Complexity of GraphQL requests",
+		stats.UnitDimensionless,
+	)
 )
 
 // The following tags are applied to stats recorded by this package.
@@ -57,7 +62,8 @@ var (
 
 // Default distributions used by views in this package.
 var (
-	DefaultLatencyDistribution = ocgrpc.DefaultMillisecondsDistribution
+	DefaultLatencyDistribution    = ochttp.DefaultLatencyDistribution
+	DefaultComplexityDistribution = view.Distribution(10, 50, 100, 250, 500, 1000, 5000, 10000, 50000, 100000, 500000)
 )
 
 // Package ocgql provides some convenience views for server measures.
@@ -126,6 +132,13 @@ var (
 		Measure:     ServerResolveCount,
 		Aggregation: view.Count(),
 	}
+
+	ServerRequestComplexityView = &view.View{
+		Name:        "graphql/server/request_complexity",
+		Description: "Complexity distribution of GraphQL requests",
+		Measure:     ServerRequestComplexity,
+		Aggregation: DefaultComplexityDistribution,
+	}
 )
 
 // DefaultServerViews are the default server views provided by this package.
@@ -138,4 +151,5 @@ var DefaultServerViews = []*view.View{
 	ServerResolveLatencyView,
 	ServerResolveCountByError,
 	ServerResolveCountByObjectField,
+	ServerRequestComplexityView,
 }

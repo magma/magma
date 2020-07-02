@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
 )
@@ -42,6 +43,15 @@ func (Metrics) InterceptResponse(ctx context.Context, next graphql.ResponseHandl
 	end := graphql.Now()
 
 	latency := float64(end.Sub(start)) / float64(time.Millisecond)
+	measurements := []stats.Measurement{
+		ServerRequestLatency.M(latency),
+		ServerResponseCount.M(1),
+	}
+	if complexity := extension.GetComplexityStats(ctx); complexity != nil {
+		measurements = append(measurements,
+			ServerRequestComplexity.M(int64(complexity.Complexity)),
+		)
+	}
 	tags := []tag.Mutator{
 		tag.Upsert(Error, strconv.FormatBool(
 			graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)),
@@ -50,8 +60,7 @@ func (Metrics) InterceptResponse(ctx context.Context, next graphql.ResponseHandl
 	_ = stats.RecordWithTags(
 		ctx,
 		tags,
-		ServerRequestLatency.M(latency),
-		ServerResponseCount.M(1),
+		measurements...,
 	)
 	return rsp
 }
