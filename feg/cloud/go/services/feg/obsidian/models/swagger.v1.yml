@@ -957,6 +957,10 @@ definitions:
         x-nullable: false
         example: true
         default: true
+      event_logging_enabled:
+        type: boolean
+        x-nullable: false
+        default: false
 
   served_network_ids:
     type: array

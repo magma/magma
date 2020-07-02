@@ -21,6 +21,9 @@ type AaaServer struct {
 	// create session on auth
 	CreateSessionOnAuth bool `json:"create_session_on_auth,omitempty"`
 
+	// event logging enabled
+	EventLoggingEnabled bool `json:"event_logging_enabled,omitempty"`
+
 	// idle session timeout ms
 	IDLESessionTimeoutMs uint32 `json:"idle_session_timeout_ms,omitempty" magma_alt_name:"IdleSessionTimeoutMs"`
 }
