@@ -69,6 +69,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			ThrottleWindow:   5,
 			ThrottleInterval: "1m",
 		},
+		"eventd": &mconfig.EventD{
+			LogLevel:       protos.LogLevel_INFO,
+			EventVerbosity: -1,
+		},
 	}
 	assert.Equal(t, expected, actual)
 	// Put a tier in the graph
@@ -116,6 +120,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			ThrottleWindow:   5,
 			ThrottleInterval: "1m",
 		},
+		"eventd": &mconfig.EventD{
+			LogLevel:       protos.LogLevel_INFO,
+			EventVerbosity: -1,
+		},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -140,6 +148,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				ThrottleWindow:   &testThrottleWindow,
 				ThrottleInterval: &testThrottleInterval,
 			},
+			EventVerbosity: swag.Int32(0),
 		},
 	}
 	graph = configurator.EntityGraph{
@@ -178,9 +187,12 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				"blah":  "/some/directory/blah.log",
 			},
 		},
+		"eventd": &mconfig.EventD{
+			LogLevel:       protos.LogLevel_INFO,
+			EventVerbosity: 0,
+		},
 	}
 	assert.Equal(t, expected, actual)
-
 	// Check default values for log throttling
 	gw.Config = &models.MagmadGatewayConfigs{
 		AutoupgradeEnabled:      swag.Bool(true),
@@ -234,6 +246,10 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 				"thing": "/var/log/thing.log",
 				"blah":  "/some/directory/blah.log",
 			},
+		},
+		"eventd": &mconfig.EventD{
+			LogLevel:       protos.LogLevel_INFO,
+			EventVerbosity: -1,
 		},
 	}
 	assert.Equal(t, expected, actual)

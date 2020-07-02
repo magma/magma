@@ -22,6 +22,9 @@ type GatewayLoggingConfigs struct {
 	// aggregation
 	Aggregation *AggregationLoggingConfigs `json:"aggregation,omitempty"`
 
+	// event verbosity
+	EventVerbosity *int32 `json:"event_verbosity,omitempty"`
+
 	// log level
 	// Required: true
 	// Enum: [DEBUG INFO WARNING ERROR FATAL]

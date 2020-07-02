@@ -1438,6 +1438,11 @@ definitions:
           - WARNING
           - ERROR
           - FATAL
+      event_verbosity:
+        type: integer
+        format: int32
+        example: 0
+        x-nullable: true
       aggregation:
         $ref: '#/definitions/aggregation_logging_configs'
 
