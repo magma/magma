@@ -1,115 +1,35 @@
-From d5c701eeb4318839ac61322821367fd28cf90edc Mon Sep 17 00:00:00 2001
+From 281349544ce3c346fa94da56ffa16d38239549c6 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
-Date: Tue, 7 Apr 2020 08:24:19 +0000
-Subject: [PATCH 7/8] OVS: gtp echo handling
+Date: Mon, 29 Jun 2020 02:45:36 +0000
+Subject: [PATCH 18/19] OVS: gtp echo handling
 
-response works
+This uses OVS BFD module to send ech msgs.
 
 testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a01
-
-rm pmtu update
-
-improve echo recovery
 ---
- datapath/linux/compat/gtp.c    |  30 +---
- include/openvswitch/packets.h  |  21 ++-
+ include/openvswitch/packets.h  |  16 ++
  lib/bfd.c                      |  81 ++++++++--
  lib/bfd.h                      |   4 +-
  lib/netdev-provider.h          |   8 +
  lib/netdev-vport-private.h     |   1 +
- lib/netdev-vport.c             | 265 +++++++++++++++++++++++++++++++-
+ lib/netdev-vport.c             | 263 +++++++++++++++++++++++++++++++
  lib/netdev.c                   |  38 +++++
  lib/netdev.h                   |  11 ++
- lib/packets.h                  |  12 ++
  ofproto/ofproto-dpif-monitor.c |  13 +-
  ofproto/ofproto-dpif-xlate.c   |  35 +++--
  ofproto/ofproto-dpif-xlate.h   |   2 +
- ofproto/ofproto-dpif.c         |  17 +++
+ ofproto/ofproto-dpif.c         |  17 ++
  ofproto/ofproto-dpif.h         |   2 +
  tests/automake.mk              |   3 +
- tests/odp.at                   |   1 +
- tests/ofproto.at               |   4 +-
  tests/system-common-macros.at  |  19 +++
- tests/system-layer3-tunnels.at | 270 ++++++++++++++++++++++++++-------
- tests/test-gtp.c               | 111 ++++++++++++++
- tests/tunnel.at                |  28 +++-
- 22 files changed, 863 insertions(+), 113 deletions(-)
- create mode 100644 tests/test-gtp.c
+ tests/system-layer3-tunnels.at | 273 ++++++++++++++++++++++++++-------
+ 16 files changed, 704 insertions(+), 82 deletions(-)
 
-diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
-index 1fa61983d..414911df5 100644
---- a/datapath/linux/compat/gtp.c
-+++ b/datapath/linux/compat/gtp.c
-@@ -608,11 +608,10 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
- {
- 	struct ip_tunnel_info *info = skb_tunnel_info(skb);
- 	struct gtp_dev *gtp = netdev_priv(dev);
--	struct iphdr *iph = ip_hdr(skb);
- 	struct rtable *rt;
- 	struct flowi4 fl4;
- 	__be16 df;
--	int mtu;
-+        u8 ttl;
- 
- 	/* Read the IP destination address and resolve the PDP context.
- 	 * Prepend PDP header with TEI/TID from PDP ctx.
-@@ -630,27 +629,8 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
- 	}
- 
- 	skb_dst_drop(skb);
--
--	df = iph->frag_off;
--	if (df) {
--		mtu = dst_mtu(&rt->dst) - dev->hard_header_len -
--			sizeof(struct iphdr) - sizeof(struct udphdr);
--		mtu -= sizeof(struct gtp1_header);
--	} else {
--		mtu = dst_mtu(&rt->dst);
--	}
--#ifndef HAVE_DST_OPS_CONFIRM_NEIGH
--	rt->dst.ops->update_pmtu(&rt->dst, NULL, skb, mtu);
--#else
--	rt->dst.ops->update_pmtu(&rt->dst, NULL, skb, mtu, false);
--#endif
--
--	if (!skb_is_gso(skb) && (iph->frag_off & htons(IP_DF)) &&
--	    mtu < ntohs(iph->tot_len)) {
--		netdev_dbg(dev, "packet too big, fragmentation needed\n");
--		dev->stats.tx_carrier_errors++;
--		goto err_rt;
--	}
-+        ttl = info->key.ttl;
-+        df = info->key.tun_flags & TUNNEL_DONT_FRAGMENT ? htons(IP_DF) : 0;
- 
-         netdev_dbg(dev, "packet with opt len %d", info->options_len);
- 	if (info->options_len == 0) {
-@@ -670,9 +650,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
-                 goto err_rt;
-         }
- 	udp_tunnel_xmit_skb(rt, gtp->sk1u, skb,
--			    fl4.saddr, fl4.daddr, fl4.flowi4_tos,
--			    ip4_dst_hoplimit(&rt->dst),
--			    0,
-+			    fl4.saddr, fl4.daddr, fl4.flowi4_tos, ttl, df,
- 			    gtp->gtph_port, gtp->gtph_port,
- 			    true, false);
- 
 diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
-index ecae3f55a..91eeee553 100644
+index 236ae26cc..2f3fa3191 100644
 --- a/include/openvswitch/packets.h
 +++ b/include/openvswitch/packets.h
-@@ -43,7 +43,9 @@ struct flow_tnl {
-     uint32_t erspan_idx;
-     uint8_t erspan_dir;
-     uint8_t erspan_hwid;
--    uint8_t pad1[6];     /* Pad to 64 bits. */
-+    uint8_t gtp_msg_flags;
-+    uint8_t gtp_msg_type;
-+    uint8_t pad1[4];     /* Pad to 64 bits. */
-     struct tun_metadata metadata;
- };
- 
-@@ -91,6 +93,23 @@ struct ovs_key_nsh {
+@@ -93,6 +93,22 @@ struct ovs_key_nsh {
  
  #define FLOW_NSH_F_MASK ((1 << 2) - 1)
  
@@ -118,7 +38,6 @@ index ecae3f55a..91eeee553 100644
 +    ovs_be16	    seq;
 +    // we do not need rest of header.
 +} __attribute__ ((packed));
-+
 +
 +struct gtpv1_tlv {
 +    uint8_t type;
@@ -364,7 +283,7 @@ index d89a28c66..3c82d5837 100644
  
  int netdev_vport_construct(struct netdev *);
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 8bd2d6760..bf77d044a 100644
+index 012e8034f..28e73d711 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -29,6 +29,7 @@
@@ -383,7 +302,7 @@ index 8bd2d6760..bf77d044a 100644
  #include "openvswitch/dynamic-string.h"
  #include "ovs-router.h"
  #include "packets.h"
-@@ -199,6 +201,7 @@ netdev_vport_construct(struct netdev *netdev_)
+@@ -198,6 +200,7 @@ netdev_vport_construct(struct netdev *netdev_)
  
      ovs_mutex_init(&dev->mutex);
      eth_addr_random(&dev->etheraddr);
@@ -391,7 +310,7 @@ index 8bd2d6760..bf77d044a 100644
  
      if (name && dpif_port && (strlen(name) > strlen(dpif_port) + 1) &&
          (!strncmp(name, dpif_port, strlen(dpif_port)))) {
-@@ -1115,6 +1118,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
+@@ -1116,6 +1119,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
  
  
  #ifdef __linux__
@@ -450,17 +369,17 @@ index 8bd2d6760..bf77d044a 100644
 +    struct netdev_vport *dev = netdev_vport_cast(netdev);
 +
 +    if (wc) {
-+        memset(&wc->masks.tunnel.gtp_msg_type, 0xff, sizeof wc->masks.tunnel.gtp_msg_type);
++        memset(&wc->masks.tunnel.gtpu_msgtype, 0xff, sizeof wc->masks.tunnel.gtpu_msgtype);
 +        memset(&wc->masks.tunnel.ip_dst, 0xff, sizeof wc->masks.tunnel.ip_dst);
 +    }
 +    
 +    VLOG_DBG("gtp flags %x msg_type %d dev->tnl_cfg.dst_port %d == (%d, %d) flow "IP_FMT" cfg "IP_FMT,
-+            flow->tunnel.gtp_msg_flags, flow->tunnel.gtp_msg_type, dev->tnl_cfg.dst_port,
++            flow->tunnel.gtpu_flags, flow->tunnel.gtpu_msgtype, dev->tnl_cfg.dst_port,
 +            flow->tunnel.tp_src, flow->tunnel.tp_dst,
 +            IP_ARGS(flow->tunnel.ip_dst), IP_ARGS(in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_src)));
 +
-+    *res = (flow->tunnel.gtp_msg_type == 1) &&                  // echo request msg type
-+           (flow->tunnel.gtp_msg_flags == 0x32) &&              // needs seq in packet.
++    *res = (flow->tunnel.gtpu_msgtype == 1) &&                  // echo request msg type
++           (flow->tunnel.gtpu_flags == 0x32) &&              // needs seq in packet.
 +           (flow->tunnel.ip_dst == in6_addr_get_mapped_ipv4(&dev->tnl_cfg.ipv6_src)) &&
 +           (flow->tunnel.tp_src == dev->tnl_cfg.dst_port) &&
 +           (flow->tunnel.tp_dst == dev->tnl_cfg.dst_port);
@@ -503,7 +422,7 @@ index 8bd2d6760..bf77d044a 100644
 +
 +        if (dp_packet_size(p) >= sizeof(struct gtp1_cntr_echo_req_header) &&
 +            dp_packet_data(p) != NULL &&
-+            flow->tunnel.gtp_msg_flags & GTP_FLAGS_SEQ) {
++            flow->tunnel.gtpu_flags & GTP_FLAGS_SEQ) {
 +            hdr = dp_packet_data(p);
 +            kai->seq = ntohs(hdr->seq);
 +            VLOG_DBG("got seq %d", kai->seq);
@@ -512,7 +431,7 @@ index 8bd2d6760..bf77d044a 100644
 +        }
 +        kai->timestamp = time_wall_msec();
 +        kai->need_to_send = true;
-+        kai->flags = flow->tunnel.gtp_msg_flags;
++        kai->flags = flow->tunnel.gtpu_flags;
 +        kai->csum = !!(flow->tunnel.flags & FLOW_TNL_F_CSUM);
 +        kai->rx_cnt++;
 +    }
@@ -532,8 +451,8 @@ index 8bd2d6760..bf77d044a 100644
 +    ovs_be32 ip_src_flow;
 +    __u8 ttl;
 +    __u8 tos;
-+    __u8 gtp_msg_type;
-+    __u8 gtp_msg_flags;
++    __u8 gtpu_msgtype;
++    __u8 gtpu_flags;
 +
 +    ovs_mutex_lock(&dev->mutex);
 +    ip_src_flow = dev->tnl_cfg.ip_src_flow;
@@ -560,15 +479,15 @@ index 8bd2d6760..bf77d044a 100644
 +
 +    ttl = MAXTTL;
 +    tos = IPTOS_PREC_INTERNETCONTROL;
-+    gtp_msg_type = 2;
-+    gtp_msg_flags = found->flags;
++    gtpu_msgtype = 2;
++    gtpu_flags = found->flags;
 +
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_SRC), &ip_src_flow, &ip_src_flow);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_DST), &found->ip_src, &found->ip_src);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_TOS), &tos, &tos);
 +    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_TTL), &ttl, &ttl);
-+    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTP_FLAGS), &gtp_msg_flags, &gtp_msg_flags);
-+    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTP_MSG_TYPE), &gtp_msg_type, &gtp_msg_type);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTPU_FLAGS), &gtpu_flags, &gtpu_flags);
++    ofpact_put_set_field(ofpacts, mf_from_id(MFF_TUN_GTPU_MSGTYPE), &gtpu_msgtype, &gtpu_msgtype);
 +
 +    if (found->csum || 1) {
 +        __be16 csum = htons(FLOW_TNL_F_CSUM);
@@ -648,12 +567,10 @@ index 8bd2d6760..bf77d044a 100644
  static int
  netdev_vport_get_ifindex(const struct netdev *netdev_)
  {
-@@ -1205,7 +1458,11 @@ netdev_vport_tunnel_register(void)
-         { "gtp_sys",
-           {
-               TUNNEL_FUNCTIONS_COMMON,
--              .type = "gtp"
-+              .type = "gtp",
+@@ -1241,6 +1494,10 @@ netdev_vport_tunnel_register(void)
+               .build_header = netdev_gtpu_build_header,
+               .push_header = netdev_gtpu_push_header,
+               .pop_header = netdev_gtpu_pop_header,
 +              .should_send_keep_alive_pkt = gtp_should_send_keep_alive_pkt,
 +              .is_keep_alive_pkt = gtp_is_keep_alive_pkt,
 +              .process_keep_alive_pkt = gtp_process_keep_alive_pkt,
@@ -661,7 +578,7 @@ index 8bd2d6760..bf77d044a 100644
            },
            {{NULL, NULL, 0, 0}}
          },
-@@ -1254,6 +1511,12 @@ netdev_vport_tunnel_register(void)
+@@ -1259,6 +1516,12 @@ netdev_vport_tunnel_register(void)
          unixctl_command_register("tnl/egress_port_range", "min max", 0, 2,
                                   netdev_tnl_egress_port_range, NULL);
  
@@ -742,33 +659,6 @@ index 28e700098..4af645993 100644
  /* Iterates through each queue in NETDEV, using DUMP as state.  Fills QUEUE_ID
   * and DETAILS with information about queues.  The client must initialize and
   * destroy DETAILS.
-diff --git a/lib/packets.h b/lib/packets.h
-index 8f3ff943d..f9aa3f8ba 100644
---- a/lib/packets.h
-+++ b/lib/packets.h
-@@ -1667,10 +1667,22 @@ enum {
-     GTP_CONTROL_PKT_INFO_V1
- };
- 
-+/*
-+ * GTP flags:
-+ * 001-  ----    Version: GTP release 99: ver (1)
-+ * ---1  ----    Protocol type: GTP(1)
-+ * ----  0---    Reserved.
-+ * ----  -1--    Extension header present.
-+ * ----  --1-    Seq number is present.
-+ * ----  ---1    Is N-PDU number present.
-+ * */
-+
- struct gtp1_control_pkt_opts {
-     __u8	ver;
-     __u8	flags;
-     __u8	type;
- };
- 
-+#define GTP_FLAGS_SEQ   0x02
-+
- #endif /* packets.h */
 diff --git a/ofproto/ofproto-dpif-monitor.c b/ofproto/ofproto-dpif-monitor.c
 index bb0e49091..42bf211e9 100644
 --- a/ofproto/ofproto-dpif-monitor.c
@@ -803,10 +693,10 @@ index bb0e49091..42bf211e9 100644
                  MSEC_TO_PRIO(next_wake_time));
  }
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 36b40f5f3..eb15e0736 100644
+index 2a637a921..c157c86d6 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -7915,17 +7915,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
+@@ -7912,17 +7912,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
   * May modify 'packet'.
   * Returns 0 if successful, otherwise a positive errno value. */
  int
@@ -827,7 +717,7 @@ index 36b40f5f3..eb15e0736 100644
      flow_extract(packet, &flow);
      flow.in_port.ofp_port = OFPP_NONE;
  
-@@ -7934,19 +7931,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
+@@ -7931,19 +7928,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
          return EINVAL;
      }
  
@@ -934,34 +824,6 @@ index 86e006426..2a6cbb33e 100644
  # Python tests.
  CHECK_PYFILES = \
  	tests/appctl.py \
-diff --git a/tests/odp.at b/tests/odp.at
-index 3ab9ad62d..166407097 100644
---- a/tests/odp.at
-+++ b/tests/odp.at
-@@ -325,6 +325,7 @@ pop_vlan
- sample(sample=9.7%,actions(1,2,3,push_vlan(vid=1,pcp=2)))
- set(tunnel(tun_id=0xabcdef1234567890,src=1.1.1.1,dst=2.2.2.2,ttl=64,flags(df|csum|key)))
- set(tunnel(tun_id=0xabcdef1234567890,src=1.1.1.1,dst=2.2.2.2,ttl=64,flags(key)))
-+set(tunnel(tun_id=0x0,dst=1.1.1.1,ttl=64,tp_dst=2152,gtp_opt(ver=0,flags=0x32,type=0x1),flags(df|key))),pop_eth,2152
- tnl_pop(4)
- tnl_push(tnl_port(4),header(size=42,type=3,eth(dst=f8:bc:12:44:34:b6,src=f8:bc:12:46:58:e0,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=47,tos=0,ttl=64,frag=0x4000),gre((flags=0x2000,proto=0x6558),key=0x1e241)),out_port(1))
- tnl_push(tnl_port(4),header(size=46,type=3,eth(dst=f8:bc:12:44:34:b6,src=f8:bc:12:46:58:e0,dl_type=0x0800),ipv4(src=1.1.2.88,dst=1.1.2.92,proto=47,tos=0,ttl=64,frag=0x4000),gre((flags=0xa000,proto=0x6558),csum=0x0,key=0x1e241)),out_port(1))
-diff --git a/tests/ofproto.at b/tests/ofproto.at
-index 23a5e1505..02298a819 100644
---- a/tests/ofproto.at
-+++ b/tests/ofproto.at
-@@ -2350,9 +2350,9 @@ head_table () {
-       instructions: meter apply_actions clear_actions write_actions write_metadata goto_table
-       Write-Actions and Apply-Actions features:
-         actions: output group set_field strip_vlan push_vlan mod_nw_ttl dec_ttl set_mpls_ttl dec_mpls_ttl push_mpls pop_mpls set_queue
--        supported on Set-Field: tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},metadata0...metadata63} metadata in_{port,port_oxm} pkt_mark ct_{mark,label} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid,pcp} mpls_{label,tc,ttl} ip_{src,dst} ipv6_{src,dst,label} nw_tos ip_dscp nw_{ecn,ttl} arp_{op,spa,tpa,sha,tha} tcp_{src,dst} udp_{src,dst} sctp_{src,dst} icmp_{type,code} icmpv6_{type,code} nd_{target,sll,tll,reserved,options_type} nsh_{flags,spi,si,c1...c4,ttl}
-+        supported on Set-Field: tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtp_{flags,msg_type},metadata0...metadata63} metadata in_{port,port_oxm} pkt_mark ct_{mark,label} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid,pcp} mpls_{label,tc,ttl} ip_{src,dst} ipv6_{src,dst,label} nw_tos ip_dscp nw_{ecn,ttl} arp_{op,spa,tpa,sha,tha} tcp_{src,dst} udp_{src,dst} sctp_{src,dst} icmp_{type,code} icmpv6_{type,code} nd_{target,sll,tll,reserved,options_type} nsh_{flags,spi,si,c1...c4,ttl}
-     matching:
--      arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4}
-+      arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtp_{flags,msg_type},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4}
-       exact match or wildcard: recirc_id packet_type conj_id in_{port,port_oxm} actset_output ct_{zone,nw_proto} eth_type vlan_pcp mpls_{label,tc,bos,ttl} nw_{proto,tos} ip_dscp nw_{ecn,ttl} arp_op icmp_{type,code} icmpv6_{type,code} nd_{reserved,options_type} nsh_{mdtype,np,spi,si,ttl}
- 
- ' "$1"
 diff --git a/tests/system-common-macros.at b/tests/system-common-macros.at
 index 3643cc18d..e33bb62c9 100644
 --- a/tests/system-common-macros.at
@@ -993,7 +855,7 @@ index 3643cc18d..e33bb62c9 100644
  #                [tunnel-args])
  #
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index fe8a94555..e6bb632f1 100644
+index 141a7afb4..4bbb2198e 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
 @@ -49,58 +49,6 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
@@ -1012,11 +874,11 @@ index fe8a94555..e6bb632f1 100644
 -ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
 -AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
 -AT_CHECK([ip link set dev br-underlay up])
+-AT_CHECK([modprobe vport-gtp])
 -
 -dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 -dnl linux device inside the namespace.
--
--ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
+-ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
 -AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 -NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
 -NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
@@ -1055,10 +917,11 @@ index fe8a94555..e6bb632f1 100644
  AT_SETUP([layer3 - ping over GRE])
  OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
  OVS_CHECK_GRE_L3()
-@@ -205,3 +153,221 @@ AT_CHECK([tail -1 stdout], [0],
+@@ -205,3 +153,224 @@ AT_CHECK([tail -1 stdout], [0],
  
  OVS_VSWITCHD_STOP
  AT_CLEANUP
++
 +AT_SETUP([layer3 - ping over GTP])
 +OVS_TRAFFIC_VSWITCHD_START([set Bridge br0 other-config:hwaddr="00:12:34:56:78:bb"])
 +OVS_CHECK_GTP_L3()
@@ -1071,11 +934,12 @@ index fe8a94555..e6bb632f1 100644
 +ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
 +AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
 +AT_CHECK([ip link set dev br-underlay up])
++AT_CHECK([modprobe vport_gtp])
 +
 +dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 +dnl linux device inside the namespace.
 +
-+ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
 +NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
@@ -1126,15 +990,15 @@ index fe8a94555..e6bb632f1 100644
 +dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 +dnl linux device inside the namespace.
 +
-+ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++AT_CHECK([modprobe vport_gtp])
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +
 +NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
 +
 +AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
 +
-+dnl Now add rules for OVS to forward to the tunnel and local port
-+AT_CHECK([ovs-ofctl add-flow br0 "priority=100 in_port=at_gtp0,tun_gtp_msg_type=1,tun_gtp_flags=0x32 action=drop"])
++AT_CHECK([ovs-ofctl add-flow br0 "priority=100 in_port=at_gtp0,tun_gtpu_msgtype=1,tun_gtpu_flags=0x32 action=drop"])
 +
 +dnl First, check the underlay
 +NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 172.31.1.100 | FORMAT_PING], [0], [dnl
@@ -1146,8 +1010,8 @@ index fe8a94555..e6bb632f1 100644
 +    
 +NS_CHECK_EXEC([at_ns0], [test-gtp 172.31.1.100 3201000a0000000000010000ff0003000a01], [0], [ignore])
 +
-+AT_CHECK([ovs-ofctl dump-flows br0 | ofctl_strip | grep gtp_msg_flags], [0], [dnl
-+ n_packets=1, n_bytes=10, priority=100,gtp_msg_flags=0x32,gtp_msg_type=0x1,in_port=1 actions=drop
++AT_CHECK([ovs-ofctl dump-flows br0 | ofctl_strip | grep gtpu], [0], [dnl
++ n_packets=1, n_bytes=10, priority=100,gtpu_flags=0x32,gtpu_msgtype=1,in_port=1 actions=drop
 +])
 +
 +OVS_TRAFFIC_VSWITCHD_STOP
@@ -1164,11 +1028,12 @@ index fe8a94555..e6bb632f1 100644
 +ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
 +AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
 +AT_CHECK([ip link set dev br-underlay up])
++AT_CHECK([modprobe vport_gtp])
 +
 +dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 +dnl linux device inside the namespace.
 +
-+ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24], [options:local_ip=172.31.1.100])
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24], [options:local_ip=172.31.1.100])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +
 +NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
@@ -1205,7 +1070,7 @@ index fe8a94555..e6bb632f1 100644
 +OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0000:.*0800 4500"                                     2>&1 1>/dev/null])
 +OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0010:.*ac1f 0164 ac1f"       2>&1 1>/dev/null])
 +OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0014 5ac9 3202 0004 0000"       2>&1 1>/dev/null])
-+OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0030:  0000 0003 00e0"                                2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0030:  0000 0003 0e00"                                2>&1 1>/dev/null])
 +
 +OVS_TRAFFIC_VSWITCHD_STOP
 +AT_CLEANUP
@@ -1224,10 +1089,11 @@ index fe8a94555..e6bb632f1 100644
 +AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
 +AT_CHECK([ip link set dev br-underlay up])
 +
++AT_CHECK([modprobe vport_gtp])
 +dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 +dnl linux device inside the namespace.
 +
-+ADD_OVS_TUNNEL_NO_REMOTE([gtp], [br0], [at_gtp0], [10.1.1.2/24], [options:local_ip=172.31.1.100])
++ADD_OVS_TUNNEL_NO_REMOTE([gtpu], [br0], [at_gtp0], [10.1.1.2/24], [options:local_ip=172.31.1.100])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +
 +NS_CHECK_EXEC([at_ns0], [ip link set dev p0 mtu 1480 up])
@@ -1275,167 +1141,6 @@ index fe8a94555..e6bb632f1 100644
 +])
 +
 +OVS_TRAFFIC_VSWITCHD_STOP
-+AT_CLEANUP
-+
-diff --git a/tests/test-gtp.c b/tests/test-gtp.c
-new file mode 100644
-index 000000000..aede93daf
---- /dev/null
-+++ b/tests/test-gtp.c
-@@ -0,0 +1,111 @@
-+#include <config.h>
-+#include <sys/types.h>
-+#include <sys/socket.h>
-+#include <netinet/in.h>
-+#include <arpa/inet.h>
-+#include <string.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+
-+#define DST_PORT  2152
-+#define SRC_PORT  2152
-+
-+
-+static int
-+charToHex(char ch)
-+{
-+        if (ch >= 'A' && ch <= 'F') {
-+                return 10 + (ch - 'A');
-+        }
-+        if (ch >= 'a' && ch <= 'f') {
-+                return 10 + (ch - 'a');
-+        }
-+        if (ch >= '0' && ch <= '9') {
-+                return ch - '0';
-+        }
-+        return -1;
-+}
-+
-+int
-+main(int argc, char *argv[])
-+{
-+    struct sockaddr_in addr, srcaddr;
-+    int fd;
-+    unsigned char *msg;
-+    char *str_buf;
-+    char *dst_ip;
-+    int len, i, j;
-+
-+    if (argc != 3) {
-+        printf("two param expected\n");
-+        exit(1);
-+    }
-+
-+    dst_ip = argv[1];
-+    printf("dst IP %s\n", dst_ip);
-+    str_buf = argv[2];
-+    len = strlen(str_buf);
-+
-+    if (len % 2) {
-+        printf("len should be multiple of 2\n");
-+        exit (1);
-+    }
-+
-+    msg = calloc(1, len);
-+    if (!msg) {
-+        exit(1);
-+    }
-+    j = 0;
-+    for (i = 0; i < len; i+=2) {
-+
-+        int d1 = charToHex(str_buf[i]);
-+        if (d1 < 0) {
-+                printf("buf parse error\n");
-+                exit (1);
-+        }
-+        int d2 = charToHex(str_buf[i+1]);
-+        if (d2 < 0) {
-+                printf("buf parse error\n");
-+                exit (1);
-+        }
-+        msg[j++] = (d1 << 4) | d2;
-+    }
-+    len = len / 2;
-+
-+#if 0
-+    printf("%d: ", len);
-+    for (i = 0; i < len; i++) {
-+        printf("%x", (int)msg[i]);
-+    }
-+    printf("\n");
-+#endif
-+
-+    if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-+        perror("socket");
-+        exit(1);
-+    }
-+
-+    memset(&addr, 0, sizeof(addr));
-+    addr.sin_family = AF_INET;
-+    addr.sin_addr.s_addr = inet_addr(dst_ip);
-+    addr.sin_port = htons(DST_PORT);
-+
-+    memset(&srcaddr, 0, sizeof(srcaddr));
-+    srcaddr.sin_family = AF_INET;
-+    srcaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-+    srcaddr.sin_port = htons(SRC_PORT);
-+
-+    if (bind(fd, (struct sockaddr *) &srcaddr, sizeof(srcaddr)) < 0) {
-+        perror("bind");
-+        exit(1);
-+    }
-+
-+    if (sendto(fd, msg, len, 0, (struct sockaddr *) &addr,
-+                sizeof(addr)) < 0) {
-+        perror("sendto");
-+    }
-+    printf("done\n");
-+    close(fd);
-+    return 0;
-+}
-diff --git a/tests/tunnel.at b/tests/tunnel.at
-index 76261af44..8c1a152ae 100644
---- a/tests/tunnel.at
-+++ b/tests/tunnel.at
-@@ -1090,7 +1090,7 @@ AT_CHECK([tail -1 stdout], [0],
- OVS_VSWITCHD_STOP
- AT_CLEANUP
- 
--AT_SETUP([tunnel - GTP-C using tun optios])
-+AT_SETUP([tunnel - GTP-U])
- OVS_VSWITCHD_START([add-port br0 p1 -- set Interface p1 type=gtp \
-                     options:remote_ip=1.1.1.1 options:key=flow ofport_request=1 \
-                     -- add-port br0 p2 -- set Interface p2 type=dummy \
-@@ -1117,3 +1117,29 @@ AT_CHECK([tail -1 stdout], [0],
- ])
- OVS_VSWITCHD_STOP
- AT_CLEANUP
-+
-+AT_SETUP([tunnel - GTP-C using tun options])
-+OVS_VSWITCHD_START([add-port br0 p1 -- set Interface p1 type=gtp \
-+                    options:remote_ip=1.1.1.1 options:key=flow ofport_request=1 \
-+                    -- add-port br0 p2 -- set Interface p2 type=dummy \
-+                    ofport_request=2 ofport_request=2 \
-+                    -- add-port br0 p3 -- set Interface p3 type=gtp \
-+                    options:remote_ip=2.2.2.2 options:key=123 ofport_request=3])
-+OVS_VSWITCHD_DISABLE_TUNNEL_PUSH_POP
-+
-+AT_DATA([flows.txt], [dnl
-+actions=load:0x1->NXM_NX_MFF_TUN_GTP_MSG_TYPE[[]],load:0x32->NXM_NX_MFF_TUN_GTP_FLAGS[[]],output:1
-+])
-+AT_CHECK([ovs-ofctl add-flows br0 flows.txt])
-+
-+AT_CHECK([ovs-ofctl dump-flows br0], [0], [stdout])
-+AT_CHECK([strip_xids < stdout | sed -n 's/duration=[[0-9]]*\.[[0-9]]*s/duration=0.0s/p' | sort], [0], [dnl
-+ cookie=0x0, duration=0.0s, table=0, n_packets=0, n_bytes=0, idle_age=0, actions=load:0x1->NXM_NX_MFF_TUN_GTP_MSG_TYPE[[]],load:0x32->NXM_NX_MFF_TUN_GTP_FLAGS[[]],output:1
-+])
-+
-+AT_CHECK([ovs-appctl ofproto/trace ovs-dummy 'in_port(2),eth(src=50:54:00:00:00:05,dst=50:54:00:00:00:07),eth_type(0x0800),ipv4(src=192.168.0.1,dst=192.168.0.2,proto=6,tos=4,ttl=128,frag=no),tcp(src=8,dst=9)'], [0], [stdout])
-+AT_CHECK([tail -1 stdout], [0],
-+  [Datapath actions: set(tunnel(tun_id=0x0,dst=1.1.1.1,ttl=64,tp_dst=2152,gtp_opt(ver=0,flags=0x32,type=0x1),flags(df|key))),pop_eth,2152
-+])
-+OVS_VSWITCHD_STOP
 +AT_CLEANUP
 -- 
 2.17.1

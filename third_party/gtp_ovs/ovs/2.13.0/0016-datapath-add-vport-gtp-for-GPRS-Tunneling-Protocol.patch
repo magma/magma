@@ -1,22 +1,21 @@
-From 673cae6c50266822b87bd68ae27265f3819dfeb4 Mon Sep 17 00:00:00 2001
+From eaff74132a8b19723bf86c60dc64e5ab919a6c98 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:45:17 +0000
-Subject: [PATCH 2/8] datapath: add vport-gtp for GPRS Tunneling Protocol
+Subject: [PATCH 16/19] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
 
-tested with ubuntu kernel 4.14.171, 4.15.0-88 and 5.0.21-050021.
+tested with ubuntu kernel 5.6.19-050619-generic.
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
  acinclude.m4                                  |    4 +
  datapath/Modules.mk                           |    2 +
  datapath/linux/Modules.mk                     |    3 +
- datapath/linux/compat/gtp.c                   | 1788 +++++++++++++++++
+ datapath/linux/compat/gtp.c                   | 1797 +++++++++++++++++
  datapath/linux/compat/include/linux/gtp.h     |   10 +
  datapath/linux/compat/include/linux/if_link.h |   16 +
- .../linux/compat/include/linux/openvswitch.h  |    1 +
  datapath/linux/compat/include/net/dst_cache.h |    1 -
  datapath/linux/compat/include/net/gtp.h       |   24 +
  .../linux/compat/include/net/udp_tunnel.h     |    2 +-
@@ -26,18 +25,19 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  datapath/vport.c                              |    8 +-
  tests/automake.mk                             |    2 +-
  tests/system-common-macros.at                 |    7 +
- tests/system-layer3-tunnels.at                |   50 +
- 17 files changed, 2063 insertions(+), 5 deletions(-)
+ tests/system-layer3-tunnels.at                |   53 +
+ tests/tunnel.at                               |   28 +
+ 17 files changed, 2102 insertions(+), 5 deletions(-)
  create mode 100644 datapath/linux/compat/gtp.c
  create mode 100644 datapath/linux/compat/include/linux/gtp.h
  create mode 100644 datapath/linux/compat/include/net/gtp.h
  create mode 100644 datapath/vport-gtp.c
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index c1470ccc6..8bee7ddf0 100644
+index c765fc315..ba988786c 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
-@@ -585,6 +585,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -621,6 +621,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
  
    OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [IFLA_GENEVE_TOS])
    OVS_GREP_IFELSE([$KSRC/include/uapi/linux/if_link.h], [rtnl_link_stats64])
@@ -46,7 +46,7 @@ index c1470ccc6..8bee7ddf0 100644
    OVS_GREP_IFELSE([$KSRC/include/linux/if_link.h], [rtnl_link_stats64])
    OVS_GREP_IFELSE([$KSRC/include/linux/if_vlan.h], [vlan_set_encap_proto])
    OVS_GREP_IFELSE([$KSRC/include/linux/if_vlan.h], [vlan_hwaccel_push_inside])
-@@ -619,6 +621,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -655,6 +657,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
                    [OVS_DEFINE([HAVE_INET_FRAGS_LAST_IN])])
    OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frag_evicting])
    OVS_GREP_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frag_evictor])
@@ -54,7 +54,7 @@ index c1470ccc6..8bee7ddf0 100644
    OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
                          [frags_work])
    OVS_FIND_FIELD_IFELSE([$KSRC/include/net/inet_frag.h], [inet_frags],
-@@ -917,6 +920,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
+@@ -951,6 +954,7 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
                    [OVS_DEFINE([HAVE_NET_NAME_UNKNOWN])])
  
    OVS_GREP_IFELSE([$KSRC/include/net/sock.h], [sk_no_check_tx])
@@ -112,10 +112,10 @@ index 63a5cbae4..83df7ac5b 100644
  	linux/compat/include/net/inetpeer.h \
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
 new file mode 100644
-index 000000000..bb5c99a96
+index 000000000..f9e20a8b2
 --- /dev/null
 +++ b/datapath/linux/compat/gtp.c
-@@ -0,0 +1,1788 @@
+@@ -0,0 +1,1797 @@
 +// SPDX-License-Identifier: GPL-2.0-or-later
 +/* GTP according to GSM TS 09.60 / 3GPP TS 29.060
 + *
@@ -1704,20 +1704,26 @@ index 000000000..bb5c99a96
 +	{
 +		.cmd = GTP_CMD_NEWPDP,
 +		.doit = gtp_genl_new_pdp,
++#ifdef HAVE_GENL_OPS_POLICY
 +		.policy = gtp_genl_policy,
++#endif
 +		.flags = GENL_ADMIN_PERM,
 +	},
 +	{
 +		.cmd = GTP_CMD_DELPDP,
 +		.doit = gtp_genl_del_pdp,
++#ifdef HAVE_GENL_OPS_POLICY
 +		.policy = gtp_genl_policy,
++#endif
 +		.flags = GENL_ADMIN_PERM,
 +	},
 +	{
 +		.cmd = GTP_CMD_GETPDP,
 +		.doit = gtp_genl_get_pdp,
 +		.dumpit = gtp_genl_dump_pdp,
++#ifdef HAVE_GENL_OPS_POLICY
 +		.policy = gtp_genl_policy,
++#endif
 +		.flags = GENL_ADMIN_PERM,
 +	},
 +};
@@ -1727,6 +1733,9 @@ index 000000000..bb5c99a96
 +	.version	= 0,
 +	.hdrsize	= 0,
 +	.maxattr	= GTPA_MAX,
++#ifndef HAVE_GENL_OPS_POLICY
++	.policy = gtp_genl_policy,
++#endif
 +	.netnsok	= true,
 +	.module		= THIS_MODULE,
 +	.ops		= gtp_genl_ops,
@@ -1945,18 +1954,6 @@ index bd77e33d3..092d79468 100644
 +#endif
 +
  #endif
-diff --git a/datapath/linux/compat/include/linux/openvswitch.h b/datapath/linux/compat/include/linux/openvswitch.h
-index 2f0c6559e..101c341a6 100644
---- a/datapath/linux/compat/include/linux/openvswitch.h
-+++ b/datapath/linux/compat/include/linux/openvswitch.h
-@@ -240,6 +240,7 @@ enum ovs_vport_type {
- 	OVS_VPORT_TYPE_GRE,      /* GRE tunnel. */
- 	OVS_VPORT_TYPE_VXLAN,	 /* VXLAN tunnel. */
- 	OVS_VPORT_TYPE_GENEVE,	 /* Geneve tunnel. */
-+	OVS_VPORT_TYPE_GTP,	 /* GTP tunnel. */
- 	OVS_VPORT_TYPE_LISP = 105,  /* LISP tunnel */
- 	OVS_VPORT_TYPE_STT = 106, /* STT tunnel */
- 	OVS_VPORT_TYPE_ERSPAN = 107, /* ERSPAN tunnel. */
 diff --git a/datapath/linux/compat/include/net/dst_cache.h b/datapath/linux/compat/include/net/dst_cache.h
 index 6084d4eea..37c219e87 100644
 --- a/datapath/linux/compat/include/net/dst_cache.h
@@ -2043,12 +2040,12 @@ index 852069f62..349839b2b 100644
  #endif
 diff --git a/datapath/vport-gtp.c b/datapath/vport-gtp.c
 new file mode 100644
-index 000000000..868115dc7
+index 000000000..0ba0ceebb
 --- /dev/null
 +++ b/datapath/vport-gtp.c
 @@ -0,0 +1,147 @@
 +/*
-+ * Copyright (c) 2017 Facebook, Inc.
++ * Copyright (c) 2020 Facebook, Inc.
 + *
 + * This program is free software; you can redistribute it and/or
 + * modify it under the terms of the GNU General Public License
@@ -2171,7 +2168,7 @@ index 000000000..868115dc7
 +
 +
 +static struct vport_ops ovs_gtp_vport_ops = {
-+    .type                = OVS_VPORT_TYPE_GTP,
++    .type                = OVS_VPORT_TYPE_GTPU,
 +    .create              = gtp_create,
 +    .get_options         = gtp_get_options,
 +    .destroy		 = ovs_netdev_tunnel_destroy,
@@ -2260,10 +2257,10 @@ index 68c8774d1..3643cc18d 100644
  m4_define([OVS_CHECK_8021AD],
      [AT_SKIP_IF([! grep -q "VLAN header stack length probed as" ovs-vswitchd.log])
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
-index 1232964bb..5beca7440 100644
+index 1232964bb..141a7afb4 100644
 --- a/tests/system-layer3-tunnels.at
 +++ b/tests/system-layer3-tunnels.at
-@@ -49,11 +49,61 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
+@@ -49,11 +49,64 @@ NS_CHECK_EXEC([at_ns0], [ping -s 3200 -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING
  OVS_TRAFFIC_VSWITCHD_STOP
  AT_CLEANUP
  
@@ -2279,11 +2276,11 @@ index 1232964bb..5beca7440 100644
 +ADD_VETH(p0, at_ns0, br-underlay, "172.31.1.1/24")
 +AT_CHECK([ip addr add dev br-underlay "172.31.1.100/24"])
 +AT_CHECK([ip link set dev br-underlay up])
++AT_CHECK([modprobe vport-gtp])
 +
 +dnl Set up tunnel endpoints on OVS outside the namespace and with a native
 +dnl linux device inside the namespace.
-+
-+ADD_OVS_TUNNEL([gtp], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
++ADD_OVS_TUNNEL([gtpu], [br0], [at_gtp0], [172.31.1.1], [10.1.1.2/24])
 +AT_CHECK([ip neigh add 10.1.1.1 lladdr 00:12:34:56:78:aa dev br0])
 +NS_CHECK_EXEC([at_ns0], [gtp-link add at_gtp1 --sgsn &], [0], [ignore])
 +NS_CHECK_EXEC([at_ns0], [gtp-tunnel add at_gtp1 v1 0 0 10.1.1.1 172.31.1.100], [0], [ignore], [ignore])
@@ -2293,18 +2290,21 @@ index 1232964bb..5beca7440 100644
 +
 +AT_CHECK([ovs-ofctl add-flow br-underlay "actions=normal"])
 +
++AT_CHECK([ovs-appctl vlog/set dbg], [0], [ignore])
++AT_CHECK([echo 'module openvswitch +p' > /sys/kernel/debug/dynamic_debug/control])
++
 +dnl Now add rules for OVS to forward to the tunnel and local port
 +AT_CHECK([ovs-ofctl add-flow br0 "priority=1 action=drop"])
 +AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.1 action=output:at_gtp0"])
 +AT_CHECK([ovs-ofctl add-flow br0 "priority=100 ip,nw_dst=10.1.1.2 action=mod_dl_src:00:12:34:56:78:aa,mod_dl_dst:00:12:34:56:78:bb,local"])
 +
-+OVS_WAIT_UNTIL([ip netns exec at_ns0 ping -c 1 10.1.1.2])
 +
 +dnl First, check the underlay
 +NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 172.31.1.100 | FORMAT_PING], [0], [dnl
 +3 packets transmitted, 3 received, 0% packet loss, time 0ms
 +])
 +
++OVS_WAIT_UNTIL([ip netns exec at_ns0 ping -c 1 10.1.1.2])
 +dnl Okay, now check the overlay with different packet sizes
 +NS_CHECK_EXEC([at_ns0], [ping -q -c 3 -i 0.3 -w 2 10.1.1.2 | FORMAT_PING], [0], [dnl
 +3 packets transmitted, 3 received, 0% packet loss, time 0ms
@@ -2325,6 +2325,42 @@ index 1232964bb..5beca7440 100644
  ADD_BR([br-underlay])
  
  ADD_NAMESPACES(at_ns0)
+diff --git a/tests/tunnel.at b/tests/tunnel.at
+index ed6a7689e..4d9308ad7 100644
+--- a/tests/tunnel.at
++++ b/tests/tunnel.at
+@@ -1165,3 +1165,31 @@ AT_CHECK([tail -1 stdout], [0],
+ ])
+ OVS_VSWITCHD_STOP
+ AT_CLEANUP
++
++AT_SETUP([tunnel - GTP-C using tun optios])
++OVS_VSWITCHD_START([add-port br0 p1 -- set Interface p1 type=gtpu \
++                    options:remote_ip=1.1.1.1 options:key=flow ofport_request=1 \
++                    -- add-port br0 p2 -- set Interface p2 type=dummy \
++                    ofport_request=2 ofport_request=2 \
++                    -- add-port br0 p3 -- set Interface p3 type=gtpu \
++                    options:remote_ip=2.2.2.2 options:key=123 ofport_request=3])
++OVS_VSWITCHD_DISABLE_TUNNEL_PUSH_POP
++
++AT_DATA([flows.txt], [dnl
++actions=load:0x8->NXM_NX_TUN_FLAGS[[]],output:1
++table=2,actions=move:NXM_NX_TUN_FLAGS[[]]->NXM_NX_REG4[[0..3]],output:1
++])
++AT_CHECK([ovs-ofctl add-flows br0 flows.txt])
++
++AT_CHECK([ovs-ofctl dump-flows br0], [0], [stdout])
++AT_CHECK([strip_xids < stdout | sed -n 's/duration=[[0-9]]*\.[[0-9]]*s/duration=0.0s/p' | sort], [0], [dnl
++ cookie=0x0, duration=0.0s, table=0, n_packets=0, n_bytes=0, idle_age=0, actions=load:0x8->NXM_NX_TUN_FLAGS[[]],output:1
++ cookie=0x0, duration=0.0s, table=2, n_packets=0, n_bytes=0, idle_age=0, actions=move:NXM_NX_TUN_FLAGS[[]]->NXM_NX_REG4[[0..3]],output:1
++])
++
++AT_CHECK([ovs-appctl ofproto/trace ovs-dummy 'in_port(2),eth(src=50:54:00:00:00:05,dst=50:54:00:00:00:07),eth_type(0x0800),ipv4(src=192.168.0.1,dst=192.168.0.2,proto=6,tos=4,ttl=128,frag=no),tcp(src=8,dst=9)'], [0], [stdout])
++AT_CHECK([tail -1 stdout], [0],
++  [Datapath actions: set(tunnel(tun_id=0x0,dst=1.1.1.1,ttl=64,tp_dst=2152,flags(df|key))),pop_eth,2152
++])
++OVS_VSWITCHD_STOP
++AT_CLEANUP
 -- 
 2.17.1
 
