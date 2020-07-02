@@ -20,7 +20,28 @@ import (
 // NewTestOrchestratorService returns a new GRPC orchestrator service without
 // loading Orchestrator plugins from disk. This should only be used in test
 // contexts, where plugins are registered manually.
-func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, error) {
+func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType string) (*OrchestratorService, error) {
+	if t == nil {
+		panic("for tests only")
+	}
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceType, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+	if err != nil {
+		return nil, err
+	}
+	echoSrv, err := getEchoServerForOrchestratorService(serviceType)
+	if err != nil {
+		return nil, err
+	}
+	return &OrchestratorService{
+		Service:    platformService,
+		EchoServer: echoSrv,
+	}, nil
+}
+
+// NewTestService returns a new GRPC orchestrator service without
+// loading Orchestrator plugins from disk. This should only be used in test
+// contexts, where plugins are registered manually.
+func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, error) {
 	if t == nil {
 		panic("for tests only")
 	}
