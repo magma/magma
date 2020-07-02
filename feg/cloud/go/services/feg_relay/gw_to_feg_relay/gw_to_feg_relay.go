@@ -18,7 +18,7 @@ import (
 	"strings"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/http2"
 	"magma/orc8r/cloud/go/orc8r"

@@ -15,7 +15,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	cwfModels "magma/cwf/cloud/go/plugin/models"
-	fegModels "magma/feg/cloud/go/plugin/models"
+	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
