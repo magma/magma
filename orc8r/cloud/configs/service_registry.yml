@@ -21,6 +21,7 @@ services:
   metricsd:
     host: "localhost"
     port: 9084
+    echo_port: 10084
     proxy_type: "clientcert"
 
   certifier:
@@ -71,4 +72,5 @@ services:
   tenants:
     host: "localhost"
     port: 9110
+    echo_port: 10110
     proxy_type: "clientcert"
