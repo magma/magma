@@ -137,9 +137,7 @@ class SessionStoreTest : public ::testing::Test {
     auto monitor2 = StoredMonitor{};
     auto credit2 = StoredSessionCredit{};
     credit2.reporting = false;
-    credit2.is_final = false;
     credit2.credit_limit_type = INFINITE_METERED;
-    credit2.service_state = SERVICE_ENABLED;
     credit2.expiry_time = 0;
     credit2.buckets = std::unordered_map<Bucket, uint64_t>{};
     credit2.buckets[USED_TX] = 100;
@@ -157,9 +155,7 @@ class SessionStoreTest : public ::testing::Test {
 
     // Monitoring credit updates
     SessionCreditUpdateCriteria monitoring_update{};
-    monitoring_update.is_final = false;
     monitoring_update.reauth_state = REAUTH_NOT_NEEDED;
-    monitoring_update.service_state = SERVICE_ENABLED;
     monitoring_update.expiry_time = 0;
     auto bucket_deltas = std::unordered_map<Bucket, uint64_t>{};
     bucket_deltas[USED_TX] = 111;

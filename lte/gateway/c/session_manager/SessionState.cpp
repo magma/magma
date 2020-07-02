@@ -155,18 +155,6 @@ SessionState::SessionState(
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
 
-static CreditUsage
-get_usage_proto_from_struct(const SessionCredit::Usage &usage_in,
-                            CreditUsage::UpdateType proto_update_type,
-                            const CreditKey &charging_key) {
-  CreditUsage usage;
-  usage.set_bytes_tx(usage_in.bytes_tx);
-  usage.set_bytes_rx(usage_in.bytes_rx);
-  usage.set_type(proto_update_type);
-  charging_key.set_credit_usage(&usage);
-  return usage;
-}
-
 static UsageMonitorUpdate make_usage_monitor_update(
   const SessionCredit::Usage &usage_in, const std::string &monitoring_key,
   MonitoringLevel level) {
@@ -216,6 +204,9 @@ void SessionState::add_rule_usage(
     if (it != credit_map_.end()) {
        auto credit_uc = get_credit_uc(charging_key, update_criteria);
        it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+       if (it->second->should_deactivate_service()) {
+        it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
+       }
     }
   }
   std::string monitoring_key;
@@ -372,12 +363,11 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto &credit_pair : credit_map_) {
-  auto credit_uc = get_credit_uc(credit_pair.first, update_criteria);
-  req.mutable_credit_usages()->Add()->CopyFrom(
-      get_usage_proto_from_struct(
-          credit_pair.second->credit.get_all_unreported_usage_for_reporting(
-              *credit_uc),
-          CreditUsage::TERMINATED, credit_pair.first));
+    auto credit_uc = get_credit_uc(credit_pair.first, update_criteria);
+    auto credit_usage =
+      credit_pair.second->get_credit_usage(CreditUsage::TERMINATED, *credit_uc, true);
+    credit_pair.first.set_credit_usage(&credit_usage);
+    req.mutable_credit_usages()->Add()->CopyFrom(credit_usage);
   }
   return req;
 }
@@ -815,28 +805,36 @@ bool SessionState::receive_charging_credit(
   auto credit_uc = get_credit_uc(CreditKey(update), update_criteria);
   if (!update.success()) {
     // update unsuccessful, reset credit and return
-    MLOG(MDEBUG) << "Received an unsuccessful update for RG "
+    MLOG(MDEBUG) << session_id_ << " Received an unsuccessful update for RG "
                  << update.charging_key();
     grant->credit.mark_failure(update.result_code(), *credit_uc);
+    if (grant->should_deactivate_service()) {
+      grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
+    }
     return false;
   }
   const auto &gsu = update.credit().granted_units();
-  MLOG(MDEBUG) << "Received charging credit of " << gsu.total().volume()
-               << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
-               << gsu.rx().volume() << " rx bytes "
-               << "for subscriber " << imsi_ << " rating group "
+  MLOG(MINFO)  << session_id_ << " Received a charging credit for RG: "
                << update.charging_key();
   auto c_update = update.credit();
-  grant->credit.receive_credit(
-    gsu, c_update.validity_time(), c_update.is_final(),
-    get_final_action_info(c_update), *credit_uc);
-
+  grant->credit.receive_credit(gsu, c_update.validity_time(), *credit_uc);
   grant->set_final_action_info(c_update);
+  if (grant->is_final_grant) {
+    grant->log_final_action_info();
+  }
+  credit_uc->is_final = grant->is_final_grant;
+  credit_uc->final_action_info = grant->final_action_info;
   grant->set_expiry_time_as_timestamp(c_update.validity_time());
-  // Todo set service state and reauth state in grant
   if (grant->reauth_state == REAUTH_PROCESSING) {
     grant->set_reauth_state(REAUTH_NOT_NEEDED, *credit_uc);
   }
+  if (!grant->credit.is_quota_exhausted(1)
+    && grant->service_state != SERVICE_ENABLED) {
+    // if quota no longer exhausted, reenable services as needed
+    MLOG(MINFO) << "Quota available. Activating service";
+    grant->set_service_state(SERVICE_NEEDS_ACTIVATION, *credit_uc);
+  }
+
   return true;
 }
 
@@ -849,8 +847,8 @@ bool SessionState::init_charging_credit(
                  << " and charging key " << update.charging_key();
     return false;
   }
-  MLOG(MINFO) << "Initialized a charging credit for imsi " << imsi_
-              << " and charging key " << update.charging_key();
+  MLOG(MINFO) << session_id_ << " Initialized a charging credit for RG: "
+              << update.charging_key();
 
   auto charging_grant = std::make_unique<ChargingGrant>();
   charging_grant->credit =
@@ -859,8 +857,7 @@ bool SessionState::init_charging_credit(
   SessionCreditUpdateCriteria credit_uc{};
   auto grant = update.credit();
   charging_grant->credit.receive_credit(
-    grant.granted_units(), grant.validity_time(), grant.is_final(),
-    get_final_action_info(update.credit()), credit_uc);
+    grant.granted_units(), grant.validity_time(), credit_uc);
 
   charging_grant->set_final_action_info(grant);
   charging_grant->set_expiry_time_as_timestamp(grant.validity_time());
@@ -885,11 +882,12 @@ ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
     // if credit is already reporting, don't initiate update
-    if (it->second->credit.is_reporting()) {
+    auto& grant = it->second;
+    if (grant->credit.is_reporting()) {
       return ReAuthResult::UPDATE_NOT_NEEDED;
     }
-    auto uc = it->second->get_update_criteria();
-    it->second->set_reauth_state(REAUTH_REQUIRED, uc);
+    auto uc = grant->get_update_criteria();
+    grant->set_reauth_state(REAUTH_REQUIRED, uc);
     update_criteria.charging_credit_map[charging_key] = uc;
     return ReAuthResult::UPDATE_INITIATED;
   }
@@ -928,9 +926,6 @@ void SessionState::merge_charging_credit_update(
   }
   auto& charging_grant = it->second;
   auto& credit = charging_grant->credit;
-  // todo deprecate
-  credit.set_is_final_grant_and_final_action(credit_update.is_final, credit_update.final_action_info, credit_update);
-  credit.set_service_state(credit_update.service_state, credit_update);
   credit.set_expiry_time(credit_update.expiry_time, credit_update);
 
   // Credit merging
@@ -946,6 +941,7 @@ void SessionState::merge_charging_credit_update(
   charging_grant->final_action_info = credit_update.final_action_info;
   charging_grant->expiry_time = credit_update.expiry_time;
   charging_grant->reauth_state = credit_update.reauth_state;
+  charging_grant->service_state = credit_update.service_state;
 }
 
 void SessionState::set_charging_credit(
@@ -984,7 +980,7 @@ void SessionState::get_charging_updates(
     auto& grant = credit_pair.second;
     auto credit_uc = get_credit_uc(key, uc);
 
-    auto action_type = grant->credit.get_action(*credit_uc);
+    auto action_type = grant->get_action(*credit_uc);
     auto action = std::make_unique<ServiceAction>(action_type);
     switch (action_type) {
       case CONTINUE_SERVICE:
@@ -997,11 +993,12 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << key << " updating due to type "
                    << credit_update_type_to_str(update_type);
-          auto usage = grant->credit.get_usage_for_reporting(*credit_uc);
+
           if (update_type == CreditUsage::REAUTH_REQUIRED) {
             grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
           }
-          auto update = get_usage_proto_from_struct(usage, update_type, key);
+          auto update = grant->get_credit_usage(update_type, *credit_uc, false);
+          key.set_credit_usage(&update);
           auto credit_req = make_credit_usage_update_req(update);
           update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
           request_number_++;
@@ -1009,12 +1006,12 @@ void SessionState::get_charging_updates(
         }
         break;
       case REDIRECT:
-        if (credit_uc->service_state == SERVICE_REDIRECTED) {
+        if (grant->service_state == SERVICE_REDIRECTED) {
           MLOG(MDEBUG) << "Redirection already activated.";
           continue;
         }
-        grant->credit.set_service_state(SERVICE_REDIRECTED, *credit_uc);
-        action->set_redirect_server(grant->credit.get_redirect_server());
+        grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
+        action->set_redirect_server(grant->final_action_info.redirect_server);
       case TERMINATE_SERVICE:
       case ACTIVATE_SERVICE:
       case RESTRICT_ACCESS:
@@ -1053,14 +1050,10 @@ bool SessionState::receive_monitor(
     return false;
   }
   const auto &gsu = update.credit().granted_units();
-  MLOG(MDEBUG) << "Received monitor credit of " << gsu.total().volume()
-               << " total bytes, " << gsu.tx().volume() << " tx bytes, and "
-               << gsu.rx().volume() << " rx bytes "
-               << "for subscriber " << imsi_ << " monitoring key "
+  MLOG(MINFO) << session_id_ << " Received monitor credit for "
                << update.credit().monitoring_key();
   FinalActionInfo final_action_info;
-  it->second->credit.receive_credit(
-    gsu, 0, false, final_action_info, *credit_uc);
+  it->second->credit.receive_credit(gsu, 0, *credit_uc);
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     monitor_map_.erase(update.credit().monitoring_key());
   }
@@ -1074,9 +1067,6 @@ void SessionState::merge_monitor_updates(
     return;
   }
 
-  it->second->credit.set_is_final_grant_and_final_action(
-        update.is_final, update.final_action_info, update);
-  it->second->credit.set_service_state(update.service_state, update);
   it->second->credit.set_expiry_time(update.expiry_time, update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
@@ -1147,15 +1137,15 @@ bool SessionState::init_new_monitor(
                    << update.credit().monitoring_key();
     return false;
   }
-  MLOG(MDEBUG) << "Initialized a monitoring credit for imsi" << imsi_
-               << " and monitoring key " << update.credit().monitoring_key();
+  MLOG(MDEBUG) << session_id_ << " Initialized a monitoring credit for mkey "
+               << update.credit().monitoring_key();
   auto monitor = std::make_unique<Monitor>();
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
   auto _ = SessionCreditUpdateCriteria{};
   FinalActionInfo final_action_info;
   auto gsu = update.credit().granted_units();
-  monitor->credit.receive_credit(gsu, 0, false, final_action_info, _);
+  monitor->credit.receive_credit(gsu, 0, _);
 
   update_criteria.monitor_credit_to_install[update.credit().monitoring_key()] =
       monitor->marshal();
@@ -1260,6 +1250,6 @@ bool SessionState::is_credit_state_redirected(
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->credit.is_service_redirected();
+  return it->second->service_state == SERVICE_REDIRECTED;
 }
 }  // namespace magma
