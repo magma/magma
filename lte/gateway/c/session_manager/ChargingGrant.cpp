@@ -7,9 +7,11 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#include <ctime>
 #include <limits>
 
 #include "ChargingGrant.h"
+#include "EnumToString.h"
 #include "magma_logging.h"
 
 namespace magma {
@@ -30,7 +32,7 @@ namespace magma {
   ChargingGrant ChargingGrant::unmarshal(const StoredChargingGrant &marshaled) {
     ChargingGrant charging;
     charging.credit =
-      SessionCredit::unmarshal(marshaled.credit, CreditType::CHARGING);
+      SessionCredit::unmarshal(marshaled.credit);
 
     FinalActionInfo final_action_info;
     final_action_info.final_action = marshaled.final_action_info.final_action;
@@ -46,12 +48,172 @@ namespace magma {
     return charging;
   }
 
-  void ChargingGrant::set_final_action_info(const magma::lte::ChargingCredit &credit) {
-    if (credit.is_final()) {
-      final_action_info.final_action = credit.final_action();
-      if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-        final_action_info.redirect_server = credit.redirect_server();
+  void ChargingGrant::receive_charging_grant(
+    const magma::lte::ChargingCredit& p_credit,
+    SessionCreditUpdateCriteria* uc) {
+    credit.receive_credit(p_credit.granted_units(), uc);
+
+    // Final Action
+    is_final_grant = p_credit.is_final();
+    if (is_final_grant) {
+      final_action_info.final_action = p_credit.final_action();
+      if (p_credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
+        final_action_info.redirect_server = p_credit.redirect_server();
       }
+      log_final_action_info();
+    }
+
+    // Expiry Time
+    auto delta_time_sec = p_credit.validity_time();
+    if (delta_time_sec == 0) {
+       expiry_time = std::numeric_limits<std::time_t>::max();
+    } else {
+      expiry_time = std::time(nullptr) + delta_time_sec;
+    }
+
+    // Update the UpdateCriteria if not NULL
+    if (uc != NULL) {
+      uc->is_final = is_final_grant;
+      uc->final_action_info = final_action_info;
+      uc->expiry_time = expiry_time;
     }
   }
+
+  SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
+    SessionCreditUpdateCriteria uc = credit.get_update_criteria();
+    uc.is_final = is_final_grant;
+    uc.final_action_info = final_action_info;
+    uc.expiry_time = expiry_time;
+    uc.reauth_state = reauth_state;
+    uc.service_state = service_state;
+    return uc;
+  }
+
+  CreditUsage ChargingGrant::get_credit_usage(
+    CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria& uc,
+    bool is_terminate) {
+    CreditUsage p_usage;
+    SessionCredit::Usage credit_usage;
+
+    if (is_final_grant || is_terminate) {
+      credit_usage = credit.get_all_unreported_usage_for_reporting(uc);
+    } else {
+      credit_usage = credit.get_usage_for_reporting(uc);
+    }
+    p_usage.set_bytes_tx(credit_usage.bytes_tx);
+    p_usage.set_bytes_rx(credit_usage.bytes_rx);
+    p_usage.set_type(update_type);
+    return p_usage;
+  }
+  
+  bool ChargingGrant::get_update_type(CreditUsage::UpdateType* update_type) const {
+    if (credit.is_reporting()) {
+      return false; // No update
+    }
+    if (reauth_state == REAUTH_REQUIRED) {
+      *update_type = CreditUsage::REAUTH_REQUIRED;
+      return true;
+    }
+    if (is_final_grant && credit.is_quota_exhausted(1)) {
+      // Don't request updates if this is the final grant
+      return false;
+    }
+    if (credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
+      *update_type = CreditUsage::QUOTA_EXHAUSTED;
+      return true;
+    }
+    if (time(NULL) >= expiry_time) {
+      *update_type = CreditUsage::VALIDITY_TIMER_EXPIRED;
+      return true;
+    }
+    return false;
+  }
+
+  bool ChargingGrant::should_deactivate_service() const {
+    if ((final_action_info.final_action ==
+          ChargingCredit_FinalAction_TERMINATE) &&
+        !SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
+        // configured in sessiond.yml
+        return false;
+    }
+    if (service_state != SERVICE_ENABLED){
+      // service is not enabled
+      return false;
+    }
+    if (is_final_grant && credit.is_quota_exhausted(1)) {
+      // We only deactivate service when we receive a Final Unit
+      // Indication (final Grant) and we've exhausted all quota
+      MLOG(MINFO) << "Deactivating service because we have exhausted the given "
+        << "quota and it is the final grant."
+        << "action=" << final_action_to_str(final_action_info.final_action);
+      return true;
+    }
+    return false;
+  }
+
+  ServiceActionType ChargingGrant::get_action(SessionCreditUpdateCriteria &uc) {
+    switch(service_state) {
+      case SERVICE_NEEDS_DEACTIVATION:
+        set_service_state(SERVICE_DISABLED, uc);
+        if (!is_final_grant) {
+          return TERMINATE_SERVICE;
+        }
+        return final_action_to_action(final_action_info.final_action);
+      case SERVICE_NEEDS_ACTIVATION:
+        set_service_state(SERVICE_ENABLED, uc);
+        return ACTIVATE_SERVICE;
+      default:
+        return CONTINUE_SERVICE;
+    }
+  }
+
+  ServiceActionType ChargingGrant::final_action_to_action(
+    const ChargingCredit_FinalAction action) const {
+    switch (action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        return REDIRECT;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        return RESTRICT_ACCESS;
+      case ChargingCredit_FinalAction_TERMINATE:
+      default:
+        return TERMINATE_SERVICE;
+    }
+  }
+
+  void ChargingGrant::set_reauth_state(
+    const ReAuthState new_state, SessionCreditUpdateCriteria& uc) {
+    if (reauth_state != new_state) {
+      MLOG(MDEBUG) << "ReAuth state change from "
+                   << reauth_state_to_str(reauth_state) << " to "
+                   << reauth_state_to_str(new_state);
+    }
+    reauth_state = new_state;
+    uc.reauth_state = new_state;
+  }
+
+  void ChargingGrant::set_service_state(
+      const ServiceState new_service_state, SessionCreditUpdateCriteria &uc) {
+    if (service_state != new_service_state) {
+      MLOG(MDEBUG) << "Service state change from "
+                   << service_state_to_str(service_state) << " to "
+                   << service_state_to_str(new_service_state);
+    }
+    service_state = new_service_state;
+    uc.service_state = new_service_state;
+  }
+
+  void ChargingGrant::log_final_action_info() const {
+    std::string final_action = "";
+    if (is_final_grant) {
+      final_action += "final action: ";
+      final_action +=  final_action_to_str(final_action_info.final_action);
+      if (final_action_info.final_action ==
+          ChargingCredit_FinalAction_REDIRECT) {
+        final_action += ", redirect_server: ";
+        final_action += final_action_info.redirect_server.redirect_server_address();
+      }
+    }
+    MLOG(MINFO) << "This is a final credit, with " << final_action;
+  }
+
 } // namespace magma

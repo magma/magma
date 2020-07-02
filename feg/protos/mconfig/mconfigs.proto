@@ -118,6 +118,8 @@ message AAAConfig {
     bool AccountingEnabled = 3;
     // Postpone Auth success until successful accounting CreateSession completion
     bool CreateSessionOnAuth = 4;
+    // enable event logging for aaa events
+    bool EventLoggingEnabled = 5;
 }
 
 message GatewayHealthConfig {

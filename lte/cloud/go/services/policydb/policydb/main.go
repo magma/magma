@@ -24,13 +24,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}
-
 	assignmentServicer := servicers.NewPolicyAssignmentServer()
 	protos.RegisterPolicyAssignmentControllerServer(srv.GrpcServer, assignmentServicer)
 
-	// Run the service
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error while running service and echo server: %s", err)
 	}
 }

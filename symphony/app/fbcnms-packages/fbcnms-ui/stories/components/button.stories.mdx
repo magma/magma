@@ -1,12 +1,9 @@
 import Button from '../../components/design-system/Button';
-import classNames from 'classnames';
 import PlusIcon from '../../components/design-system/Icons/Actions/PlusIcon';
 import StoryFrame from '../StoryFrame';
-import symphony from '../../theme/symphony';
-import {fbt} from 'fbt';
-import {makeStyles} from '@material-ui/styles';
-import {Meta, Story, Preview} from '@storybook/addon-docs/blocks';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
 import {STORY_CATEGORIES} from '../storybookUtils';
+import {makeStyles} from '@material-ui/styles';
 
 export const useStyles = makeStyles(_theme => ({
   grayButtonContainer: {
@@ -53,7 +50,7 @@ export const SecondaryGrayButton = () => {
       </Button>
     </div>
   );
-}
+};
 
 <Preview>
   <Story name="Contained">
