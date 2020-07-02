@@ -280,23 +280,6 @@ bool SessionCredit::validity_timer_expired() const {
   return time(NULL) >= expiry_time_;
 }
 
-CreditUpdateType SessionCredit::get_update_type() const {
-  if (is_reporting()) {
-    return CREDIT_NO_UPDATE;
-  } else if (is_reauth_required()) {
-    return CREDIT_REAUTH_REQUIRED;
-  } else if (is_final_grant_ && is_quota_exhausted(1)) {
-    // Don't request updates if there's no quota left
-    return CREDIT_NO_UPDATE;
-  } else if (is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
-    return CREDIT_QUOTA_EXHAUSTED;
-  } else if (validity_timer_expired()) {
-    return CREDIT_VALIDITY_TIMER_EXPIRED;
-  } else {
-    return CREDIT_NO_UPDATE;
-  }
-}
-
 SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
   auto usage = get_unreported_usage();

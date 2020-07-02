@@ -28,11 +28,26 @@ struct ChargingGrant {
 
   ChargingGrant() : credit(CreditType::CHARGING) {}
 
+  // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
 
+  // StoredChargingGrant -> ChargingGrant
   static ChargingGrant unmarshal(const StoredChargingGrant &marshaled);
 
+  // Set is_final_grant and final_action_info values
   void set_final_action_info(const magma::lte::ChargingCredit &credit);
+
+  SessionCreditUpdateCriteria get_update_criteria();
+
+  // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
+  // and assign it to expiry_time
+  void set_expiry_time_as_timestamp(uint32_t delta_time_sec);
+
+  // Determine whether the charging grant should send an update request
+  // Return true if an update is required, with the update_type set to indicate
+  // the reason.
+  // Return false otherwise. In this case, update_type is untouched.
+  bool get_update_type(CreditUsage::UpdateType* update_type) const;
 };
 
 }  // namespace magma
