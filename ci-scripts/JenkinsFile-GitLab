@@ -306,7 +306,7 @@ pipeline {
         stage ("Provision the Traffic VM") {
           steps {
             script {
-              sh "sleep 60"
+              sh "sleep 180"
               gitlabCommitStatus(name: "Activate-Traffic-VM") {
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_trfserver && vagrant up magma_trfserver', 'archives/magma_vagrant_trfserver_up.log', new_host_flag, new_host_user, new_host)
                 try {
