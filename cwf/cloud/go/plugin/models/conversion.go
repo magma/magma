@@ -16,9 +16,9 @@ import (
 	lteModels "magma/lte/cloud/go/plugin/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
+	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 

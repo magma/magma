@@ -8,7 +8,7 @@ package models
 import (
 	strfmt "github.com/go-openapi/strfmt"
 	models4 "magma/orc8r/cloud/go/models"
-	models5 "magma/orc8r/cloud/go/pluginimpl/models"
+	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"

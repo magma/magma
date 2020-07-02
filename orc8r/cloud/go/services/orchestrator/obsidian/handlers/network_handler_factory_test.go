@@ -16,10 +16,10 @@ import (
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/strfmt"

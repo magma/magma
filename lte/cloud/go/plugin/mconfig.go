@@ -16,9 +16,9 @@ import (
 	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 

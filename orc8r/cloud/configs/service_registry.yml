@@ -69,6 +69,12 @@ services:
     port: 9108
     proxy_type: "clientcert"
 
+  orchestrator:
+    host: "localhost"
+    port: 9112
+    echo_port: 10112
+    proxy_type: "clientcert"
+
   tenants:
     host: "localhost"
     port: 9110
