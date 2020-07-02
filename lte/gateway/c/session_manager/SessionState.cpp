@@ -815,7 +815,8 @@ bool SessionState::receive_charging_credit(
   auto credit_uc = get_credit_uc(CreditKey(update), update_criteria);
   if (!update.success()) {
     // update unsuccessful, reset credit and return
-    MLOG(MDEBUG) << "Rececive_Credit_Update: Unsuccessfull";
+    MLOG(MDEBUG) << "Received an unsuccessful update for RG "
+                 << update.charging_key();
     grant->credit.mark_failure(update.result_code(), *credit_uc);
     return false;
   }
@@ -833,6 +834,9 @@ bool SessionState::receive_charging_credit(
   grant->set_final_action_info(c_update);
   grant->set_expiry_time_as_timestamp(c_update.validity_time());
   // Todo set service state and reauth state in grant
+  if (grant->reauth_state == REAUTH_PROCESSING) {
+    grant->set_reauth_state(REAUTH_NOT_NEEDED, *credit_uc);
+  }
   return true;
 }
 
@@ -885,19 +889,17 @@ ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
       return ReAuthResult::UPDATE_NOT_NEEDED;
     }
     auto uc = it->second->get_update_criteria();
-    it->second->credit.reauth(uc);
+    it->second->set_reauth_state(REAUTH_REQUIRED, uc);
     update_criteria.charging_credit_map[charging_key] = uc;
     return ReAuthResult::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
-  auto charging_grant = std::make_unique<ChargingGrant>();
-  charging_grant->credit =
-    SessionCredit(CreditType::CHARGING, SERVICE_DISABLED);
-  SessionCreditUpdateCriteria _{};
-  charging_grant->credit.reauth(_);
-  update_criteria.charging_credit_to_install[charging_key] =
-    charging_grant->marshal();
-  credit_map_[charging_key] = std::move(charging_grant);
+  auto grant = std::make_unique<ChargingGrant>();
+  grant->credit = SessionCredit(CreditType::CHARGING, SERVICE_DISABLED);
+  grant->reauth_state = REAUTH_REQUIRED;
+  grant->service_state = SERVICE_DISABLED;
+  update_criteria.charging_credit_to_install[charging_key] = grant->marshal();
+  credit_map_[charging_key] = std::move(grant);
   return ReAuthResult::UPDATE_INITIATED;
 }
 
@@ -905,11 +907,13 @@ ReAuthResult
 SessionState::reauth_all(SessionStateUpdateCriteria &update_criteria) {
   auto res = ReAuthResult::UPDATE_NOT_NEEDED;
   for (auto &credit_pair : credit_map_) {
+    auto key = credit_pair.first;
+    auto& grant = credit_pair.second;
     // Only update credits that aren't reporting
-    if (!credit_pair.second->credit.is_reporting()) {
-      auto uc = credit_pair.second->get_update_criteria();
-      credit_pair.second->credit.reauth(uc);
-      update_criteria.charging_credit_map[credit_pair.first] = uc;
+    if (!grant->credit.is_reporting()) {
+      update_criteria.charging_credit_map[key] = grant->get_update_criteria();
+      grant->set_reauth_state(REAUTH_REQUIRED,
+                              update_criteria.charging_credit_map[key]);
       res = ReAuthResult::UPDATE_INITIATED;
     }
   }
@@ -926,7 +930,6 @@ void SessionState::merge_charging_credit_update(
   auto& credit = charging_grant->credit;
   // todo deprecate
   credit.set_is_final_grant_and_final_action(credit_update.is_final, credit_update.final_action_info, credit_update);
-  credit.set_reauth(credit_update.reauth_state, credit_update);
   credit.set_service_state(credit_update.service_state, credit_update);
   credit.set_expiry_time(credit_update.expiry_time, credit_update);
 
@@ -942,6 +945,7 @@ void SessionState::merge_charging_credit_update(
   charging_grant->is_final_grant = credit_update.is_final;
   charging_grant->final_action_info = credit_update.final_action_info;
   charging_grant->expiry_time = credit_update.expiry_time;
+  charging_grant->reauth_state = credit_update.reauth_state;
 }
 
 void SessionState::set_charging_credit(
@@ -992,8 +996,11 @@ void SessionState::get_charging_updates(
           // Create Update struct
           MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << key << " updating due to type "
-                   << update_type;
+                   << credit_update_type_to_str(update_type);
           auto usage = grant->credit.get_usage_for_reporting(*credit_uc);
+          if (update_type == CreditUsage::REAUTH_REQUIRED) {
+            grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
+          }
           auto update = get_usage_proto_from_struct(usage, update_type, key);
           auto credit_req = make_credit_usage_update_req(update);
           update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
@@ -1069,7 +1076,6 @@ void SessionState::merge_monitor_updates(
 
   it->second->credit.set_is_final_grant_and_final_action(
         update.is_final, update.final_action_info, update);
-  it->second->credit.set_reauth(update.reauth_state, update);
   it->second->credit.set_service_state(update.service_state, update);
   it->second->credit.set_expiry_time(update.expiry_time, update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {

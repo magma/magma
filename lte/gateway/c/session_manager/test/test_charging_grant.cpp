@@ -92,6 +92,12 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   grant.credit.reset_reporting_credit(uc);
 
   EXPECT_FALSE(grant.get_update_type(&update_type));
+
+  // Set reauth state to be REAUTH_REQUIRED && final_grant
+  grant.is_final_grant = true;
+  grant.reauth_state = REAUTH_REQUIRED;
+  EXPECT_TRUE(grant.get_update_type(&update_type));
+  EXPECT_EQ(update_type, CreditUsage::REAUTH_REQUIRED);
 }
 
 int main(int argc, char **argv) {

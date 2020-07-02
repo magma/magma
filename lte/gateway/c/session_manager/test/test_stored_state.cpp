@@ -74,7 +74,6 @@ protected:
     stored.final_action_info.redirect_server.set_redirect_server_address(
         "redirect_server_address");
 
-    stored.reauth_state = REAUTH_REQUIRED;
     stored.service_state = SERVICE_NEEDS_ACTIVATION;
 
     stored.expiry_time = 16;
@@ -99,8 +98,8 @@ protected:
     stored.final_action_info.redirect_server.set_redirect_server_address(
         "redirect_server_address");
 
-    stored.reauth_state = REAUTH_REQUIRED;
     stored.service_state = SERVICE_NEEDS_ACTIVATION;
+    stored.reauth_state = REAUTH_REQUIRED;
 
     stored.expiry_time = 32;
     stored.credit = get_stored_session_credit();
@@ -221,7 +220,6 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
       deserialized.final_action_info.redirect_server.redirect_server_address(),
       "redirect_server_address");
 
-  EXPECT_EQ(deserialized.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(deserialized.service_state, SERVICE_NEEDS_ACTIVATION);
 
   EXPECT_EQ(deserialized.expiry_time, 16);
@@ -249,7 +247,6 @@ TEST_F(StoredStateTest, test_stored_monitor) {
   EXPECT_EQ(deserialized.credit.final_action_info.redirect_server
                 .redirect_server_address(),
             "redirect_server_address");
-  EXPECT_EQ(deserialized.credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(deserialized.credit.service_state, SERVICE_NEEDS_ACTIVATION);
   EXPECT_EQ(deserialized.credit.expiry_time, 16);
   EXPECT_EQ(deserialized.credit.buckets[USED_TX], 12345);
@@ -297,7 +294,6 @@ TEST_F(StoredStateTest, test_stored_charging_credit_map) {
   EXPECT_EQ(
       credit.final_action_info.redirect_server.redirect_server_address(),
       "redirect_server_address");
-  EXPECT_EQ(credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(credit.service_state, SERVICE_NEEDS_ACTIVATION);
   EXPECT_EQ(credit.expiry_time, 16);
 }
@@ -321,7 +317,6 @@ TEST_F(StoredStateTest, test_stored_monitor_map) {
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
                 .redirect_server_address(),
             "redirect_server_address");
-  EXPECT_EQ(stored_monitor.credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(stored_monitor.credit.service_state, SERVICE_NEEDS_ACTIVATION);
   EXPECT_EQ(stored_monitor.credit.expiry_time, 16);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
@@ -386,7 +381,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(
       credit.final_action_info.redirect_server.redirect_server_address(),
       "redirect_server_address");
-  EXPECT_EQ(credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(credit.service_state, SERVICE_NEEDS_ACTIVATION);
   EXPECT_EQ(credit.expiry_time, 16);
 
@@ -405,7 +399,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.final_action_info.redirect_server
                 .redirect_server_address(),
             "redirect_server_address");
-  EXPECT_EQ(stored_monitor.credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(stored_monitor.credit.service_state, SERVICE_NEEDS_ACTIVATION);
   EXPECT_EQ(stored_monitor.credit.expiry_time, 16);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);

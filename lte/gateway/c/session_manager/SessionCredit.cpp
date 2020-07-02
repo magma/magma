@@ -34,7 +34,6 @@ SessionCredit SessionCredit::unmarshal(
       marshaled.final_action_info.redirect_server;
   session_credit.final_action_info_ = final_action_info;
 
-  session_credit.reauth_state_ = marshaled.reauth_state;
   session_credit.service_state_ = marshaled.service_state;
   session_credit.expiry_time_ = marshaled.expiry_time;
   session_credit.grant_tracking_type_ = marshaled.grant_tracking_type;
@@ -58,7 +57,6 @@ StoredSessionCredit SessionCredit::marshal() {
   marshaled.final_action_info.redirect_server =
       final_action_info_.redirect_server;
 
-  marshaled.reauth_state = reauth_state_;
   marshaled.service_state = service_state_;
   marshaled.expiry_time = expiry_time_;
   marshaled.grant_tracking_type = grant_tracking_type_;
@@ -74,7 +72,6 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   SessionCreditUpdateCriteria uc{};
   uc.is_final = is_final_grant_;
   uc.final_action_info = final_action_info_;
-  uc.reauth_state = reauth_state_;
   uc.service_state = service_state_;
   uc.expiry_time = expiry_time_;
   uc.grant_tracking_type = grant_tracking_type_;
@@ -87,14 +84,14 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
     : buckets_{}, reporting_(false), credit_limit_type_(FINITE),
-      credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      credit_type_(credit_type),
       service_state_(start_state), is_final_grant_(false) {}
 
 SessionCredit::SessionCredit(
   CreditType credit_type, ServiceState start_state,
   CreditLimitType credit_limit_type)
     : buckets_{}, reporting_(false), credit_limit_type_(credit_limit_type),
-      credit_type_(credit_type), reauth_state_(REAUTH_NOT_NEEDED),
+      credit_type_(credit_type),
       service_state_(start_state), is_final_grant_(false) {}
 
 // by default, enable service & finite credit
@@ -191,9 +188,6 @@ void SessionCredit::receive_credit(const GrantedUnits& gsu,
   set_expiry_time(validity_time, uc);
   set_is_final_grant_and_final_action(is_final_grant, final_action, uc);
 
-  if (reauth_state_ == REAUTH_PROCESSING) {
-    set_reauth(REAUTH_NOT_NEEDED, uc);
-  }
   if (!is_quota_exhausted(1) && (service_state_ == SERVICE_DISABLED ||
                                  service_state_ == SERVICE_REDIRECTED ||
                                  service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
@@ -293,10 +287,6 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
 
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
-  if (reauth_state_ == REAUTH_REQUIRED) {
-    set_reauth(REAUTH_PROCESSING, update_criteria);
-  }
-
   if (is_final_grant_) {
     return get_all_unreported_usage_for_reporting(update_criteria);
   }
@@ -424,14 +414,6 @@ uint64_t SessionCredit::get_credit(Bucket bucket) const {
   return buckets_[bucket];
 }
 
-bool SessionCredit::is_reauth_required() const {
-  return reauth_state_ == REAUTH_REQUIRED;
-}
-
-void SessionCredit::reauth(SessionCreditUpdateCriteria &update_criteria) {
-  set_reauth(REAUTH_REQUIRED, update_criteria);
-}
-
 RedirectServer SessionCredit::get_redirect_server() const {
   return final_action_info_.redirect_server;
 }
@@ -449,17 +431,6 @@ void SessionCredit::set_is_final_grant_and_final_action(
   update_criteria.is_final = is_final_grant;
   final_action_info_                = final_action_info;
   update_criteria.final_action_info = final_action_info;
-}
-
-void SessionCredit::set_reauth(ReAuthState new_reauth_state,
-                               SessionCreditUpdateCriteria &update_criteria) {
-  if (reauth_state_ != new_reauth_state) {
-    MLOG(MDEBUG) << "ReAuth state change from "
-                 << reauth_state_to_str(reauth_state_) << " to "
-                 << reauth_state_to_str(new_reauth_state);
-  }
-  reauth_state_ = new_reauth_state;
-  update_criteria.reauth_state = new_reauth_state;
 }
 
 void SessionCredit::set_service_state(
