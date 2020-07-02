@@ -9,14 +9,13 @@
 #include <chrono>
 #include <thread>
 
+#include "EnumToString.h"
 #include "SessionProxyResponderHandler.h"
 #include "magma_logging.h"
 
 using grpc::Status;
 
 namespace magma {
-std::string raa_result_to_str(ReAuthResult res);
-
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionStore& session_store)
     : enforcer_(enforcer), session_store_(session_store) {}
@@ -94,20 +93,5 @@ SessionMap SessionProxyResponderHandlerImpl::get_sessions_for_policy(
     const PolicyReAuthRequest& request) {
   SessionRead req = {request.imsi()};
   return session_store_.read_sessions(req);
-}
-
-std::string raa_result_to_str(ReAuthResult res) {
-  switch (res) {
-    case UPDATE_INITIATED:
-      return "UPDATE_INITIATED";
-    case UPDATE_NOT_NEEDED:
-      return "UPDATE_NOT_NEEDED";
-    case SESSION_NOT_FOUND:
-      return "SESSION_NOT_FOUND";
-    case OTHER_FAILURE:
-      return "OTHER_FAILURE";
-    default:
-      return "UNKNOWN_RESULT";
-  }
 }
 }  // namespace magma
