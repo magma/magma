@@ -8,9 +8,9 @@ package models
 import (
 	strfmt "github.com/go-openapi/strfmt"
 	models2 "magma/feg/cloud/go/plugin/models"
-	models3 "magma/lte/cloud/go/plugin/models"
-	models4 "magma/orc8r/cloud/go/models"
-	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	models4 "magma/lte/cloud/go/services/policydb/obsidian/models"
+	models5 "magma/orc8r/cloud/go/models"
+	models6 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
@@ -27,14 +27,14 @@ type CwfNetwork struct {
 
 	// description
 	// Required: true
-	Description models4.NetworkDescription `json:"description"`
+	Description models5.NetworkDescription `json:"description"`
 
 	// dns
 	// Required: true
-	DNS *models5.NetworkDNSConfig `json:"dns"`
+	DNS *models6.NetworkDNSConfig `json:"dns"`
 
 	// features
-	Features *models5.NetworkFeatures `json:"features,omitempty"`
+	Features *models6.NetworkFeatures `json:"features,omitempty"`
 
 	// federation
 	// Required: true
@@ -42,14 +42,14 @@ type CwfNetwork struct {
 
 	// id
 	// Required: true
-	ID models4.NetworkID `json:"id"`
+	ID models5.NetworkID `json:"id"`
 
 	// name
 	// Required: true
-	Name models4.NetworkName `json:"name"`
+	Name models5.NetworkName `json:"name"`
 
 	// subscriber config
-	SubscriberConfig *models3.NetworkSubscriberConfig `json:"subscriber_config,omitempty"`
+	SubscriberConfig *models4.NetworkSubscriberConfig `json:"subscriber_config,omitempty"`
 }
 
 // Validate validates this cwf network

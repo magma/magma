@@ -14,8 +14,9 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
-	lteModels "magma/lte/cloud/go/plugin/models"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
+	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -61,16 +62,16 @@ func TestCreateSubscriber(t *testing.T) {
 	assert.NoError(t, err)
 
 	// default sub profile should always succeed
-	payload := &lteModels.Subscriber{
+	payload := &subscriberModels.Subscriber{
 		ID: "IMSI1234567890",
-		Lte: &lteModels.LteSubscription{
+		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
-		ActiveApns: lteModels.ApnList{apn2, apn1},
+		ActiveApns: subscriberModels.ApnList{apn2, apn1},
 	}
 	tc := tests.Test{
 		Method:         "POST",
@@ -96,16 +97,16 @@ func TestCreateSubscriber(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	// no cellular config on network and a non-default sub profile should be 500
-	payload = &lteModels.Subscriber{
+	payload = &subscriberModels.Subscriber{
 		ID: "IMSI0987654321",
-		Lte: &lteModels.LteSubscription{
+		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
 			SubProfile: "foo",
 		},
-		ActiveApns: lteModels.ApnList{apn2, apn1},
+		ActiveApns: subscriberModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -137,16 +138,16 @@ func TestCreateSubscriber(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	payload = &lteModels.Subscriber{
+	payload = &subscriberModels.Subscriber{
 		ID: "IMSI0987654321",
-		Lte: &lteModels.LteSubscription{
+		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
 			SubProfile: "foo",
 		},
-		ActiveApns: lteModels.ApnList{apn2, apn1},
+		ActiveApns: subscriberModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "POST",
@@ -164,16 +165,16 @@ func TestCreateSubscriber(t *testing.T) {
 	tc = tests.Test{
 		Method: "POST",
 		URL:    testURLRoot,
-		Payload: &lteModels.Subscriber{
+		Payload: &subscriberModels.Subscriber{
 			ID: "IMSI1234567898",
-			Lte: &lteModels.LteSubscription{
+			Lte: &subscriberModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
-			ActiveApns: lteModels.ApnList{apn2, apn1},
+			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 		},
 		Handler:        createSubscriber,
 		ParamNames:     []string{"network_id"},
@@ -217,7 +218,7 @@ func TestListSubscribers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Subscriber{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -226,7 +227,7 @@ func TestListSubscribers(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-				Config: &lteModels.LteSubscription{
+				Config: &subscriberModels.LteSubscription{
 					AuthAlgo: "MILENAGE",
 					AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -236,7 +237,7 @@ func TestListSubscribers(t *testing.T) {
 			},
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
-				Config: &lteModels.LteSubscription{
+				Config: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
@@ -256,28 +257,28 @@ func TestListSubscribers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Subscriber{
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
 			"IMSI1234567890": {
 				ID: "IMSI1234567890",
-				Lte: &lteModels.LteSubscription{
+				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
 					SubProfile: "default",
 				},
-				ActiveApns: lteModels.ApnList{apn2, apn1},
+				ActiveApns: subscriberModels.ApnList{apn2, apn1},
 			},
 			"IMSI0987654321": {
 				ID: "IMSI0987654321",
-				Lte: &lteModels.LteSubscription{
+				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
-				ActiveApns: lteModels.ApnList{apn1},
+				ActiveApns: subscriberModels.ApnList{apn1},
 			},
 		}),
 	}
@@ -294,7 +295,7 @@ func TestListSubscribers(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 	defer clock.UnfreezeClock(t)
 
-	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
 	mmeState := state.ArbitaryJSON{"mme": "foo"}
@@ -311,24 +312,24 @@ func TestListSubscribers(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.Subscriber{
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
 			"IMSI1234567890": {
 				ID: "IMSI1234567890",
-				Lte: &lteModels.LteSubscription{
+				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 					State:      "ACTIVE",
 					SubProfile: "default",
 				},
-				ActiveApns: lteModels.ApnList{apn2, apn1},
-				Monitoring: &lteModels.SubscriberStatus{
-					Icmp: &lteModels.IcmpStatus{
+				ActiveApns: subscriberModels.ApnList{apn2, apn1},
+				Monitoring: &subscriberModels.SubscriberStatus{
+					Icmp: &subscriberModels.IcmpStatus{
 						LastReportedTime: frozenClock,
 						LatencyMs:        f32Ptr(12.34),
 					},
 				},
-				State: &lteModels.SubscriberState{
+				State: &subscriberModels.SubscriberState{
 					Mme:  mmeState,
 					S1ap: s1apState,
 					Spgw: spgwState,
@@ -336,14 +337,14 @@ func TestListSubscribers(t *testing.T) {
 			},
 			"IMSI0987654321": {
 				ID: "IMSI0987654321",
-				Lte: &lteModels.LteSubscription{
+				Lte: &subscriberModels.LteSubscription{
 					AuthAlgo:   "MILENAGE",
 					AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 					State:      "ACTIVE",
 					SubProfile: "foo",
 				},
-				ActiveApns: lteModels.ApnList{apn1},
+				ActiveApns: subscriberModels.ApnList{apn1},
 			},
 		}),
 	}
@@ -392,7 +393,7 @@ func TestGetSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &lteModels.LteSubscription{
+			Config: &subscriberModels.LteSubscription{
 				AuthAlgo: "MILENAGE",
 				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -410,16 +411,16 @@ func TestGetSubscriber(t *testing.T) {
 		ParamNames:     []string{"network_id", "subscriber_id"},
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
-		ExpectedResult: &lteModels.Subscriber{
+		ExpectedResult: &subscriberModels.Subscriber{
 			ID: "IMSI1234567890",
-			Lte: &lteModels.LteSubscription{
+			Lte: &subscriberModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
-			ActiveApns: lteModels.ApnList{apn2, apn1},
+			ActiveApns: subscriberModels.ApnList{apn2, apn1},
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -434,7 +435,7 @@ func TestGetSubscriber(t *testing.T) {
 	frozenClock := int64(1000000)
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 	defer clock.UnfreezeClock(t)
-	icmpStatus := &lteModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
 	mmeState := state.ArbitaryJSON{"mme": "foo"}
@@ -451,23 +452,23 @@ func TestGetSubscriber(t *testing.T) {
 		ParamNames:     []string{"network_id", "subscriber_id"},
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
-		ExpectedResult: &lteModels.Subscriber{
+		ExpectedResult: &subscriberModels.Subscriber{
 			ID: "IMSI1234567890",
-			Lte: &lteModels.LteSubscription{
+			Lte: &subscriberModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
 				SubProfile: "default",
 			},
-			ActiveApns: lteModels.ApnList{apn2, apn1},
-			Monitoring: &lteModels.SubscriberStatus{
-				Icmp: &lteModels.IcmpStatus{
+			ActiveApns: subscriberModels.ApnList{apn2, apn1},
+			Monitoring: &subscriberModels.SubscriberStatus{
+				Icmp: &subscriberModels.IcmpStatus{
 					LastReportedTime: frozenClock,
 					LatencyMs:        f32Ptr(12.34),
 				},
 			},
-			State: &lteModels.SubscriberState{
+			State: &subscriberModels.SubscriberState{
 				Mme:  mmeState,
 				S1ap: s1apState,
 				Spgw: spgwState,
@@ -503,16 +504,16 @@ func TestUpdateSubscriber(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 404
-	payload := &lteModels.Subscriber{
+	payload := &subscriberModels.Subscriber{
 		ID: "IMSI1234567890",
-		Lte: &lteModels.LteSubscription{
+		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
 			SubProfile: "default",
 		},
-		ActiveApns: lteModels.ApnList{apn2, apn1},
+		ActiveApns: subscriberModels.ApnList{apn2, apn1},
 	}
 	tc := tests.Test{
 		Method:         "PUT",
@@ -545,7 +546,7 @@ func TestUpdateSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &lteModels.LteSubscription{
+			Config: &subscriberModels.LteSubscription{
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
@@ -556,16 +557,16 @@ func TestUpdateSubscriber(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	payload = &lteModels.Subscriber{
+	payload = &subscriberModels.Subscriber{
 		ID: "IMSI1234567890",
-		Lte: &lteModels.LteSubscription{
+		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			State:      "INACTIVE",
 			SubProfile: "foo",
 		},
-		ActiveApns: lteModels.ApnList{apn2, apn1},
+		ActiveApns: subscriberModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
 		Method:         "PUT",
@@ -635,7 +636,7 @@ func TestDeleteSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &lteModels.LteSubscription{
+			Config: &subscriberModels.LteSubscription{
 				AuthAlgo: "MILENAGE",
 				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -688,7 +689,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	expected := configurator.NetworkEntity{
 		Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-		Config: &lteModels.LteSubscription{
+		Config: &subscriberModels.LteSubscription{
 			AuthAlgo: "MILENAGE",
 			AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -724,7 +725,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected.Config.(*lteModels.LteSubscription).State = "INACTIVE"
+	expected.Config.(*subscriberModels.LteSubscription).State = "INACTIVE"
 	expected.Version = 2
 	assert.Equal(t, expected, actual)
 
@@ -732,7 +733,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected.Config.(*lteModels.LteSubscription).State = "INACTIVE"
+	expected.Config.(*subscriberModels.LteSubscription).State = "INACTIVE"
 	expected.Version = 3
 	assert.Equal(t, expected, actual)
 
@@ -742,7 +743,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected.Config.(*lteModels.LteSubscription).State = "ACTIVE"
+	expected.Config.(*subscriberModels.LteSubscription).State = "ACTIVE"
 	expected.Version = 4
 	assert.Equal(t, expected, actual)
 }
@@ -785,7 +786,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-			Config: &lteModels.LteSubscription{
+			Config: &subscriberModels.LteSubscription{
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:      "ACTIVE",
@@ -846,7 +847,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-		Config: &lteModels.LteSubscription{
+		Config: &subscriberModels.LteSubscription{
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",
@@ -874,7 +875,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
-		Config: &lteModels.LteSubscription{
+		Config: &subscriberModels.LteSubscription{
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			State:      "ACTIVE",

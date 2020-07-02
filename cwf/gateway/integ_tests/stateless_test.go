@@ -17,7 +17,7 @@ import (
 
 	cwfProtos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/lte/obsidian/models"
 	lteProtos "magma/lte/cloud/go/protos"
 
 	"github.com/fiorix/go-diameter/v4/diam"

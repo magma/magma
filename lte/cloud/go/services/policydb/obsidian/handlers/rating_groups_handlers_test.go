@@ -13,8 +13,8 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lteplugin "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"

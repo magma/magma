@@ -10,7 +10,7 @@ package integration
 
 import (
 	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/lte/obsidian/models"
 	lteProtos "magma/lte/cloud/go/protos"
 
 	"github.com/go-openapi/swag"

@@ -7,17 +7,17 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
-	models2 "magma/orc8r/cloud/go/models"
-	models3 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	models3 "magma/orc8r/cloud/go/models"
+	models4 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
-// LteGateway Full description of an LTE gateway
-// swagger:model lte_gateway
-type LteGateway struct {
+// MutableLteGateway LTE gateway object with read-only fields omitted
+// swagger:model mutable_lte_gateway
+type MutableLteGateway struct {
 
 	// cellular
 	// Required: true
@@ -29,34 +29,31 @@ type LteGateway struct {
 
 	// description
 	// Required: true
-	Description models2.GatewayDescription `json:"description"`
+	Description models3.GatewayDescription `json:"description"`
 
 	// device
 	// Required: true
-	Device *models3.GatewayDevice `json:"device"`
+	Device *models4.GatewayDevice `json:"device"`
 
 	// id
 	// Required: true
-	ID models2.GatewayID `json:"id"`
+	ID models3.GatewayID `json:"id"`
 
 	// magmad
 	// Required: true
-	Magmad *models3.MagmadGatewayConfigs `json:"magmad"`
+	Magmad *models4.MagmadGatewayConfigs `json:"magmad"`
 
 	// name
 	// Required: true
-	Name models2.GatewayName `json:"name"`
-
-	// status
-	Status *models3.GatewayStatus `json:"status,omitempty"`
+	Name models3.GatewayName `json:"name"`
 
 	// tier
 	// Required: true
-	Tier models3.TierID `json:"tier"`
+	Tier models4.TierID `json:"tier"`
 }
 
-// Validate validates this lte gateway
-func (m *LteGateway) Validate(formats strfmt.Registry) error {
+// Validate validates this mutable lte gateway
+func (m *MutableLteGateway) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCellular(formats); err != nil {
@@ -87,10 +84,6 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateStatus(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateTier(formats); err != nil {
 		res = append(res, err)
 	}
@@ -101,7 +94,7 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateCellular(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateCellular(formats strfmt.Registry) error {
 
 	if err := validate.Required("cellular", "body", m.Cellular); err != nil {
 		return err
@@ -119,7 +112,7 @@ func (m *LteGateway) validateCellular(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateConnectedEnodebSerials(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateConnectedEnodebSerials(formats strfmt.Registry) error {
 
 	if err := validate.Required("connected_enodeb_serials", "body", m.ConnectedEnodebSerials); err != nil {
 		return err
@@ -135,7 +128,7 @@ func (m *LteGateway) validateConnectedEnodebSerials(formats strfmt.Registry) err
 	return nil
 }
 
-func (m *LteGateway) validateDescription(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateDescription(formats strfmt.Registry) error {
 
 	if err := m.Description.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -147,7 +140,7 @@ func (m *LteGateway) validateDescription(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateDevice(formats strfmt.Registry) error {
 
 	if err := validate.Required("device", "body", m.Device); err != nil {
 		return err
@@ -165,7 +158,7 @@ func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateID(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateID(formats strfmt.Registry) error {
 
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -177,7 +170,7 @@ func (m *LteGateway) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateMagmad(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateMagmad(formats strfmt.Registry) error {
 
 	if err := validate.Required("magmad", "body", m.Magmad); err != nil {
 		return err
@@ -195,7 +188,7 @@ func (m *LteGateway) validateMagmad(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateName(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateName(formats strfmt.Registry) error {
 
 	if err := m.Name.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -207,25 +200,7 @@ func (m *LteGateway) validateName(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *LteGateway) validateStatus(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Status) { // not required
-		return nil
-	}
-
-	if m.Status != nil {
-		if err := m.Status.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("status")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *LteGateway) validateTier(formats strfmt.Registry) error {
+func (m *MutableLteGateway) validateTier(formats strfmt.Registry) error {
 
 	if err := m.Tier.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -238,7 +213,7 @@ func (m *LteGateway) validateTier(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *LteGateway) MarshalBinary() ([]byte, error) {
+func (m *MutableLteGateway) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -246,8 +221,8 @@ func (m *LteGateway) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *LteGateway) UnmarshalBinary(b []byte) error {
-	var res LteGateway
+func (m *MutableLteGateway) UnmarshalBinary(b []byte) error {
+	var res MutableLteGateway
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -13,8 +13,8 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
-	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos"
+	models2 "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	sdbstreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"

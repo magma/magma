@@ -6,6 +6,7 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	models1 "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"strconv"
 
 	strfmt "github.com/go-openapi/strfmt"
@@ -15,36 +16,30 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// Subscriber subscriber
-// swagger:model subscriber
-type Subscriber struct {
+// MutableSubscriber Subset of subscriber field which are mutable
+// swagger:model mutable_subscriber
+type MutableSubscriber struct {
 
 	// active apns
 	ActiveApns ApnList `json:"active_apns,omitempty"`
 
 	// Base names which are active for this subscriber
-	ActiveBaseNames []BaseName `json:"active_base_names,omitempty"`
+	ActiveBaseNames []models1.BaseName `json:"active_base_names,omitempty"`
 
 	// Policies which are active for this subscriber
-	ActivePolicies []PolicyID `json:"active_policies,omitempty"`
+	ActivePolicies []models1.PolicyID `json:"active_policies,omitempty"`
 
 	// id
 	// Required: true
-	ID SubscriberID `json:"id"`
+	ID models1.SubscriberID `json:"id"`
 
 	// lte
 	// Required: true
 	Lte *LteSubscription `json:"lte"`
-
-	// monitoring
-	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
-
-	// state
-	State *SubscriberState `json:"state,omitempty"`
 }
 
-// Validate validates this subscriber
-func (m *Subscriber) Validate(formats strfmt.Registry) error {
+// Validate validates this mutable subscriber
+func (m *MutableSubscriber) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateActiveApns(formats); err != nil {
@@ -67,21 +62,13 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateMonitoring(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateState(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
 	return nil
 }
 
-func (m *Subscriber) validateActiveApns(formats strfmt.Registry) error {
+func (m *MutableSubscriber) validateActiveApns(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.ActiveApns) { // not required
 		return nil
@@ -97,7 +84,7 @@ func (m *Subscriber) validateActiveApns(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Subscriber) validateActiveBaseNames(formats strfmt.Registry) error {
+func (m *MutableSubscriber) validateActiveBaseNames(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.ActiveBaseNames) { // not required
 		return nil
@@ -117,7 +104,7 @@ func (m *Subscriber) validateActiveBaseNames(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
+func (m *MutableSubscriber) validateActivePolicies(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.ActivePolicies) { // not required
 		return nil
@@ -137,7 +124,7 @@ func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Subscriber) validateID(formats strfmt.Registry) error {
+func (m *MutableSubscriber) validateID(formats strfmt.Registry) error {
 
 	if err := m.ID.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
@@ -149,7 +136,7 @@ func (m *Subscriber) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Subscriber) validateLte(formats strfmt.Registry) error {
+func (m *MutableSubscriber) validateLte(formats strfmt.Registry) error {
 
 	if err := validate.Required("lte", "body", m.Lte); err != nil {
 		return err
@@ -167,44 +154,8 @@ func (m *Subscriber) validateLte(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Monitoring) { // not required
-		return nil
-	}
-
-	if m.Monitoring != nil {
-		if err := m.Monitoring.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("monitoring")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *Subscriber) validateState(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.State) { // not required
-		return nil
-	}
-
-	if m.State != nil {
-		if err := m.State.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("state")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
 // MarshalBinary interface implementation
-func (m *Subscriber) MarshalBinary() ([]byte, error) {
+func (m *MutableSubscriber) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -212,8 +163,8 @@ func (m *Subscriber) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *Subscriber) UnmarshalBinary(b []byte) error {
-	var res Subscriber
+func (m *MutableSubscriber) UnmarshalBinary(b []byte) error {
+	var res MutableSubscriber
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

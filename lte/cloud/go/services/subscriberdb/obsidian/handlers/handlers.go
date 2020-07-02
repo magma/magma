@@ -12,8 +12,9 @@ import (
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
-	ltemodels "magma/lte/cloud/go/plugin/models"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
+	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
@@ -41,8 +42,8 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriber},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
-		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateACTIVE)},
-		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(ltemodels.LteSubscriptionStateINACTIVE)},
+		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateACTIVE)},
+		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateINACTIVE)},
 		{Path: SubscriberProfilePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberProfile},
 	}
 	return ret
@@ -81,9 +82,9 @@ func listSubscribers(c echo.Context) error {
 		statesByTypeBySid[stateID.DeviceID] = byType
 	}
 
-	ret := make(map[string]*ltemodels.Subscriber, len(ents))
+	ret := make(map[string]*subscribermodels.Subscriber, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByTypeBySid[ent.Key])
+		ret[ent.Key] = (&subscribermodels.Subscriber{}).FromBackendModels(ent, statesByTypeBySid[ent.Key])
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -94,7 +95,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.MutableSubscriber{}
+	payload := &subscribermodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -142,7 +143,7 @@ func getSubscriber(c echo.Context) error {
 		statesByType[stateID.Type] = st
 	}
 
-	ret := (&ltemodels.Subscriber{}).FromBackendModels(ent, statesByType)
+	ret := (&subscribermodels.Subscriber{}).FromBackendModels(ent, statesByType)
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -152,7 +153,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.MutableSubscriber{}
+	payload := &subscribermodels.MutableSubscriber{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -204,7 +205,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		return nerr
 	}
 
-	var payload = new(ltemodels.SubProfile)
+	var payload = new(subscribermodels.SubProfile)
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -220,7 +221,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "could not load subscriber"), http.StatusInternalServerError)
 	}
 
-	desiredCfg := currentCfg.(*ltemodels.LteSubscription)
+	desiredCfg := currentCfg.(*subscribermodels.LteSubscription)
 	desiredCfg.SubProfile = *payload
 	if nerr := validateSubscriberProfile(networkID, desiredCfg); nerr != nil {
 		return nerr
@@ -248,7 +249,7 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 			return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
 		}
 
-		newConfig := cfg.(*ltemodels.LteSubscription)
+		newConfig := cfg.(*subscribermodels.LteSubscription)
 		newConfig.State = desiredState
 		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig)
 		if err != nil {
@@ -266,7 +267,7 @@ func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
 	return vals[0], vals[1], nil
 }
 
-func validateSubscriberProfile(networkID string, sub *ltemodels.LteSubscription) *echo.HTTPError {
+func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscription) *echo.HTTPError {
 	// Check the sub profiles available on the network if sub profile is not
 	// default (which is always available)
 	if sub.SubProfile != "default" {

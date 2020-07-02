@@ -19,7 +19,7 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/multiplex"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/lte/obsidian/models"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"

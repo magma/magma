@@ -13,8 +13,9 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
-	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
+	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
@@ -406,11 +407,11 @@ func getPolicydbMconfig(graph configurator.EntityGraph) *mconfig.PolicyDB {
 	}
 }
 
-func getRatingGroups(graph configurator.EntityGraph) map[uint32]*models2.RatingGroup {
+func getRatingGroups(graph configurator.EntityGraph) map[uint32]*policyModels.RatingGroup {
 	ratingGroupEnts := graph.GetEntitiesOfType(lte.RatingGroupEntityType)
-	ratingGroups := map[uint32]*models2.RatingGroup{}
+	ratingGroups := map[uint32]*policyModels.RatingGroup{}
 	for _, ent := range ratingGroupEnts {
-		ratingGroup := (ent.Config).(*models2.RatingGroup)
+		ratingGroup := (ent.Config).(*policyModels.RatingGroup)
 		id := uint32(ratingGroup.ID)
 		ratingGroups[id] = ratingGroup
 	}
