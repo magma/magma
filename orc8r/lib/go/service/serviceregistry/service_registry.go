@@ -93,8 +93,14 @@ func convertToServiceLocations(rawMap rawMapType) ([]registry.ServiceLocation, e
 		if err != nil {
 			return nil, err
 		}
+		// echoPort is an optional field used for services which run an echo
+		// server
+		echoPort, err := configMap.GetInt("echo_port")
+		if err != nil {
+			echoPort = 0
+		}
 		proxyAliases := getProxyAliases(rawMap)
-		serviceLocations = append(serviceLocations, registry.ServiceLocation{Name: strings.ToUpper(name), Host: host, Port: port, ProxyAliases: proxyAliases})
+		serviceLocations = append(serviceLocations, registry.ServiceLocation{Name: strings.ToUpper(name), Host: host, Port: port, EchoPort: echoPort, ProxyAliases: proxyAliases})
 	}
 	return serviceLocations, nil
 }
