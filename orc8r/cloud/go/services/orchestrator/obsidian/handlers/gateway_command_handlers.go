@@ -15,8 +15,7 @@ import (
 	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/magmad"
-	magmadModels "magma/orc8r/cloud/go/services/magmad/obsidian/models"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
+	magmadModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
@@ -24,7 +23,7 @@ import (
 )
 
 const (
-	CommandRootV1           = handlers.ManageGatewayPath + "/command"
+	CommandRootV1           = ManageGatewayPath + "/command"
 	RebootGatewayV1         = CommandRootV1 + "/reboot"
 	RestartServicesV1       = CommandRootV1 + "/restart_services"
 	GatewayPingV1           = CommandRootV1 + "/ping"

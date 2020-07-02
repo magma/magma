@@ -100,6 +100,13 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageTierImagePath, Methods: obsidian.DELETE, HandlerFunc: deleteImage},
 		{Path: ManageTierGatewaysPath, Methods: obsidian.POST, HandlerFunc: createTierGateway},
 		{Path: ManageTierGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteTierGateway},
+
+		// Magmad commands
+		{Path: RebootGatewayV1, Methods: obsidian.POST, HandlerFunc: rebootGateway},
+		{Path: RestartServicesV1, Methods: obsidian.POST, HandlerFunc: restartServices},
+		{Path: GatewayPingV1, Methods: obsidian.POST, HandlerFunc: gatewayPing},
+		{Path: GatewayGenericCommandV1, Methods: obsidian.POST, HandlerFunc: gatewayGenericCommand},
+		{Path: TailGatewayLogsV1, Methods: obsidian.POST, HandlerFunc: tailGatewayLogs},
 	}
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
