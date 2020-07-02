@@ -6,12 +6,20 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 services:
+  lte:
+    host: "localhost"
+    port: 9113
+    echo_port: 10113
+    proxy_type: "clientcert"
+
   subscriberdb:
     host: "localhost"
     port: 9083
+    echo_port: 10083
     proxy_type: "clientcert"
 
   policydb:
     host: "localhost"
     port: 9085
+    echo_port: 10085
     proxy_type: "clientcert"
