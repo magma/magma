@@ -10,6 +10,7 @@
 #include <limits>
 
 #include "ChargingGrant.h"
+#include "EnumToString.h"
 #include "magma_logging.h"
 
 namespace magma {
@@ -63,7 +64,7 @@ namespace magma {
     uc.expiry_time = expiry_time;
 
     // todo overwrite these in later diffs
-    //uc.reauth_state = reauth_state;
+    uc.reauth_state = reauth_state;
     //uc.service_state = service_state_;
     return uc;
   }
@@ -80,7 +81,7 @@ namespace magma {
     if (credit.is_reporting()) {
       return false; // No update
     }
-    if (credit.is_reauth_required()) {
+    if (reauth_state == REAUTH_REQUIRED) {
       *update_type = CreditUsage::REAUTH_REQUIRED;
       return true;
     }
@@ -97,6 +98,17 @@ namespace magma {
       return true;
     }
     return false;
-}
+  }
+
+  void ChargingGrant::set_reauth_state(
+    const ReAuthState new_state, SessionCreditUpdateCriteria& uc) {
+    if (reauth_state != new_state) {
+      MLOG(MDEBUG) << "ReAuth state change from "
+                   << reauth_state_to_str(reauth_state) << " to "
+                   << reauth_state_to_str(new_state);
+    }
+    reauth_state = new_state;
+    uc.reauth_state = new_state;
+  }
 
 } // namespace magma

@@ -87,13 +87,6 @@ public:
                       SessionCreditUpdateCriteria &update_criteria);
 
   /**
-   * get_update_type returns the type of update required for the credit. If no
-   * update is required, it returns CREDIT_NO_UPDATE. Else, it returns an update
-   * type
-   */
-  CreditUpdateType get_update_type() const;
-
-  /**
    * get_update returns a filled-in CreditUsage if an update exists, and a blank
    * one if no update exists. Check has_update before calling.
    * This method also sets the REPORTING_* credit buckets
@@ -126,12 +119,6 @@ public:
   uint64_t get_credit(Bucket bucket) const;
 
   /**
-   * Mark the credit to be in the REAUTH_REQUIRED state. The next time
-   * get_update is called, this credit will report its usage.
-   */
-  void reauth(SessionCreditUpdateCriteria &update_criteria);
-
-  /**
    * Returns
    */
   RedirectServer get_redirect_server() const;
@@ -144,14 +131,6 @@ public:
   void set_is_final_grant_and_final_action(
       bool is_final_grant, FinalActionInfo final_action_info,
       SessionCreditUpdateCriteria& update_criteria);
-
-  /**
-   * Set ReAuthState.
-   * NOTE: Use only for merging updates into SessionStore
-   * @param reauth_state
-   */
-  void set_reauth(ReAuthState reauth_state,
-                  SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Set ServiceState.
@@ -215,8 +194,6 @@ public:
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
   // Make public temporarily for the migration
-  bool is_reauth_required() const;
-
   bool validity_timer_expired() const;
 
   bool is_final_grant() const {return is_final_grant_;};
@@ -228,7 +205,6 @@ private:
 
   CreditType credit_type_; // TODO remove
 
-  ReAuthState reauth_state_; // TODO move to ChargingGrant
   ServiceState service_state_; // TODO move to ChargingGrant
   bool is_final_grant_; // TODO move to ChargingGrant
   FinalActionInfo final_action_info_; // TODO move to ChargingGrant

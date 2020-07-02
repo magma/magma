@@ -161,7 +161,6 @@ std::string serialize_stored_session_credit(StoredSessionCredit &stored) {
   marshaled["credit_limit_type"] = static_cast<int>(stored.credit_limit_type);
   marshaled["final_action_info"] =
       serialize_stored_final_action_info(stored.final_action_info);
-  marshaled["reauth_state"] = static_cast<int>(stored.reauth_state);
   marshaled["service_state"] = static_cast<int>(stored.service_state);
   marshaled["expiry_time"] = std::to_string(stored.expiry_time);
   marshaled["buckets"] = folly::dynamic::object();
@@ -189,8 +188,6 @@ deserialize_stored_session_credit(const std::string &serialized) {
     static_cast<CreditLimitType>(marshaled["credit_limit_type"].getInt());
   stored.final_action_info = deserialize_stored_final_action_info(
       marshaled["final_action_info"].getString());
-  stored.reauth_state =
-      static_cast<ReAuthState>(marshaled["reauth_state"].getInt());
   stored.service_state =
       static_cast<ServiceState>(marshaled["service_state"].getInt());
   stored.expiry_time = static_cast<std::time_t>(

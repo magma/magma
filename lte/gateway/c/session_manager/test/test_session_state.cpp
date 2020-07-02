@@ -588,9 +588,13 @@ TEST_F(SessionStateTest, test_reauth_key) {
 
 TEST_F(SessionStateTest, test_reauth_new_key) {
   // credit is already reporting, no update needed
-  auto reauth_res =
-      session_state->reauth_key(1, update_criteria);
+  auto reauth_res = session_state->reauth_key(1, update_criteria);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
+
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  auto new_charging_credits = update_criteria.charging_credit_to_install;
+  EXPECT_EQ(new_charging_credits[1].reauth_state, REAUTH_REQUIRED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -601,10 +605,20 @@ TEST_F(SessionStateTest, test_reauth_new_key) {
   EXPECT_EQ(usage.bytes_tx(), 0);
   EXPECT_EQ(usage.bytes_rx(), 0);
 
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(update_criteria.charging_credit_map.size(), 1);
+  auto credit_uc = update_criteria.charging_credit_map[1];
+  EXPECT_EQ(credit_uc.reauth_state, REAUTH_PROCESSING);
+
   receive_credit_from_ocs(1, 1024);
   EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)]
                 .bucket_deltas[ALLOWED_TOTAL], 1024);
+
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(update_criteria.charging_credit_map.size(), 1);
+  credit_uc = update_criteria.charging_credit_map[1];
+  EXPECT_EQ(credit_uc.reauth_state, REAUTH_NOT_NEEDED);
 }
 
 TEST_F(SessionStateTest, test_reauth_all) {
@@ -627,14 +641,33 @@ TEST_F(SessionStateTest, test_reauth_all) {
   auto reauth_res = session_state->reauth_all(uc);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(uc.charging_credit_map.size(), 2);
+  auto credit_uc_1 = uc.charging_credit_map[1];
+  auto credit_uc_2 = uc.charging_credit_map[2];
+  EXPECT_EQ(credit_uc_1.reauth_state, REAUTH_REQUIRED);
+  EXPECT_EQ(credit_uc_2.reauth_state, REAUTH_REQUIRED);
+
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(reauth_update, &actions, update_criteria);
+  session_state->get_updates(reauth_update, &actions, uc);
   EXPECT_EQ(reauth_update.updates_size(), 2);
+
+  EXPECT_EQ(uc.charging_credit_map.size(), 2);
+  credit_uc_1 = uc.charging_credit_map[1];
+  credit_uc_2 = uc.charging_credit_map[2];
+  EXPECT_EQ(credit_uc_1.reauth_state, REAUTH_PROCESSING);
+  EXPECT_EQ(credit_uc_2.reauth_state, REAUTH_PROCESSING);
 
   // All charging keys are reporting, no update needed
   reauth_res = session_state->reauth_all(uc);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
+
+  EXPECT_EQ(uc.charging_credit_map.size(), 2);
+  credit_uc_1 = uc.charging_credit_map[1];
+  credit_uc_2 = uc.charging_credit_map[2];
+  EXPECT_EQ(credit_uc_1.reauth_state, REAUTH_PROCESSING);
+  EXPECT_EQ(credit_uc_2.reauth_state, REAUTH_PROCESSING);
 }
 
 TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {

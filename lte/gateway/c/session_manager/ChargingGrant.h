@@ -48,6 +48,8 @@ struct ChargingGrant {
   // the reason.
   // Return false otherwise. In this case, update_type is untouched.
   bool get_update_type(CreditUsage::UpdateType* update_type) const;
+
+  void set_reauth_state(const ReAuthState new_state, SessionCreditUpdateCriteria &uc);
 };
 
 }  // namespace magma
