@@ -108,7 +108,7 @@ SessionState::SessionState(
       std::make_unique<std::string>(marshaled.session_level_key);
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
-    monitor.credit = SessionCredit::unmarshal(it.second.credit, MONITORING);
+    monitor.credit = SessionCredit::unmarshal(it.second.credit);
     monitor.level = it.second.level;
 
     monitor_map_[it.first] = std::make_unique<Monitor>(monitor);
@@ -842,8 +842,7 @@ bool SessionState::init_charging_credit(
               << update.charging_key();
 
   auto charging_grant = std::make_unique<ChargingGrant>();
-  charging_grant->credit =
-    SessionCredit(CreditType::CHARGING, SERVICE_ENABLED, update.limit_type());
+  charging_grant->credit = SessionCredit(SERVICE_ENABLED, update.limit_type());
 
   charging_grant->receive_charging_grant(update.credit());
   update_criteria.charging_credit_to_install[CreditKey(update)] =
@@ -877,7 +876,7 @@ ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
   }
   // charging_key cannot be found, initialize credit and engage reauth
   auto grant = std::make_unique<ChargingGrant>();
-  grant->credit = SessionCredit(CreditType::CHARGING, SERVICE_DISABLED);
+  grant->credit = SessionCredit(SERVICE_DISABLED);
   grant->reauth_state = REAUTH_REQUIRED;
   grant->service_state = SERVICE_DISABLED;
   update_criteria.charging_credit_to_install[charging_key] = grant->marshal();
