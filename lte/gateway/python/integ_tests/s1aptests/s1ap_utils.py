@@ -30,7 +30,10 @@ from lte.protos.session_manager_pb2 import (
     PolicyReAuthRequest,
     QoSInformation,
 )
-from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2 import (
+    CreateBearerRequest,
+    DeleteBearerRequest,
+)
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
@@ -236,7 +239,10 @@ class S1ApUtil(object):
             response = self.get_response()
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
-            assert context_setup.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            assert (
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
 
         logging.debug(
             "s1ap response expected, received: %d, %d",
@@ -275,10 +281,16 @@ class S1ApUtil(object):
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
-        assert self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req) == 0
+        assert (
+            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            == 0
+        )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
-            assert s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                == response.msg_type
+            )
 
         # Now wait for the context release response
         if wait_for_s1_ctxt_release:
@@ -383,10 +395,15 @@ class MagmadUtil(object):
             "command": "test",
         }
 
-        self._command = "sshpass -p {password} ssh " \
-                        "-o UserKnownHostsFile=/dev/null " \
-                        "-o StrictHostKeyChecking=no " \
-                        "{user}@{host} {command}"
+        self._command = (
+            "sshpass -p {password} ssh "
+            "-o UserKnownHostsFile=/dev/null "
+            "-o StrictHostKeyChecking=no "
+            "{user}@{host} {command}"
+        )
+
+        self.config_path = "/home/vagrant/magma/lte/gateway/configs/"
+        self.mme_config_file = self.config_path + "templates/mme.conf.template"
 
     def exec_command(self, command):
         """
@@ -424,8 +441,9 @@ class MagmadUtil(object):
         """
             Restart all magma services on magma_dev VM
             """
-        self.exec_command("sudo service magma@* stop ; "
-                          "sudo service magma@magmad start")
+        self.exec_command(
+            "sudo service magma@* stop ; sudo service magma@magmad start"
+        )
         time.sleep(10)
 
     def restart_services(self, services):
@@ -437,6 +455,109 @@ class MagmadUtil(object):
 
         """
         self._magmad_client.restart_services(services)
+
+    def create_mme_config_backup(self):
+        """
+        This function creates a backup of default MME configuration file,
+        which can later be used to restore the original configuration
+        """
+
+        print("Creating a backup of MME configuration file")
+        self.exec_command(
+            "sudo cp -n "
+            + self.mme_config_file
+            + " "
+            + self.mme_config_file
+            + "_bak"
+        )
+
+    def reset_mme_config_file(self):
+        """
+        Reset the MME configuration from the backup configuration file
+        """
+
+        print("Restoring MME configuration from backup configuration file")
+        self.exec_command(
+            "sudo cp " + self.mme_config_file + "_bak " + self.mme_config_file
+        )
+
+    def clear_default_plmn_tac_configuration(self):
+        """
+        Remove default PLMN and TAC from MME configuration file
+        """
+
+        print("Removing default GUMMEI_LIST from MME configuration")
+        self.exec_command(
+            "sudo sed -i '/GUMMEI_LIST/{n;d}' " + self.mme_config_file
+        )
+
+        print("Removing default TAI_LIST from MME configuration")
+        self.exec_command(
+            "sudo sed -i '/TAI_LIST/{n;N;N;N;N;N;N;d}' " + self.mme_config_file
+        )
+
+        print("Removing default TAC_LIST from MME configuration")
+        self.exec_command(
+            "sudo sed -i '/TAC_LIST/{n;N;N;d}' " + self.mme_config_file
+        )
+
+    def configure_multiple_plmn_tac(self):
+        """
+        Configure multiple PLMNs and TACs in MME configuration file
+        """
+        config_list = [
+            {"MCC": "001", "MNC": "01", "TAC": "1"},
+            {"MCC": "001", "MNC": "02", "TAC": "2"},
+            {"MCC": "001", "MNC": "03", "TAC": "3"},
+            {"MCC": "001", "MNC": "04", "TAC": "4"},
+            {"MCC": "001", "MNC": "05", "TAC": "5"},
+        ]
+
+        print("Updating multiple PLMNs and TACs in MME configuration")
+        gummei_cmd_str = ""
+        tac_cmd_str = ""
+        count_tacs = len(config_list)
+        for idx in range(count_tacs):
+            gummei_cmd_str += "\ \ \ \ \ \ \ \ \ "
+            gummei_cmd_str += "{ "
+            gummei_cmd_str += "MCC=\\\"" + config_list[idx]["MCC"] + "\\\" ; "
+            gummei_cmd_str += "MNC=\\\"" + config_list[idx]["MNC"] + "\\\" ; "
+            gummei_cmd_str += "MME_GID=\\\"1\\\" ; "
+            gummei_cmd_str += "MME_CODE=\\\"1\\\" ; "
+
+            tac_cmd_str += "\ \ \ \ \ \ \ \ \ "
+            tac_cmd_str += "{ "
+            tac_cmd_str += "MCC=\\\"" + config_list[idx]["MCC"] + "\\\" ; "
+            tac_cmd_str += "MNC=\\\"" + config_list[idx]["MNC"] + "\\\" ; "
+            tac_cmd_str += "TAC=\\\"" + config_list[idx]["TAC"] + "\\\" ; "
+
+            if idx == (count_tacs - 1):
+                gummei_cmd_str += "}"
+                tac_cmd_str += "}"
+            else:
+                gummei_cmd_str += "},\\n"
+                tac_cmd_str += "},\\n"
+
+        gummei_cmd_str += "' " + self.mme_config_file
+        tac_cmd_str += "' " + self.mme_config_file
+
+        self.exec_command("sudo sed -i '/GUMMEI_LIST/a " + gummei_cmd_str)
+        self.exec_command("sudo sed -i '/TAI_LIST/a " + tac_cmd_str)
+        self.exec_command("sudo sed -i '/TAC_LIST/a " + tac_cmd_str)
+
+    def reduce_mobile_reachability_timer_value(self):
+        """
+        Reduce the mobile reachability timer to 1 minute, so that it can
+        quickly be tested as part of Sanity. The current default value of
+        Mobile Reachability Timer is 54 minutes
+        """
+        print(
+            "Configuring mobile reachability timer value = 1 minute "
+            "(Default value is 54 minutes)"
+        )
+        self.exec_command(
+            "sudo sed -i '/^        T3412/s/54/1/' " + self.mme_config_file
+        )
 
 
 class MobilityUtil(object):
@@ -525,7 +646,9 @@ class SpgwUtil(object):
                         max_req_bw_ul=10000000,
                         max_req_bw_dl=10000000,
                         arp=QosArp(
-                            priority_level=1, pre_capability=1, pre_vulnerability=0
+                            priority_level=1,
+                            pre_capability=1,
+                            pre_vulnerability=0,
                         ),
                     ),
                     flow_list=[
