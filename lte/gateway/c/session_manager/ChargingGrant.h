@@ -44,15 +44,11 @@ struct ChargingGrant {
   // StoredChargingGrant -> ChargingGrant
   static ChargingGrant unmarshal(const StoredChargingGrant &marshaled);
 
-  // Set is_final_grant and final_action_info values
-  void set_final_action_info(const magma::lte::ChargingCredit &credit);
+  void receive_charging_grant(const magma::lte::ChargingCredit& credit,
+                              SessionCreditUpdateCriteria* uc=NULL);
 
   // Returns a SessionCreditUpdateCriteria that reflects the current state
   SessionCreditUpdateCriteria get_update_criteria();
-
-  // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
-  // and assign it to expiry_time
-  void set_expiry_time_as_timestamp(uint32_t delta_time_sec);
 
   // Determine whether the charging grant should send an update request
   // Return true if an update is required, with the update_type set to indicate

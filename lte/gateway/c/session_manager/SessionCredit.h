@@ -70,20 +70,18 @@ public:
    * reset_reporting_credit resets the REPORTING_* to 0
    * Also marks the session as not in reporting.
    */
-  void reset_reporting_credit(SessionCreditUpdateCriteria &update_criteria);
+  void reset_reporting_credit(SessionCreditUpdateCriteria* uc);
 
   /**
    * Credit update has failed to the OCS, so mark this credit as failed so it
    * can be cut off accordingly
    */
-  void mark_failure(uint32_t code,
-                    SessionCreditUpdateCriteria &update_criteria);
+  void mark_failure(uint32_t code, SessionCreditUpdateCriteria* uc);
   /**
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
    */
-  void receive_credit(const GrantedUnits& gsu, uint32_t validity_time,
-                      SessionCreditUpdateCriteria &uc);
+  void receive_credit(const GrantedUnits& gsu, SessionCreditUpdateCriteria* uc);
 
   /**
    * get_update returns a filled-in CreditUsage if an update exists, and a blank
@@ -105,14 +103,6 @@ public:
    * Helper function to get the credit in a particular bucket
    */
   uint64_t get_credit(Bucket bucket) const;
-
-  /**
-   * Set expiry time of SessionCredit
-   * NOTE: Use only for merging updates into SessionStore
-   * @param expiry_time
-   */
-  void set_expiry_time(std::time_t expiry_time,
-                       SessionCreditUpdateCriteria &update_criteria);
 
   void set_grant_tracking_type(GrantTrackingType g_type,
     SessionCreditUpdateCriteria& uc);
@@ -158,9 +148,6 @@ public:
    * Set to false to allow users to use without any constraint.
    */
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
-
-  // Make public temporarily for the migration
-  bool validity_timer_expired() const;
 private:
   uint64_t buckets_[MAX_VALUES];
   bool reporting_;
@@ -169,13 +156,8 @@ private:
 
   CreditType credit_type_; // TODO remove
 
-  std::time_t expiry_time_; // TODO move to ChargingGrant
-
 private:
   void log_quota_and_usage() const;
-
-  void set_expiry_time(uint32_t validity_time,
-                       SessionCreditUpdateCriteria &update_criteria);
 
   SessionCredit::Usage get_unreported_usage() const;
 

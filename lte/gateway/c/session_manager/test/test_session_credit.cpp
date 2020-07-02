@@ -58,7 +58,7 @@ TEST_P(SessionCreditParameterizedTest, test_track_credit) {
   uint64_t grant = 1024;
   create_granted_units(&grant, NULL, NULL, &gsu);
 
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
 
   EXPECT_EQ(1024, credit.get_credit(ALLOWED_TOTAL));
   EXPECT_EQ(0, credit.get_credit(USED_TX));
@@ -76,7 +76,7 @@ TEST_P(SessionCreditParameterizedTest, test_add_received_credit) {
   uint64_t grant = 1024;
   create_granted_units(&grant, NULL, NULL, &gsu);
 
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   credit.add_used_credit(10, 20, uc);
   EXPECT_EQ(credit.get_credit(USED_TX), 10);
   EXPECT_EQ(credit.get_credit(USED_RX), 20);
@@ -97,7 +97,7 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates) {
   uint64_t grant = 1024;
   create_granted_units(&grant, NULL, NULL, &gsu);
 
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   credit.add_used_credit(500, 524, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
   auto update = credit.get_usage_for_reporting(uc);
@@ -125,7 +125,7 @@ TEST_P(SessionCreditParameterizedTest,
   uint64_t grant = 1000;
   create_granted_units(&grant, NULL, NULL, &gsu);
 
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   credit.add_used_credit(300, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
   auto update = credit.get_usage_for_reporting(uc);
@@ -142,24 +142,6 @@ TEST_P(SessionCreditParameterizedTest,
   EXPECT_EQ(uc.bucket_deltas[REPORTING_RX], 0);
 }
 
-TEST_P(SessionCreditParameterizedTest, test_collect_updates_timer_expiries) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
-  SessionCreditUpdateCriteria uc{};
-  GrantedUnits gsu;
-  uint64_t grant = 1024;
-  create_granted_units(&grant, NULL, NULL, &gsu);
-
-  credit.receive_credit(gsu, 1, uc);
-  credit.add_used_credit(20, 30, uc);
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(1001));
-  EXPECT_TRUE(credit.validity_timer_expired());
-  auto update = credit.get_usage_for_reporting(uc);
-  EXPECT_EQ(update.bytes_tx, 20);
-  EXPECT_EQ(update.bytes_rx, 30);
-}
-
 TEST_P(SessionCreditParameterizedTest, test_collect_updates_none_available) {
   CreditType credit_type = GetParam();
   SessionCredit credit(credit_type);
@@ -168,7 +150,7 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates_none_available) {
   uint64_t grant = 1000;
   create_granted_units(&grant, NULL, NULL, &gsu);
 
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   credit.add_used_credit(400, 399, uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
 }
@@ -183,7 +165,7 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates_when_overusing) {
   uint64_t grant = 1000;
   create_granted_units(&grant, NULL, NULL, &gsu);
 
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   credit.add_used_credit(510, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
   auto update = credit.get_usage_for_reporting(uc);
@@ -209,7 +191,7 @@ TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit) {
   create_granted_units(NULL, &grant, &grant, &gsu);
 
   // receive tx = 1000, rx = 1000
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TX_AND_RX);
   // use tx = 1000
   credit.add_used_credit(1000, 0, uc);
@@ -219,7 +201,7 @@ TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit) {
   EXPECT_EQ(update.bytes_rx, 0);
 
   // receive another tx = 1000, rx = 1000, cumulative: tx = 2000, rx = 2000
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TX_AND_RX);
   credit.add_used_credit(50, 2000, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
@@ -230,7 +212,7 @@ TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit) {
   // receive rx, tx, but no usage
   gsu.Clear();
   create_granted_units(NULL, &grant, &grant, &gsu);
-  credit.receive_credit(gsu, 3600, uc);
+  credit.receive_credit(gsu, &uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
 }
 
@@ -244,12 +226,12 @@ TEST(test_is_quota_exhausted_total_only, test_session_credit) {
   GrantedUnits gsu;
   uint64_t total_grant = 1000;
   create_granted_units(&total_grant, NULL, NULL, &gsu);
-  credit.receive_credit(gsu, 0, uc);
+  credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
 
   credit.add_used_credit(500, 0, uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
-  credit.mark_failure(0, uc);
+  credit.mark_failure(0, &uc);
 
   credit.add_used_credit(500, 0, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(1));
@@ -262,12 +244,12 @@ TEST(test_is_quota_exhausted_rx_only, test_session_credit) {
   GrantedUnits gsu;
   uint64_t grant = 1000;
   create_granted_units(NULL, NULL, &grant, &gsu);
-  credit.receive_credit(gsu, 0, uc);
+  credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, RX_ONLY);
 
   credit.add_used_credit(500, 500, uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
-  credit.mark_failure(0, uc);
+  credit.mark_failure(0, &uc);
 
   credit.add_used_credit(500, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(1));
@@ -280,12 +262,12 @@ TEST(test_is_quota_exhausted_tx_only, test_session_credit) {
   GrantedUnits gsu;
   uint64_t grant = 1000;
   create_granted_units(NULL, &grant, NULL, &gsu);
-  credit.receive_credit(gsu, 0, uc);
+  credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TX_ONLY);
 
   credit.add_used_credit(500, 500, uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
-  credit.mark_failure(0, uc);
+  credit.mark_failure(0, &uc);
 
   credit.add_used_credit(500, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(1));

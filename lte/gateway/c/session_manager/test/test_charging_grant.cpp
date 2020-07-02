@@ -79,7 +79,7 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
 
   auto uc = grant.get_update_criteria();
   create_granted_units(&total_grant, NULL, NULL, &gsu);
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   grant.is_final_grant = false;
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
 
@@ -100,10 +100,10 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   EXPECT_FALSE(grant.get_update_type(&update_type));
 
   // Receive a final grant
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
   grant.is_final_grant = true;
-  grant.credit.reset_reporting_credit(uc);
+  grant.credit.reset_reporting_credit(&uc);
 
   EXPECT_FALSE(grant.get_update_type(&update_type));
 
@@ -121,7 +121,7 @@ TEST_F(ChargingGrantTest, test_should_deactivate_service) {
   uint64_t total_grant = 1000;
   create_granted_units(&total_grant, NULL, NULL, &gsu);
   auto uc = grant.get_update_criteria();
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   EXPECT_FALSE(grant.credit.is_quota_exhausted(0.8));
 
   // If quota is not exhausted, don't deactivate
@@ -166,7 +166,7 @@ TEST_F(ChargingGrantTest, test_get_action) {
 
   // Not a final grant
   grant.is_final_grant = false;
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   grant.credit.add_used_credit(1024, 0, uc);
   auto cont_action = grant.get_action(uc);
   EXPECT_EQ(cont_action, CONTINUE_SERVICE);
@@ -178,7 +178,7 @@ TEST_F(ChargingGrantTest, test_get_action) {
   grant.is_final_grant = true;
   grant.final_action_info =
     get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   grant.credit.add_used_credit(2048, 0, uc);
   grant.credit.add_used_credit(30, 20, uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
@@ -202,7 +202,7 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   grant.is_final_grant = true;
   grant.final_action_info =
     get_final_action_info(ChargingCredit_FinalAction_REDIRECT);
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   grant.credit.add_used_credit(2048, 0, uc);
   grant.credit.add_used_credit(30, 20, uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
@@ -226,7 +226,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   GrantedUnits gsu;
   uint64_t total_grant = 1000;
   create_granted_units(&total_grant, NULL, NULL, &gsu);
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
 
   // Not a final credit
@@ -250,7 +250,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
 
   // Now receive new quota (not final unit)
   uc = grant.get_update_criteria(); // reset UC
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 2000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 1000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
@@ -272,7 +272,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   grant.is_final_grant = true;
   grant.final_action_info =
     get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
-  grant.credit.receive_credit(gsu, 0, uc);
+  grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);

@@ -47,13 +47,34 @@ namespace magma {
     return charging;
   }
 
-  void ChargingGrant::set_final_action_info(const magma::lte::ChargingCredit &credit) {
-    is_final_grant = credit.is_final();
+  void ChargingGrant::receive_charging_grant(
+    const magma::lte::ChargingCredit& p_credit,
+    SessionCreditUpdateCriteria* uc) {
+    credit.receive_credit(p_credit.granted_units(), uc);
+
+    // Final Action
+    is_final_grant = p_credit.is_final();
     if (is_final_grant) {
-      final_action_info.final_action = credit.final_action();
-      if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-        final_action_info.redirect_server = credit.redirect_server();
+      final_action_info.final_action = p_credit.final_action();
+      if (p_credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
+        final_action_info.redirect_server = p_credit.redirect_server();
       }
+      log_final_action_info();
+    }
+
+    // Expiry Time
+    auto delta_time_sec = p_credit.validity_time();
+    if (delta_time_sec == 0) {
+       expiry_time = std::numeric_limits<std::time_t>::max();
+    } else {
+      expiry_time = std::time(nullptr) + delta_time_sec;
+    }
+
+    // Update the UpdateCriteria if not NULL
+    if (uc != NULL) {
+      uc->is_final = is_final_grant;
+      uc->final_action_info = final_action_info;
+      uc->expiry_time = expiry_time;
     }
   }
 
@@ -65,14 +86,6 @@ namespace magma {
     uc.reauth_state = reauth_state;
     uc.service_state = service_state;
     return uc;
-  }
-
-  void ChargingGrant::set_expiry_time_as_timestamp(uint32_t delta_time_sec) {
-    if (delta_time_sec == 0) {
-       expiry_time = std::numeric_limits<std::time_t>::max();
-    } else {
-      expiry_time = std::time(nullptr) + delta_time_sec;
-    }
   }
 
   CreditUsage ChargingGrant::get_credit_usage(
@@ -108,7 +121,7 @@ namespace magma {
       *update_type = CreditUsage::QUOTA_EXHAUSTED;
       return true;
     }
-    if (credit.validity_timer_expired()) {
+    if (time(NULL) >= expiry_time) {
       *update_type = CreditUsage::VALIDITY_TIMER_EXPIRED;
       return true;
     }
