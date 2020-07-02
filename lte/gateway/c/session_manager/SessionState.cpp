@@ -789,7 +789,7 @@ bool SessionState::reset_reporting_charging_credit(
     return false;
   }
   auto credit_uc = get_credit_uc(key, update_criteria);
-  it->second->credit.reset_reporting_credit(*credit_uc);
+  it->second->credit.reset_reporting_credit(credit_uc);
   return true;
 }
 
@@ -807,24 +807,16 @@ bool SessionState::receive_charging_credit(
     // update unsuccessful, reset credit and return
     MLOG(MDEBUG) << session_id_ << " Received an unsuccessful update for RG "
                  << update.charging_key();
-    grant->credit.mark_failure(update.result_code(), *credit_uc);
+    grant->credit.mark_failure(update.result_code(), credit_uc);
     if (grant->should_deactivate_service()) {
       grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
     }
     return false;
   }
-  const auto &gsu = update.credit().granted_units();
   MLOG(MINFO)  << session_id_ << " Received a charging credit for RG: "
                << update.charging_key();
-  auto c_update = update.credit();
-  grant->credit.receive_credit(gsu, c_update.validity_time(), *credit_uc);
-  grant->set_final_action_info(c_update);
-  if (grant->is_final_grant) {
-    grant->log_final_action_info();
-  }
-  credit_uc->is_final = grant->is_final_grant;
-  credit_uc->final_action_info = grant->final_action_info;
-  grant->set_expiry_time_as_timestamp(c_update.validity_time());
+  grant->receive_charging_grant(update.credit(), credit_uc);
+
   if (grant->reauth_state == REAUTH_PROCESSING) {
     grant->set_reauth_state(REAUTH_NOT_NEEDED, *credit_uc);
   }
@@ -834,7 +826,6 @@ bool SessionState::receive_charging_credit(
     MLOG(MINFO) << "Quota available. Activating service";
     grant->set_service_state(SERVICE_NEEDS_ACTIVATION, *credit_uc);
   }
-
   return true;
 }
 
@@ -854,14 +845,7 @@ bool SessionState::init_charging_credit(
   charging_grant->credit =
     SessionCredit(CreditType::CHARGING, SERVICE_ENABLED, update.limit_type());
 
-  SessionCreditUpdateCriteria credit_uc{};
-  auto grant = update.credit();
-  charging_grant->credit.receive_credit(
-    grant.granted_units(), grant.validity_time(), credit_uc);
-
-  charging_grant->set_final_action_info(grant);
-  charging_grant->set_expiry_time_as_timestamp(grant.validity_time());
-
+  charging_grant->receive_charging_grant(update.credit());
   update_criteria.charging_credit_to_install[CreditKey(update)] =
     charging_grant->marshal();
   credit_map_[CreditKey(update)] = std::move(charging_grant);
@@ -926,7 +910,6 @@ void SessionState::merge_charging_credit_update(
   }
   auto& charging_grant = it->second;
   auto& credit = charging_grant->credit;
-  credit.set_expiry_time(credit_update.expiry_time, credit_update);
 
   // Credit merging
   credit.set_grant_tracking_type(credit_update.grant_tracking_type, credit_update);
@@ -1046,14 +1029,14 @@ bool SessionState::receive_monitor(
   auto credit_uc =
       get_monitor_uc(update.credit().monitoring_key(), update_criteria);
   if (!update.success()) {
-    it->second->credit.mark_failure(update.result_code(), *credit_uc);
+    it->second->credit.mark_failure(update.result_code(), credit_uc);
     return false;
   }
   const auto &gsu = update.credit().granted_units();
   MLOG(MINFO) << session_id_ << " Received monitor credit for "
                << update.credit().monitoring_key();
   FinalActionInfo final_action_info;
-  it->second->credit.receive_credit(gsu, 0, *credit_uc);
+  it->second->credit.receive_credit(gsu, credit_uc);
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     monitor_map_.erase(update.credit().monitoring_key());
   }
@@ -1066,8 +1049,6 @@ void SessionState::merge_monitor_updates(
   if (it == monitor_map_.end()) {
     return;
   }
-
-  it->second->credit.set_expiry_time(update.expiry_time, update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->credit.add_credit(
@@ -1112,7 +1093,7 @@ bool SessionState::reset_reporting_monitor(
     return false;
   }
   auto credit_uc = get_monitor_uc(key, update_criteria);
-  it->second->credit.reset_reporting_credit(*credit_uc);
+  it->second->credit.reset_reporting_credit(credit_uc);
   return true;
 }
 
@@ -1145,7 +1126,7 @@ bool SessionState::init_new_monitor(
   auto _ = SessionCreditUpdateCriteria{};
   FinalActionInfo final_action_info;
   auto gsu = update.credit().granted_units();
-  monitor->credit.receive_credit(gsu, 0, _);
+  monitor->credit.receive_credit(gsu, NULL);
 
   update_criteria.monitor_credit_to_install[update.credit().monitoring_key()] =
       monitor->marshal();

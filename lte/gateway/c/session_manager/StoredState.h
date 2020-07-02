@@ -135,7 +135,6 @@ enum SessionFsmState {
 struct StoredSessionCredit {
   bool reporting;
   CreditLimitType credit_limit_type;
-  std::time_t expiry_time;
   std::unordered_map<Bucket, uint64_t> buckets;
   GrantTrackingType grant_tracking_type;
 };

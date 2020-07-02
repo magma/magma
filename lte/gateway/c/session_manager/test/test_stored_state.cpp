@@ -64,7 +64,6 @@ protected:
 
     stored.reporting = true;
     stored.credit_limit_type = INFINITE_METERED;
-    stored.expiry_time = 16;
 
     stored.buckets[USED_TX] = 12345;
     stored.buckets[ALLOWED_TOTAL] = 54321;
@@ -197,7 +196,6 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
   EXPECT_EQ(deserialized.reporting, true);
   EXPECT_EQ(deserialized.credit_limit_type, INFINITE_METERED);
 
-  EXPECT_EQ(deserialized.expiry_time, 16);
   EXPECT_EQ(deserialized.buckets[USED_TX], 12345);
   EXPECT_EQ(deserialized.buckets[ALLOWED_TOTAL], 54321);
 
@@ -212,7 +210,6 @@ TEST_F(StoredStateTest, test_stored_monitor) {
 
   EXPECT_EQ(deserialized.credit.reporting, true);
   EXPECT_EQ(deserialized.credit.credit_limit_type, INFINITE_METERED);
-  EXPECT_EQ(deserialized.credit.expiry_time, 16);
   EXPECT_EQ(deserialized.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(deserialized.credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(deserialized.level, MonitoringLevel::PCC_RULE_LEVEL);
@@ -246,9 +243,6 @@ TEST_F(StoredStateTest, test_stored_charging_credit_map) {
   EXPECT_EQ(credit.credit_limit_type, INFINITE_METERED);
   EXPECT_EQ(credit.buckets[USED_TX], 12345);
   EXPECT_EQ(credit.buckets[ALLOWED_TOTAL], 54321);
-
-  // test session credit fields that will be deprecated
-  EXPECT_EQ(credit.expiry_time, 16);
 }
 
 TEST_F(StoredStateTest, test_stored_monitor_map) {
@@ -260,7 +254,6 @@ TEST_F(StoredStateTest, test_stored_monitor_map) {
   auto stored_monitor = deserialized["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.credit_limit_type, INFINITE_METERED);
-  EXPECT_EQ(stored_monitor.credit.expiry_time, 16);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
@@ -312,15 +305,11 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(credit.credit_limit_type, INFINITE_METERED);
 
-  // test session credit to be deprecated
-  EXPECT_EQ(credit.expiry_time, 16);
-
   EXPECT_EQ(deserialized.session_level_key, "session_level_key");
 
   auto stored_monitor = deserialized.monitor_map["mk1"];
   EXPECT_EQ(stored_monitor.credit.reporting, true);
   EXPECT_EQ(stored_monitor.credit.credit_limit_type, INFINITE_METERED);
-  EXPECT_EQ(stored_monitor.credit.expiry_time, 16);
   EXPECT_EQ(stored_monitor.credit.buckets[USED_TX], 12345);
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);

@@ -25,8 +25,6 @@ SessionCredit SessionCredit::unmarshal(
 
   session_credit.reporting_ = marshaled.reporting;
   session_credit.credit_limit_type_ = marshaled.credit_limit_type;
-
-  session_credit.expiry_time_ = marshaled.expiry_time;
   session_credit.grant_tracking_type_ = marshaled.grant_tracking_type;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
@@ -42,8 +40,6 @@ StoredSessionCredit SessionCredit::marshal() {
   StoredSessionCredit marshaled{};
   marshaled.reporting = reporting_;
   marshaled.credit_limit_type = credit_limit_type_;
-
-  marshaled.expiry_time = expiry_time_;
   marshaled.grant_tracking_type = grant_tracking_type_;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
@@ -55,7 +51,6 @@ StoredSessionCredit SessionCredit::marshal() {
 
 SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   SessionCreditUpdateCriteria uc{};
-  uc.expiry_time = expiry_time_;
   uc.grant_tracking_type = grant_tracking_type_;
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
@@ -78,18 +73,6 @@ SessionCredit::SessionCredit(
 SessionCredit::SessionCredit(CreditType credit_type)
     : SessionCredit(credit_type, SERVICE_ENABLED, FINITE) {}
 
-void SessionCredit::set_expiry_time(uint32_t validity_time,
-                                    SessionCreditUpdateCriteria &uc) {
-  if (validity_time == 0) {
-    // set as max possible time
-    expiry_time_ = std::numeric_limits<std::time_t>::max();
-    uc.expiry_time = expiry_time_;
-    return;
-  }
-  expiry_time_ = std::time(nullptr) + validity_time;
-  uc.expiry_time = expiry_time_;
-}
-
 void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx,
                                     SessionCreditUpdateCriteria &uc) {
   buckets_[USED_TX] += used_tx;
@@ -100,29 +83,31 @@ void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx,
   log_quota_and_usage();
 }
 
-void SessionCredit::reset_reporting_credit(
-    SessionCreditUpdateCriteria &update_criteria) {
+void SessionCredit::reset_reporting_credit(SessionCreditUpdateCriteria* uc) {
   buckets_[REPORTING_RX] = 0;
   buckets_[REPORTING_TX] = 0;
   reporting_ = false;
-  update_criteria.reporting = false;
+  if (uc != NULL) {
+    uc->reporting = false;
+  }
 }
 
 void SessionCredit::mark_failure(uint32_t code,
-                                 SessionCreditUpdateCriteria &update_criteria) {
+                                 SessionCreditUpdateCriteria* uc) {
   if (DiameterCodeHandler::is_transient_failure(code)) {
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
-    update_criteria.bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
-    update_criteria.bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
+    if (uc != NULL) {
+      uc->bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
+      uc->bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
+    }
   }
-  reset_reporting_credit(update_criteria);
+  reset_reporting_credit(uc);
 }
 
-void SessionCredit::receive_credit(const GrantedUnits& gsu,
-    uint32_t validity_time, SessionCreditUpdateCriteria& uc) {
+void SessionCredit::receive_credit(
+  const GrantedUnits& gsu, SessionCreditUpdateCriteria* uc) {
   grant_tracking_type_ = determine_grant_tracking_type(gsu);
-  uc.grant_tracking_type = grant_tracking_type_;
 
   // Clear invalid values
   uint64_t total_volume = gsu.total().is_valid() ? gsu.total().volume() : 0;
@@ -133,26 +118,30 @@ void SessionCredit::receive_credit(const GrantedUnits& gsu,
   buckets_[ALLOWED_TOTAL] += total_volume;
   buckets_[ALLOWED_TX] += tx_volume;
   buckets_[ALLOWED_RX] += rx_volume;
-  uc.bucket_deltas[ALLOWED_TOTAL] += total_volume;
-  uc.bucket_deltas[ALLOWED_TX] += tx_volume;
-  uc.bucket_deltas[ALLOWED_RX] += rx_volume;
 
   MLOG(MINFO)  << "Received the following credit"
               << " total_volume=" << total_volume
               << " tx_volume=" << tx_volume
               << " rx_volume=" << rx_volume
               << " grant_tracking_type="
-              << grant_type_to_str(grant_tracking_type_)
-              << " w/ validity time=" << validity_time;
+              << grant_type_to_str(grant_tracking_type_);
 
   // Update reporting/reported bytes
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
-  uc.bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
-  uc.bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
-  reset_reporting_credit(uc);
 
-  set_expiry_time(validity_time, uc);
+  if (uc != NULL) {
+    uc->grant_tracking_type = grant_tracking_type_;
+
+    uc->bucket_deltas[ALLOWED_TOTAL] += total_volume;
+    uc->bucket_deltas[ALLOWED_TX] += tx_volume;
+    uc->bucket_deltas[ALLOWED_RX] += rx_volume;
+
+    uc->bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
+    uc->bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
+  }
+
+  reset_reporting_credit(uc);
   log_quota_and_usage();
 }
 
@@ -193,10 +182,6 @@ bool SessionCredit::is_quota_exhausted(float threshold) const {
                  << " grant is exhausted";
   }
   return is_exhausted;
-}
-
-bool SessionCredit::validity_timer_expired() const {
-  return time(NULL) >= expiry_time_;
 }
 
 SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
@@ -311,12 +296,6 @@ void SessionCredit::set_grant_tracking_type(GrantTrackingType g_type,
   SessionCreditUpdateCriteria& uc) {
   grant_tracking_type_ = g_type;
   uc.grant_tracking_type = g_type;
-}
-
-void SessionCredit::set_expiry_time(
-    std::time_t expiry_time, SessionCreditUpdateCriteria &update_criteria) {
-  expiry_time_ = expiry_time;
-  update_criteria.expiry_time = expiry_time;
 }
 
 void SessionCredit::add_credit(uint64_t credit, Bucket bucket,
