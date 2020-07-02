@@ -167,21 +167,6 @@ get_usage_proto_from_struct(const SessionCredit::Usage &usage_in,
   return usage;
 }
 
-static CreditUsage::UpdateType
-convert_update_type_to_proto(CreditUpdateType update_type) {
-  switch (update_type) {
-    case CREDIT_QUOTA_EXHAUSTED:
-      return CreditUsage::QUOTA_EXHAUSTED;
-    case CREDIT_REAUTH_REQUIRED:
-      return CreditUsage::REAUTH_REQUIRED;
-    case CREDIT_VALIDITY_TIMER_EXPIRED:
-      return CreditUsage::VALIDITY_TIMER_EXPIRED;
-    default:
-      MLOG(MERROR) << "Converting invalid update type " << update_type;
-      return CreditUsage::QUOTA_EXHAUSTED;
-  }
-}
-
 static UsageMonitorUpdate make_usage_monitor_update(
   const SessionCredit::Usage &usage_in, const std::string &monitoring_key,
   MonitoringLevel level) {
@@ -208,7 +193,7 @@ void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
 SessionCreditUpdateCriteria* SessionState::get_credit_uc(
   const CreditKey &key, SessionStateUpdateCriteria &uc) {
   if (uc.charging_credit_map.find(key) == uc.charging_credit_map.end()) {
-    uc.charging_credit_map[key] = credit_map_[key]->credit.get_update_criteria();
+    uc.charging_credit_map[key] = credit_map_[key]->get_update_criteria();
   }
   return &(uc.charging_credit_map[key]);
 }
@@ -277,14 +262,12 @@ void SessionState::get_monitor_updates(
   for (auto& monitor_pair : monitor_map_) {
     auto mkey = monitor_pair.first;
     auto& credit = monitor_pair.second->credit;
-    auto credit_uc = get_monitor_uc(mkey, update_criteria);
-    auto update_type = credit.get_update_type();
-    if (update_type == CREDIT_NO_UPDATE) {
+    if (!credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
       continue;
     }
-    MLOG(MDEBUG) << "Subscriber " << imsi_ << " monitoring key "
-                 << mkey << " updating due to type "
-                 << update_type;
+    MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key "
+                 << mkey << " updating due to quota exhaustion";
+    auto credit_uc = get_monitor_uc(mkey, update_criteria);
     auto usage = credit.get_usage_for_reporting(*credit_uc);
     auto update = make_usage_monitor_update(
         usage, mkey, monitor_pair.second->level);
@@ -842,9 +825,14 @@ bool SessionState::receive_charging_credit(
                << gsu.rx().volume() << " rx bytes "
                << "for subscriber " << imsi_ << " rating group "
                << update.charging_key();
+  auto c_update = update.credit();
   grant->credit.receive_credit(
-    gsu, update.credit().validity_time(), update.credit().is_final(),
-    get_final_action_info(update.credit()), *credit_uc);
+    gsu, c_update.validity_time(), c_update.is_final(),
+    get_final_action_info(c_update), *credit_uc);
+
+  grant->set_final_action_info(c_update);
+  grant->set_expiry_time_as_timestamp(c_update.validity_time());
+  // Todo set service state and reauth state in grant
   return true;
 }
 
@@ -870,6 +858,9 @@ bool SessionState::init_charging_credit(
     grant.granted_units(), grant.validity_time(), grant.is_final(),
     get_final_action_info(update.credit()), credit_uc);
 
+  charging_grant->set_final_action_info(grant);
+  charging_grant->set_expiry_time_as_timestamp(grant.validity_time());
+
   update_criteria.charging_credit_to_install[CreditKey(update)] =
     charging_grant->marshal();
   credit_map_[CreditKey(update)] = std::move(charging_grant);
@@ -893,7 +884,7 @@ ReAuthResult SessionState::reauth_key(const CreditKey &charging_key,
     if (it->second->credit.is_reporting()) {
       return ReAuthResult::UPDATE_NOT_NEEDED;
     }
-    auto uc = it->second->credit.get_update_criteria();
+    auto uc = it->second->get_update_criteria();
     it->second->credit.reauth(uc);
     update_criteria.charging_credit_map[charging_key] = uc;
     return ReAuthResult::UPDATE_INITIATED;
@@ -916,7 +907,7 @@ SessionState::reauth_all(SessionStateUpdateCriteria &update_criteria) {
   for (auto &credit_pair : credit_map_) {
     // Only update credits that aren't reporting
     if (!credit_pair.second->credit.is_reporting()) {
-      auto uc = credit_pair.second->credit.get_update_criteria();
+      auto uc = credit_pair.second->get_update_criteria();
       credit_pair.second->credit.reauth(uc);
       update_criteria.charging_credit_map[credit_pair.first] = uc;
       res = ReAuthResult::UPDATE_INITIATED;
@@ -931,17 +922,26 @@ void SessionState::merge_charging_credit_update(
   if (it == credit_map_.end()) {
     return;
   }
-  auto& credit = it->second->credit;
+  auto& charging_grant = it->second;
+  auto& credit = charging_grant->credit;
+  // todo deprecate
   credit.set_is_final_grant_and_final_action(credit_update.is_final, credit_update.final_action_info, credit_update);
   credit.set_reauth(credit_update.reauth_state, credit_update);
   credit.set_service_state(credit_update.service_state, credit_update);
   credit.set_expiry_time(credit_update.expiry_time, credit_update);
+
+  // Credit merging
   credit.set_grant_tracking_type(credit_update.grant_tracking_type, credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     credit.add_credit(
       credit_update.bucket_deltas.find(bucket)->second, bucket, credit_update);
   }
+
+  // set charging grant
+  charging_grant->is_final_grant = credit_update.is_final;
+  charging_grant->final_action_info = credit_update.final_action_info;
+  charging_grant->expiry_time = credit_update.expiry_time;
 }
 
 void SessionState::set_charging_credit(
@@ -985,17 +985,16 @@ void SessionState::get_charging_updates(
     switch (action_type) {
       case CONTINUE_SERVICE:
         {
-          auto update_type = grant->credit.get_update_type();
-          if (update_type == CREDIT_NO_UPDATE) {
-            break;
+          CreditUsage::UpdateType update_type;
+          if (!grant->get_update_type(&update_type)) {
+            break; // no update
           }
           // Create Update struct
           MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << key << " updating due to type "
                    << update_type;
           auto usage = grant->credit.get_usage_for_reporting(*credit_uc);
-          auto p_update_type = convert_update_type_to_proto(update_type);
-          auto update = get_usage_proto_from_struct(usage, p_update_type, key);
+          auto update = get_usage_proto_from_struct(usage, update_type, key);
           auto credit_req = make_credit_usage_update_req(update);
           update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
           request_number_++;

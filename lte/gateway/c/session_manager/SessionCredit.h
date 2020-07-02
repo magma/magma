@@ -214,6 +214,12 @@ public:
    */
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
 
+  // Make public temporarily for the migration
+  bool is_reauth_required() const;
+
+  bool validity_timer_expired() const;
+
+  bool is_final_grant() const {return is_final_grant_;};
 private:
   uint64_t buckets_[MAX_VALUES];
   bool reporting_;
@@ -233,12 +239,8 @@ private:
 
   bool should_deactivate_service() const;
 
-  bool validity_timer_expired() const;
-
   void set_expiry_time(uint32_t validity_time,
                        SessionCreditUpdateCriteria &update_criteria);
-
-  bool is_reauth_required() const;
 
   ServiceActionType get_action_for_deactivating_service() const;
 

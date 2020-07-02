@@ -47,11 +47,56 @@ namespace magma {
   }
 
   void ChargingGrant::set_final_action_info(const magma::lte::ChargingCredit &credit) {
-    if (credit.is_final()) {
+    is_final_grant = credit.is_final();
+    if (is_final_grant) {
       final_action_info.final_action = credit.final_action();
       if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
         final_action_info.redirect_server = credit.redirect_server();
       }
     }
   }
+
+  SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
+    SessionCreditUpdateCriteria uc = credit.get_update_criteria();
+    uc.is_final = is_final_grant;
+    uc.final_action_info = final_action_info;
+    uc.expiry_time = expiry_time;
+
+    // todo overwrite these in later diffs
+    //uc.reauth_state = reauth_state;
+    //uc.service_state = service_state_;
+    return uc;
+  }
+
+  void ChargingGrant::set_expiry_time_as_timestamp(uint32_t delta_time_sec) {
+    if (delta_time_sec == 0) {
+      expiry_time = std::numeric_limits<std::time_t>::max();
+    } else {
+      expiry_time = std::time(nullptr) + delta_time_sec;
+    }
+  }
+
+  bool ChargingGrant::get_update_type(CreditUsage::UpdateType* update_type) const {
+    if (credit.is_reporting()) {
+      return false; // No update
+    }
+    if (credit.is_reauth_required()) {
+      *update_type = CreditUsage::REAUTH_REQUIRED;
+      return true;
+    }
+    if (credit.is_final_grant() && credit.is_quota_exhausted(1)) {
+      // Don't request updates if this is the final grant
+      return false;
+    }
+    if (credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
+      *update_type = CreditUsage::QUOTA_EXHAUSTED;
+      return true;
+    }
+    if (credit.validity_timer_expired()) {
+      *update_type = CreditUsage::VALIDITY_TIMER_EXPIRED;
+      return true;
+    }
+    return false;
+}
+
 } // namespace magma
