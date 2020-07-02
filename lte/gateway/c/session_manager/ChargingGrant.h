@@ -8,6 +8,7 @@
  */
 #pragma once
 
+#include "ServiceAction.h"
 #include "StoredState.h"
 #include "SessionCredit.h"
 
@@ -35,7 +36,7 @@ struct ChargingGrant {
   ReAuthState reauth_state;
 
   // Default states
-  ChargingGrant() : credit(CreditType::CHARGING), is_final_grant(false),
+  ChargingGrant() : credit(), is_final_grant(false),
     service_state(SERVICE_ENABLED), reauth_state(REAUTH_NOT_NEEDED) {}
 
   // ChargingGrant -> StoredChargingGrant
@@ -56,25 +57,9 @@ struct ChargingGrant {
   // Return false otherwise. In this case, update_type is untouched.
   bool get_update_type(CreditUsage::UpdateType* update_type) const;
 
-  // Return true if the service needs to be deactivated
-  bool should_deactivate_service() const;
-
   // get_action returns the action to take on the credit based on the last
   // update. If no action needs to take place, CONTINUE_SERVICE is returned.
   ServiceActionType get_action(SessionCreditUpdateCriteria &update_criteria);
-
-  // Convert FinalAction enum to ServiceActionType
-  ServiceActionType final_action_to_action(
-    const ChargingCredit_FinalAction action) const;
-
-  // Set the object and update criteria's reauth state to new_state.
-  void set_reauth_state(const ReAuthState new_state, SessionCreditUpdateCriteria &uc);
-
-  // Set the object and update criteria's service state to new_state.
-  void set_service_state(const ServiceState new_service_state, SessionCreditUpdateCriteria &uc);
-
-  // Log final action related information
-  void log_final_action_info() const;
 
   // Get unreported usage from credit and return as part of CreditUsage
   // The update_type is also included in CreditUsage
@@ -82,6 +67,30 @@ struct ChargingGrant {
   // usage, otherwise we only include unreported usage up to the allocated amount.
   CreditUsage get_credit_usage(CreditUsage::UpdateType update_type,
     SessionCreditUpdateCriteria& uc, bool is_terminate);
+
+  // Return true if the service needs to be deactivated
+  bool should_deactivate_service() const;
+
+  // Convert FinalAction enum to ServiceActionType
+  ServiceActionType final_action_to_action(
+    const ChargingCredit_FinalAction action) const;
+
+  // Set is_final_grant and final_action_info values
+  void set_final_action_info(
+    const magma::lte::ChargingCredit& credit, SessionCreditUpdateCriteria& uc);
+
+  // Set the object and update criteria's reauth state to new_state.
+  void set_reauth_state(const ReAuthState new_state, SessionCreditUpdateCriteria &uc);
+
+  // Set the object and update criteria's service state to new_state.
+  void set_service_state(const ServiceState new_service_state, SessionCreditUpdateCriteria &uc);
+
+  // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
+  // and assign it to expiry_time
+  void set_expiry_time_as_timestamp(uint32_t rel_time_sec);
+
+  // Log final action related information
+  void log_final_action_info() const;
 };
 
 }  // namespace magma

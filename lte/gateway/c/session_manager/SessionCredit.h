@@ -8,31 +8,11 @@
  */
 #pragma once
 
-#include <ctime>
-#include <memory>
-#include <unordered_map>
-#include <unordered_set>
-
 #include <lte/protos/session_manager.grpc.pb.h>
 
-#include "CreditKey.h"
-#include "ServiceAction.h"
 #include "StoredState.h"
 
 namespace magma {
-
-enum CreditUpdateType {
-  CREDIT_NO_UPDATE = 0,
-  CREDIT_QUOTA_EXHAUSTED = 1,
-  CREDIT_VALIDITY_TIMER_EXPIRED = 2,
-  CREDIT_REAUTH_REQUIRED = 3
-};
-
-enum CreditType {
-  MONITORING = 0,
-  CHARGING = 1,
-};
-
 /**
  * SessionCredit tracks all the credit volumes associated with a charging key
  * for a user. It can receive used credit, add allowed credit, and check if
@@ -45,18 +25,17 @@ public:
     uint64_t bytes_rx;
   };
 
-  static SessionCredit unmarshal(
-    const StoredSessionCredit &marshaled, CreditType credit_type);
+  static SessionCredit unmarshal(const StoredSessionCredit &marshaled);
 
   StoredSessionCredit marshal();
 
   SessionCreditUpdateCriteria get_update_criteria();
 
-  SessionCredit(CreditType credit_type);
+  SessionCredit();
 
-  SessionCredit(CreditType credit_type, ServiceState start_state);
+  SessionCredit(ServiceState start_state);
 
-  SessionCredit(CreditType credit_type, ServiceState start_state,
+  SessionCredit(ServiceState start_state,
                 CreditLimitType credit_limit_type);
 
   /**
@@ -153,8 +132,6 @@ private:
   bool reporting_;
   CreditLimitType credit_limit_type_;
   GrantTrackingType grant_tracking_type_;
-
-  CreditType credit_type_; // TODO remove
 
 private:
   void log_quota_and_usage() const;

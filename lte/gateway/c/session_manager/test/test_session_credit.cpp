@@ -15,18 +15,12 @@
 
 using ::testing::Test;
 
-#define HIGH_CREDIT 1000000
-
 namespace magma {
 const FinalActionInfo default_final_action_info = {
     .final_action = ChargingCredit_FinalAction_TERMINATE};
 
-class SessionCreditParameterizedTest
-    : public ::testing::TestWithParam<CreditType> {};
-
-TEST_P(SessionCreditParameterizedTest, test_marshal_unmarshal) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_marshal_unmarshal, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
 
   // Set some fields here to non default values. Credit is used.
@@ -44,15 +38,14 @@ TEST_P(SessionCreditParameterizedTest, test_marshal_unmarshal) {
   // Check that after marshaling/unmarshaling that the fields are still the
   // same.
   auto marshaled = credit.marshal();
-  auto credit_2 = SessionCredit::unmarshal(marshaled, credit_type);
+  auto credit_2 = SessionCredit::unmarshal(marshaled);
 
   EXPECT_EQ(credit_2.get_credit(USED_TX), (uint64_t)39u);
   EXPECT_EQ(credit_2.get_credit(USED_RX), (uint64_t)40u);
 }
 
-TEST_P(SessionCreditParameterizedTest, test_track_credit) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_track_credit, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1024;
@@ -68,9 +61,8 @@ TEST_P(SessionCreditParameterizedTest, test_track_credit) {
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 0);
 }
 
-TEST_P(SessionCreditParameterizedTest, test_add_received_credit) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_add_received_credit, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1024;
@@ -89,9 +81,8 @@ TEST_P(SessionCreditParameterizedTest, test_add_received_credit) {
   EXPECT_EQ(uc.bucket_deltas[USED_RX], 60);
 }
 
-TEST_P(SessionCreditParameterizedTest, test_collect_updates) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_collect_updates, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1024;
@@ -116,10 +107,8 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates) {
 
 // Default usage reporting threshold is 0.8, so session manager will report
 // when quota is not completely used up.
-TEST_P(SessionCreditParameterizedTest,
-       test_collect_updates_when_nearly_exhausted) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_collect_updates_when_nearly_exhausted, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1000;
@@ -142,9 +131,8 @@ TEST_P(SessionCreditParameterizedTest,
   EXPECT_EQ(uc.bucket_deltas[REPORTING_RX], 0);
 }
 
-TEST_P(SessionCreditParameterizedTest, test_collect_updates_none_available) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_collect_updates_none_available, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1000;
@@ -157,9 +145,8 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates_none_available) {
 
 // The maximum of reported usage is capped by what is granted even when an user
 // overused.
-TEST_P(SessionCreditParameterizedTest, test_collect_updates_when_overusing) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_collect_updates_when_overusing, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1000;
@@ -182,9 +169,8 @@ TEST_P(SessionCreditParameterizedTest, test_collect_updates_when_overusing) {
   EXPECT_EQ(uc.bucket_deltas[REPORTING_RX], 0);
 }
 
-TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit) {
-  CreditType credit_type = GetParam();
-  SessionCredit credit(credit_type);
+TEST(test_add_rx_tx_credit, test_session_credit) {
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t grant = 1000;
@@ -216,11 +202,8 @@ TEST_P(SessionCreditParameterizedTest, test_add_rx_tx_credit) {
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
 }
 
-INSTANTIATE_TEST_CASE_P(SessionCreditTests, SessionCreditParameterizedTest,
-                        ::testing::Values(MONITORING, CHARGING));
-
 TEST(test_is_quota_exhausted_total_only, test_session_credit) {
-  SessionCredit credit(CreditType::CHARGING);
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
 
   GrantedUnits gsu;
@@ -238,7 +221,7 @@ TEST(test_is_quota_exhausted_total_only, test_session_credit) {
 }
 
 TEST(test_is_quota_exhausted_rx_only, test_session_credit) {
-  SessionCredit credit(CreditType::CHARGING);
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
 
   GrantedUnits gsu;
@@ -256,7 +239,7 @@ TEST(test_is_quota_exhausted_rx_only, test_session_credit) {
 }
 
 TEST(test_is_quota_exhausted_tx_only, test_session_credit) {
-  SessionCredit credit(CreditType::CHARGING);
+  SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
 
   GrantedUnits gsu;

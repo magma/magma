@@ -7,6 +7,7 @@
  * of patent rights can be found in the PATENTS file in the same directory.
  */
 
+#include <ctime>
 #include <limits>
 
 #include "ChargingGrant.h"
@@ -31,7 +32,7 @@ namespace magma {
   ChargingGrant ChargingGrant::unmarshal(const StoredChargingGrant &marshaled) {
     ChargingGrant charging;
     charging.credit =
-      SessionCredit::unmarshal(marshaled.credit, CreditType::CHARGING);
+      SessionCredit::unmarshal(marshaled.credit);
 
     FinalActionInfo final_action_info;
     final_action_info.final_action = marshaled.final_action_info.final_action;
