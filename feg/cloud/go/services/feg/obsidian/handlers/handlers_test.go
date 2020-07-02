@@ -15,8 +15,8 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	plugin2 "magma/feg/cloud/go/plugin"
-	"magma/feg/cloud/go/plugin/handlers"
-	models2 "magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/handlers"
+	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	healthTestInit "magma/feg/cloud/go/services/health/test_init"
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"

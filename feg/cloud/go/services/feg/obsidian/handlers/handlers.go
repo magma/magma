@@ -13,7 +13,7 @@ import (
 	"net/http"
 
 	"magma/feg/cloud/go/feg"
-	fegModels "magma/feg/cloud/go/plugin/models"
+	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"

@@ -18,7 +18,7 @@ import (
 	models2 "magma/cwf/cloud/go/plugin/models"
 	"magma/feg/cloud/go/feg"
 	plugin3 "magma/feg/cloud/go/plugin"
-	models3 "magma/feg/cloud/go/plugin/models"
+	models3 "magma/feg/cloud/go/services/feg/obsidian/models"
 	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
