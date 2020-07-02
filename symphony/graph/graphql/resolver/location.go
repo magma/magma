@@ -51,6 +51,22 @@ func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, typ *e
 
 type locationResolver struct{}
 
+func (r locationResolver) ParentCoords(ctx context.Context, obj *ent.Location) (*models.Coordinates, error) {
+	var err error
+	parent := obj
+	for parent != nil {
+		locLat, locLong := parent.Latitude, parent.Longitude
+		if locLat != 0 || locLong != 0 {
+			return &models.Coordinates{Latitude: locLat, Longitude: locLong}, nil
+		}
+		parent, err = parent.QueryParent().Only(ctx)
+		if ent.MaskNotFound(err) != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
+}
+
 func (r locationResolver) Surveys(ctx context.Context, location *ent.Location) ([]*ent.Survey, error) {
 	if surveys, err := location.Edges.SurveyOrErr(); !ent.IsNotLoaded(err) {
 		return surveys, err

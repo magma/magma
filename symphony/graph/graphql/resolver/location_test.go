@@ -329,11 +329,16 @@ func TestAddMultiLevelLocations(t *testing.T) {
 		Type: locationTypeA.ID,
 	})
 	require.NoError(t, err, "Adding 1st level location")
+	cords, err := lr.ParentCoords(ctx, locationA)
+	require.NoError(t, err)
+	require.Nil(t, cords)
 
 	locationB, err := mr.AddLocation(ctx, models.AddLocationInput{
-		Name:   "b1",
-		Type:   locationTypeB.ID,
-		Parent: &locationA.ID,
+		Name:      "b1",
+		Type:      locationTypeB.ID,
+		Parent:    &locationA.ID,
+		Latitude:  pointer.ToFloat64(37.5),
+		Longitude: pointer.ToFloat64(35.7),
 	})
 	require.NoError(t, err, "Adding 1st child of a location (2nd level)")
 
@@ -361,14 +366,23 @@ func TestAddMultiLevelLocations(t *testing.T) {
 		Parent: &locationC.ID,
 	})
 	require.NoError(t, err, "Adding 1st child of c location (4th level)")
+	cords, err = lr.ParentCoords(ctx, locationD)
+	require.NoError(t, err)
+	require.Equal(t, 37.5, cords.Latitude)
+	require.Equal(t, 35.7, cords.Longitude)
 
-	_, err = mr.AddLocation(ctx, models.AddLocationInput{
-		Name:   "e",
-		Type:   locationTypeE.ID,
-		Parent: &locationD.ID,
+	locationE, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name:      "e",
+		Type:      locationTypeE.ID,
+		Parent:    &locationD.ID,
+		Latitude:  pointer.ToFloat64(47.5),
+		Longitude: pointer.ToFloat64(45.7),
 	})
 	require.NoError(t, err, "Adding 1st child of d location (5th level)")
-
+	cords, err = lr.ParentCoords(ctx, locationE)
+	require.NoError(t, err)
+	require.Equal(t, 47.5, cords.Latitude)
+	require.Equal(t, 45.7, cords.Longitude)
 	// Adding in wrong order
 	_, err = mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "b1",

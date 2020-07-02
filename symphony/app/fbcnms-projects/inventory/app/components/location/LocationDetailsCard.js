@@ -10,14 +10,18 @@
 
 import type {Location} from '../../common/Location.js';
 
+import * as React from 'react';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
 import CardHeader from '@fbcnms/ui/components/design-system/Card/CardHeader';
 import Grid from '@material-ui/core/Grid';
 import LocationDetailsCardProperty from './LocationDetailsCardProperty';
 import LocationMapSnippet from './LocationMapSnippet';
-import React, {useContext} from 'react';
+import Text from '@fbcnms/ui/components/design-system/Text';
+import Tooltip from '@material-ui/core/Tooltip';
+import fbt from 'fbt';
 import {makeStyles} from '@material-ui/styles';
+import {useContext} from 'react';
 
 const useStyles = makeStyles(() => ({
   header: {
@@ -40,6 +44,51 @@ const LocationDetailsCard = (props: Props) => {
     'external_id',
   );
 
+  const getCoordTitle = (title: string) => {
+    return (
+      <Tooltip
+        arrow
+        placement="left"
+        title={fbt('Value taken from parent', '')}>
+        <div>
+          <Text>
+            <fbt desc="">
+              <fbt:param
+                name="Latitude or longitude followed by a star"
+                number={true}>
+                {title}
+              </fbt:param>
+            </fbt>
+          </Text>
+        </div>
+      </Tooltip>
+    );
+  };
+
+  const getCoordAndTitle = (coord: 'LAT' | 'LONG', location: Location) => {
+    if (
+      location.latitude === 0 &&
+      location.longitude === 0 &&
+      location.parentCoords !== null
+    ) {
+      const value =
+        coord === 'LAT'
+          ? location.parentCoords?.latitude ?? 0
+          : location.parentCoords?.longitude ?? 0;
+      const title =
+        coord === 'LAT' ? getCoordTitle('Lat*') : getCoordTitle('Long*');
+      return {title, value};
+    } else {
+      const value =
+        coord === 'LAT' ? location.latitude ?? 0 : location.longitude ?? 0;
+      const title = coord == 'LAT' ? fbt('Lat', '') : fbt('Long', '');
+      return {title, value};
+    }
+  };
+
+  const latDetails = getCoordAndTitle('LAT', location);
+  const longDetails = getCoordAndTitle('LONG', location);
+
   return (
     <Card className={className}>
       <Grid container spacing={2}>
@@ -47,25 +96,33 @@ const LocationDetailsCard = (props: Props) => {
           <CardHeader className={classes.header}>Details</CardHeader>
           <Grid container>
             <LocationDetailsCardProperty
-              title="Type"
+              title={
+                <Text>
+                  <fbt desc="">Type</fbt>
+                </Text>
+              }
               value={location.locationType.name}
             />
             {externalIDEnabled && location.externalId && (
               <LocationDetailsCardProperty
-                title="External ID"
+                title={
+                  <Text>
+                    <fbt desc="">External ID</fbt>
+                  </Text>
+                }
                 value={location.externalId}
               />
             )}
-            {location.latitude !== 0 && (
+            {latDetails.value !== 0 && (
               <LocationDetailsCardProperty
-                title="Lat"
-                value={String(location.latitude)}
+                title={latDetails.title}
+                value={String(latDetails.value)}
               />
             )}
-            {location.longitude !== 0 && (
+            {longDetails.value !== 0 && (
               <LocationDetailsCardProperty
-                title="Long"
-                value={String(location.longitude)}
+                title={longDetails.title}
+                value={String(longDetails.value)}
               />
             )}
           </Grid>

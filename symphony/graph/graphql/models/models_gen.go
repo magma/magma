@@ -279,6 +279,11 @@ type CommentInput struct {
 	Text       string        `json:"text"`
 }
 
+type Coordinates struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
 type Device struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`

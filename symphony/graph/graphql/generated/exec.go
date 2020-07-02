@@ -241,6 +241,11 @@ type ComplexityRoot struct {
 		Text       func(childComplexity int) int
 	}
 
+	Coordinates struct {
+		Latitude  func(childComplexity int) int
+		Longitude func(childComplexity int) int
+	}
+
 	Customer struct {
 		ExternalID func(childComplexity int) int
 		ID         func(childComplexity int) int
@@ -516,6 +521,7 @@ type ComplexityRoot struct {
 		Longitude         func(childComplexity int) int
 		Name              func(childComplexity int) int
 		NumChildren       func(childComplexity int) int
+		ParentCoords      func(childComplexity int) int
 		ParentLocation    func(childComplexity int) int
 		Properties        func(childComplexity int) int
 		SiteSurveyNeeded  func(childComplexity int) int
@@ -1319,6 +1325,7 @@ type LocationResolver interface {
 	Children(ctx context.Context, obj *ent.Location) ([]*ent.Location, error)
 	NumChildren(ctx context.Context, obj *ent.Location) (int, error)
 
+	ParentCoords(ctx context.Context, obj *ent.Location) (*models.Coordinates, error)
 	Equipments(ctx context.Context, obj *ent.Location) ([]*ent.Equipment, error)
 	Properties(ctx context.Context, obj *ent.Location) ([]*ent.Property, error)
 	Images(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
@@ -2180,6 +2187,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Comment.Text(childComplexity), true
+
+	case "Coordinates.latitude":
+		if e.complexity.Coordinates.Latitude == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Latitude(childComplexity), true
+
+	case "Coordinates.longitude":
+		if e.complexity.Coordinates.Longitude == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Longitude(childComplexity), true
 
 	case "Customer.externalId":
 		if e.complexity.Customer.ExternalID == nil {
@@ -3352,6 +3373,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Location.NumChildren(childComplexity), true
+
+	case "Location.parentCoords":
+		if e.complexity.Location.ParentCoords == nil {
+			break
+		}
+
+		return e.complexity.Location.ParentCoords(childComplexity), true
 
 	case "Location.parentLocation":
 		if e.complexity.Location.ParentLocation == nil {
@@ -7638,6 +7666,11 @@ type Vertex
   edges: [Edge!]!
 }
 
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
 # location or site: e.g. building at specific address.
 type Location implements Node & NamedNode {
   id: ID!
@@ -7649,6 +7682,7 @@ type Location implements Node & NamedNode {
   numChildren: Int!
   latitude: Float!
   longitude: Float!
+  parentCoords: Coordinates
   equipments: [Equipment]!
   properties: [Property]!
   images: [File]!
@@ -16661,6 +16695,74 @@ func (ec *executionContext) _Comment_createTime(ctx context.Context, field graph
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Coordinates_latitude(ctx context.Context, field graphql.CollectedField, obj *models.Coordinates) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Coordinates",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Latitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Coordinates_longitude(ctx context.Context, field graphql.CollectedField, obj *models.Coordinates) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Coordinates",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Longitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *ent.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -21937,6 +22039,37 @@ func (ec *executionContext) _Location_longitude(ctx context.Context, field graph
 	res := resTmp.(float64)
 	fc.Result = res
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Location_parentCoords(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Location",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Location().ParentCoords(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Coordinates)
+	fc.Result = res
+	return ec.marshalOCoordinates2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCoordinates(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Location_equipments(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
@@ -45592,6 +45725,38 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var coordinatesImplementors = []string{"Coordinates"}
+
+func (ec *executionContext) _Coordinates(ctx context.Context, sel ast.SelectionSet, obj *models.Coordinates) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, coordinatesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Coordinates")
+		case "latitude":
+			out.Values[i] = ec._Coordinates_latitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "longitude":
+			out.Values[i] = ec._Coordinates_longitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var customerImplementors = []string{"Customer", "Node"}
 
 func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *ent.Customer) graphql.Marshaler {
@@ -47496,6 +47661,17 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "parentCoords":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_parentCoords(ctx, field, obj)
+				return res
+			})
 		case "equipments":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -58658,6 +58834,17 @@ func (ec *executionContext) marshalOComment2ᚖgithubᚗcomᚋfacebookincubator�
 		return graphql.Null
 	}
 	return ec._Comment(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCoordinates2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v models.Coordinates) graphql.Marshaler {
+	return ec._Coordinates(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOCoordinates2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v *models.Coordinates) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Coordinates(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
