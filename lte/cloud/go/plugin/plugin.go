@@ -10,10 +10,12 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/plugin/handlers"
 	lteModels "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/plugin/stream_provider"
+	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	"magma/lte/cloud/go/services/subscriberdb"
+	subscriberdbHandlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
@@ -81,7 +83,9 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 
 func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		handlers.GetHandlers(),
+		lteHandlers.GetHandlers(),
+		policydbHandlers.GetHandlers(),
+		subscriberdbHandlers.GetHandlers(),
 	)
 }
 
