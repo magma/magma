@@ -761,7 +761,7 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(rules_out_ptr.size(), 1);
   EXPECT_EQ(rules_out_ptr[0], "redirect");
 
-  EXPECT_EQ(session_state->is_gy_dynamic_rule_installed("redirect"), true);
+  EXPECT_TRUE(session_state->is_gy_dynamic_rule_installed("redirect"));
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_install.size(), 1);
 
   PolicyRule rule_out;
@@ -772,7 +772,7 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
   EXPECT_EQ(rules_out_ptr.size(), 0);
 
-  EXPECT_EQ(session_state->is_gy_dynamic_rule_installed("redirect"), false);
+  EXPECT_FALSE(session_state->is_gy_dynamic_rule_installed("redirect"));
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_uninstall.size(), 1);
 
   rules_out = {};
@@ -782,13 +782,11 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
 
   std::string mkey;
   // searching for non-existent rule should fail
-  EXPECT_EQ(false,
-            session_state->get_dynamic_rules().get_monitoring_key_for_rule_id(
-                "redirect", &mkey));
+  EXPECT_FALSE(session_state->get_dynamic_rules().
+               get_monitoring_key_for_rule_id("redirect", &mkey));
   // deleting an already deleted rule should fail
-  EXPECT_EQ(false,
-            session_state->get_dynamic_rules().remove_rule("redirect",
-                &rule_out));
+  EXPECT_FALSE(session_state->get_dynamic_rules().remove_rule("redirect",
+               &rule_out));
 }
 
 TEST_F(SessionStateTest, test_final_credit_install) {

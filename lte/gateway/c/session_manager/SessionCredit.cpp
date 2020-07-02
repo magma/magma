@@ -24,17 +24,8 @@ SessionCredit SessionCredit::unmarshal(
   SessionCredit session_credit(credit_type);
 
   session_credit.reporting_ = marshaled.reporting;
-  session_credit.is_final_grant_ = marshaled.is_final;
   session_credit.credit_limit_type_ = marshaled.credit_limit_type;
 
-  // FinalActionInfo
-  FinalActionInfo final_action_info;
-  final_action_info.final_action = marshaled.final_action_info.final_action;
-  final_action_info.redirect_server =
-      marshaled.final_action_info.redirect_server;
-  session_credit.final_action_info_ = final_action_info;
-
-  session_credit.service_state_ = marshaled.service_state;
   session_credit.expiry_time_ = marshaled.expiry_time;
   session_credit.grant_tracking_type_ = marshaled.grant_tracking_type;
 
@@ -50,14 +41,8 @@ SessionCredit SessionCredit::unmarshal(
 StoredSessionCredit SessionCredit::marshal() {
   StoredSessionCredit marshaled{};
   marshaled.reporting = reporting_;
-  marshaled.is_final = is_final_grant_;
   marshaled.credit_limit_type = credit_limit_type_;
 
-  marshaled.final_action_info.final_action = final_action_info_.final_action;
-  marshaled.final_action_info.redirect_server =
-      final_action_info_.redirect_server;
-
-  marshaled.service_state = service_state_;
   marshaled.expiry_time = expiry_time_;
   marshaled.grant_tracking_type = grant_tracking_type_;
 
@@ -70,9 +55,6 @@ StoredSessionCredit SessionCredit::marshal() {
 
 SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   SessionCreditUpdateCriteria uc{};
-  uc.is_final = is_final_grant_;
-  uc.final_action_info = final_action_info_;
-  uc.service_state = service_state_;
   uc.expiry_time = expiry_time_;
   uc.grant_tracking_type = grant_tracking_type_;
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
@@ -84,15 +66,13 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
 
 SessionCredit::SessionCredit(CreditType credit_type, ServiceState start_state)
     : buckets_{}, reporting_(false), credit_limit_type_(FINITE),
-      credit_type_(credit_type),
-      service_state_(start_state), is_final_grant_(false) {}
+      credit_type_(credit_type) {}
 
 SessionCredit::SessionCredit(
   CreditType credit_type, ServiceState start_state,
   CreditLimitType credit_limit_type)
     : buckets_{}, reporting_(false), credit_limit_type_(credit_limit_type),
-      credit_type_(credit_type),
-      service_state_(start_state), is_final_grant_(false) {}
+      credit_type_(credit_type) {}
 
 // by default, enable service & finite credit
 SessionCredit::SessionCredit(CreditType credit_type)
@@ -118,10 +98,6 @@ void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx,
   uc.bucket_deltas[USED_RX] += used_rx;
 
   log_quota_and_usage();
-  if (should_deactivate_service()) {
-    MLOG(MDEBUG) << "Quota exhausted. Deactivating service";
-    set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);
-  }
 }
 
 void SessionCredit::reset_reporting_credit(
@@ -141,14 +117,10 @@ void SessionCredit::mark_failure(uint32_t code,
     update_criteria.bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
   }
   reset_reporting_credit(update_criteria);
-  if (should_deactivate_service()) {
-    set_service_state(SERVICE_NEEDS_DEACTIVATION, update_criteria);
-  }
 }
 
 void SessionCredit::receive_credit(const GrantedUnits& gsu,
-    uint32_t validity_time, bool is_final_grant, FinalActionInfo final_action,
-    SessionCreditUpdateCriteria& uc) {
+    uint32_t validity_time, SessionCreditUpdateCriteria& uc) {
   grant_tracking_type_ = determine_grant_tracking_type(gsu);
   uc.grant_tracking_type = grant_tracking_type_;
 
@@ -172,11 +144,6 @@ void SessionCredit::receive_credit(const GrantedUnits& gsu,
               << " grant_tracking_type="
               << grant_type_to_str(grant_tracking_type_)
               << " w/ validity time=" << validity_time;
-  if (is_final_grant) {
-    MLOG(MINFO) << "This credit received is the final grant, with final "
-                << "action="
-                << final_action_to_str(final_action.final_action);
-  }
 
   // Update reporting/reported bytes
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
@@ -186,15 +153,6 @@ void SessionCredit::receive_credit(const GrantedUnits& gsu,
   reset_reporting_credit(uc);
 
   set_expiry_time(validity_time, uc);
-  set_is_final_grant_and_final_action(is_final_grant, final_action, uc);
-
-  if (!is_quota_exhausted(1) && (service_state_ == SERVICE_DISABLED ||
-                                 service_state_ == SERVICE_REDIRECTED ||
-                                 service_state_ == SERVICE_NEEDS_DEACTIVATION)) {
-    // if quota no longer exhausted, reenable services as needed
-    MLOG(MINFO) << "Quota available. Activating service";
-    set_service_state(SERVICE_NEEDS_ACTIVATION, uc);
-  }
   log_quota_and_usage();
 }
 
@@ -237,39 +195,6 @@ bool SessionCredit::is_quota_exhausted(float threshold) const {
   return is_exhausted;
 }
 
-bool SessionCredit::should_deactivate_service() const {
-  if (credit_type_ != CreditType::CHARGING) {
-    // we only terminate on charging quota exhaustion
-    return false;
-  }
-  if (credit_limit_type_ != FINITE) {
-    return false;
-  }
-  if ((final_action_info_.final_action ==
-        ChargingCredit_FinalAction_TERMINATE) &&
-      !SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
-      // configured in sessiond.yml
-      return false;
-  }
-  if (service_state_ != SERVICE_ENABLED){
-    // service is not enabled
-    return false;
-  }
-  if (is_final_grant_ && is_quota_exhausted(1)) {
-    // We only deactivate service when we receive a Final Unit
-    // Indication (final Grant) and we've exhausted all quota
-    MLOG(MINFO) << "Deactivating service because we have exhausted the given "
-      << "quota and it is the final grant."
-      << "action=" << final_action_to_str(final_action_info_.final_action);
-    return true;
-  }
-  return false;
-}
-
-bool SessionCredit::is_service_redirected() const {
-  return service_state_ == SERVICE_REDIRECTED;
-}
-
 bool SessionCredit::validity_timer_expired() const {
   return time(NULL) >= expiry_time_;
 }
@@ -287,10 +212,6 @@ SessionCredit::Usage SessionCredit::get_all_unreported_usage_for_reporting(
 
 SessionCredit::Usage SessionCredit::get_usage_for_reporting(
     SessionCreditUpdateCriteria &update_criteria) {
-  if (is_final_grant_) {
-    return get_all_unreported_usage_for_reporting(update_criteria);
-  }
-
   auto usage = get_unreported_usage();
   // Apply reporting limits since the user is not getting terminated.
   // We never want to report more than the amount we've received
@@ -380,69 +301,16 @@ bool SessionCredit::compute_quota_exhausted(const uint64_t allowed,
   return unreported_usage >= threshold;
 }
 
-ServiceActionType
-SessionCredit::get_action(SessionCreditUpdateCriteria &update_criteria) {
-  if (service_state_ == SERVICE_NEEDS_DEACTIVATION) {
-    set_service_state(SERVICE_DISABLED, update_criteria);
-    return get_action_for_deactivating_service();
-  } else if (service_state_ == SERVICE_NEEDS_ACTIVATION) {
-    set_service_state(SERVICE_ENABLED, update_criteria);
-    return ACTIVATE_SERVICE;
-  }
-  return CONTINUE_SERVICE;
-}
-
-ServiceActionType SessionCredit::get_action_for_deactivating_service() const {
-  if (!is_final_grant_) {
-    return TERMINATE_SERVICE;
-  }
-  // TODO look into just reusing the proto defined enum
-  switch (final_action_info_.final_action) {
-    case ChargingCredit_FinalAction_REDIRECT:
-      return REDIRECT;
-    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-      return RESTRICT_ACCESS;
-    case ChargingCredit_FinalAction_TERMINATE:
-    default:
-      return TERMINATE_SERVICE;
-  }
-}
-
 bool SessionCredit::is_reporting() const { return reporting_; }
 
 uint64_t SessionCredit::get_credit(Bucket bucket) const {
   return buckets_[bucket];
 }
 
-RedirectServer SessionCredit::get_redirect_server() const {
-  return final_action_info_.redirect_server;
-}
-
 void SessionCredit::set_grant_tracking_type(GrantTrackingType g_type,
   SessionCreditUpdateCriteria& uc) {
   grant_tracking_type_ = g_type;
   uc.grant_tracking_type = g_type;
-}
-
-void SessionCredit::set_is_final_grant_and_final_action(
-    bool is_final_grant, FinalActionInfo final_action_info,
-    SessionCreditUpdateCriteria& update_criteria) {
-  is_final_grant_          = is_final_grant;
-  update_criteria.is_final = is_final_grant;
-  final_action_info_                = final_action_info;
-  update_criteria.final_action_info = final_action_info;
-}
-
-void SessionCredit::set_service_state(
-    ServiceState new_service_state,
-    SessionCreditUpdateCriteria &update_criteria) {
-  if (service_state_ != new_service_state) {
-    MLOG(MDEBUG) << "Service state change from "
-                 << service_state_to_str(service_state_) << " to "
-                 << service_state_to_str(new_service_state);
-  }
-  service_state_ = new_service_state;
-  update_criteria.service_state = new_service_state;
 }
 
 void SessionCredit::set_expiry_time(
@@ -489,19 +357,6 @@ void SessionCredit::log_quota_and_usage() const {
                << " Total: " << buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
   MLOG(MDEBUG) << "===> Grant tracking type "
                << grant_type_to_str(grant_tracking_type_);
-
-  std::string final_action = "";
-  if (is_final_grant_ ) {
-    final_action += ", with final action: ";
-    final_action +=  final_action_to_str(final_action_info_.final_action);
-    if (final_action_info_.final_action ==
-        ChargingCredit_FinalAction_REDIRECT) {
-      final_action += ", redirect_server: ";
-      final_action += final_action_info_.redirect_server.redirect_server_address();
-    }
-  }
-  MLOG(MDEBUG) << "===> Is final grant: " << is_final_grant_
-               << final_action;
 }
 
 void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {

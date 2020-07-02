@@ -83,8 +83,7 @@ public:
    * the REPORTED_* credit
    */
   void receive_credit(const GrantedUnits& gsu, uint32_t validity_time,
-                      bool is_final_grant, FinalActionInfo final_action_info,
-                      SessionCreditUpdateCriteria &update_criteria);
+                      SessionCreditUpdateCriteria &uc);
 
   /**
    * get_update returns a filled-in CreditUsage if an update exists, and a blank
@@ -98,47 +97,14 @@ public:
       SessionCreditUpdateCriteria &update_criteria);
 
   /**
-   * get_action returns the action to take on the credit based on the last
-   * update. If no action needs to take place, CONTINUE_SERVICE is returned.
-   */
-  ServiceActionType get_action(SessionCreditUpdateCriteria &update_criteria);
-
-  /**
    * Returns true if either of REPORTING_* buckets are more than 0
    */
   bool is_reporting() const;
 
   /**
-   * Returns true if service is being redirected
-   */
-  bool is_service_redirected() const;
-
-  /**
    * Helper function to get the credit in a particular bucket
    */
   uint64_t get_credit(Bucket bucket) const;
-
-  /**
-   * Returns
-   */
-  RedirectServer get_redirect_server() const;
-
-  /**
-   * Mark SessionCredit as having been given the final grant.
-   * NOTE: Use only for merging updates into SessionStore
-   * @param is_final_grant
-   */
-  void set_is_final_grant_and_final_action(
-      bool is_final_grant, FinalActionInfo final_action_info,
-      SessionCreditUpdateCriteria& update_criteria);
-
-  /**
-   * Set ServiceState.
-   * NOTE: Use only for merging updates into SessionStore
-   * @param service_state
-   */
-  void set_service_state(ServiceState new_service_state,
-                         SessionCreditUpdateCriteria &update_criteria);
 
   /**
    * Set expiry time of SessionCredit
@@ -195,8 +161,6 @@ public:
 
   // Make public temporarily for the migration
   bool validity_timer_expired() const;
-
-  bool is_final_grant() const {return is_final_grant_;};
 private:
   uint64_t buckets_[MAX_VALUES];
   bool reporting_;
@@ -205,20 +169,13 @@ private:
 
   CreditType credit_type_; // TODO remove
 
-  ServiceState service_state_; // TODO move to ChargingGrant
-  bool is_final_grant_; // TODO move to ChargingGrant
-  FinalActionInfo final_action_info_; // TODO move to ChargingGrant
   std::time_t expiry_time_; // TODO move to ChargingGrant
 
 private:
   void log_quota_and_usage() const;
 
-  bool should_deactivate_service() const;
-
   void set_expiry_time(uint32_t validity_time,
                        SessionCreditUpdateCriteria &update_criteria);
-
-  ServiceActionType get_action_for_deactivating_service() const;
 
   SessionCredit::Usage get_unreported_usage() const;
 

@@ -13,6 +13,14 @@
 
 namespace magma {
 
+// Used to keep track of credit grants from Gy. Some features of this type of
+// grants include:
+//    1. Final Unit Handling: Instructions on what is to happen to the session
+//       on final grant exhaustion. Relevant fields are is_final_grant and
+//       final_action_info. We currently support TERMINATE and REDIRECT.
+//    2. Expiry/Validity Time: This grant can be received with an int to
+//       indicate the number of seconds the grant is valid for. The expiry_time
+//       field indicates the time at which the grant is no longer valid.
 // ChargingGrant is a struct because all fields are public
 struct ChargingGrant {
   // Keep track of used/reported/allowed bytes
@@ -26,7 +34,9 @@ struct ChargingGrant {
   ServiceState service_state;
   ReAuthState reauth_state;
 
-  ChargingGrant() : credit(CreditType::CHARGING) {}
+  // Default states
+  ChargingGrant() : credit(CreditType::CHARGING), is_final_grant(false),
+    service_state(SERVICE_ENABLED), reauth_state(REAUTH_NOT_NEEDED) {}
 
   // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
@@ -37,6 +47,7 @@ struct ChargingGrant {
   // Set is_final_grant and final_action_info values
   void set_final_action_info(const magma::lte::ChargingCredit &credit);
 
+  // Returns a SessionCreditUpdateCriteria that reflects the current state
   SessionCreditUpdateCriteria get_update_criteria();
 
   // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
@@ -49,7 +60,32 @@ struct ChargingGrant {
   // Return false otherwise. In this case, update_type is untouched.
   bool get_update_type(CreditUsage::UpdateType* update_type) const;
 
+  // Return true if the service needs to be deactivated
+  bool should_deactivate_service() const;
+
+  // get_action returns the action to take on the credit based on the last
+  // update. If no action needs to take place, CONTINUE_SERVICE is returned.
+  ServiceActionType get_action(SessionCreditUpdateCriteria &update_criteria);
+
+  // Convert FinalAction enum to ServiceActionType
+  ServiceActionType final_action_to_action(
+    const ChargingCredit_FinalAction action) const;
+
+  // Set the object and update criteria's reauth state to new_state.
   void set_reauth_state(const ReAuthState new_state, SessionCreditUpdateCriteria &uc);
+
+  // Set the object and update criteria's service state to new_state.
+  void set_service_state(const ServiceState new_service_state, SessionCreditUpdateCriteria &uc);
+
+  // Log final action related information
+  void log_final_action_info() const;
+
+  // Get unreported usage from credit and return as part of CreditUsage
+  // The update_type is also included in CreditUsage
+  // If the grant is final or is_terminate is true, we include all unreported
+  // usage, otherwise we only include unreported usage up to the allocated amount.
+  CreditUsage get_credit_usage(CreditUsage::UpdateType update_type,
+    SessionCreditUpdateCriteria& uc, bool is_terminate);
 };
 
 }  // namespace magma
