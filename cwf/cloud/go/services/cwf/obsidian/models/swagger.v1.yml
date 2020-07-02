@@ -2,7 +2,7 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/cwf/cloud/go/plugin/models
+  go-package: magma/cwf/cloud/go/services/cwf/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
@@ -10,7 +10,7 @@ magma-gen-meta:
     - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
     - 'feg/cloud/go/services/feg/obsidian/models/swagger.v1.yml'
   temp-gen-filename: cwf-swagger.yml
-  output-dir: cwf/cloud/go/plugin
+  output-dir: cwf/cloud/go/services/cwf/obsidian
   types:
     - go-struct-name: FegNetworkID
       filename: feg_network_id_swaggergen.go
