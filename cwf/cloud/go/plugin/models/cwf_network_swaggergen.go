@@ -10,7 +10,7 @@ import (
 	models2 "magma/feg/cloud/go/plugin/models"
 	models3 "magma/lte/cloud/go/plugin/models"
 	models4 "magma/orc8r/cloud/go/models"
-	models5 "magma/orc8r/cloud/go/pluginimpl/models"
+	models5 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"

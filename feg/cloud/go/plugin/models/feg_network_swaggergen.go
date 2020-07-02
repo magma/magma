@@ -9,7 +9,7 @@ import (
 	strfmt "github.com/go-openapi/strfmt"
 	models2 "magma/lte/cloud/go/plugin/models"
 	models3 "magma/orc8r/cloud/go/models"
-	models4 "magma/orc8r/cloud/go/pluginimpl/models"
+	models4 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/swag"

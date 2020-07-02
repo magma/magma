@@ -14,8 +14,8 @@ import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	eventdh "magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
+	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/labstack/echo"

@@ -2,11 +2,11 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/pluginimpl/models
+  go-package: magma/orc8r/cloud/go/services/orchestrator/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
   temp-gen-filename: orc8r-swagger.yml
-  output-dir: orc8r/cloud/go/pluginimpl
+  output-dir: orc8r/cloud/go/services/orchestrator/obsidian
   types:
     - go-struct-name: Network
       filename: network_swaggergen.go
@@ -62,7 +62,6 @@ magma-gen-meta:
       filename: gateway_logging_configs_swaggergen.go
     - go-struct-name: AggregationLoggingConfigs
       filename: aggregation_logging_configs_swaggergen.go
-
 info:
   title: Orchestrator Network Management
   description: Orchestrator REST APIs

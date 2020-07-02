@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	models2 "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
+	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes"
