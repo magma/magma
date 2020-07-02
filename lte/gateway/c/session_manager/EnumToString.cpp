@@ -115,4 +115,19 @@ namespace magma {
         return "INVALID CREDIT UPDATE TYPE";
     }
   }
+
+  std::string raa_result_to_str(ReAuthResult res) {
+    switch (res) {
+      case UPDATE_INITIATED:
+        return "UPDATE_INITIATED";
+      case UPDATE_NOT_NEEDED:
+        return "UPDATE_NOT_NEEDED";
+      case SESSION_NOT_FOUND:
+        return "SESSION_NOT_FOUND";
+      case OTHER_FAILURE:
+        return "OTHER_FAILURE";
+      default:
+        return "UNKNOWN_RESULT";
+    }
+  }
 } // namespace magma
