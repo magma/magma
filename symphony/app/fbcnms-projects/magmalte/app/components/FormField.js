@@ -8,7 +8,9 @@
  * @format
  */
 
+import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
+import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
@@ -64,5 +66,20 @@ export default function FormField(props: Props) {
         {props.children}
       </Typography>
     </div>
+  );
+}
+
+export function AltFormField(props: Props) {
+  return (
+    <ListItem>
+      <Grid container>
+        <Grid item xs={12}>
+          {props.label}
+        </Grid>
+        <Grid item xs={12}>
+          {props.children}
+        </Grid>
+      </Grid>
+    </ListItem>
   );
 }
