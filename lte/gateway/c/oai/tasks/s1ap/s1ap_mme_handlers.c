@@ -191,26 +191,26 @@ int s1ap_mme_handle_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
+  S1ap_S1AP_PDU_t *pdu)
 {
-#if S1AP_R1O_TO_R15_DONE
   /*
-   * Checking procedure Code and direction of message
+   * Checking procedure Code and direction of pdu
    */
   if (
-    message->procedureCode >= COUNT_OF(message_handlers) ||
-    message->direction > S1AP_PDU_PR_unsuccessfulOutcome) {
+    pdu->choice.initiatingMessage.procedureCode >= COUNT_OF(message_handlers) ||
+    pdu->present > S1ap_S1AP_PDU_PR_unsuccessfulOutcome) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n",
       assoc_id,
-      (int) message->procedureCode,
-      (int) message->direction);
+      (int) pdu->choice.initiatingMessage.procedureCode,
+      (int) pdu->present);
     return -1;
   }
 
   s1ap_message_handler_t handler =
-    message_handlers[message->procedureCode][message->direction - 1];
+    message_handlers[pdu->choice.initiatingMessage.procedureCode]
+                            [pdu->present - 1];
 
   if (handler == NULL) {
     // not implemented or no procedure for eNB (wrong message)
@@ -218,15 +218,12 @@ int s1ap_mme_handle_message(
       LOG_S1AP,
       "[SCTP %d] No handler for procedureCode %d in %s\n",
       assoc_id,
-      (int) message->procedureCode,
-      s1ap_direction2str(message->direction));
+      (int) pdu->choice.initiatingMessage.procedureCode,
+      s1ap_direction2str(pdu->present));
     return -2;
   }
 
-  return handler(state, assoc_id, stream, message);
-#else
-  return -1;
-#endif
+  return handler(state, assoc_id, stream, pdu);
 }
 
 //------------------------------------------------------------------------------
