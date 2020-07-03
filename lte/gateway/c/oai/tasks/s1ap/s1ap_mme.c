@@ -406,14 +406,14 @@ int s1ap_mme_init(const mme_config_t* mme_config_p)
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
     OAILOG_ERROR(
       LOG_S1AP,
-      "ASN1C version %d fount, expecting at least %d\n",
+      "ASN1C version %d found, expecting at least %d\n",
       get_asn1c_environment_version(),
       ASN1_MINIMUM_VERSION);
     return RETURNerror;
   }
 
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
-  OAILOG_DEBUG(LOG_S1AP, "S1AP Release v10.5\n");
+  OAILOG_DEBUG(LOG_S1AP, "S1AP Release v15.6.0\n");
 
   if (
     s1ap_state_init(
