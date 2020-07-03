@@ -112,7 +112,7 @@ s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
-s1aptests/test_reset_mme_config_after_sanity.py
+s1aptests/test_restore_mme_config_after_sanity.py
 
 # These test cases pass without memory leaks, but needs DL-route in TRF server
 # sudo /sbin/route add -net 192.168.128.0 gw 192.168.60.142
