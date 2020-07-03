@@ -46,7 +46,6 @@
 #include "mme_app_statistics.h"
 #include "s1ap_mme_decoder.h"
 #include "s1ap_mme_handlers.h"
-#include "s1ap_ies_defs.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
@@ -54,7 +53,7 @@
 #include "mme_config.h"
 #include "timer.h"
 #include "itti_free_defined_msg.h"
-#include "S1ap-TimeToWait.h"
+#include "S1ap_TimeToWait.h"
 #include "asn_internal.h"
 #include "common_defs.h"
 #include "intertask_interface.h"
@@ -125,7 +124,9 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
 
   while (1) {
     MessageDef* received_message_p = NULL;
+#if S1AP_R1O_TO_R15_DONE
     MessagesIds message_id = MESSAGES_ID_MAX;
+#endif
     /*
      * Trying to fetch a message from the message queue.
      * * * * If the queue is empty, this function will block till a
@@ -152,15 +153,14 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
          * New message received from SCTP layer.
          * * * * Decode and handle it.
          */
-        s1ap_message message = {0};
+        S1ap_S1AP_PDU_t pdu = {0};
 
         /*
          * Invoke S1AP message decoder
          */
         if (
           s1ap_mme_decode_pdu(
-            &message, SCTP_DATA_IND(received_message_p).payload, &message_id) <
-          0) {
+            &pdu, SCTP_DATA_IND(received_message_p).payload)) {
           // TODO: Notify eNB of failure with right cause
           OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
         } else {
@@ -168,13 +168,14 @@ void* s1ap_mme_thread(__attribute__((unused)) void* args)
             state,
             SCTP_DATA_IND(received_message_p).assoc_id,
             SCTP_DATA_IND(received_message_p).stream,
-            &message);
+            &pdu);
         }
 
+#if S1AP_R1O_TO_R15_DONE
         if (message_id != MESSAGES_ID_MAX) {
           s1ap_free_mme_decode_pdu(&message, message_id);
         }
-
+#endif
         /*
          * Free received PDU array
          */
