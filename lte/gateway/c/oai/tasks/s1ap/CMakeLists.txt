@@ -14,12 +14,20 @@ set(ENV{ASN1C_PREFIX} "S1ap_" )
 set(s1ap_generate_code_done_flag ${GENERATED_FULL_DIR}/S1AP_GENERATE_CODE_DONE)
 
 file(MAKE_DIRECTORY ${GENERATED_FULL_DIR})
-message (${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR})
-execute_process(COMMAND  asn1c -pdu=all -fcompound-names -gen-PER -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} RESULT_VARIABLE ret)
-if (NOT ${ret} STREQUAL 0)
-  message(FATAL_ERROR "${ret}")
-endif (NOT ${ret} STREQUAL 0)
-execute_process(COMMAND bash "-c" "egrep -lRZ \"18446744073709551615\" ${GENERATED_FULL_DIR} | xargs -0 -l sed -i -e \"s/18446744073709551615/18446744073709551615u/g\"")
+set(s1ap_generate_code_done_flag ${GENERATED_FULL_DIR}/S1AP_GENERATE_CODE_DONE)
+
+if( ${ASN1_SOURCE_DIR} IS_NEWER_THAN ${s1ap_generate_code_done_flag})
+   file(REMOVE ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.c ${GENERATED_FULL_DIR}/${ASN1C_PREFIX}*.h)
+   file(MAKE_DIRECTORY ${GENERATED_FULL_DIR})
+   execute_process(COMMAND  asn1c -pdu=all -fcompound-names -gen-PER -no-gen-example -fno-include-deps -D ${GENERATED_FULL_DIR} ${ASN1_SOURCE_DIR} RESULT_VARIABLE ret)
+   if (NOT ${ret} STREQUAL 0)
+      message(FATAL_ERROR "${ret}")
+   endif (NOT ${ret} STREQUAL 0)
+   execute_process(COMMAND bash "-c" "egrep -lRZ \"18446744073709551615\" ${GENERATED_FULL_DIR} | xargs -0 -l sed -i -e \"s/18446744073709551615/18446744073709551615u/g\"")
+endif()
+# TOUCH not in cmake 3.10
+file(WRITE ${s1ap_generate_code_done_flag})
+
 file(GLOB S1AP_source ${S1AP_C_DIR}/*.c)
 list(REMOVE_ITEM S1AP_source ${S1AP_C_DIR}/converter-sample.c)
 
