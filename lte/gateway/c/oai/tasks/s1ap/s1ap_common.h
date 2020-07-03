@@ -30,7 +30,6 @@
 #include "asn_internal.h"
 #include "constr_TYPE.h"
 
-struct s1ap_message_s;
 #if HAVE_CONFIG_H_
 #include "config.h"
 #endif
@@ -401,6 +400,7 @@ extern int asn1_xer_print;
 #include "3gpp_33.401.h"
 #include "security_types.h"
 #include "common_types.h"
+#include "s1ap_state.h"
 
 #define S1AP_FIND_PROTOCOLIE_BY_ID(IE_TYPE, ie, container, IE_ID, mandatory) \
   do {                                                                       \
@@ -433,9 +433,10 @@ extern int asn1_xer_print;
 /** \brief Function callback prototype.
  **/
 typedef int (*s1ap_message_handler_t)(
+  s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t* pdu);;
+  S1ap_S1AP_PDU_t* pdu);
 
 /** \brief Handle criticality
  \param criticality Criticality of the IE
