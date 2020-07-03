@@ -261,42 +261,52 @@ int s1ap_mme_generate_s1_setup_failure(
   const long cause_value,
   const long time_to_wait)
 {
-#if S1AP_R1O_TO_R15_DONE
   uint8_t *buffer_p = 0;
   uint32_t length = 0;
-  s1ap_message message = {0};
-  S1ap_S1SetupFailureIEs_t *s1_setup_failure_p = NULL;
+  S1ap_S1AP_PDU_t pdu;
+  S1ap_S1SetupFailure_t *out;
+  S1ap_S1SetupFailureIEs_t *ie = NULL;
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  s1_setup_failure_p = &message.msg.s1ap_S1SetupFailureIEs;
-  message.procedureCode = S1ap_ProcedureCode_id_S1Setup;
-  message.direction = S1AP_PDU_PR_unsuccessfulOutcome;
-  s1ap_mme_set_cause(&s1_setup_failure_p->cause, cause_type, cause_value);
+
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
+  pdu.choice.unsuccessfulOutcome.procedureCode = S1ap_ProcedureCode_id_S1Setup;
+  pdu.choice.unsuccessfulOutcome.criticality = S1ap_Criticality_reject;
+  pdu.choice.unsuccessfulOutcome.value.present =
+      S1ap_UnsuccessfulOutcome__value_PR_S1SetupFailure;
+  out = &pdu.choice.unsuccessfulOutcome.value.choice.S1SetupFailure;
+
+  ie = (S1ap_S1SetupFailureIEs_t *)calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
+  ie->id = S1ap_ProtocolIE_ID_id_Cause;
+  ie->criticality = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_S1SetupFailureIEs__value_PR_Cause;
+  s1ap_mme_set_cause(&ie->value.choice.Cause, cause_type, cause_value);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /*
    * Include the optional field time to wait only if the value is > -1
    */
   if (time_to_wait > -1) {
-    s1_setup_failure_p->presenceMask |=
-      S1AP_S1SETUPFAILUREIES_TIMETOWAIT_PRESENT;
-    s1_setup_failure_p->timeToWait = time_to_wait;
+    ie =
+        (S1ap_S1SetupFailureIEs_t *)calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_TimeToWait;
+    ie->criticality = S1ap_Criticality_ignore;
+    ie->value.present = S1ap_S1SetupFailureIEs__value_PR_TimeToWait;
+    ie->value.choice.TimeToWait = time_to_wait;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
 
-  if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Failed to encode s1 setup failure\n");
-    free_s1ap_s1setupfailure(s1_setup_failure_p);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   bstring b = blk2bstr(buffer_p, length);
   free(buffer_p);
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, 0, INVALID_MME_UE_S1AP_ID);
-  free_s1ap_s1setupfailure(s1_setup_failure_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
