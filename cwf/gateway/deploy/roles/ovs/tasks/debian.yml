@@ -44,3 +44,17 @@
 
 - name: Ensure OVS switch will not auto-upgrade
   action: shell apt-mark hold openvswitch-switch
+
+- name: Load the ovs kernel module
+  become: true
+  script: reload_ovs_kmod.sh
+  tags:
+      - kernel_module_reload
+
+- name: Start OVS
+  service:
+    name: openvswitch-switch
+    state: started
+    enabled: yes
+    use: service
+  become: true

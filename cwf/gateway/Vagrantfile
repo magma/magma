@@ -53,6 +53,41 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
+  config.vm.define :cwag_centos7, primary: false do |cwag_centos7|
+    # mutually exclusive with :cwag
+    # INTENTIONAL IP ADDRESS CONFLICT
+    cwag_centos7.vm.box = "bento/centos-7"
+#    cwag_centos7.disksize.size = '50GB'
+    cwag_centos7.vm.box_version = "202005.21.0"
+    cwag_centos7.vbguest.auto_update = false
+    cwag_centos7.vm.hostname = "cwag-dev-centos7"
+    cwag_centos7.vm.network "private_network", ip: "192.168.70.101", nic_type: "82540EM"
+    cwag_centos7.vm.network "private_network", ip: "192.168.129.23", nic_type: "82540EM"
+    cwag_centos7.vm.network "private_network", ip: "192.168.40.11", nic_type: "82540EM"
+#    cwag_centos7.ssh.password = "vagrant"
+    cwag_centos7.ssh.insert_key = true
+
+    cwag_centos7.vm.provider "virtualbox" do |vb|
+      vb.name = "cwag-dev-centos7"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "4096"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    cwag_centos7.vm.provision "shell",
+                              inline: "yum updateinfo; yum install -y python python3 python-setuptools python3-setuptools python-pip python3-pip libselinux-python3 git"
+    cwag_centos7.vm.provision "shell",
+                              inline: "touch /home/vagrant/.profile"
+    
+    cwag_centos7.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/cwag_dev_centos7.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.verbose = 'v'
+    end
+  end
+
   config.vm.define :cwag_test, primary: true do |cwag_test|
     cwag_test.vm.box = "generic/ubuntu1804"
     cwag_test.vm.box_version = "1.9.12"

@@ -13,3 +13,7 @@
 - name: Set up debian style repository
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   include_tasks: debian.yml
+
+- name: Set up redhat style repository
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  include_tasks: redhat.yml

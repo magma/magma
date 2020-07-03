@@ -6,32 +6,26 @@
 #
 
 - name: Set up Carrier WiFi Access Gateway for development
-  hosts: cwag
+  hosts: cwag_centos7
   become: yes
   vars:
     - magma_root: /home/{{ ansible_user }}/magma
     - user: "{{ ansible_user }}"
-    - full_provision: yes
+    - full_provision: true
+    - ansible_python_interpreter: /usr/bin/python
   roles:
     - role: gomod_cache
-    - role: distro_snapshot
-      vars:
-        distro: bionic
-        distro_root: "{{ lookup('env', 'CWAG_DISTRO_ARCHIVE') | regex_replace('(^.*/+|)([^/]+)\\.tar\\.gz$', '\\2') }}"
-        distro_archive: "{{ lookup('env', 'CWAG_DISTRO_ARCHIVE') }}"
-        distro_sha256: "{{ lookup('env', 'CWAG_DISTRO_SHA256') }}"
     - role: resolv_conf
       vars:
         override_nameserver: 8.8.8.8
-    - role: apt_cache
     - role: pkgrepo
       vars:
-        distribution: "bionic"
-        repo: "cwf-prod"
+        distribution: "centos"
+        repo: "cwf-prod-redhat"
     - role: test_certs
     - role: ovs
     - role: golang
-    - role: cwag
+#    - role: cwag
 
   tasks:
     - name: Set build environment variables
@@ -54,6 +48,24 @@
 
     # Required by some go libraries
     - name: Install bzr dependency
-      apt:
+      yum:
         name: bzr
+        state: present
+
+    - name: Fix .profile loading for centos7
+      lineinfile:
+        path: /home/{{ user }}/.bash_profile
+        line: . ~/.profile
+
+    - name: Fix sudo secure_path
+      copy:
+        dest: /etc/sudoers.d/secure_path
+        content: "Defaults secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin:/usr/local/go/bin\n"
+        
+    - name: Install basic build tools
+      yum:
+        name:
+          - gcc
+          - automake
+          - autoconf
         state: present

@@ -8,16 +8,6 @@
   when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
   include_tasks: debian.yml
 
-- name: Load the ovs kernel module
-  become: true
-  script: reload_ovs_kmod.sh
-  tags:
-      - kernel_module_reload
-
-- name: Start OVS
-  service:
-    name: openvswitch-switch
-    state: started
-    enabled: yes
-    use: service
-  become: true
+- name: Install openvswitch and dependencies
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  include_tasks: redhat.yml
