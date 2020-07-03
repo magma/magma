@@ -46,15 +46,15 @@ int s1ap_mme_encode_pdu(S1ap_S1AP_PDU_t *pdu, uint8_t **buffer,
   DevAssert(length != NULL);
 
   switch (pdu->present) {
-    case S1AP_S1AP_PDU_PR_initiatingMessage:
+    case S1ap_S1AP_PDU_PR_initiatingMessage:
       ret = s1ap_mme_encode_initiating(pdu, buffer, length);
       break;
 
-    case S1AP_S1AP_PDU_PR_successfulOutcome:
+    case S1ap_S1AP_PDU_PR_successfulOutcome:
       ret = s1ap_mme_encode_successfull_outcome(pdu, buffer, length);
       break;
 
-    case S1AP_S1AP_PDU_PR_unsuccessfulOutcome:
+    case S1ap_S1AP_PDU_PR_unsuccessfulOutcome:
       ret = s1ap_mme_encode_unsuccessfull_outcome(pdu, buffer, length);
       break;
 
@@ -63,7 +63,7 @@ int s1ap_mme_encode_pdu(S1ap_S1AP_PDU_t *pdu, uint8_t **buffer,
                     (int)pdu->present);
       break;
   }
-  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1AP_S1AP_PDU, pdu);
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, pdu);
   return ret;
 }
 
@@ -75,16 +75,16 @@ static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t *pdu,
   DevAssert(pdu != NULL);
 
   switch (pdu->choice.initiatingMessage.procedureCode) {
-    case S1AP_ProcedureCode_id_downlinkNASTransport:
-    case S1AP_ProcedureCode_id_InitialContextSetup:
-    case S1AP_ProcedureCode_id_UEContextRelease:
-    case S1AP_ProcedureCode_id_E_RABSetup:
-    case S1AP_ProcedureCode_id_E_RABModify:
-    case S1AP_ProcedureCode_id_E_RABRelease:
-    case S1AP_ProcedureCode_id_HandoverResourceAllocation:
-    case S1AP_ProcedureCode_id_MMEStatusTransfer:
-    case S1AP_ProcedureCode_id_Paging:
-    case S1AP_ProcedureCode_id_MMEConfigurationTransfer:
+    case S1ap_ProcedureCode_id_downlinkNASTransport:
+    case S1ap_ProcedureCode_id_InitialContextSetup:
+    case S1ap_ProcedureCode_id_UEContextRelease:
+    case S1ap_ProcedureCode_id_E_RABSetup:
+    case S1ap_ProcedureCode_id_E_RABModify:
+    case S1ap_ProcedureCode_id_E_RABRelease:
+    case S1ap_ProcedureCode_id_HandoverResourceAllocation:
+    case S1ap_ProcedureCode_id_MMEStatusTransfer:
+    case S1ap_ProcedureCode_id_Paging:
+    case S1ap_ProcedureCode_id_MMEConfigurationTransfer:
       break;
 
     default:
@@ -98,7 +98,7 @@ static inline int s1ap_mme_encode_initiating(S1ap_S1AP_PDU_t *pdu,
 
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
-                                 &asn_DEF_S1AP_S1AP_PDU, pdu);
+                                 &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
   *length = res.result.encoded;
   return 0;
@@ -112,12 +112,12 @@ static inline int s1ap_mme_encode_successfull_outcome(S1ap_S1AP_PDU_t *pdu,
   DevAssert(pdu != NULL);
 
   switch (pdu->choice.successfulOutcome.procedureCode) {
-    case S1AP_ProcedureCode_id_S1Setup:
-    case S1AP_ProcedureCode_id_PathSwitchRequest:
-    case S1AP_ProcedureCode_id_HandoverPreparation:
-    case S1AP_ProcedureCode_id_HandoverCancel:
-    case S1AP_ProcedureCode_id_Reset:
-    case S1AP_ProcedureCode_id_E_RABModificationIndication:
+    case S1ap_ProcedureCode_id_S1Setup:
+    case S1ap_ProcedureCode_id_PathSwitchRequest:
+    case S1ap_ProcedureCode_id_HandoverPreparation:
+    case S1ap_ProcedureCode_id_HandoverCancel:
+    case S1ap_ProcedureCode_id_Reset:
+    case S1ap_ProcedureCode_id_E_RABModificationIndication:
       break;
 
     default:
@@ -132,7 +132,7 @@ static inline int s1ap_mme_encode_successfull_outcome(S1ap_S1AP_PDU_t *pdu,
 
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
-                                 &asn_DEF_S1AP_S1AP_PDU, pdu);
+                                 &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
   *length = res.result.encoded;
   return 0;
@@ -146,9 +146,9 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(S1ap_S1AP_PDU_t *pdu,
   DevAssert(pdu != NULL);
 
   switch (pdu->choice.unsuccessfulOutcome.procedureCode) {
-    case S1AP_ProcedureCode_id_S1Setup:
-    case S1AP_ProcedureCode_id_PathSwitchRequest:
-    case S1AP_ProcedureCode_id_HandoverPreparation:
+    case S1ap_ProcedureCode_id_S1Setup:
+    case S1ap_ProcedureCode_id_PathSwitchRequest:
+    case S1ap_ProcedureCode_id_HandoverPreparation:
       break;
 
     default:
@@ -163,7 +163,7 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(S1ap_S1AP_PDU_t *pdu,
 
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
-                                 &asn_DEF_S1AP_S1AP_PDU, pdu);
+                                 &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
   *length = res.result.encoded;
   return 0;
