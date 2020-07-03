@@ -36,8 +36,7 @@
 
 - name: Add the stable repository for Docker
   apt_repository:
-    # FIXME: templatize xenial -> {{ distribution }}
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ docker_host_distribution }} stable
     state: present
 
 - name: Install the latest version of Docker CE

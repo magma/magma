@@ -45,7 +45,7 @@ RUN apt-get update && \
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d/
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main" && \
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main" && \
     apt-add-repository "deb http://archive.ubuntu.com/ubuntu/ bionic-proposed restricted main multiverse universe"
 
  # Install python3.5 since it's not native on bionic
