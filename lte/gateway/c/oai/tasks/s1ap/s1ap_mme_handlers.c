@@ -121,9 +121,6 @@ static int s1ap_mme_generate_ue_context_release_command(
 static bool is_all_erabId_same(
   S1ap_PathSwitchRequestIEs_t *pathSwitchRequest_p);
 
-//Forward declaration
-struct s1ap_message_s;
-
 /* Handlers matrix. Only mme related procedures present here.
 */
 s1ap_message_handler_t message_handlers[][3] = {
@@ -194,8 +191,9 @@ int s1ap_mme_handle_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   /*
    * Checking procedure Code and direction of message
    */
@@ -226,6 +224,9 @@ int s1ap_mme_handle_message(
   }
 
   return handler(state, assoc_id, stream, message);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -263,6 +264,7 @@ int s1ap_mme_generate_s1_setup_failure(
   const long cause_value,
   const long time_to_wait)
 {
+#if S1AP_R1O_TO_R15_DONE
   uint8_t *buffer_p = 0;
   uint32_t length = 0;
   s1ap_message message = {0};
@@ -295,6 +297,9 @@ int s1ap_mme_generate_s1_setup_failure(
   rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, 0, INVALID_MME_UE_S1AP_ID);
   free_s1ap_s1setupfailure(s1_setup_failure_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -306,8 +311,9 @@ int s1ap_mme_handle_s1_setup_request(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   int rc = RETURNok;
   S1ap_S1SetupRequestIEs_t *s1SetupRequest_p = NULL;
   enb_description_t *enb_association = NULL;
@@ -515,6 +521,9 @@ int s1ap_mme_handle_s1_setup_request(
     increment_counter("s1_setup", 1, 1, "result", "success");
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -522,6 +531,7 @@ static int s1ap_generate_s1_setup_response(
   s1ap_state_t *state,
   enb_description_t *enb_association)
 {
+#if S1AP_R1O_TO_R15_DONE
   int i, j;
   int enc_rval = 0;
   S1ap_S1SetupResponseIEs_t *s1_setup_response_p = NULL;
@@ -615,8 +625,10 @@ static int s1ap_generate_s1_setup_response(
     &b, enb_association->sctp_assoc_id, 0, INVALID_MME_UE_S1AP_ID);
 
   free_s1ap_s1setupresponse(s1_setup_response_p);
-
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -624,8 +636,9 @@ int s1ap_mme_handle_ue_cap_indication(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   ue_description_t *ue_ref_p = NULL;
   S1ap_UECapabilityInfoIndicationIEs_t *ue_cap_p = NULL;
   int rc = RETURNok;
@@ -706,6 +719,9 @@ int s1ap_mme_handle_ue_cap_indication(
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -717,8 +733,9 @@ int s1ap_mme_handle_initial_context_setup_response(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_InitialContextSetupResponseIEs_t *initialContextSetupResponseIEs_p =
     NULL;
   S1ap_E_RABSetupItemCtxtSURes_t *eRABSetupItemCtxtSURes_p = NULL;
@@ -803,6 +820,9 @@ int s1ap_mme_handle_initial_context_setup_response(
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -810,8 +830,9 @@ int s1ap_mme_handle_ue_context_release_request(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_UEContextReleaseRequestIEs_t *ueContextReleaseRequest_p = NULL;
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
@@ -963,8 +984,10 @@ int s1ap_mme_handle_ue_context_release_request(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -974,6 +997,7 @@ static int s1ap_mme_generate_ue_context_release_command(
   enum s1cause cause,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   uint8_t *buffer = NULL;
   uint32_t length = 0;
   s1ap_message message = {0};
@@ -1055,6 +1079,9 @@ static int s1ap_mme_generate_ue_context_release_command(
 
   free_s1ap_uecontextreleasecommand(ueContextReleaseCommandIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1065,6 +1092,7 @@ static int s1ap_mme_generate_ue_context_modification(
   const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   uint8_t *buffer = NULL;
   uint32_t length = 0;
   s1ap_message message = {0};
@@ -1152,6 +1180,9 @@ static int s1ap_mme_generate_ue_context_modification(
 
   free_s1ap_uecontextmodificationrequest(ueContextModificationIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1161,6 +1192,7 @@ int s1ap_handle_ue_context_release_command(
     ue_context_release_command_pP,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   ue_description_t* ue_ref_p = NULL;
   int rc = RETURNok;
 
@@ -1198,8 +1230,10 @@ int s1ap_handle_ue_context_release_command(
         state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1210,6 +1244,7 @@ int s1ap_handle_ue_context_mod_req(
   const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   ue_description_t *ue_ref_p = NULL;
   int rc = RETURNok;
 
@@ -1229,8 +1264,10 @@ int s1ap_handle_ue_context_mod_req(
     rc = s1ap_mme_generate_ue_context_modification(
       ue_ref_p, ue_context_mod_req_pP, imsi64);
   }
-
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -1238,8 +1275,9 @@ int s1ap_mme_handle_ue_context_release_complete(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_UEContextReleaseCompleteIEs_t *ueContextReleaseComplete_p = NULL;
   ue_description_t *ue_ref_p = NULL;
 
@@ -1272,15 +1310,19 @@ int s1ap_mme_handle_ue_context_release_complete(
       (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
- }
+#else
+  return -1;
+#endif
+}
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_context_setup_failure(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_InitialContextSetupFailureIEs_t *initialContextSetupFailureIEs_p = NULL;
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
@@ -1405,14 +1447,18 @@ int s1ap_mme_handle_initial_context_setup_failure(
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 int s1ap_mme_handle_ue_context_modification_response(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_UEContextModificationResponseIEs_t *ueContextModification_p = NULL;
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
@@ -1481,16 +1527,19 @@ int s1ap_mme_handle_ue_context_modification_response(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 int s1ap_mme_handle_ue_context_modification_failure(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_UEContextModificationFailureIEs_t *ueContextModification_p = NULL;
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
@@ -1619,8 +1668,10 @@ int s1ap_mme_handle_ue_context_modification_failure(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
-
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 ////////////////////////////////////////////////////////////////////////////////
 //************************ Handover signalling *******************************//
@@ -1631,8 +1682,9 @@ int s1ap_mme_handle_path_switch_request(
   s1ap_state_t *state,
   __attribute__((unused)) const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_PathSwitchRequestIEs_t *pathSwitchRequest_p = NULL;
   enb_description_t *enb_association = NULL;
   ue_description_t *ue_ref_p = NULL;
@@ -1819,8 +1871,10 @@ int s1ap_mme_handle_path_switch_request(
     encryption_algorithm_capabilitie,
     integrity_algorithm_capabilities,
     imsi64);
-
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2218,7 +2272,7 @@ int s1ap_mme_handle_error_ind_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
   OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n",
@@ -2232,9 +2286,10 @@ int s1ap_mme_handle_erab_setup_response(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
+#if S1AP_R1O_TO_R15_DONE
   S1ap_E_RABSetupResponseIEs_t *s1ap_E_RABSetupResponseIEs_p = NULL;
   ue_description_t *ue_ref_p = NULL;
   MessageDef *message_p = NULL;
@@ -2324,6 +2379,9 @@ int s1ap_mme_handle_erab_setup_response(
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2331,7 +2389,7 @@ int s1ap_mme_handle_erab_setup_failure(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
   AssertFatal(0, "TODO");
 }
@@ -2340,8 +2398,9 @@ int s1ap_mme_handle_enb_reset(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_ResetIEs_t *enb_reset_p = NULL;
   MessageDef *msg = NULL;
   itti_s1ap_enb_initiated_reset_req_t *reset_req = NULL;
@@ -2557,12 +2616,16 @@ int s1ap_mme_handle_enb_reset(
   msg->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, msg);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_enb_initiated_reset_ack(
   const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   uint8_t *buffer = NULL;
   uint32_t length = 0;
   s1ap_message message = {0};
@@ -2621,6 +2684,9 @@ int s1ap_handle_enb_initiated_reset_ack(
   free_wrapper((void **) &(enb_reset_ack_p->ue_to_reset_list));
   increment_counter("s1_reset_from_enb", 1, 1, "action", "reset_ack_sent");
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -2654,6 +2720,7 @@ int s1ap_handle_paging_request(
   const itti_s1ap_paging_request_t *paging_request,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(paging_request != NULL);
   // ue_description_t* ue_ref_p = NULL;
@@ -2781,14 +2848,18 @@ int s1ap_handle_paging_request(
 
   free_s1ap_paging(paging_message);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 int s1ap_mme_handle_enb_configuration_transfer(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_ENBConfigurationTransferIEs_t *enbConfigurationTransfer_p = NULL;
   S1ap_TargeteNB_ID_t *targeteNB_ID = NULL;
   uint8_t *enb_id_buf = NULL;
@@ -2896,11 +2967,15 @@ int s1ap_mme_handle_enb_configuration_transfer(
       "target_enb_id %u\n", target_enb_id);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 
 static bool is_all_erabId_same(
   S1ap_PathSwitchRequestIEs_t *pathSwitchRequest_p)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_E_RABToBeSwitchedDLListIEs_t *e_RABToBeSwitchedDLList = NULL;
   uint8_t rc = true;
   uint8_t item = 0;
@@ -2929,6 +3004,9 @@ static bool is_all_erabId_same(
     }
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_ack(
@@ -2936,6 +3014,7 @@ int s1ap_handle_path_switch_req_ack(
   const itti_s1ap_path_switch_request_ack_t* path_switch_req_ack_p,
   imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   OAILOG_FUNC_IN(LOG_S1AP);
 
   uint8_t *buffer = NULL;
@@ -2992,8 +3071,10 @@ int s1ap_handle_path_switch_req_ack(
     path_switch_req_ack_p->sctp_assoc_id,
     ue_ref_p->sctp_stream_send,
     path_switch_req_ack_p->mme_ue_s1ap_id);
-
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_failure(
@@ -3001,7 +3082,7 @@ int s1ap_handle_path_switch_req_failure(
   const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p,
   imsi64_t imsi64)
 {
-  OAILOG_FUNC_IN(LOG_S1AP);
+#if S1AP_R1O_TO_R15_DONE
 
   uint8_t *buffer = NULL;
   uint32_t length = 0;
@@ -3010,6 +3091,7 @@ int s1ap_handle_path_switch_req_failure(
   S1ap_PathSwitchRequestFailureIEs_t
      *s1ap_PathSwitchRequestFailureIEs_p = NULL;
   int rc = RETURNok;
+  OAILOG_FUNC_IN(LOG_S1AP);
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
     state, path_switch_req_failure_p->mme_ue_s1ap_id)) == NULL) {
@@ -3051,8 +3133,11 @@ int s1ap_handle_path_switch_req_failure(
     path_switch_req_failure_p->sctp_assoc_id,
     ue_ref_p->sctp_stream_send,
     path_switch_req_failure_p->mme_ue_s1ap_id);
-
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
+
 }
 
 const char *s1_enb_state2str(enum mme_s1_enb_state_s state)
@@ -3069,10 +3154,10 @@ const char *s1_enb_state2str(enum mme_s1_enb_state_s state)
 const char *s1ap_direction2str(uint8_t dir)
 {
   switch (dir) {
-    case S1AP_PDU_PR_NOTHING: return "<nothing>";
-    case S1AP_PDU_PR_initiatingMessage: return "originating message";
-    case S1AP_PDU_PR_successfulOutcome: return "successful outcome";
-    case S1AP_PDU_PR_unsuccessfulOutcome: return "unsuccessful outcome";
+    case S1ap_S1AP_PDU_PR_NOTHING: return "<nothing>";
+    case S1ap_S1AP_PDU_PR_initiatingMessage: return "originating message";
+    case S1ap_S1AP_PDU_PR_successfulOutcome: return "successful outcome";
+    case S1ap_S1AP_PDU_PR_unsuccessfulOutcome: return "unsuccessful outcome";
     default: return "unknown direction";
   }
 }
@@ -3082,8 +3167,9 @@ int s1ap_mme_handle_erab_rel_response(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   OAILOG_FUNC_IN(LOG_S1AP);
   S1ap_E_RABReleaseResponseIEs_t *s1ap_E_RABReleaseResponseIEs_p = NULL;
   ue_description_t *ue_ref_p = NULL;
@@ -3170,4 +3256,7 @@ int s1ap_mme_handle_erab_rel_response(
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+#else
+  return -1;
+#endif
 }

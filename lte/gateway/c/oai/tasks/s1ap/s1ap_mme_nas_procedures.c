@@ -84,8 +84,9 @@ int s1ap_mme_handle_initial_ue_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_InitialUEMessageIEs_t *initialUEMessage_p = NULL;
   ue_description_t *ue_ref = NULL;
   enb_description_t *eNB_ref = NULL;
@@ -248,6 +249,9 @@ int s1ap_mme_handle_initial_ue_message(
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -255,8 +259,9 @@ int s1ap_mme_handle_uplink_nas_transport(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   __attribute__((unused)) const sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_UplinkNASTransportIEs_t *uplinkNASTransport_p = NULL;
   ue_description_t *ue_ref = NULL;
   enb_description_t *enb_ref = NULL;
@@ -328,6 +333,9 @@ int s1ap_mme_handle_uplink_nas_transport(
   s1ap_mme_itti_nas_uplink_ind(
     uplinkNASTransport_p->mme_ue_s1ap_id, &b, &tai, &ecgi);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -335,8 +343,9 @@ int s1ap_mme_handle_nas_non_delivery(
   s1ap_state_t *state,
   __attribute__((unused)) sctp_assoc_id_t assoc_id,
   sctp_stream_id_t stream,
-  struct s1ap_message_s *message)
+  S1ap_S1AP_PDU_t *message)
 {
+#if S1AP_R1O_TO_R15_DONE
   S1ap_NASNonDeliveryIndication_IEs_t *nasNonDeliveryIndication_p = NULL;
   ue_description_t *ue_ref = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -397,6 +406,9 @@ int s1ap_mme_handle_nas_non_delivery(
     &nasNonDeliveryIndication_p->cause,
     imsi64);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -407,6 +419,7 @@ int s1ap_generate_downlink_nas_transport(
   STOLEN_REF bstring *payload,
   const imsi64_t imsi64)
 {
+#if S1AP_R1O_TO_R15_DONE
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
   uint32_t length = 0;
@@ -508,8 +521,10 @@ int s1ap_generate_downlink_nas_transport(
       ue_ref->mme_ue_s1ap_id);
     free_s1ap_downlinknastransport(downlinkNasTransport);
   }
-
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+#else
+  return -1;
+#endif
 }
 
 //------------------------------------------------------------------------------
@@ -518,6 +533,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
   itti_s1ap_e_rab_setup_req_t *const e_rab_setup_req)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
+#if S1AP_R1O_TO_R15_DONE
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
   uint32_t length = 0;
@@ -711,7 +727,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
   }
-
+#endif
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
@@ -720,6 +736,7 @@ void s1ap_handle_conn_est_cnf(
   s1ap_state_t *state,
   const itti_mme_app_connection_establishment_cnf_t *const conn_est_cnf_pP)
 {
+#if S1AP_R1O_TO_R15_DONE
   /*
    * We received create session response from S-GW on S11 interface abstraction.
    * At least one bearer has been established. We can now send s1ap initial context setup request
@@ -939,6 +956,9 @@ void s1ap_handle_conn_est_cnf(
     ue_ref->sctp_stream_send,
     ue_ref->mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_S1AP);
+#else
+  return;
+#endif
 }
 //------------------------------------------------------------------------------
 void s1ap_handle_mme_ue_id_notification(
@@ -946,6 +966,7 @@ void s1ap_handle_mme_ue_id_notification(
   const itti_mme_app_s1ap_mme_ue_id_notification_t *const notification_p)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
+#if S1AP_R1O_TO_R15_DONE
   DevAssert(notification_p != NULL);
 
   sctp_assoc_id_t sctp_assoc_id = notification_p->sctp_assoc_id;
@@ -981,7 +1002,7 @@ void s1ap_handle_mme_ue_id_notification(
   }
   OAILOG_DEBUG(
     LOG_S1AP, "Could not find  eNB with sctp_assoc_id %d \n", sctp_assoc_id);
-
+#endif
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -991,6 +1012,7 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
   itti_s1ap_e_rab_rel_cmd_t *const e_rab_rel_cmd)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
+#if S1AP_R1O_TO_R15_DONE
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
   uint32_t length = 0;
@@ -1091,6 +1113,6 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
   }
-
+#endif
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
