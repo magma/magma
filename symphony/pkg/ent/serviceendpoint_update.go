@@ -96,6 +96,11 @@ func (seu *ServiceEndpointUpdate) SetDefinition(s *ServiceEndpointDefinition) *S
 	return seu.SetDefinitionID(s.ID)
 }
 
+// Mutation returns the ServiceEndpointMutation object of the builder.
+func (seu *ServiceEndpointUpdate) Mutation() *ServiceEndpointMutation {
+	return seu.mutation
+}
+
 // ClearPort clears the port edge to EquipmentPort.
 func (seu *ServiceEndpointUpdate) ClearPort() *ServiceEndpointUpdate {
 	seu.mutation.ClearPort()
@@ -427,6 +432,11 @@ func (seuo *ServiceEndpointUpdateOne) SetDefinition(s *ServiceEndpointDefinition
 	return seuo.SetDefinitionID(s.ID)
 }
 
+// Mutation returns the ServiceEndpointMutation object of the builder.
+func (seuo *ServiceEndpointUpdateOne) Mutation() *ServiceEndpointMutation {
+	return seuo.mutation
+}
+
 // ClearPort clears the port edge to EquipmentPort.
 func (seuo *ServiceEndpointUpdateOne) ClearPort() *ServiceEndpointUpdateOne {
 	seuo.mutation.ClearPort()
@@ -528,7 +538,7 @@ func (seuo *ServiceEndpointUpdateOne) sqlSave(ctx context.Context) (se *ServiceE
 	}
 	id, ok := seuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing ServiceEndpoint.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ServiceEndpoint.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := seuo.mutation.UpdateTime(); ok {

@@ -134,6 +134,11 @@ func (sedc *ServiceEndpointDefinitionCreate) SetEquipmentType(e *EquipmentType) 
 	return sedc.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the ServiceEndpointDefinitionMutation object of the builder.
+func (sedc *ServiceEndpointDefinitionCreate) Mutation() *ServiceEndpointDefinitionMutation {
+	return sedc.mutation
+}
+
 // Save creates the ServiceEndpointDefinition in the database.
 func (sedc *ServiceEndpointDefinitionCreate) Save(ctx context.Context) (*ServiceEndpointDefinition, error) {
 	if _, ok := sedc.mutation.CreateTime(); !ok {
@@ -145,15 +150,15 @@ func (sedc *ServiceEndpointDefinitionCreate) Save(ctx context.Context) (*Service
 		sedc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := sedc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := sedc.mutation.Name(); ok {
 		if err := serviceendpointdefinition.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := sedc.mutation.Index(); !ok {
-		return nil, errors.New("ent: missing required field \"index\"")
+		return nil, &ValidationError{Name: "index", err: errors.New("ent: missing required field \"index\"")}
 	}
 	var (
 		err  error

@@ -399,6 +399,11 @@ func (wou *WorkOrderUpdate) SetAssignee(u *User) *WorkOrderUpdate {
 	return wou.SetAssigneeID(u.ID)
 }
 
+// Mutation returns the WorkOrderMutation object of the builder.
+func (wou *WorkOrderUpdate) Mutation() *WorkOrderMutation {
+	return wou.mutation
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wou *WorkOrderUpdate) ClearType() *WorkOrderUpdate {
 	wou.mutation.ClearType()
@@ -563,7 +568,7 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := wou.mutation.Name(); ok {
 		if err := workorder.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -1617,6 +1622,11 @@ func (wouo *WorkOrderUpdateOne) SetAssignee(u *User) *WorkOrderUpdateOne {
 	return wouo.SetAssigneeID(u.ID)
 }
 
+// Mutation returns the WorkOrderMutation object of the builder.
+func (wouo *WorkOrderUpdateOne) Mutation() *WorkOrderMutation {
+	return wouo.mutation
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wouo *WorkOrderUpdateOne) ClearType() *WorkOrderUpdateOne {
 	wouo.mutation.ClearType()
@@ -1781,7 +1791,7 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 	}
 	if v, ok := wouo.mutation.Name(); ok {
 		if err := workorder.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -1851,7 +1861,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 	}
 	id, ok := wouo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing WorkOrder.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WorkOrder.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := wouo.mutation.UpdateTime(); ok {

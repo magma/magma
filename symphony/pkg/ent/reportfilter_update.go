@@ -57,6 +57,11 @@ func (rfu *ReportFilterUpdate) SetNillableFilters(s *string) *ReportFilterUpdate
 	return rfu
 }
 
+// Mutation returns the ReportFilterMutation object of the builder.
+func (rfu *ReportFilterUpdate) Mutation() *ReportFilterMutation {
+	return rfu.mutation
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (rfu *ReportFilterUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := rfu.mutation.UpdateTime(); !ok {
@@ -65,12 +70,12 @@ func (rfu *ReportFilterUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := rfu.mutation.Name(); ok {
 		if err := reportfilter.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := rfu.mutation.Entity(); ok {
 		if err := reportfilter.EntityValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
+			return 0, &ValidationError{Name: "entity", err: fmt.Errorf("ent: validator failed for field \"entity\": %w", err)}
 		}
 	}
 	var (
@@ -212,6 +217,11 @@ func (rfuo *ReportFilterUpdateOne) SetNillableFilters(s *string) *ReportFilterUp
 	return rfuo
 }
 
+// Mutation returns the ReportFilterMutation object of the builder.
+func (rfuo *ReportFilterUpdateOne) Mutation() *ReportFilterMutation {
+	return rfuo.mutation
+}
+
 // Save executes the query and returns the updated entity.
 func (rfuo *ReportFilterUpdateOne) Save(ctx context.Context) (*ReportFilter, error) {
 	if _, ok := rfuo.mutation.UpdateTime(); !ok {
@@ -220,12 +230,12 @@ func (rfuo *ReportFilterUpdateOne) Save(ctx context.Context) (*ReportFilter, err
 	}
 	if v, ok := rfuo.mutation.Name(); ok {
 		if err := reportfilter.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := rfuo.mutation.Entity(); ok {
 		if err := reportfilter.EntityValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
+			return nil, &ValidationError{Name: "entity", err: fmt.Errorf("ent: validator failed for field \"entity\": %w", err)}
 		}
 	}
 	var (
@@ -290,7 +300,7 @@ func (rfuo *ReportFilterUpdateOne) sqlSave(ctx context.Context) (rf *ReportFilte
 	}
 	id, ok := rfuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing ReportFilter.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ReportFilter.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := rfuo.mutation.UpdateTime(); ok {

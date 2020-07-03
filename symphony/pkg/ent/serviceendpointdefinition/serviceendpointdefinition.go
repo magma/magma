@@ -16,12 +16,17 @@ const (
 	// Label holds the string label denoting the serviceendpointdefinition type in the database.
 	Label = "service_endpoint_definition"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldRole holds the string denoting the role vertex property in the database.
-	FieldRole       = "role"        // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex      = "index"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
 
 	// EdgeEndpoints holds the string denoting the endpoints edge name in mutations.
 	EdgeEndpoints = "endpoints"

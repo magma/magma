@@ -463,6 +463,11 @@ func (ptc *PropertyTypeCreate) SetProjectType(p *ProjectType) *PropertyTypeCreat
 	return ptc.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the PropertyTypeMutation object of the builder.
+func (ptc *PropertyTypeCreate) Mutation() *PropertyTypeMutation {
+	return ptc.mutation
+}
+
 // Save creates the PropertyType in the database.
 func (ptc *PropertyTypeCreate) Save(ctx context.Context) (*PropertyType, error) {
 	if _, ok := ptc.mutation.CreateTime(); !ok {
@@ -474,10 +479,10 @@ func (ptc *PropertyTypeCreate) Save(ctx context.Context) (*PropertyType, error) 
 		ptc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ptc.mutation.GetType(); !ok {
-		return nil, errors.New("ent: missing required field \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
 	}
 	if _, ok := ptc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if _, ok := ptc.mutation.IsInstanceProperty(); !ok {
 		v := propertytype.DefaultIsInstanceProperty

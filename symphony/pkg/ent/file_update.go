@@ -342,6 +342,11 @@ func (fu *FileUpdate) SetSurveyQuestion(s *SurveyQuestion) *FileUpdate {
 	return fu.SetSurveyQuestionID(s.ID)
 }
 
+// Mutation returns the FileMutation object of the builder.
+func (fu *FileUpdate) Mutation() *FileMutation {
+	return fu.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (fu *FileUpdate) ClearLocation() *FileUpdate {
 	fu.mutation.ClearLocation()
@@ -404,7 +409,7 @@ func (fu *FileUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := fu.mutation.Size(); ok {
 		if err := file.SizeValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
+			return 0, &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
 		}
 	}
 
@@ -1217,6 +1222,11 @@ func (fuo *FileUpdateOne) SetSurveyQuestion(s *SurveyQuestion) *FileUpdateOne {
 	return fuo.SetSurveyQuestionID(s.ID)
 }
 
+// Mutation returns the FileMutation object of the builder.
+func (fuo *FileUpdateOne) Mutation() *FileMutation {
+	return fuo.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (fuo *FileUpdateOne) ClearLocation() *FileUpdateOne {
 	fuo.mutation.ClearLocation()
@@ -1279,7 +1289,7 @@ func (fuo *FileUpdateOne) Save(ctx context.Context) (*File, error) {
 	}
 	if v, ok := fuo.mutation.Size(); ok {
 		if err := file.SizeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
+			return nil, &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
 		}
 	}
 
@@ -1345,7 +1355,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 	}
 	id, ok := fuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing File.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing File.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := fuo.mutation.UpdateTime(); ok {

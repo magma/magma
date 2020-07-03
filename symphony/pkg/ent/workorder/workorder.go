@@ -16,17 +16,27 @@ const (
 	// Label holds the string label denoting the workorder type in the database.
 	Label = "work_order"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"            // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"   // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"   // FieldName holds the string denoting the name vertex property in the database.
-	FieldName         = "name"          // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus       = "status"        // FieldPriority holds the string denoting the priority vertex property in the database.
-	FieldPriority     = "priority"      // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription  = "description"   // FieldInstallDate holds the string denoting the install_date vertex property in the database.
-	FieldInstallDate  = "install_date"  // FieldCreationDate holds the string denoting the creation_date vertex property in the database.
-	FieldCreationDate = "creation_date" // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex        = "index"         // FieldCloseDate holds the string denoting the close_date vertex property in the database.
-	FieldCloseDate    = "close_date"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldPriority holds the string denoting the priority field in the database.
+	FieldPriority = "priority"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldInstallDate holds the string denoting the install_date field in the database.
+	FieldInstallDate = "install_date"
+	// FieldCreationDate holds the string denoting the creation_date field in the database.
+	FieldCreationDate = "creation_date"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
+	// FieldCloseDate holds the string denoting the close_date field in the database.
+	FieldCloseDate = "close_date"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"

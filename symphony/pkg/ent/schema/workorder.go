@@ -163,9 +163,9 @@ func (WorkOrder) Edges() []ent.Edge {
 		edge.To("owner", User.Type).
 			Required().
 			Unique().
-			StructTag(`gqlgen:"owner"`),
+			StructTag(`gqlgen:"owner,ownerName"`),
 		edge.To("assignee", User.Type).
-			StructTag(`gqlgen:"assignedTo"`).
+			StructTag(`gqlgen:"assignee,assignedTo"`).
 			Unique(),
 	}
 }

@@ -17,12 +17,17 @@ const (
 	// Label holds the string label denoting the usersgroup type in the database.
 	Label = "users_group"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"        // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription = "description" // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus      = "status"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 
 	// EdgeMembers holds the string denoting the members edge name in mutations.
 	EdgeMembers = "members"

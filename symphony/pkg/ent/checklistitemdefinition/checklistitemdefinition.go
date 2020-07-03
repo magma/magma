@@ -17,15 +17,23 @@ const (
 	// Label holds the string label denoting the checklistitemdefinition type in the database.
 	Label = "check_list_item_definition"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                     = "id"                        // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime             = "create_time"               // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime             = "update_time"               // FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle                  = "title"                     // FieldType holds the string denoting the type vertex property in the database.
-	FieldType                   = "type"                      // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex                  = "index"                     // FieldEnumValues holds the string denoting the enum_values vertex property in the database.
-	FieldEnumValues             = "enum_values"               // FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value vertex property in the database.
-	FieldEnumSelectionModeValue = "enum_selection_mode_value" // FieldHelpText holds the string denoting the help_text vertex property in the database.
-	FieldHelpText               = "help_text"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
+	// FieldEnumValues holds the string denoting the enum_values field in the database.
+	FieldEnumValues = "enum_values"
+	// FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value field in the database.
+	FieldEnumSelectionModeValue = "enum_selection_mode_value"
+	// FieldHelpText holds the string denoting the help_text field in the database.
+	FieldHelpText = "help_text"
 
 	// EdgeCheckListCategoryDefinition holds the string denoting the check_list_category_definition edge name in mutations.
 	EdgeCheckListCategoryDefinition = "check_list_category_definition"

@@ -795,7 +795,7 @@ func (wo *WorkOrderQuery) collectField(ctx *graphql.OperationContext, field grap
 			wo = wo.WithActivities(func(query *ActivityQuery) {
 				query.collectField(ctx, field)
 			})
-		case "assignedTo":
+		case "assignee", "assignedTo":
 			wo = wo.WithAssignee(func(query *UserQuery) {
 				query.collectField(ctx, field)
 			})
@@ -815,7 +815,7 @@ func (wo *WorkOrderQuery) collectField(ctx *graphql.OperationContext, field grap
 			wo = wo.WithLocation(func(query *LocationQuery) {
 				query.collectField(ctx, field)
 			})
-		case "owner":
+		case "owner", "ownerName":
 			wo = wo.WithOwner(func(query *UserQuery) {
 				query.collectField(ctx, field)
 			})

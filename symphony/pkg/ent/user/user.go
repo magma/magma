@@ -17,15 +17,23 @@ const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldAuthID holds the string denoting the auth_id vertex property in the database.
-	FieldAuthID     = "auth_id"     // FieldFirstName holds the string denoting the first_name vertex property in the database.
-	FieldFirstName  = "first_name"  // FieldLastName holds the string denoting the last_name vertex property in the database.
-	FieldLastName   = "last_name"   // FieldEmail holds the string denoting the email vertex property in the database.
-	FieldEmail      = "email"       // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus     = "status"      // FieldRole holds the string denoting the role vertex property in the database.
-	FieldRole       = "role"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldAuthID holds the string denoting the auth_id field in the database.
+	FieldAuthID = "auth_id"
+	// FieldFirstName holds the string denoting the first_name field in the database.
+	FieldFirstName = "first_name"
+	// FieldLastName holds the string denoting the last_name field in the database.
+	FieldLastName = "last_name"
+	// FieldEmail holds the string denoting the email field in the database.
+	FieldEmail = "email"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 
 	// EdgeProfilePhoto holds the string denoting the profile_photo edge name in mutations.
 	EdgeProfilePhoto = "profile_photo"

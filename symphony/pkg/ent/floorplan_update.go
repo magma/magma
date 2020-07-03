@@ -117,6 +117,11 @@ func (fpu *FloorPlanUpdate) SetImage(f *File) *FloorPlanUpdate {
 	return fpu.SetImageID(f.ID)
 }
 
+// Mutation returns the FloorPlanMutation object of the builder.
+func (fpu *FloorPlanUpdate) Mutation() *FloorPlanMutation {
+	return fpu.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (fpu *FloorPlanUpdate) ClearLocation() *FloorPlanUpdate {
 	fpu.mutation.ClearLocation()
@@ -469,6 +474,11 @@ func (fpuo *FloorPlanUpdateOne) SetImage(f *File) *FloorPlanUpdateOne {
 	return fpuo.SetImageID(f.ID)
 }
 
+// Mutation returns the FloorPlanMutation object of the builder.
+func (fpuo *FloorPlanUpdateOne) Mutation() *FloorPlanMutation {
+	return fpuo.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (fpuo *FloorPlanUpdateOne) ClearLocation() *FloorPlanUpdateOne {
 	fpuo.mutation.ClearLocation()
@@ -562,7 +572,7 @@ func (fpuo *FloorPlanUpdateOne) sqlSave(ctx context.Context) (fp *FloorPlan, err
 	}
 	id, ok := fpuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing FloorPlan.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FloorPlan.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := fpuo.mutation.UpdateTime(); ok {

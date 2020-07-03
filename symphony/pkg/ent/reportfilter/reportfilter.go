@@ -17,12 +17,17 @@ const (
 	// Label holds the string label denoting the reportfilter type in the database.
 	Label = "report_filter"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldEntity holds the string denoting the entity vertex property in the database.
-	FieldEntity     = "entity"      // FieldFilters holds the string denoting the filters vertex property in the database.
-	FieldFilters    = "filters"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldEntity holds the string denoting the entity field in the database.
+	FieldEntity = "entity"
+	// FieldFilters holds the string denoting the filters field in the database.
+	FieldFilters = "filters"
 
 	// Table holds the table name of the reportfilter in the database.
 	Table = "report_filters"

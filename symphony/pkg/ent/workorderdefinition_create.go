@@ -105,6 +105,11 @@ func (wodc *WorkOrderDefinitionCreate) SetProjectType(p *ProjectType) *WorkOrder
 	return wodc.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the WorkOrderDefinitionMutation object of the builder.
+func (wodc *WorkOrderDefinitionCreate) Mutation() *WorkOrderDefinitionMutation {
+	return wodc.mutation
+}
+
 // Save creates the WorkOrderDefinition in the database.
 func (wodc *WorkOrderDefinitionCreate) Save(ctx context.Context) (*WorkOrderDefinition, error) {
 	if _, ok := wodc.mutation.CreateTime(); !ok {

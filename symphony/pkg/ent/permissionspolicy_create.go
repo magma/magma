@@ -115,6 +115,11 @@ func (ppc *PermissionsPolicyCreate) AddGroups(u ...*UsersGroup) *PermissionsPoli
 	return ppc.AddGroupIDs(ids...)
 }
 
+// Mutation returns the PermissionsPolicyMutation object of the builder.
+func (ppc *PermissionsPolicyCreate) Mutation() *PermissionsPolicyMutation {
+	return ppc.mutation
+}
+
 // Save creates the PermissionsPolicy in the database.
 func (ppc *PermissionsPolicyCreate) Save(ctx context.Context) (*PermissionsPolicy, error) {
 	if _, ok := ppc.mutation.CreateTime(); !ok {
@@ -126,11 +131,11 @@ func (ppc *PermissionsPolicyCreate) Save(ctx context.Context) (*PermissionsPolic
 		ppc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ppc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := ppc.mutation.Name(); ok {
 		if err := permissionspolicy.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := ppc.mutation.IsGlobal(); !ok {

@@ -563,6 +563,11 @@ func (ptu *PropertyTypeUpdate) SetProjectType(p *ProjectType) *PropertyTypeUpdat
 	return ptu.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the PropertyTypeMutation object of the builder.
+func (ptu *PropertyTypeUpdate) Mutation() *PropertyTypeMutation {
+	return ptu.mutation
+}
+
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) RemovePropertyIDs(ids ...int) *PropertyTypeUpdate {
 	ptu.mutation.RemovePropertyIDs(ids...)
@@ -1814,6 +1819,11 @@ func (ptuo *PropertyTypeUpdateOne) SetProjectType(p *ProjectType) *PropertyTypeU
 	return ptuo.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the PropertyTypeMutation object of the builder.
+func (ptuo *PropertyTypeUpdateOne) Mutation() *PropertyTypeMutation {
+	return ptuo.mutation
+}
+
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) RemovePropertyIDs(ids ...int) *PropertyTypeUpdateOne {
 	ptuo.mutation.RemovePropertyIDs(ids...)
@@ -1946,7 +1956,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	}
 	id, ok := ptuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing PropertyType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing PropertyType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := ptuo.mutation.UpdateTime(); ok {

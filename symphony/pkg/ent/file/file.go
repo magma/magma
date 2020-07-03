@@ -16,18 +16,29 @@ const (
 	// Label holds the string label denoting the file type in the database.
 	Label = "file"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time"  // FieldType holds the string denoting the type vertex property in the database.
-	FieldType        = "type"         // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"         // FieldSize holds the string denoting the size vertex property in the database.
-	FieldSize        = "size"         // FieldModifiedAt holds the string denoting the modified_at vertex property in the database.
-	FieldModifiedAt  = "modified_at"  // FieldUploadedAt holds the string denoting the uploaded_at vertex property in the database.
-	FieldUploadedAt  = "uploaded_at"  // FieldContentType holds the string denoting the content_type vertex property in the database.
-	FieldContentType = "content_type" // FieldStoreKey holds the string denoting the store_key vertex property in the database.
-	FieldStoreKey    = "store_key"    // FieldCategory holds the string denoting the category vertex property in the database.
-	FieldCategory    = "category"     // FieldAnnotation holds the string denoting the annotation vertex property in the database.
-	FieldAnnotation  = "annotation"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldSize holds the string denoting the size field in the database.
+	FieldSize = "size"
+	// FieldModifiedAt holds the string denoting the modified_at field in the database.
+	FieldModifiedAt = "modified_at"
+	// FieldUploadedAt holds the string denoting the uploaded_at field in the database.
+	FieldUploadedAt = "uploaded_at"
+	// FieldContentType holds the string denoting the content_type field in the database.
+	FieldContentType = "content_type"
+	// FieldStoreKey holds the string denoting the store_key field in the database.
+	FieldStoreKey = "store_key"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
+	// FieldAnnotation holds the string denoting the annotation field in the database.
+	FieldAnnotation = "annotation"
 
 	// EdgeLocation holds the string denoting the location edge name in mutations.
 	EdgeLocation = "location"

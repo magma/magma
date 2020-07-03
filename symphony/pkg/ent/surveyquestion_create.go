@@ -363,6 +363,11 @@ func (sqc *SurveyQuestionCreate) AddImages(f ...*File) *SurveyQuestionCreate {
 	return sqc.AddImageIDs(ids...)
 }
 
+// Mutation returns the SurveyQuestionMutation object of the builder.
+func (sqc *SurveyQuestionCreate) Mutation() *SurveyQuestionMutation {
+	return sqc.mutation
+}
+
 // Save creates the SurveyQuestion in the database.
 func (sqc *SurveyQuestionCreate) Save(ctx context.Context) (*SurveyQuestion, error) {
 	if _, ok := sqc.mutation.CreateTime(); !ok {
@@ -374,13 +379,13 @@ func (sqc *SurveyQuestionCreate) Save(ctx context.Context) (*SurveyQuestion, err
 		sqc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := sqc.mutation.FormIndex(); !ok {
-		return nil, errors.New("ent: missing required field \"form_index\"")
+		return nil, &ValidationError{Name: "form_index", err: errors.New("ent: missing required field \"form_index\"")}
 	}
 	if _, ok := sqc.mutation.QuestionIndex(); !ok {
-		return nil, errors.New("ent: missing required field \"question_index\"")
+		return nil, &ValidationError{Name: "question_index", err: errors.New("ent: missing required field \"question_index\"")}
 	}
 	if _, ok := sqc.mutation.SurveyID(); !ok {
-		return nil, errors.New("ent: missing required edge \"survey\"")
+		return nil, &ValidationError{Name: "survey", err: errors.New("ent: missing required edge \"survey\"")}
 	}
 	var (
 		err  error

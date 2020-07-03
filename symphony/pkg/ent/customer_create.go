@@ -88,6 +88,11 @@ func (cc *CustomerCreate) AddServices(s ...*Service) *CustomerCreate {
 	return cc.AddServiceIDs(ids...)
 }
 
+// Mutation returns the CustomerMutation object of the builder.
+func (cc *CustomerCreate) Mutation() *CustomerMutation {
+	return cc.mutation
+}
+
 // Save creates the Customer in the database.
 func (cc *CustomerCreate) Save(ctx context.Context) (*Customer, error) {
 	if _, ok := cc.mutation.CreateTime(); !ok {
@@ -99,16 +104,16 @@ func (cc *CustomerCreate) Save(ctx context.Context) (*Customer, error) {
 		cc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := cc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := cc.mutation.Name(); ok {
 		if err := customer.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := cc.mutation.ExternalID(); ok {
 		if err := customer.ExternalIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
+			return nil, &ValidationError{Name: "external_id", err: fmt.Errorf("ent: validator failed for field \"external_id\": %w", err)}
 		}
 	}
 	var (

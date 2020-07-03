@@ -121,6 +121,11 @@ func (wotu *WorkOrderTypeUpdate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 	return wotu.AddDefinitionIDs(ids...)
 }
 
+// Mutation returns the WorkOrderTypeMutation object of the builder.
+func (wotu *WorkOrderTypeUpdate) Mutation() *WorkOrderTypeMutation {
+	return wotu.mutation
+}
+
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (wotu *WorkOrderTypeUpdate) RemovePropertyTypeIDs(ids ...int) *WorkOrderTypeUpdate {
 	wotu.mutation.RemovePropertyTypeIDs(ids...)
@@ -527,6 +532,11 @@ func (wotuo *WorkOrderTypeUpdateOne) AddDefinitions(w ...*WorkOrderDefinition) *
 	return wotuo.AddDefinitionIDs(ids...)
 }
 
+// Mutation returns the WorkOrderTypeMutation object of the builder.
+func (wotuo *WorkOrderTypeUpdateOne) Mutation() *WorkOrderTypeMutation {
+	return wotuo.mutation
+}
+
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (wotuo *WorkOrderTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *WorkOrderTypeUpdateOne {
 	wotuo.mutation.RemovePropertyTypeIDs(ids...)
@@ -652,7 +662,7 @@ func (wotuo *WorkOrderTypeUpdateOne) sqlSave(ctx context.Context) (wot *WorkOrde
 	}
 	id, ok := wotuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing WorkOrderType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WorkOrderType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := wotuo.mutation.Name(); ok {

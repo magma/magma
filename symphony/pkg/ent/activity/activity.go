@@ -17,13 +17,19 @@ const (
 	// Label holds the string label denoting the activity type in the database.
 	Label = "activity"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"            // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"   // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"   // FieldChangedField holds the string denoting the changed_field vertex property in the database.
-	FieldChangedField = "changed_field" // FieldIsCreate holds the string denoting the is_create vertex property in the database.
-	FieldIsCreate     = "is_create"     // FieldOldValue holds the string denoting the old_value vertex property in the database.
-	FieldOldValue     = "old_value"     // FieldNewValue holds the string denoting the new_value vertex property in the database.
-	FieldNewValue     = "new_value"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldChangedField holds the string denoting the changed_field field in the database.
+	FieldChangedField = "changed_field"
+	// FieldIsCreate holds the string denoting the is_create field in the database.
+	FieldIsCreate = "is_create"
+	// FieldOldValue holds the string denoting the old_value field in the database.
+	FieldOldValue = "old_value"
+	// FieldNewValue holds the string denoting the new_value field in the database.
+	FieldNewValue = "new_value"
 
 	// EdgeAuthor holds the string denoting the author edge name in mutations.
 	EdgeAuthor = "author"

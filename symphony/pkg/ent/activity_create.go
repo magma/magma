@@ -140,6 +140,11 @@ func (ac *ActivityCreate) SetWorkOrder(w *WorkOrder) *ActivityCreate {
 	return ac.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the ActivityMutation object of the builder.
+func (ac *ActivityCreate) Mutation() *ActivityMutation {
+	return ac.mutation
+}
+
 // Save creates the Activity in the database.
 func (ac *ActivityCreate) Save(ctx context.Context) (*Activity, error) {
 	if _, ok := ac.mutation.CreateTime(); !ok {
@@ -151,11 +156,11 @@ func (ac *ActivityCreate) Save(ctx context.Context) (*Activity, error) {
 		ac.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ac.mutation.ChangedField(); !ok {
-		return nil, errors.New("ent: missing required field \"changed_field\"")
+		return nil, &ValidationError{Name: "changed_field", err: errors.New("ent: missing required field \"changed_field\"")}
 	}
 	if v, ok := ac.mutation.ChangedField(); ok {
 		if err := activity.ChangedFieldValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"changed_field\": %v", err)
+			return nil, &ValidationError{Name: "changed_field", err: fmt.Errorf("ent: validator failed for field \"changed_field\": %w", err)}
 		}
 	}
 	if _, ok := ac.mutation.IsCreate(); !ok {

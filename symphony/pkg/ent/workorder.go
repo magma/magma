@@ -83,9 +83,9 @@ type WorkOrderEdges struct {
 	// Project holds the value of the project edge.
 	Project *Project `gqlgen:"project"`
 	// Owner holds the value of the owner edge.
-	Owner *User `gqlgen:"owner"`
+	Owner *User `gqlgen:"owner,ownerName"`
 	// Assignee holds the value of the assignee edge.
-	Assignee *User `gqlgen:"assignedTo"`
+	Assignee *User `gqlgen:"assignee,assignedTo"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [14]bool

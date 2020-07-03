@@ -132,6 +132,11 @@ func (clidc *CheckListItemDefinitionCreate) SetCheckListCategoryDefinition(c *Ch
 	return clidc.SetCheckListCategoryDefinitionID(c.ID)
 }
 
+// Mutation returns the CheckListItemDefinitionMutation object of the builder.
+func (clidc *CheckListItemDefinitionCreate) Mutation() *CheckListItemDefinitionMutation {
+	return clidc.mutation
+}
+
 // Save creates the CheckListItemDefinition in the database.
 func (clidc *CheckListItemDefinitionCreate) Save(ctx context.Context) (*CheckListItemDefinition, error) {
 	if _, ok := clidc.mutation.CreateTime(); !ok {
@@ -143,18 +148,18 @@ func (clidc *CheckListItemDefinitionCreate) Save(ctx context.Context) (*CheckLis
 		clidc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := clidc.mutation.Title(); !ok {
-		return nil, errors.New("ent: missing required field \"title\"")
+		return nil, &ValidationError{Name: "title", err: errors.New("ent: missing required field \"title\"")}
 	}
 	if _, ok := clidc.mutation.GetType(); !ok {
-		return nil, errors.New("ent: missing required field \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
 	}
 	if v, ok := clidc.mutation.EnumSelectionModeValue(); ok {
 		if err := checklistitemdefinition.EnumSelectionModeValueValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+			return nil, &ValidationError{Name: "enum_selection_mode_value", err: fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %w", err)}
 		}
 	}
 	if _, ok := clidc.mutation.CheckListCategoryDefinitionID(); !ok {
-		return nil, errors.New("ent: missing required edge \"check_list_category_definition\"")
+		return nil, &ValidationError{Name: "check_list_category_definition", err: errors.New("ent: missing required edge \"check_list_category_definition\"")}
 	}
 	var (
 		err  error

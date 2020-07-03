@@ -496,6 +496,11 @@ func (squ *SurveyQuestionUpdate) AddImages(f ...*File) *SurveyQuestionUpdate {
 	return squ.AddImageIDs(ids...)
 }
 
+// Mutation returns the SurveyQuestionMutation object of the builder.
+func (squ *SurveyQuestionUpdate) Mutation() *SurveyQuestionMutation {
+	return squ.mutation
+}
+
 // ClearSurvey clears the survey edge to Survey.
 func (squ *SurveyQuestionUpdate) ClearSurvey() *SurveyQuestionUpdate {
 	squ.mutation.ClearSurvey()
@@ -1589,6 +1594,11 @@ func (squo *SurveyQuestionUpdateOne) AddImages(f ...*File) *SurveyQuestionUpdate
 	return squo.AddImageIDs(ids...)
 }
 
+// Mutation returns the SurveyQuestionMutation object of the builder.
+func (squo *SurveyQuestionUpdateOne) Mutation() *SurveyQuestionMutation {
+	return squo.mutation
+}
+
 // ClearSurvey clears the survey edge to Survey.
 func (squo *SurveyQuestionUpdateOne) ClearSurvey() *SurveyQuestionUpdateOne {
 	squo.mutation.ClearSurvey()
@@ -1728,7 +1738,7 @@ func (squo *SurveyQuestionUpdateOne) sqlSave(ctx context.Context) (sq *SurveyQue
 	}
 	id, ok := squo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing SurveyQuestion.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing SurveyQuestion.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := squo.mutation.UpdateTime(); ok {

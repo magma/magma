@@ -226,6 +226,11 @@ func (swfsc *SurveyWiFiScanCreate) SetLocation(l *Location) *SurveyWiFiScanCreat
 	return swfsc.SetLocationID(l.ID)
 }
 
+// Mutation returns the SurveyWiFiScanMutation object of the builder.
+func (swfsc *SurveyWiFiScanCreate) Mutation() *SurveyWiFiScanMutation {
+	return swfsc.mutation
+}
+
 // Save creates the SurveyWiFiScan in the database.
 func (swfsc *SurveyWiFiScanCreate) Save(ctx context.Context) (*SurveyWiFiScan, error) {
 	if _, ok := swfsc.mutation.CreateTime(); !ok {
@@ -237,19 +242,19 @@ func (swfsc *SurveyWiFiScanCreate) Save(ctx context.Context) (*SurveyWiFiScan, e
 		swfsc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := swfsc.mutation.Bssid(); !ok {
-		return nil, errors.New("ent: missing required field \"bssid\"")
+		return nil, &ValidationError{Name: "bssid", err: errors.New("ent: missing required field \"bssid\"")}
 	}
 	if _, ok := swfsc.mutation.Timestamp(); !ok {
-		return nil, errors.New("ent: missing required field \"timestamp\"")
+		return nil, &ValidationError{Name: "timestamp", err: errors.New("ent: missing required field \"timestamp\"")}
 	}
 	if _, ok := swfsc.mutation.Frequency(); !ok {
-		return nil, errors.New("ent: missing required field \"frequency\"")
+		return nil, &ValidationError{Name: "frequency", err: errors.New("ent: missing required field \"frequency\"")}
 	}
 	if _, ok := swfsc.mutation.Channel(); !ok {
-		return nil, errors.New("ent: missing required field \"channel\"")
+		return nil, &ValidationError{Name: "channel", err: errors.New("ent: missing required field \"channel\"")}
 	}
 	if _, ok := swfsc.mutation.Strength(); !ok {
-		return nil, errors.New("ent: missing required field \"strength\"")
+		return nil, &ValidationError{Name: "strength", err: errors.New("ent: missing required field \"strength\"")}
 	}
 	var (
 		err  error

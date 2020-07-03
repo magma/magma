@@ -190,7 +190,7 @@ func CreateTimeIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -207,7 +207,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -266,7 +266,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -283,7 +283,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -342,7 +342,7 @@ func NameIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -359,7 +359,7 @@ func NameNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -453,7 +453,7 @@ func StatusIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -470,7 +470,7 @@ func StatusNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -564,7 +564,7 @@ func PriorityIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -581,7 +581,7 @@ func PriorityNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -675,7 +675,7 @@ func DescriptionIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -692,7 +692,7 @@ func DescriptionNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -800,7 +800,7 @@ func InstallDateIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -817,7 +817,7 @@ func InstallDateNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -890,7 +890,7 @@ func CreationDateIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -907,7 +907,7 @@ func CreationDateNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -966,7 +966,7 @@ func IndexIn(vs ...int) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -983,7 +983,7 @@ func IndexNotIn(vs ...int) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1056,7 +1056,7 @@ func CloseDateIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1073,7 +1073,7 @@ func CloseDateNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

@@ -325,6 +325,11 @@ func (fc *FileCreate) SetSurveyQuestion(s *SurveyQuestion) *FileCreate {
 	return fc.SetSurveyQuestionID(s.ID)
 }
 
+// Mutation returns the FileMutation object of the builder.
+func (fc *FileCreate) Mutation() *FileMutation {
+	return fc.mutation
+}
+
 // Save creates the File in the database.
 func (fc *FileCreate) Save(ctx context.Context) (*File, error) {
 	if _, ok := fc.mutation.CreateTime(); !ok {
@@ -336,21 +341,21 @@ func (fc *FileCreate) Save(ctx context.Context) (*File, error) {
 		fc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := fc.mutation.GetType(); !ok {
-		return nil, errors.New("ent: missing required field \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
 	}
 	if _, ok := fc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := fc.mutation.Size(); ok {
 		if err := file.SizeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
+			return nil, &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
 		}
 	}
 	if _, ok := fc.mutation.ContentType(); !ok {
-		return nil, errors.New("ent: missing required field \"content_type\"")
+		return nil, &ValidationError{Name: "content_type", err: errors.New("ent: missing required field \"content_type\"")}
 	}
 	if _, ok := fc.mutation.StoreKey(); !ok {
-		return nil, errors.New("ent: missing required field \"store_key\"")
+		return nil, &ValidationError{Name: "store_key", err: errors.New("ent: missing required field \"store_key\"")}
 	}
 	var (
 		err  error

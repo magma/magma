@@ -387,6 +387,11 @@ func (woc *WorkOrderCreate) SetAssignee(u *User) *WorkOrderCreate {
 	return woc.SetAssigneeID(u.ID)
 }
 
+// Mutation returns the WorkOrderMutation object of the builder.
+func (woc *WorkOrderCreate) Mutation() *WorkOrderMutation {
+	return woc.mutation
+}
+
 // Save creates the WorkOrder in the database.
 func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 	if _, ok := woc.mutation.CreateTime(); !ok {
@@ -398,11 +403,11 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 		woc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := woc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := woc.mutation.Name(); ok {
 		if err := workorder.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := woc.mutation.Status(); !ok {
@@ -414,10 +419,10 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 		woc.mutation.SetPriority(v)
 	}
 	if _, ok := woc.mutation.CreationDate(); !ok {
-		return nil, errors.New("ent: missing required field \"creation_date\"")
+		return nil, &ValidationError{Name: "creation_date", err: errors.New("ent: missing required field \"creation_date\"")}
 	}
 	if _, ok := woc.mutation.OwnerID(); !ok {
-		return nil, errors.New("ent: missing required edge \"owner\"")
+		return nil, &ValidationError{Name: "owner", err: errors.New("ent: missing required edge \"owner\"")}
 	}
 	var (
 		err  error

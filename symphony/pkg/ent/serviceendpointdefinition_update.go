@@ -126,6 +126,11 @@ func (sedu *ServiceEndpointDefinitionUpdate) SetEquipmentType(e *EquipmentType) 
 	return sedu.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the ServiceEndpointDefinitionMutation object of the builder.
+func (sedu *ServiceEndpointDefinitionUpdate) Mutation() *ServiceEndpointDefinitionMutation {
+	return sedu.mutation
+}
+
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
 func (sedu *ServiceEndpointDefinitionUpdate) RemoveEndpointIDs(ids ...int) *ServiceEndpointDefinitionUpdate {
 	sedu.mutation.RemoveEndpointIDs(ids...)
@@ -161,7 +166,7 @@ func (sedu *ServiceEndpointDefinitionUpdate) Save(ctx context.Context) (int, err
 	}
 	if v, ok := sedu.mutation.Name(); ok {
 		if err := serviceendpointdefinition.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -491,6 +496,11 @@ func (seduo *ServiceEndpointDefinitionUpdateOne) SetEquipmentType(e *EquipmentTy
 	return seduo.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the ServiceEndpointDefinitionMutation object of the builder.
+func (seduo *ServiceEndpointDefinitionUpdateOne) Mutation() *ServiceEndpointDefinitionMutation {
+	return seduo.mutation
+}
+
 // RemoveEndpointIDs removes the endpoints edge to ServiceEndpoint by ids.
 func (seduo *ServiceEndpointDefinitionUpdateOne) RemoveEndpointIDs(ids ...int) *ServiceEndpointDefinitionUpdateOne {
 	seduo.mutation.RemoveEndpointIDs(ids...)
@@ -526,7 +536,7 @@ func (seduo *ServiceEndpointDefinitionUpdateOne) Save(ctx context.Context) (*Ser
 	}
 	if v, ok := seduo.mutation.Name(); ok {
 		if err := serviceendpointdefinition.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -592,7 +602,7 @@ func (seduo *ServiceEndpointDefinitionUpdateOne) sqlSave(ctx context.Context) (s
 	}
 	id, ok := seduo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing ServiceEndpointDefinition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ServiceEndpointDefinition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := seduo.mutation.UpdateTime(); ok {

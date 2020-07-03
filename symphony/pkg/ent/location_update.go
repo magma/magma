@@ -310,6 +310,11 @@ func (lu *LocationUpdate) AddFloorPlans(f ...*FloorPlan) *LocationUpdate {
 	return lu.AddFloorPlanIDs(ids...)
 }
 
+// Mutation returns the LocationMutation object of the builder.
+func (lu *LocationUpdate) Mutation() *LocationMutation {
+	return lu.mutation
+}
+
 // ClearType clears the type edge to LocationType.
 func (lu *LocationUpdate) ClearType() *LocationUpdate {
 	lu.mutation.ClearType()
@@ -480,17 +485,17 @@ func (lu *LocationUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := lu.mutation.Name(); ok {
 		if err := location.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := lu.mutation.Latitude(); ok {
 		if err := location.LatitudeValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
+			return 0, &ValidationError{Name: "latitude", err: fmt.Errorf("ent: validator failed for field \"latitude\": %w", err)}
 		}
 	}
 	if v, ok := lu.mutation.Longitude(); ok {
 		if err := location.LongitudeValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
+			return 0, &ValidationError{Name: "longitude", err: fmt.Errorf("ent: validator failed for field \"longitude\": %w", err)}
 		}
 	}
 
@@ -1369,6 +1374,11 @@ func (luo *LocationUpdateOne) AddFloorPlans(f ...*FloorPlan) *LocationUpdateOne 
 	return luo.AddFloorPlanIDs(ids...)
 }
 
+// Mutation returns the LocationMutation object of the builder.
+func (luo *LocationUpdateOne) Mutation() *LocationMutation {
+	return luo.mutation
+}
+
 // ClearType clears the type edge to LocationType.
 func (luo *LocationUpdateOne) ClearType() *LocationUpdateOne {
 	luo.mutation.ClearType()
@@ -1539,17 +1549,17 @@ func (luo *LocationUpdateOne) Save(ctx context.Context) (*Location, error) {
 	}
 	if v, ok := luo.mutation.Name(); ok {
 		if err := location.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := luo.mutation.Latitude(); ok {
 		if err := location.LatitudeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
+			return nil, &ValidationError{Name: "latitude", err: fmt.Errorf("ent: validator failed for field \"latitude\": %w", err)}
 		}
 	}
 	if v, ok := luo.mutation.Longitude(); ok {
 		if err := location.LongitudeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
+			return nil, &ValidationError{Name: "longitude", err: fmt.Errorf("ent: validator failed for field \"longitude\": %w", err)}
 		}
 	}
 
@@ -1619,7 +1629,7 @@ func (luo *LocationUpdateOne) sqlSave(ctx context.Context) (l *Location, err err
 	}
 	id, ok := luo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Location.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Location.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := luo.mutation.UpdateTime(); ok {
