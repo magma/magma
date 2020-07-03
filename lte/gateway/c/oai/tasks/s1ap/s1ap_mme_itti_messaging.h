@@ -36,7 +36,7 @@
 #include "common_defs.h"
 #include "3gpp_23.003.h"
 #include "3gpp_36.401.h"
-#include "S1ap-Cause.h"
+#include "S1ap_Cause.h"
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
 #include "common_types.h"
