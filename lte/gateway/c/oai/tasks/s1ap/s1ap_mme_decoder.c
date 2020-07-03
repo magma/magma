@@ -44,7 +44,7 @@
 #include "per_decoder.h"
 
 //-----------------------------------------------------------------------------
-int s1ap_mme_decode_pdu(S1AP_S1AP_PDU_t *pdu, const_bstring const raw) {
+int s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t *pdu, const_bstring const raw) {
   asn_dec_rval_t dec_ret;
   DevAssert(pdu != NULL);
   DevAssert(blength(raw) != 0);
