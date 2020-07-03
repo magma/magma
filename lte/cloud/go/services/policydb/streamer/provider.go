@@ -17,8 +17,8 @@ import (
 	"github.com/pkg/errors"
 
 	"magma/lte/cloud/go/lte"
-	lteModels "magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
+	lteModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"

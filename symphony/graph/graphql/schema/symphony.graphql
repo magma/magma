@@ -339,7 +339,7 @@ type Location implements Node & NamedNode {
   images: [File]!
   files: [File]!
   siteSurveyNeeded: Boolean!
-  topology(depth: Int = 3): NetworkTopology!
+  topology(depth: Int! = 3 @numberValue(min: 0, max: 10)): NetworkTopology!
   locationHierarchy: [Location!]!
   surveys: [Survey]!
   wifiData: [SurveyWiFiScan]!
@@ -1304,7 +1304,7 @@ input LinkSide {
 }
 
 input AddLinkInput {
-  sides: [LinkSide!]! @length(min: 2, max: 2)
+  sides: [LinkSide!]! @list(minItems: 2, maxItems: 2)
   workOrder: ID
   properties: [PropertyInput!]
   serviceIds: [ID!]
@@ -1679,21 +1679,144 @@ type WorkOrderEdge {
   cursor: Cursor!
 }
 
-# enforces length constraint
-directive @length(
-  min: Int!
-  max: Int
+"""
+@numberValue directive is used to describe possible numeric values.
+"""
+directive @numberValue(
+  """
+  The value of multipleOf MUST be a number, strictly greater than 0.
+  A numeric instance is valid only if division by this constraint's
+  value results in an integer.
+  """
+  multipleOf: Float
+
+  """
+  The value of max MUST be a number, representing an inclusive upper
+  limit for a numeric instance. A numeric instance is valid only if
+  the instance is less than or exactly equal to max.
+  """
+  max: Float
+
+  """
+  The value of min MUST be a number, representing an inclusive
+  upper limit for a numeric instance. A numeric instance is
+  valid only if the instance is greater than or exactly equal to min.
+  """
+  min: Float
+
+  """
+  The value of exclusiveMax MUST be a number, representing an exclusive
+  upper limit for a numeric instance. A numeric instance is valid only if
+  it is strictly less than (not equal to) exclusiveMax.
+  """
+  exclusiveMax: Float
+
+  """
+  The value of exclusiveMin MUST be a number, representing an exclusive
+  upper limit for a numeric instance. A numeric instance is valid only
+  if it has a value strictly greater than (not equal to) exclusiveMin.
+  """
+  exclusiveMin: Float
+
+  """
+  The value of this argument MUST be an array. This array SHOULD
+  have at least one element. Elements in the array SHOULD be unique.
+  An instance is valid only if its value is equal to one of the elements
+  in this constraint's array value.
+  """
+  oneOf: [Float!]
+
+  """
+  A numeric instance is valid only if its value is equal to
+  the value of the constrain.
+  """
+  equals: Float
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
-# enforces range constraint on numeric value
-directive @range(
-  min: Float
-  max: Float
+"""
+@stringValue directive is used to describe possible string values.
+"""
+directive @stringValue(
+  """
+  The value of this constraint MUST be a non-negative integer. A string instance
+  is valid against this constraint if its length is less than, or equal to maxLength.
+  The length of a string instance is defined as the number of its characters.
+  """
+  maxLength: Int
+
+  """
+  The value of this constraint MUST be a non-negative integer. A string instance
+  is valid against this constraint if its length is greater than, or equal to minLength.
+  The length of a string instance is defined as the number of its characters.
+  """
+  minLength: Int
+
+  """
+  The value of this constraint MUST be a string.
+  An instance is valid if it begins with the characters of the constraint's string.
+  """
+  startsWith: String
+
+  """
+  The value of this constraint MUST be a string.
+  An instance is valid if it ends with the characters of the constraint's string.
+  """
+  endsWith: String
+
+  """
+  The value of this constraint MUST be a string. An instance is valid if
+  constraint's value may be found within the instance string.
+  """
+  includes: String
+
+  """
+  The value of this constraint MUST be a string. This string SHOULD be a valid regular expression.
+  An instance is valid if the regular expression matches the instance successfully.
+  """
+  regex: String
+
+  """
+  The value of this argument MUST be an array. This array SHOULD
+  have at least one element. Elements in the array SHOULD be unique.
+  An instance is valid only if its value is equal to one of the elements
+  in this constraint's array value.
+  """
+  oneOf: [String!]
+
+  """
+  A value is valid only if its equal to the value of the constrain.
+  """
+  equals: String
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+"""
+@list directive is used to describe list values.
+"""
+directive @list(
+  """
+  The value of this constraint MUST be a non-negative integer.
+  An instance is valid if only its size is less than, or equal to,
+  the value of this directive.
+  """
+  maxItems: Int
+  """
+  The value of this constraint MUST be a non-negative integer.
+  An instance is valid against minItems if its size is greater than,
+  or equal to, the value of this constraint.
+  Omitting this constraint has the same behavior as a value of 0.
+  """
+  minItems: Int
+  """
+  The value of this constraint MUST be a boolean.
+  If it has boolean value true, the instance is valid
+  if all of its elements are unique.
+  """
+  uniqueItems: Boolean
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 type ProjectType implements Node {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   projects: [Project!]!
   numberOfProjects: Int!
@@ -1702,7 +1825,7 @@ type ProjectType implements Node {
 }
 
 input AddProjectTypeInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
@@ -1711,7 +1834,7 @@ input AddProjectTypeInput {
 
 input EditProjectTypeInput {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
@@ -1719,7 +1842,7 @@ input EditProjectTypeInput {
 }
 
 input AddCustomerInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   externalId: String
 }
 
@@ -1788,7 +1911,7 @@ type ProjectEdge {
 
 type Project implements Node {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   creator: String
     @deprecated(
@@ -1804,7 +1927,7 @@ type Project implements Node {
 }
 
 input AddProjectInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   creator: String
     @deprecatedInput(
@@ -1820,7 +1943,7 @@ input AddProjectInput {
 
 input EditProjectInput {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   creator: String
     @deprecatedInput(
@@ -2656,9 +2779,9 @@ type Query {
   user(authID: String!): User
   locationTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): LocationTypeConnection
   locations(
     onlyTopLevel: Boolean
@@ -2666,142 +2789,161 @@ type Query {
     name: String
     needsSiteSurvey: Boolean
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): LocationConnection
   equipmentPortTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortTypeConnection!
   equipmentPortDefinitions(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortDefinitionConnection!
   equipmentPorts(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentTypeConnection!
   equipments(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentConnection!
   serviceTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ServiceTypeConnection
   workOrders(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
     showCompleted: Boolean
   ): WorkOrderConnection!
   workOrderTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): WorkOrderTypeConnection
-  links(after: Cursor, first: Int, before: Cursor, last: Int): LinkConnection!
-  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  links(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+  ): LinkConnection!
+  users(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+  ): UserConnection
   usersGroups(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): UsersGroupConnection
   permissionsPolicies(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): PermissionsPolicyConnection
   searchForNode(
     name: String!
     after: Cursor
-    first: Int = 10
+    first: Int = 10 @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): SearchNodesConnection!
   equipmentSearch(
     filters: [EquipmentFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): EquipmentSearchResult!
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): WorkOrderSearchResult!
-  linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
-  portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
+  linkSearch(
+    filters: [LinkFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): LinkSearchResult!
+  portSearch(
+    filters: [PortFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): PortSearchResult!
   locationSearch(
     filters: [LocationFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): LocationSearchResult!
   projectSearch(
     """
     array of the work order filters to be applied
     """
     filters: [ProjectFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): [Project]!
-  customerSearch(limit: Int = 500): [Customer]!
+  customerSearch(limit: Int = 500 @numberValue(min: 0)): [Customer]!
   serviceSearch(
     filters: [ServiceFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): ServiceSearchResult!
-  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  userSearch(
+    filters: [UserFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): UserSearchResult!
   permissionsPolicySearch(
     filters: [PermissionsPolicyFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): PermissionsPolicySearchResult!
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): UsersGroupSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
   pythonPackages: [PythonPackage!]!
   nearestSites(
-    latitude: Float!
-    longitude: Float!
-    first: Int! = 10
+    latitude: Float! @numberValue(min: -90, max: 90)
+    longitude: Float! @numberValue(min: -180, max: 180)
+    first: Int! = 10 @numberValue(min: 0)
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ProjectTypeConnection
   projects(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ProjectConnection
   customers(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult

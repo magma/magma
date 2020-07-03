@@ -200,5 +200,5 @@ class IpAllocatorStatic(IPAllocator):
             logging.error("Run out of available IP addresses")
             raise NoAvailableIPError("No available IP addresses")
 
-    def release_ip(self, sid):
+    def release_ip(self, sid, ip, ip_block):
         pass

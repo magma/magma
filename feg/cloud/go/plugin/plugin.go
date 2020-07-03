@@ -13,8 +13,8 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin/handlers"
-	"magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/handlers"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"

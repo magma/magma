@@ -32,4 +32,15 @@ event_registry:
   established_sync_rpc_stream:
     module: orc8r
     filename: magmad_events.v1.yml
-
+  authentication_succeeded:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  authentication_failed:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  session_termination_succeeded:
+    module: feg
+    filename: aaa_server_events.v1.yml
+  session_termination_failed:
+    module: feg
+    filename: aaa_server_events.v1.yml

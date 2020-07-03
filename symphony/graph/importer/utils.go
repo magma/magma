@@ -7,6 +7,7 @@ package importer
 import (
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -24,8 +25,6 @@ import (
 	"golang.org/x/net/html/charset"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
-
-	"github.com/pkg/errors"
 )
 
 const maxFormSize = 5 << 20
@@ -123,7 +122,7 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 	case "gps_location": // 45.6 , 67.89
 		split := strings.Split(value, ",")
 		if len(split) != 2 {
-			return nil, errors.Errorf("gps location data isn't of form '<LAT>,<LONG>' %s", value)
+			return nil, fmt.Errorf("gps location data isn't of form '<LAT>,<LONG>' %s", value)
 		}
 		lat, err := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
 		if err != nil {
@@ -141,7 +140,7 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 	case "range":
 		split := strings.Split(value, "-")
 		if len(split) != 2 {
-			return nil, errors.Errorf("range data isn't of form '<FROM>-<TO>' %s", value)
+			return nil, fmt.Errorf("range data isn't of form '<FROM>-<TO>' %s", value)
 		}
 
 		from, err := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
@@ -160,7 +159,7 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 	case "bool":
 		b, err := strconv.ParseBool(strings.ToLower(value))
 		if err != nil {
-			return nil, errors.WithMessagef(err, "failed parsing bool property %s", value)
+			return nil, fmt.Errorf("cannot parse bool property %s: %w", value, err)
 		}
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
@@ -296,7 +295,7 @@ func (m *importer) newReader(key string, req *http.Request) ([]string, *reader, 
 	}
 	r, err := m.charsetReader(f, hdr.Header, textproto.MIMEHeader(req.Header))
 	if err != nil {
-		m.logger.For(req.Context()).Warn("cannot detect mime charset", zap.Error(err))
+		m.logger.For(req.Context()).Debug("cannot detect mime charset", zap.Error(err))
 		r, err = charset.NewReader(f, req.Header.Get("Content-Type"))
 	}
 	if err != nil {

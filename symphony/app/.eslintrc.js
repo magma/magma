@@ -34,6 +34,19 @@ module.exports.overrides = [
     },
   },
   {
+    files: ['*.mdx'],
+    extends: ['plugin:mdx/overrides'],
+    rules: {
+      'flowtype/require-valid-file-annotation': 'off',
+      'prettier/prettier': [
+        2,
+        {
+          parser: 'mdx',
+        },
+      ],
+    },
+  },
+  {
     files: ['.eslintrc.js'],
     rules: {
       quotes: ['warn', 'single'],

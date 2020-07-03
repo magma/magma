@@ -55,6 +55,7 @@ setup(
         'scripts/generate_oai_config.py',
         'scripts/hello_cli.py',
         'scripts/mobility_cli.py',
+        'scripts/mobility_dhcp_cli.py',
         'scripts/ocs_cli.py',
         'scripts/packet_tracer_cli.py',
         'scripts/packet_ryu_cli.py',
@@ -68,6 +69,7 @@ setup(
         'scripts/subscriber_cli.py',
         'scripts/spgw_service_cli.py',
         'scripts/cpe_monitoring_cli.py',
+        'scripts/state_cli.py',
     ],
     package_data={'magma.redirectd.templates': ['*.html']},
     install_requires=[
@@ -80,9 +82,7 @@ setup(
         'lxml==4.2.1',
         'ryu>=4.30',
         'spyne==2.12.16',
-        # scapy version 2.4.2 has an issue of not having LICENSE file in pypi
-        # version resulting in error (this is a temporary fix)
-        'scapy==2.4.3rc3',
+        'scapy==2.4.3',
         'flask>=1.0.2',
         'aioeventlet>=0.4',
         'aiodns>=1.1.1',

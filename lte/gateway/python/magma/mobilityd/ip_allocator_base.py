@@ -46,11 +46,13 @@ class IPAllocator(ABC):
         ...
 
     @abstractmethod
-    def release_ip(self, sid):
+    def release_ip(self, sid: str, ip: ip_address, ip_block: ip_network):
         ...
+
 
 class IPAllocatorType(Enum):
     IP_POOL = 1
+    DHCP = 2
 
 
 class OverlappedIPBlocksError(Exception):
@@ -71,6 +73,7 @@ class NoAvailableIPError(Exception):
     allocation request
     """
     pass
+
 
 class DuplicatedIPAllocationError(Exception):
     """ Exception thrown when an IP has already been allocated to a UE

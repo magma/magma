@@ -10,10 +10,14 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/plugin/handlers"
-	lteModels "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/plugin/stream_provider"
+	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
+	subscriberdbHandlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
+	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
@@ -46,7 +50,7 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
-		state.NewStateSerde(lte.ICMPStateType, &lteModels.IcmpStatus{}),
+		state.NewStateSerde(lte.ICMPStateType, &subscriberModels.IcmpStatus{}),
 		// MME state messages which use arbitrary untyped JSON serdes because
 		// they're defined/used as protos in the MME codebase
 		state.NewStateSerde(lte.MMEStateType, &state.ArbitaryJSON{}),
@@ -55,15 +59,15 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
-		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &lteModels.NetworkSubscriberConfig{}),
+		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policyModels.NetworkSubscriberConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &lteModels.PolicyRuleConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &lteModels.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &lteModels.LteSubscription{}),
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policyModels.PolicyRuleConfig{}),
+		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policyModels.BaseNameRecord{}),
+		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &subscriberModels.LteSubscription{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &lteModels.RatingGroup{}),
+		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policyModels.RatingGroup{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.ApnEntityType, &lteModels.ApnConfiguration{}),
 	}
@@ -81,7 +85,9 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 
 func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		handlers.GetHandlers(),
+		lteHandlers.GetHandlers(),
+		policydbHandlers.GetHandlers(),
+		subscriberdbHandlers.GetHandlers(),
 	)
 }
 
