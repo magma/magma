@@ -402,8 +402,13 @@ class MagmadUtil(object):
             "{user}@{host} {command}"
         )
 
+        # MME config file and its backup file. A copy of original config file
+        # will be created as backup, original config file will be modified
+        # as per the requirement of all the test cases in sanity and after
+        # execution of sanity it will be restored using the backup file
         self.config_path = "/home/vagrant/magma/lte/gateway/configs/"
         self.mme_config_file = self.config_path + "templates/mme.conf.template"
+        self.mme_config_backup_file = self.mme_config_file + ".bak"
 
     def exec_command(self, command):
         """
@@ -460,25 +465,46 @@ class MagmadUtil(object):
         """
         This function creates a backup of default MME configuration file,
         which can later be used to restore the original configuration
+        In case the backup file is already present, it means there was failure
+        in last sanity run and current configuration file is already modified.
+        Hence, this function will restore the same backup file before modifying
+        it again, otherwise MME will crash in reading configuration from file
         """
 
         print("Creating a backup of MME configuration file")
         self.exec_command(
-            "sudo cp -n "
-            + self.mme_config_file
+            "if [ -f "
+            + self.mme_config_backup_file
+            + " ]; then cp "
+            + self.mme_config_backup_file
             + " "
             + self.mme_config_file
-            + "_bak"
+            + "; else cp -n "
+            + self.mme_config_file
+            + " "
+            + self.mme_config_backup_file
+            + "; fi;"
         )
 
-    def reset_mme_config_file(self):
+    def restore_mme_config(self):
         """
-        Reset the MME configuration from the backup configuration file
+        Restore the MME configuration from the backup configuration file and
+        delete the backup configuration file so that MME will use latest
+        configuration file in next sanity runs
         """
 
         print("Restoring MME configuration from backup configuration file")
         self.exec_command(
-            "sudo cp " + self.mme_config_file + "_bak " + self.mme_config_file
+            "if [ -f "
+            + self.mme_config_backup_file
+            + " ]; then cp "
+            + self.mme_config_backup_file
+            + " "
+            + self.mme_config_file
+            + "; rm -f "
+            + self.mme_config_backup_file
+            + "; else echo "
+            + '"Backup file not present for restoring MME configuration"; fi;'
         )
 
     def clear_default_plmn_tac_configuration(self):
@@ -488,17 +514,17 @@ class MagmadUtil(object):
 
         print("Removing default GUMMEI_LIST from MME configuration")
         self.exec_command(
-            "sudo sed -i '/GUMMEI_LIST/{n;d}' " + self.mme_config_file
+            "sed -i '/GUMMEI_LIST/{n;d}' " + self.mme_config_file
         )
 
         print("Removing default TAI_LIST from MME configuration")
         self.exec_command(
-            "sudo sed -i '/TAI_LIST/{n;N;N;N;N;N;N;d}' " + self.mme_config_file
+            "sed -i '/TAI_LIST/{n;N;N;N;N;N;N;d}' " + self.mme_config_file
         )
 
         print("Removing default TAC_LIST from MME configuration")
         self.exec_command(
-            "sudo sed -i '/TAC_LIST/{n;N;N;d}' " + self.mme_config_file
+            "sed -i '/TAC_LIST/{n;N;N;d}' " + self.mme_config_file
         )
 
     def configure_multiple_plmn_tac(self):
@@ -520,16 +546,16 @@ class MagmadUtil(object):
         for idx in range(count_tacs):
             gummei_cmd_str += "\ \ \ \ \ \ \ \ \ "
             gummei_cmd_str += "{ "
-            gummei_cmd_str += "MCC=\\\"" + config_list[idx]["MCC"] + "\\\" ; "
-            gummei_cmd_str += "MNC=\\\"" + config_list[idx]["MNC"] + "\\\" ; "
-            gummei_cmd_str += "MME_GID=\\\"1\\\" ; "
-            gummei_cmd_str += "MME_CODE=\\\"1\\\" ; "
+            gummei_cmd_str += 'MCC=\\"' + config_list[idx]["MCC"] + '\\" ; '
+            gummei_cmd_str += 'MNC=\\"' + config_list[idx]["MNC"] + '\\" ; '
+            gummei_cmd_str += 'MME_GID=\\"1\\" ; '
+            gummei_cmd_str += 'MME_CODE=\\"1\\" ; '
 
             tac_cmd_str += "\ \ \ \ \ \ \ \ \ "
             tac_cmd_str += "{ "
-            tac_cmd_str += "MCC=\\\"" + config_list[idx]["MCC"] + "\\\" ; "
-            tac_cmd_str += "MNC=\\\"" + config_list[idx]["MNC"] + "\\\" ; "
-            tac_cmd_str += "TAC=\\\"" + config_list[idx]["TAC"] + "\\\" ; "
+            tac_cmd_str += 'MCC=\\"' + config_list[idx]["MCC"] + '\\" ; '
+            tac_cmd_str += 'MNC=\\"' + config_list[idx]["MNC"] + '\\" ; '
+            tac_cmd_str += 'TAC=\\"' + config_list[idx]["TAC"] + '\\" ; '
 
             if idx == (count_tacs - 1):
                 gummei_cmd_str += "}"
@@ -541,9 +567,9 @@ class MagmadUtil(object):
         gummei_cmd_str += "' " + self.mme_config_file
         tac_cmd_str += "' " + self.mme_config_file
 
-        self.exec_command("sudo sed -i '/GUMMEI_LIST/a " + gummei_cmd_str)
-        self.exec_command("sudo sed -i '/TAI_LIST/a " + tac_cmd_str)
-        self.exec_command("sudo sed -i '/TAC_LIST/a " + tac_cmd_str)
+        self.exec_command("sed -i '/GUMMEI_LIST/a " + gummei_cmd_str)
+        self.exec_command("sed -i '/TAI_LIST/a " + tac_cmd_str)
+        self.exec_command("sed -i '/TAC_LIST/a " + tac_cmd_str)
 
     def reduce_mobile_reachability_timer_value(self):
         """
@@ -556,7 +582,7 @@ class MagmadUtil(object):
             "(Default value is 54 minutes)"
         )
         self.exec_command(
-            "sudo sed -i '/^        T3412/s/54/1/' " + self.mme_config_file
+            "sed -i '/^        T3412/s/54/1/' " + self.mme_config_file
         )
 
 
