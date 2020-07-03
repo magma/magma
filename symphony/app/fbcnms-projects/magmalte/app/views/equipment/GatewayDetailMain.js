@@ -91,6 +91,17 @@ export function GatewayDetail({
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const gwInfo = lteGateways[gatewayId];
+  const gwEnbs =
+    gwInfo.connected_enodeb_serials?.reduce(
+      (enbs: {[string]: EnodebInfo}, serial: string) => {
+        if (enbInfo[serial]) {
+          enbs[serial] = enbInfo[serial];
+        }
+        return enbs;
+      },
+      {},
+    ) || {};
+
   return (
     <>
       <div className={classes.topBar}>
@@ -164,11 +175,11 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/config')}
-          render={() => <GatewayConfig gwInfo={gwInfo} />}
+          render={() => <GatewayConfig gwInfo={gwInfo} enbInfo={gwEnbs} />}
         />
         <Route
           path={relativePath('/overview')}
-          render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={enbInfo} />}
+          render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={gwEnbs} />}
         />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
