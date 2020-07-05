@@ -179,7 +179,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		ID:         wo1.ID,
 		Name:       wo1.Name,
 		OwnerID:    &owner.ID,
-		Status:     workOrderStatusPtr(models.WorkOrderStatusDone),
+		Status:     workOrderStatusPtr(workorder.StatusDONE),
 		Priority:   workOrderPriorityPtr(workorder.PriorityHIGH),
 		LocationID: &loc1.ID,
 		AssigneeID: &assignee1.ID,
@@ -609,7 +609,7 @@ func TestSearchWO(t *testing.T) {
 	require.Equal(t, 1, result.WorkOrderSearch.Count)
 	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
-	status := models.WorkOrderStatusPlanned.String()
+	status := workorder.StatusPLANNED.String()
 	f2 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderStatus,
 		Operator:   models.FilterOperatorIsOneOf,

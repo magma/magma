@@ -113,10 +113,6 @@ func (workOrderResolver) InstallDate(_ context.Context, obj *ent.WorkOrder) (*in
 	return &secs, nil
 }
 
-func (workOrderResolver) Status(_ context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error) {
-	return models.WorkOrderStatus(obj.Status), nil
-}
-
 func (workOrderResolver) EquipmentToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error) {
 	return obj.QueryEquipment().Where(equipment.FutureState(models.FutureStateInstall.String())).All(ctx)
 }
@@ -229,6 +225,7 @@ func (r mutationResolver) internalAddWorkOrder(
 		WorkOrder.Create().
 		SetName(input.Name).
 		SetTypeID(input.WorkOrderTypeID).
+		SetNillableStatus(input.Status).
 		SetNillablePriority(input.Priority).
 		SetNillableProjectID(input.ProjectID).
 		SetNillableLocationID(input.LocationID).
@@ -236,11 +233,8 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetCreationDate(time.Now()).
 		SetNillableIndex(input.Index).
 		SetNillableAssigneeID(assigneeID)
-	if input.Status != nil {
-		mutation.SetStatus(input.Status.String())
-		if *input.Status == models.WorkOrderStatusDone {
-			mutation.SetCloseDate(time.Now())
-		}
+	if input.Status != nil && *input.Status == workorder.StatusDONE {
+		mutation.SetCloseDate(time.Now())
 	}
 	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
 	if err != nil {
@@ -290,6 +284,7 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetNillableIndex(input.Index).
+		SetNillableStatus(input.Status).
 		SetNillablePriority(input.Priority)
 
 	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
@@ -308,14 +303,11 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 	if ownerID != nil {
 		mutation.SetOwnerID(*ownerID)
 	}
-	if input.Status != nil {
-		if status := input.Status.String(); status != wo.Status {
-			mutation.SetStatus(status)
-			if status == models.WorkOrderStatusDone.String() {
-				mutation.SetCloseDate(time.Now())
-			} else {
-				mutation.ClearCloseDate()
-			}
+	if input.Status != nil && *input.Status != wo.Status {
+		if *input.Status == workorder.StatusDONE {
+			mutation.SetCloseDate(time.Now())
+		} else {
+			mutation.ClearCloseDate()
 		}
 	}
 	if input.InstallDate != nil {

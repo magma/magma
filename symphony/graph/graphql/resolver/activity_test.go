@@ -75,7 +75,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldSTATUS:
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, models.WorkOrderStatusPlanned.String())
+			require.EqualValues(t, a.NewValue, workorder.StatusPLANNED)
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldPRIORITY:
@@ -113,7 +113,7 @@ func TestEditWorkOrderActivities(t *testing.T) {
 		Name:       wo.Name,
 		OwnerID:    &u2.ID,
 		AssigneeID: &u.ID,
-		Status:     workOrderStatusPtr(models.WorkOrderStatusPending),
+		Status:     workOrderStatusPtr(workorder.StatusPENDING),
 		Priority:   workOrderPriorityPtr(workorder.PriorityHIGH),
 	})
 	require.NoError(t, err)
@@ -156,8 +156,8 @@ func TestEditWorkOrderActivities(t *testing.T) {
 			require.Empty(t, a.OldValue)
 			require.Equal(t, fetchedNodeNew.ID, u.ID)
 		case activity.ChangedFieldSTATUS:
-			require.Equal(t, a.NewValue, models.WorkOrderStatusPending.String())
-			require.Equal(t, a.OldValue, models.WorkOrderStatusPlanned.String())
+			require.EqualValues(t, a.NewValue, workorder.StatusPENDING)
+			require.EqualValues(t, a.OldValue, workorder.StatusPLANNED)
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldPRIORITY:

@@ -1296,7 +1296,10 @@ enum WorkOrderPriority
 """
 Work Order status
 """
-enum WorkOrderStatus {
+enum WorkOrderStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Status"
+  ) {
   PENDING
   PLANNED
   DONE

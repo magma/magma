@@ -72,15 +72,15 @@ func (woc *WorkOrderCreate) SetName(s string) *WorkOrderCreate {
 }
 
 // SetStatus sets the status field.
-func (woc *WorkOrderCreate) SetStatus(s string) *WorkOrderCreate {
-	woc.mutation.SetStatus(s)
+func (woc *WorkOrderCreate) SetStatus(w workorder.Status) *WorkOrderCreate {
+	woc.mutation.SetStatus(w)
 	return woc
 }
 
 // SetNillableStatus sets the status field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableStatus(s *string) *WorkOrderCreate {
-	if s != nil {
-		woc.SetStatus(*s)
+func (woc *WorkOrderCreate) SetNillableStatus(w *workorder.Status) *WorkOrderCreate {
+	if w != nil {
+		woc.SetStatus(*w)
 	}
 	return woc
 }
@@ -414,6 +414,11 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 		v := workorder.DefaultStatus
 		woc.mutation.SetStatus(v)
 	}
+	if v, ok := woc.mutation.Status(); ok {
+		if err := workorder.StatusValidator(v); err != nil {
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	if _, ok := woc.mutation.Priority(); !ok {
 		v := workorder.DefaultPriority
 		woc.mutation.SetPriority(v)
@@ -502,7 +507,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 	}
 	if value, ok := woc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldStatus,
 		})

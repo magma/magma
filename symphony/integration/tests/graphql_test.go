@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
 	"github.com/shurcooL/graphql"
@@ -441,7 +442,7 @@ func (c *client) executeWorkOrder(workOrder *addWorkOrderResponse) error {
 		} `graphql:"editWorkOrder(input: $input)"`
 	}
 	ownerID := IDToInt(workOrder.Owner.ID)
-	st := models.WorkOrderStatusDone
+	st := workorder.StatusDONE
 	vars := map[string]interface{}{
 		"input": models.EditWorkOrderInput{
 			ID:      IDToInt(workOrder.ID),
@@ -549,9 +550,9 @@ func TestExecuteWorkOrder(t *testing.T) {
 	typ, err := c.addWorkOrderType("work_order_type_" + uuid.New().String())
 	require.NoError(t, err)
 	name := "work_order_" + uuid.New().String()
-	workorder, err := c.addWorkOrder(name, typ.ID)
+	wo, err := c.addWorkOrder(name, typ.ID)
 	require.NoError(t, err)
-	assert.EqualValues(t, testUser, workorder.Owner.Email)
+	assert.EqualValues(t, testUser, wo.Owner.Email)
 
 	et, err := c.addEquipmentType("router_type_" + uuid.New().String())
 	require.NoError(t, err)
@@ -564,14 +565,14 @@ func TestExecuteWorkOrder(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, models.FutureStateInstall, eq.State)
 
-	err = c.executeWorkOrder(workorder)
+	err = c.executeWorkOrder(wo)
 	require.NoError(t, err)
 
 	eq, err = c.queryEquipment(e.ID)
 	require.NoError(t, err)
 	assert.Empty(t, eq.State)
 
-	workorder, err = c.addWorkOrder(name, typ.ID)
+	wo, err = c.addWorkOrder(name, typ.ID)
 	require.NoError(t, err)
 	err = c.removeEquipment(eq.ID, workorder.ID)
 	require.NoError(t, err)
@@ -579,7 +580,7 @@ func TestExecuteWorkOrder(t *testing.T) {
 	eq, err = c.queryEquipment(e.ID)
 	require.NoError(t, err)
 	assert.EqualValues(t, models.FutureStateRemove, eq.State)
-	err = c.executeWorkOrder(workorder)
+	err = c.executeWorkOrder(wo)
 	require.NoError(t, err)
 }
 

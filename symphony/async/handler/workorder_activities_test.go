@@ -10,7 +10,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
@@ -56,7 +55,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 			require.True(t, a.IsCreate)
 		case activity.ChangedFieldSTATUS:
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, models.WorkOrderStatusPlanned.String())
+			require.EqualValues(t, a.NewValue, workorder.StatusPLANNED)
 			require.True(t, a.IsCreate)
 		case activity.ChangedFieldPRIORITY:
 			require.Empty(t, a.OldValue)
@@ -93,7 +92,8 @@ func TestEditWorkOrderActivities(t *testing.T) {
 		SetRole(user.RoleUSER).SaveX(ctx)
 	c.WorkOrder.UpdateOne(wo).
 		SetAssignee(u2).
-		SetStatus(models.WorkOrderStatusPending.String()).ExecX(ctx)
+		SetStatus(workorder.StatusPENDING).
+		ExecX(ctx)
 
 	activities = wo.QueryActivities().AllX(ctx)
 	require.Len(t, activities, 7)
@@ -111,9 +111,9 @@ func TestEditWorkOrderActivities(t *testing.T) {
 			require.False(t, a.IsCreate)
 			require.Equal(t, a.OldValue, strconv.Itoa(u.ID))
 		case activity.ChangedFieldSTATUS:
-			require.Equal(t, a.NewValue, models.WorkOrderStatusPending.String())
+			require.EqualValues(t, a.NewValue, workorder.StatusPENDING)
 			require.False(t, a.IsCreate)
-			require.Equal(t, a.OldValue, models.WorkOrderStatusPlanned.String())
+			require.EqualValues(t, a.OldValue, workorder.StatusPLANNED)
 		default:
 			require.Fail(t, "unsupported changed field")
 		}

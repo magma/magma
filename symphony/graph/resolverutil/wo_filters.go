@@ -57,10 +57,18 @@ func nameFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*en
 }
 
 func statusFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.StatusIn(filter.StringSet...)), nil
+	if filter.Operator != models.FilterOperatorIsOneOf {
+		return nil, errors.Errorf("operation %q is not supported", filter.Operator)
 	}
-	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
+	statuses := make([]workorder.Status, 0, len(filter.StringSet))
+	for _, str := range filter.StringSet {
+		status := workorder.Status(str)
+		if err := workorder.StatusValidator(status); err != nil {
+			return nil, fmt.Errorf("%s is not a valid work order status", str)
+		}
+		statuses = append(statuses, status)
+	}
+	return q.Where(workorder.StatusIn(statuses...)), nil
 }
 
 func ownedByFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
@@ -121,7 +129,7 @@ func locationInstFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInp
 
 func priorityFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
 	if filter.Operator != models.FilterOperatorIsOneOf {
-		return nil, fmt.Errorf("operation %s is not supported", filter.Operator)
+		return nil, fmt.Errorf("operation %q is not supported", filter.Operator)
 	}
 	priorities := make([]workorder.Priority, 0, len(filter.StringSet))
 	for _, str := range filter.StringSet {

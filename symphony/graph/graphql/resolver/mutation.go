@@ -1828,9 +1828,10 @@ func (r mutationResolver) ExecuteWorkOrder(ctx context.Context, id int) (*models
 		}
 	}
 
-	if err := r.ClientFrom(ctx).WorkOrder.
+	if err := r.ClientFrom(ctx).
+		WorkOrder.
 		UpdateOne(wo).
-		SetStatus(models.WorkOrderStatusDone.String()).
+		SetStatus(workorder.StatusDONE).
 		Exec(ctx); err != nil {
 		return nil, errors.Wrapf(err, "Installing and removing work order items wo=%q", id)
 	}
@@ -3072,11 +3073,11 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 	if !ok {
 		return nil, gqlerror.Errorf("could not be executed in automation")
 	}
-	if wo.Status != models.WorkOrderStatusPlanned.String() {
+	if wo.Status != workorder.StatusPLANNED {
 		return wo, nil
 	}
 	if wo, err = wo.Update().
-		SetStatus(models.WorkOrderStatusPending.String()).
+		SetStatus(workorder.StatusPENDING).
 		Save(ctx); err != nil {
 		return nil, fmt.Errorf("updating work order %q status to pending: %w", id, err)
 	}

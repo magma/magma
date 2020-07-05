@@ -115,7 +115,12 @@ func (WorkOrder) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			NotEmpty(),
-		field.String("status").
+		field.Enum("status").
+			Values(
+				"PENDING",
+				"PLANNED",
+				"DONE",
+			).
 			Default("PLANNED"),
 		field.Enum("priority").
 			Values(

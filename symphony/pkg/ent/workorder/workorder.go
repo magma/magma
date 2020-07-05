@@ -212,9 +212,34 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultStatus holds the default value on creation for the status field.
-	DefaultStatus string
 )
+
+// Status defines the type for the status enum field.
+type Status string
+
+// StatusPLANNED is the default Status.
+const DefaultStatus = StatusPLANNED
+
+// Status values.
+const (
+	StatusPENDING Status = "PENDING"
+	StatusPLANNED Status = "PLANNED"
+	StatusDONE    Status = "DONE"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "s" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusPENDING, StatusPLANNED, StatusDONE:
+		return nil
+	default:
+		return fmt.Errorf("workorder: invalid enum value for status field: %q", s)
+	}
+}
 
 // Priority defines the type for the priority enum field.
 type Priority string

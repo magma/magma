@@ -1613,8 +1613,6 @@ type WorkOrderResolver interface {
 	Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error)
 	AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
-	Status(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error)
-
 	EquipmentToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error)
 	EquipmentToRemove(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error)
 	LinksToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Link, error)
@@ -8806,7 +8804,10 @@ enum WorkOrderPriority
 """
 Work Order status
 """
-enum WorkOrderStatus {
+enum WorkOrderStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Status"
+  ) {
   PENDING
   PLANNED
   DONE
@@ -38075,13 +38076,13 @@ func (ec *executionContext) _WorkOrder_status(ctx context.Context, field graphql
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrder().Status(rctx, obj)
+		return obj.Status, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -38093,9 +38094,9 @@ func (ec *executionContext) _WorkOrder_status(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.WorkOrderStatus)
+	res := resTmp.(workorder.Status)
 	fc.Result = res
-	return ec.marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_priority(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -42203,7 +42204,7 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "status":
 			var err error
-			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, v)
+			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43404,7 +43405,7 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "status":
 			var err error
-			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, v)
+			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -53077,19 +53078,10 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "status":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrder_status(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._WorkOrder_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "priority":
 			out.Values[i] = ec._WorkOrder_priority(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -59509,13 +59501,19 @@ func (ec *executionContext) marshalNWorkOrderSearchResult2ᚖgithubᚗcomᚋface
 	return ec._WorkOrderSearchResult(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (models.WorkOrderStatus, error) {
-	var res models.WorkOrderStatus
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (workorder.Status, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return workorder.Status(tmp), err
 }
 
-func (ec *executionContext) marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderStatus) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v workorder.Status) graphql.Marshaler {
+	res := graphql.MarshalString(string(v))
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNWorkOrderType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderType(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderType) graphql.Marshaler {
@@ -62145,28 +62143,28 @@ func (ec *executionContext) marshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebook
 	return ec.marshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx, sel, *v)
 }
 
-func (ec *executionContext) unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (models.WorkOrderStatus, error) {
-	var res models.WorkOrderStatus
-	return res, res.UnmarshalGQL(v)
+func (ec *executionContext) unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (workorder.Status, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	return workorder.Status(tmp), err
 }
 
-func (ec *executionContext) marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderStatus) graphql.Marshaler {
-	return v
+func (ec *executionContext) marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v workorder.Status) graphql.Marshaler {
+	return graphql.MarshalString(string(v))
 }
 
-func (ec *executionContext) unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (*models.WorkOrderStatus, error) {
+func (ec *executionContext) unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (*workorder.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, v)
+	res, err := ec.unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v *workorder.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return v
+	return ec.marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, sel, *v)
 }
 
 func (ec *executionContext) marshalOWorkOrderTemplate2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderTemplate(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderTemplate) graphql.Marshaler {

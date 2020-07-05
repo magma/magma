@@ -1187,10 +1187,6 @@ func init() {
 	workorderDescName := workorderFields[0].Descriptor()
 	// workorder.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	workorder.NameValidator = workorderDescName.Validators[0].(func(string) error)
-	// workorderDescStatus is the schema descriptor for status field.
-	workorderDescStatus := workorderFields[1].Descriptor()
-	// workorder.DefaultStatus holds the default value on creation for the status field.
-	workorder.DefaultStatus = workorderDescStatus.Default.(string)
 	workorderdefinitionMixin := schema.WorkOrderDefinition{}.Mixin()
 	workorderdefinition.Policy = schema.WorkOrderDefinition{}.Policy()
 	workorderdefinition.Hooks[0] = func(next ent.Mutator) ent.Mutator {

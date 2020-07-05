@@ -224,7 +224,7 @@ type AddWorkOrderInput struct {
 	Assignee            *string                   `json:"assignee"`
 	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
-	Status              *WorkOrderStatus          `json:"status"`
+	Status              *workorder.Status         `json:"status"`
 	Priority            *workorder.Priority       `json:"priority"`
 }
 
@@ -405,7 +405,7 @@ type EditWorkOrderInput struct {
 	Assignee            *string                   `json:"assignee"`
 	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
-	Status              *WorkOrderStatus          `json:"status"`
+	Status              *workorder.Status         `json:"status"`
 	Priority            *workorder.Priority       `json:"priority"`
 	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
@@ -2062,50 +2062,6 @@ func (e *WorkOrderFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e WorkOrderFilterType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// Work Order status
-type WorkOrderStatus string
-
-const (
-	WorkOrderStatusPending WorkOrderStatus = "PENDING"
-	WorkOrderStatusPlanned WorkOrderStatus = "PLANNED"
-	WorkOrderStatusDone    WorkOrderStatus = "DONE"
-)
-
-var AllWorkOrderStatus = []WorkOrderStatus{
-	WorkOrderStatusPending,
-	WorkOrderStatusPlanned,
-	WorkOrderStatusDone,
-}
-
-func (e WorkOrderStatus) IsValid() bool {
-	switch e {
-	case WorkOrderStatusPending, WorkOrderStatusPlanned, WorkOrderStatusDone:
-		return true
-	}
-	return false
-}
-
-func (e WorkOrderStatus) String() string {
-	return string(e)
-}
-
-func (e *WorkOrderStatus) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkOrderStatus(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid WorkOrderStatus", str)
-	}
-	return nil
-}
-
-func (e WorkOrderStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

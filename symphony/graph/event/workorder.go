@@ -9,9 +9,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/hook"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 )
 
 // Work order events.
@@ -38,7 +38,7 @@ func (e *Eventer) workOrderCreateHook() ent.Hook {
 				return value, err
 			}
 			e.emit(ctx, WorkOrderAdded, value)
-			if value.(*ent.WorkOrder).Status == models.WorkOrderStatusDone.String() {
+			if value.(*ent.WorkOrder).Status == workorder.StatusDONE {
 				e.emit(ctx, WorkOrderDone, value)
 			}
 			return value, nil
@@ -50,7 +50,7 @@ func (e *Eventer) workOrderCreateHook() ent.Hook {
 func (e *Eventer) workOrderUpdateHook() ent.Hook {
 	hk := func(next ent.Mutator) ent.Mutator {
 		return hook.WorkOrderFunc(func(ctx context.Context, m *ent.WorkOrderMutation) (ent.Value, error) {
-			if status, exists := m.Status(); exists && status == models.WorkOrderStatusDone.String() {
+			if status, exists := m.Status(); exists && status == workorder.StatusDONE {
 				return nil, errors.New("work order status update to done by predicate not allowed")
 			}
 			return next.Mutate(ctx, m)
@@ -63,7 +63,7 @@ func (e *Eventer) workOrderUpdateOneHook() ent.Hook {
 	hk := func(next ent.Mutator) ent.Mutator {
 		return hook.WorkOrderFunc(func(ctx context.Context, m *ent.WorkOrderMutation) (ent.Value, error) {
 			status, exists := m.Status()
-			if !exists || status != models.WorkOrderStatusDone.String() {
+			if !exists || status != workorder.StatusDONE {
 				return next.Mutate(ctx, m)
 			}
 			oldStatus, err := m.OldStatus(ctx)

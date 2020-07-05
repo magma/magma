@@ -39452,7 +39452,7 @@ type WorkOrderMutation struct {
 	create_time                  *time.Time
 	update_time                  *time.Time
 	name                         *string
-	status                       *string
+	status                       *workorder.Status
 	priority                     *workorder.Priority
 	description                  *string
 	install_date                 *time.Time
@@ -39684,12 +39684,12 @@ func (m *WorkOrderMutation) ResetName() {
 }
 
 // SetStatus sets the status field.
-func (m *WorkOrderMutation) SetStatus(s string) {
-	m.status = &s
+func (m *WorkOrderMutation) SetStatus(w workorder.Status) {
+	m.status = &w
 }
 
 // Status returns the status value in the mutation.
-func (m *WorkOrderMutation) Status() (r string, exists bool) {
+func (m *WorkOrderMutation) Status() (r workorder.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -39701,7 +39701,7 @@ func (m *WorkOrderMutation) Status() (r string, exists bool) {
 // If the WorkOrder object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WorkOrderMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *WorkOrderMutation) OldStatus(ctx context.Context) (v workorder.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldStatus is allowed only on UpdateOne operations")
 	}
@@ -40718,7 +40718,7 @@ func (m *WorkOrderMutation) SetField(name string, value ent.Value) error {
 		m.SetName(v)
 		return nil
 	case workorder.FieldStatus:
-		v, ok := value.(string)
+		v, ok := value.(workorder.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

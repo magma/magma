@@ -5067,7 +5067,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
-		Type:  "string",
+		Type:  "workorder.Status",
 		Name:  "status",
 		Value: string(buf),
 	}

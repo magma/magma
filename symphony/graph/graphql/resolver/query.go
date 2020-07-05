@@ -166,8 +166,8 @@ func (r queryResolver) WorkOrders(
 	}
 	if pointer.GetBool(showCompleted) {
 		query = query.Where(workorder.StatusIn(
-			models.WorkOrderStatusPending.String(),
-			models.WorkOrderStatusPlanned.String(),
+			workorder.StatusPENDING,
+			workorder.StatusPLANNED,
 		))
 	}
 	return query.Paginate(ctx, after, first, before, last)
@@ -442,7 +442,7 @@ func (r queryResolver) LatestPythonPackage(ctx context.Context) (*models.LatestP
 	}, nil
 }
 
-func (queryResolver) PythonPackages(ctx context.Context) ([]*models.PythonPackage, error) {
+func (queryResolver) PythonPackages(context.Context) ([]*models.PythonPackage, error) {
 	var (
 		packages []models.PythonPackage
 		res      []*models.PythonPackage

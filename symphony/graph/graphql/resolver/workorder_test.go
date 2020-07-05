@@ -83,7 +83,7 @@ func createWorkOrder(ctx context.Context, t *testing.T, r TestResolver, name str
 	return workOrder
 }
 
-func workOrderStatusPtr(status models.WorkOrderStatus) *models.WorkOrderStatus {
+func workOrderStatusPtr(status workorder.Status) *workorder.Status {
 	return &status
 }
 
@@ -108,7 +108,7 @@ func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationRe
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
 		InstallDate: &workOrder.InstallDate,
-		Status:      workOrderStatusPtr(models.WorkOrderStatusDone),
+		Status:      workOrderStatusPtr(workorder.StatusDONE),
 		AssigneeID:  assigneeID,
 	})
 	require.NoError(t, err)
@@ -211,7 +211,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
-		Status:      workOrderStatusPtr(models.WorkOrderStatusPending),
+		Status:      workOrderStatusPtr(workorder.StatusPENDING),
 		AssigneeID:  &assignee.ID,
 	})
 	require.NoError(t, err)
@@ -339,7 +339,7 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
-		Status:      workOrderStatusPtr(models.WorkOrderStatusPending),
+		Status:      workOrderStatusPtr(workorder.StatusPENDING),
 		Priority:    workOrderPriorityPtr(workorder.PriorityHIGH),
 		Index:       pointer.ToInt(42),
 	}
@@ -1799,7 +1799,7 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 	w, err := mr.TechnicianWorkOrderCheckIn(ctx, w.ID)
 	require.NoError(t, err)
 
-	assert.Equal(t, w.Status, models.WorkOrderStatusPending.String())
+	assert.Equal(t, w.Status, workorder.StatusPENDING)
 	comments, err := w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
