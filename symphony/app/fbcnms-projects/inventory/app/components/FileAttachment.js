@@ -135,10 +135,7 @@ class FileAttachment extends React.Component<Props, State> {
           className={classNames(classes.cell, classes.secondaryCell)}
           component="th"
           scope="row">
-          {file.fileName
-            .split('.')
-            .pop()
-            .toUpperCase()}
+          {file.fileName.split('.').pop().toUpperCase()}
         </TableCell>
         <TableCell
           padding="none"

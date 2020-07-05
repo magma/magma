@@ -1,0 +1,17 @@
+import FileUploadArea from '../../components/design-system/Experimental/FileUpload/FileUploadArea';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+
+<Meta title={`${STORY_CATEGORIES.EXPERIMENTAL}/FileUploadArea`} />
+
+# FileUploadArea
+
+```js
+import FileUploadArea from '@fbcnms/ui/components/design-system/Experimental/FileUpload/FileUploadArea';
+```
+
+<Preview>
+  <Story name="FileUploadArea">
+    <FileUploadArea onClick={() => alert('Choose a file')} />
+  </Story>
+</Preview>

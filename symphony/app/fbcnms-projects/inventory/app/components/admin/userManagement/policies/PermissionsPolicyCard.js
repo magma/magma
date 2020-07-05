@@ -267,9 +267,7 @@ function PermissionsPolicyCard(props: Props) {
                   const saveAction = isOnNewPolicy
                     ? addPermissionsPolicy
                     : editPermissionsPolicy;
-                  saveAction(policy)
-                    .then(onClose)
-                    .catch(handleError);
+                  saveAction(policy).then(onClose).catch(handleError);
                 }}>
                 {Strings.common.saveButton}
               </Button>

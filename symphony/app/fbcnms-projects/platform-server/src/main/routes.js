@@ -26,7 +26,7 @@ import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const handleReact = tab =>
-  async function(req: FBCNMSRequest, res) {
+  async function (req: FBCNMSRequest, res) {
     const organization = req.organization ? await req.organization() : null;
     if (
       tab !== 'admin' &&

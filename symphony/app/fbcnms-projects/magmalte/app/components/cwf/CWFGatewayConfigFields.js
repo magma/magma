@@ -52,7 +52,7 @@ type Props = {
   onIPDRChanged: ipdr_export_dst => void,
 };
 
-export default function(props: Props) {
+export default function (props: Props) {
   const classes = useStyles();
   const {allowedGREPeers, onIPDRChanged} = props;
   const ipdrExportDst = props.ipdrExportDst || {ip: '', port: 0};

@@ -77,10 +77,10 @@ export default (
       },
     },
   );
-  User.associate = function(_models) {
+  User.associate = function (_models) {
     // associations can be defined here
   };
-  User.prototype.toJSON = function() {
+  User.prototype.toJSON = function () {
     return omit(this.get(), 'password');
   };
   return User;

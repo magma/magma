@@ -1,22 +1,11 @@
-/**
- * Copyright 2004-present Facebook. All Rights Reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * @flow strict-local
- * @format
- */
-
-import React from 'react';
 import Text from '../../components/design-system/Text';
 import classNames from 'classnames';
 import symphony from '@fbcnms/ui/theme/symphony';
+import {Meta} from '@storybook/addon-docs/blocks';
 import {STORY_CATEGORIES} from '../storybookUtils';
 import {makeStyles} from '@material-ui/styles';
-import {storiesOf} from '@storybook/react';
 
-const useStyles = makeStyles(() => ({
+export const useStyles = makeStyles(() => ({
   root: {
     padding: '52px',
     display: 'flex',
@@ -39,10 +28,19 @@ const useStyles = makeStyles(() => ({
   dp4: {boxShadow: symphony.shadows.DP4},
 }));
 
-const ShadowBlock = (props: {shadow: string}) => {
+<Meta title={`${STORY_CATEGORIES.FOUNDATION}/1.2 Elevation`} />
+
+# Elevation
+
+To add elevation, import the theme and access the shadows with `symphony.shadows`.
+
+```js
+import symphony from '@fbcnms/ui/theme/symphony';
+```
+
+export const ShadowBlock = props => {
   const {shadow} = props;
   const classes = useStyles();
-
   return (
     <div className={classes.blockRoot}>
       <div
@@ -56,7 +54,7 @@ const ShadowBlock = (props: {shadow: string}) => {
   );
 };
 
-const ShadowBlocksRoot = () => {
+export const ShadowBlocksRoot = () => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -67,6 +65,4 @@ const ShadowBlocksRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.FOUNDATION}`, module).add('1.2 Elevation', () => (
-  <ShadowBlocksRoot />
-));
+<ShadowBlocksRoot />

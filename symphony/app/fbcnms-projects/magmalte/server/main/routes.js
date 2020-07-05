@@ -28,7 +28,7 @@ import {TABS} from '@fbcnms/types/tabs';
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
 const handleReact = tab =>
-  async function(req: FBCNMSRequest, res) {
+  async function (req: FBCNMSRequest, res) {
     const organization = req.organization ? await req.organization() : null;
     const orgTabs = organization?.tabs || [];
     if (TABS[tab] && orgTabs.indexOf(tab) === -1) {

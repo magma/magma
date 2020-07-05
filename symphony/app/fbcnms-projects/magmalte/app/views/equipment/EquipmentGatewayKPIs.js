@@ -70,7 +70,7 @@ export default function EquipmentGatewayKPIs({
 
   let avgLatency = 0;
   if (avgLatencyArr && avgLatencyArr.length) {
-    const sum = avgLatencyArr.reduce(function(a, b) {
+    const sum = avgLatencyArr.reduce(function (a, b) {
       return a + b;
     }, 0);
     avgLatency = sum / avgLatencyArr.length;

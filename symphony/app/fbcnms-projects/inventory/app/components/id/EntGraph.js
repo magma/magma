@@ -299,10 +299,7 @@ class EntGraph extends React.Component<Props, State> {
   _drag = simulation => {
     const dragstarted = d => {
       if (!d3.event.active) {
-        simulation
-          .alpha(0.5)
-          .alphaTarget(ALPHA_TARGET)
-          .restart();
+        simulation.alpha(0.5).alphaTarget(ALPHA_TARGET).restart();
       }
       d.fx = d.x;
       d.fy = d.y;

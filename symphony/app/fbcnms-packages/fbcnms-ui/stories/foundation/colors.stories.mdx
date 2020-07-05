@@ -1,23 +1,11 @@
-/**
- * Copyright 2004-present Facebook. All Rights Reserved.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * @flow strict-local
- * @format
- */
-
 import ColorBlock from './ColorBlock';
-import React from 'react';
 import SymphonyTheme, {BLUE, DARK} from '../../theme/symphony';
 import Text from '../../components/design-system/Text';
+import {Meta} from '@storybook/addon-docs/blocks';
 import {STORY_CATEGORIES} from '../storybookUtils';
-import {storiesOf} from '@storybook/react';
-
 import {makeStyles} from '@material-ui/styles';
 
-const useStyles = makeStyles(_theme => ({
+export const useStyles = makeStyles(() => ({
   root: {
     padding: '74px',
   },
@@ -45,10 +33,17 @@ const useStyles = makeStyles(_theme => ({
   },
 }));
 
-const ColorBlocks = (props: {
-  colors: Array<{color: string, name: string, code?: string}>,
-  title: string,
-}) => {
+<Meta title={`${STORY_CATEGORIES.FOUNDATION}/1.1 Palette`} />
+
+# Palette
+
+To use the Symphony palette, import the theme and access the palette with `symphony.palette`.
+
+```js
+import symphony from '@fbcnms/ui/theme/symphony';
+```
+
+export const ColorBlocks = props => {
   const {colors, title} = props;
   const classes = useStyles();
   return (
@@ -71,7 +66,7 @@ const ColorBlocks = (props: {
   );
 };
 
-const ColorsRoot = () => {
+export const ColorsRoot = () => {
   const classes = useStyles();
   return (
     <div className={classes.root}>
@@ -148,6 +143,4 @@ const ColorsRoot = () => {
   );
 };
 
-storiesOf(`${STORY_CATEGORIES.FOUNDATION}`, module).add('1.1 Palette', () => (
-  <ColorsRoot />
-));
+<ColorsRoot />

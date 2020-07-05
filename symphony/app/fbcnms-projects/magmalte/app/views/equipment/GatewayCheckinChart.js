@@ -33,7 +33,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function() {
+export default function () {
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
   const state = {
