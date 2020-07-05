@@ -103,8 +103,8 @@ const (
 	DiscoveryMethodINVENTORY DiscoveryMethod = "INVENTORY"
 )
 
-func (s DiscoveryMethod) String() string {
-	return string(s)
+func (dm DiscoveryMethod) String() string {
+	return string(dm)
 }
 
 // DiscoveryMethodValidator is a validator for the "dm" field enum values. It is called by the builders before save.

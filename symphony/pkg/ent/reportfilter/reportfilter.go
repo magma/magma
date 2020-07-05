@@ -77,8 +77,8 @@ const (
 	EntitySERVICE   Entity = "SERVICE"
 )
 
-func (s Entity) String() string {
-	return string(s)
+func (e Entity) String() string {
+	return string(e)
 }
 
 // EntityValidator is a validator for the "e" field enum values. It is called by the builders before save.

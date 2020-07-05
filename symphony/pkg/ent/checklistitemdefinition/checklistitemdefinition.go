@@ -93,8 +93,8 @@ const (
 	EnumSelectionModeValueMultiple EnumSelectionModeValue = "multiple"
 )
 
-func (s EnumSelectionModeValue) String() string {
-	return string(s)
+func (esmv EnumSelectionModeValue) String() string {
+	return string(esmv)
 }
 
 // EnumSelectionModeValueValidator is a validator for the "esmv" field enum values. It is called by the builders before save.

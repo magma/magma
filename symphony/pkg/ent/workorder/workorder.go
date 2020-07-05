@@ -256,8 +256,8 @@ const (
 	PriorityNONE   Priority = "NONE"
 )
 
-func (s Priority) String() string {
-	return string(s)
+func (pr Priority) String() string {
+	return string(pr)
 }
 
 // PriorityValidator is a validator for the "pr" field enum values. It is called by the builders before save.

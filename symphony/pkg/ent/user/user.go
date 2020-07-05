@@ -166,8 +166,8 @@ const (
 	RoleOWNER Role = "OWNER"
 )
 
-func (s Role) String() string {
-	return string(s)
+func (r Role) String() string {
+	return string(r)
 }
 
 // RoleValidator is a validator for the "r" field enum values. It is called by the builders before save.

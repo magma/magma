@@ -102,8 +102,8 @@ const (
 	ChangedFieldOWNER        ChangedField = "OWNER"
 )
 
-func (s ChangedField) String() string {
-	return string(s)
+func (cf ChangedField) String() string {
+	return string(cf)
 }
 
 // ChangedFieldValidator is a validator for the "cf" field enum values. It is called by the builders before save.
