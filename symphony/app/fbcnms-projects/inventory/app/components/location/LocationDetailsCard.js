@@ -53,9 +53,7 @@ const LocationDetailsCard = (props: Props) => {
         <div>
           <Text>
             <fbt desc="">
-              <fbt:param
-                name="Latitude or longitude followed by a star"
-                number={true}>
+              <fbt:param name="Latitude or longitude followed by a star">
                 {title}
               </fbt:param>
             </fbt>
