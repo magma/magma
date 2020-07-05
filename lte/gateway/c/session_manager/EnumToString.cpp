@@ -90,4 +90,29 @@ namespace magma {
       return "INVALID SESSION FSM STATE";
     }
   }
+
+  std::string credit_update_type_to_str(CreditUsage::UpdateType update) {
+    switch (update) {
+      case CreditUsage::THRESHOLD:
+        return "THRESHOLD";
+      case CreditUsage::QHT:
+        return "QHT";
+      case CreditUsage::TERMINATED:
+        return "TERMINATED";
+      case CreditUsage::QUOTA_EXHAUSTED:
+        return "QUOTA_EXHAUSTED";
+      case CreditUsage::VALIDITY_TIMER_EXPIRED:
+        return "VALIDITY_TIMER_EXPIRED";
+      case CreditUsage::OTHER_QUOTA_TYPE:
+        return "OTHER_QUOTA_TYPE";
+      case CreditUsage::RATING_CONDITION_CHANGE:
+        return "RATING_CONDITION_CHANGE";
+      case CreditUsage::REAUTH_REQUIRED:
+        return "REAUTH_REQUIRED";
+      case CreditUsage::POOL_EXHAUSTED:
+        return "POOL_EXHAUSTED";
+      default:
+        return "INVALID CREDIT UPDATE TYPE";
+    }
+  }
 } // namespace magma

@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/graphql/complexity"
 	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/resolver"
@@ -95,6 +96,7 @@ func NewHandler(cfg HandlerConfig) (http.Handler, func(), error) {
 			generated.Config{
 				Resolvers:  rsv,
 				Directives: directive.New(cfg.Logger),
+				Complexity: complexity.New(),
 			},
 		),
 	)

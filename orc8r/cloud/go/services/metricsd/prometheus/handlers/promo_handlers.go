@@ -17,9 +17,9 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/pluginimpl/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/utils"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/tenants"
 	tenantH "magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	"magma/orc8r/lib/go/metrics"

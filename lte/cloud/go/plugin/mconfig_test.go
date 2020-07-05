@@ -13,13 +13,14 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/plugin"
-	models2 "magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos/mconfig"
+	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
@@ -64,16 +65,16 @@ func TestBuilder_Build(t *testing.T) {
 	rating1 := configurator.NetworkEntity{
 		Type: lte.RatingGroupEntityType,
 		Key:  "1",
-		Config: &models2.RatingGroup{
-			ID:        models2.RatingGroupID(uint32(1)),
+		Config: &policyModels.RatingGroup{
+			ID:        policyModels.RatingGroupID(uint32(1)),
 			LimitType: swag.String("INFINITE_UNMETERED"),
 		},
 	}
 	rating2 := configurator.NetworkEntity{
 		Type: lte.RatingGroupEntityType,
 		Key:  "2",
-		Config: &models2.RatingGroup{
-			ID:        models2.RatingGroupID(uint32(2)),
+		Config: &policyModels.RatingGroup{
+			ID:        policyModels.RatingGroupID(uint32(2)),
 			LimitType: swag.String("INFINITE_METERED"),
 		},
 	}

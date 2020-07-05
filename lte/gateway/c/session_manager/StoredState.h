@@ -134,12 +134,7 @@ enum SessionFsmState {
 
 struct StoredSessionCredit {
   bool reporting;
-  bool is_final;
   CreditLimitType credit_limit_type;
-  FinalActionInfo final_action_info;
-  ReAuthState reauth_state;
-  ServiceState service_state;
-  std::time_t expiry_time;
   std::unordered_map<Bucket, uint64_t> buckets;
   GrantTrackingType grant_tracking_type;
 };
@@ -191,12 +186,15 @@ struct StoredSessionState {
 
 // Update Criteria
 struct SessionCreditUpdateCriteria {
+  // Maintained by ChargingGrant
   bool is_final;
   FinalActionInfo final_action_info;
-  bool reporting;
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t expiry_time;
+
+  // Maintained by SessionCredit
+  bool reporting;
   GrantTrackingType grant_tracking_type;
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;

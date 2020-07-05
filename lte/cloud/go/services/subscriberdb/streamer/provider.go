@@ -12,8 +12,9 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
-	models2 "magma/lte/cloud/go/plugin/models"
 	protos2 "magma/lte/cloud/go/protos"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
+	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/protos"
 
@@ -38,9 +39,9 @@ func (provider *SubscribersProvider) GetUpdatesImpl(gatewayId string, extraArgs 
 	// Collect all APNs in one RPC call
 	apnEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.ApnEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
 	// Create a map to avoid for loops in function calls to populate subscriber data from subscriber associations
-	apnConfigMap := make(map[string]*models2.ApnConfiguration, len(apnEnts))
+	apnConfigMap := make(map[string]*lteModels.ApnConfiguration, len(apnEnts))
 	for _, apnEnt := range apnEnts {
-		apnConfigMap[apnEnt.Key] = apnEnt.Config.(*models2.ApnConfiguration)
+		apnConfigMap[apnEnt.Key] = apnEnt.Config.(*lteModels.ApnConfiguration)
 	}
 
 	subProtos := make([]*protos2.SubscriberData, 0, len(subEnts))
@@ -70,7 +71,7 @@ func subscribersToUpdates(subs []*protos2.SubscriberData) ([]*protos.DataUpdate,
 	return ret, nil
 }
 
-func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*models2.ApnConfiguration) (*protos2.SubscriberData, error) {
+func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*lteModels.ApnConfiguration) (*protos2.SubscriberData, error) {
 	sub := &protos2.SubscriberData{}
 	t, err := protos2.SidProto(ent.Key)
 	if err != nil {
@@ -82,7 +83,7 @@ func subscriberToMconfig(ent configurator.NetworkEntity, apnConfigs map[string]*
 		return sub, nil
 	}
 
-	cfg := ent.Config.(*models2.LteSubscription)
+	cfg := ent.Config.(*subscriberModels.LteSubscription)
 	sub.Lte = &protos2.LTESubscription{
 		State:    protos2.LTESubscription_LTESubscriptionState(protos2.LTESubscription_LTESubscriptionState_value[cfg.State]),
 		AuthAlgo: protos2.LTESubscription_LTEAuthAlgo(protos2.LTESubscription_LTEAuthAlgo_value[cfg.AuthAlgo]),

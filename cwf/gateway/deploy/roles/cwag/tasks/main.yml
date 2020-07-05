@@ -10,7 +10,7 @@
 
 - name: Create OVS bridge uplink_br0 and add peer patch port to connect it to cwag_br0
   become: true
-  script: setup_default_uplink_bridge.sh {{ uplink_ports }}
+  script: setup_default_uplink_bridge.sh {{ uplink_ports | default() }}
 
 - name: Create internal LI port on cwag_br0 and rules to forward RADIUS traffic to cwag_br0
   become: true

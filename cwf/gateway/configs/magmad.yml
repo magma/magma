@@ -20,6 +20,7 @@ magma_services:
   - directoryd
   - policydb
   - state
+  - health
 
 # List of services that don't provide service303 interface
 non_service303_services:
