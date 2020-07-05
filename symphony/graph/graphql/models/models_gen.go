@@ -622,14 +622,6 @@ type ReportFilterInput struct {
 	Filters []*GeneralFilterInput `json:"filters"`
 }
 
-// A connection to a list of search entries.
-type SearchEntriesConnection struct {
-	// A list of search entry edges.
-	Edges []*SearchEntryEdge `json:"edges"`
-	// Information to aid in pagination.
-	PageInfo *ent.PageInfo `json:"pageInfo"`
-}
-
 type SearchEntry struct {
 	EntityID   int     `json:"entityId"`
 	EntityType string  `json:"entityType"`
@@ -638,25 +630,19 @@ type SearchEntry struct {
 	ExternalID *string `json:"externalId"`
 }
 
-// A search entry edge in a connection.
-type SearchEntryEdge struct {
-	// The search entry at the end of the edge.
-	Node *SearchEntry `json:"node"`
-	// A cursor for use in pagination.
-	Cursor ent.Cursor `json:"cursor"`
-}
-
-// A search entry edge in a connection.
+// A search node edge in a connection.
 type SearchNodeEdge struct {
-	// The search entry at the end of the edge.
+	// The search node at the end of the edge.
 	Node ent.Noder `json:"node"`
 	// A cursor for use in pagination.
 	Cursor ent.Cursor `json:"cursor"`
 }
 
-// A connection to a list of search entries.
+// A connection to a list of search nodes.
 type SearchNodesConnection struct {
-	// A list of search entry edges.
+	// Total count of search nodes in all pages.
+	TotalCount int `json:"totalCount"`
+	// A list of search node edges.
 	Edges []*SearchNodeEdge `json:"edges"`
 	// Information to aid in pagination.
 	PageInfo *ent.PageInfo `json:"pageInfo"`

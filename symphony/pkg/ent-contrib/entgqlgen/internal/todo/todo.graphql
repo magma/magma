@@ -24,6 +24,7 @@ type PageInfo {
 }
 
 type TodoConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [TodoEdge]
 }

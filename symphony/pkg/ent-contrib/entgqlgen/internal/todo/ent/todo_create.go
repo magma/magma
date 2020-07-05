@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -63,14 +59,19 @@ func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
 	return tc.AddChildIDs(ids...)
 }
 
+// Mutation returns the TodoMutation object of the builder.
+func (tc *TodoCreate) Mutation() *TodoMutation {
+	return tc.mutation
+}
+
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
 	if _, ok := tc.mutation.Text(); !ok {
-		return nil, errors.New("ent: missing required field \"text\"")
+		return nil, &ValidationError{Name: "text", err: errors.New("ent: missing required field \"text\"")}
 	}
 	if v, ok := tc.mutation.Text(); ok {
 		if err := todo.TextValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
+			return nil, &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
 	var (

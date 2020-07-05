@@ -570,7 +570,7 @@ func TestFetchWorkOrders(t *testing.T) {
 	}
 
 	trueVal := true
-	types, err := qr.WorkOrders(ctx, nil, nil, nil, nil, &trueVal)
+	types, err := qr.WorkOrders(ctx, nil, nil, nil, nil, &trueVal, nil)
 	require.NoError(t, err)
 	assert.Len(t, types.Edges, 2)
 }

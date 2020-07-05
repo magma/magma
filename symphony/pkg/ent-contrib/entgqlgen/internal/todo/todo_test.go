@@ -27,6 +27,7 @@ type todoTestSuite struct {
 const (
 	queryAll = `query {
 		todos {
+			totalCount
 			edges {
 				node {
 					id
@@ -92,7 +93,8 @@ func TestTodo(t *testing.T) {
 
 type response struct {
 	Todos struct {
-		Edges []struct {
+		TotalCount int
+		Edges      []struct {
 			Node struct {
 				ID string
 			}
@@ -117,6 +119,7 @@ func (s *todoTestSuite) TestQueryEmpty() {
 	var rsp response
 	err := s.Post(queryAll, &rsp)
 	s.Require().NoError(err)
+	s.Assert().Zero(rsp.Todos.TotalCount)
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -129,6 +132,7 @@ func (s *todoTestSuite) TestQueryAll() {
 	err := s.Post(queryAll, &rsp)
 	s.Require().NoError(err)
 
+	s.Assert().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Require().Len(rsp.Todos.Edges, maxTodos)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -150,6 +154,7 @@ func (s *todoTestSuite) TestPageForward() {
 	const (
 		query = `query($after: Cursor, $first: Int) {
 			todos(after: $after, first: $first) {
+				totalCount
 				edges {
 					node {
 						id
@@ -175,6 +180,7 @@ func (s *todoTestSuite) TestPageForward() {
 			client.Var("first", first),
 		)
 		s.Require().NoError(err)
+		s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 		s.Require().Len(rsp.Todos.Edges, first)
 		s.Assert().True(rsp.Todos.PageInfo.HasNextPage)
 		s.Assert().NotEmpty(rsp.Todos.PageInfo.EndCursor)
@@ -192,6 +198,7 @@ func (s *todoTestSuite) TestPageForward() {
 		client.Var("first", first),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Require().NotEmpty(rsp.Todos.Edges)
 	s.Assert().Len(rsp.Todos.Edges, maxTodos%first)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
@@ -210,6 +217,7 @@ func (s *todoTestSuite) TestPageForward() {
 		client.Var("first", first),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().Empty(rsp.Todos.PageInfo.EndCursor)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
@@ -219,6 +227,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 	const (
 		query = `query($before: Cursor, $last: Int) {
 			todos(before: $before, last: $last) {
+				totalCount
 				edges {
 					node {
 						id
@@ -244,6 +253,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 			client.Var("last", last),
 		)
 		s.Require().NoError(err)
+		s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 		s.Require().Len(rsp.Todos.Edges, last)
 		s.Assert().True(rsp.Todos.PageInfo.HasPreviousPage)
 		s.Assert().NotEmpty(rsp.Todos.PageInfo.StartCursor)
@@ -262,6 +272,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 		client.Var("last", last),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Require().NotEmpty(rsp.Todos.Edges)
 	s.Assert().Len(rsp.Todos.Edges, maxTodos%last)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -282,6 +293,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 		client.Var("last", last),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().Empty(rsp.Todos.PageInfo.StartCursor)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)

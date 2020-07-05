@@ -48,7 +48,7 @@ func TestAddLocation(t *testing.T) {
 	require.Nil(t, l, "Tried to fetch missing location")
 	require.NoError(t, err, "Missing location is not an error")
 
-	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil)
+	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Len(t, locations.Edges, 1, "Verifying 'Locations' return value")
 
 	require.Equal(t, location.ID, fetchedLocation.ID, "Verifying saved location vs fetched location: ID")
@@ -75,7 +75,7 @@ func TestAddLocationWithExternalID(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil)
+	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Len(t, locations.Edges, 1, "Verifying 'Locations' return value")
 
 	require.Equal(t, location.ID, locations.Edges[0].Node.ID, "Verifying saved location vs fetched location: ID")
@@ -125,7 +125,7 @@ func TestAddLocationWithSameName(t *testing.T) {
 
 	onlyTopLevel := true
 	require.Len(t, children, 2, "Parent location has two children")
-	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil)
+	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locs.Edges, 1, "Only one location with no parents (aka top level)")
 }
@@ -405,7 +405,7 @@ func TestAddMultiLevelLocations(t *testing.T) {
 
 	i := 10
 	onlyTopLevel := true
-	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, &i, nil, nil)
+	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, &i, nil, nil, nil)
 	require.NoError(t, err, "Querying locations")
 
 	require.Len(t, locs.Edges, 1, "Only one location with no parents (aka top level)")
@@ -944,17 +944,17 @@ func TestGetLocationsByType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	allLocations, err := qr.Locations(ctx, nil, []int{locationType1.ID, locationType2.ID}, nil, nil, nil, nil, nil, nil)
+	allLocations, err := qr.Locations(ctx, nil, []int{locationType1.ID, locationType2.ID}, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, allLocations.Edges, 2)
 
-	locationsType1, err := qr.Locations(ctx, nil, []int{locationType1.ID}, nil, nil, nil, nil, nil, nil)
+	locationsType1, err := qr.Locations(ctx, nil, []int{locationType1.ID}, nil, nil, nil, nil, nil, nil, nil)
 
 	require.NoError(t, err)
 	require.Len(t, locationsType1.Edges, 1, "one location of this type")
 	require.Equal(t, locationsType1.Edges[0].Node.ID, location1.ID)
 
-	locationsType2, err := qr.Locations(ctx, nil, []int{locationType2.ID}, nil, nil, nil, nil, nil, nil)
+	locationsType2, err := qr.Locations(ctx, nil, []int{locationType2.ID}, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locationsType2.Edges, 1, "one location of this type")
 	require.Equal(t, locationsType2.Edges[0].Node.ID, location2.ID)
@@ -985,13 +985,13 @@ func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 	require.NoError(t, err)
 
 	onlyTopLevel := true
-	onlyTopLevelLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil)
+	onlyTopLevelLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, onlyTopLevelLocations.Edges, 1, "one top level location")
 	require.Equal(t, onlyTopLevelLocations.Edges[0].Node.ID, location1.ID)
 
 	onlyTopLevel = false
-	allLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil)
+	allLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, allLocations.Edges, 2, "two not-only top level locations")
 }
@@ -1021,12 +1021,12 @@ func TestGetLocationsByName(t *testing.T) {
 	require.NoError(t, err)
 
 	name := "loc"
-	locLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil)
+	locLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locLocations.Edges, 2, "two locations with 'loc' prefix added")
 
 	name = "wow"
-	wowLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil)
+	wowLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Empty(t, wowLocations.Edges, "no locations with 'wow' prefix added")
 }

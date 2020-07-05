@@ -13,6 +13,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/facebookincubator/symphony/pkg/ent"
@@ -20,6 +21,8 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
 	"github.com/facebookincubator/symphony/pkg/ent/reportfilter"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
@@ -58,6 +61,7 @@ func (r queryResolver) Locations(
 	types []int, name *string, needsSiteSurvey *bool,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
+	filters []*models.LocationFilterInput,
 ) (*ent.LocationConnection, error) {
 	query := r.ClientFrom(ctx).Location.Query()
 	if pointer.GetBool(onlyTopLevel) {
@@ -120,18 +124,28 @@ func (r queryResolver) EquipmentPorts(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
+	filters []*models.PortFilterInput,
 ) (*ent.EquipmentPortConnection, error) {
-	return r.ClientFrom(ctx).EquipmentPort.Query().
-		Paginate(ctx, after, first, before, last)
+	query := r.ClientFrom(ctx).EquipmentPort.Query()
+	query, err := resolverutil.PortFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) Equipments(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
+	filters []*models.EquipmentFilterInput,
 ) (*ent.EquipmentConnection, error) {
-	return r.ClientFrom(ctx).Equipment.Query().
-		Paginate(ctx, after, first, before, last)
+	query := r.ClientFrom(ctx).Equipment.Query()
+	query, err := resolverutil.EquipmentFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) WorkOrders(
@@ -139,8 +153,13 @@ func (r queryResolver) WorkOrders(
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
 	showCompleted *bool,
+	filters []*models.WorkOrderFilterInput,
 ) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
+	query, err := resolverutil.WorkOrderFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	if pointer.GetBool(showCompleted) {
 		query = query.Where(workorder.StatusIn(
 			models.WorkOrderStatusPending.String(),
@@ -157,6 +176,82 @@ func (r queryResolver) WorkOrderTypes(
 ) (*ent.WorkOrderTypeConnection, error) {
 	return r.ClientFrom(ctx).WorkOrderType.Query().
 		Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Links(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.LinkFilterInput,
+) (*ent.LinkConnection, error) {
+	query := r.ClientFrom(ctx).Link.Query()
+	query, err := resolverutil.LinkFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Projects(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	_ []*models.ProjectFilterInput,
+) (*ent.ProjectConnection, error) {
+	query := r.ClientFrom(ctx).Project.Query()
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Services(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.ServiceFilterInput) (*ent.ServiceConnection, error) {
+	query := r.ClientFrom(ctx).Service.Query().Where(service.HasTypeWith(servicetype.IsDeleted(false)))
+	query, err := resolverutil.ServiceFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Users(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.UserFilterInput) (*ent.UserConnection, error) {
+	query := r.ClientFrom(ctx).User.Query()
+	query, err := resolverutil.UserFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) UsersGroups(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.UsersGroupFilterInput) (*ent.UsersGroupConnection, error) {
+	query := r.ClientFrom(ctx).UsersGroup.Query()
+	query, err := resolverutil.UsersGroupFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) PermissionsPolicies(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.PermissionsPolicyFilterInput) (*ent.PermissionsPolicyConnection, error) {
+	query := r.ClientFrom(ctx).PermissionsPolicy.Query()
+	query, err := resolverutil.PermissionsPolicyFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) SearchForNode(

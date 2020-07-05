@@ -120,7 +120,7 @@ func createEquipmentTypes(ctx context.Context, r *TestImporterResolver) {
 }
 
 func verifyLocationsStructure(ctx context.Context, t *testing.T, r TestImporterResolver) {
-	locs, err := r.importer.r.Query().Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil)
+	locs, err := r.importer.r.Query().Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locs.Edges, 6)
 	client := r.client

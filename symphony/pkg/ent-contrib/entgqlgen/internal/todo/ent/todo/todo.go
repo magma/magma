@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package todo
@@ -10,7 +6,8 @@ const (
 	// Label holds the string label denoting the todo type in the database.
 	Label = "todo"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID   = "id" // FieldText holds the string denoting the text vertex property in the database.
+	FieldID = "id"
+	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
 
 	// EdgeParent holds the string denoting the parent edge name in mutations.

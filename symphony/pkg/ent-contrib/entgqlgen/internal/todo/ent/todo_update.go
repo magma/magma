@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -71,6 +67,11 @@ func (tu *TodoUpdate) AddChildren(t ...*Todo) *TodoUpdate {
 	return tu.AddChildIDs(ids...)
 }
 
+// Mutation returns the TodoMutation object of the builder.
+func (tu *TodoUpdate) Mutation() *TodoMutation {
+	return tu.mutation
+}
+
 // ClearParent clears the parent edge to Todo.
 func (tu *TodoUpdate) ClearParent() *TodoUpdate {
 	tu.mutation.ClearParent()
@@ -96,7 +97,7 @@ func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
 	if v, ok := tu.mutation.Text(); ok {
 		if err := todo.TextValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
+			return 0, &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
 
@@ -305,6 +306,11 @@ func (tuo *TodoUpdateOne) AddChildren(t ...*Todo) *TodoUpdateOne {
 	return tuo.AddChildIDs(ids...)
 }
 
+// Mutation returns the TodoMutation object of the builder.
+func (tuo *TodoUpdateOne) Mutation() *TodoMutation {
+	return tuo.mutation
+}
+
 // ClearParent clears the parent edge to Todo.
 func (tuo *TodoUpdateOne) ClearParent() *TodoUpdateOne {
 	tuo.mutation.ClearParent()
@@ -330,7 +336,7 @@ func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
 	if v, ok := tuo.mutation.Text(); ok {
 		if err := todo.TextValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
+			return nil, &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
 
@@ -396,7 +402,7 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 	}
 	id, ok := tuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Todo.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Todo.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := tuo.mutation.Text(); ok {

@@ -1,7 +1,3 @@
-// Copyright (c) 2004-present Facebook All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package todo
@@ -125,7 +121,7 @@ func TextIn(vs ...string) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -142,7 +138,7 @@ func TextNotIn(vs ...string) predicate.Todo {
 	return predicate.Todo(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

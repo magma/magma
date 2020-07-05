@@ -57,7 +57,7 @@ func TestQueryInventoryPolicies(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	ppc, err := qr.PermissionsPolicies(ctx, nil, nil, nil, nil)
+	ppc, err := qr.PermissionsPolicies(ctx, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, ppc.Edges, 1)
 }

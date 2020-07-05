@@ -30,11 +30,6 @@ func (r queryResolver) User(ctx context.Context, authID string) (*ent.User, erro
 	return u, ent.MaskNotFound(err)
 }
 
-func (r queryResolver) Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error) {
-	return r.ClientFrom(ctx).User.Query().
-		Paginate(ctx, after, first, before, last)
-}
-
 func (userResolver) Groups(ctx context.Context, user *ent.User) ([]*ent.UsersGroup, error) {
 	return user.QueryGroups().All(ctx)
 }

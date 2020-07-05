@@ -804,39 +804,11 @@ type SearchEntry {
 }
 
 """
-A connection to a list of search entries.
-"""
-type SearchEntriesConnection {
-  """
-  A list of search entry edges.
-  """
-  edges: [SearchEntryEdge!]
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-}
-
-"""
-A search entry edge in a connection.
-"""
-type SearchEntryEdge {
-  """
-  The search entry at the end of the edge.
-  """
-  node: SearchEntry
-  """
-  A cursor for use in pagination.
-  """
-  cursor: Cursor!
-}
-
-"""
-A search entry edge in a connection.
+A search node edge in a connection.
 """
 type SearchNodeEdge {
   """
-  The search entry at the end of the edge.
+  The search node at the end of the edge.
   """
   node: Node
   """
@@ -846,11 +818,15 @@ type SearchNodeEdge {
 }
 
 """
-A connection to a list of search entries.
+A connection to a list of search nodes.
 """
 type SearchNodesConnection {
   """
-  A list of search entry edges.
+  Total count of search nodes in all pages.
+  """
+  totalCount: Int!
+  """
+  A list of search node edges.
   """
   edges: [SearchNodeEdge!]
   """
@@ -863,6 +839,10 @@ type SearchNodesConnection {
 A connection to a list of equipment port types.
 """
 type EquipmentPortTypeConnection {
+  """
+  Total count of equipment port types in all pages.
+  """
+  totalCount: Int!
   """
   A list of equipment port type edges.
   """
@@ -892,6 +872,10 @@ A connection to a list of equipment port definitions.
 """
 type EquipmentPortDefinitionConnection {
   """
+  Total count of equipment port definitions in all pages.
+  """
+  totalCount: Int!
+  """
   A list of equipment port definition edges.
   """
   edges: [EquipmentPortDefinitionEdge!]!
@@ -919,6 +903,10 @@ type EquipmentPortDefinitionEdge {
 A connection to a list of equipment ports.
 """
 type EquipmentPortConnection {
+  """
+  Total count of equipment ports in all pages.
+  """
+  totalCount: Int!
   """
   A list of equipment port edges.
   """
@@ -948,6 +936,10 @@ A connection to a list of equipment types.
 """
 type EquipmentTypeConnection {
   """
+  Total count of equipment types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of equipment type edges.
   """
   edges: [EquipmentTypeEdge!]!
@@ -975,6 +967,10 @@ type EquipmentTypeEdge {
 A connection to a list of equipments.
 """
 type EquipmentConnection {
+  """
+  Total count of equipment in all pages.
+  """
+  totalCount: Int!
   """
   A list of equipment edges.
   """
@@ -1004,6 +1000,10 @@ A connection to a list of location types.
 """
 type LocationTypeConnection {
   """
+  Total count of location types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of location type edges.
   """
   edges: [LocationTypeEdge!]!
@@ -1031,6 +1031,10 @@ type LocationTypeEdge {
 A connection to a list of locations.
 """
 type LocationConnection {
+  """
+  Total count of locations in all pages.
+  """
+  totalCount: Int!
   """
   A list of location edges.
   """
@@ -1060,6 +1064,10 @@ A connection to a list of links.
 """
 type LinkConnection {
   """
+  Total count of links in all pages.
+  """
+  totalCount: Int!
+  """
   A list of link edges.
   """
   edges: [LinkEdge!]!
@@ -1077,6 +1085,38 @@ type LinkEdge {
   The link at the end of the edge.
   """
   node: Link
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of services.
+"""
+type ServiceConnection {
+  """
+  Total count of services in all pages.
+  """
+  totalCount: Int!
+  """
+  A list of service edges.
+  """
+  edges: [ServiceEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A service edge in a connection.
+"""
+type ServiceEdge {
+  """
+  The service at the end of the edge.
+  """
+  node: Service
   """
   A cursor for use in pagination.
   """
@@ -1121,6 +1161,10 @@ type PageInfo {
 A connection to a list of service types.
 """
 type ServiceTypeConnection {
+  """
+  Total count of service types in all pages.
+  """
+  totalCount: Int!
   """
   A list of service type edges.
   """
@@ -1550,6 +1594,10 @@ A connection to a list of users.
 """
 type UserConnection {
   """
+  Total count of users in all pages.
+  """
+  totalCount: Int!
+  """
   A list of user type edges.
   """
   edges: [UserEdge!]!
@@ -1564,6 +1612,10 @@ A connection to a list of permissions policies.
 """
 type PermissionsPolicyConnection {
   """
+  Total count of permission policies in all pages.
+  """
+  totalCount: Int!
+  """
   A list of permissions policies type edges.
   """
   edges: [PermissionsPolicyEdge!]!
@@ -1577,6 +1629,10 @@ type PermissionsPolicyConnection {
 A connection to a list of users groups.
 """
 type UsersGroupConnection {
+  """
+  Total count of user groups in all pages.
+  """
+  totalCount: Int!
   """
   A list of users group type edges.
   """
@@ -1634,6 +1690,10 @@ A connection to a list of work order types.
 """
 type WorkOrderTypeConnection {
   """
+  Total count of work order types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of work order type edges.
   """
   edges: [WorkOrderTypeEdge!]!
@@ -1661,6 +1721,10 @@ type WorkOrderTypeEdge {
 A connection to a list of work orders.
 """
 type WorkOrderConnection {
+  """
+  Total count of work orders in all pages.
+  """
+  totalCount: Int!
   """
   A list of work order edges.
   """
@@ -1864,6 +1928,10 @@ A connection to a list of project types.
 """
 type ProjectTypeConnection {
   """
+  Total count of project types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of project type edges.
   """
   edges: [ProjectTypeEdge!]!
@@ -1891,6 +1959,10 @@ type ProjectTypeEdge {
 A connection to a list of projects.
 """
 type ProjectConnection {
+  """
+  Total count of projects in all pages.
+  """
+  totalCount: Int!
   """
   A list of project edges.
   """
@@ -2219,6 +2291,10 @@ input ProjectFilterInput {
 A connection to a list of customers.
 """
 type CustomerConnection {
+  """
+  Total count of customers in all pages.
+  """
+  totalCount: Int!
   """
   A list of customer edges.
   """
@@ -2798,6 +2874,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [LocationFilterInput!]
   ): LocationConnection
   equipmentPortTypes(
     after: Cursor
@@ -2816,6 +2893,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [PortFilterInput!]
   ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
@@ -2828,6 +2906,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [EquipmentFilterInput!]
   ): EquipmentConnection!
   serviceTypes(
     after: Cursor
@@ -2841,6 +2920,7 @@ type Query {
     before: Cursor
     last: Int @numberValue(min: 0)
     showCompleted: Boolean
+    filters: [WorkOrderFilterInput!]
   ): WorkOrderConnection!
   workOrderTypes(
     after: Cursor
@@ -2853,24 +2933,35 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [LinkFilterInput!]
   ): LinkConnection!
+  services(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+    filters: [ServiceFilterInput!]
+  ): ServiceConnection!
   users(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [UserFilterInput!]
   ): UserConnection
   usersGroups(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [UsersGroupFilterInput!]
   ): UsersGroupConnection
   permissionsPolicies(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [PermissionsPolicyFilterInput!]
   ): PermissionsPolicyConnection
   searchForNode(
     name: String!
@@ -2900,9 +2991,6 @@ type Query {
     limit: Int = 500 @numberValue(min: 0)
   ): LocationSearchResult!
   projectSearch(
-    """
-    array of the work order filters to be applied
-    """
     filters: [ProjectFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): [Project]!
@@ -2944,6 +3032,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
+    filters: [ProjectFilterInput!]
   ): ProjectConnection
   customers(
     after: Cursor
