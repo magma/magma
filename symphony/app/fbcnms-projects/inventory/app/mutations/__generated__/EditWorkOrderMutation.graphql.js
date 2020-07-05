@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8c88e91e16d81418e126d4aa0a062c3b
+ * @relayHash a99c814d82c2a4368b32e21458bf3fe0
  */
 
 /* eslint-disable */
@@ -33,8 +33,8 @@ export type EditWorkOrderInput = {|
   assignee?: ?string,
   assigneeId?: ?string,
   index?: ?number,
-  status: WorkOrderStatus,
-  priority: WorkOrderPriority,
+  status?: ?WorkOrderStatus,
+  priority?: ?WorkOrderPriority,
   projectId?: ?string,
   properties?: ?$ReadOnlyArray<PropertyInput>,
   checkList?: ?$ReadOnlyArray<CheckListItemInput>,

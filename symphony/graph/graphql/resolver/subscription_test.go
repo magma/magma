@@ -106,9 +106,8 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 	{
 		var rsp struct{ EditWorkOrder struct{ ID string } }
 		input := models.EditWorkOrderInput{
-			Name:     "foo",
-			Status:   models.WorkOrderStatusDone,
-			Priority: models.WorkOrderPriorityNone,
+			Name:   "foo",
+			Status: workOrderStatusPtr(models.WorkOrderStatusDone),
 		}
 		input.ID, _ = strconv.Atoi(id)
 		c.MustPost(`mutation($input: EditWorkOrderInput!) { editWorkOrder(input: $input) { id } }`,

@@ -44,7 +44,11 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 	wot, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "WO-type1"})
 	wo1, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{Name: "wo1", WorkOrderTypeID: wot.ID})
 	wo2, _ := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{Name: "wo2", WorkOrderTypeID: wot.ID})
-	wo2, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{ID: wo2.ID, Name: "wo2", Status: models.WorkOrderStatusDone})
+	wo2, _ = mr.EditWorkOrder(ctx, models.EditWorkOrderInput{
+		ID:     wo2.ID,
+		Name:   "wo2",
+		Status: workOrderStatusPtr(models.WorkOrderStatusDone),
+	})
 	locType1, _ := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "loc_type1",
 	})

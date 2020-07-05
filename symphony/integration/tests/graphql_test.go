@@ -29,7 +29,6 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zaptest"
 	"golang.org/x/net/context/ctxhttp"
-	"golang.org/x/xerrors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -442,17 +441,17 @@ func (c *client) executeWorkOrder(workOrder *addWorkOrderResponse) error {
 		} `graphql:"editWorkOrder(input: $input)"`
 	}
 	ownerID := IDToInt(workOrder.Owner.ID)
+	st := models.WorkOrderStatusDone
 	vars := map[string]interface{}{
 		"input": models.EditWorkOrderInput{
-			ID:       IDToInt(workOrder.ID),
-			Name:     string(workOrder.Name),
-			OwnerID:  &ownerID,
-			Status:   models.WorkOrderStatusDone,
-			Priority: models.WorkOrderPriorityNone,
+			ID:      IDToInt(workOrder.ID),
+			Name:    string(workOrder.Name),
+			OwnerID: &ownerID,
+			Status:  &st,
 		},
 	}
 	if err := c.client.Mutate(context.Background(), &em, vars); err != nil {
-		return xerrors.Errorf("editing work order: %w", err)
+		return fmt.Errorf("editing work order: %w", err)
 	}
 
 	var m struct {
@@ -464,7 +463,7 @@ func (c *client) executeWorkOrder(workOrder *addWorkOrderResponse) error {
 		"id": workOrder.ID,
 	}
 	if err := c.client.Mutate(context.Background(), &m, vars); err != nil {
-		return xerrors.Errorf("executing work order: %w", err)
+		return fmt.Errorf("executing work order: %w", err)
 	}
 	return nil
 }

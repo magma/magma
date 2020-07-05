@@ -112,8 +112,8 @@ func TestEditWorkOrderActivities(t *testing.T) {
 		Name:       wo.Name,
 		OwnerID:    &u2.ID,
 		AssigneeID: &u.ID,
-		Status:     models.WorkOrderStatusPending,
-		Priority:   models.WorkOrderPriorityHigh,
+		Status:     workOrderStatusPtr(models.WorkOrderStatusPending),
+		Priority:   workOrderPriorityPtr(models.WorkOrderPriorityHigh),
 	})
 	require.NoError(t, err)
 	activities, err = wor.Activities(ctx, wo)

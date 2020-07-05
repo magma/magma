@@ -718,8 +718,8 @@ input EditWorkOrderInput {
     )
   assigneeId: ID
   index: Int
-  status: WorkOrderStatus!
-  priority: WorkOrderPriority!
+  status: WorkOrderStatus
+  priority: WorkOrderPriority
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]

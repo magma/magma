@@ -84,6 +84,14 @@ func createWorkOrder(ctx context.Context, t *testing.T, r TestResolver, name str
 	return workOrder
 }
 
+func workOrderStatusPtr(status models.WorkOrderStatus) *models.WorkOrderStatus {
+	return &status
+}
+
+func workOrderPriorityPtr(priority models.WorkOrderPriority) *models.WorkOrderPriority {
+	return &priority
+}
+
 func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationResolver, workOrder ent.WorkOrder) (*models.WorkOrderExecutionResult, error) {
 	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
@@ -101,8 +109,7 @@ func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationRe
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
 		InstallDate: &workOrder.InstallDate,
-		Status:      models.WorkOrderStatusDone,
-		Priority:    models.WorkOrderPriorityNone,
+		Status:      workOrderStatusPtr(models.WorkOrderStatusDone),
 		AssigneeID:  assigneeID,
 	})
 	require.NoError(t, err)
@@ -205,8 +212,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
-		Status:      models.WorkOrderStatusPending,
-		Priority:    models.WorkOrderPriorityNone,
+		Status:      workOrderStatusPtr(models.WorkOrderStatusPending),
 		AssigneeID:  &assignee.ID,
 	})
 	require.NoError(t, err)
@@ -334,21 +340,21 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
-		Status:      models.WorkOrderStatusPending,
-		Priority:    models.WorkOrderPriorityHigh,
+		Status:      workOrderStatusPtr(models.WorkOrderStatusPending),
+		Priority:    workOrderPriorityPtr(models.WorkOrderPriorityHigh),
 		Index:       pointer.ToInt(42),
 	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, input)
 	require.NoError(t, err)
-	require.EqualValues(t, input.Priority, workOrder.Priority)
+	require.Equal(t, input.Priority.String(), workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 
 	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
 	workOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.EqualValues(t, input.Priority, workOrder.Priority)
+	require.Equal(t, input.Priority.String(), workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 }
 

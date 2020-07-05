@@ -295,8 +295,6 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		SetStatus(input.Status.String()).
-		SetPriority(input.Priority.String()).
 		SetNillableIndex(input.Index)
 
 	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
@@ -315,10 +313,18 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 	if ownerID != nil {
 		mutation.SetOwnerID(*ownerID)
 	}
-	if input.Status == models.WorkOrderStatusDone {
-		mutation.SetCloseDate(time.Now())
-	} else {
-		mutation.ClearCloseDate()
+	if input.Status != nil {
+		if status := input.Status.String(); status != wo.Status {
+			mutation.SetStatus(status)
+			if status == models.WorkOrderStatusDone.String() {
+				mutation.SetCloseDate(time.Now())
+			} else {
+				mutation.ClearCloseDate()
+			}
+		}
+	}
+	if input.Priority != nil {
+		mutation.SetPriority(input.Priority.String())
 	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)
@@ -579,12 +585,12 @@ func (r mutationResolver) createOrUpdateCheckListItemFiles(ctx context.Context, 
 
 	item, deletedIDSet, err := r.deleteRemovedCheckListItemFiles(ctx, item, currentFileIDs, inputFileIDs)
 	if err != nil {
-		return nil, fmt.Errorf("deleting checklist files, item=%q: %w", item.ID, err)
+		return nil, err
 	}
 
 	item, err = r.createAddedCheckListItemFiles(ctx, item, fileInputs)
 	if err != nil {
-		return nil, fmt.Errorf("creating checklist files, item=%q: %w", item.ID, err)
+		return nil, err
 	}
 
 	for _, input := range fileInputs {

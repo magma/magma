@@ -178,8 +178,8 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		ID:         wo1.ID,
 		Name:       wo1.Name,
 		OwnerID:    &owner.ID,
-		Status:     models.WorkOrderStatusDone,
-		Priority:   models.WorkOrderPriorityHigh,
+		Status:     workOrderStatusPtr(models.WorkOrderStatusDone),
+		Priority:   workOrderPriorityPtr(models.WorkOrderPriorityHigh),
 		LocationID: &loc1.ID,
 		AssigneeID: &assignee1.ID,
 	})
