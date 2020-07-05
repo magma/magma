@@ -21,6 +21,13 @@ import React, {useMemo, useState} from 'react';
 import fbt from 'fbt';
 import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
+import {makeStyles} from '@material-ui/styles';
+
+const useStyles = makeStyles(() => ({
+  projectComparisonView: {
+    height: '100%',
+  },
+}));
 
 const ProjectComparisonView = () => {
   const [dialogKey, setDialogKey] = useState(1);
@@ -29,6 +36,7 @@ const ProjectComparisonView = () => {
   const [resultsDisplayMode, setResultsDisplayMode] = useState(
     DisplayOptions.table,
   );
+  const classes = useStyles();
 
   const selectedProjectTypeId = useMemo(
     () => extractEntityIdFromUrl('projectType', location.search),
@@ -96,6 +104,7 @@ const ProjectComparisonView = () => {
     <ErrorBoundary>
       <InventoryView
         header={header}
+        className={classes.projectComparisonView}
         onViewToggleClicked={setResultsDisplayMode}
         permissions={{
           entity: 'project',

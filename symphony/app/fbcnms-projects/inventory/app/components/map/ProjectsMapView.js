@@ -209,7 +209,7 @@ class ProjectsMapView extends React.Component<Props, State> {
           map && map.resize();
         }}
         className={classes.mapContainer}>
-        {map && mapboxgl.accessToken && (
+        {map && mapboxgl.accessToken ? (
           <>
             {this.props.showGeocoder && (
               <MapGeocoder
@@ -245,7 +245,7 @@ class ProjectsMapView extends React.Component<Props, State> {
               )}
             </>
           </>
-        )}
+        ) : null}
       </div>
     );
   }
