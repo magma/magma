@@ -558,7 +558,7 @@ func TestExecuteWorkOrder(t *testing.T) {
 	require.NoError(t, err)
 	l, err := c.addLocation("location_"+uuid.New().String(), nil)
 	require.NoError(t, err)
-	e, err := c.addEquipment("router_"+uuid.New().String(), et.ID, l.ID, workorder.ID)
+	e, err := c.addEquipment("router_"+uuid.New().String(), et.ID, l.ID, wo.ID)
 	require.NoError(t, err)
 
 	eq, err := c.queryEquipment(e.ID)
@@ -574,7 +574,7 @@ func TestExecuteWorkOrder(t *testing.T) {
 
 	wo, err = c.addWorkOrder(name, typ.ID)
 	require.NoError(t, err)
-	err = c.removeEquipment(eq.ID, workorder.ID)
+	err = c.removeEquipment(eq.ID, wo.ID)
 	require.NoError(t, err)
 
 	eq, err = c.queryEquipment(e.ID)
