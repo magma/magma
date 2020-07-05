@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -179,7 +180,7 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		Name:       wo1.Name,
 		OwnerID:    &owner.ID,
 		Status:     workOrderStatusPtr(models.WorkOrderStatusDone),
-		Priority:   workOrderPriorityPtr(models.WorkOrderPriorityHigh),
+		Priority:   workOrderPriorityPtr(workorder.PriorityHIGH),
 		LocationID: &loc1.ID,
 		AssigneeID: &assignee1.ID,
 	})
@@ -743,7 +744,7 @@ func TestSearchWOByPriority(t *testing.T) {
 	f := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
-		StringSet:  []string{models.WorkOrderPriorityHigh.String()},
+		StringSet:  []string{workorder.PriorityHIGH.String()},
 	}
 	c.MustPost(
 		woAllQuery,
@@ -753,7 +754,7 @@ func TestSearchWOByPriority(t *testing.T) {
 	require.Equal(t, 1, result.WorkOrderSearch.Count)
 	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
-	f.StringSet = []string{models.WorkOrderPriorityLow.String()}
+	f.StringSet = []string{workorder.PriorityLOW.String()}
 	c.MustPost(
 		woAllQuery,
 		&result,

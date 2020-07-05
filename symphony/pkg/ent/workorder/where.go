@@ -125,13 +125,6 @@ func Status(v string) predicate.WorkOrder {
 	})
 }
 
-// Priority applies equality check predicate on the "priority" field. It's identical to PriorityEQ.
-func Priority(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPriority), v))
-	})
-}
-
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
@@ -542,21 +535,21 @@ func StatusContainsFold(v string) predicate.WorkOrder {
 }
 
 // PriorityEQ applies the EQ predicate on the "priority" field.
-func PriorityEQ(v string) predicate.WorkOrder {
+func PriorityEQ(v Priority) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPriority), v))
 	})
 }
 
 // PriorityNEQ applies the NEQ predicate on the "priority" field.
-func PriorityNEQ(v string) predicate.WorkOrder {
+func PriorityNEQ(v Priority) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPriority), v))
 	})
 }
 
 // PriorityIn applies the In predicate on the "priority" field.
-func PriorityIn(vs ...string) predicate.WorkOrder {
+func PriorityIn(vs ...Priority) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -573,7 +566,7 @@ func PriorityIn(vs ...string) predicate.WorkOrder {
 }
 
 // PriorityNotIn applies the NotIn predicate on the "priority" field.
-func PriorityNotIn(vs ...string) predicate.WorkOrder {
+func PriorityNotIn(vs ...Priority) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -586,69 +579,6 @@ func PriorityNotIn(vs ...string) predicate.WorkOrder {
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldPriority), v...))
-	})
-}
-
-// PriorityGT applies the GT predicate on the "priority" field.
-func PriorityGT(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityGTE applies the GTE predicate on the "priority" field.
-func PriorityGTE(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityLT applies the LT predicate on the "priority" field.
-func PriorityLT(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityLTE applies the LTE predicate on the "priority" field.
-func PriorityLTE(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityContains applies the Contains predicate on the "priority" field.
-func PriorityContains(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityHasPrefix applies the HasPrefix predicate on the "priority" field.
-func PriorityHasPrefix(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityHasSuffix applies the HasSuffix predicate on the "priority" field.
-func PriorityHasSuffix(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityEqualFold applies the EqualFold predicate on the "priority" field.
-func PriorityEqualFold(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityContainsFold applies the ContainsFold predicate on the "priority" field.
-func PriorityContainsFold(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldPriority), v))
 	})
 }
 

@@ -7,6 +7,7 @@
 package workorder
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -213,6 +214,33 @@ var (
 	NameValidator func(string) error
 	// DefaultStatus holds the default value on creation for the status field.
 	DefaultStatus string
-	// DefaultPriority holds the default value on creation for the priority field.
-	DefaultPriority string
 )
+
+// Priority defines the type for the priority enum field.
+type Priority string
+
+// PriorityNONE is the default Priority.
+const DefaultPriority = PriorityNONE
+
+// Priority values.
+const (
+	PriorityURGENT Priority = "URGENT"
+	PriorityHIGH   Priority = "HIGH"
+	PriorityMEDIUM Priority = "MEDIUM"
+	PriorityLOW    Priority = "LOW"
+	PriorityNONE   Priority = "NONE"
+)
+
+func (s Priority) String() string {
+	return string(s)
+}
+
+// PriorityValidator is a validator for the "pr" field enum values. It is called by the builders before save.
+func PriorityValidator(pr Priority) error {
+	switch pr {
+	case PriorityURGENT, PriorityHIGH, PriorityMEDIUM, PriorityLOW, PriorityNONE:
+		return nil
+	default:
+		return fmt.Errorf("workorder: invalid enum value for priority field: %q", pr)
+	}
+}

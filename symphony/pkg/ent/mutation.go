@@ -39453,7 +39453,7 @@ type WorkOrderMutation struct {
 	update_time                  *time.Time
 	name                         *string
 	status                       *string
-	priority                     *string
+	priority                     *workorder.Priority
 	description                  *string
 	install_date                 *time.Time
 	creation_date                *time.Time
@@ -39721,12 +39721,12 @@ func (m *WorkOrderMutation) ResetStatus() {
 }
 
 // SetPriority sets the priority field.
-func (m *WorkOrderMutation) SetPriority(s string) {
-	m.priority = &s
+func (m *WorkOrderMutation) SetPriority(w workorder.Priority) {
+	m.priority = &w
 }
 
 // Priority returns the priority value in the mutation.
-func (m *WorkOrderMutation) Priority() (r string, exists bool) {
+func (m *WorkOrderMutation) Priority() (r workorder.Priority, exists bool) {
 	v := m.priority
 	if v == nil {
 		return
@@ -39738,7 +39738,7 @@ func (m *WorkOrderMutation) Priority() (r string, exists bool) {
 // If the WorkOrder object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WorkOrderMutation) OldPriority(ctx context.Context) (v string, err error) {
+func (m *WorkOrderMutation) OldPriority(ctx context.Context) (v workorder.Priority, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldPriority is allowed only on UpdateOne operations")
 	}
@@ -40725,7 +40725,7 @@ func (m *WorkOrderMutation) SetField(name string, value ent.Value) error {
 		m.SetStatus(v)
 		return nil
 	case workorder.FieldPriority:
-		v, ok := value.(string)
+		v, ok := value.(workorder.Priority)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -9,19 +9,18 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/facebookincubator/symphony/pkg/ent/activity"
-
-	"github.com/facebookincubator/symphony/pkg/authz"
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -88,7 +87,7 @@ func workOrderStatusPtr(status models.WorkOrderStatus) *models.WorkOrderStatus {
 	return &status
 }
 
-func workOrderPriorityPtr(priority models.WorkOrderPriority) *models.WorkOrderPriority {
+func workOrderPriorityPtr(priority workorder.Priority) *workorder.Priority {
 	return &priority
 }
 
@@ -319,15 +318,15 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 	name := longWorkOrderName
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
-	pri := models.WorkOrderPriorityLow
+	priority := workorder.PriorityLOW
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name,
 		WorkOrderTypeID: woType.ID,
-		Priority:        &pri,
+		Priority:        &priority,
 	})
 	require.NoError(t, err)
 	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
-	require.EqualValues(t, pri, workOrder.Priority)
+	require.Equal(t, priority, workOrder.Priority)
 
 	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
@@ -341,20 +340,20 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
 		Status:      workOrderStatusPtr(models.WorkOrderStatusPending),
-		Priority:    workOrderPriorityPtr(models.WorkOrderPriorityHigh),
+		Priority:    workOrderPriorityPtr(workorder.PriorityHIGH),
 		Index:       pointer.ToInt(42),
 	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, input)
 	require.NoError(t, err)
-	require.Equal(t, input.Priority.String(), workOrder.Priority)
+	require.Equal(t, *input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 
 	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
 	workOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.Equal(t, input.Priority.String(), workOrder.Priority)
+	require.Equal(t, *input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 }
 
@@ -470,13 +469,13 @@ func TestAddWorkOrderWithActivity(t *testing.T) {
 	act, err := r.client.Activity.Create().
 		SetWorkOrder(w).
 		SetChangedField(activity.ChangedFieldPRIORITY).
-		SetOldValue(models.WorkOrderPriorityLow.String()).
-		SetNewValue(models.WorkOrderPriorityHigh.String()).
+		SetOldValue(workorder.PriorityLOW.String()).
+		SetNewValue(workorder.PriorityHIGH.String()).
 		SetAuthor(v.User()).
 		Save(ctx)
 
 	require.NoError(t, err)
-	assert.Equal(t, models.WorkOrderPriorityHigh.String(), act.NewValue)
+	assert.EqualValues(t, workorder.PriorityHIGH, act.NewValue)
 
 	node, err = qr.Node(ctx, w.ID)
 	require.NoError(t, err)
@@ -484,7 +483,7 @@ func TestAddWorkOrderWithActivity(t *testing.T) {
 	activities, err = w.QueryActivities().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, activities, 1)
-	assert.Equal(t, models.WorkOrderPriorityLow.String(), activities[0].OldValue)
+	assert.EqualValues(t, workorder.PriorityLOW, activities[0].OldValue)
 }
 
 func TestAddWorkOrderNoDescription(t *testing.T) {

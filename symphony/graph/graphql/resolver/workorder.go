@@ -145,10 +145,6 @@ func (workOrderResolver) CheckListCategories(ctx context.Context, obj *ent.WorkO
 	return obj.QueryCheckListCategories().All(ctx)
 }
 
-func (workOrderResolver) Priority(_ context.Context, obj *ent.WorkOrder) (models.WorkOrderPriority, error) {
-	return models.WorkOrderPriority(obj.Priority), nil
-}
-
 func (workOrderResolver) Images(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error) {
 	return obj.QueryFiles().Where(file.Type(models.FileTypeImage.String())).All(ctx)
 }
@@ -233,6 +229,7 @@ func (r mutationResolver) internalAddWorkOrder(
 		WorkOrder.Create().
 		SetName(input.Name).
 		SetTypeID(input.WorkOrderTypeID).
+		SetNillablePriority(input.Priority).
 		SetNillableProjectID(input.ProjectID).
 		SetNillableLocationID(input.LocationID).
 		SetNillableDescription(input.Description).
@@ -244,9 +241,6 @@ func (r mutationResolver) internalAddWorkOrder(
 		if *input.Status == models.WorkOrderStatusDone {
 			mutation.SetCloseDate(time.Now())
 		}
-	}
-	if input.Priority != nil {
-		mutation.SetPriority(input.Priority.String())
 	}
 	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
 	if err != nil {
@@ -295,7 +289,8 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 		UpdateOne(wo).
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
-		SetNillableIndex(input.Index)
+		SetNillableIndex(input.Index).
+		SetNillablePriority(input.Priority)
 
 	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
 	if err != nil {
@@ -322,9 +317,6 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 				mutation.ClearCloseDate()
 			}
 		}
-	}
-	if input.Priority != nil {
-		mutation.SetPriority(input.Priority.String())
 	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)

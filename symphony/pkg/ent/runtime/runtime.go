@@ -1191,10 +1191,6 @@ func init() {
 	workorderDescStatus := workorderFields[1].Descriptor()
 	// workorder.DefaultStatus holds the default value on creation for the status field.
 	workorder.DefaultStatus = workorderDescStatus.Default.(string)
-	// workorderDescPriority is the schema descriptor for priority field.
-	workorderDescPriority := workorderFields[2].Descriptor()
-	// workorder.DefaultPriority holds the default value on creation for the priority field.
-	workorder.DefaultPriority = workorderDescPriority.Default.(string)
 	workorderdefinitionMixin := schema.WorkOrderDefinition{}.Mixin()
 	workorderdefinition.Policy = schema.WorkOrderDefinition{}.Policy()
 	workorderdefinition.Hooks[0] = func(next ent.Mutator) ent.Mutator {

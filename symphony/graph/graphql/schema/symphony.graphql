@@ -1282,7 +1282,10 @@ input PropertyInput {
 """
 Work Order priority
 """
-enum WorkOrderPriority {
+enum WorkOrderPriority
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Priority"
+  ) {
   URGENT
   HIGH
   MEDIUM

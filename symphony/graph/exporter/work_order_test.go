@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -88,7 +89,7 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 	proj, _ := r.Mutation().CreateProject(ctx, projInput)
 
 	st := models.WorkOrderStatusDone
-	prio := models.WorkOrderPriorityHigh
+	priority := workorder.PriorityHIGH
 	woInput1 := models.AddWorkOrderInput{
 		Name:            "WO1",
 		Description:     pointer.ToString("WO1 - description"),
@@ -107,12 +108,12 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		},
 		AssigneeID: &u.ID,
 		Status:     &st,
-		Priority:   &prio,
+		Priority:   &priority,
 	}
 	wo1, _ := r.Mutation().AddWorkOrder(ctx, woInput1)
 
 	st = models.WorkOrderStatusPlanned
-	prio = models.WorkOrderPriorityMedium
+	priority = workorder.PriorityMEDIUM
 	woInput2 := models.AddWorkOrderInput{
 		Name:            "WO2",
 		Description:     pointer.ToString("WO2 - description"),
@@ -130,7 +131,7 @@ func prepareWOData(ctx context.Context, t *testing.T, r TestExporterResolver) wo
 		},
 		AssigneeID: &u2.ID,
 		Status:     &st,
-		Priority:   &prio,
+		Priority:   &priority,
 	}
 	wo2, _ := r.Mutation().AddWorkOrder(ctx, woInput2)
 	/*
@@ -211,7 +212,7 @@ func TestWOExport(t *testing.T) {
 				models.WorkOrderStatusDone.String(),
 				"tester@example.com",
 				viewertest.DefaultUser,
-				models.WorkOrderPriorityHigh.String(),
+				workorder.PriorityHIGH.String(),
 				getStringDate(time.Now()),
 				"",
 				grandParentLocation + "; " + parentLocation,
@@ -228,7 +229,7 @@ func TestWOExport(t *testing.T) {
 				models.WorkOrderStatusPlanned.String(),
 				"tester2@example.com",
 				viewertest.DefaultUser,
-				models.WorkOrderPriorityMedium.String(),
+				workorder.PriorityMEDIUM.String(),
 				getStringDate(time.Now()),
 				"",
 				parentLocation + "; " + childLocation,
@@ -297,7 +298,7 @@ func TestExportWOWithFilters(t *testing.T) {
 				models.WorkOrderStatusDone.String(),
 				"tester@example.com",
 				viewertest.DefaultUser,
-				models.WorkOrderPriorityHigh.String(),
+				workorder.PriorityHIGH.String(),
 				getStringDate(time.Now()),
 				"",
 				grandParentLocation + "; " + parentLocation,

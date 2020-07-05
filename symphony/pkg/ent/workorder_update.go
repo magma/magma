@@ -67,15 +67,15 @@ func (wou *WorkOrderUpdate) SetNillableStatus(s *string) *WorkOrderUpdate {
 }
 
 // SetPriority sets the priority field.
-func (wou *WorkOrderUpdate) SetPriority(s string) *WorkOrderUpdate {
-	wou.mutation.SetPriority(s)
+func (wou *WorkOrderUpdate) SetPriority(w workorder.Priority) *WorkOrderUpdate {
+	wou.mutation.SetPriority(w)
 	return wou
 }
 
 // SetNillablePriority sets the priority field if the given value is not nil.
-func (wou *WorkOrderUpdate) SetNillablePriority(s *string) *WorkOrderUpdate {
-	if s != nil {
-		wou.SetPriority(*s)
+func (wou *WorkOrderUpdate) SetNillablePriority(w *workorder.Priority) *WorkOrderUpdate {
+	if w != nil {
+		wou.SetPriority(*w)
 	}
 	return wou
 }
@@ -571,6 +571,11 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
+	if v, ok := wou.mutation.Priority(); ok {
+		if err := workorder.PriorityValidator(v); err != nil {
+			return 0, &ValidationError{Name: "priority", err: fmt.Errorf("ent: validator failed for field \"priority\": %w", err)}
+		}
+	}
 
 	if _, ok := wou.mutation.OwnerID(); wou.mutation.OwnerCleared() && !ok {
 		return 0, errors.New("ent: clearing a unique edge \"owner\"")
@@ -666,7 +671,7 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := wou.mutation.Priority(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldPriority,
 		})
@@ -1290,15 +1295,15 @@ func (wouo *WorkOrderUpdateOne) SetNillableStatus(s *string) *WorkOrderUpdateOne
 }
 
 // SetPriority sets the priority field.
-func (wouo *WorkOrderUpdateOne) SetPriority(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetPriority(s)
+func (wouo *WorkOrderUpdateOne) SetPriority(w workorder.Priority) *WorkOrderUpdateOne {
+	wouo.mutation.SetPriority(w)
 	return wouo
 }
 
 // SetNillablePriority sets the priority field if the given value is not nil.
-func (wouo *WorkOrderUpdateOne) SetNillablePriority(s *string) *WorkOrderUpdateOne {
-	if s != nil {
-		wouo.SetPriority(*s)
+func (wouo *WorkOrderUpdateOne) SetNillablePriority(w *workorder.Priority) *WorkOrderUpdateOne {
+	if w != nil {
+		wouo.SetPriority(*w)
 	}
 	return wouo
 }
@@ -1794,6 +1799,11 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
+	if v, ok := wouo.mutation.Priority(); ok {
+		if err := workorder.PriorityValidator(v); err != nil {
+			return nil, &ValidationError{Name: "priority", err: fmt.Errorf("ent: validator failed for field \"priority\": %w", err)}
+		}
+	}
 
 	if _, ok := wouo.mutation.OwnerID(); wouo.mutation.OwnerCleared() && !ok {
 		return nil, errors.New("ent: clearing a unique edge \"owner\"")
@@ -1887,7 +1897,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 	}
 	if value, ok := wouo.mutation.Priority(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldPriority,
 		})

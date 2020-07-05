@@ -113,10 +113,18 @@ type WorkOrder struct {
 // Fields returns work order fields.
 func (WorkOrder) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").NotEmpty(),
+		field.String("name").
+			NotEmpty(),
 		field.String("status").
 			Default("PLANNED"),
-		field.String("priority").
+		field.Enum("priority").
+			Values(
+				"URGENT",
+				"HIGH",
+				"MEDIUM",
+				"LOW",
+				"NONE",
+			).
 			Default("NONE"),
 		field.Text("description").
 			Optional(),

@@ -13,6 +13,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/event"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/viewer"
@@ -59,7 +60,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 			require.True(t, a.IsCreate)
 		case activity.ChangedFieldPRIORITY:
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, models.WorkOrderPriorityNone.String())
+			require.EqualValues(t, a.NewValue, workorder.PriorityNONE)
 			require.True(t, a.IsCreate)
 		default:
 			require.Fail(t, "unsupported changed field")

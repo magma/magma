@@ -86,15 +86,15 @@ func (woc *WorkOrderCreate) SetNillableStatus(s *string) *WorkOrderCreate {
 }
 
 // SetPriority sets the priority field.
-func (woc *WorkOrderCreate) SetPriority(s string) *WorkOrderCreate {
-	woc.mutation.SetPriority(s)
+func (woc *WorkOrderCreate) SetPriority(w workorder.Priority) *WorkOrderCreate {
+	woc.mutation.SetPriority(w)
 	return woc
 }
 
 // SetNillablePriority sets the priority field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillablePriority(s *string) *WorkOrderCreate {
-	if s != nil {
-		woc.SetPriority(*s)
+func (woc *WorkOrderCreate) SetNillablePriority(w *workorder.Priority) *WorkOrderCreate {
+	if w != nil {
+		woc.SetPriority(*w)
 	}
 	return woc
 }
@@ -418,6 +418,11 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 		v := workorder.DefaultPriority
 		woc.mutation.SetPriority(v)
 	}
+	if v, ok := woc.mutation.Priority(); ok {
+		if err := workorder.PriorityValidator(v); err != nil {
+			return nil, &ValidationError{Name: "priority", err: fmt.Errorf("ent: validator failed for field \"priority\": %w", err)}
+		}
+	}
 	if _, ok := woc.mutation.CreationDate(); !ok {
 		return nil, &ValidationError{Name: "creation_date", err: errors.New("ent: missing required field \"creation_date\"")}
 	}
@@ -505,7 +510,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 	}
 	if value, ok := woc.mutation.Priority(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldPriority,
 		})

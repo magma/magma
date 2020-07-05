@@ -15,6 +15,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/event"
 	"github.com/facebookincubator/symphony/pkg/log"
 	"github.com/facebookincubator/symphony/pkg/viewer"
@@ -79,7 +80,7 @@ func TestAddWorkOrderActivities(t *testing.T) {
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldPRIORITY:
 			require.Empty(t, a.OldValue)
-			require.Equal(t, a.NewValue, models.WorkOrderPriorityNone.String())
+			require.EqualValues(t, a.NewValue, workorder.PriorityNONE)
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		default:
@@ -113,7 +114,7 @@ func TestEditWorkOrderActivities(t *testing.T) {
 		OwnerID:    &u2.ID,
 		AssigneeID: &u.ID,
 		Status:     workOrderStatusPtr(models.WorkOrderStatusPending),
-		Priority:   workOrderPriorityPtr(models.WorkOrderPriorityHigh),
+		Priority:   workOrderPriorityPtr(workorder.PriorityHIGH),
 	})
 	require.NoError(t, err)
 	activities, err = wor.Activities(ctx, wo)
@@ -160,8 +161,8 @@ func TestEditWorkOrderActivities(t *testing.T) {
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		case activity.ChangedFieldPRIORITY:
-			require.Equal(t, a.NewValue, models.WorkOrderPriorityHigh.String())
-			require.Equal(t, a.OldValue, models.WorkOrderPriorityNone.String())
+			require.EqualValues(t, a.NewValue, workorder.PriorityHIGH)
+			require.EqualValues(t, a.OldValue, workorder.PriorityNONE)
 			require.Nil(t, newNode)
 			require.Nil(t, oldNode)
 		default:

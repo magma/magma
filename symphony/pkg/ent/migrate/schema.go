@@ -1560,7 +1560,7 @@ var (
 		{Name: "update_time", Type: field.TypeTime},
 		{Name: "name", Type: field.TypeString},
 		{Name: "status", Type: field.TypeString, Default: "PLANNED"},
-		{Name: "priority", Type: field.TypeString, Default: "NONE"},
+		{Name: "priority", Type: field.TypeEnum, Enums: []string{"URGENT", "HIGH", "MEDIUM", "LOW", "NONE"}, Default: "NONE"},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "install_date", Type: field.TypeTime, Nullable: true},
 		{Name: "creation_date", Type: field.TypeTime},

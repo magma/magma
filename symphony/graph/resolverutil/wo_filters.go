@@ -5,6 +5,8 @@
 package resolverutil
 
 import (
+	"fmt"
+
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/location"
@@ -118,10 +120,18 @@ func locationInstFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInp
 }
 
 func priorityFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	if filter.Operator == models.FilterOperatorIsOneOf {
-		return q.Where(workorder.PriorityIn(filter.StringSet...)), nil
+	if filter.Operator != models.FilterOperatorIsOneOf {
+		return nil, fmt.Errorf("operation %s is not supported", filter.Operator)
 	}
-	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
+	priorities := make([]workorder.Priority, 0, len(filter.StringSet))
+	for _, str := range filter.StringSet {
+		priority := workorder.Priority(str)
+		if err := workorder.PriorityValidator(priority); err != nil {
+			return nil, fmt.Errorf("%s is not a valid work order priority", str)
+		}
+		priorities = append(priorities, priority)
+	}
+	return q.Where(workorder.PriorityIn(priorities...)), nil
 }
 
 func handleWOLocationFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {

@@ -34,7 +34,7 @@ type WorkOrder struct {
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Priority holds the value of the "priority" field.
-	Priority string `json:"priority,omitempty"`
+	Priority workorder.Priority `json:"priority,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// InstallDate holds the value of the "install_date" field.
@@ -311,7 +311,7 @@ func (wo *WorkOrder) assignValues(values ...interface{}) error {
 	if value, ok := values[4].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field priority", values[4])
 	} else if value.Valid {
-		wo.Priority = value.String
+		wo.Priority = workorder.Priority(value.String)
 	}
 	if value, ok := values[5].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field description", values[5])
@@ -482,7 +482,7 @@ func (wo *WorkOrder) String() string {
 	builder.WriteString(", status=")
 	builder.WriteString(wo.Status)
 	builder.WriteString(", priority=")
-	builder.WriteString(wo.Priority)
+	builder.WriteString(fmt.Sprintf("%v", wo.Priority))
 	builder.WriteString(", description=")
 	builder.WriteString(wo.Description)
 	builder.WriteString(", install_date=")
