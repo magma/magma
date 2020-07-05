@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/ent/schema/index"
 	"github.com/facebookincubator/ent/schema/mixin"
 	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 )
 
 // WorkOrderTemplateMixin defines the work order template mixin schema.
@@ -99,7 +100,7 @@ func (WorkOrderTemplate) Edges() []ent.Edge {
 func (WorkOrderTemplate) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithMutationRules(
-			authz.WorkOrderTemplateWritePolicyRule(),
+			privacy.AlwaysAllowRule(),
 		),
 	)
 }
