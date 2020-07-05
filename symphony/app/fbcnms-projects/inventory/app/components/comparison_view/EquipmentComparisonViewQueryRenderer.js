@@ -78,12 +78,14 @@ const equipmentSearchQuery = graphql`
     $limit: Int
     $filters: [EquipmentFilterInput!]!
   ) {
-    equipmentSearch(limit: $limit, filters: $filters) {
-      equipment {
-        ...PowerSearchEquipmentResultsTable_equipment
-        ...PowerSearchLinkFirstEquipmentResultsTable_equipment
+    equipments(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...PowerSearchEquipmentResultsTable_equipment
+          ...PowerSearchLinkFirstEquipmentResultsTable_equipment
+        }
       }
-      count
+      totalCount
     }
   }
 `;
@@ -165,9 +167,9 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
         render={(
           props: EquipmentComparisonViewQueryRendererSearchQueryResponse,
         ) => {
-          const {count, equipment} = props.equipmentSearch;
-          setCount(count);
-          if (!equipment || equipment.length === 0) {
+          const {totalCount, edges} = props.equipments;
+          setCount(totalCount);
+          if (edges.length === 0) {
             return (
               <div className={classes.noResultsRoot}>
                 <SearchIcon className={classes.searchIcon} />
@@ -178,7 +180,7 @@ const EquipmentComparisonViewQueryRenderer = (props: Props) => {
             );
           }
           return children({
-            equipment,
+            equipment: edges.map(edge => edge.node),
           });
         }}
       />

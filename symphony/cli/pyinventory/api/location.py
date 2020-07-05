@@ -56,8 +56,13 @@ def _get_locations_by_name_and_type(
     result = LocationSearchQuery.execute(
         client, filters=location_filters, limit=LOCATIONS_TO_SEARCH
     )
-
-    return result.locations
+    locations = []
+    if result is not None:
+        for edge in result.edges:
+            node = edge.node
+            if node is not None:
+                locations.append(node)
+    return locations
 
 
 def _get_location_children_by_name_and_type(
@@ -532,23 +537,27 @@ def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Loc
         client, filters=[location_filter], limit=LOCATIONS_TO_SEARCH
     )
 
-    if not location_search_result or location_search_result.count == 0:
+    if not location_search_result or location_search_result.totalCount == 0:
         raise EntityNotFoundError(
             entity=Entity.Location, msg=f"<external_id: {external_id}"
         )
-    if location_search_result.count > 1:
+    if location_search_result.totalCount > 1:
         raise LocationIsNotUniqueException(external_id=external_id)
 
-    location_details = location_search_result.locations[0]
-
-    return Location(
-        name=location_details.name,
-        id=location_details.id,
-        latitude=location_details.latitude,
-        longitude=location_details.longitude,
-        external_id=location_details.externalId,
-        location_type_name=location_details.locationType.name,
-        properties=location_details.properties,
+    for edge in location_search_result.edges:
+        node = edge.node
+        if node is not None:
+            return Location(
+                name=node.name,
+                id=node.id,
+                latitude=node.latitude,
+                longitude=node.longitude,
+                external_id=node.externalId,
+                location_type_name=node.locationType.name,
+                properties=node.properties,
+            )
+    raise EntityNotFoundError(
+        entity=Entity.Location, msg=f"<external_id: {external_id}"
     )
 
 

@@ -37,11 +37,15 @@ const projectSearchQuery = graphql`
     $limit: Int
     $filters: [ProjectFilterInput!]!
   ) {
-    projectSearch(limit: $limit, filters: $filters) {
-      id
-      name
-      type {
-        name
+    projects(first: $limit, filters: $filters) {
+      edges {
+        node {
+          id
+          name
+          type {
+            name
+          }
+        }
       }
     }
   }
@@ -57,16 +61,18 @@ class ProjectTypeahead extends React.Component<Props, State> {
       limit: 1000,
       filters: [],
     }).then(response => {
-      if (!response || !response.projectSearch) {
+      if (!response) {
         return;
       }
       this.setState({
-        projects: response.projectSearch.map(p => ({
-          name: p.name,
-          entityId: p.id,
-          entityType: 'project',
-          type: p?.type.name,
-        })),
+        projects: response.projects.edges
+          .map(edge => edge.node)
+          .map(p => ({
+            name: p.name,
+            entityId: p.id,
+            entityType: 'project',
+            type: p?.type.name,
+          })),
       });
     });
   }

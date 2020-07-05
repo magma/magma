@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash bde05c183074e1f1927ae0a84935d744
+ * @relayHash 44a828dd0e4352d88da39f28c0ca9152
  */
 
 /* eslint-disable */
@@ -55,11 +55,13 @@ export type EquipmentComparisonViewQueryRendererSearchQueryVariables = {|
   filters: $ReadOnlyArray<EquipmentFilterInput>,
 |};
 export type EquipmentComparisonViewQueryRendererSearchQueryResponse = {|
-  +equipmentSearch: {|
-    +equipment: $ReadOnlyArray<?{|
-      +$fragmentRefs: PowerSearchEquipmentResultsTable_equipment$ref & PowerSearchLinkFirstEquipmentResultsTable_equipment$ref
+  +equipments: {|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +$fragmentRefs: PowerSearchEquipmentResultsTable_equipment$ref & PowerSearchLinkFirstEquipmentResultsTable_equipment$ref
+      |}
     |}>,
-    +count: number,
+    +totalCount: number,
   |}
 |};
 export type EquipmentComparisonViewQueryRendererSearchQuery = {|
@@ -74,13 +76,15 @@ query EquipmentComparisonViewQueryRendererSearchQuery(
   $limit: Int
   $filters: [EquipmentFilterInput!]!
 ) {
-  equipmentSearch(limit: $limit, filters: $filters) {
-    equipment {
-      ...PowerSearchEquipmentResultsTable_equipment
-      ...PowerSearchLinkFirstEquipmentResultsTable_equipment
-      id
+  equipments(first: $limit, filters: $filters) {
+    edges {
+      node {
+        ...PowerSearchEquipmentResultsTable_equipment
+        ...PowerSearchLinkFirstEquipmentResultsTable_equipment
+        id
+      }
     }
-    count
+    totalCount
   }
 }
 
@@ -168,14 +172,14 @@ v1 = [
   },
   {
     "kind": "Variable",
-    "name": "limit",
+    "name": "first",
     "variableName": "limit"
   }
 ],
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "count",
+  "name": "totalCount",
   "args": null,
   "storageKey": null
 },
@@ -218,30 +222,41 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "equipmentSearch",
+        "name": "equipments",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "EquipmentSearchResult",
+        "concreteType": "EquipmentConnection",
         "plural": false,
         "selections": [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "equipment",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "Equipment",
+            "concreteType": "EquipmentEdge",
             "plural": true,
             "selections": [
               {
-                "kind": "FragmentSpread",
-                "name": "PowerSearchEquipmentResultsTable_equipment",
-                "args": null
-              },
-              {
-                "kind": "FragmentSpread",
-                "name": "PowerSearchLinkFirstEquipmentResultsTable_equipment",
-                "args": null
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "node",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Equipment",
+                "plural": false,
+                "selections": [
+                  {
+                    "kind": "FragmentSpread",
+                    "name": "PowerSearchEquipmentResultsTable_equipment",
+                    "args": null
+                  },
+                  {
+                    "kind": "FragmentSpread",
+                    "name": "PowerSearchLinkFirstEquipmentResultsTable_equipment",
+                    "args": null
+                  }
+                ]
               }
             ]
           },
@@ -258,108 +273,61 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "equipmentSearch",
+        "name": "equipments",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "EquipmentSearchResult",
+        "concreteType": "EquipmentConnection",
         "plural": false,
         "selections": [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "equipment",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "Equipment",
+            "concreteType": "EquipmentEdge",
             "plural": true,
             "selections": [
-              (v3/*: any*/),
-              (v4/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "futureState",
-                "args": null,
-                "storageKey": null
-              },
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "externalId",
-                "args": null,
-                "storageKey": null
-              },
-              (v5/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "workOrder",
+                "name": "node",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "WorkOrder",
+                "concreteType": "Equipment",
                 "plural": false,
-                "selections": [
-                  (v3/*: any*/),
-                  {
-                    "kind": "ScalarField",
-                    "alias": null,
-                    "name": "status",
-                    "args": null,
-                    "storageKey": null
-                  }
-                ]
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "locationHierarchy",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "Location",
-                "plural": true,
                 "selections": [
                   (v3/*: any*/),
                   (v4/*: any*/),
                   {
-                    "kind": "LinkedField",
+                    "kind": "ScalarField",
                     "alias": null,
-                    "name": "locationType",
-                    "storageKey": null,
+                    "name": "futureState",
                     "args": null,
-                    "concreteType": "LocationType",
-                    "plural": false,
-                    "selections": [
-                      (v4/*: any*/),
-                      (v3/*: any*/)
-                    ]
-                  }
-                ]
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "positionHierarchy",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "EquipmentPosition",
-                "plural": true,
-                "selections": [
-                  (v3/*: any*/),
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "externalId",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  (v5/*: any*/),
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "definition",
+                    "name": "workOrder",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "EquipmentPositionDefinition",
+                    "concreteType": "WorkOrder",
                     "plural": false,
                     "selections": [
                       (v3/*: any*/),
-                      (v4/*: any*/),
                       {
                         "kind": "ScalarField",
                         "alias": null,
-                        "name": "visibleLabel",
+                        "name": "status",
                         "args": null,
                         "storageKey": null
                       }
@@ -368,15 +336,73 @@ return {
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "parentEquipment",
+                    "name": "locationHierarchy",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "Equipment",
-                    "plural": false,
+                    "concreteType": "Location",
+                    "plural": true,
                     "selections": [
                       (v3/*: any*/),
                       (v4/*: any*/),
-                      (v5/*: any*/)
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "locationType",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "LocationType",
+                        "plural": false,
+                        "selections": [
+                          (v4/*: any*/),
+                          (v3/*: any*/)
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "positionHierarchy",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "EquipmentPosition",
+                    "plural": true,
+                    "selections": [
+                      (v3/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "definition",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "EquipmentPositionDefinition",
+                        "plural": false,
+                        "selections": [
+                          (v3/*: any*/),
+                          (v4/*: any*/),
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "visibleLabel",
+                            "args": null,
+                            "storageKey": null
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "parentEquipment",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "Equipment",
+                        "plural": false,
+                        "selections": [
+                          (v3/*: any*/),
+                          (v4/*: any*/),
+                          (v5/*: any*/)
+                        ]
+                      }
                     ]
                   }
                 ]
@@ -392,11 +418,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query EquipmentComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipmentSearch(limit: $limit, filters: $filters) {\n    equipment {\n      ...PowerSearchEquipmentResultsTable_equipment\n      ...PowerSearchLinkFirstEquipmentResultsTable_equipment\n      id\n    }\n    count\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  externalId\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n\nfragment PowerSearchLinkFirstEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n",
+    "text": "query EquipmentComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipments(first: $limit, filters: $filters) {\n    edges {\n      node {\n        ...PowerSearchEquipmentResultsTable_equipment\n        ...PowerSearchLinkFirstEquipmentResultsTable_equipment\n        id\n      }\n    }\n    totalCount\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n\nfragment PowerSearchEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  externalId\n  equipmentType {\n    id\n    name\n  }\n  workOrder {\n    id\n    status\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n\nfragment PowerSearchLinkFirstEquipmentResultsTable_equipment on Equipment {\n  id\n  name\n  futureState\n  equipmentType {\n    id\n    name\n  }\n  ...EquipmentBreadcrumbs_equipment\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '0e1ee3f2c1d64ed0562254b12927776f';
+(node/*: any*/).hash = 'df5b73b737113de63f33ee3e558bb253';
 module.exports = node;

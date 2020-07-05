@@ -90,14 +90,16 @@ const steps = [
 
 const addEndpointToServiceDialogQuery = graphql`
   query AddEndpointToServiceDialogQuery($filters: [PortFilterInput!]!) {
-    portSearch(filters: $filters, limit: 50) {
-      ports {
-        id
-        definition {
+    equipmentPorts(filters: $filters, first: 50) {
+      edges {
+        node {
           id
-          name
+          definition {
+            id
+            name
+          }
+          ...AvailablePortsTable_ports
         }
-        ...AvailablePortsTable_ports
       }
     }
   }
@@ -175,11 +177,11 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
               ],
             }}
             render={props => {
-              const {portSearch} = props;
+              const {ports} = props.ports;
               return (
                 <AvailablePortsTable
                   equipment={nullthrows(this.state.activeEquipement)}
-                  ports={portSearch.ports}
+                  ports={ports.edges.map(edge => edge.node)}
                   selectedPort={this.state.activePort}
                   onPortSelected={this.handlePortSelected}
                 />

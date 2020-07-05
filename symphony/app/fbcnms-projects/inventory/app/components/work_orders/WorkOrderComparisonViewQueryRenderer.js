@@ -55,11 +55,13 @@ const workOrderSearchQuery = graphql`
     $limit: Int
     $filters: [WorkOrderFilterInput!]!
   ) {
-    workOrderSearch(limit: $limit, filters: $filters) {
-      count
-      workOrders {
-        ...WorkOrdersView_workOrder
-        ...WorkOrdersMap_workOrders
+    workOrders(first: $limit, filters: $filters) {
+      totalCount
+      edges {
+        node {
+          ...WorkOrdersView_workOrder
+          ...WorkOrdersMap_workOrders
+        }
       }
     }
   }
@@ -91,11 +93,12 @@ const WorkOrderComparisonViewQueryRenderer = (props: Props) => {
         })),
       }}
       render={props => {
-        const {count, workOrders} = props.workOrderSearch;
-        onQueryReturn && onQueryReturn(count);
-        if (count === 0) {
+        const {totalCount, edges} = props.workOrders;
+        onQueryReturn && onQueryReturn(totalCount);
+        if (totalCount === 0) {
           return <ComparisonViewNoResults />;
         }
+        const workOrders = edges.map(edge => edge.node);
         return (
           <div className={classNames(classes.root, className)}>
             {displayMode === DisplayOptions.map ? (

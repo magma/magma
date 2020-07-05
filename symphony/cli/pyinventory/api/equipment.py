@@ -163,24 +163,26 @@ def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Eq
         stringSet=[],
     )
 
-    equipments = EquipmentSearchQuery.execute(
-        client, filters=[equipment_filter], limit=5
-    )
+    res = EquipmentSearchQuery.execute(client, filters=[equipment_filter], limit=5)
 
-    if not equipments or equipments.count == 0:
+    if not res or res.totalCount == 0:
         raise EntityNotFoundError(
             entity=Entity.Equipment, msg=f"external_id={external_id}"
         )
 
-    if equipments.count > 1:
+    if res.totalCount > 1:
         raise EquipmentIsNotUniqueException(external_id)
 
-    return Equipment(
-        id=equipments.equipment[0].id,
-        external_id=equipments.equipment[0].externalId,
-        name=equipments.equipment[0].name,
-        equipment_type_name=equipments.equipment[0].equipmentType.name,
-    )
+    for edge in res.edges:
+        node = edge.node
+        if node is not None:
+            return Equipment(
+                id=node.id,
+                external_id=node.externalId,
+                name=node.name,
+                equipment_type_name=node.equipmentType.name,
+            )
+    raise EntityNotFoundError(entity=Entity.Equipment, msg=f"external_id={external_id}")
 
 
 def get_equipment_properties(
@@ -620,16 +622,19 @@ def search_for_equipments(
     """
     equipments_result = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
 
-    total_count = equipments_result.count
-    equipments = [
-        Equipment(
-            id=equipment.id,
-            external_id=equipment.externalId,
-            name=equipment.name,
-            equipment_type_name=equipment.equipmentType.name,
-        )
-        for equipment in equipments_result.equipment
-    ]
+    total_count = equipments_result.totalCount
+    equipments = []
+    for edge in equipments_result.edges:
+        node = edge.node
+        if node is not None:
+            equipments.append(
+                Equipment(
+                    id=node.id,
+                    external_id=node.externalId,
+                    name=node.name,
+                    equipment_type_name=node.equipmentType.name,
+                )
+            )
     return equipments, total_count
 
 

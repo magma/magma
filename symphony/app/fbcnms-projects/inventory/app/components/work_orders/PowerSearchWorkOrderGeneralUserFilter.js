@@ -20,10 +20,12 @@ const usersQuery = graphql`
   query PowerSearchWorkOrderGeneralUserFilter_userQuery(
     $filters: [UserFilterInput!]!
   ) {
-    userSearch(limit: 10, filters: $filters) {
-      users {
-        id
-        email
+    users(first: 10, filters: $filters) {
+      edges {
+        node {
+          id
+          email
+        }
       }
     }
   }
@@ -63,10 +65,12 @@ const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
       ],
     }).then(data => {
       setSearchEntries(
-        (data.userSearch.users ?? []).map(user => ({
-          id: user.id,
-          label: user.email,
-        })),
+        (data.users.edges ?? [])
+          .map(edge => edge.node)
+          .map(user => ({
+            id: user.id,
+            label: user.email,
+          })),
       );
     });
 

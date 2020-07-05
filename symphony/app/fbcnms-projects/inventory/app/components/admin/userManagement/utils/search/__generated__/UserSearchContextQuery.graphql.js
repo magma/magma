@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash ad4256ec726d58d6f64ec6c685565fff
+ * @relayHash 626dab66e64ab230822822e758c5ed1f
  */
 
 /* eslint-disable */
@@ -56,21 +56,23 @@ export type UserSearchContextQueryVariables = {|
   filters: $ReadOnlyArray<UserFilterInput>
 |};
 export type UserSearchContextQueryResponse = {|
-  +userSearch: {|
-    +users: $ReadOnlyArray<?{|
-      +id: string,
-      +authID: string,
-      +firstName: string,
-      +lastName: string,
-      +email: string,
-      +status: UserStatus,
-      +role: UserRole,
-      +groups: $ReadOnlyArray<?{|
+  +users: ?{|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
         +id: string,
-        +name: string,
-        +description: ?string,
-        +status: UsersGroupStatus,
-      |}>,
+        +authID: string,
+        +firstName: string,
+        +lastName: string,
+        +email: string,
+        +status: UserStatus,
+        +role: UserRole,
+        +groups: $ReadOnlyArray<?{|
+          +id: string,
+          +name: string,
+          +description: ?string,
+          +status: UsersGroupStatus,
+        |}>,
+      |}
     |}>
   |}
 |};
@@ -85,20 +87,22 @@ export type UserSearchContextQuery = {|
 query UserSearchContextQuery(
   $filters: [UserFilterInput!]!
 ) {
-  userSearch(filters: $filters) {
-    users {
-      id
-      authID
-      firstName
-      lastName
-      email
-      status
-      role
-      groups {
+  users(first: 500, filters: $filters) {
+    edges {
+      node {
         id
-        name
-        description
+        authID
+        firstName
+        lastName
+        email
         status
+        role
+        groups {
+          id
+          name
+          description
+          status
+        }
       }
     }
   }
@@ -132,89 +136,105 @@ v3 = [
   {
     "kind": "LinkedField",
     "alias": null,
-    "name": "userSearch",
+    "name": "users",
     "storageKey": null,
     "args": [
       {
         "kind": "Variable",
         "name": "filters",
         "variableName": "filters"
+      },
+      {
+        "kind": "Literal",
+        "name": "first",
+        "value": 500
       }
     ],
-    "concreteType": "UserSearchResult",
+    "concreteType": "UserConnection",
     "plural": false,
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "users",
+        "name": "edges",
         "storageKey": null,
         "args": null,
-        "concreteType": "User",
+        "concreteType": "UserEdge",
         "plural": true,
         "selections": [
-          (v1/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "authID",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "firstName",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "lastName",
-            "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "email",
-            "args": null,
-            "storageKey": null
-          },
-          (v2/*: any*/),
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "role",
-            "args": null,
-            "storageKey": null
-          },
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "groups",
+            "name": "node",
             "storageKey": null,
             "args": null,
-            "concreteType": "UsersGroup",
-            "plural": true,
+            "concreteType": "User",
+            "plural": false,
             "selections": [
               (v1/*: any*/),
               {
                 "kind": "ScalarField",
                 "alias": null,
-                "name": "name",
+                "name": "authID",
                 "args": null,
                 "storageKey": null
               },
               {
                 "kind": "ScalarField",
                 "alias": null,
-                "name": "description",
+                "name": "firstName",
                 "args": null,
                 "storageKey": null
               },
-              (v2/*: any*/)
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "lastName",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "email",
+                "args": null,
+                "storageKey": null
+              },
+              (v2/*: any*/),
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "role",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "groups",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "UsersGroup",
+                "plural": true,
+                "selections": [
+                  (v1/*: any*/),
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "name",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "description",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  (v2/*: any*/)
+                ]
+              }
             ]
           }
         ]
@@ -242,11 +262,11 @@ return {
     "operationKind": "query",
     "name": "UserSearchContextQuery",
     "id": null,
-    "text": "query UserSearchContextQuery(\n  $filters: [UserFilterInput!]!\n) {\n  userSearch(filters: $filters) {\n    users {\n      id\n      authID\n      firstName\n      lastName\n      email\n      status\n      role\n      groups {\n        id\n        name\n        description\n        status\n      }\n    }\n  }\n}\n",
+    "text": "query UserSearchContextQuery(\n  $filters: [UserFilterInput!]!\n) {\n  users(first: 500, filters: $filters) {\n    edges {\n      node {\n        id\n        authID\n        firstName\n        lastName\n        email\n        status\n        role\n        groups {\n          id\n          name\n          description\n          status\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '95538f86ea7e0a842f8f24b25b6c0b41';
+(node/*: any*/).hash = '86669a0683fb633844dccfbe1f0d7ff2';
 module.exports = node;

@@ -64,6 +64,10 @@ func (r queryResolver) Locations(
 	filters []*models.LocationFilterInput,
 ) (*ent.LocationConnection, error) {
 	query := r.ClientFrom(ctx).Location.Query()
+	query, err := resolverutil.LocationFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	if pointer.GetBool(onlyTopLevel) {
 		query = query.Where(location.Not(location.HasParent()))
 	}

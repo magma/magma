@@ -10482,44 +10482,66 @@ type Query {
   equipmentSearch(
     filters: [EquipmentFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): EquipmentSearchResult!
+  ): EquipmentSearchResult! @deprecated(
+    reason: "Use ` + "`" + `equipments` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): WorkOrderSearchResult!
+  ): WorkOrderSearchResult! @deprecated(
+    reason: "Use ` + "`" + `workOrders` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   linkSearch(
     filters: [LinkFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): LinkSearchResult!
+  ): LinkSearchResult! @deprecated(
+    reason: "Use ` + "`" + `links` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   portSearch(
     filters: [PortFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): PortSearchResult!
+  ): PortSearchResult! @deprecated(
+    reason: "Use ` + "`" + `equipmentPorts` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   locationSearch(
     filters: [LocationFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): LocationSearchResult!
+  ): LocationSearchResult! @deprecated(
+    reason: "Use ` + "`" + `locations` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   projectSearch(
     filters: [ProjectFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): [Project]!
-  customerSearch(limit: Int = 500 @numberValue(min: 0)): [Customer]!
+  ): [Project]! @deprecated(
+    reason: "Use ` + "`" + `projects` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
+  customerSearch(limit: Int = 500 @numberValue(min: 0)): [Customer]! @deprecated(
+    reason: "Use ` + "`" + `customers` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   serviceSearch(
     filters: [ServiceFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): ServiceSearchResult!
+  ): ServiceSearchResult! @deprecated(
+    reason: "Use ` + "`" + `services` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   userSearch(
     filters: [UserFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): UserSearchResult!
+  ): UserSearchResult! @deprecated(
+    reason: "Use ` + "`" + `users` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   permissionsPolicySearch(
     filters: [PermissionsPolicyFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): PermissionsPolicySearchResult!
+  ): PermissionsPolicySearchResult! @deprecated(
+    reason: "Use ` + "`" + `permissionsPolicies` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
-  ): UsersGroupSearchResult!
+  ): UsersGroupSearchResult! @deprecated(
+    reason: "Use ` + "`" + `usersGroups` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult

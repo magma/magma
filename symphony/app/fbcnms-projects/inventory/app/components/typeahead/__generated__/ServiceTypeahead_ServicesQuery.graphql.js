@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 66eda8a3906b4fe36f338c52483e554c
+ * @relayHash b5495998d6cec0f739f69112b5885992
  */
 
 /* eslint-disable */
@@ -53,10 +53,12 @@ export type ServiceTypeahead_ServicesQueryVariables = {|
   limit?: ?number,
 |};
 export type ServiceTypeahead_ServicesQueryResponse = {|
-  +serviceSearch: {|
-    +services: $ReadOnlyArray<?{|
-      +id: string,
-      +name: string,
+  +services: {|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +id: string,
+        +name: string,
+      |}
     |}>
   |}
 |};
@@ -72,10 +74,12 @@ query ServiceTypeahead_ServicesQuery(
   $filters: [ServiceFilterInput!]!
   $limit: Int
 ) {
-  serviceSearch(filters: $filters, limit: $limit) {
-    services {
-      id
-      name
+  services(filters: $filters, first: $limit) {
+    edges {
+      node {
+        id
+        name
+      }
     }
   }
 }
@@ -100,7 +104,7 @@ v1 = [
   {
     "kind": "LinkedField",
     "alias": null,
-    "name": "serviceSearch",
+    "name": "services",
     "storageKey": null,
     "args": [
       {
@@ -110,35 +114,46 @@ v1 = [
       },
       {
         "kind": "Variable",
-        "name": "limit",
+        "name": "first",
         "variableName": "limit"
       }
     ],
-    "concreteType": "ServiceSearchResult",
+    "concreteType": "ServiceConnection",
     "plural": false,
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "services",
+        "name": "edges",
         "storageKey": null,
         "args": null,
-        "concreteType": "Service",
+        "concreteType": "ServiceEdge",
         "plural": true,
         "selections": [
           {
-            "kind": "ScalarField",
+            "kind": "LinkedField",
             "alias": null,
-            "name": "id",
+            "name": "node",
+            "storageKey": null,
             "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "name",
-            "args": null,
-            "storageKey": null
+            "concreteType": "Service",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "id",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "name",
+                "args": null,
+                "storageKey": null
+              }
+            ]
           }
         ]
       }
@@ -165,11 +180,11 @@ return {
     "operationKind": "query",
     "name": "ServiceTypeahead_ServicesQuery",
     "id": null,
-    "text": "query ServiceTypeahead_ServicesQuery(\n  $filters: [ServiceFilterInput!]!\n  $limit: Int\n) {\n  serviceSearch(filters: $filters, limit: $limit) {\n    services {\n      id\n      name\n    }\n  }\n}\n",
+    "text": "query ServiceTypeahead_ServicesQuery(\n  $filters: [ServiceFilterInput!]!\n  $limit: Int\n) {\n  services(filters: $filters, first: $limit) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'e7811185c06ef9a240fecd3d4fb3dd00';
+(node/*: any*/).hash = 'a4c43d130fe4ce77d6e4f875b9c16aa2';
 module.exports = node;
