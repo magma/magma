@@ -7688,7 +7688,7 @@ type Location implements Node & NamedNode {
   images: [File]!
   files: [File]!
   siteSurveyNeeded: Boolean!
-  topology(depth: Int! = 3 @numberValue(min: 0)): NetworkTopology!
+  topology(depth: Int! = 3 @numberValue(min: 0, max: 10)): NetworkTopology!
   locationHierarchy: [Location!]!
   surveys: [Survey]!
   wifiData: [SurveyWiFiScan]!
@@ -10777,6 +10777,10 @@ func (ec *executionContext) field_Location_topology_args(ctx context.Context, ra
 	if tmp, ok := rawArgs["depth"]; ok {
 		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNInt2int(ctx, tmp) }
 		directive1 := func(ctx context.Context) (interface{}, error) {
+			max, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 10)
+			if err != nil {
+				return nil, err
+			}
 			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
 			if err != nil {
 				return nil, err
@@ -10784,7 +10788,7 @@ func (ec *executionContext) field_Location_topology_args(ctx context.Context, ra
 			if ec.directives.NumberValue == nil {
 				return nil, errors.New("directive numberValue is not implemented")
 			}
-			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, max, min, nil, nil, nil, nil)
 		}
 
 		tmp, err = directive1(ctx)
