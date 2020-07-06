@@ -34,6 +34,9 @@ aliases:
   - &appdir
     working_directory: app
 
+  - &invdir
+    working_directory: app/fbcnms-projects/inventory
+
   - &clidir
     working_directory: cli
 
@@ -656,6 +659,22 @@ jobs:
           <<: *appdir
           command: yarn run eslint ./
 
+  test-relay-build:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: Run Relay Build Check
+          <<: *invdir
+          command: |
+            yarn relay_oss
+            repo_status=$(git status | wc -l)
+            if [ "$repo_status" -ne 2 ]; then
+              echo "'yarn relay_oss' modified changes. Please run 'yarn relay_oss' from /fbcnms-projects/inventory" >&2
+              exit 1
+            fi
+
   npm-publish-alarms:
     executor: yarnnode
     steps:
@@ -697,6 +716,7 @@ workflows:
       - pdoctest
       - blacktest
       - flake8test
+      - test-relay-build
       - eslint:
           <<: *onlypr
       - unit
