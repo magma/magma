@@ -73,6 +73,9 @@ sudo service magma@redis start
 redis-cli -p 6380 FLUSHALL
 sudo service magma@redis stop
 
+# force restart sctpd so that eNB connections are reset
+sudo service sctpd restart
+
 sudo service magma@magmad start
 # Sleep for a bit so OVS and Magma services come up before proceeding
 sleep 15
