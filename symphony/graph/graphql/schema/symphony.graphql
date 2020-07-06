@@ -2925,7 +2925,6 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    showCompleted: Boolean
     filters: [WorkOrderFilterInput!]
   ): WorkOrderConnection!
   workOrderTypes(

@@ -23,7 +23,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/reportfilter"
 	"github.com/facebookincubator/symphony/pkg/ent/service"
 	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
-	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"go.uber.org/zap"
 )
@@ -156,19 +155,12 @@ func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
-	showCompleted *bool,
 	filters []*models.WorkOrderFilterInput,
 ) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
 	query, err := resolverutil.WorkOrderFilter(query, filters)
 	if err != nil {
 		return nil, err
-	}
-	if pointer.GetBool(showCompleted) {
-		query = query.Where(workorder.StatusIn(
-			workorder.StatusPENDING,
-			workorder.StatusPLANNED,
-		))
 	}
 	return query.Paginate(ctx, after, first, before, last)
 }
