@@ -14,8 +14,7 @@ import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
-
-class TestAttachUlUdpDataWithMobilitydRestart(unittest.TestCase):
+class TestAttachUlUdpDataWithSessiondRestart(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
@@ -26,7 +25,7 @@ class TestAttachUlUdpDataWithMobilitydRestart(unittest.TestCase):
 
     def test_attach_ul_udp_data(self):
         """
-        Attach, send UL UDP data, restart Mobilityd and
+        Attach, send UL UDP data, restart Sessiond and
         send UL UDP data again
         """
         self._s1ap_wrapper.configUEDevice(1)
@@ -48,9 +47,9 @@ class TestAttachUlUdpDataWithMobilitydRestart(unittest.TestCase):
                 req, duration=1, is_udp=True) as test:
             test.verify()
 
-        print("************************* Restarting Mobilityd service",
+        print("************************* Restarting Sessiond service",
               "on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mobilityd"])
+        self._s1ap_wrapper.magmad_util.restart_services(["sessiond"])
 
         for j in range(30):
             print("Waiting for", j, "seconds")
