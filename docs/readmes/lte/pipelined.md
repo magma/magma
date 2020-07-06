@@ -142,7 +142,7 @@ Table numbers are dynamically assigned to these services and depenedent on the o
     |                             |     |                             |
     -------------------------------     -------------------------------
                   |
-                  | In relay mode only  -------------------------------
+                  |                     -------------------------------
                   --------------------->|       Scratch Table 2       |
                                         |      enforcement stats      |
                                         |- Keeps track of flow stats  |
