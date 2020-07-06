@@ -1170,6 +1170,9 @@ func init() {
 			return next.Mutate(ctx, m)
 		})
 	}
+	workorderHooks := schema.WorkOrder{}.Hooks()
+
+	workorder.Hooks[1] = workorderHooks[0]
 	workorderMixinFields0 := workorderMixin[0].Fields()
 	workorderFields := schema.WorkOrder{}.Fields()
 	_ = workorderFields

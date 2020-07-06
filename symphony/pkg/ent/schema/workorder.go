@@ -12,6 +12,7 @@ import (
 	"github.com/facebookincubator/ent/schema/mixin"
 	"github.com/facebookincubator/symphony/pkg/authz"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+	"github.com/facebookincubator/symphony/pkg/hooks"
 )
 
 // WorkOrderTemplateMixin defines the work order template mixin schema.
@@ -189,6 +190,13 @@ func (WorkOrder) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("creation_date"),
 		index.Fields("close_date"),
+	}
+}
+
+// Hooks returns work order hooks.
+func (WorkOrder) Hooks() []ent.Hook {
+	return []ent.Hook{
+		hooks.WorkOrderCloseDateHook(),
 	}
 }
 

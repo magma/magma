@@ -233,9 +233,6 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetCreationDate(time.Now()).
 		SetNillableIndex(input.Index).
 		SetNillableAssigneeID(assigneeID)
-	if input.Status != nil && *input.Status == workorder.StatusDONE {
-		mutation.SetCloseDate(time.Now())
-	}
 	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
 	if err != nil {
 		return nil, err
@@ -302,13 +299,6 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 	}
 	if ownerID != nil {
 		mutation.SetOwnerID(*ownerID)
-	}
-	if input.Status != nil && *input.Status != wo.Status {
-		if *input.Status == workorder.StatusDONE {
-			mutation.SetCloseDate(time.Now())
-		} else {
-			mutation.ClearCloseDate()
-		}
 	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)
