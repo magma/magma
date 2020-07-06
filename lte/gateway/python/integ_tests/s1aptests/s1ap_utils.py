@@ -507,7 +507,7 @@ class MagmadUtil(object):
             + '"Backup file not present for restoring MME configuration"; fi;'
         )
 
-    def clear_default_plmn_tac_configuration(self):
+    def remove_default_plmn_tac_configuration(self):
         """
         Remove default PLMN and TAC from MME configuration file
         """

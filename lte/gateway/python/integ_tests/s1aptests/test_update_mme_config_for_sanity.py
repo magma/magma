@@ -28,7 +28,7 @@ class TestUpdateMMEConfigForSanity(unittest.TestCase):
         self._magmad_util.create_mme_config_backup()
 
         # Clear the default PLMN & TAC configuration and update the new values
-        self._magmad_util.clear_default_plmn_tac_configuration()
+        self._magmad_util.remove_default_plmn_tac_configuration()
         self._magmad_util.configure_multiple_plmn_tac()
 
         # Reduce the mobile reachability timer to 1 minute, so that it can
