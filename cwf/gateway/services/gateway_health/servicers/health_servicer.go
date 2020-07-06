@@ -13,6 +13,7 @@ import (
 	"fmt"
 
 	"magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/gateway/services/gateway_health/events"
 	"magma/cwf/gateway/services/gateway_health/health/gre_probe"
 	"magma/cwf/gateway/services/gateway_health/health/service_health"
 	"magma/cwf/gateway/services/gateway_health/health/system_health"
@@ -59,19 +60,23 @@ func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.Disable
 	ret := &orcprotos.Void{}
 	err := s.systemHealth.Disable()
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
 		return ret, err
 	}
 	// Stop the RADIUS server so that the WLC perceives it as down.
 	err = s.serviceHealth.Stop(radiusServiceName)
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
 		return ret, err
 	}
 	// Restart the AAA server to clear in-memory sessions
 	err = s.serviceHealth.Restart(aaaServiceName)
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
 		return ret, err
 	}
 	s.greProbe.Stop()
+	events.LogGatewayHealthSuccessEvent(events.GatewayDemotionSucceededEvent)
 	return ret, nil
 }
 
@@ -81,17 +86,26 @@ func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void)
 	ret := &orcprotos.Void{}
 	err := s.systemHealth.Enable()
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
 	err = s.serviceHealth.Restart(sessiondServiceName)
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
 	err = s.serviceHealth.Restart(radiusServiceName)
 	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
-	return ret, s.greProbe.Start()
+	err = s.greProbe.Start()
+	if err != nil {
+		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
+		return ret, err
+	}
+	events.LogGatewayHealthSuccessEvent(events.GatewayPromotionSucceededEvent)
+	return ret, nil
 }
 
 // GetHealthStatus retrieves a health status object which contains the current

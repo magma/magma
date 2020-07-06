@@ -39,6 +39,7 @@ COPY lte/gateway/deploy/roles/dev_common/files/build_swagger_codegen.sh /var/tmp
 RUN ./var/tmp/build_swagger_codegen.sh
 
 # Generate python proto bindings.
+COPY cwf/swagger $MAGMA_ROOT/cwf/swagger
 COPY feg/protos $MAGMA_ROOT/feg/protos
 COPY feg/swagger $MAGMA_ROOT/feg/swagger
 COPY lte/gateway/python/defs.mk $MAGMA_ROOT/lte/gateway/python/defs.mk
@@ -51,7 +52,7 @@ COPY orc8r/swagger $MAGMA_ROOT/orc8r/swagger
 COPY orc8r/tools/ansible/roles/fluent_bit/files $MAGMA_ROOT/orc8r/tools/ansible/roles/fluent_bit/files
 COPY protos $MAGMA_ROOT/protos
 RUN make -C $MAGMA_ROOT/lte/gateway/python protos
-ENV SWAGGER_LIST lte_swagger_specs feg_swagger_specs orc8r_swagger_specs
+ENV SWAGGER_LIST lte_swagger_specs feg_swagger_specs cwf_swagger_specs orc8r_swagger_specs
 RUN make -C $MAGMA_ROOT/orc8r/gateway/python swagger
 
 # -----------------------------------------------------------------------------

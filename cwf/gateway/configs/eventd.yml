@@ -44,3 +44,16 @@ event_registry:
   session_termination_failed:
     module: feg
     filename: aaa_server_events.v1.yml
+  gateway_promotion_succeeded:
+    module: cwf
+    filename: health_events.v1.yml
+  gateway_promotion_failed:
+    module: cwf
+    filename: health_events.v1.yml
+  gateway_demotion_succeded:
+    module: cwf
+    filename: health_events.v1.yml
+  gateway_demotion_failed:
+    module: cwf
+    filename: health_events.v1.yml
+
