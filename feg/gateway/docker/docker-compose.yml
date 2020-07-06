@@ -71,6 +71,7 @@ services:
 
   health:
     <<: *goservice
+    volumes: *snowflake_volumes
     container_name: health
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
