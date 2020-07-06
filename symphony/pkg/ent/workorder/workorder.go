@@ -8,6 +8,7 @@ package workorder
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -268,4 +269,53 @@ func PriorityValidator(pr Priority) error {
 	default:
 		return fmt.Errorf("workorder: invalid enum value for priority field: %q", pr)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, s)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (pr Priority) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, pr)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (pr *Priority) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*pr = Priority(str)
+	if err := PriorityValidator(*pr); err != nil {
+		return fmt.Errorf("%s is not a valid Priority", str)
+	}
+	return nil
 }

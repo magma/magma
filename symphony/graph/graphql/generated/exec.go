@@ -54444,18 +54444,12 @@ func (ec *executionContext) marshalNActivity2ᚖgithubᚗcomᚋfacebookincubator
 }
 
 func (ec *executionContext) unmarshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx context.Context, v interface{}) (activity.ChangedField, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return activity.ChangedField(tmp), err
+	var res activity.ChangedField
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx context.Context, sel ast.SelectionSet, v activity.ChangedField) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) unmarshalNAddActionsRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddActionsRuleInput(ctx context.Context, v interface{}) (models.AddActionsRuleInput, error) {
@@ -58954,18 +58948,12 @@ func (ec *executionContext) marshalNUserFilterType2githubᚗcomᚋfacebookincuba
 }
 
 func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (user.Role, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Role(tmp), err
+	var res user.Role
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, sel ast.SelectionSet, v user.Role) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNUserSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx context.Context, sel ast.SelectionSet, v models.UserSearchResult) graphql.Marshaler {
@@ -58983,18 +58971,12 @@ func (ec *executionContext) marshalNUserSearchResult2ᚖgithubᚗcomᚋfacebooki
 }
 
 func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (user.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Status(tmp), err
+	var res user.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, sel ast.SelectionSet, v user.Status) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNUsersGroup2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroup) graphql.Marshaler {
@@ -59192,18 +59174,12 @@ func (ec *executionContext) marshalNUsersGroupSearchResult2ᚖgithubᚗcomᚋfac
 }
 
 func (ec *executionContext) unmarshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (usersgroup.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return usersgroup.Status(tmp), err
+	var res usersgroup.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v usersgroup.Status) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNWorkOrder2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrder(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrder) graphql.Marshaler {
@@ -59464,18 +59440,12 @@ func (ec *executionContext) marshalNWorkOrderFilterType2githubᚗcomᚋfacebooki
 }
 
 func (ec *executionContext) unmarshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (workorder.Priority, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return workorder.Priority(tmp), err
+	var res workorder.Priority
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, sel ast.SelectionSet, v workorder.Priority) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNWorkOrderSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderSearchResult(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderSearchResult) graphql.Marshaler {
@@ -59493,18 +59463,12 @@ func (ec *executionContext) marshalNWorkOrderSearchResult2ᚖgithubᚗcomᚋface
 }
 
 func (ec *executionContext) unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (workorder.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return workorder.Status(tmp), err
+	var res workorder.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v workorder.Status) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNWorkOrderType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderType(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderType) graphql.Marshaler {
@@ -60065,12 +60029,12 @@ func (ec *executionContext) unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcom�
 }
 
 func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, v interface{}) (checklistitem.EnumSelectionModeValue, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return checklistitem.EnumSelectionModeValue(tmp), err
+	var res checklistitem.EnumSelectionModeValue
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, sel ast.SelectionSet, v checklistitem.EnumSelectionModeValue) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, v interface{}) (*checklistitem.EnumSelectionModeValue, error) {
@@ -60085,7 +60049,7 @@ func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗc
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListItemInput, error) {
@@ -61917,12 +61881,12 @@ func (ec *executionContext) unmarshalOUserFilterInput2ᚕᚖgithubᚗcomᚋfaceb
 }
 
 func (ec *executionContext) unmarshalOUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (user.Role, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Role(tmp), err
+	var res user.Role
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, sel ast.SelectionSet, v user.Role) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOUserRole2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (*user.Role, error) {
@@ -61937,16 +61901,16 @@ func (ec *executionContext) marshalOUserRole2ᚖgithubᚗcomᚋfacebookincubator
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (user.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Status(tmp), err
+	var res user.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, sel ast.SelectionSet, v user.Status) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (*user.Status, error) {
@@ -61961,7 +61925,7 @@ func (ec *executionContext) marshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubat
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) marshalOUsersGroup2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroup) graphql.Marshaler {
@@ -62007,12 +61971,12 @@ func (ec *executionContext) unmarshalOUsersGroupFilterInput2ᚕᚖgithubᚗcom�
 }
 
 func (ec *executionContext) unmarshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (usersgroup.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return usersgroup.Status(tmp), err
+	var res usersgroup.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v usersgroup.Status) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (*usersgroup.Status, error) {
@@ -62027,7 +61991,7 @@ func (ec *executionContext) marshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebooki
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) marshalOVertex2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐNode(ctx context.Context, sel ast.SelectionSet, v ent.Node) graphql.Marshaler {
@@ -62111,12 +62075,12 @@ func (ec *executionContext) unmarshalOWorkOrderFilterInput2ᚕᚖgithubᚗcomᚋ
 }
 
 func (ec *executionContext) unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (workorder.Priority, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return workorder.Priority(tmp), err
+	var res workorder.Priority
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, sel ast.SelectionSet, v workorder.Priority) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (*workorder.Priority, error) {
@@ -62131,16 +62095,16 @@ func (ec *executionContext) marshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebook
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (workorder.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return workorder.Status(tmp), err
+	var res workorder.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v workorder.Status) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (*workorder.Status, error) {
@@ -62155,7 +62119,7 @@ func (ec *executionContext) marshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookin
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) marshalOWorkOrderTemplate2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderTemplate(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrderTemplate) graphql.Marshaler {

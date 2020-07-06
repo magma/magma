@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -300,12 +304,12 @@ func (tq *TodoQuery) WithChildren(opts ...func(*TodoQuery)) *TodoQuery {
 // Example:
 //
 //	var v []struct {
-//		Text string `json:"text,omitempty"`
+//		Status todo.Status `json:"status,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Todo.Query().
-//		GroupBy(todo.FieldText).
+//		GroupBy(todo.FieldStatus).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 //
@@ -326,11 +330,11 @@ func (tq *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Text string `json:"text,omitempty"`
+//		Status todo.Status `json:"status,omitempty"`
 //	}
 //
 //	client.Todo.Query().
-//		Select(todo.FieldText).
+//		Select(todo.FieldStatus).
 //		Scan(ctx, &v)
 //
 func (tq *TodoQuery) Select(field string, fields ...string) *TodoSelect {

@@ -8,6 +8,7 @@ package activity
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -114,4 +115,35 @@ func ChangedFieldValidator(cf ChangedField) error {
 	default:
 		return fmt.Errorf("activity: invalid enum value for changed_field field: %q", cf)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (cf ChangedField) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, cf)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (cf *ChangedField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*cf = ChangedField(str)
+	if err := ChangedFieldValidator(*cf); err != nil {
+		return fmt.Errorf("%s is not a valid ChangedField", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

@@ -8,6 +8,7 @@ package checklistitemdefinition
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -105,4 +106,35 @@ func EnumSelectionModeValueValidator(esmv EnumSelectionModeValue) error {
 	default:
 		return fmt.Errorf("checklistitemdefinition: invalid enum value for enum_selection_mode_value field: %q", esmv)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (esmv EnumSelectionModeValue) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, esmv)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (esmv *EnumSelectionModeValue) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*esmv = EnumSelectionModeValue(str)
+	if err := EnumSelectionModeValueValidator(*esmv); err != nil {
+		return fmt.Errorf("%s is not a valid EnumSelectionModeValue", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

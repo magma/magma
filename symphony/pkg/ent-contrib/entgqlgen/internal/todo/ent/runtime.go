@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -14,7 +18,7 @@ func init() {
 	todoFields := schema.Todo{}.Fields()
 	_ = todoFields
 	// todoDescText is the schema descriptor for text field.
-	todoDescText := todoFields[0].Descriptor()
+	todoDescText := todoFields[1].Descriptor()
 	// todo.TextValidator is a validator for the "text" field. It is called by the builders before save.
 	todo.TextValidator = todoDescText.Validators[0].(func(string) error)
 }

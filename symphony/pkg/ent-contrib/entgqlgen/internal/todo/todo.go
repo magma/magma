@@ -41,6 +41,7 @@ func (r *resolvers) Todos(ctx context.Context, after *ent.Cursor, first *int, be
 func (r *resolvers) CreateTodo(ctx context.Context, todo TodoInput) (*ent.Todo, error) {
 	return r.client.Todo.
 		Create().
+		SetStatus(todo.Status).
 		SetText(todo.Text).
 		SetNillableParentID(todo.Parent).
 		Save(ctx)

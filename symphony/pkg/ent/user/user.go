@@ -8,6 +8,7 @@ package user
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -178,4 +179,53 @@ func RoleValidator(r Role) error {
 	default:
 		return fmt.Errorf("user: invalid enum value for role field: %q", r)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, s)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (r Role) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, r)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (r *Role) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*r = Role(str)
+	if err := RoleValidator(*r); err != nil {
+		return fmt.Errorf("%s is not a valid Role", str)
+	}
+	return nil
 }

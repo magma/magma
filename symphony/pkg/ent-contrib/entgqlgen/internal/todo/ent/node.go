@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -47,14 +51,22 @@ func (t *Todo) Node(ctx context.Context) (node *Node, err error) {
 	node = &Node{
 		ID:     t.ID,
 		Type:   "Todo",
-		Fields: make([]*Field, 1),
+		Fields: make([]*Field, 2),
 		Edges:  make([]*Edge, 2),
 	}
 	var buf []byte
-	if buf, err = json.Marshal(t.Text); err != nil {
+	if buf, err = json.Marshal(t.Status); err != nil {
 		return nil, err
 	}
 	node.Fields[0] = &Field{
+		Type:  "todo.Status",
+		Name:  "status",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(t.Text); err != nil {
+		return nil, err
+	}
+	node.Fields[1] = &Field{
 		Type:  "string",
 		Name:  "text",
 		Value: string(buf),

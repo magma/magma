@@ -8,6 +8,7 @@ package servicetype
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -115,4 +116,35 @@ func DiscoveryMethodValidator(dm DiscoveryMethod) error {
 	default:
 		return fmt.Errorf("servicetype: invalid enum value for discovery_method field: %q", dm)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (dm DiscoveryMethod) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, dm)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (dm *DiscoveryMethod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*dm = DiscoveryMethod(str)
+	if err := DiscoveryMethodValidator(*dm); err != nil {
+		return fmt.Errorf("%s is not a valid DiscoveryMethod", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

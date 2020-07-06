@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -17,6 +21,12 @@ type TodoCreate struct {
 	config
 	mutation *TodoMutation
 	hooks    []Hook
+}
+
+// SetStatus sets the status field.
+func (tc *TodoCreate) SetStatus(t todo.Status) *TodoCreate {
+	tc.mutation.SetStatus(t)
+	return tc
 }
 
 // SetText sets the text field.
@@ -66,6 +76,14 @@ func (tc *TodoCreate) Mutation() *TodoMutation {
 
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
+	if _, ok := tc.mutation.Status(); !ok {
+		return nil, &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+	}
+	if v, ok := tc.mutation.Status(); ok {
+		if err := todo.StatusValidator(v); err != nil {
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	if _, ok := tc.mutation.Text(); !ok {
 		return nil, &ValidationError{Name: "text", err: errors.New("ent: missing required field \"text\"")}
 	}
@@ -121,6 +139,14 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 			},
 		}
 	)
+	if value, ok := tc.mutation.Status(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldStatus,
+		})
+		t.Status = value
+	}
 	if value, ok := tc.mutation.Text(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,

@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -24,6 +28,12 @@ type TodoUpdate struct {
 // Where adds a new predicate for the builder.
 func (tu *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
 	tu.predicates = append(tu.predicates, ps...)
+	return tu
+}
+
+// SetStatus sets the status field.
+func (tu *TodoUpdate) SetStatus(t todo.Status) *TodoUpdate {
+	tu.mutation.SetStatus(t)
 	return tu
 }
 
@@ -95,6 +105,11 @@ func (tu *TodoUpdate) RemoveChildren(t ...*Todo) *TodoUpdate {
 
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (tu *TodoUpdate) Save(ctx context.Context) (int, error) {
+	if v, ok := tu.mutation.Status(); ok {
+		if err := todo.StatusValidator(v); err != nil {
+			return 0, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	if v, ok := tu.mutation.Text(); ok {
 		if err := todo.TextValidator(v); err != nil {
 			return 0, &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
@@ -167,6 +182,13 @@ func (tu *TodoUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tu.mutation.Status(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldStatus,
+		})
 	}
 	if value, ok := tu.mutation.Text(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
@@ -266,6 +288,12 @@ type TodoUpdateOne struct {
 	mutation *TodoMutation
 }
 
+// SetStatus sets the status field.
+func (tuo *TodoUpdateOne) SetStatus(t todo.Status) *TodoUpdateOne {
+	tuo.mutation.SetStatus(t)
+	return tuo
+}
+
 // SetText sets the text field.
 func (tuo *TodoUpdateOne) SetText(s string) *TodoUpdateOne {
 	tuo.mutation.SetText(s)
@@ -334,6 +362,11 @@ func (tuo *TodoUpdateOne) RemoveChildren(t ...*Todo) *TodoUpdateOne {
 
 // Save executes the query and returns the updated entity.
 func (tuo *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
+	if v, ok := tuo.mutation.Status(); ok {
+		if err := todo.StatusValidator(v); err != nil {
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	if v, ok := tuo.mutation.Text(); ok {
 		if err := todo.TextValidator(v); err != nil {
 			return nil, &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
@@ -405,6 +438,13 @@ func (tuo *TodoUpdateOne) sqlSave(ctx context.Context) (t *Todo, err error) {
 		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Todo.ID for update")}
 	}
 	_spec.Node.ID.Value = id
+	if value, ok := tuo.mutation.Status(); ok {
+		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldStatus,
+		})
+	}
 	if value, ok := tuo.mutation.Text(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,

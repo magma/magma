@@ -1,3 +1,7 @@
+// Copyright (c) 2004-present Facebook All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 // Code generated (@generated) by entc, DO NOT EDIT.
 
 package ent
@@ -31,6 +35,7 @@ type TodoMutation struct {
 	op              Op
 	typ             string
 	id              *int
+	status          *todo.Status
 	text            *string
 	clearedFields   map[string]struct{}
 	parent          *int
@@ -118,6 +123,43 @@ func (m *TodoMutation) ID() (id int, exists bool) {
 		return
 	}
 	return *m.id, true
+}
+
+// SetStatus sets the status field.
+func (m *TodoMutation) SetStatus(t todo.Status) {
+	m.status = &t
+}
+
+// Status returns the status value in the mutation.
+func (m *TodoMutation) Status() (r todo.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old status value of the Todo.
+// If the Todo object wasn't provided to the builder, the object is fetched
+// from the database.
+// An error is returned if the mutation operation is not UpdateOne, or database query fails.
+func (m *TodoMutation) OldStatus(ctx context.Context) (v todo.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, fmt.Errorf("OldStatus is allowed only on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, fmt.Errorf("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus reset all changes of the "status" field.
+func (m *TodoMutation) ResetStatus() {
+	m.status = nil
 }
 
 // SetText sets the text field.
@@ -252,7 +294,10 @@ func (m *TodoMutation) Type() string {
 // this mutation. Note that, in order to get all numeric
 // fields that were in/decremented, call AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 1)
+	fields := make([]string, 0, 2)
+	if m.status != nil {
+		fields = append(fields, todo.FieldStatus)
+	}
 	if m.text != nil {
 		fields = append(fields, todo.FieldText)
 	}
@@ -264,6 +309,8 @@ func (m *TodoMutation) Fields() []string {
 // not set, or was not define in the schema.
 func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case todo.FieldStatus:
+		return m.Status()
 	case todo.FieldText:
 		return m.Text()
 	}
@@ -275,6 +322,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 // or the query to the database was failed.
 func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case todo.FieldStatus:
+		return m.OldStatus(ctx)
 	case todo.FieldText:
 		return m.OldText(ctx)
 	}
@@ -286,6 +335,13 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 // type mismatch the field type.
 func (m *TodoMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case todo.FieldStatus:
+		v, ok := value.(todo.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
 	case todo.FieldText:
 		v, ok := value.(string)
 		if !ok {
@@ -343,6 +399,9 @@ func (m *TodoMutation) ClearField(name string) error {
 // defined in the schema.
 func (m *TodoMutation) ResetField(name string) error {
 	switch name {
+	case todo.FieldStatus:
+		m.ResetStatus()
+		return nil
 	case todo.FieldText:
 		m.ResetText()
 		return nil

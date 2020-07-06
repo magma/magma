@@ -8,6 +8,7 @@ package reportfilter
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -89,4 +90,35 @@ func EntityValidator(e Entity) error {
 	default:
 		return fmt.Errorf("reportfilter: invalid enum value for entity field: %q", e)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Entity) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, e)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Entity) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*e = Entity(str)
+	if err := EntityValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Entity", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }
