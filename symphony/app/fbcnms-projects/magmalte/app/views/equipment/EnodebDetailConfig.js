@@ -9,12 +9,10 @@
  * @format
  */
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
+import type {network_ran_configs} from '@fbcnms/magma-api';
 
-import Collapse from '@material-ui/core/Collapse';
+import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Divider from '@material-ui/core/Divider';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
@@ -25,79 +23,65 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import Switch from '@material-ui/core/Switch';
 import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {colors, typography} from '../../theme/default';
+import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
+import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
+import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
   },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
+  itemTitle: {
+    color: colors.primary.comet,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
-  },
-  appBarBtn: {
-    color: colors.primary.white,
-    background: colors.primary.comet,
-    fontFamily: typography.button.fontFamily,
-    fontWeight: typography.button.fontWeight,
-    fontSize: typography.button.fontSize,
-    lineHeight: typography.button.lineHeight,
-    letterSpacing: typography.button.letterSpacing,
-
-    '&:hover': {
-      background: colors.primary.mirage,
-    },
-  },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
-  // TODO: remove this when we actually fill out the grid sections
-  contentPlaceholder: {
-    padding: '50px 0',
-  },
-  paper: {
-    height: 100,
-    padding: theme.spacing(10),
-    textAlign: 'center',
-  },
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
+  itemValue: {
+    color: colors.primary.brightGray,
   },
 }));
 
-export default function EnodebConfig({enbInfo}: {enbInfo: EnodebInfo}) {
+type Props = {
+  enbInfo: EnodebInfo,
+  lteRanConfigs?: ?network_ran_configs,
+};
+
+export default function EnodebConfig(props: Props) {
   const classes = useStyles();
+  const [enbInfo, setEnbInfo] = useState<EnodebInfo>(props.enbInfo);
+  const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+
+  const {response: lteRanConfigs, isLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdCellularRan,
+    {
+      networkId: networkId,
+    },
+  );
+
+  const editProps = {
+    enb: enbInfo.enb,
+    lteRanConfigs: lteRanConfigs,
+    onSave: enb =>
+      setEnbInfo({
+        ...enbInfo,
+        enb: enb,
+      }),
+  };
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={3} alignItems="stretch">
@@ -110,10 +94,17 @@ export default function EnodebConfig({enbInfo}: {enbInfo: EnodebInfo}) {
                 </Text>
               </Grid>
               <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
+                <AddEditEnodeButton
+                  title={'Edit'}
+                  isLink={true}
+                  editProps={{
+                    editTable: 'config',
+                    ...editProps,
+                  }}
+                />
               </Grid>
             </Grid>
-            <EnodebInfoConfig readOnly={true} enbInfo={enbInfo} />
+            <EnodebInfoConfig enbInfo={enbInfo} />
           </Grid>
 
           <Grid item xs={6}>
@@ -125,10 +116,17 @@ export default function EnodebConfig({enbInfo}: {enbInfo: EnodebInfo}) {
                 </Text>
               </Grid>
               <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
+                <AddEditEnodeButton
+                  title={'Edit'}
+                  isLink={true}
+                  editProps={{
+                    editTable: 'ran',
+                    ...editProps,
+                  }}
+                />{' '}
               </Grid>
             </Grid>
-            <EnodebRanConfig readOnly={true} enbInfo={enbInfo} />
+            <EnodebRanConfig lteRanConfigs={lteRanConfigs} enbInfo={enbInfo} />
           </Grid>
         </Grid>
       </Grid>
@@ -136,230 +134,119 @@ export default function EnodebConfig({enbInfo}: {enbInfo: EnodebInfo}) {
   );
 }
 
-function EnodebRanConfig({
-  enbInfo,
-  readOnly,
-}: {
-  enbInfo: EnodebInfo,
-  readOnly: boolean,
-}) {
-  const [open, setOpen] = React.useState(true);
-  const [bandwidth, setBandwidth] = useState(enbInfo.enb.config.bandwidth_mhz);
-  const [cellID, setCellID] = useState(enbInfo.enb.config.cell_id);
-  const [pci, setPci] = useState(enbInfo.enb.config.pci);
-  const [specialSubframePattern, setSpecialSubframePattern] = useState(
-    enbInfo.enb.config.special_subframe_pattern,
-  );
-  const [subframeAssignment, setSubFrameAssignment] = useState(
-    enbInfo.enb.config.special_subframe_pattern,
-  );
-  const [tac, setTac] = useState(enbInfo.enb.config.tac);
-  const [transmit, setTransmit] = useState(enbInfo.enb.config.transmit_enabled);
-  const [earfcndl, setEarFcnDl] = useState(0);
-  const [earfcnul, setEarFcnUl] = useState(0);
+function EnodebRanConfig(props: Props) {
+  const classes = useStyles();
 
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-
-  const {response: lteRanConfigs, isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularRan,
-    {
-      networkId: networkId,
+  const typographyProps = {
+    primaryTypographyProps: {
+      variant: 'caption',
+      className: classes.itemTitle,
     },
-    useCallback(lteRanConfigs => {
-      if (lteRanConfigs && lteRanConfigs?.tdd_config) {
-        setEarFcnDl(lteRanConfigs?.tdd_config?.earfcndl);
-      }
-      if (lteRanConfigs && lteRanConfigs?.fdd_config) {
-        setEarFcnUl(lteRanConfigs?.fdd_config?.earfcnul);
-        setEarFcnDl(lteRanConfigs?.fdd_config?.earfcndl);
-      }
-    }, []),
-  );
+    secondaryTypographyProps: {
+      variant: 'h6',
+      className: classes.itemValue,
+    },
+  };
 
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  const tddConfigJSX = [];
-  const fddConfigJSX = [];
-
-  if (lteRanConfigs && lteRanConfigs?.tdd_config) {
-    tddConfigJSX.push(
-      <List key="tddConfigs">
-        <ListItem button onClick={() => setOpen(!open)}>
-          <ListItemText primary="TDD" />
-          {open ? <ExpandLess /> : <ExpandMore />}
-        </ListItem>
-        <Collapse key="tdd" in={open} timeout="auto" unmountOnExit>
-          <ListItem>
-            <TextField
-              fullWidth={true}
-              value={earfcndl}
-              label="EARFCNDL"
-              onChange={({target}) => setEarFcnDl(target.value)}
-              InputProps={{disableUnderline: true, readOnly: readOnly}}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              fullWidth={true}
-              value={specialSubframePattern}
-              label="Special Subframe Pattern"
-              onChange={({target}) => setSpecialSubframePattern(target.value)}
-              InputProps={{disableUnderline: true, readOnly: readOnly}}
-            />
-          </ListItem>
-          <ListItem>
-            <TextField
-              fullWidth={true}
-              value={subframeAssignment}
-              label="Subframe Assignment"
-              onChange={({target}) => setSubFrameAssignment(target.value)}
-              InputProps={{disableUnderline: true, readOnly: readOnly}}
-            />
-          </ListItem>
-        </Collapse>
-      </List>,
-    );
-  }
-
-  if (lteRanConfigs && lteRanConfigs?.fdd_config) {
-    fddConfigJSX.push(
-      <List key="fddConfigs">
-        <ListItem button onClick={() => setOpen(!open)}>
-          <ListItemText primary="FDD" />
-          {open ? <ExpandLess /> : <ExpandMore />}
-        </ListItem>
-        <Divider />
-        <Collapse key="fdd" in={open} timeout="auto" unmountOnExit>
-          <ListItem>
-            <Grid container>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth={true}
-                  value={earfcndl}
-                  label="EARFCNDL"
-                  onChange={({target}) => setEarFcnDl(target.value)}
-                  InputProps={{disableUnderline: true, readOnly: readOnly}}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth={true}
-                  value={earfcnul}
-                  label="EARFCNUL"
-                  onChange={({target}) => setEarFcnUl(target.value)}
-                  InputProps={{disableUnderline: true, readOnly: readOnly}}
-                />
-              </Grid>
-            </Grid>
-          </ListItem>
-        </Collapse>
-      </List>,
-    );
-  }
   return (
-    <List component={Paper}>
+    <List component={Paper} data-testid="ran">
       <ListItem>
-        <TextField
-          fullWidth={true}
-          value={bandwidth}
-          label="Bandwidth"
-          onChange={({target}) => setBandwidth(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
+        <ListItemText
+          primary="Bandwidth"
+          secondary={props.enbInfo.enb.config.bandwidth_mhz}
+          {...typographyProps}
         />
       </ListItem>
       <Divider />
       <ListItem>
-        <TextField
-          fullWidth={true}
-          value={cellID}
-          label="Cell ID"
-          onChange={({target}) => setCellID(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
+        <ListItemText
+          secondary={props.enbInfo.enb.config.cell_id}
+          primary="Cell ID"
+          {...typographyProps}
         />
       </ListItem>
       <Divider />
-      {fddConfigJSX}
-      {tddConfigJSX}
-      <Divider />
-      <ListItem>
-        <TextField
-          fullWidth={true}
-          value={pci}
-          label="PCI"
-          onChange={({target}) => setPci(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <TextField
-          fullWidth={true}
-          value={tac}
-          label="TAC"
-          onChange={({target}) => setTac(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <FormControlLabel
-          label="Transmit"
-          control={
-            <Switch
-              disabled={readOnly}
-              checked={transmit}
-              onChange={({target}) => setTransmit(target.checked)}
-              color="primary"
-            />
+      {props.lteRanConfigs?.tdd_config && (
+        <EnodeConfigTdd
+          earfcndl={props.enbInfo.enb.config.earfcndl ?? 0}
+          specialSubframePattern={
+            props.enbInfo.enb.config.special_subframe_pattern ?? 0
           }
+          subframeAssignment={props.enbInfo.enb.config.subframe_assignment ?? 0}
+        />
+      )}
+      {props.lteRanConfigs?.fdd_config && (
+        <EnodeConfigFdd
+          earfcndl={props.enbInfo.enb.config.earfcndl ?? 0}
+          earfcnul={props.lteRanConfigs.fdd_config.earfcnul}
+        />
+      )}
+      <Divider />
+      <ListItem>
+        <ListItemText
+          secondary={props.enbInfo.enb.config.pci}
+          primary="PCI"
+          {...typographyProps}
+        />
+      </ListItem>
+      <Divider />
+      <ListItem>
+        <ListItemText
+          secondary={props.enbInfo.enb.config.tac}
+          primary="TAC"
+          {...typographyProps}
+        />
+      </ListItem>
+      <Divider />
+      <ListItem>
+        <ListItemText
+          secondary={
+            props.enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled'
+          }
+          primary="Transmit"
+          {...typographyProps}
         />
       </ListItem>
     </List>
   );
 }
 
-function EnodebInfoConfig({
-  enbInfo,
-  readOnly,
-}: {
-  enbInfo: EnodebInfo,
-  readOnly: boolean,
-}) {
-  const [name, setName] = useState(enbInfo.enb.name);
-  const [serial, setSerial] = useState(enbInfo.enb.serial);
-  const [description, setDescription] = useState(enbInfo.enb.description);
+function EnodebInfoConfig(props: Props) {
+  const classes = useStyles();
+
+  const typographyProps = {
+    primaryTypographyProps: {
+      variant: 'caption',
+      className: classes.itemTitle,
+    },
+    secondaryTypographyProps: {
+      variant: 'h6',
+      className: classes.itemValue,
+    },
+  };
   return (
-    <List component={Paper}>
+    <List component={Paper} data-testid="config">
       <ListItem>
-        <TextField
-          fullWidth={true}
-          value={name}
-          label="Name"
-          onChange={({target}) => setName(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
+        <ListItemText
+          primary="Name"
+          secondary={props.enbInfo.enb.name}
+          {...typographyProps}
         />
       </ListItem>
       <Divider />
       <ListItem>
-        <TextField
-          fullWidth={true}
-          value={serial}
-          label="Serial Number"
-          onChange={({target}) => setSerial(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
+        <ListItemText
+          primary="Serial Number"
+          secondary={props.enbInfo.enb.serial}
+          {...typographyProps}
         />
       </ListItem>
       <Divider />
       <ListItem>
-        <TextField
-          fullWidth={true}
-          value={description}
-          label="Description"
-          onChange={({target}) => setDescription(target.value)}
-          InputProps={{disableUnderline: true, readOnly: readOnly}}
+        <ListItemText
+          primary="Description"
+          secondary={props.enbInfo.enb.description}
+          {...typographyProps}
         />
       </ListItem>
     </List>

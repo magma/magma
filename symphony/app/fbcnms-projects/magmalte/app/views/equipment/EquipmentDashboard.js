@@ -11,6 +11,7 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
+import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
@@ -29,9 +30,9 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import {colors, typography} from '../../theme/default';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -139,7 +140,7 @@ function EquipmentDashboard() {
         } catch (error) {
           err = true;
           console.error('error getting enodeb status for ' + serial);
-          return null;
+          return {serial, enbSt: {}};
         }
       });
       if (err) {
@@ -250,9 +251,9 @@ function EquipmentDashboardInternal({
                 </Button>
               </Grid>
               <Grid item>
-                <Button variant="contained" className={classes.appBarBtn}>
-                  Create New
-                </Button>
+                {tabPos == 1 && (
+                  <AddEditEnodeButton title="Add New" isLink={false} />
+                )}
               </Grid>
             </Grid>
           </Grid>
