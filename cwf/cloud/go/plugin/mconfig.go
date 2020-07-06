@@ -162,7 +162,6 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		UeIpBlock:       DefaultUeIpBlock, // Unused by CWF
 		NatEnabled:      false,
 		DefaultRuleId:   swag.StringValue(nwConfig.DefaultRuleID),
-		RelayEnabled:    true,
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
 		LiImsis:         gwConfig.LiImsis,
