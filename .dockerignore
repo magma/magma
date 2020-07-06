@@ -7,6 +7,7 @@
 !cwf/cloud/
 !cwf/gateway/
 !cwf/k8s
+!cwf/swagger/
 
 !feg/cloud/
 !feg/gateway/

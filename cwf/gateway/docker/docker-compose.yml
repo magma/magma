@@ -101,6 +101,7 @@ services:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
       - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
