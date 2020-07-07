@@ -25,14 +25,16 @@ ENV PYTHON_BUILD /build/python
 ENV PIP_CACHE_HOME ~/.pipcache
 
 # Generate python proto bindings.
+COPY cwf/protos $MAGMA_ROOT/cwf/protos
 COPY feg/protos $MAGMA_ROOT/feg/protos
 COPY lte/gateway/python/defs.mk $MAGMA_ROOT/lte/gateway/python/defs.mk
 COPY lte/gateway/python/Makefile $MAGMA_ROOT/lte/gateway/python/Makefile
 COPY lte/protos $MAGMA_ROOT/lte/protos
-COPY orc8r/gateway/python/python.mk $MAGMA_ROOT/orc8r/gateway/python/python.mk
+COPY orc8r/gateway/python $MAGMA_ROOT/orc8r/gateway/python
 COPY orc8r/protos $MAGMA_ROOT/orc8r/protos
 COPY protos $MAGMA_ROOT/protos
-RUN make -C $MAGMA_ROOT/lte/gateway/python protos
+ENV PROTO_LIST orc8r_protos lte_protos feg_protos cwf_protos
+RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
