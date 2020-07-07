@@ -161,17 +161,6 @@ func (workOrderResolver) Comments(ctx context.Context, obj *ent.WorkOrder) ([]*e
 	return obj.QueryComments().All(ctx)
 }
 
-func (workOrderResolver) OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error) {
-	owner, err := obj.Edges.OwnerOrErr()
-	if ent.IsNotLoaded(err) {
-		owner, err = obj.QueryOwner().Only(ctx)
-	}
-	if err != nil {
-		return "", err
-	}
-	return owner.Email, nil
-}
-
 func (workOrderResolver) Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
 	owner, err := obj.Edges.OwnerOrErr()
 	if ent.IsNotLoaded(err) {
@@ -181,17 +170,6 @@ func (workOrderResolver) Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.Us
 		return nil, fmt.Errorf("querying owner: %w", err)
 	}
 	return owner, nil
-}
-
-func (workOrderResolver) Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error) {
-	assignee, err := obj.Edges.AssigneeOrErr()
-	if ent.IsNotLoaded(err) {
-		assignee, err = obj.QueryAssignee().Only(ctx)
-	}
-	if err != nil {
-		return nil, ent.MaskNotFound(err)
-	}
-	return &assignee.Email, nil
 }
 
 func (workOrderResolver) AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error) {
@@ -221,10 +199,6 @@ func (r mutationResolver) internalAddWorkOrder(
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
 	}
-	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
-	if err != nil {
-		return nil, err
-	}
 	mutation := r.ClientFrom(ctx).
 		WorkOrder.Create().
 		SetName(input.Name).
@@ -236,13 +210,9 @@ func (r mutationResolver) internalAddWorkOrder(
 		SetNillableDescription(input.Description).
 		SetCreationDate(time.Now()).
 		SetNillableIndex(input.Index).
-		SetNillableAssigneeID(assigneeID)
-	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
-	if err != nil {
-		return nil, err
-	}
-	if ownerID != nil {
-		mutation = mutation.SetOwnerID(*ownerID)
+		SetNillableAssigneeID(input.AssigneeID)
+	if input.OwnerID != nil {
+		mutation = mutation.SetOwnerID(*input.OwnerID)
 	} else {
 		v, ok := viewer.FromContext(ctx).(*viewer.UserViewer)
 		if !ok {
@@ -288,21 +258,13 @@ func (r mutationResolver) EditWorkOrder(ctx context.Context, input models.EditWo
 		SetNillableStatus(input.Status).
 		SetNillablePriority(input.Priority)
 
-	assigneeID, err := resolverutil.GetUserID(ctx, input.AssigneeID, input.Assignee)
-	if err != nil {
-		return nil, err
-	}
-	if assigneeID != nil {
-		mutation.SetAssigneeID(*assigneeID)
+	if input.AssigneeID != nil {
+		mutation.SetAssigneeID(*input.AssigneeID)
 	} else {
 		mutation.ClearAssignee()
 	}
-	ownerID, err := resolverutil.GetUserID(ctx, input.OwnerID, input.OwnerName)
-	if err != nil {
-		return nil, err
-	}
-	if ownerID != nil {
-		mutation.SetOwnerID(*ownerID)
+	if input.OwnerID != nil {
+		mutation.SetOwnerID(*input.OwnerID)
 	}
 	if input.InstallDate != nil {
 		mutation.SetInstallDate(*input.InstallDate)

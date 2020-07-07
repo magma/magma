@@ -679,20 +679,8 @@ input AddWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
-  ownerName: String
-    @deprecatedInput(
-      newField: "ownerId"
-      name: "AddWorkOrderInput.ownerName"
-      duplicateError: "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together"
-    )
   ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
-  assignee: String
-    @deprecatedInput(
-      newField: "assigneeId"
-      name: "AddWorkOrderInput.assignee"
-      duplicateError: "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together"
-    )
   assigneeId: ID
   index: Int
   status: WorkOrderStatus
@@ -703,20 +691,8 @@ input EditWorkOrderInput {
   id: ID!
   name: String!
   description: String
-  ownerName: String
-    @deprecatedInput(
-      newField: "ownerId"
-      name: "EditWorkOrderInput.ownerName"
-      duplicateError: "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together"
-    )
   ownerId: ID
   installDate: Time
-  assignee: String
-    @deprecatedInput(
-      newField: "assigneeId"
-      name: "EditWorkOrderInput.assignee"
-      duplicateError: "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together"
-    )
   assigneeId: ID
   index: Int
   status: WorkOrderStatus
@@ -1565,17 +1541,9 @@ type WorkOrder implements Node & NamedNode {
   workOrderTemplate: WorkOrderTemplate
   name: String!
   description: String
-  ownerName: String!
-    @deprecated(
-      reason: "Use `WorkOrder.owner.email` instead. Will be removed on 2020-05-01"
-    )
   owner: User!
   creationDate: Time!
   installDate: Time
-  assignee: String
-    @deprecated(
-      reason: "Use `WorkOrder.assignedTo.email` instead. Will be removed on 2020-05-01"
-    )
   assignedTo: User
   index: Int!
   status: WorkOrderStatus!
@@ -1998,10 +1966,6 @@ type Project implements Node {
   id: ID!
   name: String! @stringValue(minLength: 1)
   description: String
-  creator: String
-    @deprecated(
-      reason: "Use `Project.createdBy.email` instead. Will be removed on 2020-05-01"
-    )
   createdBy: User
   type: ProjectType!
   location: Location
@@ -2014,12 +1978,6 @@ type Project implements Node {
 input AddProjectInput {
   name: String! @stringValue(minLength: 1)
   description: String
-  creator: String
-    @deprecatedInput(
-      newField: "creatorId"
-      name: "AddProjectInput.creator"
-      duplicateError: "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together"
-    )
   creatorId: ID
   type: ID!
   location: ID
@@ -2030,12 +1988,6 @@ input EditProjectInput {
   id: ID!
   name: String! @stringValue(minLength: 1)
   description: String
-  creator: String
-    @deprecatedInput(
-      newField: "creatorId"
-      name: "EditProjectInput.creator"
-      duplicateError: "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together"
-    )
   creatorId: ID
   type: ID!
   location: ID

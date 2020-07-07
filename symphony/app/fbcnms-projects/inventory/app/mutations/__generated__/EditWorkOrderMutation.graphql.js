@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a99c814d82c2a4368b32e21458bf3fe0
+ * @relayHash bf2e06d07e90d71829b23fb21dbd3612
  */
 
 /* eslint-disable */
@@ -27,10 +27,8 @@ export type EditWorkOrderInput = {|
   id: string,
   name: string,
   description?: ?string,
-  ownerName?: ?string,
   ownerId?: ?string,
   installDate?: ?any,
-  assignee?: ?string,
   assigneeId?: ?string,
   index?: ?number,
   status?: ?WorkOrderStatus,

@@ -9,5 +9,5 @@ class YesNoResponse(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "YesNoResponse":
+    def _missing_(cls, value: object) -> "YesNoResponse":
         return cls.MISSING_ENUM
