@@ -177,7 +177,7 @@ class AddEndpointToServiceDialog extends React.Component<Props, State> {
               ],
             }}
             render={props => {
-              const {ports} = props.ports;
+              const ports = props.equipmentPorts;
               return (
                 <AvailablePortsTable
                   equipment={nullthrows(this.state.activeEquipement)}
