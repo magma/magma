@@ -12,6 +12,7 @@
 export type aaa_server = {
     accounting_enabled ? : boolean,
     create_session_on_auth ? : boolean,
+    event_logging_enabled ? : boolean,
     idle_session_timeout_ms ? : number,
 };
 export type aggregated_maximum_bitrate = {
@@ -289,7 +290,9 @@ export type enodebd_e2e_test = {
 };
 export type enodebd_test_config = {
     agw_config: agw_test_config,
+    enodeb_SN: string,
     network_id: string,
+    traffic_gwID: string,
 };
 export type error = {
     message: string,
@@ -413,6 +416,7 @@ export type gateway_health_configs = {
 export type gateway_id = string;
 export type gateway_logging_configs = {
     aggregation ? : aggregation_logging_configs,
+    event_verbosity ? : number,
     log_level: "DEBUG" | "INFO" | "WARNING" | "ERROR" | "FATAL",
 };
 export type gateway_name = string;
@@ -689,6 +693,7 @@ export type mutable_subscriber = {
         ,
     id: subscriber_id,
     lte: lte_subscription,
+    name ? : string,
 };
 export type mutable_symphony_agent = {
     description: gateway_description,
@@ -1078,8 +1083,21 @@ export type subscriber = {
     id: subscriber_id,
     lte: lte_subscription,
     monitoring ? : subscriber_status,
+    name ? : string,
+    state ? : subscriber_state,
 };
 export type subscriber_id = string;
+export type subscriber_ip_allocation = {
+    apn: string,
+    ip: string,
+};
+export type subscriber_state = {
+    mme ? : untyped_mme_state,
+    mobility ? : Array < subscriber_ip_allocation >
+        ,
+    s1ap ? : untyped_mme_state,
+    spgw ? : untyped_mme_state,
+};
 export type subscriber_status = {
     icmp ? : icmp_status,
 };
@@ -1183,6 +1201,7 @@ export type tier_images = Array < tier_image >
 ;
 export type tier_name = string;
 export type tier_version = string;
+export type untyped_mme_state = {};
 export type webhook_receiver = {
     http_config ? : http_config,
     send_resolved ? : boolean,
