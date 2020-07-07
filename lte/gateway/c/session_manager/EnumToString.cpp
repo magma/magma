@@ -65,8 +65,6 @@ namespace magma {
       return "RX_ONLY";
     case TX_AND_RX:
       return "TX_AND_RX";
-    case NO_TRACKING:
-      return "NO_TRACKING";
     default:
       return "INVALID GRANT TRACKING TYPE";
     }

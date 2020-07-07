@@ -58,12 +58,13 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   return uc;
 }
 
-SessionCredit::SessionCredit(ServiceState start_state)
-    : buckets_{}, reporting_(false), credit_limit_type_(FINITE) {}
+SessionCredit::SessionCredit(ServiceState start_state):
+  SessionCredit(start_state, FINITE) {}
 
 SessionCredit::SessionCredit(
   ServiceState start_state, CreditLimitType credit_limit_type)
-    : buckets_{}, reporting_(false), credit_limit_type_(credit_limit_type) {}
+    : buckets_{}, reporting_(false), credit_limit_type_(credit_limit_type),
+      grant_tracking_type_(TOTAL_ONLY) {}
 
 // by default, enable service & finite credit
 SessionCredit::SessionCredit(): SessionCredit(SERVICE_ENABLED, FINITE) {}
@@ -314,8 +315,8 @@ GrantTrackingType SessionCredit::determine_grant_tracking_type(
   } else if (rx_valid) {
     return RX_ONLY;
   } else {
-    MLOG(MWARNING) << "Received a GSU with no valid grants";
-    return NO_TRACKING;
+    MLOG(MWARNING) << "Received a GSU with no valid grants, keeping the same type";
+    return grant_tracking_type_;
   }
 }
 
