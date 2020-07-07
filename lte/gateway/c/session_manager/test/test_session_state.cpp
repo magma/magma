@@ -133,8 +133,7 @@ protected:
                                 MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
-    session_state->receive_monitor(monitor_resp,
-                                                     update_criteria);
+    session_state->receive_monitor(monitor_resp, update_criteria);
   }
 
   void activate_rule(uint32_t rating_group, const std::string &m_key,
