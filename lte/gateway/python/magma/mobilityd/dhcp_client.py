@@ -166,6 +166,13 @@ class DHCPClient:
 
         """
 
+    @staticmethod
+    def _get_option(packet, name):
+        for opt in packet[DHCP].options:
+            if opt[0] == name:
+                return opt[1]
+        return None
+
     def _process_dhcp_pkt(self, packet, state: DHCPState):
         mac_addr = create_mac_from_sid(packet[Ether].dst)
         mac_addr_key = mac_addr.as_redis_key()
@@ -173,12 +180,16 @@ class DHCPClient:
         with self._dhcp_notify:
             if mac_addr_key in self.dhcp_client_state:
                 ip_offered = packet[BOOTP].yiaddr
-                subnet_mask = packet[DHCP].options[5][1]
+                subnet_mask = self._get_option(packet, "subnet_mask")
                 ip_subnet = IPv4Network(ip_offered + "/" + subnet_mask, strict=False)
 
-                router_ip_addr = ip_address(packet[DHCP].options[7][1])
-                lease_time = packet[DHCP].options[2][1]
+                dhcp_router_opt = self._get_option(packet, "router")
+                if dhcp_router_opt is not None:
+                    router_ip_addr = ip_address(dhcp_router_opt)
+                else:
+                    router_ip_addr = None
 
+                lease_time = self._get_option(packet, "lease_time")
                 dhcp_state = DHCPDescriptor(mac_addr, ip_offered, state, str(ip_subnet),
                                             packet[IP].src, router_ip_addr, lease_time,
                                             packet[BOOTP].xid)
