@@ -87,19 +87,26 @@ func GetStates(networkID string, stateIDs []state_types.ID) (state_types.StatesB
 // SearchStates returns all states matching the filter arguments.
 // typeFilter and keyFilter are both OR clauses, and the final predicate
 // applied to the search will be the AND of both filters.
+// If keyPrefix is defined (non-nil and non-empty), it will take precedence
+// the keyFilter argument.
 // e.g.: ["t1", "t2"], ["k1", "k2"] => (t1 OR t2) AND (k1 OR k2)
-func SearchStates(networkID string, typeFilter []string, keyFilter []string) (state_types.StatesByID, error) {
+func SearchStates(networkID string, typeFilter []string, keyFilter []string, keyPrefix *string) (state_types.StatesByID, error) {
 	client, err := GetStateClient()
 	if err != nil {
 		return nil, err
 	}
 
-	res, err := client.GetStates(context.Background(), &protos.GetStatesRequest{
+	req := &protos.GetStatesRequest{
 		NetworkID:  networkID,
 		TypeFilter: typeFilter,
 		IdFilter:   keyFilter,
 		LoadValues: true,
-	})
+	}
+	if !funk.IsEmpty(keyPrefix) {
+		req.IdPrefix = *keyPrefix
+		req.IdFilter = nil
+	}
+	res, err := client.GetStates(context.Background(), req)
 	if err != nil {
 		return nil, err
 	}

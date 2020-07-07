@@ -28,6 +28,10 @@ state_protos:
     proto_msg: "UeContext"
     redis_key: "MME"
     state_scope: "network"
+  - proto_file: "lte.protos.keyval_pb2"
+    proto_msg: "IPDesc"
+    redis_key: "mobilityd_ipdesc_record"
+    state_scope: "network"
 
 #json_state:
 #  - redis_key:   - redis key to store state with (i.e. state type)

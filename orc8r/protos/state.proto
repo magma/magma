@@ -39,6 +39,11 @@ message GetStatesRequest {
     // loadValues specifies whether state values should be loaded in
     // addition to metadata.
     bool loadValues = 12;
+
+    // If non-empty, the value of id_prefix will be used to do a prefix-match
+    // on the keys of queried states. This argument supersedes any value for
+    // idFilter.
+    string id_prefix = 13;
 }
 
 message GetStatesResponse {

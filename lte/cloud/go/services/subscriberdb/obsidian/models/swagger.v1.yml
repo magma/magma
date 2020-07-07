@@ -160,7 +160,6 @@ paths:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
 definitions:
-
   subscriber:
     type: object
     required:
@@ -266,7 +265,7 @@ definitions:
 
   subscriber_state:
     type: object
-    description: MME state for a subscriber
+    description: EPC state for a subscriber
     properties:
       s1ap:
         $ref: '#/definitions/untyped_mme_state'
@@ -274,10 +273,36 @@ definitions:
         $ref: '#/definitions/untyped_mme_state'
       spgw:
         $ref: '#/definitions/untyped_mme_state'
+      mobility:
+        description: 'IP addresses which have been allocated for this subscriber'
+        type: array
+        items:
+          $ref: '#/definitions/subscriber_ip_allocation'
+        x-omitempty: true
 
   untyped_mme_state:
     type: object
     description: Arbitrary untyped JSON object that represents replicated MME state
+
+  subscriber_ip_allocation:
+    type: object
+    description: An IP address which has been allocated for a subscriber for a specific APN
+    required:
+      - apn
+      - ip
+    properties:
+      apn:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: 'oai.ipv4'
+      ip:
+        type: string
+        format: ipv4
+        example: '192.168.100.2'
+        minLength: 1
+        x-nullable: false
+
 
   subscriber_status:
     type: object

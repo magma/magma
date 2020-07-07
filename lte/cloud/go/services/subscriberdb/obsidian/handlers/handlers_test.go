@@ -284,7 +284,7 @@ func TestListSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP and some MME state for 1234567890
+	// Now create some AGW-reported state for 1234567890
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -304,6 +304,19 @@ func TestListSubscribers(t *testing.T) {
 	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
 	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
 	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	// Report 2 allocated IP addresses for the subscriber
+	mobilitydState1 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiArg==",
+		},
+	}
+	mobilitydState2 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiAhg==",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -333,6 +346,16 @@ func TestListSubscribers(t *testing.T) {
 					Mme:  mmeState,
 					S1ap: s1apState,
 					Spgw: spgwState,
+					Mobility: []*subscriberModels.SubscriberIPAllocation{
+						{
+							Apn: "magma.apn",
+							IP:  "192.168.128.134",
+						},
+						{
+							Apn: "oai.ipv4",
+							IP:  "192.168.128.174",
+						},
+					},
 				},
 			},
 			"IMSI0987654321": {
@@ -425,7 +448,7 @@ func TestGetSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP and MME state
+	// Now create AGW
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -444,6 +467,19 @@ func TestGetSubscriber(t *testing.T) {
 	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
 	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
 	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	// Report 2 allocated IP addresses for the subscriber
+	mobilitydState1 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiArg==",
+		},
+	}
+	mobilitydState2 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiAhg==",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -472,6 +508,16 @@ func TestGetSubscriber(t *testing.T) {
 				Mme:  mmeState,
 				S1ap: s1apState,
 				Spgw: spgwState,
+				Mobility: []*subscriberModels.SubscriberIPAllocation{
+					{
+						Apn: "magma.apn",
+						IP:  "192.168.128.134",
+					},
+					{
+						Apn: "oai.ipv4",
+						IP:  "192.168.128.174",
+					},
+				},
 			},
 		},
 	}
