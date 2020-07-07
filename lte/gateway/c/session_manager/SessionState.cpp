@@ -190,8 +190,7 @@ void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE,
-                  update_criteria);
+    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
   }
 
   CreditKey charging_key;
@@ -1019,6 +1018,14 @@ bool SessionState::receive_monitor(
   if (update.success() &&
       update.credit().level() == MonitoringLevel::SESSION_LEVEL) {
     update_session_level_key(update, update_criteria);
+  }
+  if (update.credit().monitoring_key() == "") {
+    // We are overloading UsageMonitoringUpdateResponse/Request with other
+    // EventTriggered requests, so we could receive updates that don't affect
+    // UsageMonitors. 
+    MLOG(MINFO) << "Received a UsageMonitoringUpdateResponse with empty string"
+                << " mkey, not creating a monitor.";
+    return true;
   }
   auto it = monitor_map_.find(update.credit().monitoring_key());
   if (it == monitor_map_.end()) {
