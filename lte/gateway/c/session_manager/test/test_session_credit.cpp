@@ -256,6 +256,32 @@ TEST(test_is_quota_exhausted_tx_only, test_session_credit) {
   EXPECT_TRUE(credit.is_quota_exhausted(1));
 }
 
+// Assert that receiving an invalid GSU does not change the way we track
+// credits. If we request an additional quota and receive an empty GSU, the
+// quota should still be exhausted.
+TEST(test_is_quota_exhausted_after_empty_grant, test_session_credit) {
+  SessionCredit credit;
+  SessionCreditUpdateCriteria uc{};
+
+  GrantedUnits gsu;
+  uint64_t total_grant = 1000;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
+  credit.receive_credit(gsu, &uc);
+  EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
+
+  // Add enough quota to hit is_quota_exhausted(0.8)
+  credit.add_used_credit(900, 0, uc);
+  EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  credit.mark_failure(0, &uc);
+
+  // Receive empty GSU, quota should still be exhausted
+  gsu.Clear();
+  credit.receive_credit(gsu, &uc);
+  // assert uc grant_tracking type has not changed
+  EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
+  EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
