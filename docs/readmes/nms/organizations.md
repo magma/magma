@@ -17,7 +17,7 @@ would access the NMS using `facebook.nms.yourdomain.com`.
 
 ## First-time Setup
 
-When you deploy the nms for the first time, you'll need to create a user that
+When you deploy the NMS for the first time, you'll need to create a user that
 has access to the master organization. Run the command
 
 - Docker (development environment)

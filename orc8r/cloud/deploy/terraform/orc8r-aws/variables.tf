@@ -194,7 +194,7 @@ variable "orc8r_db_username" {
 }
 
 variable "orc8r_db_password" {
-  description = "Password for the Orchestrator DB."
+  description = "Password for the Orchestrator DB. Must be at least 8 characters."
   type        = string
 }
 
@@ -239,7 +239,7 @@ variable "nms_db_username" {
 }
 
 variable "nms_db_password" {
-  description = "Password for the NMS DB."
+  description = "Password for the NMS DB. Must be at least 8 characters."
   type        = string
 }
 

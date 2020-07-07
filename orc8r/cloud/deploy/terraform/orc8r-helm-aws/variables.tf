@@ -71,6 +71,7 @@ variable "monitoring_kubernetes_namespace" {
 variable "deploy_nms" {
   description = "Flag to deploy NMS"
   type        = bool
+  default     = true
 }
 
 variable "orc8r_controller_replicas" {
