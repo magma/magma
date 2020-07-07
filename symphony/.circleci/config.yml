@@ -669,9 +669,10 @@ jobs:
           <<: *invdir
           command: |
             yarn relay_oss
-            repo_status=$(git status | wc -l)
-            if [ "$repo_status" -ne 2 ]; then
+            if ! git status | grep 'nothing to commit'; then
               echo "'yarn relay_oss' modified changes. Please run 'yarn relay_oss' from /fbcnms-projects/inventory" >&2
+              echo "'git status' output is:"
+              git status
               exit 1
             fi
 
