@@ -330,7 +330,8 @@ void SessionCredit::log_quota_and_usage() const {
                << " Rx: " << buckets_[REPORTED_RX]
                << " Total: " << buckets_[REPORTED_RX] + buckets_[REPORTED_TX];
   MLOG(MDEBUG) << "===> Grant tracking type "
-               << grant_type_to_str(grant_tracking_type_);
+               << grant_type_to_str(grant_tracking_type_)
+               << ",  Reporting: " << reporting_;
 }
 
 void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
