@@ -283,5 +283,6 @@ export const POLICY_TYPES: KeyValueEnum<PolicyTypes> = {
   },
 };
 
-export const userFullName = (user: $Shape<User>) =>
-  `${user.firstName} ${user.lastName}`.trim() || '_';
+export function userFullName(user: $Shape<User>, fallback: string = '_') {
+  return `${user.firstName} ${user.lastName}`.trim() || fallback;
+}

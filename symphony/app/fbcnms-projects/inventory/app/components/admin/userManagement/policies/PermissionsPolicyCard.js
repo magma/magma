@@ -304,8 +304,8 @@ function PermissionsPolicyCard(props: Props) {
     return {
       title: <Breadcrumbs breadcrumbs={breadcrumbs} />,
       subtitle: policy?.isSystemDefault
-        ? fbt('Default policy details.', '')
-        : fbt('Edit this policy and apply it to groups.', ''),
+        ? fbt('View global policy details.', '')
+        : fbt('Define this policy and apply it to groups. ', ''),
       actionButtons: actions,
     };
   }, [
@@ -341,18 +341,17 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
   const {policy, onChange} = props;
   const classes = useStyles();
 
+  const systemGlobalPolicyAlert = `${fbt(
+    'This policy applies to all users and cannot be changed or removed.',
+    '',
+  )}`;
   const alerts = useFormAlertsContext();
   alerts.editLock.check({
     fieldId: 'system_default_policy',
-    fieldDisplayName: 'Workforce Default Policy',
+    fieldDisplayName: 'Workforce Global Policy',
     value: policy.isSystemDefault,
     checkCallback: isSystemDefault =>
-      isSystemDefault
-        ? `${fbt(
-            'This policy is applied to all users by default. It cannot be edited or removed.',
-            '',
-          )}`
-        : '',
+      isSystemDefault ? systemGlobalPolicyAlert : '',
   });
 
   const policyDetailsPart = (
@@ -373,12 +372,7 @@ function PermissionsPolicyCardBody(props: PermissionsPolicyCardBodyProps) {
                 className={classes.defaultPolicyMessageHeader}>
                 {SYSTEM_DEFAULT_POLICY_PREFIX}
               </Text>
-              <Text variant="body2">
-                <fbt desc="">
-                  This policy is applied to all users by default. It cannot be
-                  edited or removed.
-                </fbt>
-              </Text>
+              <Text variant="body2">{systemGlobalPolicyAlert}</Text>
             </div>
           </Card>
           {policyDetailsPart}

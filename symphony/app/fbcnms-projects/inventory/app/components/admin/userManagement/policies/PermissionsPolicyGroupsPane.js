@@ -144,13 +144,7 @@ export default function PermissionsPolicyGroupsPane(props: Props) {
   );
 
   const subtitle = useMemo(
-    () => (
-      <Text variant="caption" color="gray" useEllipsis={true}>
-        <fbt desc="">
-          Add this policy to groups to apply it on their members.
-        </fbt>
-      </Text>
-    ),
+    () => <fbt desc="">Search groups to apply this policy to them.</fbt>,
     [],
   );
 
@@ -188,11 +182,11 @@ export default function PermissionsPolicyGroupsPane(props: Props) {
               <div
                 className={classes.captionContainer}
                 title={`${fbt(
-                  'When turned on, all current and future users will have this policy applied.',
+                  'When selected, this policy will apply to all users, including those not in this group.',
                   '',
                 )}`}>
                 <Text>
-                  <fbt desc="">Apply this policy on all users</fbt>
+                  <fbt desc="">Apply this policy to all users</fbt>
                 </Text>
                 <InfoTinyIcon />
               </div>

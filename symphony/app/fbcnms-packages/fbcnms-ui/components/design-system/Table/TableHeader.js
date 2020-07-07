@@ -69,6 +69,7 @@ export type TableColumnType<T> = $ReadOnly<{|
   title: React.Node,
   titleClassName?: ?string,
   render: (rowData: TableRowDataType<T>) => React.Node,
+  tooltip?: ?(rowData: TableRowDataType<T>) => ?(string | number),
   className?: ?string,
   getSortingValue?: ?(rowData: TableRowDataType<T>) => ?(string | number),
   hidden?: boolean,
