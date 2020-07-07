@@ -42,6 +42,8 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
 
         bool update_success = session_store_.update_sessions(update);
         if (update_success) {
+          MLOG(MDEBUG) << "Sending RAA response for Gy ReAuth "
+                       << request_cpy.session_id();
           response_callback(Status::OK, ans);
         } else {
           // Todo If update fails, we should rollback changes from the request
@@ -52,6 +54,8 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
               "updated the session first.");
           response_callback(status, ans);
         }
+        MLOG(MDEBUG) << "Sent RAA response for Gy ReAuth "
+                     << request_cpy.session_id();
       });
 }
 
@@ -68,9 +72,12 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
         SessionUpdate update =
             SessionStore::get_default_session_update(session_map);
         enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
-        MLOG(MDEBUG) << "Result of Gx (Policy) ReAuthRequest " << ans.result();
+        MLOG(MDEBUG) << "Result of Gx (Policy) ReAuthRequest "
+                    << raa_result_to_str(ans.result());
         bool update_success = session_store_.update_sessions(update);
         if (update_success) {
+          MLOG(MDEBUG) << "Sending RAA response for Gx ReAuth "
+                       << request_cpy.session_id();
           response_callback(Status::OK, ans);
         } else {
         // Todo If update fails, we should rollback changes from the request
@@ -81,6 +88,8 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
               "updated the session first.");
           response_callback(status, ans);
         }
+        MLOG(MDEBUG) << "Sent RAA response for Gx ReAuth "
+                     << request_cpy.session_id();
       });
 }
 
