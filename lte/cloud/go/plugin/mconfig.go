@@ -407,7 +407,7 @@ func getPolicydbMconfig(networkID string) *mconfig.PolicyDB {
 	}
 }
 
-func getRatingGroups(networkID string) map[uint32]*models2.RatingGroup {
+func getRatingGroups(networkID string) map[uint32]*policyModels.RatingGroup {
 	ratingGroupEnts, err := configurator.LoadAllEntitiesInNetwork(
 		networkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
@@ -415,7 +415,7 @@ func getRatingGroups(networkID string) map[uint32]*models2.RatingGroup {
 	if err != nil {
 		glog.Errorf("Could not get rating groups of network")
 	}
-	ratingGroups := map[uint32]*models2.RatingGroup{}
+	ratingGroups := map[uint32]*policyModels.RatingGroup{}
 	for _, ent := range ratingGroupEnts {
 		ratingGroup := (ent.Config).(*policyModels.RatingGroup)
 		id := uint32(ratingGroup.ID)
