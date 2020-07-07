@@ -24,7 +24,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"orc8r/devmand/cloud/go/devmand"
-	symphonymodels "orc8r/devmand/cloud/go/plugin/models"
+	symphonymodels "orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"

@@ -32,8 +32,8 @@ import (
 	"magma/orc8r/lib/go/protos"
 	"orc8r/devmand/cloud/go/devmand"
 	plugin2 "orc8r/devmand/cloud/go/plugin"
-	"orc8r/devmand/cloud/go/plugin/handlers"
-	models2 "orc8r/devmand/cloud/go/plugin/models"
+	"orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
+	models2 "orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"

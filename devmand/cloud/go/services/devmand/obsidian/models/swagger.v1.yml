@@ -2,12 +2,12 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: magma/orc8r/cloud/go/plugin/models
+  go-package: magma/orc8r/cloud/go/services/devmand/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
   temp-gen-filename: devmand-swagger.yml
-  output-dir: devmand/cloud/go/plugin
+  output-dir: devmand/cloud/go/services/devmand/obsidian
   types:
     - go-struct-name: SymphonyNetwork
       filename: symphony_network_swaggergen.go

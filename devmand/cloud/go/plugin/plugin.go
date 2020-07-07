@@ -22,8 +22,8 @@ import (
 	"magma/orc8r/lib/go/service/config"
 	"magma/orc8r/lib/go/service/serviceregistry"
 	"orc8r/devmand/cloud/go/devmand"
-	"orc8r/devmand/cloud/go/plugin/handlers"
-	"orc8r/devmand/cloud/go/plugin/models"
+	"orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
+	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 )
 
 // DevmandOrchestratorPlugin is the orchestrator plugin for devmand
