@@ -87,6 +87,8 @@
     },
     "policydb": {
       "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
+      "infiniteUnmeteredChargingKeys": [],
+      "infiniteMeteredChargingKeys": [],
       "logLevel": "INFO"
     },
     "redirectd": {
