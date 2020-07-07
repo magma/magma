@@ -273,9 +273,8 @@ export function RanEdit(props: Props) {
   const handleEnbChange = (key: string, val) =>
     setConfig({...config, [key]: val});
 
-  const handleOptChange = (key: OptKey, val) => {
+  const handleOptChange = (key: OptKey, val) =>
     setOptConfig({...optConfig, [(key: string)]: val});
-  };
 
   const [error, setError] = useState('');
   const [config, setConfig] = useState<enodeb_configuration>(

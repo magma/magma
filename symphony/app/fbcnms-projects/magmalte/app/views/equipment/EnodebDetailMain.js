@@ -30,11 +30,13 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -94,15 +96,19 @@ const useStyles = makeStyles(theme => ({
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
-export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
+type Props = {
+  enbInfo: {[string]: EnodebInfo},
+};
+export function EnodebDetail(props: Props) {
   const classes = useStyles();
-  const [tabPos, setTabPos] = React.useState(0);
+  const [tabPos, setTabPos] = useState(0);
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const [enbInfo, setEnbInfo] = useState(props.enbInfo[enodebSerial]);
   return (
     <>
       <div className={classes.topBar}>
-        <Text variant="body2">Equipment/{enbInfo[enodebSerial].enb.name}</Text>
+        <Text variant="body2">Equipment/{enbInfo.enb.name}</Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
@@ -157,11 +163,29 @@ export function EnodebDetail({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
       <Switch>
         <Route
           path={relativePath('/overview')}
-          render={() => <Overview enbInfo={enbInfo[enodebSerial]} />}
+          render={() => <Overview enbInfo={enbInfo} />}
+        />
+        <Route
+          path={relativePath('/config/json')}
+          render={() => (
+            <EnodebJsonConfig
+              enbInfo={enbInfo}
+              onSave={enb => {
+                setEnbInfo({...enbInfo, enb: enb});
+              }}
+            />
+          )}
         />
         <Route
           path={relativePath('/config')}
-          render={() => <EnodebConfig enbInfo={enbInfo[enodebSerial]} />}
+          render={() => (
+            <EnodebConfig
+              enbInfo={enbInfo}
+              onSave={enb => {
+                setEnbInfo({...enbInfo, enb: enb});
+              }}
+            />
+          )}
         />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />

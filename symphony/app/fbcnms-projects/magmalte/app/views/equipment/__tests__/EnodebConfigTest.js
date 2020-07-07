@@ -19,6 +19,7 @@ import defaultTheme from '../../../theme/default.js';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
+import {useState} from 'react';
 
 jest.mock('axios');
 jest.mock('@fbcnms/magma-api');
@@ -102,20 +103,31 @@ describe('<AddEditEnodeButton />', () => {
     </MemoryRouter>
   );
 
-  const DetailWrapper = () => (
-    <MemoryRouter
-      initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
-      initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route
-            path="/nms/:networkId/enodeb/:enodebSerial/overview"
-            render={props => <EnodebConfig {...props} enbInfo={enbInfo} />}
-          />
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
+  const DetailWrapper = () => {
+    const [enbInf, setEnbInfo] = useState(enbInfo);
+    return (
+      <MemoryRouter
+        initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
+        initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <Route
+              path="/nms/:networkId/enodeb/:enodebSerial/overview"
+              render={props => (
+                <EnodebConfig
+                  {...props}
+                  enbInfo={enbInf}
+                  onSave={enb => {
+                    setEnbInfo({...enbInf, enb: enb});
+                  }}
+                />
+              )}
+            />
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
 
   it('Verify Enode Configs', async () => {
     const {getByTestId} = render(<DetailWrapper />);
