@@ -23,6 +23,8 @@ import {LogEvents, ServerLogger} from '../../common/LoggingUtils';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
 import {makeStyles} from '@material-ui/styles';
 
+const QUERY_LIMIT = 1000;
+
 const useStyles = makeStyles(() => ({
   projectComparisonView: {
     height: '100%',
@@ -110,7 +112,7 @@ const ProjectComparisonView = () => {
           entity: 'project',
         }}>
         <ProjectComparisonViewQueryRenderer
-          limit={50}
+          limit={QUERY_LIMIT}
           filters={[]}
           onProjectSelected={selectedProjectCardId =>
             navigateToProject(selectedProjectCardId)
