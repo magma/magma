@@ -13,8 +13,8 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	plugin2 "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/plugin/models"
 	"magma/lte/cloud/go/protos"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	pdbstreamer "magma/lte/cloud/go/services/policydb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -43,11 +43,11 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r1",
-			Config: &models.PolicyRuleConfig{
-				FlowList: []*models.FlowDescription{
+			Config: &policyModels.PolicyRuleConfig{
+				FlowList: []*policyModels.FlowDescription{
 					{
 						Action: swag.String("PERMIT"),
-						Match: &models.FlowMatch{
+						Match: &policyModels.FlowMatch{
 							Direction: swag.String("UPLINK"),
 							IPProto:   swag.String("IPPROTO_IP "),
 							IPV4Dst:   "192.168.160.0/24",
@@ -61,9 +61,9 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r2",
-			Config: &models.PolicyRuleConfig{
+			Config: &policyModels.PolicyRuleConfig{
 				Priority: swag.Uint32(42),
-				Redirect: &models.RedirectInformation{
+				Redirect: &policyModels.RedirectInformation{
 					AddressType:   swag.String("IPv4"),
 					ServerAddress: swag.String("https://www.google.com"),
 					Support:       swag.String("ENABLED"),
@@ -73,7 +73,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r3",
-			Config: &models.PolicyRuleConfig{
+			Config: &policyModels.PolicyRuleConfig{
 				MonitoringKey: "bar",
 			},
 		},
@@ -83,7 +83,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b1",
-			Config: &models.BaseNameRecord{Name: "b1"},
+			Config: &policyModels.BaseNameRecord{Name: "b1"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r1"},
 				{Type: lte.PolicyRuleEntityType, Key: "r2"},
@@ -92,7 +92,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b2",
-			Config: &models.BaseNameRecord{Name: "b2"},
+			Config: &policyModels.BaseNameRecord{Name: "b2"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r3"},
 			},
@@ -235,8 +235,8 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	config := &models.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []models.BaseName{"b1", "b2"},
+	config := &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"b1", "b2"},
 		NetworkWideRuleNames: []string{"r1", "r2"},
 	}
 	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config))

@@ -10,8 +10,8 @@ package plugin
 
 import (
 	"magma/cwf/cloud/go/cwf"
-	"magma/cwf/cloud/go/plugin/handlers"
-	"magma/cwf/cloud/go/plugin/models"
+	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
+	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"

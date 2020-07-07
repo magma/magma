@@ -1672,6 +1672,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args)
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_mobile_reachability_timer_started = 0;
 
   // Start Implicit Detach timer
   nas_itti_timer_arg_t timer_callback_fun = {0};

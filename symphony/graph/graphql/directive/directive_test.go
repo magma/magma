@@ -2,15 +2,15 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package directive
+package directive_test
 
 import (
 	"context"
-	"errors"
 	"io"
 	"testing"
 
 	"github.com/AlekSi/pointer"
+	"github.com/facebookincubator/symphony/graph/graphql/directive"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
 
@@ -28,57 +28,110 @@ func (tr *testResolver) resolve(ctx context.Context) (interface{}, error) {
 	return args.Get(0), args.Error(1)
 }
 
-func TestDirectiveLength(t *testing.T) {
+func TestDirectiveNumberValue(t *testing.T) {
 	var (
 		tests = []struct {
-			name    string
-			input   interface{}
-			err     error
-			min     int
-			max     *int
-			wantErr bool
+			name         string
+			input        interface{}
+			err          error
+			multipleOf   *float64
+			max          *float64
+			min          *float64
+			exclusiveMax *float64
+			exclusiveMin *float64
+			oneOf        []float64
+			equals       *float64
+			wantErr      bool
 		}{
 			{
-				name:  "Valid",
-				input: "test",
-				min:   1,
+				name:       "Valid",
+				input:      uint(42),
+				multipleOf: pointer.ToFloat64(3),
+				max:        pointer.ToFloat64(50),
+				min:        pointer.ToFloat64(40),
+				oneOf:      []float64{10, 42, 66, 70},
+				equals:     pointer.ToFloat64(42),
 			},
 			{
-				name:    "TooShort",
-				input:   "foo",
-				min:     5,
+				name:    "NextError",
+				err:     io.ErrUnexpectedEOF,
 				wantErr: true,
 			},
 			{
-				name:    "TooLong",
-				input:   []int{1, 2, 3},
-				max:     pointer.ToInt(2),
+				name:    "NilInput",
+				input:   pointer.ToIntOrNil(0),
+				wantErr: false,
+			},
+			{
+				name:       "NotMultipleOf",
+				input:      7,
+				multipleOf: pointer.ToFloat64(2),
+				wantErr:    true,
+			},
+			{
+				name:       "ZeroMultipleOf",
+				input:      float32(1),
+				multipleOf: pointer.ToFloat64(0),
+				wantErr:    true,
+			},
+			{
+				name:       "NegativeMultipleOf",
+				input:      float32(2),
+				multipleOf: pointer.ToFloat64(-5),
+				wantErr:    true,
+			},
+			{
+				name:    "AboveMaximum",
+				input:   51,
+				max:     pointer.ToFloat64(50),
 				wantErr: true,
 			},
 			{
-				name:  "Unlimited",
-				input: "hello world",
-			},
-			{
-				name:    "Unresolved",
-				input:   "test",
-				err:     errors.New("bad resolver"),
+				name:    "BelowMinimum",
+				input:   -7,
+				min:     pointer.ToFloat64(0),
 				wantErr: true,
 			},
 			{
-				name:    "NoLength",
-				input:   42,
-				min:     10,
+				name:         "AboveExclusiveMaximum",
+				input:        50,
+				exclusiveMax: pointer.ToFloat64(50),
+				wantErr:      true,
+			},
+			{
+				name:         "BelowExclusiveMinimum",
+				input:        float64(0),
+				exclusiveMin: pointer.ToFloat64(0),
+				wantErr:      true,
+			},
+			{
+				name:    "NotOneOf",
+				input:   15,
+				oneOf:   []float64{10, 16, 18},
+				wantErr: true,
+			},
+			{
+				name:    "NotEquals",
+				input:   21,
+				equals:  pointer.ToFloat64(20),
 				wantErr: true,
 			},
 		}
-		d      = New(logtest.NewTestLogger(t))
-		length = func(min int, max *int) func(interface{}, graphql.Resolver) (interface{}, error) {
+		d               = directive.New(logtest.NewTestLogger(t))
+		numberValueFunc = func(
+			multipleOf, max, min, exclusiveMax, exclusiveMin *float64,
+			oneOf []float64, equals *float64,
+		) func(interface{}, graphql.Resolver) (interface{}, error) {
 			return func(in interface{}, next graphql.Resolver) (interface{}, error) {
-				return d.Length(context.Background(), in, next, min, max)
+				return d.NumberValue(
+					context.Background(), in, next,
+					multipleOf, max, min, exclusiveMax,
+					exclusiveMin, oneOf, equals,
+				)
 			}
 		}
 	)
+
 	for _, tc := range tests {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -89,7 +142,11 @@ func TestDirectiveLength(t *testing.T) {
 				Once()
 			defer tr.AssertExpectations(t)
 
-			output, err := length(tc.min, tc.max)(tc.input, tr.resolve)
+			output, err := numberValueFunc(
+				tc.multipleOf, tc.max, tc.min,
+				tc.exclusiveMax, tc.exclusiveMin,
+				tc.oneOf, tc.equals,
+			)(tc.input, tr.resolve)
 			if !tc.wantErr {
 				assert.NoError(t, err)
 				assert.Equal(t, tc.input, output)
@@ -100,45 +157,258 @@ func TestDirectiveLength(t *testing.T) {
 	}
 }
 
-func TestDirectiveRange(t *testing.T) {
+func TestDirectiveStringValue(t *testing.T) {
 	var (
 		tests = []struct {
-			name    string
-			input   interface{}
-			err     error
-			min     *float64
-			max     *float64
-			wantErr bool
+			name       string
+			input      interface{}
+			err        error
+			minLength  *int
+			maxLength  *int
+			startsWith *string
+			endsWith   *string
+			includes   *string
+			regex      *string
+			oneOf      []string
+			equals     *string
+			wantErr    bool
 		}{
 			{
-				name:  "Valid",
-				input: 42,
-				min:   pointer.ToFloat64(10),
-				max:   pointer.ToFloat64(50),
+				name:       "Valid",
+				input:      pointer.ToString("foobarbaz"),
+				minLength:  pointer.ToInt(3),
+				maxLength:  pointer.ToInt(10),
+				startsWith: pointer.ToString("foo"),
+				endsWith:   pointer.ToString("baz"),
+				includes:   pointer.ToString("bar"),
+				regex:      pointer.ToString(`^f.+z$`),
+				oneOf:      []string{"foo", "bar", "foobarbaz"},
+				equals:     pointer.ToString("foobarbaz"),
 			},
 			{
-				name:    "TooSmall",
-				input:   -5,
-				min:     pointer.ToFloat64(0),
+				name:    "NextError",
+				err:     io.ErrUnexpectedEOF,
 				wantErr: true,
 			},
 			{
-				name:    "TooBig",
-				input:   100,
-				min:     pointer.ToFloat64(0),
-				max:     pointer.ToFloat64(99),
+				name:    "NilInput",
+				input:   pointer.ToStringOrNil(""),
+				wantErr: false,
+			},
+			{
+				name:      "TooLong",
+				input:     "hello",
+				maxLength: pointer.ToInt(4),
+				wantErr:   true,
+			},
+			{
+				name:      "NegativeMaxLength",
+				input:     "hello",
+				maxLength: pointer.ToInt(-5),
+				wantErr:   true,
+			},
+			{
+				name:      "TooShort",
+				input:     "hello",
+				minLength: pointer.ToInt(10),
+				wantErr:   true,
+			},
+			{
+				name:      "NegativeMinLength",
+				input:     "hello",
+				maxLength: pointer.ToInt(-100),
+				wantErr:   true,
+			},
+			{
+				name:       "NoPrefix",
+				input:      "world",
+				startsWith: pointer.ToString("he"),
+				wantErr:    true,
+			},
+			{
+				name:     "NoSuffix",
+				input:    "world",
+				endsWith: pointer.ToString("lld"),
+				wantErr:  true,
+			},
+			{
+				name:     "NoContains",
+				input:    "world",
+				includes: pointer.ToString("rrl"),
+				wantErr:  true,
+			},
+			{
+				name:    "NoRegexMatch",
+				input:   "world",
+				regex:   pointer.ToString("^wworld$"),
 				wantErr: true,
 			},
 			{
-				name:    "NotInt",
-				input:   "55",
+				name:    "NoOneOf",
+				input:   "bar",
+				oneOf:   []string{"foo", "baz"},
+				wantErr: true,
+			},
+			{
+				name:    "NoEquals",
+				input:   "bar",
+				equals:  pointer.ToString("baz"),
 				wantErr: true,
 			},
 		}
-		d       = New(logtest.NewTestLogger(t))
-		rangefn = func(min, max *float64) func(interface{}, graphql.Resolver) (interface{}, error) {
+		d               = directive.New(logtest.NewTestLogger(t))
+		stringValueFunc = func(
+			maxLength, minLength *int, startsWith, endsWith, includes,
+			regex *string, oneOf []string, equals *string,
+		) func(interface{}, graphql.Resolver) (interface{}, error) {
 			return func(in interface{}, next graphql.Resolver) (interface{}, error) {
-				return d.Range(context.Background(), in, next, min, max)
+				return d.StringValue(
+					context.Background(), in, next, maxLength,
+					minLength, startsWith, endsWith, includes,
+					regex, oneOf, equals,
+				)
+			}
+		}
+	)
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			var tr testResolver
+			tr.On("resolve", mock.Anything).
+				Return(tc.input, tc.err).
+				Once()
+			defer tr.AssertExpectations(t)
+
+			output, err := stringValueFunc(
+				tc.maxLength, tc.minLength, tc.startsWith,
+				tc.endsWith, tc.includes, tc.regex,
+				tc.oneOf, tc.equals,
+			)(tc.input, tr.resolve)
+			if !tc.wantErr {
+				assert.NoError(t, err)
+				assert.Equal(t, tc.input, output)
+			} else {
+				assert.Error(t, err)
+			}
+		})
+	}
+}
+
+func TestDirectiveList(t *testing.T) {
+	var (
+		tests = []struct {
+			name        string
+			input       interface{}
+			err         error
+			maxItems    *int
+			minItems    *int
+			uniqueItems *bool
+			wantErr     bool
+		}{
+			{
+				name:        "Valid",
+				input:       []int{1, 2, 3},
+				maxItems:    pointer.ToInt(5),
+				minItems:    pointer.ToInt(3),
+				uniqueItems: pointer.ToBool(true),
+			},
+			{
+				name:    "NextError",
+				input:   []int{1, 2, 3},
+				err:     io.ErrUnexpectedEOF,
+				wantErr: true,
+			},
+			{
+				name:    "NilInput",
+				input:   []uint8(nil),
+				wantErr: false,
+			},
+			{
+				name:     "AboveMaxItems",
+				input:    []int8{1, 2, 3, 4, 5},
+				maxItems: pointer.ToInt(4),
+				wantErr:  true,
+			},
+			{
+				name:     "NegativeMaxItems",
+				input:    []uint{42},
+				maxItems: pointer.ToInt(-6),
+				wantErr:  true,
+			},
+			{
+				name:     "BelowMinItems",
+				input:    []string{"foo"},
+				minItems: pointer.ToInt(2),
+				wantErr:  true,
+			},
+			{
+				name:     "NegativeMinItems",
+				input:    []byte{8},
+				minItems: pointer.ToInt(-42),
+				wantErr:  true,
+			},
+			{
+				name:        "NonUniqueStrings",
+				input:       []string{"foo", "bar", "baz", "baz"},
+				uniqueItems: pointer.ToBool(true),
+				wantErr:     true,
+			},
+			{
+				name:        "NonUniqueUint64s",
+				input:       []uint64{100, 200, 300, 100, 500},
+				uniqueItems: pointer.ToBool(true),
+				wantErr:     true,
+			},
+			{
+				name: "UniqueStructs",
+				input: []struct {
+					name string
+					age  uint
+				}{
+					{
+						name: "foo",
+						age:  18,
+					},
+					{
+						name: "bar",
+						age:  19,
+					},
+					{
+						name: "foo",
+						age:  19,
+					},
+				},
+				uniqueItems: pointer.ToBool(true),
+			},
+			{
+				name: "NonUniqueStructs",
+				input: []*struct {
+					name string
+					age  uint
+				}{
+					{
+						name: "foo",
+						age:  18,
+					},
+					{
+						name: "bar",
+						age:  19,
+					},
+					{
+						name: "foo",
+						age:  18,
+					},
+				},
+				uniqueItems: pointer.ToBool(true),
+				wantErr:     true,
+			},
+		}
+		d        = directive.New(logtest.NewTestLogger(t))
+		listFunc = func(maxItems, minItems *int, uniqueItems *bool) func(interface{}, graphql.Resolver) (interface{}, error) {
+			return func(in interface{}, next graphql.Resolver) (interface{}, error) {
+				return d.List(context.Background(), in, next, maxItems, minItems, uniqueItems)
 			}
 		}
 	)
@@ -152,7 +422,7 @@ func TestDirectiveRange(t *testing.T) {
 				Once()
 			defer tr.AssertExpectations(t)
 
-			output, err := rangefn(tc.min, tc.max)(tc.input, tr.resolve)
+			output, err := listFunc(tc.maxItems, tc.minItems, tc.uniqueItems)(tc.input, tr.resolve)
 			if !tc.wantErr {
 				assert.NoError(t, err)
 				assert.Equal(t, tc.input, output)
@@ -165,7 +435,7 @@ func TestDirectiveRange(t *testing.T) {
 
 func TestDirectiveUniqueField(t *testing.T) {
 	var (
-		d          = New(logtest.NewTestLogger(t))
+		d          = directive.New(logtest.NewTestLogger(t))
 		uniqueName = func(in interface{}, next graphql.Resolver) (interface{}, error) {
 			return d.UniqueField(context.Background(), in, next, "property type", "Name")
 		}
@@ -296,7 +566,7 @@ func TestDirectiveUniqueField(t *testing.T) {
 
 func TestDirectiveDeprecatedInputField(t *testing.T) {
 	var (
-		d                    = New(logtest.NewTestLogger(t))
+		d                    = directive.New(logtest.NewTestLogger(t))
 		deprecatedInputField = func(in interface{}, next graphql.Resolver) (interface{}, error) {
 			return d.DeprecatedInput(context.Background(), in, next, "AddInput.input", "Don't use both", pointer.ToString("input2"))
 		}

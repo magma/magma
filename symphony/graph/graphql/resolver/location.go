@@ -18,8 +18,6 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/location"
-
-	"github.com/pkg/errors"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -181,7 +179,7 @@ func (t *topologist) nestedNodes(ctx context.Context, eq *ent.Equipment, depth i
 
 	posEqs, err := eq.QueryPositions().QueryAttachment().All(ctx)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed querying positions")
+		return nil, fmt.Errorf("cannot query posistion attachments: %w", err)
 	}
 
 	posEqs = append(posEqs, eq)
@@ -216,7 +214,7 @@ func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) er
 
 	subTree, err := t.nestedNodes(ctx, eq, 0)
 	if err != nil {
-		return errors.Wrap(err, "failed querying nested equipment")
+		return fmt.Errorf("cannot query nested equipment: %w", err)
 	}
 
 	g := ctxgroup.WithContext(ctx)
@@ -228,7 +226,7 @@ func (t *topologist) build(ctx context.Context, eq *ent.Equipment, depth int) er
 			Where(equipment.IDNEQ(eq.ID)).
 			All(ctx)
 		if err != nil {
-			return errors.Wrap(err, "querying equipment links")
+			return fmt.Errorf("cannot query equipment links: %w", err)
 		}
 
 		for _, leq := range leqs {
@@ -260,18 +258,15 @@ func (t *topologist) topology() *models.NetworkTopology {
 }
 
 // Need to deal with positions
-func (locationResolver) Topology(ctx context.Context, loc *ent.Location, depth *int) (*models.NetworkTopology, error) {
-	if depth == nil {
-		return nil, errors.New("depth not supplied")
-	}
+func (locationResolver) Topology(ctx context.Context, loc *ent.Location, depth int) (*models.NetworkTopology, error) {
 	eqs, err := loc.QueryEquipment().All(ctx)
 	if err != nil {
-		return nil, errors.Wrapf(err, "failed querying location root equipment")
+		return nil, fmt.Errorf("cannot query location root equipment: %w", err)
 	}
 
 	t := &topologist{
 		sem:      semaphore.NewWeighted(32),
-		maxDepth: *depth,
+		maxDepth: depth,
 	}
 	g := ctxgroup.WithContext(ctx)
 	for _, eq := range eqs {

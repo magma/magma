@@ -20,4 +20,6 @@ std::string final_action_to_str(ChargingCredit_FinalAction final_action);
 std::string grant_type_to_str(GrantTrackingType grant_type);
 
 std::string session_fsm_state_to_str(SessionFsmState state);
+
+std::string credit_update_type_to_str(CreditUsage::UpdateType update);
 }  // namespace magma

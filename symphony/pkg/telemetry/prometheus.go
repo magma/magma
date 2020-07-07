@@ -21,7 +21,8 @@ func init() {
 // NewJaegerExporter creates a new opencensus view exporter.
 func NewPrometheusExporter(opts ViewExporterOptions) (view.Exporter, error) {
 	o := prometheus.Options{
-		Registry:    promclient.DefaultRegisterer.(*promclient.Registry),
+		Registerer:  promclient.DefaultRegisterer,
+		Gatherer:    promclient.DefaultGatherer,
 		ConstLabels: opts.Labels,
 		OnError: func(err error) {
 			zap.L().Error("cannot export view data to prometheus", zap.Error(err))

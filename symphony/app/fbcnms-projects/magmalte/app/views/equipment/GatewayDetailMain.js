@@ -14,6 +14,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import GatewayConfig from './GatewayDetailConfig';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
@@ -156,6 +157,10 @@ export function GatewayDetail({
       </AppBar>
 
       <Switch>
+        <Route
+          path={relativePath('/config')}
+          render={() => <GatewayConfig gwInfo={gwInfo} />}
+        />
         <Route
           path={relativePath('/overview')}
           render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={enbInfo} />}

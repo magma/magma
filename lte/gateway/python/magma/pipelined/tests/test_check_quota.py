@@ -33,6 +33,8 @@ class UEMacAddressTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     BRIDGE_IP = '192.168.130.1'
+    DPI_PORT = 'mon1'
+    DPI_IP = '1.1.1.1'
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -83,6 +85,12 @@ class UEMacAddressTest(unittest.TestCase):
                 'quota_check_ip': '1.2.3.4',
                 'local_ue_eth_addr': False,
                 'clean_restart': True,
+                'dpi': {
+                    'enabled': False,
+                    'mon_port': 'mon1',
+                    'mon_port_number': 32769,
+                    'idle_timeout': 42,
+                },
             },
             mconfig=PipelineD(
                 ue_ip_block='192.168.128.0/24',
@@ -93,6 +101,8 @@ class UEMacAddressTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        BridgeTools.create_internal_iface(cls.BRIDGE, cls.DPI_PORT,
+                                          cls.DPI_IP)
 
         cls.thread = start_ryu_app_thread(test_setup)
         cls.check_quota_controller = check_quota_controller_reference.result()

@@ -13,11 +13,11 @@ import (
 	"fmt"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
-	orc8rModels "magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
+	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
