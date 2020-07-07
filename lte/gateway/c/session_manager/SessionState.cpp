@@ -256,11 +256,12 @@ void SessionState::get_monitor_updates(
       continue;
     }
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key "
-                 << mkey << " updating due to quota exhaustion";
+                 << mkey << " updating due to quota exhaustion"
+                 << " with request number " << request_number_;
     auto credit_uc = get_monitor_uc(mkey, update_criteria);
     auto usage = credit.get_usage_for_reporting(*credit_uc);
-    auto update = make_usage_monitor_update(
-        usage, mkey, monitor_pair.second->level);
+    auto update =
+      make_usage_monitor_update(usage, mkey, monitor_pair.second->level);
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
 
     add_common_fields_to_usage_monitor_update(new_req);
@@ -973,7 +974,8 @@ void SessionState::get_charging_updates(
           // Create Update struct
           MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << key << " updating due to type "
-                   << credit_update_type_to_str(update_type);
+                   << credit_update_type_to_str(update_type)
+                   << " with request number " << request_number_;
 
           if (update_type == CreditUsage::REAUTH_REQUIRED) {
             grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
@@ -1173,6 +1175,9 @@ void SessionState::get_event_trigger_updates(
   // todo We should also handle other event triggers here too
   auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
   if (it != pending_event_triggers_.end() && it->second == READY) {
+    MLOG(MDEBUG) << "Session " << session_id_
+                 <<  " updating due to EventTrigger: REVALIDATION_TIMEOUT"
+                 << " with request number " << request_number_;
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->set_event_trigger(REVALIDATION_TIMEOUT);
