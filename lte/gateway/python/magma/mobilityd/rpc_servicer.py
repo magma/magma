@@ -21,7 +21,6 @@ from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
-from .ip_allocator_base import IPAllocatorType
 
 from .ip_allocator_static import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
@@ -52,13 +51,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     def __init__(self, mconfig, config):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
-        if config['allocator_type'] == 'ip_pool':
-            config_allocator_type = IPAllocatorType.IP_POOL
 
-        self._ipv4_allocator = IPAddressManager(
-            persist_to_redis=config['persist_to_redis'],
-            redis_port=config['redis_port'],
-            allocator_type=config_allocator_type)
+        self._ipv4_allocator = IPAddressManager(config=config)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates
@@ -286,5 +280,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
 
 class IPVersionNotSupportedError(Exception):
+    """ Exception thrown when an IP version is not supported """
+    pass
+
+
+class UnknownIPAllocatorError(Exception):
     """ Exception thrown when an IP version is not supported """
     pass

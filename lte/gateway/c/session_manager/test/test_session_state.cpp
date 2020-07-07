@@ -353,18 +353,14 @@ TEST_F(SessionStateTest, test_insert_credit) {
               update_criteria.static_rules_to_install.end());
 
   receive_credit_from_ocs(1, 1024);
-  EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL),
-            1024);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-                .buckets[ALLOWED_TOTAL],
-            1024);
+  EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)].
+            credit.buckets[ALLOWED_TOTAL], 1024);
 
   receive_credit_from_pcrf("m1", 1024, MonitoringLevel::PCC_RULE_LEVEL);
-  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
-            1024);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],
-            1024);
+  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"].
+            credit.buckets[ALLOWED_TOTAL], 1024);
 }
 
 TEST_F(SessionStateTest, test_can_complete_termination) {
@@ -419,15 +415,13 @@ TEST_F(SessionStateTest, test_add_rule_usage) {
   receive_credit_from_ocs(2, 6000);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 2);
   EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-                .buckets[ALLOWED_TOTAL],
-            3000);
+            .credit.buckets[ALLOWED_TOTAL], 3000);
 
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   receive_credit_from_pcrf("m2", 6000, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(update_criteria.monitor_credit_to_install.size(), 2);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],
-            3000);
+            .credit.buckets[ALLOWED_TOTAL], 3000);
 
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
@@ -483,14 +477,12 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
   receive_credit_from_ocs(3, 8000);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 2);
   EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(2)]
-                .buckets[ALLOWED_TOTAL],
-            6000);
+            .credit.buckets[ALLOWED_TOTAL], 6000);
 
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   receive_credit_from_pcrf("m3", 8000, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],
-            3000);
+                .credit.buckets[ALLOWED_TOTAL], 3000);
 
   session_state->add_rule_usage("dyn_rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
@@ -568,17 +560,13 @@ TEST_F(SessionStateTest, test_reauth_key) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
   session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(update.updates_size(), 1);
-  EXPECT_EQ(session_state->get_charging_credit(1, REPORTING_TX),
-            1000);
-  EXPECT_EQ(session_state->get_charging_credit(1, REPORTING_RX),
-            500);
+  EXPECT_EQ(session_state->get_charging_credit(1, REPORTING_TX), 1000);
+  EXPECT_EQ(session_state->get_charging_credit(1, REPORTING_RX), 500);
   // Reporting value is not tracked by UpdateCriteria
   EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)]
-                .bucket_deltas[REPORTING_TX],
-            0);
+                .bucket_deltas[REPORTING_TX], 0);
   EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)]
-                .bucket_deltas[REPORTING_RX],
-            0);
+                .bucket_deltas[REPORTING_RX], 0);
   // credit is already reporting, no update needed
   auto uc = get_default_update_criteria();
   auto reauth_res = session_state->reauth_key(1, uc);
@@ -600,9 +588,13 @@ TEST_F(SessionStateTest, test_reauth_key) {
 
 TEST_F(SessionStateTest, test_reauth_new_key) {
   // credit is already reporting, no update needed
-  auto reauth_res =
-      session_state->reauth_key(1, update_criteria);
+  auto reauth_res = session_state->reauth_key(1, update_criteria);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
+
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  auto new_charging_credits = update_criteria.charging_credit_to_install;
+  EXPECT_EQ(new_charging_credits[1].reauth_state, REAUTH_REQUIRED);
 
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -613,12 +605,20 @@ TEST_F(SessionStateTest, test_reauth_new_key) {
   EXPECT_EQ(usage.bytes_tx(), 0);
   EXPECT_EQ(usage.bytes_rx(), 0);
 
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(update_criteria.charging_credit_map.size(), 1);
+  auto credit_uc = update_criteria.charging_credit_map[1];
+  EXPECT_EQ(credit_uc.reauth_state, REAUTH_PROCESSING);
+
   receive_credit_from_ocs(1, 1024);
-  EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL),
-            1024);
+  EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)]
-                .bucket_deltas[ALLOWED_TOTAL],
-            1024);
+                .bucket_deltas[ALLOWED_TOTAL], 1024);
+
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(update_criteria.charging_credit_map.size(), 1);
+  credit_uc = update_criteria.charging_credit_map[1];
+  EXPECT_EQ(credit_uc.reauth_state, REAUTH_NOT_NEEDED);
 }
 
 TEST_F(SessionStateTest, test_reauth_all) {
@@ -641,14 +641,33 @@ TEST_F(SessionStateTest, test_reauth_all) {
   auto reauth_res = session_state->reauth_all(uc);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
 
+  // assert stored charging grant fields are updated to reflect reauth state
+  EXPECT_EQ(uc.charging_credit_map.size(), 2);
+  auto credit_uc_1 = uc.charging_credit_map[1];
+  auto credit_uc_2 = uc.charging_credit_map[2];
+  EXPECT_EQ(credit_uc_1.reauth_state, REAUTH_REQUIRED);
+  EXPECT_EQ(credit_uc_2.reauth_state, REAUTH_REQUIRED);
+
   UpdateSessionRequest reauth_update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(reauth_update, &actions, update_criteria);
+  session_state->get_updates(reauth_update, &actions, uc);
   EXPECT_EQ(reauth_update.updates_size(), 2);
+
+  EXPECT_EQ(uc.charging_credit_map.size(), 2);
+  credit_uc_1 = uc.charging_credit_map[1];
+  credit_uc_2 = uc.charging_credit_map[2];
+  EXPECT_EQ(credit_uc_1.reauth_state, REAUTH_PROCESSING);
+  EXPECT_EQ(credit_uc_2.reauth_state, REAUTH_PROCESSING);
 
   // All charging keys are reporting, no update needed
   reauth_res = session_state->reauth_all(uc);
   EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
+
+  EXPECT_EQ(uc.charging_credit_map.size(), 2);
+  credit_uc_1 = uc.charging_credit_map[1];
+  credit_uc_2 = uc.charging_credit_map[2];
+  EXPECT_EQ(credit_uc_1.reauth_state, REAUTH_PROCESSING);
+  EXPECT_EQ(credit_uc_2.reauth_state, REAUTH_PROCESSING);
 }
 
 TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
@@ -658,16 +677,12 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
   session_state->add_rule_usage("rule1", 1024, 0, update_criteria);
   EXPECT_EQ(true, session_state->active_monitored_rules_exist());
 
-  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL),
-            1024);
-  EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL),
-            1024);
+  EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 1024);
+  EXPECT_EQ(session_state->get_charging_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-                .buckets[ALLOWED_TOTAL],
-            1024);
+                .credit.buckets[ALLOWED_TOTAL], 1024);
   EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],
-            1024);
+                .credit.buckets[ALLOWED_TOTAL], 1024);
 
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -746,7 +761,7 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(rules_out_ptr.size(), 1);
   EXPECT_EQ(rules_out_ptr[0], "redirect");
 
-  EXPECT_EQ(session_state->is_gy_dynamic_rule_installed("redirect"), true);
+  EXPECT_TRUE(session_state->is_gy_dynamic_rule_installed("redirect"));
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_install.size(), 1);
 
   PolicyRule rule_out;
@@ -757,7 +772,7 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
   EXPECT_EQ(rules_out_ptr.size(), 0);
 
-  EXPECT_EQ(session_state->is_gy_dynamic_rule_installed("redirect"), false);
+  EXPECT_FALSE(session_state->is_gy_dynamic_rule_installed("redirect"));
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_uninstall.size(), 1);
 
   rules_out = {};
@@ -767,13 +782,39 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
 
   std::string mkey;
   // searching for non-existent rule should fail
-  EXPECT_EQ(false,
-            session_state->get_dynamic_rules().get_monitoring_key_for_rule_id(
-                "redirect", &mkey));
+  EXPECT_FALSE(session_state->get_dynamic_rules().
+               get_monitoring_key_for_rule_id("redirect", &mkey));
   // deleting an already deleted rule should fail
-  EXPECT_EQ(false,
-            session_state->get_dynamic_rules().remove_rule("redirect",
-                &rule_out));
+  EXPECT_FALSE(session_state->get_dynamic_rules().remove_rule("redirect",
+               &rule_out));
+}
+
+TEST_F(SessionStateTest, test_final_credit_install) {
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  CreditUpdateResponse charge_resp;
+  charge_resp.set_success(true);
+  charge_resp.set_sid("IMSI1");
+  charge_resp.set_charging_key(1);
+
+  bool is_final = true;
+  auto p_credit = charge_resp.mutable_credit();
+  create_charging_credit(1024, is_final, p_credit);
+  auto redirect = p_credit->mutable_redirect_server();
+  redirect->set_redirect_server_address("google.com");
+  redirect->set_redirect_address_type(RedirectServer_RedirectAddressType_URL);
+  p_credit->set_final_action(ChargingCredit_FinalAction_REDIRECT);
+
+  session_state->receive_charging_credit(charge_resp, update_criteria);
+
+  // Test that the update criteria is filled out properly
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  auto u_credit = update_criteria.charging_credit_to_install[1];
+  EXPECT_TRUE(u_credit.is_final);
+  auto fa = u_credit.final_action_info;
+  EXPECT_EQ(fa.final_action, ChargingCredit_FinalAction_REDIRECT);
+  EXPECT_EQ(fa.redirect_server.redirect_server_address(), "google.com");
+  EXPECT_EQ(fa.redirect_server.redirect_address_type(),
+            RedirectServer_RedirectAddressType_URL);
 }
 
 int main(int argc, char **argv) {

@@ -44,6 +44,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.host_key_checking = false
       ansible.playbook = "deploy/cwag_dev.yml"
       ansible.inventory_path = "deploy/hosts"
+      ansible.extra_vars = {
+        ingress_port: "eth1",
+        uplink_ports: "eth2 eth3",
+        li_port: "eth4",
+      }
       ansible.verbose = 'v'
     end
   end

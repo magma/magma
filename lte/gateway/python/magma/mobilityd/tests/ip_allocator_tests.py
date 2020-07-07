@@ -15,7 +15,6 @@ from __future__ import unicode_literals
 import ipaddress
 import unittest
 import time
-import logging
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
@@ -38,11 +37,14 @@ class IPAllocatorTests(unittest.TestCase):
         # NOTE: change below to True to run IP allocator tests locally. We
         # don't persist to Redis during normal unit tests since they are run
         # in Sandcastle.
-        persist_to_redis = False
+        config = {
+            'recycling_interval': recycling_interval,
+            'persist_to_redis': False,
+            'redis_port': 6379,
+        }
         self._allocator = IPAddressManager(
             recycling_interval=recycling_interval,
-            persist_to_redis=persist_to_redis,
-            redis_port=6379)
+            config=config)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):

@@ -55,6 +55,8 @@
 #include "spgw_config.h"
 #include "grpc_service.h"
 
+static void itti_send_timer_recovery_message(void);
+
 int main(int argc, char *argv[])
 {
   char *pid_file_name;
@@ -126,7 +128,9 @@ int main(int argc, char *argv[])
   mme_config_display(&mme_config);
   spgw_config_display(&spgw_config);
 #endif
-
+  if (mme_config.use_stateless) {
+    itti_send_timer_recovery_message();
+  }
   /*
    * Handle signals here
    */
@@ -137,4 +141,12 @@ int main(int argc, char *argv[])
   pid_file_unlock();
 
   return 0;
+}
+
+static void itti_send_timer_recovery_message(void) {
+  MessageDef* recovery_message_p;
+
+  recovery_message_p = itti_alloc_new_message(TASK_UNKNOWN, RECOVERY_MESSAGE);
+  itti_send_broadcast_message(recovery_message_p);
+  return;
 }

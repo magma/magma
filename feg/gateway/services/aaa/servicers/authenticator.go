@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/emakeev/snowflake"
@@ -19,6 +20,7 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
@@ -67,7 +69,11 @@ func NewEapAuthenticator(
 func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := client.HandleIdentityResponse(uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
-		glog.Errorf("EAP HandleIdentity Error: %v", err)
+		errMsg := fmt.Sprintf("EAP HandleIdentity Error: %v", err)
+		glog.Error(errMsg)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogAuthenticationFailedEvent(in.GetCtx(), errMsg)
+		}
 		err = nil
 	}
 	return resp, err
@@ -77,7 +83,11 @@ func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) 
 func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := client.Handle(in)
 	if resp == nil {
-		return resp, Errorf(codes.Internal, "Auth Handle error: %v, <nil> response", err)
+		errMsg := fmt.Sprintf("Auth Handle error: %v, <nil> response", err)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogAuthenticationFailedEvent(in.GetCtx(), errMsg)
+		}
+		return resp, Errorf(codes.Internal, errMsg)
 	}
 	method := eap.Packet(resp.GetPayload()).Type()
 	if method == uint8(protos.EapType_Reserved) {
@@ -91,10 +101,18 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 
 	if err != nil && len(resp.GetPayload()) > 0 {
 		// log error, but do not return it to Radius. EAP will carry its own error
-		glog.Errorf("EAP Handle Error: %v", err)
+		errMsg := fmt.Sprintf("EAP Handle Error: %v", err)
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogAuthenticationFailedEvent(resp.GetCtx(), errMsg)
+		}
+		glog.Error(errMsg)
 		return resp, nil
 	}
 	if srv.sessions != nil && eap.Packet(resp.Payload).IsSuccess() {
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogAuthenticationSuccessEvent(resp.GetCtx())
+		}
+
 		imsi := resp.Ctx.GetImsi()
 		if srv.config.GetAccountingEnabled() && srv.config.GetCreateSessionOnAuth() {
 			if srv.accounting == nil {

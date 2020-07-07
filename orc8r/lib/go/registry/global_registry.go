@@ -65,6 +65,12 @@ func GetServicePort(service string) (int, error) {
 	return globalRegistry.GetServicePort(service)
 }
 
+// GetEchoServerPort returns the listening port for the service's echo server.
+// The echo_port field needs to be added to the registry before this.
+func GetEchoServerPort(service string) (int, error) {
+	return globalRegistry.GetEchoServerPort(service)
+}
+
 // GetConnection provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
 	return globalRegistry.GetConnection(service)

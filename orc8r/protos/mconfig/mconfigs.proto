@@ -80,6 +80,9 @@ message MagmaD {
 //------------------------------------------------------------------------------
 message EventD {
     orc8r.LogLevel log_level = 1;
+    // The verbosity level for events.
+    // All events less than or equal to this verbosity will be logged.
+    int32 event_verbosity = 2;
 }
 
 message DirectoryD {

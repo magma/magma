@@ -100,8 +100,9 @@ type ResolverRoot interface {
 
 type DirectiveRoot struct {
 	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, name string, duplicateError string, newField *string) (res interface{}, err error)
-	Length          func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
-	Range           func(ctx context.Context, obj interface{}, next graphql.Resolver, min *float64, max *float64) (res interface{}, err error)
+	List            func(ctx context.Context, obj interface{}, next graphql.Resolver, maxItems *int, minItems *int, uniqueItems *bool) (res interface{}, err error)
+	NumberValue     func(ctx context.Context, obj interface{}, next graphql.Resolver, multipleOf *float64, max *float64, min *float64, exclusiveMax *float64, exclusiveMin *float64, oneOf []float64, equals *float64) (res interface{}, err error)
+	StringValue     func(ctx context.Context, obj interface{}, next graphql.Resolver, maxLength *int, minLength *int, startsWith *string, endsWith *string, includes *string, regex *string, oneOf []string, equals *string) (res interface{}, err error)
 	UniqueField     func(ctx context.Context, obj interface{}, next graphql.Resolver, typ string, field string) (res interface{}, err error)
 }
 
@@ -518,7 +519,7 @@ type ComplexityRoot struct {
 		Properties        func(childComplexity int) int
 		SiteSurveyNeeded  func(childComplexity int) int
 		Surveys           func(childComplexity int) int
-		Topology          func(childComplexity int, depth *int) int
+		Topology          func(childComplexity int, depth int) int
 		WifiData          func(childComplexity int) int
 	}
 
@@ -1314,7 +1315,7 @@ type LocationResolver interface {
 	Images(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
 	Files(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
 
-	Topology(ctx context.Context, obj *ent.Location, depth *int) (*models.NetworkTopology, error)
+	Topology(ctx context.Context, obj *ent.Location, depth int) (*models.NetworkTopology, error)
 	LocationHierarchy(ctx context.Context, obj *ent.Location) ([]*ent.Location, error)
 	Surveys(ctx context.Context, obj *ent.Location) ([]*ent.Survey, error)
 	WifiData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyWiFiScan, error)
@@ -3376,7 +3377,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Location.Topology(childComplexity, args["depth"].(*int)), true
+		return e.complexity.Location.Topology(childComplexity, args["depth"].(int)), true
 
 	case "Location.wifiData":
 		if e.complexity.Location.WifiData == nil {
@@ -7604,7 +7605,7 @@ type Location implements Node & NamedNode {
   images: [File]!
   files: [File]!
   siteSurveyNeeded: Boolean!
-  topology(depth: Int = 3): NetworkTopology!
+  topology(depth: Int! = 3 @numberValue(min: 0)): NetworkTopology!
   locationHierarchy: [Location!]!
   surveys: [Survey]!
   wifiData: [SurveyWiFiScan]!
@@ -8569,7 +8570,7 @@ input LinkSide {
 }
 
 input AddLinkInput {
-  sides: [LinkSide!]! @length(min: 2, max: 2)
+  sides: [LinkSide!]! @list(minItems: 2, maxItems: 2)
   workOrder: ID
   properties: [PropertyInput!]
   serviceIds: [ID!]
@@ -8936,21 +8937,144 @@ type WorkOrderEdge {
   cursor: Cursor!
 }
 
-# enforces length constraint
-directive @length(
-  min: Int!
-  max: Int
+"""
+@numberValue directive is used to describe possible numeric values.
+"""
+directive @numberValue(
+  """
+  The value of multipleOf MUST be a number, strictly greater than 0.
+  A numeric instance is valid only if division by this constraint's
+  value results in an integer.
+  """
+  multipleOf: Float
+
+  """
+  The value of max MUST be a number, representing an inclusive upper
+  limit for a numeric instance. A numeric instance is valid only if
+  the instance is less than or exactly equal to max.
+  """
+  max: Float
+
+  """
+  The value of min MUST be a number, representing an inclusive
+  upper limit for a numeric instance. A numeric instance is
+  valid only if the instance is greater than or exactly equal to min.
+  """
+  min: Float
+
+  """
+  The value of exclusiveMax MUST be a number, representing an exclusive
+  upper limit for a numeric instance. A numeric instance is valid only if
+  it is strictly less than (not equal to) exclusiveMax.
+  """
+  exclusiveMax: Float
+
+  """
+  The value of exclusiveMin MUST be a number, representing an exclusive
+  upper limit for a numeric instance. A numeric instance is valid only
+  if it has a value strictly greater than (not equal to) exclusiveMin.
+  """
+  exclusiveMin: Float
+
+  """
+  The value of this argument MUST be an array. This array SHOULD
+  have at least one element. Elements in the array SHOULD be unique.
+  An instance is valid only if its value is equal to one of the elements
+  in this constraint's array value.
+  """
+  oneOf: [Float!]
+
+  """
+  A numeric instance is valid only if its value is equal to
+  the value of the constrain.
+  """
+  equals: Float
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
-# enforces range constraint on numeric value
-directive @range(
-  min: Float
-  max: Float
+"""
+@stringValue directive is used to describe possible string values.
+"""
+directive @stringValue(
+  """
+  The value of this constraint MUST be a non-negative integer. A string instance
+  is valid against this constraint if its length is less than, or equal to maxLength.
+  The length of a string instance is defined as the number of its characters.
+  """
+  maxLength: Int
+
+  """
+  The value of this constraint MUST be a non-negative integer. A string instance
+  is valid against this constraint if its length is greater than, or equal to minLength.
+  The length of a string instance is defined as the number of its characters.
+  """
+  minLength: Int
+
+  """
+  The value of this constraint MUST be a string.
+  An instance is valid if it begins with the characters of the constraint's string.
+  """
+  startsWith: String
+
+  """
+  The value of this constraint MUST be a string.
+  An instance is valid if it ends with the characters of the constraint's string.
+  """
+  endsWith: String
+
+  """
+  The value of this constraint MUST be a string. An instance is valid if
+  constraint's value may be found within the instance string.
+  """
+  includes: String
+
+  """
+  The value of this constraint MUST be a string. This string SHOULD be a valid regular expression.
+  An instance is valid if the regular expression matches the instance successfully.
+  """
+  regex: String
+
+  """
+  The value of this argument MUST be an array. This array SHOULD
+  have at least one element. Elements in the array SHOULD be unique.
+  An instance is valid only if its value is equal to one of the elements
+  in this constraint's array value.
+  """
+  oneOf: [String!]
+
+  """
+  A value is valid only if its equal to the value of the constrain.
+  """
+  equals: String
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+"""
+@list directive is used to describe list values.
+"""
+directive @list(
+  """
+  The value of this constraint MUST be a non-negative integer.
+  An instance is valid if only its size is less than, or equal to,
+  the value of this directive.
+  """
+  maxItems: Int
+  """
+  The value of this constraint MUST be a non-negative integer.
+  An instance is valid against minItems if its size is greater than,
+  or equal to, the value of this constraint.
+  Omitting this constraint has the same behavior as a value of 0.
+  """
+  minItems: Int
+  """
+  The value of this constraint MUST be a boolean.
+  If it has boolean value true, the instance is valid
+  if all of its elements are unique.
+  """
+  uniqueItems: Boolean
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 type ProjectType implements Node {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   projects: [Project!]!
   numberOfProjects: Int!
@@ -8959,7 +9083,7 @@ type ProjectType implements Node {
 }
 
 input AddProjectTypeInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
@@ -8968,7 +9092,7 @@ input AddProjectTypeInput {
 
 input EditProjectTypeInput {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
@@ -8976,7 +9100,7 @@ input EditProjectTypeInput {
 }
 
 input AddCustomerInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   externalId: String
 }
 
@@ -9045,7 +9169,7 @@ type ProjectEdge {
 
 type Project implements Node {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   creator: String
     @deprecated(
@@ -9061,7 +9185,7 @@ type Project implements Node {
 }
 
 input AddProjectInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   creator: String
     @deprecatedInput(
@@ -9077,7 +9201,7 @@ input AddProjectInput {
 
 input EditProjectInput {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   creator: String
     @deprecatedInput(
@@ -9910,9 +10034,9 @@ type Query {
   user(authID: String!): User
   locationTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): LocationTypeConnection
   locations(
     onlyTopLevel: Boolean
@@ -9920,142 +10044,161 @@ type Query {
     name: String
     needsSiteSurvey: Boolean
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): LocationConnection
   equipmentPortTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortTypeConnection!
   equipmentPortDefinitions(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortDefinitionConnection!
   equipmentPorts(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentTypeConnection!
   equipments(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentConnection!
   serviceTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ServiceTypeConnection
   workOrders(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
     showCompleted: Boolean
   ): WorkOrderConnection!
   workOrderTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): WorkOrderTypeConnection
-  links(after: Cursor, first: Int, before: Cursor, last: Int): LinkConnection!
-  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  links(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+  ): LinkConnection!
+  users(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+  ): UserConnection
   usersGroups(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): UsersGroupConnection
   permissionsPolicies(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): PermissionsPolicyConnection
   searchForNode(
     name: String!
     after: Cursor
-    first: Int = 10
+    first: Int = 10 @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): SearchNodesConnection!
   equipmentSearch(
     filters: [EquipmentFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): EquipmentSearchResult!
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): WorkOrderSearchResult!
-  linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
-  portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
+  linkSearch(
+    filters: [LinkFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): LinkSearchResult!
+  portSearch(
+    filters: [PortFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): PortSearchResult!
   locationSearch(
     filters: [LocationFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): LocationSearchResult!
   projectSearch(
     """
     array of the work order filters to be applied
     """
     filters: [ProjectFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): [Project]!
-  customerSearch(limit: Int = 500): [Customer]!
+  customerSearch(limit: Int = 500 @numberValue(min: 0)): [Customer]!
   serviceSearch(
     filters: [ServiceFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): ServiceSearchResult!
-  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+  userSearch(
+    filters: [UserFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): UserSearchResult!
   permissionsPolicySearch(
     filters: [PermissionsPolicyFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): PermissionsPolicySearchResult!
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): UsersGroupSearchResult!
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
   pythonPackages: [PythonPackage!]!
   nearestSites(
-    latitude: Float!
-    longitude: Float!
-    first: Int! = 10
+    latitude: Float! @numberValue(min: -90, max: 90)
+    longitude: Float! @numberValue(min: -180, max: 180)
+    first: Int! = 10 @numberValue(min: 0)
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ProjectTypeConnection
   projects(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ProjectConnection
   customers(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
@@ -10299,39 +10442,47 @@ func (ec *executionContext) dir_deprecatedInput_args(ctx context.Context, rawArg
 	return args, nil
 }
 
-func (ec *executionContext) dir_length_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) dir_list_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["min"]; ok {
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 *int
+	if tmp, ok := rawArgs["maxItems"]; ok {
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["min"] = arg0
+	args["maxItems"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["max"]; ok {
+	if tmp, ok := rawArgs["minItems"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["max"] = arg1
+	args["minItems"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["uniqueItems"]; ok {
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["uniqueItems"] = arg2
 	return args, nil
 }
 
-func (ec *executionContext) dir_range_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) dir_numberValue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *float64
-	if tmp, ok := rawArgs["min"]; ok {
+	if tmp, ok := rawArgs["multipleOf"]; ok {
 		arg0, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["min"] = arg0
+	args["multipleOf"] = arg0
 	var arg1 *float64
 	if tmp, ok := rawArgs["max"]; ok {
 		arg1, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
@@ -10340,6 +10491,116 @@ func (ec *executionContext) dir_range_args(ctx context.Context, rawArgs map[stri
 		}
 	}
 	args["max"] = arg1
+	var arg2 *float64
+	if tmp, ok := rawArgs["min"]; ok {
+		arg2, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["min"] = arg2
+	var arg3 *float64
+	if tmp, ok := rawArgs["exclusiveMax"]; ok {
+		arg3, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["exclusiveMax"] = arg3
+	var arg4 *float64
+	if tmp, ok := rawArgs["exclusiveMin"]; ok {
+		arg4, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["exclusiveMin"] = arg4
+	var arg5 []float64
+	if tmp, ok := rawArgs["oneOf"]; ok {
+		arg5, err = ec.unmarshalOFloat2ᚕfloat64ᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oneOf"] = arg5
+	var arg6 *float64
+	if tmp, ok := rawArgs["equals"]; ok {
+		arg6, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["equals"] = arg6
+	return args, nil
+}
+
+func (ec *executionContext) dir_stringValue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["maxLength"]; ok {
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["maxLength"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["minLength"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["minLength"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["startsWith"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["startsWith"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["endsWith"]; ok {
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["endsWith"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["includes"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["includes"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["regex"]; ok {
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regex"] = arg5
+	var arg6 []string
+	if tmp, ok := rawArgs["oneOf"]; ok {
+		arg6, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oneOf"] = arg6
+	var arg7 *string
+	if tmp, ok := rawArgs["equals"]; ok {
+		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["equals"] = arg7
 	return args, nil
 }
 
@@ -10418,11 +10679,28 @@ func (ec *executionContext) field_Location_distanceKm_args(ctx context.Context, 
 func (ec *executionContext) field_Location_topology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
+	var arg0 int
 	if tmp, ok := rawArgs["depth"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNInt2int(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(int); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be int`, tmp)
 		}
 	}
 	args["depth"] = arg0
@@ -11660,9 +11938,28 @@ func (ec *executionContext) field_Query_customerSearch_args(ctx context.Context,
 	args := map[string]interface{}{}
 	var arg0 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg0
@@ -11682,9 +11979,28 @@ func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawA
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11698,9 +12014,28 @@ func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawA
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11720,9 +12055,28 @@ func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx contex
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11736,9 +12090,28 @@ func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx contex
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11758,9 +12131,28 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11774,9 +12166,28 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11796,9 +12207,28 @@ func (ec *executionContext) field_Query_equipmentPorts_args(ctx context.Context,
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11812,9 +12242,28 @@ func (ec *executionContext) field_Query_equipmentPorts_args(ctx context.Context,
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11834,9 +12283,28 @@ func (ec *executionContext) field_Query_equipmentSearch_args(ctx context.Context
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -11856,9 +12324,28 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11872,9 +12359,28 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11894,9 +12400,28 @@ func (ec *executionContext) field_Query_equipments_args(ctx context.Context, raw
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11910,9 +12435,28 @@ func (ec *executionContext) field_Query_equipments_args(ctx context.Context, raw
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11932,9 +12476,28 @@ func (ec *executionContext) field_Query_linkSearch_args(ctx context.Context, raw
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -11954,9 +12517,28 @@ func (ec *executionContext) field_Query_links_args(ctx context.Context, rawArgs 
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11970,9 +12552,28 @@ func (ec *executionContext) field_Query_links_args(ctx context.Context, rawArgs 
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11992,9 +12593,28 @@ func (ec *executionContext) field_Query_locationSearch_args(ctx context.Context,
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12014,9 +12634,28 @@ func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, 
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12030,9 +12669,28 @@ func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, 
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12084,9 +12742,28 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 	args["after"] = arg4
 	var arg5 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg5 = data
+		} else if tmp == nil {
+			arg5 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg5
@@ -12100,9 +12777,28 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 	args["before"] = arg6
 	var arg7 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg7 = data
+		} else if tmp == nil {
+			arg7 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg7
@@ -12114,25 +12810,84 @@ func (ec *executionContext) field_Query_nearestSites_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 float64
 	if tmp, ok := rawArgs["latitude"]; ok {
-		arg0, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNFloat2float64(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			max, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 90)
+			if err != nil {
+				return nil, err
+			}
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, -90)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, max, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(float64); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be float64`, tmp)
 		}
 	}
 	args["latitude"] = arg0
 	var arg1 float64
 	if tmp, ok := rawArgs["longitude"]; ok {
-		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNFloat2float64(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			max, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 180)
+			if err != nil {
+				return nil, err
+			}
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, -180)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, max, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(float64); ok {
+			arg1 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be float64`, tmp)
 		}
 	}
 	args["longitude"] = arg1
 	var arg2 int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNInt2int(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(int); ok {
+			arg2 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be int`, tmp)
 		}
 	}
 	args["first"] = arg2
@@ -12166,9 +12921,28 @@ func (ec *executionContext) field_Query_permissionsPolicies_args(ctx context.Con
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12182,9 +12956,28 @@ func (ec *executionContext) field_Query_permissionsPolicies_args(ctx context.Con
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12204,9 +12997,28 @@ func (ec *executionContext) field_Query_permissionsPolicySearch_args(ctx context
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12226,9 +13038,28 @@ func (ec *executionContext) field_Query_portSearch_args(ctx context.Context, raw
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12262,9 +13093,28 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12284,9 +13134,28 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12300,9 +13169,28 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12322,9 +13210,28 @@ func (ec *executionContext) field_Query_projects_args(ctx context.Context, rawAr
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12338,9 +13245,28 @@ func (ec *executionContext) field_Query_projects_args(ctx context.Context, rawAr
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12382,9 +13308,28 @@ func (ec *executionContext) field_Query_searchForNode_args(ctx context.Context, 
 	args["after"] = arg1
 	var arg2 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg2 = data
+		} else if tmp == nil {
+			arg2 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg2
@@ -12398,9 +13343,28 @@ func (ec *executionContext) field_Query_searchForNode_args(ctx context.Context, 
 	args["before"] = arg3
 	var arg4 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg4 = data
+		} else if tmp == nil {
+			arg4 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg4
@@ -12420,9 +13384,28 @@ func (ec *executionContext) field_Query_serviceSearch_args(ctx context.Context, 
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12442,9 +13425,28 @@ func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, r
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12458,9 +13460,28 @@ func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, r
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12480,9 +13501,28 @@ func (ec *executionContext) field_Query_userSearch_args(ctx context.Context, raw
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12516,9 +13556,28 @@ func (ec *executionContext) field_Query_usersGroupSearch_args(ctx context.Contex
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12538,9 +13597,28 @@ func (ec *executionContext) field_Query_usersGroups_args(ctx context.Context, ra
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12554,9 +13632,28 @@ func (ec *executionContext) field_Query_usersGroups_args(ctx context.Context, ra
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12576,9 +13673,28 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12592,9 +13708,28 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12628,9 +13763,28 @@ func (ec *executionContext) field_Query_workOrderSearch_args(ctx context.Context
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12650,9 +13804,28 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12666,9 +13839,28 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12688,9 +13880,28 @@ func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, raw
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12704,9 +13915,28 @@ func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, raw
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -20843,7 +22073,7 @@ func (ec *executionContext) _Location_topology(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Location().Topology(rctx, obj, args["depth"].(*int))
+		return ec.resolvers.Location().Topology(rctx, obj, args["depth"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -25983,14 +27213,14 @@ func (ec *executionContext) _Project_name(ctx context.Context, field graphql.Col
 			return obj.Name, nil
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			min, err := ec.unmarshalNInt2int(ctx, 1)
+			minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 			if err != nil {
 				return nil, err
 			}
-			if ec.directives.Length == nil {
-				return nil, errors.New("directive length is not implemented")
+			if ec.directives.StringValue == nil {
+				return nil, errors.New("directive stringValue is not implemented")
 			}
-			return ec.directives.Length(ctx, obj, directive0, min, nil)
+			return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 		}
 
 		tmp, err := directive1(rctx)
@@ -26502,14 +27732,14 @@ func (ec *executionContext) _ProjectType_name(ctx context.Context, field graphql
 			return obj.Name, nil
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			min, err := ec.unmarshalNInt2int(ctx, 1)
+			minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 			if err != nil {
 				return nil, err
 			}
-			if ec.directives.Length == nil {
-				return nil, errors.New("directive length is not implemented")
+			if ec.directives.StringValue == nil {
+				return nil, errors.New("directive stringValue is not implemented")
 			}
-			return ec.directives.Length(ctx, obj, directive0, min, nil)
+			return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 		}
 
 		tmp, err := directive1(rctx)
@@ -38440,14 +39670,14 @@ func (ec *executionContext) unmarshalInputAddCustomerInput(ctx context.Context, 
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -38876,18 +40106,18 @@ func (ec *executionContext) unmarshalInputAddLinkInput(ctx context.Context, obj 
 				return ec.unmarshalNLinkSide2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkSideᚄ(ctx, v)
 			}
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 2)
+				maxItems, err := ec.unmarshalOInt2ᚖint(ctx, 2)
 				if err != nil {
 					return nil, err
 				}
-				max, err := ec.unmarshalOInt2ᚖint(ctx, 2)
+				minItems, err := ec.unmarshalOInt2ᚖint(ctx, 2)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.List == nil {
+					return nil, errors.New("directive list is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, max)
+				return ec.directives.List(ctx, obj, directive0, maxItems, minItems, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39106,14 +40336,14 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39204,14 +40434,14 @@ func (ec *executionContext) unmarshalInputAddProjectTypeInput(ctx context.Contex
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -40283,14 +41513,14 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -40387,14 +41617,14 @@ func (ec *executionContext) unmarshalInputEditProjectTypeInput(ctx context.Conte
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -57443,6 +58673,38 @@ func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
 	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚕfloat64ᚄ(ctx context.Context, v interface{}) ([]float64, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]float64, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNFloat2float64(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOFloat2ᚕfloat64ᚄ(ctx context.Context, sel ast.SelectionSet, v []float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNFloat2float64(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {

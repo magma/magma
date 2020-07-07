@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
@@ -23,6 +22,7 @@ import (
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"

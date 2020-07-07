@@ -12,6 +12,7 @@
 !feg/gateway/
 !feg/protos/
 !feg/radius
+!feg/swagger/
 
 !lte/cloud/
 !lte/gateway/configs/

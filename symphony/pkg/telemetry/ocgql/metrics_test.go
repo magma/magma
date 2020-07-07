@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/testserver"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/facebookincubator/symphony/pkg/telemetry/ocgql"
@@ -25,6 +26,8 @@ func TestMetrics(t *testing.T) {
 	h := testserver.New()
 	h.AddTransport(transport.POST{})
 	h.Use(ocgql.Metrics{})
+	h.Use(extension.FixedComplexityLimit(100))
+	h.SetCalculatedComplexity(50)
 
 	c := client.New(h)
 	err = c.Post(`query { name }`, &struct{ Name string }{})
@@ -39,14 +42,14 @@ func TestMetrics(t *testing.T) {
 		require.NotEmpty(t, rows)
 
 		var (
-			count int
+			count int64
 			sum   = math.NaN()
 		)
 		switch data := rows[0].Data.(type) {
 		case *view.CountData:
-			count = int(data.Value)
+			count = data.Value
 		case *view.DistributionData:
-			count = int(data.Count)
+			count = data.Count
 			sum = data.Sum()
 		default:
 			require.Failf(t, "unknown data type", "value=%v", data)

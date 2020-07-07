@@ -17,9 +17,9 @@ import (
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/clock"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 
 	"github.com/stretchr/testify/assert"
 )

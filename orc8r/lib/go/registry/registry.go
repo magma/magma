@@ -25,6 +25,7 @@ type ServiceLocation struct {
 	Name         string
 	Host         string
 	Port         int
+	EchoPort     int
 	ProxyAliases map[string]int
 }
 
@@ -144,6 +145,22 @@ func (registry *ServiceRegistry) GetServicePort(service string) (int, error) {
 		return 0, fmt.Errorf("Service %s is not available", service)
 	}
 	return location.Port, nil
+}
+
+// GetEchoServerPort returns the listening port for the service's echo server.
+// The echo_port field needs to be added to the registry before this.
+func (registry *ServiceRegistry) GetEchoServerPort(service string) (int, error) {
+	registry.RLock()
+	defer registry.RUnlock()
+	location, ok := registry.ServiceLocations[strings.ToUpper(string(service))]
+	if !ok {
+		return 0, fmt.Errorf("failed to get echo server port: Service '%s' not registered", service)
+	}
+
+	if location.EchoPort == 0 {
+		return 0, fmt.Errorf("Echo server port for service %s is not available", service)
+	}
+	return location.EchoPort, nil
 }
 
 func (registry *ServiceRegistry) addUnsafe(location ServiceLocation) {

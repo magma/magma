@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/pkg/telemetry"
-	promclient "github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -18,8 +17,4 @@ func TestNewPrometheusExporter(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.NotNil(t, exporter)
-}
-
-func TestDefaultPrometheusRegisterer(t *testing.T) {
-	assert.IsType(t, (*promclient.Registry)(nil), promclient.DefaultRegisterer)
 }

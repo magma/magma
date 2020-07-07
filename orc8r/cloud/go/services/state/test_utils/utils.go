@@ -13,9 +13,9 @@ import (
 
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
 

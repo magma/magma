@@ -97,6 +97,58 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
     messages.send_msg(datapath, mod, retries)
 
 
+def add_flow(datapath, table, match, actions=None, instructions=None,
+             priority=MINIMUM_PRIORITY, retries=3, cookie=0x0, idle_timeout=0,
+             hard_timeout=0):
+    """
+    Add a flow based on provided args.
+
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to push the flow to
+        table (int): Table number to apply the flow to
+        match (MagmaMatch): The match for the flow
+        actions ([OFPAction]):
+            List of actions for the flow.
+        instructions ([OFPInstruction]):
+            List of instructions for the flow. This will default to a
+            single OFPInstructionsActions to apply `actions`.
+            Ignored if `actions` is set.
+        priority (int): Flow priority
+        retries (int): Number of times to retry pushing the flow on failure
+        cookie (hex): cookie value for the flow
+        idle_timeout (int): idle timeout for the flow
+        hard_timeout (int): hard timeout for the flow
+
+    Raises:
+        MagmaOFError: if the flow can't be added
+        Exception: If the actions contain NXActionResubmitTable.
+            Or if the flow is resubmitted to the next service and the actions
+            contain an action that loads the scratch register. The scratch
+            register is reset on table resubmit so any load has no effect.
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+
+    if actions is None:
+        actions = []
+    reset_scratch_reg_actions = [
+        parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+        for reg in SCRATCH_REGS]
+    actions = actions + reset_scratch_reg_actions
+
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                          actions, instructions)
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                            match=ryu_match, instructions=inst,
+                            table_id=table, cookie=cookie,
+                            idle_timeout=idle_timeout,
+                            hard_timeout=hard_timeout)
+
+    logger.debug('flowmod: %s (table %s)', mod, table)
+    messages.send_msg(datapath, mod, retries)
+
 def add_resubmit_next_service_flow(datapath, table, match, actions=None,
                                    instructions=None,
                                    priority=MINIMUM_PRIORITY, retries=3,

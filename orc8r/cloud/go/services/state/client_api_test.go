@@ -15,12 +15,12 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"

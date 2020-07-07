@@ -110,6 +110,8 @@ RUN python3.5 -m pip install \
     python-dateutil \
     jsonpickle
 
+COPY cwf/gateway/deploy/roles/ovs/files/nx_actions.py /usr/local/lib/python3.5/dist-packages/ryu/ofproto/
+
 # Temporary workaround to restore uplink bridge flows
 RUN mkdir -p /var/opt/magma/scripts
 COPY cwf/gateway/deploy/roles/cwag/files/add_uplink_bridge_flows.sh /var/opt/magma/scripts

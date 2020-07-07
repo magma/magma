@@ -25,7 +25,7 @@ import (
 func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, tenants.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating state service %s", err)
+		glog.Fatalf("Error creating tenants service %s", err)
 	}
 	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
 	if err != nil {
@@ -40,7 +40,7 @@ func main() {
 
 	server, err := servicers.NewTenantsServicer(store)
 	if err != nil {
-		glog.Fatalf("Error creating state server: %s", err)
+		glog.Fatalf("Error creating tenants server: %s", err)
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
 
