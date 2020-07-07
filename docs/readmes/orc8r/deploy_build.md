@@ -26,17 +26,20 @@ To start, define some necessary variables
 
 ```bash
 export PUBLISH=../../../orc8r/tools/docker/publish.sh  # or add to path
-export REGISTRY=registry.hub.docker.com/YOURREGISTRY  # replace with desired registry
+export REGISTRY=registry.hub.docker.com/MYREGISTRY  # replace with desired registry
 export MAGMA_TAG=v1.1.0-master  # or alternative desired tag
 ```
 
-Publish orc8r images to the registry
+Publish Orchestrator images to the registry
 
 ```bash
 for image in proxy controller prometheus-cache alertmanager-configurer prometheus-configurer grafana; do
-    ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG}
+    ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} -u MYUSERNAME -p MYPASSFILE
 done
 ```
+
+NOTE: you may need to include your username and password/token for
+the registry using the `-u` and `-p` flags, as shown above.
 
 While we're here, build and publish NMS images as well
 
