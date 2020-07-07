@@ -138,11 +138,11 @@ func (locationResolver) Properties(ctx context.Context, location *ent.Location) 
 	return location.QueryProperties().All(ctx)
 }
 
-func (locationResolver) filesOfType(ctx context.Context, location *ent.Location, typ string) ([]*ent.File, error) {
+func (locationResolver) filesOfType(ctx context.Context, location *ent.Location, typ file.Type) ([]*ent.File, error) {
 	fds, err := location.Edges.FilesOrErr()
 	if ent.IsNotLoaded(err) {
 		return location.QueryFiles().
-			Where(file.Type(typ)).
+			Where(file.TypeEQ(typ)).
 			All(ctx)
 	}
 	files := make([]*ent.File, 0, len(fds))
@@ -155,11 +155,11 @@ func (locationResolver) filesOfType(ctx context.Context, location *ent.Location,
 }
 
 func (r locationResolver) Images(ctx context.Context, location *ent.Location) ([]*ent.File, error) {
-	return r.filesOfType(ctx, location, models.FileTypeImage.String())
+	return r.filesOfType(ctx, location, file.TypeIMAGE)
 }
 
 func (r locationResolver) Files(ctx context.Context, location *ent.Location) ([]*ent.File, error) {
-	return r.filesOfType(ctx, location, models.FileTypeFile.String())
+	return r.filesOfType(ctx, location, file.TypeFILE)
 }
 
 func (locationResolver) Hyperlinks(ctx context.Context, location *ent.Location) ([]*ent.Hyperlink, error) {

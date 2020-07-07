@@ -455,7 +455,8 @@ type TopologyLink {
 
 scalar Time
 
-enum FileType {
+enum FileType
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/file.Type") {
   IMAGE
   FILE
 }

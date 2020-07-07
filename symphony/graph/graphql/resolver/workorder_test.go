@@ -1913,7 +1913,7 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 						FileName    string
 						SizeInBytes int
 						MimeType    string
-						FileType    models.FileType
+						FileType    file.Type
 					}
 				}
 			}
@@ -1962,7 +1962,7 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 
 			require.Equal(t, "StoreKeyAlreadyIn", item.Files[0].StoreKey)
 			require.Equal(t, 120, item.Files[0].SizeInBytes)
-			require.Equal(t, models.FileTypeImage, item.Files[0].FileType)
+			require.Equal(t, file.TypeIMAGE, item.Files[0].FileType)
 
 			require.Equal(t, "StoreKeyToAdd", item.Files[1].StoreKey)
 		}

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
@@ -1125,11 +1126,11 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 		SetSize(input.FileSize).
 		SetModifiedAt(input.Modified).
 		SetUploadedAt(time.Now()).
-		SetType(func() string {
+		SetType(func() file.Type {
 			if strings.HasPrefix(input.ContentType, "image/") {
-				return models.FileTypeImage.String()
+				return file.TypeIMAGE
 			}
-			return models.FileTypeFile.String()
+			return file.TypeFILE
 		}()).
 		SetContentType(input.ContentType).
 		SetNillableCategory(input.Category).

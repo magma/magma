@@ -141,12 +141,16 @@ func (workOrderResolver) CheckListCategories(ctx context.Context, obj *ent.WorkO
 	return obj.QueryCheckListCategories().All(ctx)
 }
 
-func (workOrderResolver) Images(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error) {
-	return obj.QueryFiles().Where(file.Type(models.FileTypeImage.String())).All(ctx)
+func (workOrderResolver) fileOfType(ctx context.Context, workOrder *ent.WorkOrder, typ file.Type) ([]*ent.File, error) {
+	return workOrder.QueryFiles().Where(file.TypeEQ(typ)).All(ctx)
 }
 
-func (workOrderResolver) Files(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error) {
-	return obj.QueryFiles().Where(file.Type(models.FileTypeFile.String())).All(ctx)
+func (r workOrderResolver) Images(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error) {
+	return r.fileOfType(ctx, obj, file.TypeIMAGE)
+}
+
+func (r workOrderResolver) Files(ctx context.Context, obj *ent.WorkOrder) ([]*ent.File, error) {
+	return r.fileOfType(ctx, obj, file.TypeFILE)
 }
 
 func (workOrderResolver) Hyperlinks(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Hyperlink, error) {

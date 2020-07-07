@@ -61,8 +61,8 @@ func (fc *FileCreate) SetNillableUpdateTime(t *time.Time) *FileCreate {
 }
 
 // SetType sets the type field.
-func (fc *FileCreate) SetType(s string) *FileCreate {
-	fc.mutation.SetType(s)
+func (fc *FileCreate) SetType(f file.Type) *FileCreate {
+	fc.mutation.SetType(f)
 	return fc
 }
 
@@ -343,6 +343,11 @@ func (fc *FileCreate) Save(ctx context.Context) (*File, error) {
 	if _, ok := fc.mutation.GetType(); !ok {
 		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
 	}
+	if v, ok := fc.mutation.GetType(); ok {
+		if err := file.TypeValidator(v); err != nil {
+			return nil, &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+		}
+	}
 	if _, ok := fc.mutation.Name(); !ok {
 		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
@@ -422,7 +427,7 @@ func (fc *FileCreate) sqlSave(ctx context.Context) (*File, error) {
 	}
 	if value, ok := fc.mutation.GetType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: file.FieldType,
 		})

@@ -11904,7 +11904,7 @@ type FileMutation struct {
 	id                           *int
 	create_time                  *time.Time
 	update_time                  *time.Time
-	_type                        *string
+	_type                        *file.Type
 	name                         *string
 	size                         *int
 	addsize                      *int
@@ -12091,12 +12091,12 @@ func (m *FileMutation) ResetUpdateTime() {
 }
 
 // SetType sets the type field.
-func (m *FileMutation) SetType(s string) {
-	m._type = &s
+func (m *FileMutation) SetType(f file.Type) {
+	m._type = &f
 }
 
 // GetType returns the type value in the mutation.
-func (m *FileMutation) GetType() (r string, exists bool) {
+func (m *FileMutation) GetType() (r file.Type, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -12108,7 +12108,7 @@ func (m *FileMutation) GetType() (r string, exists bool) {
 // If the File object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *FileMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *FileMutation) OldType(ctx context.Context) (v file.Type, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldType is allowed only on UpdateOne operations")
 	}
@@ -12993,7 +12993,7 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case file.FieldType:
-		v, ok := value.(string)
+		v, ok := value.(file.Type)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

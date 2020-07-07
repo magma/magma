@@ -1642,7 +1642,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "string",
+		Type:  "file.Type",
 		Name:  "type",
 		Value: string(buf),
 	}
