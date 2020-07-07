@@ -65,13 +65,15 @@ var mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
 
 const mobilitydStateExpectedMatchCount = 2
 
+var subscriberLoadCriteria = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
+
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, subscriberLoadCriteria)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -129,6 +131,7 @@ func createSubscriber(c echo.Context) error {
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:         lte.SubscriberEntityType,
 		Key:          string(payload.ID),
+		Name:         payload.Name,
 		Config:       payload.Lte,
 		Associations: payload.ActiveApns.ToAssocs(),
 	})
@@ -145,7 +148,7 @@ func getSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, subscriberLoadCriteria)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -192,6 +195,7 @@ func updateSubscriber(c echo.Context) error {
 	updateCriteria := configurator.EntityUpdateCriteria{
 		Key:               subscriberID,
 		Type:              lte.SubscriberEntityType,
+		NewName:           swag.String(payload.Name),
 		NewConfig:         payload.Lte,
 		AssociationsToSet: payload.ActiveApns.ToAssocs(),
 	}

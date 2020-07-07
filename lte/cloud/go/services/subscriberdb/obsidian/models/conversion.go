@@ -31,6 +31,7 @@ import (
 
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByID state_types.StatesByID) *Subscriber {
 	m.ID = policymodels.SubscriberID(ent.Key)
+	m.Name = ent.Name
 	m.Lte = ent.Config.(*LteSubscription)
 	// If no profile in backend, return "default"
 	if m.Lte.SubProfile == "" {

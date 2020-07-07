@@ -168,6 +168,10 @@ definitions:
     properties:
       id:
         $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+      name:
+        type: string
+        description: 'Optional name associated with the subscriber'
+        example: 'Jane Doe'
       lte:
         $ref: '#/definitions/lte_subscription'
       active_base_names:
@@ -204,6 +208,10 @@ definitions:
     properties:
       id:
         $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+      name:
+        type: string
+        description: 'Name for the subscriber'
+        example: 'Jane Doe'
       lte:
         $ref: '#/definitions/lte_subscription'
       active_base_names:
