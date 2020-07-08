@@ -13,7 +13,7 @@ import s1ap_types
 from integ_tests.s1aptests.s1ap_utils import S1ApUtil
 
 
-class TestS1SetupFailureIncorrectPlmn(unittest.TestCase):
+class TestS1SetupIncorrectPlmn(unittest.TestCase):
     def setUp(self):
         self._s1_util = S1ApUtil()
 
