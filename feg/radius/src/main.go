@@ -85,6 +85,7 @@ func main() {
 	}
 
 	logger = logger.With(zap.String("host", getHostIdentifier()))
+	logger = logger.With(zap.String("partner_shortname", config.Monitoring.Scuba.PartnerShortName))
 
 	loader := loader.NewStaticLoader(logger)
 
