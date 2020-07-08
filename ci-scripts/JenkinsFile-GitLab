@@ -489,7 +489,7 @@ pipeline {
           mySh2Cmd('docker run --privileged --name magma-oai-spgwc --network magma-oai-public-net --ip 192.168.61.130 -d oai-spgwc:develop /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
           mySh2Cmd('docker run --privileged --name magma-oai-spgwu-tiny --network magma-oai-public-net --ip 192.168.61.131 -d oai-spgwu-tiny:develop /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
           // Configure the containers
-          mySh2Cmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file --apn=oai.ipv4', new_host_flag, new_host_user, new_host)
+          mySh2Cmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file --apn=magma.ipv4', new_host_flag, new_host_user, new_host)
           mySh2Cmd('python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=192.168.61.130 --sxu=eth0 --s1u=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
           mySh2Cmd('docker cp ./spgwc-cfg.sh magma-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
           mySh2Cmd('docker exec -it magma-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"', new_host_flag, new_host_user, new_host)
