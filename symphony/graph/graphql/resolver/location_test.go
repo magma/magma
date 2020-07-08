@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nolint: goconst
 package resolver
 
 import (
@@ -212,7 +211,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name: "str_prop",
-				Type: models.PropertyKindString,
+				Type: propertytype.TypeString,
 			},
 		}})
 	require.NoError(t, err, "Adding location type")
@@ -221,7 +220,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name: "str_prop",
-				Type: models.PropertyKindString,
+				Type: propertytype.TypeString,
 			},
 		},
 	})
@@ -1318,7 +1317,7 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 	index := 0
 	locationPropType := models.PropertyTypeInput{
 		Name:  "location_prop",
-		Type:  "location",
+		Type:  propertytype.TypeNode,
 		Index: &index,
 	}
 

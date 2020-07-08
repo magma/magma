@@ -12,6 +12,7 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
@@ -87,7 +88,7 @@ func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, pro
 	})
 	propType := models.PropertyTypeInput{
 		Name: "Owner",
-		Type: models.PropertyKindString,
+		Type: propertytype.TypeString,
 	}
 	equType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       name + "eq_type",
@@ -322,7 +323,7 @@ func TestEquipmentSearch(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        fetchedPropType.Name,
-			Type:        models.PropertyKind(fetchedPropType.Type),
+			Type:        fetchedPropType.Type,
 			StringValue: &owner,
 		},
 		MaxDepth: &maxDepth,
@@ -411,25 +412,25 @@ func TestQueryEquipmentPossibleProperties(t *testing.T) {
 
 	namePropType := models.PropertyTypeInput{
 		Name: "Name",
-		Type: "string",
+		Type: propertytype.TypeString,
 	}
 
 	widthPropType := models.PropertyTypeInput{
 		Name: "Width",
-		Type: "number",
+		Type: propertytype.TypeInt,
 	}
 
-	_, _ = mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+	_, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       "example_type_a",
 		Properties: []*models.PropertyTypeInput{&namePropType, &widthPropType},
 	})
+	require.NoError(t, err)
 
 	propDefs, err := qr.PossibleProperties(ctx, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 	for _, propDef := range propDefs {
-		assert.True(t, propDef.Name == "Name" || propDef.Name == "Width")
+		assert.True(t, propDef.Name == namePropType.Name || propDef.Name == widthPropType.Name)
 	}
-
 	assert.Len(t, propDefs, 2)
 }
 
@@ -507,7 +508,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 	date := "2020-01-01"
 	propType := models.PropertyTypeInput{
 		Name:        "install_date",
-		Type:        models.PropertyKindDate,
+		Type:        propertytype.TypeDate,
 		StringValue: &date,
 	}
 	eqType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -540,7 +541,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 		Operator:   models.FilterOperatorDateGreaterThan,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "install_date",
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: &date,
 		},
 	}
@@ -555,7 +556,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 		Operator:   models.FilterOperatorDateLessThan,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "install_date",
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: &date,
 		},
 	}

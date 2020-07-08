@@ -20,6 +20,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/reportfilter"
 	"github.com/facebookincubator/symphony/pkg/ent/service"
 	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
@@ -320,7 +321,10 @@ func (r queryResolver) PossibleProperties(ctx context.Context, entityType models
 		return nil, fmt.Errorf("querying property types: %w", err)
 	}
 
-	type key struct{ name, typ string }
+	type key struct {
+		name string
+		typ  propertytype.Type
+	}
 	var (
 		groups = map[key]struct{}{}
 		types  []*ent.PropertyType

@@ -3158,7 +3158,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "string",
+		Type:  "propertytype.Type",
 		Name:  "type",
 		Value: string(buf),
 	}

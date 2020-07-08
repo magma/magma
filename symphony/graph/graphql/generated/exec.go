@@ -26,6 +26,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 	"github.com/facebookincubator/symphony/pkg/ent/file"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
@@ -1467,8 +1468,6 @@ type PropertyResolver interface {
 	RawValue(ctx context.Context, obj *ent.Property) (*string, error)
 }
 type PropertyTypeResolver interface {
-	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
-
 	RawValue(ctx context.Context, obj *ent.PropertyType) (*string, error)
 }
 type QueryResolver interface {
@@ -8644,7 +8643,10 @@ type ServiceTypeEdge {
   cursor: Cursor!
 }
 
-enum PropertyKind {
+enum PropertyKind
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/propertytype.Type"
+  ) {
   string
   int
   bool
@@ -29486,13 +29488,13 @@ func (ec *executionContext) _PropertyType_type(ctx context.Context, field graphq
 		Object:   "PropertyType",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.PropertyType().Type(rctx, obj)
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29504,9 +29506,9 @@ func (ec *executionContext) _PropertyType_type(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.PropertyKind)
+	res := resTmp.(propertytype.Type)
 	fc.Result = res
-	return ec.marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx, field.Selections, res)
+	return ec.marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_nodeType(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -43932,7 +43934,7 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx, v)
+			it.Type, err = ec.unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -50122,19 +50124,10 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._PropertyType_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._PropertyType_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "nodeType":
 			out.Values[i] = ec._PropertyType_nodeType(ctx, field, obj)
 		case "index":
@@ -57179,12 +57172,12 @@ func (ec *executionContext) unmarshalNPropertyInput2ᚖgithubᚗcomᚋfacebookin
 	return &res, err
 }
 
-func (ec *executionContext) unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx context.Context, v interface{}) (models.PropertyKind, error) {
-	var res models.PropertyKind
+func (ec *executionContext) unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx context.Context, v interface{}) (propertytype.Type, error) {
+	var res propertytype.Type
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx context.Context, sel ast.SelectionSet, v models.PropertyKind) graphql.Marshaler {
+func (ec *executionContext) marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx context.Context, sel ast.SelectionSet, v propertytype.Type) graphql.Marshaler {
 	return v
 }
 

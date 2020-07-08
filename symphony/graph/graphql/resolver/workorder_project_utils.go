@@ -67,7 +67,7 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 				return nil, fmt.Errorf("property type %v is mandatory and must be specified", propTyp.Name)
 			}
 			stringValue := &propTyp.StringVal
-			if models.PropertyKind(propTyp.Type) == models.PropertyKindEnum {
+			if propTyp.Type == propertytype.TypeEnum {
 				stringValue = nil
 			}
 			validInput = append(validInput, &models.PropertyInput{

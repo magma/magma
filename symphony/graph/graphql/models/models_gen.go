@@ -17,6 +17,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 	"github.com/facebookincubator/symphony/pkg/ent/file"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
@@ -584,25 +585,25 @@ type PropertyInput struct {
 }
 
 type PropertyTypeInput struct {
-	ID                 *int         `json:"id"`
-	ExternalID         *string      `json:"externalId"`
-	Name               string       `json:"name"`
-	Type               PropertyKind `json:"type"`
-	NodeType           *string      `json:"nodeType"`
-	Index              *int         `json:"index"`
-	Category           *string      `json:"category"`
-	StringValue        *string      `json:"stringValue"`
-	IntValue           *int         `json:"intValue"`
-	BooleanValue       *bool        `json:"booleanValue"`
-	FloatValue         *float64     `json:"floatValue"`
-	LatitudeValue      *float64     `json:"latitudeValue"`
-	LongitudeValue     *float64     `json:"longitudeValue"`
-	RangeFromValue     *float64     `json:"rangeFromValue"`
-	RangeToValue       *float64     `json:"rangeToValue"`
-	IsEditable         *bool        `json:"isEditable"`
-	IsInstanceProperty *bool        `json:"isInstanceProperty"`
-	IsMandatory        *bool        `json:"isMandatory"`
-	IsDeleted          *bool        `json:"isDeleted"`
+	ID                 *int              `json:"id"`
+	ExternalID         *string           `json:"externalId"`
+	Name               string            `json:"name"`
+	Type               propertytype.Type `json:"type"`
+	NodeType           *string           `json:"nodeType"`
+	Index              *int              `json:"index"`
+	Category           *string           `json:"category"`
+	StringValue        *string           `json:"stringValue"`
+	IntValue           *int              `json:"intValue"`
+	BooleanValue       *bool             `json:"booleanValue"`
+	FloatValue         *float64          `json:"floatValue"`
+	LatitudeValue      *float64          `json:"latitudeValue"`
+	LongitudeValue     *float64          `json:"longitudeValue"`
+	RangeFromValue     *float64          `json:"rangeFromValue"`
+	RangeToValue       *float64          `json:"rangeToValue"`
+	IsEditable         *bool             `json:"isEditable"`
+	IsInstanceProperty *bool             `json:"isInstanceProperty"`
+	IsMandatory        *bool             `json:"isMandatory"`
+	IsDeleted          *bool             `json:"isDeleted"`
 }
 
 type PythonPackage struct {
@@ -1573,65 +1574,6 @@ func (e *PropertyEntity) UnmarshalGQL(v interface{}) error {
 }
 
 func (e PropertyEntity) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type PropertyKind string
-
-const (
-	PropertyKindString        PropertyKind = "string"
-	PropertyKindInt           PropertyKind = "int"
-	PropertyKindBool          PropertyKind = "bool"
-	PropertyKindFloat         PropertyKind = "float"
-	PropertyKindDate          PropertyKind = "date"
-	PropertyKindEnum          PropertyKind = "enum"
-	PropertyKindRange         PropertyKind = "range"
-	PropertyKindEmail         PropertyKind = "email"
-	PropertyKindGpsLocation   PropertyKind = "gps_location"
-	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
-	PropertyKindNode          PropertyKind = "node"
-)
-
-var AllPropertyKind = []PropertyKind{
-	PropertyKindString,
-	PropertyKindInt,
-	PropertyKindBool,
-	PropertyKindFloat,
-	PropertyKindDate,
-	PropertyKindEnum,
-	PropertyKindRange,
-	PropertyKindEmail,
-	PropertyKindGpsLocation,
-	PropertyKindDatetimeLocal,
-	PropertyKindNode,
-}
-
-func (e PropertyKind) IsValid() bool {
-	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindDatetimeLocal, PropertyKindNode:
-		return true
-	}
-	return false
-}
-
-func (e PropertyKind) String() string {
-	return string(e)
-}
-
-func (e *PropertyKind) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PropertyKind(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PropertyKind", str)
-	}
-	return nil
-}
-
-func (e PropertyKind) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

@@ -7,6 +7,8 @@
 package propertytype
 
 import (
+	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -205,3 +207,66 @@ var (
 	// DefaultDeleted holds the default value on creation for the deleted field.
 	DefaultDeleted bool
 )
+
+// Type defines the type for the type enum field.
+type Type string
+
+// Type values.
+const (
+	TypeString        Type = "string"
+	TypeInt           Type = "int"
+	TypeBool          Type = "bool"
+	TypeFloat         Type = "float"
+	TypeDate          Type = "date"
+	TypeEnum          Type = "enum"
+	TypeRange         Type = "range"
+	TypeEmail         Type = "email"
+	TypeGpsLocation   Type = "gps_location"
+	TypeDatetimeLocal Type = "datetime_local"
+	TypeNode          Type = "node"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "_type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeString, TypeInt, TypeBool, TypeFloat, TypeDate, TypeEnum, TypeRange, TypeEmail, TypeGpsLocation, TypeDatetimeLocal, TypeNode:
+		return nil
+	default:
+		return fmt.Errorf("propertytype: invalid enum value for type field: %q", _type)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (_type Type) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, _type)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (_type *Type) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*_type = Type(str)
+	if err := TypeValidator(*_type); err != nil {
+		return fmt.Errorf("%s is not a valid Type", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}

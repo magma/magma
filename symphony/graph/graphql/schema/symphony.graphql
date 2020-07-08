@@ -1166,7 +1166,10 @@ type ServiceTypeEdge {
   cursor: Cursor!
 }
 
-enum PropertyKind {
+enum PropertyKind
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/propertytype.Type"
+  ) {
   string
   int
   bool

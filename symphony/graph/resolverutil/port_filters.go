@@ -105,7 +105,7 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 					property.And(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						),
 						pred,
 					),
@@ -114,13 +114,13 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 					equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(
 						equipmentporttype.HasPropertyTypesWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 							predForType,
 						))),
 					equipmentport.Not(equipmentport.HasPropertiesWith(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						)),
 					),
 				),
@@ -137,7 +137,7 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -145,13 +145,13 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 			equipmentport.And(
 				equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					propTypePred,
 				))),
 				equipmentport.Not(equipmentport.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 		return q, nil

@@ -67,18 +67,18 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name:        propNameStr,
-				Type:        models.PropertyKindString,
+				Type:        propertytype.TypeString,
 				StringValue: pointer.ToString("t1"),
 			},
 			{
 				Name: propNameInt,
-				Type: models.PropertyKindInt,
+				Type: propertytype.TypeInt,
 			},
 		},
 		LinkProperties: []*models.PropertyTypeInput{
 			{
 				Name: propNameInt,
-				Type: models.PropertyKindInt,
+				Type: propertytype.TypeInt,
 			},
 		},
 	})
@@ -102,23 +102,23 @@ func preparePortTypeData(ctx context.Context, t *testing.T, r TestImporterResolv
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name:        propNameDate,
-				Type:        models.PropertyKindDate,
+				Type:        propertytype.TypeDate,
 				StringValue: pointer.ToString("1988-03-29"),
 			},
 			{
 				Name: propNameBool,
-				Type: models.PropertyKindBool,
+				Type: propertytype.TypeBool,
 			},
 		},
 		LinkProperties: []*models.PropertyTypeInput{
 			{
 				Name:        propNameDate,
-				Type:        models.PropertyKindDate,
+				Type:        propertytype.TypeDate,
 				StringValue: pointer.ToString("2020-01-01"),
 			},
 			{
 				Name:         propNameBool,
-				Type:         models.PropertyKindBool,
+				Type:         propertytype.TypeBool,
 				BooleanValue: pointer.ToBool(true),
 			},
 		},
@@ -302,10 +302,10 @@ func TestGeneralPortsImport(t *testing.T) {
 		switch ptyp.Name {
 		case propNameStr:
 			require.Equal(t, *value.StringValue, "updateVal")
-			require.Equal(t, ptyp.Type, "string")
+			require.Equal(t, ptyp.Type, propertytype.TypeString)
 		case propNameInt:
 			require.Equal(t, *value.IntValue, 54)
-			require.Equal(t, ptyp.Type, "int")
+			require.Equal(t, ptyp.Type, propertytype.TypeInt)
 		default:
 			require.Fail(t, "property type name should be one of the two")
 		}
@@ -324,10 +324,10 @@ func TestGeneralPortsImport(t *testing.T) {
 		switch ptyp.Name {
 		case propNameStr:
 			require.Equal(t, *value.StringValue, "updateVal2")
-			require.Equal(t, ptyp.Type, "string")
+			require.Equal(t, ptyp.Type, propertytype.TypeString)
 		case propNameInt:
 			require.Equal(t, *value.IntValue, 55)
-			require.Equal(t, ptyp.Type, "int")
+			require.Equal(t, ptyp.Type, propertytype.TypeInt)
 		default:
 			require.Fail(t, "property type name should be one of the two")
 		}
@@ -346,10 +346,10 @@ func TestGeneralPortsImport(t *testing.T) {
 		switch ptyp.Name {
 		case propNameDate:
 			require.Equal(t, *value.StringValue, "1988-01-01")
-			require.Equal(t, ptyp.Type, "date")
+			require.Equal(t, ptyp.Type, propertytype.TypeDate)
 		case propNameBool:
 			require.Equal(t, *value.BooleanValue, true)
-			require.Equal(t, ptyp.Type, "bool")
+			require.Equal(t, ptyp.Type, propertytype.TypeBool)
 		default:
 			require.Fail(t, "property type name should be one of the two")
 		}

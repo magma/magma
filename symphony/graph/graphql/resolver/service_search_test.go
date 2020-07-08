@@ -486,7 +486,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "service_str_prop",
-			Type:        models.PropertyKind("string"),
+			Type:        propertytype.TypeString,
 			StringValue: pointer.ToString("Foo is the best"),
 		},
 	}

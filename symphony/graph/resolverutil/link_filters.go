@@ -154,7 +154,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -165,7 +165,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 						equipmentportdefinition.HasEquipmentPortTypeWith(
 							equipmentporttype.HasLinkPropertyTypesWith(
 								propertytype.Name(p.Name),
-								propertytype.Type(p.Type.String()),
+								propertytype.TypeEQ(p.Type),
 								propTypePred,
 							),
 						),
@@ -175,7 +175,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 					link.HasPropertiesWith(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						),
 					),
 				),
@@ -191,7 +191,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -202,7 +202,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 						equipmentportdefinition.HasEquipmentPortTypeWith(
 							equipmentporttype.HasLinkPropertyTypesWith(
 								propertytype.Name(p.Name),
-								propertytype.Type(p.Type.String()),
+								propertytype.TypeEQ(p.Type),
 								propTypePred,
 							),
 						),
@@ -213,7 +213,7 @@ func handleLinkPropertyFilter(q *ent.LinkQuery, filter *models.LinkFilterInput) 
 						equipmentport.HasPropertiesWith(
 							property.HasTypeWith(
 								propertytype.Name(p.Name),
-								propertytype.Type(p.Type.String()),
+								propertytype.TypeEQ(p.Type),
 							),
 						),
 					),

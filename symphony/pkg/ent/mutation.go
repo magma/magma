@@ -23697,7 +23697,7 @@ type PropertyTypeMutation struct {
 	id                              *int
 	create_time                     *time.Time
 	update_time                     *time.Time
-	_type                           *string
+	_type                           *propertytype.Type
 	name                            *string
 	external_id                     *string
 	index                           *int
@@ -23899,12 +23899,12 @@ func (m *PropertyTypeMutation) ResetUpdateTime() {
 }
 
 // SetType sets the type field.
-func (m *PropertyTypeMutation) SetType(s string) {
-	m._type = &s
+func (m *PropertyTypeMutation) SetType(pr propertytype.Type) {
+	m._type = &pr
 }
 
 // GetType returns the type value in the mutation.
-func (m *PropertyTypeMutation) GetType() (r string, exists bool) {
+func (m *PropertyTypeMutation) GetType() (r propertytype.Type, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -23916,7 +23916,7 @@ func (m *PropertyTypeMutation) GetType() (r string, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *PropertyTypeMutation) OldType(ctx context.Context) (v propertytype.Type, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldType is allowed only on UpdateOne operations")
 	}
@@ -25417,7 +25417,7 @@ func (m *PropertyTypeMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case propertytype.FieldType:
-		v, ok := value.(string)
+		v, ok := value.(propertytype.Type)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

@@ -59,14 +59,14 @@ const badID = -1
 
 func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) (bool, error) {
 	var (
-		typ                           models.PropertyKind
+		typ                           propertytype.Type
 		strVal                        *string
 		boolVal                       *bool
 		lat, long, rangeTo, rangeFrom *float64
 	)
 	switch v := input.(type) {
 	case *models.PropertyInput:
-		typ = models.PropertyKind(ptype.Type)
+		typ = ptype.Type
 		strVal = v.StringValue
 		boolVal = v.BooleanValue
 		lat, long = v.LatitudeValue, v.LongitudeValue
@@ -81,26 +81,26 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		return false, errors.New("input not of type property or property type")
 	}
 	switch typ {
-	case models.PropertyKindDate,
-		models.PropertyKindEmail,
-		models.PropertyKindString,
-		models.PropertyKindEnum,
-		models.PropertyKindDatetimeLocal:
+	case propertytype.TypeDate,
+		propertytype.TypeEmail,
+		propertytype.TypeString,
+		propertytype.TypeEnum,
+		propertytype.TypeDatetimeLocal:
 		return strVal == nil || *strVal == "", nil
-	case models.PropertyKindInt:
+	case propertytype.TypeInt:
 		// TODO detect int no-value
 		return false, nil
-	case models.PropertyKindGpsLocation:
+	case propertytype.TypeGpsLocation:
 		if lat == nil || long == nil {
 			return false, errors.New("gps_location type, with no lat/long provided")
 		}
 		return *lat == 0 && *long == 0, nil
-	case models.PropertyKindRange:
+	case propertytype.TypeRange:
 		if rangeTo == nil || rangeFrom == nil {
 			return false, gqlerror.Errorf("range type, with no to/from provided")
 		}
 		return *rangeTo == 0 && *rangeFrom == 0, nil
-	case models.PropertyKindBool:
+	case propertytype.TypeBool:
 		return boolVal == nil, nil
 	default:
 		return false, nil
@@ -220,7 +220,7 @@ func (r mutationResolver) AddPropertyTypes(
 	for _, input := range inputs {
 		query := client.Create().
 			SetName(input.Name).
-			SetType(input.Type.String()).
+			SetType(input.Type).
 			SetNillableNodeType(input.NodeType).
 			SetNillableExternalID(input.ExternalID).
 			SetNillableIndex(input.Index).
@@ -2722,7 +2722,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 	if err := r.ClientFrom(ctx).PropertyType.
 		UpdateOneID(*input.ID).
 		SetName(input.Name).
-		SetType(input.Type.String()).
+		SetType(input.Type).
 		SetNillableNodeType(input.NodeType).
 		SetNillableIndex(input.Index).
 		SetNillableExternalID(input.ExternalID).

@@ -31,7 +31,11 @@ func pointerToServiceStatus(status models.ServiceStatus) *models.ServiceStatus {
 	return &status
 }
 
-func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, positionsCount int, positionPrefix string, portsCount int, props []*models.PropertyTypeInput) *ent.EquipmentType {
+func (m *importer) getOrCreateEquipmentType(
+	ctx context.Context, name string, positionsCount int,
+	positionPrefix string, portsCount int,
+	props []*models.PropertyTypeInput,
+) *ent.EquipmentType {
 	log := m.logger.For(ctx)
 	client := m.ClientFrom(ctx)
 
@@ -47,7 +51,7 @@ func (m *importer) getOrCreateEquipmentType(ctx context.Context, name string, po
 		propEnt := client.PropertyType.
 			Create().
 			SetName(input.Name).
-			SetType(input.Type.String()).
+			SetType(input.Type).
 			SetNillableStringVal(input.StringValue).
 			SetNillableIntVal(input.IntValue).
 			SetNillableBoolVal(input.BooleanValue).

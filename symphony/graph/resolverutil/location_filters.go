@@ -89,7 +89,7 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					pred,
 				),
@@ -97,13 +97,13 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 			location.And(
 				location.HasTypeWith(locationtype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					typePred,
 				)),
 				location.Not(location.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 
@@ -118,7 +118,7 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -126,13 +126,13 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 			location.And(
 				location.HasTypeWith(locationtype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					propTypePred,
 				)),
 				location.Not(location.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 		return q, nil

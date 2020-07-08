@@ -75,7 +75,7 @@ func preparePortData(ctx context.Context, r *TestResolver) portSearchDataModels 
 			},
 			{
 				Name: "connected_date",
-				Type: models.PropertyKindDate,
+				Type: propertytype.TypeDate,
 			},
 		},
 	})
@@ -266,7 +266,7 @@ func TestSearchPortProperties(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "propStr",
-			Type:        models.PropertyKindString,
+			Type:        propertytype.TypeString,
 			StringValue: pointer.ToString("t1"),
 		},
 	}
@@ -281,7 +281,7 @@ func TestSearchPortProperties(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "propStr",
-			Type:        models.PropertyKindString,
+			Type:        propertytype.TypeString,
 			StringValue: pointer.ToString("newVal"),
 		},
 	}
@@ -296,7 +296,7 @@ func TestSearchPortProperties(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:         "propBool",
-			Type:         models.PropertyKindBool,
+			Type:         propertytype.TypeBool,
 			BooleanValue: pointer.ToBool(true),
 		},
 	}
@@ -311,7 +311,7 @@ func TestSearchPortProperties(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:         "propBool",
-			Type:         models.PropertyKindBool,
+			Type:         propertytype.TypeBool,
 			BooleanValue: pointer.ToBool(false),
 		},
 	}
@@ -326,7 +326,7 @@ func TestSearchPortProperties(t *testing.T) {
 		Operator:   models.FilterOperatorDateLessThan,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "connected_date",
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: pointer.ToString("2019-01-01"),
 		},
 	}

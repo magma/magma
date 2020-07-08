@@ -123,7 +123,7 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 					property.And(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						),
 						pred,
 					),
@@ -131,13 +131,13 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 				service.And(
 					service.HasTypeWith(servicetype.HasPropertyTypesWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 						predForType,
 					)),
 					service.Not(service.HasPropertiesWith(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						)),
 					))))
 		return q, nil

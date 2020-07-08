@@ -21,6 +21,7 @@ import (
 	"github.com/facebookincubator/symphony/graph/graphgrpc/schema"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ctxgroup"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/google/uuid"
@@ -302,7 +303,7 @@ type addEquipmentTypeResponse struct {
 	Properties []struct {
 		ID   graphql.ID
 		Name graphql.String
-		Kind models.PropertyKind `graphql:"type"`
+		Kind propertytype.Type `graphql:"type"`
 	} `graphql:"propertyTypes"`
 }
 
@@ -385,7 +386,7 @@ type addWorkOrderTypeResponse struct {
 	Properties []struct {
 		ID   graphql.ID
 		Name graphql.String
-		Kind models.PropertyKind `graphql:"type"`
+		Kind propertytype.Type `graphql:"type"`
 	} `graphql:"propertyTypes"`
 }
 
@@ -591,11 +592,11 @@ func TestPossibleProperties(t *testing.T) {
 		"router_type_"+uuid.New().String(),
 		&models.PropertyTypeInput{
 			Name: "Width",
-			Type: models.PropertyKindInt,
+			Type: propertytype.TypeInt,
 		},
 		&models.PropertyTypeInput{
 			Name: "Manufacturer",
-			Type: models.PropertyKindString,
+			Type: propertytype.TypeString,
 		},
 	)
 	require.NoError(t, err)
@@ -604,7 +605,7 @@ func TestPossibleProperties(t *testing.T) {
 		"router_type_"+uuid.New().String(),
 		&models.PropertyTypeInput{
 			Name: "Width",
-			Type: models.PropertyKindInt,
+			Type: propertytype.TypeInt,
 		},
 	)
 	require.NoError(t, err)

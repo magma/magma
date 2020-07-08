@@ -69,7 +69,7 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 			},
 			{
 				Name: "connected_date",
-				Type: models.PropertyKindDate,
+				Type: propertytype.TypeDate,
 			},
 		},
 	})
@@ -631,7 +631,7 @@ func TestSearchLinksByProperty(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "propStr",
-			Type:        models.PropertyKindString,
+			Type:        propertytype.TypeString,
 			StringValue: pointer.ToString("newVal"),
 		},
 	}
@@ -646,7 +646,7 @@ func TestSearchLinksByProperty(t *testing.T) {
 		Operator:   models.FilterOperatorDateLessThan,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "connected_date",
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: pointer.ToString("2019-01-01"),
 		},
 	}

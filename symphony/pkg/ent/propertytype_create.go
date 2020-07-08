@@ -61,8 +61,8 @@ func (ptc *PropertyTypeCreate) SetNillableUpdateTime(t *time.Time) *PropertyType
 }
 
 // SetType sets the type field.
-func (ptc *PropertyTypeCreate) SetType(s string) *PropertyTypeCreate {
-	ptc.mutation.SetType(s)
+func (ptc *PropertyTypeCreate) SetType(pr propertytype.Type) *PropertyTypeCreate {
+	ptc.mutation.SetType(pr)
 	return ptc
 }
 
@@ -481,6 +481,11 @@ func (ptc *PropertyTypeCreate) Save(ctx context.Context) (*PropertyType, error) 
 	if _, ok := ptc.mutation.GetType(); !ok {
 		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
 	}
+	if v, ok := ptc.mutation.GetType(); ok {
+		if err := propertytype.TypeValidator(v); err != nil {
+			return nil, &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+		}
+	}
 	if _, ok := ptc.mutation.Name(); !ok {
 		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
@@ -565,7 +570,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 	}
 	if value, ok := ptc.mutation.GetType(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: propertytype.FieldType,
 		})
