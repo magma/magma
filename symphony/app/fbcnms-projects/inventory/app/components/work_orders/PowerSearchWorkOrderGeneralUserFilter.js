@@ -8,6 +8,11 @@
  * @format
  */
 
+import type {
+  PowerSearchWorkOrderGeneralUserFilterIDsQuery as FetchUserQuery,
+  // eslint-disable-next-line max-len
+  PowerSearchWorkOrderGeneralUserFilterIDsQueryResponse as FetchUserQueryResponse,
+} from './__generated__/PowerSearchWorkOrderGeneralUserFilterIDsQuery.graphql';
 import type {FilterProps} from '../comparison_view/ComparisonViewTypes';
 
 import PowerSearchFilter from '../comparison_view/PowerSearchFilter';
@@ -42,6 +47,11 @@ const userQuery = graphql`
   }
 `;
 
+type SelectedUser = $ReadOnly<{
+  id: string,
+  label: string,
+}>;
+
 const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
   const {
     value,
@@ -51,7 +61,7 @@ const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
     onRemoveFilter,
     editMode,
   } = props;
-  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState<Array<SelectedUser>>([]);
   const [searchEntries, setSearchEntries] = useState([]);
 
   const fetchUsers = searchTerm =>
@@ -75,16 +85,37 @@ const PowerSearchWorkOrderGeneralUserFilter = (props: FilterProps) => {
     });
 
   useEffect(() => {
-    value.idSet
-      ?.filter(id => !selectedUsers.find(l => l.id == id))
-      .map(id =>
-        fetchQuery(RelayEnvironment, userQuery, {id: id}).then(user =>
-          setSelectedUsers([
-            ...selectedUsers,
-            {id: user.node.id, label: user.node.email},
-          ]),
-        ),
+    if (value.idSet == null) {
+      return;
+    }
+    const missingUsersPromises = value.idSet
+      .filter(id => !selectedUsers.find(l => l.id == id))
+      .map<Promise<FetchUserQueryResponse>>(id =>
+        fetchQuery<FetchUserQuery>(RelayEnvironment, userQuery, {id: id}),
       );
+    Promise.allSettled<Array<Promise<FetchUserQueryResponse>>>(
+      missingUsersPromises,
+    ).then(userPromises => {
+      const fetchedUsers = userPromises.map<?FetchUserQueryResponse>(
+        userPromise =>
+          userPromise.status === 'fulfilled' ? userPromise.value : null,
+      );
+      if (fetchedUsers.length === 0) {
+        return;
+      }
+      const missingUsers: $ReadOnlyArray<SelectedUser> = fetchedUsers
+        .map(fetchedUser => {
+          const user = fetchedUser?.node;
+          return user != null && user.id != null && user.email != null
+            ? {
+                id: user.id,
+                label: user.email,
+              }
+            : null;
+        })
+        .filter(Boolean);
+      setSelectedUsers([...selectedUsers, ...missingUsers]);
+    });
   }, [selectedUsers, value.idSet]);
 
   return (
