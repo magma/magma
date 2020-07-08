@@ -12,5 +12,5 @@ class WorkOrderPriority(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "WorkOrderPriority":
+    def _missing_(cls, value: object) -> "WorkOrderPriority":
         return cls.MISSING_ENUM

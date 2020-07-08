@@ -7,6 +7,8 @@
 package file
 
 import (
+	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -16,18 +18,29 @@ const (
 	// Label holds the string label denoting the file type in the database.
 	Label = "file"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time"  // FieldType holds the string denoting the type vertex property in the database.
-	FieldType        = "type"         // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"         // FieldSize holds the string denoting the size vertex property in the database.
-	FieldSize        = "size"         // FieldModifiedAt holds the string denoting the modified_at vertex property in the database.
-	FieldModifiedAt  = "modified_at"  // FieldUploadedAt holds the string denoting the uploaded_at vertex property in the database.
-	FieldUploadedAt  = "uploaded_at"  // FieldContentType holds the string denoting the content_type vertex property in the database.
-	FieldContentType = "content_type" // FieldStoreKey holds the string denoting the store_key vertex property in the database.
-	FieldStoreKey    = "store_key"    // FieldCategory holds the string denoting the category vertex property in the database.
-	FieldCategory    = "category"     // FieldAnnotation holds the string denoting the annotation vertex property in the database.
-	FieldAnnotation  = "annotation"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldSize holds the string denoting the size field in the database.
+	FieldSize = "size"
+	// FieldModifiedAt holds the string denoting the modified_at field in the database.
+	FieldModifiedAt = "modified_at"
+	// FieldUploadedAt holds the string denoting the uploaded_at field in the database.
+	FieldUploadedAt = "uploaded_at"
+	// FieldContentType holds the string denoting the content_type field in the database.
+	FieldContentType = "content_type"
+	// FieldStoreKey holds the string denoting the store_key field in the database.
+	FieldStoreKey = "store_key"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
+	// FieldAnnotation holds the string denoting the annotation field in the database.
+	FieldAnnotation = "annotation"
 
 	// EdgeLocation holds the string denoting the location edge name in mutations.
 	EdgeLocation = "location"
@@ -162,3 +175,57 @@ var (
 	// SizeValidator is a validator for the "size" field. It is called by the builders before save.
 	SizeValidator func(int) error
 )
+
+// Type defines the type for the type enum field.
+type Type string
+
+// Type values.
+const (
+	TypeIMAGE Type = "IMAGE"
+	TypeFILE  Type = "FILE"
+)
+
+func (_type Type) String() string {
+	return string(_type)
+}
+
+// TypeValidator is a validator for the "_type" field enum values. It is called by the builders before save.
+func TypeValidator(_type Type) error {
+	switch _type {
+	case TypeIMAGE, TypeFILE:
+		return nil
+	default:
+		return fmt.Errorf("file: invalid enum value for type field: %q", _type)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (_type Type) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, _type)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (_type *Type) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*_type = Type(str)
+	if err := TypeValidator(*_type); err != nil {
+		return fmt.Errorf("%s is not a valid Type", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}

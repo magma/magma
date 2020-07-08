@@ -169,7 +169,7 @@ func CreateTimeIn(vs ...time.Time) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -186,7 +186,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -245,7 +245,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -262,7 +262,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -321,7 +321,7 @@ func TitleIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -338,7 +338,7 @@ func TitleNotIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -432,7 +432,7 @@ func TypeIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -449,7 +449,7 @@ func TypeNotIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -543,7 +543,7 @@ func IndexIn(vs ...int) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -560,7 +560,7 @@ func IndexNotIn(vs ...int) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -633,7 +633,7 @@ func EnumValuesIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -650,7 +650,7 @@ func EnumValuesNotIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -758,7 +758,7 @@ func EnumSelectionModeValueIn(vs ...EnumSelectionModeValue) predicate.CheckListI
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -775,7 +775,7 @@ func EnumSelectionModeValueNotIn(vs ...EnumSelectionModeValue) predicate.CheckLi
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -820,7 +820,7 @@ func HelpTextIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -837,7 +837,7 @@ func HelpTextNotIn(vs ...string) predicate.CheckListItemDefinition {
 	return predicate.CheckListItemDefinition(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

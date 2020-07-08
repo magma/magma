@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 8d1e7fd1d48e477ffd779bcc5edc312d
+ * @relayHash a01160079bc62ddcb9aa66db83068ea0
  */
 
 /* eslint-disable */
@@ -35,7 +35,7 @@ export type WorkOrdersPaneQuery = {|
 
 /*
 query WorkOrdersPaneQuery {
-  workOrders(first: 500, showCompleted: false) {
+  workOrders(first: 500) {
     edges {
       node {
         id
@@ -53,12 +53,7 @@ query WorkOrdersPaneQuery {
 */
 
 const node/*: ConcreteRequest*/ = (function(){
-var v0 = {
-  "kind": "Literal",
-  "name": "showCompleted",
-  "value": false
-},
-v1 = [
+var v0 = [
   {
     "kind": "LinkedField",
     "alias": null,
@@ -135,13 +130,12 @@ v1 = [
     ]
   }
 ],
-v2 = [
+v1 = [
   {
     "kind": "Literal",
     "name": "first",
     "value": 500
-  },
-  (v0/*: any*/)
+  }
 ];
 return {
   "kind": "Request",
@@ -156,13 +150,11 @@ return {
         "kind": "LinkedField",
         "alias": "workOrders",
         "name": "__WorkOrdersPane_workOrders_connection",
-        "storageKey": "__WorkOrdersPane_workOrders_connection(showCompleted:false)",
-        "args": [
-          (v0/*: any*/)
-        ],
+        "storageKey": null,
+        "args": null,
         "concreteType": "WorkOrderConnection",
         "plural": false,
-        "selections": (v1/*: any*/)
+        "selections": (v0/*: any*/)
       }
     ]
   },
@@ -175,22 +167,20 @@ return {
         "kind": "LinkedField",
         "alias": null,
         "name": "workOrders",
-        "storageKey": "workOrders(first:500,showCompleted:false)",
-        "args": (v2/*: any*/),
+        "storageKey": "workOrders(first:500)",
+        "args": (v1/*: any*/),
         "concreteType": "WorkOrderConnection",
         "plural": false,
-        "selections": (v1/*: any*/)
+        "selections": (v0/*: any*/)
       },
       {
         "kind": "LinkedHandle",
         "alias": null,
         "name": "workOrders",
-        "args": (v2/*: any*/),
+        "args": (v1/*: any*/),
         "handle": "connection",
         "key": "WorkOrdersPane_workOrders",
-        "filters": [
-          "showCompleted"
-        ]
+        "filters": null
       }
     ]
   },
@@ -198,7 +188,7 @@ return {
     "operationKind": "query",
     "name": "WorkOrdersPaneQuery",
     "id": null,
-    "text": "query WorkOrdersPaneQuery {\n  workOrders(first: 500, showCompleted: false) {\n    edges {\n      node {\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
+    "text": "query WorkOrdersPaneQuery {\n  workOrders(first: 500) {\n    edges {\n      node {\n        id\n        name\n        __typename\n      }\n      cursor\n    }\n    pageInfo {\n      endCursor\n      hasNextPage\n    }\n  }\n}\n",
     "metadata": {
       "connection": [
         {
@@ -215,5 +205,5 @@ return {
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '2a084de72d676f5e97d2c1d7a0e3db0f';
+(node/*: any*/).hash = '0e030cf6ac3d385f5de8a99532eb512a';
 module.exports = node;

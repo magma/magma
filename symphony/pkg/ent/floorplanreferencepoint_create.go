@@ -76,6 +76,11 @@ func (fprpc *FloorPlanReferencePointCreate) SetLongitude(f float64) *FloorPlanRe
 	return fprpc
 }
 
+// Mutation returns the FloorPlanReferencePointMutation object of the builder.
+func (fprpc *FloorPlanReferencePointCreate) Mutation() *FloorPlanReferencePointMutation {
+	return fprpc.mutation
+}
+
 // Save creates the FloorPlanReferencePoint in the database.
 func (fprpc *FloorPlanReferencePointCreate) Save(ctx context.Context) (*FloorPlanReferencePoint, error) {
 	if _, ok := fprpc.mutation.CreateTime(); !ok {
@@ -87,16 +92,16 @@ func (fprpc *FloorPlanReferencePointCreate) Save(ctx context.Context) (*FloorPla
 		fprpc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := fprpc.mutation.X(); !ok {
-		return nil, errors.New("ent: missing required field \"x\"")
+		return nil, &ValidationError{Name: "x", err: errors.New("ent: missing required field \"x\"")}
 	}
 	if _, ok := fprpc.mutation.Y(); !ok {
-		return nil, errors.New("ent: missing required field \"y\"")
+		return nil, &ValidationError{Name: "y", err: errors.New("ent: missing required field \"y\"")}
 	}
 	if _, ok := fprpc.mutation.Latitude(); !ok {
-		return nil, errors.New("ent: missing required field \"latitude\"")
+		return nil, &ValidationError{Name: "latitude", err: errors.New("ent: missing required field \"latitude\"")}
 	}
 	if _, ok := fprpc.mutation.Longitude(); !ok {
-		return nil, errors.New("ent: missing required field \"longitude\"")
+		return nil, &ValidationError{Name: "longitude", err: errors.New("ent: missing required field \"longitude\"")}
 	}
 	var (
 		err  error

@@ -103,9 +103,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': True,
             },
-            mconfig=PipelineD(
-                relay_enabled=True,
-            ),
+            mconfig=PipelineD(),
             loop=loop_mock,
             service_manager=self.service_manager,
             integ_test=False,

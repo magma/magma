@@ -118,8 +118,12 @@ func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[str
 	if !funk.IsEmpty(filter.Types) {
 		preds = append(preds, blob.TypeIn(filter.GetTypes()...))
 	}
-	if !funk.IsEmpty(filter.Keys) {
-		preds = append(preds, blob.KeyIn(filter.GetKeys()...))
+	if !funk.IsEmpty(filter.KeyPrefix) {
+		preds = append(preds, blob.KeyHasPrefix(*filter.KeyPrefix))
+	} else {
+		if !funk.IsEmpty(filter.Keys) {
+			preds = append(preds, blob.KeyIn(filter.GetKeys()...))
+		}
 	}
 
 	ret := map[string][]Blob{}

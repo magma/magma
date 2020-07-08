@@ -184,6 +184,11 @@ func (sc *ServiceCreate) AddEndpoints(s ...*ServiceEndpoint) *ServiceCreate {
 	return sc.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the ServiceMutation object of the builder.
+func (sc *ServiceCreate) Mutation() *ServiceMutation {
+	return sc.mutation
+}
+
 // Save creates the Service in the database.
 func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
 	if _, ok := sc.mutation.CreateTime(); !ok {
@@ -195,23 +200,23 @@ func (sc *ServiceCreate) Save(ctx context.Context) (*Service, error) {
 		sc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := sc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := sc.mutation.Name(); ok {
 		if err := service.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := sc.mutation.ExternalID(); ok {
 		if err := service.ExternalIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
+			return nil, &ValidationError{Name: "external_id", err: fmt.Errorf("ent: validator failed for field \"external_id\": %w", err)}
 		}
 	}
 	if _, ok := sc.mutation.Status(); !ok {
-		return nil, errors.New("ent: missing required field \"status\"")
+		return nil, &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
 	}
 	if _, ok := sc.mutation.TypeID(); !ok {
-		return nil, errors.New("ent: missing required edge \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required edge \"type\"")}
 	}
 	var (
 		err  error

@@ -1642,7 +1642,7 @@ func (f *File) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "string",
+		Type:  "file.Type",
 		Name:  "type",
 		Value: string(buf),
 	}
@@ -3158,7 +3158,7 @@ func (pt *PropertyType) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[2] = &Field{
-		Type:  "string",
+		Type:  "propertytype.Type",
 		Name:  "type",
 		Value: string(buf),
 	}
@@ -5067,7 +5067,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[3] = &Field{
-		Type:  "string",
+		Type:  "workorder.Status",
 		Name:  "status",
 		Value: string(buf),
 	}
@@ -5075,7 +5075,7 @@ func (wo *WorkOrder) Node(ctx context.Context) (node *Node, err error) {
 		return nil, err
 	}
 	node.Fields[4] = &Field{
-		Type:  "string",
+		Type:  "workorder.Priority",
 		Name:  "priority",
 		Value: string(buf),
 	}

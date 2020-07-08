@@ -11,7 +11,7 @@
 import {BasicStrategy} from 'passport-http';
 import {validateUser} from './OrganizationLocalStrategy';
 
-export default function() {
+export default function () {
   return new BasicStrategy(
     {
       realm: 'Users',

@@ -65,6 +65,7 @@ mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
+  - cwf.protos.mconfig.mconfigs_pb2
 
 metricsd:
   log_level: INFO

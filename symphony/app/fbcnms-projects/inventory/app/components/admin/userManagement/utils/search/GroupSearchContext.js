@@ -17,9 +17,11 @@ import type {UsersGroup} from '../../data/UsersGroups';
 
 const groupSearchQuery = graphql`
   query GroupSearchContextQuery($filters: [UsersGroupFilterInput!]!) {
-    usersGroupSearch(filters: $filters) {
-      usersGroups {
-        ...UserManagementUtils_group @relay(mask: false)
+    usersGroups(first: 500, filters: $filters) {
+      edges {
+        node {
+          ...UserManagementUtils_group @relay(mask: false)
+        }
       }
     }
   }
@@ -34,7 +36,12 @@ const searchCallback = (searchTerm: string) =>
         stringValue: searchTerm,
       },
     ],
-  }).then(response => response.usersGroupSearch.usersGroups.filter(Boolean));
+  }).then(response => {
+    if (response?.usersGroups == null) {
+      return [];
+    }
+    return response.usersGroups.edges.map(edge => edge.node).filter(Boolean);
+  });
 
 const {
   SearchContext: GroupSearchContext,

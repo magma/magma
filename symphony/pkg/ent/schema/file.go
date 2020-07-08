@@ -19,7 +19,9 @@ type File struct {
 // Fields returns file fields.
 func (File) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("type"),
+		field.Enum("type").
+			Values("IMAGE", "FILE").
+			StructTag(`gqlgen:"fileType"`),
 		field.String("name").
 			StructTag(`gqlgen:"fileName"`),
 		field.Int("size").

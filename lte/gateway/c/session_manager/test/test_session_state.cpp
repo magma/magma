@@ -133,8 +133,7 @@ protected:
                                 MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
-    session_state->receive_monitor(monitor_resp,
-                                                     update_criteria);
+    session_state->receive_monitor(monitor_resp, update_criteria);
   }
 
   void activate_rule(uint32_t rating_group, const std::string &m_key,
@@ -815,6 +814,43 @@ TEST_F(SessionStateTest, test_final_credit_install) {
   EXPECT_EQ(fa.redirect_server.redirect_server_address(), "google.com");
   EXPECT_EQ(fa.redirect_server.redirect_address_type(),
             RedirectServer_RedirectAddressType_URL);
+}
+
+// We want to test a case where we do not receive a GSU, but we receive a
+// final_action on credit exhaust.
+TEST_F(SessionStateTest, test_empty_credit_grant) {
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  CreditUpdateResponse charge_resp;
+  charge_resp.set_success(true);
+  charge_resp.set_sid("IMSI1");
+  charge_resp.set_charging_key(1);
+
+  // A ChargingCredit with no GSU but FinalAction
+  auto p_credit = charge_resp.mutable_credit();
+  p_credit->set_type(ChargingCredit::BYTES);
+  p_credit->set_is_final(true);
+  p_credit->set_final_action(ChargingCredit_FinalAction_TERMINATE);
+
+  session_state->receive_charging_credit(charge_resp, update_criteria);
+
+  // Test that the update criteria is filled out properly
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  auto u_credit = update_criteria.charging_credit_to_install[1];
+  EXPECT_TRUE(u_credit.is_final);
+  EXPECT_EQ(u_credit.final_action_info.final_action,
+            ChargingCredit_FinalAction_TERMINATE);
+
+  // At this point, the charging credit for RG=1 should have no available quota
+  // and the tracking should be the default, TOTAL_ONLY
+  EXPECT_EQ(u_credit.credit.grant_tracking_type, TOTAL_ONLY);
+  EXPECT_EQ(u_credit.credit.buckets[ALLOWED_TOTAL], 0);
+  EXPECT_EQ(u_credit.credit.buckets[ALLOWED_TX], 0);
+  EXPECT_EQ(u_credit.credit.buckets[ALLOWED_RX], 0);
+
+  // Report some rule usage, and ensure the final action gets triggered
+  session_state->add_rule_usage("rule1", 100, 100, update_criteria);
+  auto credit_uc = update_criteria.charging_credit_map[1];
+  EXPECT_EQ(credit_uc.service_state, SERVICE_NEEDS_DEACTIVATION);
 }
 
 int main(int argc, char **argv) {

@@ -148,7 +148,7 @@ func CreateTimeIn(vs ...time.Time) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -165,7 +165,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -224,7 +224,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -241,7 +241,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -300,7 +300,7 @@ func NameIn(vs ...string) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -317,7 +317,7 @@ func NameNotIn(vs ...string) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -411,7 +411,7 @@ func DescriptionIn(vs ...string) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -428,7 +428,7 @@ func DescriptionNotIn(vs ...string) predicate.ProjectType {
 	return predicate.ProjectType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

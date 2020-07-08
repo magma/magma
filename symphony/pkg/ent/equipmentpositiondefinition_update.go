@@ -120,6 +120,11 @@ func (epdu *EquipmentPositionDefinitionUpdate) SetEquipmentType(e *EquipmentType
 	return epdu.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the EquipmentPositionDefinitionMutation object of the builder.
+func (epdu *EquipmentPositionDefinitionUpdate) Mutation() *EquipmentPositionDefinitionMutation {
+	return epdu.mutation
+}
+
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
 func (epdu *EquipmentPositionDefinitionUpdate) RemovePositionIDs(ids ...int) *EquipmentPositionDefinitionUpdate {
 	epdu.mutation.RemovePositionIDs(ids...)
@@ -440,6 +445,11 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) SetEquipmentType(e *Equipment
 	return epduo.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the EquipmentPositionDefinitionMutation object of the builder.
+func (epduo *EquipmentPositionDefinitionUpdateOne) Mutation() *EquipmentPositionDefinitionMutation {
+	return epduo.mutation
+}
+
 // RemovePositionIDs removes the positions edge to EquipmentPosition by ids.
 func (epduo *EquipmentPositionDefinitionUpdateOne) RemovePositionIDs(ids ...int) *EquipmentPositionDefinitionUpdateOne {
 	epduo.mutation.RemovePositionIDs(ids...)
@@ -530,7 +540,7 @@ func (epduo *EquipmentPositionDefinitionUpdateOne) sqlSave(ctx context.Context) 
 	}
 	id, ok := epduo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPositionDefinition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentPositionDefinition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := epduo.mutation.UpdateTime(); ok {

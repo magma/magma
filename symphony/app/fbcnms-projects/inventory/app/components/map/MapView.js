@@ -380,7 +380,7 @@ class MapView extends React.Component<Props, State> {
     markers.features.forEach(feature => {
       const geometry = nullthrows(feature.geometry);
       if (geometry.type === 'Point') {
-        const marker = new mapboxgl.Marker((<div />))
+        const marker = new mapboxgl.Marker(<div />)
           .setLngLat(geometry.coordinates)
           .addTo(map);
         ReactDOM.render(

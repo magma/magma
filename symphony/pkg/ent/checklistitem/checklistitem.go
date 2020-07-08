@@ -8,6 +8,7 @@ package checklistitem
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/facebookincubator/ent"
 )
@@ -16,17 +17,27 @@ const (
 	// Label holds the string label denoting the checklistitem type in the database.
 	Label = "check_list_item"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                     = "id"                        // FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle                  = "title"                     // FieldType holds the string denoting the type vertex property in the database.
-	FieldType                   = "type"                      // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex                  = "index"                     // FieldChecked holds the string denoting the checked vertex property in the database.
-	FieldChecked                = "checked"                   // FieldStringVal holds the string denoting the string_val vertex property in the database.
-	FieldStringVal              = "string_val"                // FieldEnumValues holds the string denoting the enum_values vertex property in the database.
-	FieldEnumValues             = "enum_values"               // FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value vertex property in the database.
-	FieldEnumSelectionModeValue = "enum_selection_mode_value" // FieldSelectedEnumValues holds the string denoting the selected_enum_values vertex property in the database.
-	FieldSelectedEnumValues     = "selected_enum_values"      // FieldYesNoVal holds the string denoting the yes_no_val vertex property in the database.
-	FieldYesNoVal               = "yes_no_val"                // FieldHelpText holds the string denoting the help_text vertex property in the database.
-	FieldHelpText               = "help_text"
+	FieldID = "id"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
+	// FieldChecked holds the string denoting the checked field in the database.
+	FieldChecked = "checked"
+	// FieldStringVal holds the string denoting the string_val field in the database.
+	FieldStringVal = "string_val"
+	// FieldEnumValues holds the string denoting the enum_values field in the database.
+	FieldEnumValues = "enum_values"
+	// FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value field in the database.
+	FieldEnumSelectionModeValue = "enum_selection_mode_value"
+	// FieldSelectedEnumValues holds the string denoting the selected_enum_values field in the database.
+	FieldSelectedEnumValues = "selected_enum_values"
+	// FieldYesNoVal holds the string denoting the yes_no_val field in the database.
+	FieldYesNoVal = "yes_no_val"
+	// FieldHelpText holds the string denoting the help_text field in the database.
+	FieldHelpText = "help_text"
 
 	// EdgeFiles holds the string denoting the files edge name in mutations.
 	EdgeFiles = "files"
@@ -109,8 +120,8 @@ const (
 	EnumSelectionModeValueMultiple EnumSelectionModeValue = "multiple"
 )
 
-func (s EnumSelectionModeValue) String() string {
-	return string(s)
+func (esmv EnumSelectionModeValue) String() string {
+	return string(esmv)
 }
 
 // EnumSelectionModeValueValidator is a validator for the "esmv" field enum values. It is called by the builders before save.
@@ -132,8 +143,8 @@ const (
 	YesNoValNO  YesNoVal = "NO"
 )
 
-func (s YesNoVal) String() string {
-	return string(s)
+func (ynv YesNoVal) String() string {
+	return string(ynv)
 }
 
 // YesNoValValidator is a validator for the "ynv" field enum values. It is called by the builders before save.
@@ -144,4 +155,53 @@ func YesNoValValidator(ynv YesNoVal) error {
 	default:
 		return fmt.Errorf("checklistitem: invalid enum value for yes_no_val field: %q", ynv)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (esmv EnumSelectionModeValue) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, esmv)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (esmv *EnumSelectionModeValue) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*esmv = EnumSelectionModeValue(str)
+	if err := EnumSelectionModeValueValidator(*esmv); err != nil {
+		return fmt.Errorf("%s is not a valid EnumSelectionModeValue", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (ynv YesNoVal) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, ynv)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (ynv *YesNoVal) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*ynv = YesNoVal(str)
+	if err := YesNoValValidator(*ynv); err != nil {
+		return fmt.Errorf("%s is not a valid YesNoVal", str)
+	}
+	return nil
 }

@@ -143,6 +143,11 @@ func (clidu *CheckListItemDefinitionUpdate) SetCheckListCategoryDefinition(c *Ch
 	return clidu.SetCheckListCategoryDefinitionID(c.ID)
 }
 
+// Mutation returns the CheckListItemDefinitionMutation object of the builder.
+func (clidu *CheckListItemDefinitionUpdate) Mutation() *CheckListItemDefinitionMutation {
+	return clidu.mutation
+}
+
 // ClearCheckListCategoryDefinition clears the check_list_category_definition edge to CheckListCategoryDefinition.
 func (clidu *CheckListItemDefinitionUpdate) ClearCheckListCategoryDefinition() *CheckListItemDefinitionUpdate {
 	clidu.mutation.ClearCheckListCategoryDefinition()
@@ -157,7 +162,7 @@ func (clidu *CheckListItemDefinitionUpdate) Save(ctx context.Context) (int, erro
 	}
 	if v, ok := clidu.mutation.EnumSelectionModeValue(); ok {
 		if err := checklistitemdefinition.EnumSelectionModeValueValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+			return 0, &ValidationError{Name: "enum_selection_mode_value", err: fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %w", err)}
 		}
 	}
 
@@ -474,6 +479,11 @@ func (cliduo *CheckListItemDefinitionUpdateOne) SetCheckListCategoryDefinition(c
 	return cliduo.SetCheckListCategoryDefinitionID(c.ID)
 }
 
+// Mutation returns the CheckListItemDefinitionMutation object of the builder.
+func (cliduo *CheckListItemDefinitionUpdateOne) Mutation() *CheckListItemDefinitionMutation {
+	return cliduo.mutation
+}
+
 // ClearCheckListCategoryDefinition clears the check_list_category_definition edge to CheckListCategoryDefinition.
 func (cliduo *CheckListItemDefinitionUpdateOne) ClearCheckListCategoryDefinition() *CheckListItemDefinitionUpdateOne {
 	cliduo.mutation.ClearCheckListCategoryDefinition()
@@ -488,7 +498,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) Save(ctx context.Context) (*Chec
 	}
 	if v, ok := cliduo.mutation.EnumSelectionModeValue(); ok {
 		if err := checklistitemdefinition.EnumSelectionModeValueValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+			return nil, &ValidationError{Name: "enum_selection_mode_value", err: fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %w", err)}
 		}
 	}
 
@@ -557,7 +567,7 @@ func (cliduo *CheckListItemDefinitionUpdateOne) sqlSave(ctx context.Context) (cl
 	}
 	id, ok := cliduo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing CheckListItemDefinition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CheckListItemDefinition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := cliduo.mutation.UpdateTime(); ok {

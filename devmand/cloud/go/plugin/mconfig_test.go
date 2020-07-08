@@ -18,8 +18,8 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"orc8r/devmand/cloud/go/devmand"
 	"orc8r/devmand/cloud/go/plugin"
-	models2 "orc8r/devmand/cloud/go/plugin/models"
 	"orc8r/devmand/cloud/go/protos/mconfig"
+	models2 "orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"

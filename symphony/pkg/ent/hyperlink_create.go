@@ -146,6 +146,11 @@ func (hc *HyperlinkCreate) SetWorkOrder(w *WorkOrder) *HyperlinkCreate {
 	return hc.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the HyperlinkMutation object of the builder.
+func (hc *HyperlinkCreate) Mutation() *HyperlinkMutation {
+	return hc.mutation
+}
+
 // Save creates the Hyperlink in the database.
 func (hc *HyperlinkCreate) Save(ctx context.Context) (*Hyperlink, error) {
 	if _, ok := hc.mutation.CreateTime(); !ok {
@@ -157,7 +162,7 @@ func (hc *HyperlinkCreate) Save(ctx context.Context) (*Hyperlink, error) {
 		hc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := hc.mutation.URL(); !ok {
-		return nil, errors.New("ent: missing required field \"url\"")
+		return nil, &ValidationError{Name: "url", err: errors.New("ent: missing required field \"url\"")}
 	}
 	var (
 		err  error

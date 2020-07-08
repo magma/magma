@@ -17,6 +17,7 @@ import (
 const Infinite = 1<<(bits.UintSize-1) - 1
 
 // New creates a graphql complexity root.
+// nolint: funlen
 func New() (complexity generated.ComplexityRoot) {
 	complexity.Location.Topology = func(childComplexity int, depth int) int {
 		return childComplexity * int(math.Pow10(depth)) / 2
@@ -25,24 +26,32 @@ func New() (complexity generated.ComplexityRoot) {
 	complexity.Query.Customers = PaginationComplexity
 	complexity.Query.EquipmentPortDefinitions = PaginationComplexity
 	complexity.Query.EquipmentPortTypes = PaginationComplexity
-	complexity.Query.EquipmentPorts = PaginationComplexity
+	complexity.Query.EquipmentPorts = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PortFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
 	complexity.Query.EquipmentSearch = func(childComplexity int, _ []*models.EquipmentFilterInput, limit *int) int {
 		return SearchComplexity(childComplexity, limit)
 	}
 	complexity.Query.EquipmentTypes = PaginationComplexity
-	complexity.Query.Equipments = PaginationComplexity
+	complexity.Query.Equipments = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.EquipmentFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
 	complexity.Query.LinkSearch = func(childComplexity int, _ []*models.LinkFilterInput, limit *int) int {
 		return SearchComplexity(childComplexity, limit)
 	}
-	complexity.Query.Links = PaginationComplexity
+	complexity.Query.Links = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LinkFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
 	complexity.Query.LocationSearch = func(childComplexity int, _ []*models.LocationFilterInput, limit *int) int {
 		return SearchComplexity(childComplexity, limit)
 	}
 	complexity.Query.LocationTypes = PaginationComplexity
-	complexity.Query.Locations = func(childComplexity int, _ *bool, _ []int, _ *string, _ *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int {
+	complexity.Query.Locations = func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LocationFilterInput) int {
 		return PaginationComplexity(childComplexity, after, first, before, last)
 	}
-	complexity.Query.PermissionsPolicies = PaginationComplexity
+	complexity.Query.PermissionsPolicies = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PermissionsPolicyFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
 	complexity.Query.PermissionsPolicySearch = func(childComplexity int, _ []*models.PermissionsPolicyFilterInput, limit *int) int {
 		return SearchComplexity(childComplexity, limit)
 	}
@@ -53,8 +62,13 @@ func New() (complexity generated.ComplexityRoot) {
 		return SearchComplexity(childComplexity, limit)
 	}
 	complexity.Query.ProjectTypes = PaginationComplexity
-	complexity.Query.Projects = PaginationComplexity
+	complexity.Query.Projects = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ProjectFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
 	complexity.Query.SearchForNode = func(childComplexity int, _ string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
+	complexity.Query.Services = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ServiceFilterInput) int {
 		return PaginationComplexity(childComplexity, after, first, before, last)
 	}
 	complexity.Query.ServiceSearch = func(childComplexity int, _ []*models.ServiceFilterInput, limit *int) int {
@@ -64,8 +78,12 @@ func New() (complexity generated.ComplexityRoot) {
 	complexity.Query.UserSearch = func(childComplexity int, _ []*models.UserFilterInput, limit *int) int {
 		return SearchComplexity(childComplexity, limit)
 	}
-	complexity.Query.Users = PaginationComplexity
-	complexity.Query.UsersGroups = PaginationComplexity
+	complexity.Query.Users = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UserFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
+	complexity.Query.UsersGroups = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UsersGroupFilterInput) int {
+		return PaginationComplexity(childComplexity, after, first, before, last)
+	}
 	complexity.Query.UsersGroupSearch = func(childComplexity int, _ []*models.UsersGroupFilterInput, limit *int) int {
 		return SearchComplexity(childComplexity, limit)
 	}
@@ -73,7 +91,7 @@ func New() (complexity generated.ComplexityRoot) {
 		return SearchComplexity(childComplexity, limit)
 	}
 	complexity.Query.WorkOrderTypes = PaginationComplexity
-	complexity.Query.WorkOrders = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, _ *bool) int {
+	complexity.Query.WorkOrders = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.WorkOrderFilterInput) int {
 		return PaginationComplexity(childComplexity, after, first, before, last)
 	}
 

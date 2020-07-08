@@ -35,7 +35,7 @@ func (m *LteNetwork) GetEmptyNetwork() handlers.NetworkModel {
 func (m *LteNetwork) ToConfiguratorNetwork() configurator.Network {
 	return configurator.Network{
 		ID:          string(m.ID),
-		Type:        lte.LteNetworkType,
+		Type:        lte.NetworkType,
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Configs: map[string]interface{}{

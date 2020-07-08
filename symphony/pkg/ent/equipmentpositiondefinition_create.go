@@ -122,6 +122,11 @@ func (epdc *EquipmentPositionDefinitionCreate) SetEquipmentType(e *EquipmentType
 	return epdc.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the EquipmentPositionDefinitionMutation object of the builder.
+func (epdc *EquipmentPositionDefinitionCreate) Mutation() *EquipmentPositionDefinitionMutation {
+	return epdc.mutation
+}
+
 // Save creates the EquipmentPositionDefinition in the database.
 func (epdc *EquipmentPositionDefinitionCreate) Save(ctx context.Context) (*EquipmentPositionDefinition, error) {
 	if _, ok := epdc.mutation.CreateTime(); !ok {
@@ -133,7 +138,7 @@ func (epdc *EquipmentPositionDefinitionCreate) Save(ctx context.Context) (*Equip
 		epdc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := epdc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	var (
 		err  error

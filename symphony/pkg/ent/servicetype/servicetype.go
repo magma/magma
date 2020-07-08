@@ -8,6 +8,7 @@ package servicetype
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -17,12 +18,18 @@ const (
 	// Label holds the string label denoting the servicetype type in the database.
 	Label = "service_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID              = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime      = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime      = "update_time"  // FieldName holds the string denoting the name vertex property in the database.
-	FieldName            = "name"         // FieldHasCustomer holds the string denoting the has_customer vertex property in the database.
-	FieldHasCustomer     = "has_customer" // FieldIsDeleted holds the string denoting the is_deleted vertex property in the database.
-	FieldIsDeleted       = "is_deleted"   // FieldDiscoveryMethod holds the string denoting the discovery_method vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldHasCustomer holds the string denoting the has_customer field in the database.
+	FieldHasCustomer = "has_customer"
+	// FieldIsDeleted holds the string denoting the is_deleted field in the database.
+	FieldIsDeleted = "is_deleted"
+	// FieldDiscoveryMethod holds the string denoting the discovery_method field in the database.
 	FieldDiscoveryMethod = "discovery_method"
 
 	// EdgeServices holds the string denoting the services edge name in mutations.
@@ -97,8 +104,8 @@ const (
 	DiscoveryMethodINVENTORY DiscoveryMethod = "INVENTORY"
 )
 
-func (s DiscoveryMethod) String() string {
-	return string(s)
+func (dm DiscoveryMethod) String() string {
+	return string(dm)
 }
 
 // DiscoveryMethodValidator is a validator for the "dm" field enum values. It is called by the builders before save.
@@ -109,4 +116,35 @@ func DiscoveryMethodValidator(dm DiscoveryMethod) error {
 	default:
 		return fmt.Errorf("servicetype: invalid enum value for discovery_method field: %q", dm)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (dm DiscoveryMethod) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, dm)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (dm *DiscoveryMethod) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*dm = DiscoveryMethod(str)
+	if err := DiscoveryMethodValidator(*dm); err != nil {
+		return fmt.Errorf("%s is not a valid DiscoveryMethod", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

@@ -13,14 +13,14 @@ import (
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
-	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
-	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
-	orc8rmodels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
@@ -108,36 +108,36 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageNetworkSubscriberBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberBaseName},
 		{Path: ManageNetworkSubscriberRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: RemoveNetworkWideSubscriberRuleName},
 	}
-	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.LteNetworkType, &ltemodels.LteNetwork{})...)
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, lte.NetworkType, &lte_models.LteNetwork{})...)
 
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rmodels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rmodels.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(orc8rmodels.NetworkDNSRecords), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &ltemodels.NetworkCellularConfigs{}, lte.CellularNetworkType)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &ltemodels.NetworkEpcConfigs{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &ltemodels.NetworkRanConfigs{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(ltemodels.FegNetworkID), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8r_models.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8r_models.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(orc8r_models.NetworkDNSRecords), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &lte_models.NetworkCellularConfigs{}, lte.CellularNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &lte_models.NetworkEpcConfigs{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &lte_models.NetworkRanConfigs{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(lte_models.FegNetworkID), "")...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID))...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8r_models.MagmadGatewayConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8r_models.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPath, &ltemodels.GatewayCellularConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &ltemodels.GatewayEpcConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &ltemodels.GatewayRanConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &ltemodels.GatewayNonEpsConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &ltemodels.EnodebSerials{})...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policymodels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policymodels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policymodels.BaseNames), "")...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPath, &lte_models.GatewayCellularConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &lte_models.GatewayEpcConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &lte_models.GatewayRanConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &lte_models.GatewayNonEpsConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &lte_models.EnodebSerials{})...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "")...)
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &ltemodels.MutableLteGateway{}); nerr != nil {
+	if nerr := handlers.CreateMagmadGatewayFromModel(c, &lte_models.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -162,7 +162,7 @@ func getGateway(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load cellular gateway"), http.StatusInternalServerError)
 	}
 
-	ret := &ltemodels.LteGateway{
+	ret := &lte_models.LteGateway{
 		ID:          magmadModel.ID,
 		Name:        magmadModel.Name,
 		Description: magmadModel.Description,
@@ -172,7 +172,7 @@ func getGateway(c echo.Context) error {
 		Magmad:      magmadModel.Magmad,
 	}
 	if ent.Config != nil {
-		ret.Cellular = ent.Config.(*ltemodels.GatewayCellularConfigs)
+		ret.Cellular = ent.Config.(*lte_models.GatewayCellularConfigs)
 	}
 
 	for _, tk := range ent.Associations {
@@ -188,7 +188,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &ltemodels.MutableLteGateway{}); nerr != nil {
+	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &lte_models.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -201,7 +201,7 @@ type cellularAndMagmadGateway struct {
 func makeLTEGateways(
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
-	statusesByID map[string]*orc8rmodels.GatewayStatus,
+	statusesByID map[string]*orc8r_models.GatewayStatus,
 ) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*cellularAndMagmadGateway{}
 	for tk, ent := range entsByTK {
@@ -222,11 +222,11 @@ func makeLTEGateways(
 	ret := make(map[string]handlers.GatewayModel, len(gatewayEntsByKey))
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
-		var devCasted *orc8rmodels.GatewayDevice
+		var devCasted *orc8r_models.GatewayDevice
 		if devicesByID[hwID] != nil {
-			devCasted = devicesByID[hwID].(*orc8rmodels.GatewayDevice)
+			devCasted = devicesByID[hwID].(*orc8r_models.GatewayDevice)
 		}
-		ret[key] = (&ltemodels.LteGateway{}).FromBackendModels(ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
+		ret[key] = (&lte_models.LteGateway{}).FromBackendModels(ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
 	}
 	return ret
 }
@@ -245,9 +245,9 @@ func listEnodebs(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := make(map[string]*ltemodels.Enodeb, len(ents))
+	ret := make(map[string]*lte_models.Enodeb, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&ltemodels.Enodeb{}).FromBackendModels(ent)
+		ret[ent.Key] = (&lte_models.Enodeb{}).FromBackendModels(ent)
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -258,7 +258,7 @@ func createEnodeb(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Enodeb{}
+	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -301,7 +301,7 @@ func getEnodeb(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := (&ltemodels.Enodeb{}).FromBackendModels(ent)
+	ret := (&lte_models.Enodeb{}).FromBackendModels(ent)
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -311,7 +311,7 @@ func updateEnodeb(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Enodeb{}
+	payload := &lte_models.Enodeb{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -356,7 +356,7 @@ func getEnodebState(c echo.Context) error {
 	} else if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	enodebState := st.ReportedState.(*ltemodels.EnodebState)
+	enodebState := st.ReportedState.(*lte_models.EnodebState)
 	enodebState.TimeReported = st.TimeMs
 	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{})
 	if err == nil {
@@ -384,7 +384,7 @@ func deleteConnectedEnodeb(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.UpdateEntity(networkID, (&ltemodels.EnodebSerials{}).ToDeleteUpdateCriteria(networkID, gatewayID, enodebSerial))
+	_, err := configurator.UpdateEntity(networkID, (&lte_models.EnodebSerials{}).ToDeleteUpdateCriteria(networkID, gatewayID, enodebSerial))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -402,7 +402,7 @@ func addConnectedEnodeb(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.UpdateEntity(networkID, (&ltemodels.EnodebSerials{}).ToCreateUpdateCriteria(networkID, gatewayID, enodebSerial))
+	_, err := configurator.UpdateEntity(networkID, (&lte_models.EnodebSerials{}).ToCreateUpdateCriteria(networkID, gatewayID, enodebSerial))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -420,9 +420,9 @@ func listApns(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := make(map[string]*ltemodels.Apn, len(ents))
+	ret := make(map[string]*lte_models.Apn, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&ltemodels.Apn{}).FromBackendModels(ent)
+		ret[ent.Key] = (&lte_models.Apn{}).FromBackendModels(ent)
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -433,7 +433,7 @@ func createApn(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Apn{}
+	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -467,7 +467,7 @@ func getApnConfiguration(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := (&ltemodels.Apn{}).FromBackendModels(ent)
+	ret := (&lte_models.Apn{}).FromBackendModels(ent)
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -477,7 +477,7 @@ func updateApnConfiguration(c echo.Context) error {
 		return nerr
 	}
 
-	payload := &ltemodels.Apn{}
+	payload := &lte_models.Apn{}
 	if err := c.Bind(payload); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -584,11 +584,11 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 	}
 	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
 	if !exists || iSubscriberConfig == nil {
-		network.Configs[lte.NetworkSubscriberConfigType] = &policymodels.NetworkSubscriberConfig{}
+		network.Configs[lte.NetworkSubscriberConfigType] = &policydb_models.NetworkSubscriberConfig{}
 	}
-	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*policymodels.NetworkSubscriberConfig)
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*policydb_models.NetworkSubscriberConfig)
 	if !ok {
-		return fmt.Errorf("Unable to convert config %v", subscriberConfig)
+		return fmt.Errorf("unable to convert config %v", subscriberConfig)
 	}
 	if len(ruleName) != 0 {
 		ruleAlreadyExists := false
@@ -605,13 +605,13 @@ func addToNetworkSubscriberConfig(networkID, ruleName, baseName string) error {
 	if len(baseName) != 0 {
 		bnAlreadyExists := false
 		for _, existing := range subscriberConfig.NetworkWideBaseNames {
-			if existing == policymodels.BaseName(baseName) {
+			if existing == policydb_models.BaseName(baseName) {
 				bnAlreadyExists = true
 				break
 			}
 		}
 		if !bnAlreadyExists {
-			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, policymodels.BaseName(baseName))
+			subscriberConfig.NetworkWideBaseNames = append(subscriberConfig.NetworkWideBaseNames, policydb_models.BaseName(baseName))
 		}
 	}
 	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
@@ -624,11 +624,11 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 	}
 	iSubscriberConfig, exists := network.Configs[lte.NetworkSubscriberConfigType]
 	if !exists || iSubscriberConfig == nil {
-		network.Configs[lte.NetworkSubscriberConfigType] = &policymodels.NetworkSubscriberConfig{}
+		network.Configs[lte.NetworkSubscriberConfigType] = &policydb_models.NetworkSubscriberConfig{}
 	}
-	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*policymodels.NetworkSubscriberConfig)
+	subscriberConfig, ok := network.Configs[lte.NetworkSubscriberConfigType].(*policydb_models.NetworkSubscriberConfig)
 	if !ok {
-		return fmt.Errorf("Unable to convert config")
+		return fmt.Errorf("unable to convert config")
 	}
 	if len(ruleName) != 0 {
 		subscriberConfig.NetworkWideRuleNames = funk.FilterString(subscriberConfig.NetworkWideRuleNames,
@@ -636,7 +636,7 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 	}
 	if len(baseName) != 0 {
 		subscriberConfig.NetworkWideBaseNames = funk.Filter(subscriberConfig.NetworkWideBaseNames,
-			func(b policymodels.BaseName) bool { return string(b) != baseName }).([]policymodels.BaseName)
+			func(b policydb_models.BaseName) bool { return string(b) != baseName }).([]policydb_models.BaseName)
 	}
 	return configurator.UpdateNetworkConfig(networkID, lte.NetworkSubscriberConfigType, subscriberConfig)
 }

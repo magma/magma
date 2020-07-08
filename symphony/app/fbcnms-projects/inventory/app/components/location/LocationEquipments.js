@@ -44,7 +44,7 @@ const locationEquipmentsQuery = graphql`
   }
 `;
 
-export default function(props: Props) {
+export default function (props: Props) {
   const [selectedEquipment, setSelectedEquipment] = useState('');
   return (
     <InventoryQueryRenderer

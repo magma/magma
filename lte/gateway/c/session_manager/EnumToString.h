@@ -22,4 +22,6 @@ std::string grant_type_to_str(GrantTrackingType grant_type);
 std::string session_fsm_state_to_str(SessionFsmState state);
 
 std::string credit_update_type_to_str(CreditUsage::UpdateType update);
+
+std::string raa_result_to_str(ReAuthResult res);
 }  // namespace magma

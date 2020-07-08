@@ -168,7 +168,7 @@ func CreateTimeIn(vs ...time.Time) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -185,7 +185,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -244,7 +244,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -261,7 +261,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -320,7 +320,7 @@ func ReferencePoint1XIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -337,7 +337,7 @@ func ReferencePoint1XNotIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -396,7 +396,7 @@ func ReferencePoint1YIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -413,7 +413,7 @@ func ReferencePoint1YNotIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -472,7 +472,7 @@ func ReferencePoint2XIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -489,7 +489,7 @@ func ReferencePoint2XNotIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -548,7 +548,7 @@ func ReferencePoint2YIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -565,7 +565,7 @@ func ReferencePoint2YNotIn(vs ...int) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -624,7 +624,7 @@ func ScaleInMetersIn(vs ...float64) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -641,7 +641,7 @@ func ScaleInMetersNotIn(vs ...float64) predicate.FloorPlanScale {
 	return predicate.FloorPlanScale(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

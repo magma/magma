@@ -9,5 +9,5 @@ class FileType(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "FileType":
+    def _missing_(cls, value: object) -> "FileType":
         return cls.MISSING_ENUM

@@ -78,6 +78,11 @@ func (rfc *ReportFilterCreate) SetNillableFilters(s *string) *ReportFilterCreate
 	return rfc
 }
 
+// Mutation returns the ReportFilterMutation object of the builder.
+func (rfc *ReportFilterCreate) Mutation() *ReportFilterMutation {
+	return rfc.mutation
+}
+
 // Save creates the ReportFilter in the database.
 func (rfc *ReportFilterCreate) Save(ctx context.Context) (*ReportFilter, error) {
 	if _, ok := rfc.mutation.CreateTime(); !ok {
@@ -89,19 +94,19 @@ func (rfc *ReportFilterCreate) Save(ctx context.Context) (*ReportFilter, error) 
 		rfc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := rfc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := rfc.mutation.Name(); ok {
 		if err := reportfilter.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := rfc.mutation.Entity(); !ok {
-		return nil, errors.New("ent: missing required field \"entity\"")
+		return nil, &ValidationError{Name: "entity", err: errors.New("ent: missing required field \"entity\"")}
 	}
 	if v, ok := rfc.mutation.Entity(); ok {
 		if err := reportfilter.EntityValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"entity\": %v", err)
+			return nil, &ValidationError{Name: "entity", err: fmt.Errorf("ent: validator failed for field \"entity\": %w", err)}
 		}
 	}
 	if _, ok := rfc.mutation.Filters(); !ok {

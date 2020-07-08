@@ -195,7 +195,7 @@ function WorkforceDataRulesSection(props: InventoryDataRulesSectionProps) {
           id="transferOwnership"
           title={
             <DataRuleTitle>
-              <fbt desc="">Transfer ownership</fbt>
+              <fbt desc="">Transfer Ownership</fbt>
             </DataRuleTitle>
           }
           disabled={disabled}
@@ -253,8 +253,8 @@ export default function PermissionsPolicyWorkforceDataRulesTab(props: Props) {
         </Text>
         <Text variant="body2" color="gray">
           <fbt desc="">
-            Choose the permissions this policy should include for modifying the
-            selected work orders and projects.
+            Choose permissions for viewing and modifying work orders and
+            projects.
           </fbt>
         </Text>
       </div>

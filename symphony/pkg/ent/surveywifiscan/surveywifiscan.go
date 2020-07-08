@@ -16,20 +16,33 @@ const (
 	// Label holds the string label denoting the surveywifiscan type in the database.
 	Label = "survey_wi_fi_scan"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"            // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"   // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"   // FieldSsid holds the string denoting the ssid vertex property in the database.
-	FieldSsid         = "ssid"          // FieldBssid holds the string denoting the bssid vertex property in the database.
-	FieldBssid        = "bssid"         // FieldTimestamp holds the string denoting the timestamp vertex property in the database.
-	FieldTimestamp    = "timestamp"     // FieldFrequency holds the string denoting the frequency vertex property in the database.
-	FieldFrequency    = "frequency"     // FieldChannel holds the string denoting the channel vertex property in the database.
-	FieldChannel      = "channel"       // FieldBand holds the string denoting the band vertex property in the database.
-	FieldBand         = "band"          // FieldChannelWidth holds the string denoting the channel_width vertex property in the database.
-	FieldChannelWidth = "channel_width" // FieldCapabilities holds the string denoting the capabilities vertex property in the database.
-	FieldCapabilities = "capabilities"  // FieldStrength holds the string denoting the strength vertex property in the database.
-	FieldStrength     = "strength"      // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude     = "latitude"      // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude    = "longitude"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldSsid holds the string denoting the ssid field in the database.
+	FieldSsid = "ssid"
+	// FieldBssid holds the string denoting the bssid field in the database.
+	FieldBssid = "bssid"
+	// FieldTimestamp holds the string denoting the timestamp field in the database.
+	FieldTimestamp = "timestamp"
+	// FieldFrequency holds the string denoting the frequency field in the database.
+	FieldFrequency = "frequency"
+	// FieldChannel holds the string denoting the channel field in the database.
+	FieldChannel = "channel"
+	// FieldBand holds the string denoting the band field in the database.
+	FieldBand = "band"
+	// FieldChannelWidth holds the string denoting the channel_width field in the database.
+	FieldChannelWidth = "channel_width"
+	// FieldCapabilities holds the string denoting the capabilities field in the database.
+	FieldCapabilities = "capabilities"
+	// FieldStrength holds the string denoting the strength field in the database.
+	FieldStrength = "strength"
+	// FieldLatitude holds the string denoting the latitude field in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude field in the database.
+	FieldLongitude = "longitude"
 
 	// EdgeChecklistItem holds the string denoting the checklist_item edge name in mutations.
 	EdgeChecklistItem = "checklist_item"

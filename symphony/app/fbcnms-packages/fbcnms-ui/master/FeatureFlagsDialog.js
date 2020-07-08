@@ -54,7 +54,7 @@ type FeatureFlagStatus = {
   [orgName: string]: 'enabled' | 'disabled' | 'default',
 };
 
-export default function(props: Props) {
+export default function (props: Props) {
   const classes = useStyles();
   const {error, isLoading, response} = useAxios({
     method: 'get',

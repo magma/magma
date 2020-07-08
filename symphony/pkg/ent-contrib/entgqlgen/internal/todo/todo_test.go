@@ -6,15 +6,18 @@ package todo
 
 import (
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/ent/dialect/sql"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/enttest"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/migrate"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 	"github.com/facebookincubator/symphony/pkg/testdb"
 	"github.com/stretchr/testify/suite"
 )
@@ -27,9 +30,11 @@ type todoTestSuite struct {
 const (
 	queryAll = `query {
 		todos {
+			totalCount
 			edges {
 				node {
 					id
+					status
 				}
 				cursor
 			}
@@ -70,7 +75,7 @@ func (s *todoTestSuite) SetupTest() {
 	for i := 1; i <= maxTodos; i++ {
 		id := strconv.Itoa(i)
 		err := s.Post(
-			`mutation($text: String!, $parent: ID) { createTodo(todo:{text: $text, parent: $parent}) { id } }`,
+			`mutation($text: String!, $parent: ID) { createTodo(todo:{status: COMPLETED, text: $text, parent: $parent}) { id } }`,
 			&rsp, client.Var("text", id), client.Var("parent", func() *int {
 				if i == root {
 					return nil
@@ -92,9 +97,11 @@ func TestTodo(t *testing.T) {
 
 type response struct {
 	Todos struct {
-		Edges []struct {
+		TotalCount int
+		Edges      []struct {
 			Node struct {
-				ID string
+				ID     string
+				Status todo.Status
 			}
 			Cursor string
 		}
@@ -117,6 +124,7 @@ func (s *todoTestSuite) TestQueryEmpty() {
 	var rsp response
 	err := s.Post(queryAll, &rsp)
 	s.Require().NoError(err)
+	s.Assert().Zero(rsp.Todos.TotalCount)
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -129,6 +137,7 @@ func (s *todoTestSuite) TestQueryAll() {
 	err := s.Post(queryAll, &rsp)
 	s.Require().NoError(err)
 
+	s.Assert().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Require().Len(rsp.Todos.Edges, maxTodos)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -142,6 +151,7 @@ func (s *todoTestSuite) TestQueryAll() {
 	)
 	for i, edge := range rsp.Todos.Edges {
 		s.Assert().Equal(strconv.Itoa(i+1), edge.Node.ID)
+		s.Assert().EqualValues(todo.StatusCOMPLETED, edge.Node.Status)
 		s.Assert().NotEmpty(edge.Cursor)
 	}
 }
@@ -150,6 +160,7 @@ func (s *todoTestSuite) TestPageForward() {
 	const (
 		query = `query($after: Cursor, $first: Int) {
 			todos(after: $after, first: $first) {
+				totalCount
 				edges {
 					node {
 						id
@@ -175,6 +186,7 @@ func (s *todoTestSuite) TestPageForward() {
 			client.Var("first", first),
 		)
 		s.Require().NoError(err)
+		s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 		s.Require().Len(rsp.Todos.Edges, first)
 		s.Assert().True(rsp.Todos.PageInfo.HasNextPage)
 		s.Assert().NotEmpty(rsp.Todos.PageInfo.EndCursor)
@@ -192,6 +204,7 @@ func (s *todoTestSuite) TestPageForward() {
 		client.Var("first", first),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Require().NotEmpty(rsp.Todos.Edges)
 	s.Assert().Len(rsp.Todos.Edges, maxTodos%first)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
@@ -210,6 +223,7 @@ func (s *todoTestSuite) TestPageForward() {
 		client.Var("first", first),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().Empty(rsp.Todos.PageInfo.EndCursor)
 	s.Assert().False(rsp.Todos.PageInfo.HasNextPage)
@@ -219,6 +233,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 	const (
 		query = `query($before: Cursor, $last: Int) {
 			todos(before: $before, last: $last) {
+				totalCount
 				edges {
 					node {
 						id
@@ -244,6 +259,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 			client.Var("last", last),
 		)
 		s.Require().NoError(err)
+		s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 		s.Require().Len(rsp.Todos.Edges, last)
 		s.Assert().True(rsp.Todos.PageInfo.HasPreviousPage)
 		s.Assert().NotEmpty(rsp.Todos.PageInfo.StartCursor)
@@ -262,6 +278,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 		client.Var("last", last),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Require().NotEmpty(rsp.Todos.Edges)
 	s.Assert().Len(rsp.Todos.Edges, maxTodos%last)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -282,6 +299,7 @@ func (s *todoTestSuite) TestPageBackwards() {
 		client.Var("last", last),
 	)
 	s.Require().NoError(err)
+	s.Require().Equal(maxTodos, rsp.Todos.TotalCount)
 	s.Assert().Empty(rsp.Todos.Edges)
 	s.Assert().Empty(rsp.Todos.PageInfo.StartCursor)
 	s.Assert().False(rsp.Todos.PageInfo.HasPreviousPage)
@@ -414,4 +432,27 @@ func (s *todoTestSuite) TestConnCollection() {
 			s.Assert().Empty(edge.Node.Children)
 		}
 	}
+}
+
+func (s *todoTestSuite) TestEnumEncoding() {
+	s.Run("Encode", func() {
+		const status = todo.StatusCOMPLETED
+		s.Assert().Implements((*graphql.Marshaler)(nil), status)
+		var b strings.Builder
+		status.MarshalGQL(&b)
+		str := b.String()
+		const quote = `"`
+		s.Assert().Equal(quote, str[:1])
+		s.Assert().Equal(quote, str[len(str)-1:])
+		str = str[1 : len(str)-1]
+		s.Assert().EqualValues(status, str)
+	})
+	s.Run("Decode", func() {
+		const want = todo.StatusINPROGRESS
+		var got todo.Status
+		s.Assert().Implements((*graphql.Unmarshaler)(nil), &got)
+		err := got.UnmarshalGQL(want.String())
+		s.Assert().NoError(err)
+		s.Assert().Equal(want, got)
+	})
 }

@@ -16,17 +16,27 @@ const (
 	// Label holds the string label denoting the property type in the database.
 	Label = "property"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"             // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"    // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"    // FieldIntVal holds the string denoting the int_val vertex property in the database.
-	FieldIntVal       = "int_val"        // FieldBoolVal holds the string denoting the bool_val vertex property in the database.
-	FieldBoolVal      = "bool_val"       // FieldFloatVal holds the string denoting the float_val vertex property in the database.
-	FieldFloatVal     = "float_val"      // FieldLatitudeVal holds the string denoting the latitude_val vertex property in the database.
-	FieldLatitudeVal  = "latitude_val"   // FieldLongitudeVal holds the string denoting the longitude_val vertex property in the database.
-	FieldLongitudeVal = "longitude_val"  // FieldRangeFromVal holds the string denoting the range_from_val vertex property in the database.
-	FieldRangeFromVal = "range_from_val" // FieldRangeToVal holds the string denoting the range_to_val vertex property in the database.
-	FieldRangeToVal   = "range_to_val"   // FieldStringVal holds the string denoting the string_val vertex property in the database.
-	FieldStringVal    = "string_val"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldIntVal holds the string denoting the int_val field in the database.
+	FieldIntVal = "int_val"
+	// FieldBoolVal holds the string denoting the bool_val field in the database.
+	FieldBoolVal = "bool_val"
+	// FieldFloatVal holds the string denoting the float_val field in the database.
+	FieldFloatVal = "float_val"
+	// FieldLatitudeVal holds the string denoting the latitude_val field in the database.
+	FieldLatitudeVal = "latitude_val"
+	// FieldLongitudeVal holds the string denoting the longitude_val field in the database.
+	FieldLongitudeVal = "longitude_val"
+	// FieldRangeFromVal holds the string denoting the range_from_val field in the database.
+	FieldRangeFromVal = "range_from_val"
+	// FieldRangeToVal holds the string denoting the range_to_val field in the database.
+	FieldRangeToVal = "range_to_val"
+	// FieldStringVal holds the string denoting the string_val field in the database.
+	FieldStringVal = "string_val"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"

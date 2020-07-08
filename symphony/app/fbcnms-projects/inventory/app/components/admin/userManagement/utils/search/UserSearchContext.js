@@ -19,9 +19,11 @@ import {fetchQuery, graphql} from 'relay-runtime';
 
 const userSearchQuery = graphql`
   query UserSearchContextQuery($filters: [UserFilterInput!]!) {
-    userSearch(filters: $filters) {
-      users {
-        ...UserManagementUtils_user @relay(mask: false)
+    users(first: 500, filters: $filters) {
+      edges {
+        node {
+          ...UserManagementUtils_user @relay(mask: false)
+        }
       }
     }
   }
@@ -42,10 +44,10 @@ const searchCallback = (searchTerm: string) =>
       },
     ],
   }).then(response => {
-    if (response?.userSearch == null) {
+    if (response?.users == null) {
       return [];
     }
-    return response.userSearch.users.filter(Boolean);
+    return response.users.edges.map(edge => edge.node).filter(Boolean);
   });
 
 const {

@@ -30,7 +30,10 @@ func handleLocationFilter(q *ent.LocationQuery, filter *models.LocationFilterInp
 }
 
 func locationExternalIDFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
-	if filter.Operator == models.FilterOperatorIs {
+	switch filter.Operator {
+	case models.FilterOperatorContains:
+		return q.Where(location.ExternalIDContainsFold(*filter.StringValue)), nil
+	case models.FilterOperatorIs:
 		return q.Where(location.ExternalID(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation %s is not supported", filter.Operator)
@@ -89,7 +92,7 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					pred,
 				),
@@ -97,13 +100,13 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 			location.And(
 				location.HasTypeWith(locationtype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					typePred,
 				)),
 				location.Not(location.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 
@@ -118,7 +121,7 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -126,13 +129,13 @@ func handleLocationPropertyFilter(q *ent.LocationQuery, filter *models.LocationF
 			location.And(
 				location.HasTypeWith(locationtype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					propTypePred,
 				)),
 				location.Not(location.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 		return q, nil

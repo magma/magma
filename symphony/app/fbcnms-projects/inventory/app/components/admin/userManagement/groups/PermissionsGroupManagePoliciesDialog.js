@@ -113,7 +113,7 @@ export default function PermissionsGroupManagePoliciesDialog(props: Props) {
         </Text>
         <Text variant="caption" color="gray" useEllipsis={true}>
           <fbt desc="">
-            Add policies to apply them on members in this group.
+            Add policies to apply them to members of this group.
           </fbt>
         </Text>
       </DialogTitle>

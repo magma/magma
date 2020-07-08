@@ -10,6 +10,7 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
@@ -117,7 +118,7 @@ func TestAddLinkWithProperties(t *testing.T) {
 	linkStrValue := "Foo"
 	linkStrPropType := models.PropertyTypeInput{
 		Name:        "link_str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: &linkStrValue,
 	}
 	linkPropTypeInput := []*models.PropertyTypeInput{&linkStrPropType}
@@ -219,7 +220,7 @@ func TestEditLinkWithProperties(t *testing.T) {
 	linkStrValue := "Foo"
 	linkStrPropType := models.PropertyTypeInput{
 		Name:        "link_str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: &linkStrValue,
 	}
 	linkPropTypeInput := []*models.PropertyTypeInput{&linkStrPropType}

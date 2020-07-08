@@ -63,7 +63,8 @@ func TestCreateSubscriber(t *testing.T) {
 
 	// default sub profile should always succeed
 	payload := &subscriberModels.Subscriber{
-		ID: "IMSI1234567890",
+		ID:   "IMSI1234567890",
+		Name: "Jane Doe",
 		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -90,6 +91,7 @@ func TestCreateSubscriber(t *testing.T) {
 		NetworkID:    "n1",
 		Type:         lte.SubscriberEntityType,
 		Key:          "IMSI1234567890",
+		Name:         "Jane Doe",
 		Config:       payload.Lte,
 		GraphID:      "2",
 		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
@@ -284,7 +286,7 @@ func TestListSubscribers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP and some MME state for 1234567890
+	// Now create some AGW-reported state for 1234567890
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -304,6 +306,19 @@ func TestListSubscribers(t *testing.T) {
 	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
 	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
 	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	// Report 2 allocated IP addresses for the subscriber
+	mobilitydState1 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiArg==",
+		},
+	}
+	mobilitydState2 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiAhg==",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -333,6 +348,16 @@ func TestListSubscribers(t *testing.T) {
 					Mme:  mmeState,
 					S1ap: s1apState,
 					Spgw: spgwState,
+					Mobility: []*subscriberModels.SubscriberIPAllocation{
+						{
+							Apn: "magma.apn",
+							IP:  "192.168.128.134",
+						},
+						{
+							Apn: "oai.ipv4",
+							IP:  "192.168.128.174",
+						},
+					},
 				},
 			},
 			"IMSI0987654321": {
@@ -393,6 +418,7 @@ func TestGetSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Name: "Jane Doe",
 			Config: &subscriberModels.LteSubscription{
 				AuthAlgo: "MILENAGE",
 				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -412,7 +438,8 @@ func TestGetSubscriber(t *testing.T) {
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
 		ExpectedResult: &subscriberModels.Subscriber{
-			ID: "IMSI1234567890",
+			ID:   "IMSI1234567890",
+			Name: "Jane Doe",
 			Lte: &subscriberModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -425,7 +452,7 @@ func TestGetSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create ICMP and MME state
+	// Now create AGW
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -444,6 +471,19 @@ func TestGetSubscriber(t *testing.T) {
 	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
 	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
 	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	// Report 2 allocated IP addresses for the subscriber
+	mobilitydState1 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiArg==",
+		},
+	}
+	mobilitydState2 := state.ArbitaryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiAhg==",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -453,7 +493,8 @@ func TestGetSubscriber(t *testing.T) {
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
 		ExpectedResult: &subscriberModels.Subscriber{
-			ID: "IMSI1234567890",
+			ID:   "IMSI1234567890",
+			Name: "Jane Doe",
 			Lte: &subscriberModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
 				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
@@ -472,6 +513,16 @@ func TestGetSubscriber(t *testing.T) {
 				Mme:  mmeState,
 				S1ap: s1apState,
 				Spgw: spgwState,
+				Mobility: []*subscriberModels.SubscriberIPAllocation{
+					{
+						Apn: "magma.apn",
+						IP:  "192.168.128.134",
+					},
+					{
+						Apn: "oai.ipv4",
+						IP:  "192.168.128.174",
+					},
+				},
 			},
 		},
 	}
@@ -558,7 +609,8 @@ func TestUpdateSubscriber(t *testing.T) {
 	assert.NoError(t, err)
 
 	payload = &subscriberModels.Subscriber{
-		ID: "IMSI1234567890",
+		ID:   "IMSI1234567890",
+		Name: "Jane Doe",
 		Lte: &subscriberModels.LteSubscription{
 			AuthAlgo:   "MILENAGE",
 			AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
@@ -585,6 +637,7 @@ func TestUpdateSubscriber(t *testing.T) {
 		NetworkID:    "n1",
 		Type:         lte.SubscriberEntityType,
 		Key:          "IMSI1234567890",
+		Name:         "Jane Doe",
 		Config:       payload.Lte,
 		GraphID:      "2",
 		Version:      1,

@@ -459,7 +459,7 @@ func TestSamePropertyTypesForCSV(t *testing.T) {
 	intVal := 40
 	propInput1 := models.PropertyTypeInput{
 		Name:     "Ptype1",
-		Type:     models.PropertyKindInt,
+		Type:     propertytype.TypeInt,
 		IntValue: &intVal,
 	}
 
@@ -471,7 +471,7 @@ func TestSamePropertyTypesForCSV(t *testing.T) {
 	pa := equipmentTypeA.QueryPropertyTypes().OnlyX(ctx)
 	propInput2 := models.PropertyTypeInput{
 		Name:     "Ptype2",
-		Type:     models.PropertyKindInt,
+		Type:     propertytype.TypeInt,
 		IntValue: &intVal,
 	}
 	equipmentTypeB, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{

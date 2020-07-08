@@ -14,8 +14,10 @@ const (
 	// Label holds the string label denoting the workordertype type in the database.
 	Label = "work_order_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"   // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name" // FieldDescription holds the string denoting the description vertex property in the database.
+	FieldID = "id"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 
 	// EdgePropertyTypes holds the string denoting the property_types edge name in mutations.

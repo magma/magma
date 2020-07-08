@@ -16,10 +16,13 @@ const (
 	// Label holds the string label denoting the equipmentporttype type in the database.
 	Label = "equipment_port_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 
 	// EdgePropertyTypes holds the string denoting the property_types edge name in mutations.
 	EdgePropertyTypes = "property_types"

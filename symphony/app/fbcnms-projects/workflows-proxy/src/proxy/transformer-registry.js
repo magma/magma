@@ -17,7 +17,7 @@ import type {
 
 const logger = logging.getLogger(module);
 
-export default async function(
+export default async function (
   registrationCtx: TransformerCtx,
   transformFx: Array<TransformerRegistrationFun>,
 ): Promise<Array<TransformerEntry>> {

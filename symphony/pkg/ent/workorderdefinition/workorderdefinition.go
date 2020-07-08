@@ -16,10 +16,13 @@ const (
 	// Label holds the string label denoting the workorderdefinition type in the database.
 	Label = "work_order_definition"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex      = "index"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"

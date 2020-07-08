@@ -148,6 +148,11 @@ func (stc *ServiceTypeCreate) AddEndpointDefinitions(s ...*ServiceEndpointDefini
 	return stc.AddEndpointDefinitionIDs(ids...)
 }
 
+// Mutation returns the ServiceTypeMutation object of the builder.
+func (stc *ServiceTypeCreate) Mutation() *ServiceTypeMutation {
+	return stc.mutation
+}
+
 // Save creates the ServiceType in the database.
 func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
 	if _, ok := stc.mutation.CreateTime(); !ok {
@@ -159,7 +164,7 @@ func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
 		stc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := stc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if _, ok := stc.mutation.HasCustomer(); !ok {
 		v := servicetype.DefaultHasCustomer
@@ -171,7 +176,7 @@ func (stc *ServiceTypeCreate) Save(ctx context.Context) (*ServiceType, error) {
 	}
 	if v, ok := stc.mutation.DiscoveryMethod(); ok {
 		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+			return nil, &ValidationError{Name: "discovery_method", err: fmt.Errorf("ent: validator failed for field \"discovery_method\": %w", err)}
 		}
 	}
 	var (

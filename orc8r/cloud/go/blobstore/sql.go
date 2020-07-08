@@ -206,8 +206,13 @@ func (store *sqlBlobStorage) Search(filter SearchFilter, criteria LoadCriteria) 
 	if !funk.IsEmpty(filter.Types) {
 		whereCondition = append(whereCondition, sq.Eq{typeCol: filter.GetTypes()})
 	}
-	if !funk.IsEmpty(filter.Keys) {
-		whereCondition = append(whereCondition, sq.Eq{keyCol: filter.GetKeys()})
+	// Apply only one of prefix or match predicates; prefix takes precedence
+	if !funk.IsEmpty(filter.KeyPrefix) {
+		whereCondition = append(whereCondition, sq.Like{keyCol: fmt.Sprintf("%s%%", *filter.KeyPrefix)})
+	} else {
+		if !funk.IsEmpty(filter.Keys) {
+			whereCondition = append(whereCondition, sq.Eq{keyCol: filter.GetKeys()})
+		}
 	}
 
 	rows, err := store.builder.Select(selectCols...).From(store.tableName).

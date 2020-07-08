@@ -120,7 +120,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "example_type_name",
 		Properties: []*models.PropertyTypeInput{
-			{Name: "bar_prop", Type: models.PropertyKindString},
+			{Name: "bar_prop", Type: propertytype.TypeString},
 		},
 	})
 	require.NoError(t, err)
@@ -143,7 +143,7 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 	require.Len(t, fetchedProperties, 1)
 	typ := fetchedProperties[0].QueryType().OnlyX(ctx)
 	assert.Equal(t, typ.Name, "bar_prop")
-	assert.Equal(t, typ.Type, "string")
+	assert.Equal(t, typ.Type, propertytype.TypeString)
 	assert.Equal(t, fetchedProperties[0].StringVal, val)
 }
 
@@ -955,8 +955,8 @@ func TestEditEquipment(t *testing.T) {
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "equipment_type_name_1",
 		Properties: []*models.PropertyTypeInput{
-			{Name: "bar_prop", Type: models.PropertyKindString},
-			{Name: "foo_prop", Type: models.PropertyKindString, StringValue: &devVal},
+			{Name: "bar_prop", Type: propertytype.TypeString},
+			{Name: "foo_prop", Type: propertytype.TypeString, StringValue: &devVal},
 		},
 	})
 	require.NoError(t, err)
@@ -1041,7 +1041,7 @@ func TestEditEquipmentPort(t *testing.T) {
 	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: &strValue,
 	}
 	propTypeInput := []*models.PropertyTypeInput{&strPropType}
@@ -1109,7 +1109,7 @@ func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {
 	strValue := "Foo"
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: &strValue,
 	}
 	propTypeInput := []*models.PropertyTypeInput{&strPropType}

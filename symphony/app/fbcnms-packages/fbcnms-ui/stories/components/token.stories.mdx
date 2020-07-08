@@ -1,0 +1,27 @@
+import Token from '../../components/design-system/Token/Token';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/Token`} />
+
+# Token
+
+```js
+import Token from '@fbcnms/ui/components/design-system/Token/Token';
+```
+
+`Token` displays a removable text token.
+
+<Preview>
+  <Story name="Token">
+    <Token label="San Francisco" onRemove={() => alert('Removed')} />
+  </Story>
+</Preview>
+
+### Disabled
+
+<Preview>
+  <Story name="Disabled">
+    <Token label="Disabled" onRemove={() => alert('Removed')} disabled={true} />
+  </Story>
+</Preview>

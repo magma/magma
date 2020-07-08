@@ -339,6 +339,16 @@ const WorkOrderDetails = ({
                           </FormField>
                         </Grid>
                         <Grid item xs={12} sm={6} lg={4} xl={4}>
+                          <FormField label="Type">
+                            <TextInput
+                              disabled={true}
+                              variant="outlined"
+                              className={classes.gridInput}
+                              value={workOrder.workOrderType.name}
+                            />
+                          </FormField>
+                        </Grid>
+                        <Grid item xs={12} sm={6} lg={4} xl={4}>
                           <FormField label="Priority">
                             <Select
                               options={priorityValues}

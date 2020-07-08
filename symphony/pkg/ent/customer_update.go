@@ -73,6 +73,11 @@ func (cu *CustomerUpdate) AddServices(s ...*Service) *CustomerUpdate {
 	return cu.AddServiceIDs(ids...)
 }
 
+// Mutation returns the CustomerMutation object of the builder.
+func (cu *CustomerUpdate) Mutation() *CustomerMutation {
+	return cu.mutation
+}
+
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (cu *CustomerUpdate) RemoveServiceIDs(ids ...int) *CustomerUpdate {
 	cu.mutation.RemoveServiceIDs(ids...)
@@ -96,12 +101,12 @@ func (cu *CustomerUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := cu.mutation.Name(); ok {
 		if err := customer.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := cu.mutation.ExternalID(); ok {
 		if err := customer.ExternalIDValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
+			return 0, &ValidationError{Name: "external_id", err: fmt.Errorf("ent: validator failed for field \"external_id\": %w", err)}
 		}
 	}
 
@@ -296,6 +301,11 @@ func (cuo *CustomerUpdateOne) AddServices(s ...*Service) *CustomerUpdateOne {
 	return cuo.AddServiceIDs(ids...)
 }
 
+// Mutation returns the CustomerMutation object of the builder.
+func (cuo *CustomerUpdateOne) Mutation() *CustomerMutation {
+	return cuo.mutation
+}
+
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (cuo *CustomerUpdateOne) RemoveServiceIDs(ids ...int) *CustomerUpdateOne {
 	cuo.mutation.RemoveServiceIDs(ids...)
@@ -319,12 +329,12 @@ func (cuo *CustomerUpdateOne) Save(ctx context.Context) (*Customer, error) {
 	}
 	if v, ok := cuo.mutation.Name(); ok {
 		if err := customer.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := cuo.mutation.ExternalID(); ok {
 		if err := customer.ExternalIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
+			return nil, &ValidationError{Name: "external_id", err: fmt.Errorf("ent: validator failed for field \"external_id\": %w", err)}
 		}
 	}
 
@@ -390,7 +400,7 @@ func (cuo *CustomerUpdateOne) sqlSave(ctx context.Context) (c *Customer, err err
 	}
 	id, ok := cuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Customer.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Customer.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := cuo.mutation.UpdateTime(); ok {

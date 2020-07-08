@@ -20,7 +20,20 @@ type PropertyType struct {
 // Fields returns property type fields.
 func (PropertyType) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("type"),
+		field.Enum("type").
+			Values(
+				"string",
+				"int",
+				"bool",
+				"float",
+				"date",
+				"enum",
+				"range",
+				"email",
+				"gps_location",
+				"datetime_local",
+				"node",
+			),
 		field.String("name"),
 		field.String("external_id").
 			Unique().

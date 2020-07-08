@@ -115,7 +115,7 @@ export const buildLocationTypeFilterConfigs = (
   return locationTypes.map(type => ({
     key: `location_${type.id}`,
     name: 'location_inst',
-    entityType: 'location_by_types',
+    entityType: 'locations',
     label: type.name,
     component: PowerSearchLocationFilter,
     defaultOperator: 'is_one_of',

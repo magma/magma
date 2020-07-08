@@ -16,12 +16,17 @@ const (
 	// Label holds the string label denoting the service type in the database.
 	Label = "service"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID = "external_id" // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus     = "status"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldExternalID holds the string denoting the external_id field in the database.
+	FieldExternalID = "external_id"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"

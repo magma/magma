@@ -79,6 +79,11 @@ func (stcu *SurveyTemplateCategoryUpdate) SetLocationType(l *LocationType) *Surv
 	return stcu.SetLocationTypeID(l.ID)
 }
 
+// Mutation returns the SurveyTemplateCategoryMutation object of the builder.
+func (stcu *SurveyTemplateCategoryUpdate) Mutation() *SurveyTemplateCategoryMutation {
+	return stcu.mutation
+}
+
 // RemoveSurveyTemplateQuestionIDs removes the survey_template_questions edge to SurveyTemplateQuestion by ids.
 func (stcu *SurveyTemplateCategoryUpdate) RemoveSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdate {
 	stcu.mutation.RemoveSurveyTemplateQuestionIDs(ids...)
@@ -332,6 +337,11 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) SetLocationType(l *LocationType) *
 	return stcuo.SetLocationTypeID(l.ID)
 }
 
+// Mutation returns the SurveyTemplateCategoryMutation object of the builder.
+func (stcuo *SurveyTemplateCategoryUpdateOne) Mutation() *SurveyTemplateCategoryMutation {
+	return stcuo.mutation
+}
+
 // RemoveSurveyTemplateQuestionIDs removes the survey_template_questions edge to SurveyTemplateQuestion by ids.
 func (stcuo *SurveyTemplateCategoryUpdateOne) RemoveSurveyTemplateQuestionIDs(ids ...int) *SurveyTemplateCategoryUpdateOne {
 	stcuo.mutation.RemoveSurveyTemplateQuestionIDs(ids...)
@@ -422,7 +432,7 @@ func (stcuo *SurveyTemplateCategoryUpdateOne) sqlSave(ctx context.Context) (stc 
 	}
 	id, ok := stcuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing SurveyTemplateCategory.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing SurveyTemplateCategory.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := stcuo.mutation.UpdateTime(); ok {

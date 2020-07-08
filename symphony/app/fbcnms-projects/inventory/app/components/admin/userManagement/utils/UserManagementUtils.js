@@ -37,7 +37,7 @@ graphql`
   fragment UserManagementUtils_user on User {
     ...UserManagementUtils_user_base @relay(mask: false)
     groups {
-      ...UserManagementUtils_group_base @relay(mask: false)
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;
@@ -283,5 +283,6 @@ export const POLICY_TYPES: KeyValueEnum<PolicyTypes> = {
   },
 };
 
-export const userFullName = (user: $Shape<User>) =>
-  `${user.firstName} ${user.lastName}`.trim() || '_';
+export function userFullName(user: $Shape<User>, fallback: string = '_') {
+  return `${user.firstName} ${user.lastName}`.trim() || fallback;
+}

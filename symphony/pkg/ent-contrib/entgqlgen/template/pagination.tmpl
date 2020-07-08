@@ -67,6 +67,7 @@ type {{ $edge }} struct {
 {{ $conn := print $node.Name "Connection" -}}
 // {{ $conn }} is the connection containing edges to {{ $node.Name }}.
 type {{ $conn }} struct {
+    TotalCount int
 	Edges []*{{ $edge }} `json:"edges"`
 	PageInfo PageInfo    `json:"pageInfo"`
 }
@@ -98,6 +99,13 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 		}
 	}
 
+	totalCount, err := {{ $receiver }}.Clone().Count(ctx)
+	if err != nil {
+        return &{{ $conn }}{
+            Edges: []*{{ $edge }}{},
+        }, err
+    }
+
 	if after != nil {
 		{{ $receiver }} = {{ $receiver }}.Where({{ $pkg }}.IDGT(after.ID))
 	}
@@ -118,6 +126,7 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 	nodes, err := {{ $receiver }}.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &{{ $conn }}{
+		    TotalCount: totalCount,
 			Edges: []*{{ $edge }}{},
 		}, err
 	}
@@ -127,7 +136,8 @@ func ({{ $receiver }} *{{ $query }}) Paginate(ctx context.Context, after *Cursor
 		}
 	}
 
-	var conn {{ $conn }}
+    var conn {{ $conn }}
+    conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]

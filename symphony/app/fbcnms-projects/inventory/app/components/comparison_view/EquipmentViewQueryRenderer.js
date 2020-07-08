@@ -39,11 +39,13 @@ const equipmentSearchQuery = graphql`
     $limit: Int
     $filters: [EquipmentFilterInput!]!
   ) {
-    equipmentSearch(limit: $limit, filters: $filters) {
-      equipment {
-        ...PowerSearchEquipmentResultsTable_equipment
+    equipments(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...PowerSearchEquipmentResultsTable_equipment
+        }
       }
-      count
+      totalCount
     }
   }
 `;
@@ -68,15 +70,15 @@ const EquipmentViewQueryRenderer = (props: Props) => {
         })),
       }}
       render={(props: EquipmentViewQueryRendererSearchQueryResponse) => {
-        const {count, equipment} = props.equipmentSearch;
-        onQueryReturn(count);
-        if (count === 0) {
+        const {totalCount, edges} = props.equipments;
+        onQueryReturn(totalCount);
+        if (totalCount === 0) {
           return <ComparisonViewNoResults />;
         }
         return (
           <div className={classes.searchResults}>
             <PowerSearchEquipmentResultsTable
-              equipment={equipment}
+              equipment={edges.map(edge => edge.node)}
               onEquipmentSelected={equipment => {
                 ServerLogger.info(
                   LogEvents.EQUIPMENT_COMPARISON_VIEW_EQUIPMENT_CLICKED,

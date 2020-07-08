@@ -8,10 +8,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/authz"
 	models2 "github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 	"github.com/stretchr/testify/require"
@@ -20,17 +20,17 @@ import (
 func getFileCudOperations(ctx context.Context, c *ent.Client, setParent func(*ent.FileCreate) *ent.FileCreate) cudOperations {
 	fileQuery := c.File.Create().
 		SetName("name").
-		SetType(models.FileTypeImage.String()).
+		SetType(file.TypeIMAGE).
 		SetStoreKey("abc").
 		SetContentType("text/html")
 
 	fileQuery = setParent(fileQuery)
-	file := fileQuery.SaveX(ctx)
+	f := fileQuery.SaveX(ctx)
 
 	createFile := func(ctx context.Context) error {
 		fileQuery := c.File.Create().
 			SetName("name2").
-			SetType(models.FileTypeImage.String()).
+			SetType(file.TypeIMAGE).
 			SetStoreKey("abcd").
 			SetContentType("text/html")
 		fileQuery = setParent(fileQuery)
@@ -39,12 +39,12 @@ func getFileCudOperations(ctx context.Context, c *ent.Client, setParent func(*en
 		return err
 	}
 	updateFile := func(ctx context.Context) error {
-		return c.File.UpdateOne(file).
+		return f.Update().
 			SetName("newName").
 			Exec(ctx)
 	}
 	deleteFile := func(ctx context.Context) error {
-		return c.File.DeleteOne(file).
+		return c.File.DeleteOne(f).
 			Exec(ctx)
 	}
 	return cudOperations{
@@ -114,38 +114,38 @@ func TestUserFilePolicyRule(t *testing.T) {
 	c := viewertest.NewTestClient(t)
 	ctx := viewertest.NewContext(context.Background(), c)
 
-	user := c.User.Create().
+	u := c.User.Create().
 		SetAuthID("authID").
 		SaveX(ctx)
 
-	file := c.File.Create().
+	f := c.File.Create().
 		SetName("name1").
-		SetType(models.FileTypeImage.String()).
+		SetType(file.TypeIMAGE).
 		SetStoreKey("abc").
-		SetUser(user).
+		SetUser(u).
 		SetContentType("text/html").
 		SaveX(ctx)
 
-	user2 := c.User.Create().
+	u2 := c.User.Create().
 		SetAuthID("authID2").
 		SaveX(ctx)
 	createFile := func(ctx context.Context) error {
 		_, err := c.File.Create().
 			SetName("name2").
-			SetType(models.FileTypeImage.String()).
+			SetType(file.TypeIMAGE).
 			SetStoreKey("abcd").
 			SetContentType("text/html").
-			SetUser(user2).
+			SetUser(u2).
 			Save(ctx)
 		return err
 	}
 	updateFile := func(ctx context.Context) error {
-		return c.File.UpdateOne(file).
+		return f.Update().
 			SetName("newName").
 			Exec(ctx)
 	}
 	deleteFile := func(ctx context.Context) error {
-		return c.File.DeleteOne(file).
+		return c.File.DeleteOne(f).
 			Exec(ctx)
 	}
 
@@ -217,14 +217,14 @@ func TestFileOfWorkOrderReadPolicyRule(t *testing.T) {
 	woType1, wo1 := prepareWorkOrderData(ctx, c)
 	_, wo2 := prepareWorkOrderData(ctx, c)
 	c.File.Create().
-		SetType("image/png").
+		SetType(file.TypeIMAGE).
 		SetName("image1.png").
 		SetContentType("image/png").
 		SetStoreKey("1111").
 		SetWorkOrder(wo1).
 		SaveX(ctx)
 	c.File.Create().
-		SetType("image/png").
+		SetType(file.TypeIMAGE).
 		SetName("image2.png").
 		SetContentType("image/png").
 		SetStoreKey("2222").
@@ -286,7 +286,7 @@ func TestFileOfCheckListItemReadPolicyRule(t *testing.T) {
 		SetType("simple").
 		SaveX(ctx)
 	c.File.Create().
-		SetType("image/png").
+		SetType(file.TypeIMAGE).
 		SetName("image1.png").
 		SetContentType("image/png").
 		SetStoreKey("1111").
@@ -302,7 +302,7 @@ func TestFileOfCheckListItemReadPolicyRule(t *testing.T) {
 		SetType("simple").
 		SaveX(ctx)
 	c.File.Create().
-		SetType("image/png").
+		SetType(file.TypeIMAGE).
 		SetName("image2.png").
 		SetContentType("image/png").
 		SetStoreKey("2222").

@@ -7,18 +7,19 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
+import time
 import unittest
 
 import s1ap_types
-import time
-
-from integ_tests.s1aptests import s1ap_wrapper
+import s1ap_wrapper
+from s1ap_utils import MagmadUtil
 
 
 class TestAttachDetachWithMmeRestart(unittest.TestCase):
 
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()

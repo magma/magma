@@ -1,0 +1,30 @@
+---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
+- name: Add GPG key for magma repository
+  apt_key:
+    url: http://packages.magma.etagecom.io/pubkey.gpg
+    state: present
+    id: 2E97854368E14ED8FB6F80903E838E02450E78EA
+
+- name: Add apt-transport-https
+  apt: pkg=apt-transport-https state=present update_cache=yes
+  #  when: preburn
+
+- name: Add JFrog key
+  apt_key:
+    data: "{{ lookup('file', 'jfrog.pub') }}"
+    state: present
+    id: EF3F24737CD69751BFF9C592B5A959C7EC708105
+
+- name: Add JFrog repo
+  apt_repository:
+    repo: 'deb https://facebookconnectivity.jfrog.io/artifactory/list/{{ repo }}/ {{ distribution }} main'
+    update_cache: yes
+    mode: 0644

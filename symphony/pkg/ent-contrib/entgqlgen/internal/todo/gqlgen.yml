@@ -15,3 +15,6 @@ models:
   Node:
     model:
       - github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent.Noder
+  Status:
+    model:
+      - github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo.Status

@@ -1,0 +1,67 @@
+import Button from '../../components/design-system/Button';
+import FilesUploadSnackbar from '../../components/design-system/Experimental/FilesUploadSnackbar';
+import {FileUploadStatuses} from '../../components/design-system/Experimental/FileUploadStatus';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {useState} from 'react';
+
+<Meta title={`${STORY_CATEGORIES.EXPERIMENTAL}/FilesUploadSnackbar`} />
+
+# FilesUploadSnackbar
+
+```js
+import FilesUploadSnackbar from '@fbcnms/ui/components/design-system/Experimental/FilesUploadSnackbar';
+```
+
+<Preview>
+  <Story name="FileUploadArea">
+    {() => {
+      const [isShown, setIsShown] = useState(true);
+      return (
+        <div>
+          <Button onClick={() => setIsShown(true)}>Upload</Button>
+          {isShown && (
+            <FilesUploadSnackbar
+              onClose={() => setIsShown(false)}
+              files={[
+                {
+                  id: '0',
+                  name: 'Blue_bird.jpg',
+                  status: FileUploadStatuses.DONE,
+                },
+                {
+                  id: '1',
+                  name: 'Blue_bird2.jpg',
+                  status: FileUploadStatuses.ERROR,
+                  errorMessage: 'We had a problem uploading this file',
+                },
+                {
+                  id: '2',
+                  name: 'Blue_bird_singing_in_the_dead_of_night.jpg',
+                  status: FileUploadStatuses.ERROR,
+                  errorMessage:
+                    'We had a problem uploading this file, long error message',
+                },
+                {
+                  id: '3',
+                  name: 'Blue_bird.jpg',
+                  status: FileUploadStatuses.UPLOADING,
+                },
+                {
+                  id: '4',
+                  name: 'Blue_bird.jpg',
+                  status: FileUploadStatuses.UPLOADING,
+                },
+                {
+                  id: '5',
+                  name: 'Blue_bird.jpg',
+                  status: FileUploadStatuses.UPLOADING,
+                },
+              ]}
+            />
+          )}
+        </div>
+      );
+    }}
+  </Story>
+</Preview>

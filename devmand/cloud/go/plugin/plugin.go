@@ -20,10 +20,9 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/service/serviceregistry"
 	"orc8r/devmand/cloud/go/devmand"
-	"orc8r/devmand/cloud/go/plugin/handlers"
-	"orc8r/devmand/cloud/go/plugin/models"
+	"orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
+	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 )
 
 // DevmandOrchestratorPlugin is the orchestrator plugin for devmand
@@ -36,7 +35,7 @@ func (*DevmandOrchestratorPlugin) GetName() string {
 
 // GetServices gets the devmand service locations
 func (*DevmandOrchestratorPlugin) GetServices() []registry.ServiceLocation {
-	serviceLocations, err := serviceregistry.LoadServiceRegistryConfig(devmand.ModuleName)
+	serviceLocations, err := registry.LoadServiceRegistryConfig(devmand.ModuleName)
 	if err != nil {
 		return []registry.ServiceLocation{}
 	}

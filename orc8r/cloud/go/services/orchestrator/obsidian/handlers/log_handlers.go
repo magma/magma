@@ -71,7 +71,7 @@ func countLogs(c echo.Context, client *elastic.Client) error {
 		Query(query).
 		Do(c.Request().Context())
 	if err != nil {
-		glog.Fatalf("Error getting response: %s", err)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, result)
 }
@@ -116,7 +116,7 @@ func queryLogs(c echo.Context, client *elastic.Client) error {
 		Query(query).
 		Do(c.Request().Context())
 	if err != nil {
-		glog.Fatalf("Error getting response: %s", err)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if result.Error != nil {
 		return obsidian.HttpError(fmt.Errorf("Elastic Error Type: %s, Reason: %s", result.Error.Type, result.Error.Reason))

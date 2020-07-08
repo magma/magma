@@ -51,6 +51,22 @@ func (locationTypeResolver) SurveyTemplateCategories(ctx context.Context, typ *e
 
 type locationResolver struct{}
 
+func (r locationResolver) ParentCoords(ctx context.Context, obj *ent.Location) (*models.Coordinates, error) {
+	var err error
+	parent := obj
+	for parent != nil {
+		locLat, locLong := parent.Latitude, parent.Longitude
+		if locLat != 0 || locLong != 0 {
+			return &models.Coordinates{Latitude: locLat, Longitude: locLong}, nil
+		}
+		parent, err = parent.QueryParent().Only(ctx)
+		if ent.MaskNotFound(err) != nil {
+			return nil, err
+		}
+	}
+	return nil, nil
+}
+
 func (r locationResolver) Surveys(ctx context.Context, location *ent.Location) ([]*ent.Survey, error) {
 	if surveys, err := location.Edges.SurveyOrErr(); !ent.IsNotLoaded(err) {
 		return surveys, err
@@ -122,11 +138,11 @@ func (locationResolver) Properties(ctx context.Context, location *ent.Location) 
 	return location.QueryProperties().All(ctx)
 }
 
-func (locationResolver) filesOfType(ctx context.Context, location *ent.Location, typ string) ([]*ent.File, error) {
+func (locationResolver) filesOfType(ctx context.Context, location *ent.Location, typ file.Type) ([]*ent.File, error) {
 	fds, err := location.Edges.FilesOrErr()
 	if ent.IsNotLoaded(err) {
 		return location.QueryFiles().
-			Where(file.Type(typ)).
+			Where(file.TypeEQ(typ)).
 			All(ctx)
 	}
 	files := make([]*ent.File, 0, len(fds))
@@ -139,11 +155,11 @@ func (locationResolver) filesOfType(ctx context.Context, location *ent.Location,
 }
 
 func (r locationResolver) Images(ctx context.Context, location *ent.Location) ([]*ent.File, error) {
-	return r.filesOfType(ctx, location, models.FileTypeImage.String())
+	return r.filesOfType(ctx, location, file.TypeIMAGE)
 }
 
 func (r locationResolver) Files(ctx context.Context, location *ent.Location) ([]*ent.File, error) {
-	return r.filesOfType(ctx, location, models.FileTypeFile.String())
+	return r.filesOfType(ctx, location, file.TypeFILE)
 }
 
 func (locationResolver) Hyperlinks(ctx context.Context, location *ent.Location) ([]*ent.Hyperlink, error) {

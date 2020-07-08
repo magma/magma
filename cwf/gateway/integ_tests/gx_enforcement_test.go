@@ -16,7 +16,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"math/rand"
 	"testing"
