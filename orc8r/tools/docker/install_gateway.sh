@@ -184,6 +184,7 @@ docker-compose -f docker-compose.yml up -d
 
 # Pull and Run DPI container
 if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  cd /var/opt/magma/docker
   docker-compose -f docker-compose-dpi.override.yml pull
   docker-compose -f docker-compose-dpi.override.yml up -d
 fi

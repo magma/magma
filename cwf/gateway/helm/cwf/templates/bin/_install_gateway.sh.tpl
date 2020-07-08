@@ -82,7 +82,7 @@ if [ "$GW_TYPE" == "$CWAG" ] || [ "$GW_TYPE" == "$XWF" ]; then
   apt-add-repository -y ppa:ansible/ansible
   apt-get update -y
   apt-get -y install ansible
-  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v
+  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v -e ingress_port="${INGRESS_PORT:=eth1}" -e uplink_ports="${UPLINK_PORTS:=eth2 eth3}" -e li_port="${LI_PORT:=eth4}"
 fi
 
 if [ "$GW_TYPE" == "$XWF" ]; then
@@ -181,6 +181,7 @@ docker-compose -f docker-compose.yml up -d
 
 # Pull and Run DPI container
 if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
+  cd /var/opt/magma/docker
   docker-compose -f docker-compose-dpi.override.yml pull
   docker-compose -f docker-compose-dpi.override.yml up -d
 fi

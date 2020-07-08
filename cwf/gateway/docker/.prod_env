@@ -21,3 +21,8 @@ CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=/etc/magma
 SECRETS_VOLUME=/var/opt/magma/secrets
+
+## cwf Interface override
+INGRESS_PORT=
+UPLINK_PORTS=
+LI_PORT=
