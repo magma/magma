@@ -85,9 +85,7 @@ void S1apStateConverter::proto_to_state(
 }
 
 void S1apStateConverter::enb_to_proto(
-  enb_description_t* enb,
-  oai::EnbDescription* proto)
-{
+    enb_description_t* enb, oai::EnbDescription* proto) {
   proto->Clear();
 
   proto->set_enb_id(enb->enb_id);
@@ -95,10 +93,6 @@ void S1apStateConverter::enb_to_proto(
   proto->set_enb_name(enb->enb_name);
   proto->set_default_paging_drx(enb->default_paging_drx);
   proto->set_nb_ue_associated(enb->nb_ue_associated);
-  proto->mutable_s1ap_enb_assoc_clean_up_timer()->set_id(
-    enb->s1ap_enb_assoc_clean_up_timer.id);
-  proto->mutable_s1ap_enb_assoc_clean_up_timer()->set_sec(
-    enb->s1ap_enb_assoc_clean_up_timer.sec);
   proto->set_sctp_assoc_id(enb->sctp_assoc_id);
   proto->set_next_sctp_stream(enb->next_sctp_stream);
   proto->set_instreams(enb->instreams);
@@ -109,42 +103,37 @@ void S1apStateConverter::enb_to_proto(
 }
 
 void S1apStateConverter::proto_to_enb(
-  const oai::EnbDescription& proto,
-  enb_description_t* enb)
-{
+    const oai::EnbDescription& proto, enb_description_t* enb) {
   memset(enb, 0, sizeof(*enb));
 
-  enb->enb_id = proto.enb_id();
+  enb->enb_id   = proto.enb_id();
   enb->s1_state = (mme_s1_enb_state_s) proto.s1_state();
   strncpy(enb->enb_name, proto.enb_name().c_str(), sizeof(enb->enb_name));
   enb->default_paging_drx = proto.default_paging_drx();
-  enb->nb_ue_associated = proto.nb_ue_associated();
-  enb->s1ap_enb_assoc_clean_up_timer.id =
-    proto.s1ap_enb_assoc_clean_up_timer().id();
-  enb->s1ap_enb_assoc_clean_up_timer.sec =
-    proto.s1ap_enb_assoc_clean_up_timer().sec();
-  enb->sctp_assoc_id = proto.sctp_assoc_id();
-  enb->next_sctp_stream = proto.next_sctp_stream();
-  enb->instreams = proto.instreams();
-  enb->outstreams = proto.outstreams();
+  enb->nb_ue_associated   = proto.nb_ue_associated();
+  enb->sctp_assoc_id      = proto.sctp_assoc_id();
+  enb->next_sctp_stream   = proto.next_sctp_stream();
+  enb->instreams          = proto.instreams();
+  enb->outstreams         = proto.outstreams();
 
   // load ues
   hashtable_rc_t ht_rc;
   auto ht_name = bfromcstr("s1ap_ue_coll");
 
-  hashtable_uint64_ts_init(&enb->ue_id_coll, mme_config.max_ues,
-      nullptr, ht_name);
+  hashtable_uint64_ts_init(
+      &enb->ue_id_coll, mme_config.max_ues, nullptr, ht_name);
   bdestroy(ht_name);
 
   auto ue_ids = proto.ue_ids();
   for (auto const& kv : ue_ids) {
     mme_ue_s1ap_id_t mme_ue_s1ap_id = kv.first;
-    uint64_t comp_s1ap_id = kv.second;
+    uint64_t comp_s1ap_id           = kv.second;
 
-    ht_rc = hashtable_uint64_ts_insert(&enb->ue_id_coll, (hash_key_t) mme_ue_s1ap_id, comp_s1ap_id);
+    ht_rc = hashtable_uint64_ts_insert(
+        &enb->ue_id_coll, (hash_key_t) mme_ue_s1ap_id, comp_s1ap_id);
     if (ht_rc != HASH_TABLE_OK) {
-      OAILOG_DEBUG(LOG_S1AP, "Failed to insert mme_ue_s1ap_id in ue_coll_id"
-                             "hashtable");
+      OAILOG_DEBUG(
+          LOG_S1AP, "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
     }
   }
 }

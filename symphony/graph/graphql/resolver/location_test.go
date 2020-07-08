@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nolint: goconst
 package resolver
 
 import (
@@ -48,7 +47,7 @@ func TestAddLocation(t *testing.T) {
 	require.Nil(t, l, "Tried to fetch missing location")
 	require.NoError(t, err, "Missing location is not an error")
 
-	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil)
+	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Len(t, locations.Edges, 1, "Verifying 'Locations' return value")
 
 	require.Equal(t, location.ID, fetchedLocation.ID, "Verifying saved location vs fetched location: ID")
@@ -75,7 +74,7 @@ func TestAddLocationWithExternalID(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil)
+	locations, _ := qr.Locations(ctx, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.Len(t, locations.Edges, 1, "Verifying 'Locations' return value")
 
 	require.Equal(t, location.ID, locations.Edges[0].Node.ID, "Verifying saved location vs fetched location: ID")
@@ -125,7 +124,7 @@ func TestAddLocationWithSameName(t *testing.T) {
 
 	onlyTopLevel := true
 	require.Len(t, children, 2, "Parent location has two children")
-	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil)
+	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locs.Edges, 1, "Only one location with no parents (aka top level)")
 }
@@ -212,7 +211,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name: "str_prop",
-				Type: models.PropertyKindString,
+				Type: propertytype.TypeString,
 			},
 		}})
 	require.NoError(t, err, "Adding location type")
@@ -221,7 +220,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name: "str_prop",
-				Type: models.PropertyKindString,
+				Type: propertytype.TypeString,
 			},
 		},
 	})
@@ -329,11 +328,16 @@ func TestAddMultiLevelLocations(t *testing.T) {
 		Type: locationTypeA.ID,
 	})
 	require.NoError(t, err, "Adding 1st level location")
+	cords, err := lr.ParentCoords(ctx, locationA)
+	require.NoError(t, err)
+	require.Nil(t, cords)
 
 	locationB, err := mr.AddLocation(ctx, models.AddLocationInput{
-		Name:   "b1",
-		Type:   locationTypeB.ID,
-		Parent: &locationA.ID,
+		Name:      "b1",
+		Type:      locationTypeB.ID,
+		Parent:    &locationA.ID,
+		Latitude:  pointer.ToFloat64(37.5),
+		Longitude: pointer.ToFloat64(35.7),
 	})
 	require.NoError(t, err, "Adding 1st child of a location (2nd level)")
 
@@ -361,14 +365,23 @@ func TestAddMultiLevelLocations(t *testing.T) {
 		Parent: &locationC.ID,
 	})
 	require.NoError(t, err, "Adding 1st child of c location (4th level)")
+	cords, err = lr.ParentCoords(ctx, locationD)
+	require.NoError(t, err)
+	require.Equal(t, 37.5, cords.Latitude)
+	require.Equal(t, 35.7, cords.Longitude)
 
-	_, err = mr.AddLocation(ctx, models.AddLocationInput{
-		Name:   "e",
-		Type:   locationTypeE.ID,
-		Parent: &locationD.ID,
+	locationE, err := mr.AddLocation(ctx, models.AddLocationInput{
+		Name:      "e",
+		Type:      locationTypeE.ID,
+		Parent:    &locationD.ID,
+		Latitude:  pointer.ToFloat64(47.5),
+		Longitude: pointer.ToFloat64(45.7),
 	})
 	require.NoError(t, err, "Adding 1st child of d location (5th level)")
-
+	cords, err = lr.ParentCoords(ctx, locationE)
+	require.NoError(t, err)
+	require.Equal(t, 47.5, cords.Latitude)
+	require.Equal(t, 45.7, cords.Longitude)
 	// Adding in wrong order
 	_, err = mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "b1",
@@ -391,7 +404,7 @@ func TestAddMultiLevelLocations(t *testing.T) {
 
 	i := 10
 	onlyTopLevel := true
-	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, &i, nil, nil)
+	locs, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, &i, nil, nil, nil)
 	require.NoError(t, err, "Querying locations")
 
 	require.Len(t, locs.Edges, 1, "Only one location with no parents (aka top level)")
@@ -930,17 +943,17 @@ func TestGetLocationsByType(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	allLocations, err := qr.Locations(ctx, nil, []int{locationType1.ID, locationType2.ID}, nil, nil, nil, nil, nil, nil)
+	allLocations, err := qr.Locations(ctx, nil, []int{locationType1.ID, locationType2.ID}, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, allLocations.Edges, 2)
 
-	locationsType1, err := qr.Locations(ctx, nil, []int{locationType1.ID}, nil, nil, nil, nil, nil, nil)
+	locationsType1, err := qr.Locations(ctx, nil, []int{locationType1.ID}, nil, nil, nil, nil, nil, nil, nil)
 
 	require.NoError(t, err)
 	require.Len(t, locationsType1.Edges, 1, "one location of this type")
 	require.Equal(t, locationsType1.Edges[0].Node.ID, location1.ID)
 
-	locationsType2, err := qr.Locations(ctx, nil, []int{locationType2.ID}, nil, nil, nil, nil, nil, nil)
+	locationsType2, err := qr.Locations(ctx, nil, []int{locationType2.ID}, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locationsType2.Edges, 1, "one location of this type")
 	require.Equal(t, locationsType2.Edges[0].Node.ID, location2.ID)
@@ -971,13 +984,13 @@ func TestOnlyTopLevelLocationsFilter(t *testing.T) {
 	require.NoError(t, err)
 
 	onlyTopLevel := true
-	onlyTopLevelLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil)
+	onlyTopLevelLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, onlyTopLevelLocations.Edges, 1, "one top level location")
 	require.Equal(t, onlyTopLevelLocations.Edges[0].Node.ID, location1.ID)
 
 	onlyTopLevel = false
-	allLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil)
+	allLocations, err := qr.Locations(ctx, &onlyTopLevel, nil, nil, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, allLocations.Edges, 2, "two not-only top level locations")
 }
@@ -1007,12 +1020,12 @@ func TestGetLocationsByName(t *testing.T) {
 	require.NoError(t, err)
 
 	name := "loc"
-	locLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil)
+	locLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Len(t, locLocations.Edges, 2, "two locations with 'loc' prefix added")
 
 	name = "wow"
-	wowLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil)
+	wowLocations, err := qr.Locations(ctx, nil, nil, &name, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	require.Empty(t, wowLocations.Edges, "no locations with 'wow' prefix added")
 }
@@ -1304,7 +1317,7 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 	index := 0
 	locationPropType := models.PropertyTypeInput{
 		Name:  "location_prop",
-		Type:  "location",
+		Type:  propertytype.TypeNode,
 		Index: &index,
 	}
 

@@ -1170,6 +1170,9 @@ func init() {
 			return next.Mutate(ctx, m)
 		})
 	}
+	workorderHooks := schema.WorkOrder{}.Hooks()
+
+	workorder.Hooks[1] = workorderHooks[0]
 	workorderMixinFields0 := workorderMixin[0].Fields()
 	workorderFields := schema.WorkOrder{}.Fields()
 	_ = workorderFields
@@ -1187,14 +1190,6 @@ func init() {
 	workorderDescName := workorderFields[0].Descriptor()
 	// workorder.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	workorder.NameValidator = workorderDescName.Validators[0].(func(string) error)
-	// workorderDescStatus is the schema descriptor for status field.
-	workorderDescStatus := workorderFields[1].Descriptor()
-	// workorder.DefaultStatus holds the default value on creation for the status field.
-	workorder.DefaultStatus = workorderDescStatus.Default.(string)
-	// workorderDescPriority is the schema descriptor for priority field.
-	workorderDescPriority := workorderFields[2].Descriptor()
-	// workorder.DefaultPriority holds the default value on creation for the priority field.
-	workorder.DefaultPriority = workorderDescPriority.Default.(string)
 	workorderdefinitionMixin := schema.WorkOrderDefinition{}.Mixin()
 	workorderdefinition.Policy = schema.WorkOrderDefinition{}.Policy()
 	workorderdefinition.Hooks[0] = func(next ent.Mutator) ent.Mutator {
@@ -1239,6 +1234,6 @@ func init() {
 }
 
 const (
-	Version = "v0.2.2"                                          // Version of ent codegen.
-	Sum     = "h1:XqR5HP29L6dmTQlT6qvO1MiAwW5YeAi+pRXxbf3LNKc=" // Sum of ent codegen.
+	Version = "v0.2.6-0.20200705192250-cedeef653a50"            // Version of ent codegen.
+	Sum     = "h1:brESbIQlQtMMoYJ56tSr/Nb6vOjLcDP56NqELXweAjg=" // Sum of ent codegen.
 )

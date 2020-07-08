@@ -11,10 +11,13 @@ import ctypes
 import ipaddress
 import logging
 import os
+import shlex
 import threading
 import time
+from enum import Enum
 from queue import Queue
 import grpc
+import subprocess
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -367,6 +370,7 @@ class SubscriberUtil(object):
 
 
 class MagmadUtil(object):
+    stateless_cmds = Enum('stateless_cmds', 'CHECK DISABLE ENABLE')
     def __init__(self, magmad_client):
         """
         Init magmad util.
@@ -399,26 +403,37 @@ class MagmadUtil(object):
         """
         data = self._data
         data["command"] = '"' + command + '"'
-        os.system(self._command.format(**data))
+        param_list = shlex.split(self._command.format(**data))
+        return subprocess.call(param_list, shell=False,
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
-    def set_config_stateless(self, enabled):
+    def config_stateless(self, cmd):
         """
-            Sets the use_stateless flag in mme.yml file
+        Configure the stateless mode on the access gateway
 
-            Args:
-                enabled: sets the flag to true if enabled
+        Args:
+          cmd: Specify how to configure stateless mode on AGW,
+          should be one of
+            check: Run a check whether AGW is stateless or not
+            enable: Enable stateless mode, do nothing if already stateless
+            disable: Disable stateless mode, do nothing if already stateful
 
-            """
-        if enabled:
-            self.exec_command(
-                "sed -i 's/use_stateless: false/use_stateless: true/g' "
-                "/etc/magma/mme.yml"
-            )
+        """
+
+        config_stateless_script = ("/home/vagrant/magma/lte/gateway/deploy/"
+            "roles/magma/files/config_stateless_agw.sh")
+
+        ret_code = self.exec_command("sudo -E " + config_stateless_script + " "
+            + cmd.name.lower())
+
+        if ret_code == 0:
+            print("AGW is stateless")
+        elif ret_code == 1:
+            print("AGW is stateful")
+        elif ret_code == 2:
+            print("AGW is in a mixed config, check gateway")
         else:
-            self.exec_command(
-                "sed -i 's/use_stateless: true/use_stateless: false/g' "
-                "/etc/magma/mme.yml"
-            )
+            print("Unknown command")
 
     def restart_all_services(self):
         """

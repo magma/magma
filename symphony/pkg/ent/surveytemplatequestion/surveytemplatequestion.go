@@ -16,13 +16,19 @@ const (
 	// Label holds the string label denoting the surveytemplatequestion type in the database.
 	Label = "survey_template_question"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                  = "id"                   // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime          = "create_time"          // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime          = "update_time"          // FieldQuestionTitle holds the string denoting the question_title vertex property in the database.
-	FieldQuestionTitle       = "question_title"       // FieldQuestionDescription holds the string denoting the question_description vertex property in the database.
-	FieldQuestionDescription = "question_description" // FieldQuestionType holds the string denoting the question_type vertex property in the database.
-	FieldQuestionType        = "question_type"        // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex               = "index"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldQuestionTitle holds the string denoting the question_title field in the database.
+	FieldQuestionTitle = "question_title"
+	// FieldQuestionDescription holds the string denoting the question_description field in the database.
+	FieldQuestionDescription = "question_description"
+	// FieldQuestionType holds the string denoting the question_type field in the database.
+	FieldQuestionType = "question_type"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
 
 	// EdgeCategory holds the string denoting the category edge name in mutations.
 	EdgeCategory = "category"

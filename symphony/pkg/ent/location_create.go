@@ -304,6 +304,11 @@ func (lc *LocationCreate) AddFloorPlans(f ...*FloorPlan) *LocationCreate {
 	return lc.AddFloorPlanIDs(ids...)
 }
 
+// Mutation returns the LocationMutation object of the builder.
+func (lc *LocationCreate) Mutation() *LocationMutation {
+	return lc.mutation
+}
+
 // Save creates the Location in the database.
 func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
 	if _, ok := lc.mutation.CreateTime(); !ok {
@@ -315,11 +320,11 @@ func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
 		lc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := lc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := lc.mutation.Name(); ok {
 		if err := location.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := lc.mutation.Latitude(); !ok {
@@ -328,7 +333,7 @@ func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
 	}
 	if v, ok := lc.mutation.Latitude(); ok {
 		if err := location.LatitudeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"latitude\": %v", err)
+			return nil, &ValidationError{Name: "latitude", err: fmt.Errorf("ent: validator failed for field \"latitude\": %w", err)}
 		}
 	}
 	if _, ok := lc.mutation.Longitude(); !ok {
@@ -337,7 +342,7 @@ func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
 	}
 	if v, ok := lc.mutation.Longitude(); ok {
 		if err := location.LongitudeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"longitude\": %v", err)
+			return nil, &ValidationError{Name: "longitude", err: fmt.Errorf("ent: validator failed for field \"longitude\": %w", err)}
 		}
 	}
 	if _, ok := lc.mutation.SiteSurveyNeeded(); !ok {
@@ -345,7 +350,7 @@ func (lc *LocationCreate) Save(ctx context.Context) (*Location, error) {
 		lc.mutation.SetSiteSurveyNeeded(v)
 	}
 	if _, ok := lc.mutation.TypeID(); !ok {
-		return nil, errors.New("ent: missing required edge \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required edge \"type\"")}
 	}
 	var (
 		err  error

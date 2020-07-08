@@ -42,6 +42,7 @@ class SubTests(Enum):
 
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
+               gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
                transfer_images=False, destroy_vm=False, no_build=False,
                tests_to_run="all", skip_unit_tests=False, test_re=None,
                run_tests=True):
@@ -73,7 +74,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
-    _switch_to_vm(gateway_host, "cwag", "cwag_dev.yml", destroy_vm)
+    _switch_to_vm(gateway_host, gateway_vm, gateway_ansible_file, destroy_vm)
 
     # We will direct coredumps to be placed in this directory
     # Clean up before every run
@@ -122,7 +123,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     execute(_start_ipfix_controller)
 
     # Get back to the gateway vm to setup static arp
-    _switch_to_vm_no_destroy(gateway_host, "cwag", "cwag_dev.yml")
+    _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
     execute(_set_cwag_networking, cwag_test_br_mac)
     execute(_check_docker_services)
 
@@ -142,7 +143,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Setup environment for multi service proxy if required
     if tests_to_run.value in (SubTests.ALL.value,
                               SubTests.MULTISESSIONPROXY.value):
-        _switch_to_vm_no_destroy(gateway_host, "cwag", "cwag_dev.yml")
+        _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
 
         # copy new config and restart the impacted services
         execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
@@ -162,7 +163,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     sys.exit(0)
 
 
-def transfer_artifacts(services="sessiond session_proxy", get_core_dump=False):
+def transfer_artifacts(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
+                       services="sessiond session_proxy", get_core_dump=False):
     """
     Fetches service logs from Docker and optionally gets core dumps
     Args:
@@ -173,17 +175,17 @@ def transfer_artifacts(services="sessiond session_proxy", get_core_dump=False):
     print("Transferring logs for " + str(services))
 
     # We do NOT want to destroy this VM after we just set it up...
-    vagrant_setup("cwag", False)
+    vagrant_setup(gateway_vm, False)
     with cd(CWAG_ROOT):
         for service in services:
             run("docker logs -t " + service + " &> " + service + ".log")
             # For vagrant the files should already be in CWAG_ROOT
     if get_core_dump == "True":
-        execute(_tar_coredump)
+        execute(_tar_coredump, gateway_vm=gateway_vm, gateway_ansible_file=gateway_ansible_file)
 
 
-def _tar_coredump():
-    _switch_to_vm_no_destroy(None, "cwag", "cwag_dev.yml")
+def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
+    _switch_to_vm_no_destroy(None, gateway_vm, gateway_ansible_file)
     with cd(CWAG_ROOT):
         core_dump_dir = run('ls /var/opt/magma/cores/')
         num_of_dumps = len(core_dump_dir.split())
@@ -271,6 +273,7 @@ def _add_networkhost_docker():
     # add daemon json file
     host_cfg = '\'{"hosts": [\"%s\", \"%s\"]}\'' % (local_host, nw_host)
     run("""printf %s > %s""" % (host_cfg, tmp_daemon_json_fn))
+    sudo('mkdir -p {}'.format(docker_cfg_dir))
     sudo("mv %s %s" % (tmp_daemon_json_fn, docker_cfg_dir))
 
     # modify docker service cmd to remove hosts

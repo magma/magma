@@ -111,7 +111,7 @@ function resolveCustomQuery(
   return configs.map(config => config.resolveQuery(filterValue));
 }
 
-export default function(props: {
+export default function (props: {
   selectors: Array<string>,
   defaultSelector: string,
   onSelectorChange: (

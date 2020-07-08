@@ -10,6 +10,7 @@ package handlers
 
 import (
 	"net/http"
+	"regexp"
 
 	"magma/lte/cloud/go/lte"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -21,9 +22,10 @@ import (
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 
+	"github.com/go-openapi/swag"
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 )
 
 const (
@@ -54,7 +56,16 @@ var subscriberStateTypes = []string{
 	lte.S1APStateType,
 	lte.MMEStateType,
 	lte.SPGWStateType,
+	lte.MobilitydStateType,
 }
+
+// mobilityd states are keyed as <ISMI>.<APN>. This captures just the imsi
+// portion in a named match group
+var mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
+
+const mobilitydStateExpectedMatchCount = 2
+
+var subscriberLoadCriteria = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
 
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
@@ -62,29 +73,39 @@ func listSubscribers(c echo.Context) error {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, subscriberLoadCriteria)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	allIMSIs := funk.Map(ents, func(e configurator.NetworkEntity) string { return e.Key }).([]string)
-	subStates, err := state.SearchStates(networkID, subscriberStateTypes, allIMSIs)
+	subStates, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	statesByTypeBySid := map[string]map[string]state_types.State{}
+	// Each entry in this map contains all the states that the SID cares about.
+	// The DeviceID fields of the state IDs in the nested maps do not have to
+	// match the SID, as in the case of mobilityd state for example.
+	statesBySid := map[string]state_types.StatesByID{}
 	for stateID, st := range subStates {
-		byType, ok := statesByTypeBySid[stateID.DeviceID]
-		if !ok {
-			byType = map[string]state_types.State{}
+		sidKey := stateID.DeviceID
+		if stateID.Type == lte.MobilitydStateType {
+			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != mobilitydStateExpectedMatchCount {
+				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
+				continue
+			}
+			sidKey = matches[1]
 		}
-		byType[stateID.Type] = st
-		statesByTypeBySid[stateID.DeviceID] = byType
+
+		if _, exists := statesBySid[sidKey]; !exists {
+			statesBySid[sidKey] = state_types.StatesByID{}
+		}
+		statesBySid[sidKey][stateID] = st
 	}
 
 	ret := make(map[string]*subscribermodels.Subscriber, len(ents))
 	for _, ent := range ents {
-		ret[ent.Key] = (&subscribermodels.Subscriber{}).FromBackendModels(ent, statesByTypeBySid[ent.Key])
+		ret[ent.Key] = (&subscribermodels.Subscriber{}).FromBackendModels(ent, statesBySid[ent.Key])
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -110,6 +131,7 @@ func createSubscriber(c echo.Context) error {
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
 		Type:         lte.SubscriberEntityType,
 		Key:          string(payload.ID),
+		Name:         payload.Name,
 		Config:       payload.Lte,
 		Associations: payload.ActiveApns.ToAssocs(),
 	})
@@ -126,7 +148,7 @@ func getSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, subscriberLoadCriteria)
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -134,16 +156,13 @@ func getSubscriber(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, []string{subscriberID})
+	keyPrefix := swag.String(ent.Key)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, keyPrefix)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	statesByType := map[string]state_types.State{}
-	for stateID, st := range states {
-		statesByType[stateID.Type] = st
-	}
 
-	ret := (&subscribermodels.Subscriber{}).FromBackendModels(ent, statesByType)
+	ret := (&subscribermodels.Subscriber{}).FromBackendModels(ent, states)
 	return c.JSON(http.StatusOK, ret)
 }
 
@@ -176,6 +195,7 @@ func updateSubscriber(c echo.Context) error {
 	updateCriteria := configurator.EntityUpdateCriteria{
 		Key:               subscriberID,
 		Type:              lte.SubscriberEntityType,
+		NewName:           swag.String(payload.Name),
 		NewConfig:         payload.Lte,
 		AssociationsToSet: payload.ActiveApns.ToAssocs(),
 	}

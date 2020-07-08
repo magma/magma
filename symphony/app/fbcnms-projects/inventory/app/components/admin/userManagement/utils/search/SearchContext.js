@@ -26,7 +26,7 @@ function getEmptyResults<T>(): Array<T> {
   return ([]: Array<T>);
 }
 
-type SearchContextValueType<T> = $ReadOnly<{|
+export type SearchContextValueType<T> = $ReadOnly<{|
   searchTerm: string,
   results: Array<T>,
   setSearchTerm: string => void,

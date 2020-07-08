@@ -49,11 +49,13 @@ const serviceSearchQuery = graphql`
     $limit: Int
     $filters: [ServiceFilterInput!]!
   ) {
-    serviceSearch(limit: $limit, filters: $filters) {
-      services {
-        ...ServicesView_service
+    services(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...ServicesView_service
+        }
       }
-      count
+      totalCount
     }
   }
 `;
@@ -78,9 +80,9 @@ const ServiceComparisonViewQueryRenderer = (props: Props) => {
         serviceKey: serviceKey,
       }}
       render={props => {
-        const {count, services} = props.serviceSearch;
-        onQueryReturn(count);
-        if (!services || services.length === 0) {
+        const {totalCount, edges} = props.services;
+        onQueryReturn(totalCount);
+        if (edges.length === 0) {
           return (
             <div className={classes.noResultsRoot}>
               <SearchIcon className={classes.searchIcon} />
@@ -92,7 +94,7 @@ const ServiceComparisonViewQueryRenderer = (props: Props) => {
         }
         return (
           <ServicesView
-            service={services}
+            service={edges.map(edge => edge.node)}
             onServiceSelected={onServiceSelected}
           />
         );

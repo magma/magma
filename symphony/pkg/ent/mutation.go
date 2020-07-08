@@ -11904,7 +11904,7 @@ type FileMutation struct {
 	id                           *int
 	create_time                  *time.Time
 	update_time                  *time.Time
-	_type                        *string
+	_type                        *file.Type
 	name                         *string
 	size                         *int
 	addsize                      *int
@@ -12091,12 +12091,12 @@ func (m *FileMutation) ResetUpdateTime() {
 }
 
 // SetType sets the type field.
-func (m *FileMutation) SetType(s string) {
-	m._type = &s
+func (m *FileMutation) SetType(f file.Type) {
+	m._type = &f
 }
 
 // GetType returns the type value in the mutation.
-func (m *FileMutation) GetType() (r string, exists bool) {
+func (m *FileMutation) GetType() (r file.Type, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -12108,7 +12108,7 @@ func (m *FileMutation) GetType() (r string, exists bool) {
 // If the File object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *FileMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *FileMutation) OldType(ctx context.Context) (v file.Type, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldType is allowed only on UpdateOne operations")
 	}
@@ -12993,7 +12993,7 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case file.FieldType:
-		v, ok := value.(string)
+		v, ok := value.(file.Type)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -23697,7 +23697,7 @@ type PropertyTypeMutation struct {
 	id                              *int
 	create_time                     *time.Time
 	update_time                     *time.Time
-	_type                           *string
+	_type                           *propertytype.Type
 	name                            *string
 	external_id                     *string
 	index                           *int
@@ -23899,12 +23899,12 @@ func (m *PropertyTypeMutation) ResetUpdateTime() {
 }
 
 // SetType sets the type field.
-func (m *PropertyTypeMutation) SetType(s string) {
-	m._type = &s
+func (m *PropertyTypeMutation) SetType(pr propertytype.Type) {
+	m._type = &pr
 }
 
 // GetType returns the type value in the mutation.
-func (m *PropertyTypeMutation) GetType() (r string, exists bool) {
+func (m *PropertyTypeMutation) GetType() (r propertytype.Type, exists bool) {
 	v := m._type
 	if v == nil {
 		return
@@ -23916,7 +23916,7 @@ func (m *PropertyTypeMutation) GetType() (r string, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldType(ctx context.Context) (v string, err error) {
+func (m *PropertyTypeMutation) OldType(ctx context.Context) (v propertytype.Type, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldType is allowed only on UpdateOne operations")
 	}
@@ -25417,7 +25417,7 @@ func (m *PropertyTypeMutation) SetField(name string, value ent.Value) error {
 		m.SetUpdateTime(v)
 		return nil
 	case propertytype.FieldType:
-		v, ok := value.(string)
+		v, ok := value.(propertytype.Type)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -39452,8 +39452,8 @@ type WorkOrderMutation struct {
 	create_time                  *time.Time
 	update_time                  *time.Time
 	name                         *string
-	status                       *string
-	priority                     *string
+	status                       *workorder.Status
+	priority                     *workorder.Priority
 	description                  *string
 	install_date                 *time.Time
 	creation_date                *time.Time
@@ -39684,12 +39684,12 @@ func (m *WorkOrderMutation) ResetName() {
 }
 
 // SetStatus sets the status field.
-func (m *WorkOrderMutation) SetStatus(s string) {
-	m.status = &s
+func (m *WorkOrderMutation) SetStatus(w workorder.Status) {
+	m.status = &w
 }
 
 // Status returns the status value in the mutation.
-func (m *WorkOrderMutation) Status() (r string, exists bool) {
+func (m *WorkOrderMutation) Status() (r workorder.Status, exists bool) {
 	v := m.status
 	if v == nil {
 		return
@@ -39701,7 +39701,7 @@ func (m *WorkOrderMutation) Status() (r string, exists bool) {
 // If the WorkOrder object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WorkOrderMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *WorkOrderMutation) OldStatus(ctx context.Context) (v workorder.Status, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldStatus is allowed only on UpdateOne operations")
 	}
@@ -39721,12 +39721,12 @@ func (m *WorkOrderMutation) ResetStatus() {
 }
 
 // SetPriority sets the priority field.
-func (m *WorkOrderMutation) SetPriority(s string) {
-	m.priority = &s
+func (m *WorkOrderMutation) SetPriority(w workorder.Priority) {
+	m.priority = &w
 }
 
 // Priority returns the priority value in the mutation.
-func (m *WorkOrderMutation) Priority() (r string, exists bool) {
+func (m *WorkOrderMutation) Priority() (r workorder.Priority, exists bool) {
 	v := m.priority
 	if v == nil {
 		return
@@ -39738,7 +39738,7 @@ func (m *WorkOrderMutation) Priority() (r string, exists bool) {
 // If the WorkOrder object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *WorkOrderMutation) OldPriority(ctx context.Context) (v string, err error) {
+func (m *WorkOrderMutation) OldPriority(ctx context.Context) (v workorder.Priority, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldPriority is allowed only on UpdateOne operations")
 	}
@@ -40718,14 +40718,14 @@ func (m *WorkOrderMutation) SetField(name string, value ent.Value) error {
 		m.SetName(v)
 		return nil
 	case workorder.FieldStatus:
-		v, ok := value.(string)
+		v, ok := value.(workorder.Status)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
 		return nil
 	case workorder.FieldPriority:
-		v, ok := value.(string)
+		v, ok := value.(workorder.Priority)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

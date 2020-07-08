@@ -144,8 +144,6 @@ class LocalEnforcer {
    * Starts the termination process for the session. When termination completes,
    * the call back function is executed.
    * @param imsi - imsi of the subscirber
-   * @param on_termination_callback - callback function to be executed after
-   * termination
    */
   void terminate_subscriber(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,

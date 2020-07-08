@@ -16,12 +16,17 @@ const (
 	// Label holds the string label denoting the hyperlink type in the database.
 	Label = "hyperlink"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldURL holds the string denoting the url vertex property in the database.
-	FieldURL        = "url"         // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldCategory holds the string denoting the category vertex property in the database.
-	FieldCategory   = "category"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldURL holds the string denoting the url field in the database.
+	FieldURL = "url"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
 
 	// EdgeEquipment holds the string denoting the equipment edge name in mutations.
 	EdgeEquipment = "equipment"

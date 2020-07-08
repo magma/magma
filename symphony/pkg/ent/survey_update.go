@@ -140,6 +140,11 @@ func (su *SurveyUpdate) AddQuestions(s ...*SurveyQuestion) *SurveyUpdate {
 	return su.AddQuestionIDs(ids...)
 }
 
+// Mutation returns the SurveyMutation object of the builder.
+func (su *SurveyUpdate) Mutation() *SurveyMutation {
+	return su.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (su *SurveyUpdate) ClearLocation() *SurveyUpdate {
 	su.mutation.ClearLocation()
@@ -519,6 +524,11 @@ func (suo *SurveyUpdateOne) AddQuestions(s ...*SurveyQuestion) *SurveyUpdateOne 
 	return suo.AddQuestionIDs(ids...)
 }
 
+// Mutation returns the SurveyMutation object of the builder.
+func (suo *SurveyUpdateOne) Mutation() *SurveyMutation {
+	return suo.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (suo *SurveyUpdateOne) ClearLocation() *SurveyUpdateOne {
 	suo.mutation.ClearLocation()
@@ -615,7 +625,7 @@ func (suo *SurveyUpdateOne) sqlSave(ctx context.Context) (s *Survey, err error) 
 	}
 	id, ok := suo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Survey.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Survey.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := suo.mutation.UpdateTime(); ok {

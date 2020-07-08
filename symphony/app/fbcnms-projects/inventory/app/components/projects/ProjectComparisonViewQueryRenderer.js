@@ -67,9 +67,13 @@ const projectSearchQuery = graphql`
     $limit: Int
     $filters: [ProjectFilterInput!]!
   ) {
-    projectSearch(limit: $limit, filters: $filters) {
-      ...ProjectsTableView_projects
-      ...ProjectsMap_projects
+    projects(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...ProjectsTableView_projects
+          ...ProjectsMap_projects
+        }
+      }
     }
   }
 `;
@@ -93,9 +97,9 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
         })),
       }}
       render={props => {
-        const {projectSearch} = props;
+        const {edges} = props.projects;
 
-        if (!projectSearch || projectSearch.length === 0) {
+        if (edges.length === 0) {
           return (
             <div className={classes.noResultsRoot}>
               <SearchIcon className={classes.searchIcon} />
@@ -105,13 +109,14 @@ const ProjectComparisonViewQueryRenderer = (props: Props) => {
             </div>
           );
         }
+        const projects = edges.map(edge => edge.node);
         return (
           <div className={classNames(classes.root, className)}>
             {displayMode === DisplayOptions.map ? (
-              <ProjectsMap projects={projectSearch} />
+              <ProjectsMap projects={projects} />
             ) : (
               <ProjectsTableView
-                projects={projectSearch}
+                projects={projects}
                 onProjectSelected={onProjectSelected}
               />
             )}

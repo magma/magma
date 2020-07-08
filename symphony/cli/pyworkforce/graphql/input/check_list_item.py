@@ -19,15 +19,15 @@ from ..input.file import FileInput
 @dataclass
 class CheckListItemInput(DataClassJsonMixin):
     title: str
-    type: CheckListItemType = enum_field(CheckListItemType)
     files: List[FileInput]
+    type: CheckListItemType = enum_field(CheckListItemType)
+    enumSelectionMode: Optional[CheckListItemEnumSelectionMode] = None
+    yesNoResponse: Optional[YesNoResponse] = None
     id: Optional[str] = None
     index: Optional[int] = None
     helpText: Optional[str] = None
     enumValues: Optional[str] = None
-    enumSelectionMode: Optional[CheckListItemEnumSelectionMode] = None
     selectedEnumValues: Optional[str] = None
     stringValue: Optional[str] = None
     checked: Optional[bool] = None
-    yesNoResponse: Optional[YesNoResponse] = None
 

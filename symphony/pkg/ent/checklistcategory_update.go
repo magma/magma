@@ -86,6 +86,11 @@ func (clcu *CheckListCategoryUpdate) SetWorkOrder(w *WorkOrder) *CheckListCatego
 	return clcu.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the CheckListCategoryMutation object of the builder.
+func (clcu *CheckListCategoryUpdate) Mutation() *CheckListCategoryMutation {
+	return clcu.mutation
+}
+
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (clcu *CheckListCategoryUpdate) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdate {
 	clcu.mutation.RemoveCheckListItemIDs(ids...)
@@ -354,6 +359,11 @@ func (clcuo *CheckListCategoryUpdateOne) SetWorkOrder(w *WorkOrder) *CheckListCa
 	return clcuo.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the CheckListCategoryMutation object of the builder.
+func (clcuo *CheckListCategoryUpdateOne) Mutation() *CheckListCategoryMutation {
+	return clcuo.mutation
+}
+
 // RemoveCheckListItemIDs removes the check_list_items edge to CheckListItem by ids.
 func (clcuo *CheckListCategoryUpdateOne) RemoveCheckListItemIDs(ids ...int) *CheckListCategoryUpdateOne {
 	clcuo.mutation.RemoveCheckListItemIDs(ids...)
@@ -447,7 +457,7 @@ func (clcuo *CheckListCategoryUpdateOne) sqlSave(ctx context.Context) (clc *Chec
 	}
 	id, ok := clcuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing CheckListCategory.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CheckListCategory.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := clcuo.mutation.UpdateTime(); ok {

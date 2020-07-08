@@ -19,11 +19,6 @@ import (
 
 type usersGroupResolver struct{}
 
-func (r queryResolver) UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UsersGroupConnection, error) {
-	return r.ClientFrom(ctx).UsersGroup.Query().
-		Paginate(ctx, after, first, before, last)
-}
-
 func (usersGroupResolver) Members(ctx context.Context, obj *ent.UsersGroup) ([]*ent.User, error) {
 	return obj.QueryMembers().All(ctx)
 }

@@ -72,29 +72,29 @@ func (woc *WorkOrderCreate) SetName(s string) *WorkOrderCreate {
 }
 
 // SetStatus sets the status field.
-func (woc *WorkOrderCreate) SetStatus(s string) *WorkOrderCreate {
-	woc.mutation.SetStatus(s)
+func (woc *WorkOrderCreate) SetStatus(w workorder.Status) *WorkOrderCreate {
+	woc.mutation.SetStatus(w)
 	return woc
 }
 
 // SetNillableStatus sets the status field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillableStatus(s *string) *WorkOrderCreate {
-	if s != nil {
-		woc.SetStatus(*s)
+func (woc *WorkOrderCreate) SetNillableStatus(w *workorder.Status) *WorkOrderCreate {
+	if w != nil {
+		woc.SetStatus(*w)
 	}
 	return woc
 }
 
 // SetPriority sets the priority field.
-func (woc *WorkOrderCreate) SetPriority(s string) *WorkOrderCreate {
-	woc.mutation.SetPriority(s)
+func (woc *WorkOrderCreate) SetPriority(w workorder.Priority) *WorkOrderCreate {
+	woc.mutation.SetPriority(w)
 	return woc
 }
 
 // SetNillablePriority sets the priority field if the given value is not nil.
-func (woc *WorkOrderCreate) SetNillablePriority(s *string) *WorkOrderCreate {
-	if s != nil {
-		woc.SetPriority(*s)
+func (woc *WorkOrderCreate) SetNillablePriority(w *workorder.Priority) *WorkOrderCreate {
+	if w != nil {
+		woc.SetPriority(*w)
 	}
 	return woc
 }
@@ -387,6 +387,11 @@ func (woc *WorkOrderCreate) SetAssignee(u *User) *WorkOrderCreate {
 	return woc.SetAssigneeID(u.ID)
 }
 
+// Mutation returns the WorkOrderMutation object of the builder.
+func (woc *WorkOrderCreate) Mutation() *WorkOrderMutation {
+	return woc.mutation
+}
+
 // Save creates the WorkOrder in the database.
 func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 	if _, ok := woc.mutation.CreateTime(); !ok {
@@ -398,26 +403,36 @@ func (woc *WorkOrderCreate) Save(ctx context.Context) (*WorkOrder, error) {
 		woc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := woc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := woc.mutation.Name(); ok {
 		if err := workorder.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := woc.mutation.Status(); !ok {
 		v := workorder.DefaultStatus
 		woc.mutation.SetStatus(v)
 	}
+	if v, ok := woc.mutation.Status(); ok {
+		if err := workorder.StatusValidator(v); err != nil {
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	if _, ok := woc.mutation.Priority(); !ok {
 		v := workorder.DefaultPriority
 		woc.mutation.SetPriority(v)
 	}
+	if v, ok := woc.mutation.Priority(); ok {
+		if err := workorder.PriorityValidator(v); err != nil {
+			return nil, &ValidationError{Name: "priority", err: fmt.Errorf("ent: validator failed for field \"priority\": %w", err)}
+		}
+	}
 	if _, ok := woc.mutation.CreationDate(); !ok {
-		return nil, errors.New("ent: missing required field \"creation_date\"")
+		return nil, &ValidationError{Name: "creation_date", err: errors.New("ent: missing required field \"creation_date\"")}
 	}
 	if _, ok := woc.mutation.OwnerID(); !ok {
-		return nil, errors.New("ent: missing required edge \"owner\"")
+		return nil, &ValidationError{Name: "owner", err: errors.New("ent: missing required edge \"owner\"")}
 	}
 	var (
 		err  error
@@ -492,7 +507,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 	}
 	if value, ok := woc.mutation.Status(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldStatus,
 		})
@@ -500,7 +515,7 @@ func (woc *WorkOrderCreate) sqlSave(ctx context.Context) (*WorkOrder, error) {
 	}
 	if value, ok := woc.mutation.Priority(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldPriority,
 		})

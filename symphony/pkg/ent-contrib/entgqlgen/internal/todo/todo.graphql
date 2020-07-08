@@ -2,14 +2,21 @@ interface Node {
   id: ID!
 }
 
+enum Status {
+  IN_PROGRESS
+  COMPLETED
+}
+
 type Todo implements Node {
   id: ID!
+  status: Status!
   text: String!
   parent: Todo
   children: [Todo!]
 }
 
 input TodoInput {
+  status: Status! = IN_PROGRESS
   text: String!
   parent: ID
 }
@@ -24,6 +31,7 @@ type PageInfo {
 }
 
 type TodoConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [TodoEdge]
 }

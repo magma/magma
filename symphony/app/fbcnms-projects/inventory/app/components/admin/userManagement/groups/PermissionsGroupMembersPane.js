@@ -123,11 +123,13 @@ export default function PermissionsGroupMembersPane(props: Props) {
   const subtitle = useMemo(
     () => (
       <>
-        <Text variant="caption" color="gray" useEllipsis={true}>
-          <fbt desc="">Add users to apply policies.</fbt>
+        <Text variant="body2" color="gray" useEllipsis={true}>
+          <fbt desc="">
+            Add users to groups in order to apply policies to them.
+          </fbt>
         </Text>
-        <Text variant="caption" color="gray" useEllipsis={true}>
-          <fbt desc="">Users can be members in multiple groups.</fbt>
+        <Text variant="body2" color="gray" useEllipsis={true}>
+          <fbt desc="">Users can be members of multiple groups.</fbt>
         </Text>
       </>
     ),

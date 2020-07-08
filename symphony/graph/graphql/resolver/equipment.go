@@ -250,11 +250,11 @@ func (equipmentResolver) WorkOrder(ctx context.Context, e *ent.Equipment) (*ent.
 	return wo, ent.MaskNotFound(err)
 }
 
-func (equipmentResolver) filesOfType(ctx context.Context, e *ent.Equipment, typ string) ([]*ent.File, error) {
+func (equipmentResolver) filesOfType(ctx context.Context, e *ent.Equipment, typ file.Type) ([]*ent.File, error) {
 	fds, err := e.Edges.FilesOrErr()
 	if ent.IsNotLoaded(err) {
 		return e.QueryFiles().
-			Where(file.Type(typ)).
+			Where(file.TypeEQ(typ)).
 			All(ctx)
 	}
 	files := make([]*ent.File, 0, len(fds))
@@ -267,11 +267,11 @@ func (equipmentResolver) filesOfType(ctx context.Context, e *ent.Equipment, typ 
 }
 
 func (r equipmentResolver) Images(ctx context.Context, e *ent.Equipment) ([]*ent.File, error) {
-	return r.filesOfType(ctx, e, models.FileTypeImage.String())
+	return r.filesOfType(ctx, e, file.TypeIMAGE)
 }
 
 func (r equipmentResolver) Files(ctx context.Context, e *ent.Equipment) ([]*ent.File, error) {
-	return r.filesOfType(ctx, e, models.FileTypeFile.String())
+	return r.filesOfType(ctx, e, file.TypeFILE)
 }
 
 func (equipmentResolver) Hyperlinks(ctx context.Context, e *ent.Equipment) ([]*ent.Hyperlink, error) {

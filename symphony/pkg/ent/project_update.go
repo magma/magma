@@ -158,6 +158,11 @@ func (pu *ProjectUpdate) SetCreator(u *User) *ProjectUpdate {
 	return pu.SetCreatorID(u.ID)
 }
 
+// Mutation returns the ProjectMutation object of the builder.
+func (pu *ProjectUpdate) Mutation() *ProjectMutation {
+	return pu.mutation
+}
+
 // ClearType clears the type edge to ProjectType.
 func (pu *ProjectUpdate) ClearType() *ProjectUpdate {
 	pu.mutation.ClearType()
@@ -229,7 +234,7 @@ func (pu *ProjectUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := pu.mutation.Name(); ok {
 		if err := project.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -688,6 +693,11 @@ func (puo *ProjectUpdateOne) SetCreator(u *User) *ProjectUpdateOne {
 	return puo.SetCreatorID(u.ID)
 }
 
+// Mutation returns the ProjectMutation object of the builder.
+func (puo *ProjectUpdateOne) Mutation() *ProjectMutation {
+	return puo.mutation
+}
+
 // ClearType clears the type edge to ProjectType.
 func (puo *ProjectUpdateOne) ClearType() *ProjectUpdateOne {
 	puo.mutation.ClearType()
@@ -759,7 +769,7 @@ func (puo *ProjectUpdateOne) Save(ctx context.Context) (*Project, error) {
 	}
 	if v, ok := puo.mutation.Name(); ok {
 		if err := project.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -829,7 +839,7 @@ func (puo *ProjectUpdateOne) sqlSave(ctx context.Context) (pr *Project, err erro
 	}
 	id, ok := puo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Project.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Project.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := puo.mutation.UpdateTime(); ok {

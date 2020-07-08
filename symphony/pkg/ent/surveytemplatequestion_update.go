@@ -82,6 +82,11 @@ func (stqu *SurveyTemplateQuestionUpdate) SetCategory(s *SurveyTemplateCategory)
 	return stqu.SetCategoryID(s.ID)
 }
 
+// Mutation returns the SurveyTemplateQuestionMutation object of the builder.
+func (stqu *SurveyTemplateQuestionUpdate) Mutation() *SurveyTemplateQuestionMutation {
+	return stqu.mutation
+}
+
 // ClearCategory clears the category edge to SurveyTemplateCategory.
 func (stqu *SurveyTemplateQuestionUpdate) ClearCategory() *SurveyTemplateQuestionUpdate {
 	stqu.mutation.ClearCategory()
@@ -307,6 +312,11 @@ func (stquo *SurveyTemplateQuestionUpdateOne) SetCategory(s *SurveyTemplateCateg
 	return stquo.SetCategoryID(s.ID)
 }
 
+// Mutation returns the SurveyTemplateQuestionMutation object of the builder.
+func (stquo *SurveyTemplateQuestionUpdateOne) Mutation() *SurveyTemplateQuestionMutation {
+	return stquo.mutation
+}
+
 // ClearCategory clears the category edge to SurveyTemplateCategory.
 func (stquo *SurveyTemplateQuestionUpdateOne) ClearCategory() *SurveyTemplateQuestionUpdateOne {
 	stquo.mutation.ClearCategory()
@@ -382,7 +392,7 @@ func (stquo *SurveyTemplateQuestionUpdateOne) sqlSave(ctx context.Context) (stq 
 	}
 	id, ok := stquo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing SurveyTemplateQuestion.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing SurveyTemplateQuestion.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := stquo.mutation.UpdateTime(); ok {

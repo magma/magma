@@ -482,6 +482,11 @@ func (pu *PropertyUpdate) SetUserValue(u *User) *PropertyUpdate {
 	return pu.SetUserValueID(u.ID)
 }
 
+// Mutation returns the PropertyMutation object of the builder.
+func (pu *PropertyUpdate) Mutation() *PropertyMutation {
+	return pu.mutation
+}
+
 // ClearType clears the type edge to PropertyType.
 func (pu *PropertyUpdate) ClearType() *PropertyUpdate {
 	pu.mutation.ClearType()
@@ -1705,6 +1710,11 @@ func (puo *PropertyUpdateOne) SetUserValue(u *User) *PropertyUpdateOne {
 	return puo.SetUserValueID(u.ID)
 }
 
+// Mutation returns the PropertyMutation object of the builder.
+func (puo *PropertyUpdateOne) Mutation() *PropertyMutation {
+	return puo.mutation
+}
+
 // ClearType clears the type edge to PropertyType.
 func (puo *PropertyUpdateOne) ClearType() *PropertyUpdateOne {
 	puo.mutation.ClearType()
@@ -1856,7 +1866,7 @@ func (puo *PropertyUpdateOne) sqlSave(ctx context.Context) (pr *Property, err er
 	}
 	id, ok := puo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Property.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Property.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := puo.mutation.UpdateTime(); ok {

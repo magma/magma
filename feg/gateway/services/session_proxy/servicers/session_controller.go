@@ -77,6 +77,9 @@ func (srv *CentralSessionController) CreateSession(
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
+	if err := checkCreateSessionRequest(request); err != nil {
+		return nil, err
+	}
 	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
@@ -409,4 +412,14 @@ func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, tota
 		Health:        fegprotos.HealthStatus_HEALTHY,
 		HealthMessage: "Gy metrics appear healthy",
 	}
+}
+
+func checkCreateSessionRequest(req *protos.CreateSessionRequest) error {
+	if req.Subscriber == nil || req.Subscriber.Id == "" {
+		return fmt.Errorf("Missing Subscriber information on CreateSessionRequest %+v", req)
+	}
+	if req.SessionId == "" {
+		return fmt.Errorf("Missing magma SessionId information on CreateSessionRequest %+v", req)
+	}
+	return nil
 }

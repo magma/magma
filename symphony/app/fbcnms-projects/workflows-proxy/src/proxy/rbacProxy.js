@@ -18,7 +18,7 @@ import type {
 
 const rbacRouter = Router<ProxyRequest, ProxyResponse>();
 
-export default async function(
+export default async function (
   authorizationCheck: AuthorizationCheck,
   groupLoadingStrategy: GroupLoadingStrategy,
 ) {

@@ -17,7 +17,7 @@ import {usePermissionsPolicies} from '../data/PermissionsPolicies';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export const PERMISSION_POLICIES_VIEW_NAME = fbt(
-  'Polices',
+  'Policies',
   'Header for view showing system permissions policies settings',
 );
 

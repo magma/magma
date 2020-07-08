@@ -211,6 +211,11 @@ func (uc *UserCreate) AddCreatedProjects(p ...*Project) *UserCreate {
 	return uc.AddCreatedProjectIDs(ids...)
 }
 
+// Mutation returns the UserMutation object of the builder.
+func (uc *UserCreate) Mutation() *UserMutation {
+	return uc.mutation
+}
+
 // Save creates the User in the database.
 func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	if _, ok := uc.mutation.CreateTime(); !ok {
@@ -222,26 +227,26 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 		uc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := uc.mutation.AuthID(); !ok {
-		return nil, errors.New("ent: missing required field \"auth_id\"")
+		return nil, &ValidationError{Name: "auth_id", err: errors.New("ent: missing required field \"auth_id\"")}
 	}
 	if v, ok := uc.mutation.AuthID(); ok {
 		if err := user.AuthIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"auth_id\": %v", err)
+			return nil, &ValidationError{Name: "auth_id", err: fmt.Errorf("ent: validator failed for field \"auth_id\": %w", err)}
 		}
 	}
 	if v, ok := uc.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"first_name\": %v", err)
+			return nil, &ValidationError{Name: "first_name", err: fmt.Errorf("ent: validator failed for field \"first_name\": %w", err)}
 		}
 	}
 	if v, ok := uc.mutation.LastName(); ok {
 		if err := user.LastNameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
+			return nil, &ValidationError{Name: "last_name", err: fmt.Errorf("ent: validator failed for field \"last_name\": %w", err)}
 		}
 	}
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+			return nil, &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
 		}
 	}
 	if _, ok := uc.mutation.Status(); !ok {
@@ -250,7 +255,7 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	}
 	if v, ok := uc.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
 	if _, ok := uc.mutation.Role(); !ok {
@@ -259,7 +264,7 @@ func (uc *UserCreate) Save(ctx context.Context) (*User, error) {
 	}
 	if v, ok := uc.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
+			return nil, &ValidationError{Name: "role", err: fmt.Errorf("ent: validator failed for field \"role\": %w", err)}
 		}
 	}
 	var (

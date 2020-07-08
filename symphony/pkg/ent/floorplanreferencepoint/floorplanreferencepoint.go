@@ -16,13 +16,19 @@ const (
 	// Label holds the string label denoting the floorplanreferencepoint type in the database.
 	Label = "floor_plan_reference_point"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldX holds the string denoting the x vertex property in the database.
-	FieldX          = "x"           // FieldY holds the string denoting the y vertex property in the database.
-	FieldY          = "y"           // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude   = "latitude"    // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude  = "longitude"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldX holds the string denoting the x field in the database.
+	FieldX = "x"
+	// FieldY holds the string denoting the y field in the database.
+	FieldY = "y"
+	// FieldLatitude holds the string denoting the latitude field in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude field in the database.
+	FieldLongitude = "longitude"
 
 	// Table holds the table name of the floorplanreferencepoint in the database.
 	Table = "floor_plan_reference_points"

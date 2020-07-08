@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -158,7 +159,7 @@ func addLocationTypes(t *testing.T, c *client) {
 		} else {
 			_, err := c.addLocationType(typ.name, &models.PropertyTypeInput{
 				Name: typ.property,
-				Type: models.PropertyKindString,
+				Type: propertytype.TypeString,
 			})
 			assert.NoError(t, err)
 		}

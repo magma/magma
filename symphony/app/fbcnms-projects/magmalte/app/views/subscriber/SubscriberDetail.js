@@ -208,7 +208,11 @@ function Info(props: {subscriberInfo: subscriber}) {
             titleTypographyProps={{variant: 'caption'}}
             subheaderTypographyProps={{variant: 'body1'}}
             data-testid="Name"
-            subheader={props.subscriberInfo.id}
+            subheader={
+              props.subscriberInfo.name === undefined
+                ? props.subscriberInfo.id
+                : props.subscriberInfo.name
+            }
           />
         </Card>
       </Grid>

@@ -1118,8 +1118,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
-      session->receive_monitor(
-          usage_monitor_resp, update_criteria);
+      session->receive_monitor(usage_monitor_resp, update_criteria);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), update_criteria);
 
       RulesToProcess rules_to_activate;
@@ -1486,8 +1485,7 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   for (const auto& usage_monitoring_credit :
        request.usage_monitoring_credits()) {
     credit->CopyFrom(usage_monitoring_credit);
-    session->receive_monitor(
-        monitoring_credit, update_criteria);
+    session->receive_monitor(monitoring_credit, update_criteria);
   }
 }
 

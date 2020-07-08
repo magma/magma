@@ -265,6 +265,11 @@ func (eu *EquipmentUpdate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentUpdate 
 	return eu.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the EquipmentMutation object of the builder.
+func (eu *EquipmentUpdate) Mutation() *EquipmentMutation {
+	return eu.mutation
+}
+
 // ClearType clears the type edge to EquipmentType.
 func (eu *EquipmentUpdate) ClearType() *EquipmentUpdate {
 	eu.mutation.ClearType()
@@ -387,12 +392,12 @@ func (eu *EquipmentUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := eu.mutation.Name(); ok {
 		if err := equipment.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := eu.mutation.DeviceID(); ok {
 		if err := equipment.DeviceIDValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
+			return 0, &ValidationError{Name: "device_id", err: fmt.Errorf("ent: validator failed for field \"device_id\": %w", err)}
 		}
 	}
 
@@ -1130,6 +1135,11 @@ func (euo *EquipmentUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *EquipmentUpd
 	return euo.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the EquipmentMutation object of the builder.
+func (euo *EquipmentUpdateOne) Mutation() *EquipmentMutation {
+	return euo.mutation
+}
+
 // ClearType clears the type edge to EquipmentType.
 func (euo *EquipmentUpdateOne) ClearType() *EquipmentUpdateOne {
 	euo.mutation.ClearType()
@@ -1252,12 +1262,12 @@ func (euo *EquipmentUpdateOne) Save(ctx context.Context) (*Equipment, error) {
 	}
 	if v, ok := euo.mutation.Name(); ok {
 		if err := equipment.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := euo.mutation.DeviceID(); ok {
 		if err := equipment.DeviceIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
+			return nil, &ValidationError{Name: "device_id", err: fmt.Errorf("ent: validator failed for field \"device_id\": %w", err)}
 		}
 	}
 
@@ -1327,7 +1337,7 @@ func (euo *EquipmentUpdateOne) sqlSave(ctx context.Context) (e *Equipment, err e
 	}
 	id, ok := euo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Equipment.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Equipment.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := euo.mutation.UpdateTime(); ok {

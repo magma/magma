@@ -19,10 +19,12 @@ import {fetchQuery, graphql} from 'relay-runtime';
 
 const equipmentTypeaheadQuery = graphql`
   query EquipmentTypeahead_equipmentQuery($filters: [EquipmentFilterInput!]!) {
-    equipmentSearch(limit: 10, filters: $filters) {
-      equipment {
-        id
-        name
+    equipments(first: 10, filters: $filters) {
+      edges {
+        node {
+          id
+          name
+        }
       }
     }
   }
@@ -71,11 +73,12 @@ class EquipmentTypeahead extends React.Component<Props, State> {
         },
       ],
     }).then((response: ?EquipmentTypeahead_equipmentQueryResponse) => {
-      if (!response || !response.equipmentSearch) {
+      if (!response || !response.equipments) {
         return;
       }
       this.setState({
-        equipmentSuggestions: response.equipmentSearch.equipment
+        equipmentSuggestions: response.equipments.edges
+          .map(edge => edge.node)
           .filter(Boolean)
           .map(e => ({
             name: e.name,

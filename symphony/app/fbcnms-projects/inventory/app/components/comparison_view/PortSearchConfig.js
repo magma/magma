@@ -9,6 +9,7 @@
  */
 
 import PowerSearchEquipmentNameFilter from './PowerSearchEquipmentNameFilter';
+import PowerSearchExternalIDFilter from './PowerSearchExternalIDFilter';
 import PowerSearchPortDefinitionFilter from './PowerSearchPortDefinitionFilter';
 import PowerSearchPortHasLinkFilter from './PowerSearchPortHasLinkFilter';
 
@@ -46,9 +47,18 @@ const PortCriteriaConfig: Array<EntityConfig> = [
     ],
   },
   {
-    type: 'location_by_types',
+    type: 'locations',
     label: 'Location',
-    filters: [],
+    filters: [
+      {
+        key: 'location_inst_external_id',
+        name: 'location_inst_external_id',
+        entityType: 'locations',
+        label: 'Location External ID',
+        component: PowerSearchExternalIDFilter,
+        defaultOperator: 'contains',
+      },
+    ],
   },
   {
     type: 'properties',

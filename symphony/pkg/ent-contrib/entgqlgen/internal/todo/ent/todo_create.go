@@ -23,6 +23,12 @@ type TodoCreate struct {
 	hooks    []Hook
 }
 
+// SetStatus sets the status field.
+func (tc *TodoCreate) SetStatus(t todo.Status) *TodoCreate {
+	tc.mutation.SetStatus(t)
+	return tc
+}
+
 // SetText sets the text field.
 func (tc *TodoCreate) SetText(s string) *TodoCreate {
 	tc.mutation.SetText(s)
@@ -63,14 +69,27 @@ func (tc *TodoCreate) AddChildren(t ...*Todo) *TodoCreate {
 	return tc.AddChildIDs(ids...)
 }
 
+// Mutation returns the TodoMutation object of the builder.
+func (tc *TodoCreate) Mutation() *TodoMutation {
+	return tc.mutation
+}
+
 // Save creates the Todo in the database.
 func (tc *TodoCreate) Save(ctx context.Context) (*Todo, error) {
+	if _, ok := tc.mutation.Status(); !ok {
+		return nil, &ValidationError{Name: "status", err: errors.New("ent: missing required field \"status\"")}
+	}
+	if v, ok := tc.mutation.Status(); ok {
+		if err := todo.StatusValidator(v); err != nil {
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
 	if _, ok := tc.mutation.Text(); !ok {
-		return nil, errors.New("ent: missing required field \"text\"")
+		return nil, &ValidationError{Name: "text", err: errors.New("ent: missing required field \"text\"")}
 	}
 	if v, ok := tc.mutation.Text(); ok {
 		if err := todo.TextValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"text\": %v", err)
+			return nil, &ValidationError{Name: "text", err: fmt.Errorf("ent: validator failed for field \"text\": %w", err)}
 		}
 	}
 	var (
@@ -120,6 +139,14 @@ func (tc *TodoCreate) sqlSave(ctx context.Context) (*Todo, error) {
 			},
 		}
 	)
+	if value, ok := tc.mutation.Status(); ok {
+		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
+			Type:   field.TypeEnum,
+			Value:  value,
+			Column: todo.FieldStatus,
+		})
+		t.Status = value
+	}
 	if value, ok := tc.mutation.Text(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeString,

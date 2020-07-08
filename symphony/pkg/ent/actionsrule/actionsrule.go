@@ -16,12 +16,18 @@ const (
 	// Label holds the string label denoting the actionsrule type in the database.
 	Label = "actions_rule"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"           // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time"  // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time"  // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"         // FieldTriggerID holds the string denoting the triggerid vertex property in the database.
-	FieldTriggerID   = "trigger_id"   // FieldRuleFilters holds the string denoting the rulefilters vertex property in the database.
-	FieldRuleFilters = "rule_filters" // FieldRuleActions holds the string denoting the ruleactions vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldTriggerID holds the string denoting the triggerid field in the database.
+	FieldTriggerID = "trigger_id"
+	// FieldRuleFilters holds the string denoting the rulefilters field in the database.
+	FieldRuleFilters = "rule_filters"
+	// FieldRuleActions holds the string denoting the ruleactions field in the database.
 	FieldRuleActions = "rule_actions"
 
 	// Table holds the table name of the actionsrule in the database.

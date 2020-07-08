@@ -162,6 +162,11 @@ func (ltc *LocationTypeCreate) AddSurveyTemplateCategories(s ...*SurveyTemplateC
 	return ltc.AddSurveyTemplateCategoryIDs(ids...)
 }
 
+// Mutation returns the LocationTypeMutation object of the builder.
+func (ltc *LocationTypeCreate) Mutation() *LocationTypeMutation {
+	return ltc.mutation
+}
+
 // Save creates the LocationType in the database.
 func (ltc *LocationTypeCreate) Save(ctx context.Context) (*LocationType, error) {
 	if _, ok := ltc.mutation.CreateTime(); !ok {
@@ -177,7 +182,7 @@ func (ltc *LocationTypeCreate) Save(ctx context.Context) (*LocationType, error) 
 		ltc.mutation.SetSite(v)
 	}
 	if _, ok := ltc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if _, ok := ltc.mutation.MapZoomLevel(); !ok {
 		v := locationtype.DefaultMapZoomLevel

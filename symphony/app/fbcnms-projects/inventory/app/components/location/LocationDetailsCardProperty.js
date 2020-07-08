@@ -8,8 +8,8 @@
  * @format
  */
 
+import * as React from 'react';
 import Grid from '@material-ui/core/Grid';
-import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {makeStyles} from '@material-ui/styles';
@@ -21,7 +21,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 type Props = {
-  title: string,
+  title: React.Node,
   value: string,
 };
 
@@ -32,7 +32,7 @@ const LocationDetailsCardProperty = (props: Props) => {
     <>
       <Grid item xs={4}>
         <Text variant="subtitle2" weight="regular">
-          {title}:
+          {title}
         </Text>
       </Grid>
       <Grid item xs={8}>

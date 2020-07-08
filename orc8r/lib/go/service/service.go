@@ -138,13 +138,13 @@ func NewServiceWithOptionsImpl(moduleName string, serviceName string, serverOpti
 func (service *Service) Run() error {
 	port, err := registry.GetServicePort(service.Type)
 	if err != nil {
-		return fmt.Errorf("failed to get service port: %s", err)
+		return fmt.Errorf("get service port: %v", err)
 	}
 
 	// Create the server socket for gRPC
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		return fmt.Errorf("failed to listen on port %d: %s", port, err)
+		return fmt.Errorf("listen on port %d: %v", port, err)
 	}
 	service.State = protos.ServiceInfo_ALIVE
 	service.Health = protos.ServiceInfo_APP_HEALTHY

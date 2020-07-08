@@ -117,8 +117,9 @@ type ActionsRuleEdge struct {
 
 // ActionsRuleConnection is the connection containing edges to ActionsRule.
 type ActionsRuleConnection struct {
-	Edges    []*ActionsRuleEdge `json:"edges"`
-	PageInfo PageInfo           `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ActionsRuleEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to ActionsRule.
@@ -145,6 +146,13 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 		}
 	}
 
+	totalCount, err := ar.Clone().Count(ctx)
+	if err != nil {
+		return &ActionsRuleConnection{
+			Edges: []*ActionsRuleEdge{},
+		}, err
+	}
+
 	if after != nil {
 		ar = ar.Where(actionsrule.IDGT(after.ID))
 	}
@@ -162,7 +170,8 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 	nodes, err := ar.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ActionsRuleConnection{
-			Edges: []*ActionsRuleEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ActionsRuleEdge{},
 		}, err
 	}
 	if last != nil {
@@ -172,6 +181,7 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 	}
 
 	var conn ActionsRuleConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -209,8 +219,9 @@ type ActivityEdge struct {
 
 // ActivityConnection is the connection containing edges to Activity.
 type ActivityConnection struct {
-	Edges    []*ActivityEdge `json:"edges"`
-	PageInfo PageInfo        `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ActivityEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Activity.
@@ -237,6 +248,13 @@ func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
+	totalCount, err := a.Clone().Count(ctx)
+	if err != nil {
+		return &ActivityConnection{
+			Edges: []*ActivityEdge{},
+		}, err
+	}
+
 	if after != nil {
 		a = a.Where(activity.IDGT(after.ID))
 	}
@@ -254,7 +272,8 @@ func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	nodes, err := a.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ActivityConnection{
-			Edges: []*ActivityEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ActivityEdge{},
 		}, err
 	}
 	if last != nil {
@@ -264,6 +283,7 @@ func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	}
 
 	var conn ActivityConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -301,8 +321,9 @@ type CheckListCategoryEdge struct {
 
 // CheckListCategoryConnection is the connection containing edges to CheckListCategory.
 type CheckListCategoryConnection struct {
-	Edges    []*CheckListCategoryEdge `json:"edges"`
-	PageInfo PageInfo                 `json:"pageInfo"`
+	TotalCount int
+	Edges      []*CheckListCategoryEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to CheckListCategory.
@@ -329,6 +350,13 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 		}
 	}
 
+	totalCount, err := clc.Clone().Count(ctx)
+	if err != nil {
+		return &CheckListCategoryConnection{
+			Edges: []*CheckListCategoryEdge{},
+		}, err
+	}
+
 	if after != nil {
 		clc = clc.Where(checklistcategory.IDGT(after.ID))
 	}
@@ -346,7 +374,8 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 	nodes, err := clc.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &CheckListCategoryConnection{
-			Edges: []*CheckListCategoryEdge{},
+			TotalCount: totalCount,
+			Edges:      []*CheckListCategoryEdge{},
 		}, err
 	}
 	if last != nil {
@@ -356,6 +385,7 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 	}
 
 	var conn CheckListCategoryConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -393,8 +423,9 @@ type CheckListCategoryDefinitionEdge struct {
 
 // CheckListCategoryDefinitionConnection is the connection containing edges to CheckListCategoryDefinition.
 type CheckListCategoryDefinitionConnection struct {
-	Edges    []*CheckListCategoryDefinitionEdge `json:"edges"`
-	PageInfo PageInfo                           `json:"pageInfo"`
+	TotalCount int
+	Edges      []*CheckListCategoryDefinitionEdge `json:"edges"`
+	PageInfo   PageInfo                           `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to CheckListCategoryDefinition.
@@ -421,6 +452,13 @@ func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, afte
 		}
 	}
 
+	totalCount, err := clcd.Clone().Count(ctx)
+	if err != nil {
+		return &CheckListCategoryDefinitionConnection{
+			Edges: []*CheckListCategoryDefinitionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		clcd = clcd.Where(checklistcategorydefinition.IDGT(after.ID))
 	}
@@ -438,7 +476,8 @@ func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, afte
 	nodes, err := clcd.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &CheckListCategoryDefinitionConnection{
-			Edges: []*CheckListCategoryDefinitionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*CheckListCategoryDefinitionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -448,6 +487,7 @@ func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, afte
 	}
 
 	var conn CheckListCategoryDefinitionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -485,8 +525,9 @@ type CheckListItemEdge struct {
 
 // CheckListItemConnection is the connection containing edges to CheckListItem.
 type CheckListItemConnection struct {
-	Edges    []*CheckListItemEdge `json:"edges"`
-	PageInfo PageInfo             `json:"pageInfo"`
+	TotalCount int
+	Edges      []*CheckListItemEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to CheckListItem.
@@ -513,6 +554,13 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 		}
 	}
 
+	totalCount, err := cli.Clone().Count(ctx)
+	if err != nil {
+		return &CheckListItemConnection{
+			Edges: []*CheckListItemEdge{},
+		}, err
+	}
+
 	if after != nil {
 		cli = cli.Where(checklistitem.IDGT(after.ID))
 	}
@@ -530,7 +578,8 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 	nodes, err := cli.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &CheckListItemConnection{
-			Edges: []*CheckListItemEdge{},
+			TotalCount: totalCount,
+			Edges:      []*CheckListItemEdge{},
 		}, err
 	}
 	if last != nil {
@@ -540,6 +589,7 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 	}
 
 	var conn CheckListItemConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -577,8 +627,9 @@ type CheckListItemDefinitionEdge struct {
 
 // CheckListItemDefinitionConnection is the connection containing edges to CheckListItemDefinition.
 type CheckListItemDefinitionConnection struct {
-	Edges    []*CheckListItemDefinitionEdge `json:"edges"`
-	PageInfo PageInfo                       `json:"pageInfo"`
+	TotalCount int
+	Edges      []*CheckListItemDefinitionEdge `json:"edges"`
+	PageInfo   PageInfo                       `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to CheckListItemDefinition.
@@ -605,6 +656,13 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 		}
 	}
 
+	totalCount, err := clid.Clone().Count(ctx)
+	if err != nil {
+		return &CheckListItemDefinitionConnection{
+			Edges: []*CheckListItemDefinitionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		clid = clid.Where(checklistitemdefinition.IDGT(after.ID))
 	}
@@ -622,7 +680,8 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 	nodes, err := clid.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &CheckListItemDefinitionConnection{
-			Edges: []*CheckListItemDefinitionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*CheckListItemDefinitionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -632,6 +691,7 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 	}
 
 	var conn CheckListItemDefinitionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -669,8 +729,9 @@ type CommentEdge struct {
 
 // CommentConnection is the connection containing edges to Comment.
 type CommentConnection struct {
-	Edges    []*CommentEdge `json:"edges"`
-	PageInfo PageInfo       `json:"pageInfo"`
+	TotalCount int
+	Edges      []*CommentEdge `json:"edges"`
+	PageInfo   PageInfo       `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Comment.
@@ -697,6 +758,13 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 		}
 	}
 
+	totalCount, err := c.Clone().Count(ctx)
+	if err != nil {
+		return &CommentConnection{
+			Edges: []*CommentEdge{},
+		}, err
+	}
+
 	if after != nil {
 		c = c.Where(comment.IDGT(after.ID))
 	}
@@ -714,7 +782,8 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 	nodes, err := c.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &CommentConnection{
-			Edges: []*CommentEdge{},
+			TotalCount: totalCount,
+			Edges:      []*CommentEdge{},
 		}, err
 	}
 	if last != nil {
@@ -724,6 +793,7 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 	}
 
 	var conn CommentConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -761,8 +831,9 @@ type CustomerEdge struct {
 
 // CustomerConnection is the connection containing edges to Customer.
 type CustomerConnection struct {
-	Edges    []*CustomerEdge `json:"edges"`
-	PageInfo PageInfo        `json:"pageInfo"`
+	TotalCount int
+	Edges      []*CustomerEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Customer.
@@ -789,6 +860,13 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
+	totalCount, err := c.Clone().Count(ctx)
+	if err != nil {
+		return &CustomerConnection{
+			Edges: []*CustomerEdge{},
+		}, err
+	}
+
 	if after != nil {
 		c = c.Where(customer.IDGT(after.ID))
 	}
@@ -806,7 +884,8 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	nodes, err := c.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &CustomerConnection{
-			Edges: []*CustomerEdge{},
+			TotalCount: totalCount,
+			Edges:      []*CustomerEdge{},
 		}, err
 	}
 	if last != nil {
@@ -816,6 +895,7 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	}
 
 	var conn CustomerConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -853,8 +933,9 @@ type EquipmentEdge struct {
 
 // EquipmentConnection is the connection containing edges to Equipment.
 type EquipmentConnection struct {
-	Edges    []*EquipmentEdge `json:"edges"`
-	PageInfo PageInfo         `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentEdge `json:"edges"`
+	PageInfo   PageInfo         `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Equipment.
@@ -881,6 +962,13 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 		}
 	}
 
+	totalCount, err := e.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentConnection{
+			Edges: []*EquipmentEdge{},
+		}, err
+	}
+
 	if after != nil {
 		e = e.Where(equipment.IDGT(after.ID))
 	}
@@ -898,7 +986,8 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	nodes, err := e.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentConnection{
-			Edges: []*EquipmentEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentEdge{},
 		}, err
 	}
 	if last != nil {
@@ -908,6 +997,7 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	}
 
 	var conn EquipmentConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -945,8 +1035,9 @@ type EquipmentCategoryEdge struct {
 
 // EquipmentCategoryConnection is the connection containing edges to EquipmentCategory.
 type EquipmentCategoryConnection struct {
-	Edges    []*EquipmentCategoryEdge `json:"edges"`
-	PageInfo PageInfo                 `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentCategoryEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentCategory.
@@ -973,6 +1064,13 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 		}
 	}
 
+	totalCount, err := ec.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentCategoryConnection{
+			Edges: []*EquipmentCategoryEdge{},
+		}, err
+	}
+
 	if after != nil {
 		ec = ec.Where(equipmentcategory.IDGT(after.ID))
 	}
@@ -990,7 +1088,8 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 	nodes, err := ec.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentCategoryConnection{
-			Edges: []*EquipmentCategoryEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentCategoryEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1000,6 +1099,7 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 	}
 
 	var conn EquipmentCategoryConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1037,8 +1137,9 @@ type EquipmentPortEdge struct {
 
 // EquipmentPortConnection is the connection containing edges to EquipmentPort.
 type EquipmentPortConnection struct {
-	Edges    []*EquipmentPortEdge `json:"edges"`
-	PageInfo PageInfo             `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentPortEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPort.
@@ -1065,6 +1166,13 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 		}
 	}
 
+	totalCount, err := ep.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentPortConnection{
+			Edges: []*EquipmentPortEdge{},
+		}, err
+	}
+
 	if after != nil {
 		ep = ep.Where(equipmentport.IDGT(after.ID))
 	}
@@ -1082,7 +1190,8 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 	nodes, err := ep.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentPortConnection{
-			Edges: []*EquipmentPortEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentPortEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1092,6 +1201,7 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 	}
 
 	var conn EquipmentPortConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1129,8 +1239,9 @@ type EquipmentPortDefinitionEdge struct {
 
 // EquipmentPortDefinitionConnection is the connection containing edges to EquipmentPortDefinition.
 type EquipmentPortDefinitionConnection struct {
-	Edges    []*EquipmentPortDefinitionEdge `json:"edges"`
-	PageInfo PageInfo                       `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentPortDefinitionEdge `json:"edges"`
+	PageInfo   PageInfo                       `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPortDefinition.
@@ -1157,6 +1268,13 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 		}
 	}
 
+	totalCount, err := epd.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentPortDefinitionConnection{
+			Edges: []*EquipmentPortDefinitionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		epd = epd.Where(equipmentportdefinition.IDGT(after.ID))
 	}
@@ -1174,7 +1292,8 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 	nodes, err := epd.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentPortDefinitionConnection{
-			Edges: []*EquipmentPortDefinitionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentPortDefinitionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1184,6 +1303,7 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 	}
 
 	var conn EquipmentPortDefinitionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1221,8 +1341,9 @@ type EquipmentPortTypeEdge struct {
 
 // EquipmentPortTypeConnection is the connection containing edges to EquipmentPortType.
 type EquipmentPortTypeConnection struct {
-	Edges    []*EquipmentPortTypeEdge `json:"edges"`
-	PageInfo PageInfo                 `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentPortTypeEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPortType.
@@ -1249,6 +1370,13 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 		}
 	}
 
+	totalCount, err := ept.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentPortTypeConnection{
+			Edges: []*EquipmentPortTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		ept = ept.Where(equipmentporttype.IDGT(after.ID))
 	}
@@ -1266,7 +1394,8 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 	nodes, err := ept.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentPortTypeConnection{
-			Edges: []*EquipmentPortTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentPortTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1276,6 +1405,7 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 	}
 
 	var conn EquipmentPortTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1313,8 +1443,9 @@ type EquipmentPositionEdge struct {
 
 // EquipmentPositionConnection is the connection containing edges to EquipmentPosition.
 type EquipmentPositionConnection struct {
-	Edges    []*EquipmentPositionEdge `json:"edges"`
-	PageInfo PageInfo                 `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentPositionEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPosition.
@@ -1341,6 +1472,13 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 		}
 	}
 
+	totalCount, err := ep.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentPositionConnection{
+			Edges: []*EquipmentPositionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		ep = ep.Where(equipmentposition.IDGT(after.ID))
 	}
@@ -1358,7 +1496,8 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 	nodes, err := ep.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentPositionConnection{
-			Edges: []*EquipmentPositionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentPositionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1368,6 +1507,7 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 	}
 
 	var conn EquipmentPositionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1405,8 +1545,9 @@ type EquipmentPositionDefinitionEdge struct {
 
 // EquipmentPositionDefinitionConnection is the connection containing edges to EquipmentPositionDefinition.
 type EquipmentPositionDefinitionConnection struct {
-	Edges    []*EquipmentPositionDefinitionEdge `json:"edges"`
-	PageInfo PageInfo                           `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentPositionDefinitionEdge `json:"edges"`
+	PageInfo   PageInfo                           `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPositionDefinition.
@@ -1433,6 +1574,13 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 		}
 	}
 
+	totalCount, err := epd.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentPositionDefinitionConnection{
+			Edges: []*EquipmentPositionDefinitionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		epd = epd.Where(equipmentpositiondefinition.IDGT(after.ID))
 	}
@@ -1450,7 +1598,8 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 	nodes, err := epd.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentPositionDefinitionConnection{
-			Edges: []*EquipmentPositionDefinitionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentPositionDefinitionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1460,6 +1609,7 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 	}
 
 	var conn EquipmentPositionDefinitionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1497,8 +1647,9 @@ type EquipmentTypeEdge struct {
 
 // EquipmentTypeConnection is the connection containing edges to EquipmentType.
 type EquipmentTypeConnection struct {
-	Edges    []*EquipmentTypeEdge `json:"edges"`
-	PageInfo PageInfo             `json:"pageInfo"`
+	TotalCount int
+	Edges      []*EquipmentTypeEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to EquipmentType.
@@ -1525,6 +1676,13 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 		}
 	}
 
+	totalCount, err := et.Clone().Count(ctx)
+	if err != nil {
+		return &EquipmentTypeConnection{
+			Edges: []*EquipmentTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		et = et.Where(equipmenttype.IDGT(after.ID))
 	}
@@ -1542,7 +1700,8 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 	nodes, err := et.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &EquipmentTypeConnection{
-			Edges: []*EquipmentTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*EquipmentTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1552,6 +1711,7 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 	}
 
 	var conn EquipmentTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1589,8 +1749,9 @@ type FileEdge struct {
 
 // FileConnection is the connection containing edges to File.
 type FileConnection struct {
-	Edges    []*FileEdge `json:"edges"`
-	PageInfo PageInfo    `json:"pageInfo"`
+	TotalCount int
+	Edges      []*FileEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to File.
@@ -1617,6 +1778,13 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
+	totalCount, err := f.Clone().Count(ctx)
+	if err != nil {
+		return &FileConnection{
+			Edges: []*FileEdge{},
+		}, err
+	}
+
 	if after != nil {
 		f = f.Where(file.IDGT(after.ID))
 	}
@@ -1634,7 +1802,8 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	nodes, err := f.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &FileConnection{
-			Edges: []*FileEdge{},
+			TotalCount: totalCount,
+			Edges:      []*FileEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1644,6 +1813,7 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	}
 
 	var conn FileConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1681,8 +1851,9 @@ type FloorPlanEdge struct {
 
 // FloorPlanConnection is the connection containing edges to FloorPlan.
 type FloorPlanConnection struct {
-	Edges    []*FloorPlanEdge `json:"edges"`
-	PageInfo PageInfo         `json:"pageInfo"`
+	TotalCount int
+	Edges      []*FloorPlanEdge `json:"edges"`
+	PageInfo   PageInfo         `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to FloorPlan.
@@ -1709,6 +1880,13 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 		}
 	}
 
+	totalCount, err := fp.Clone().Count(ctx)
+	if err != nil {
+		return &FloorPlanConnection{
+			Edges: []*FloorPlanEdge{},
+		}, err
+	}
+
 	if after != nil {
 		fp = fp.Where(floorplan.IDGT(after.ID))
 	}
@@ -1726,7 +1904,8 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 	nodes, err := fp.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &FloorPlanConnection{
-			Edges: []*FloorPlanEdge{},
+			TotalCount: totalCount,
+			Edges:      []*FloorPlanEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1736,6 +1915,7 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 	}
 
 	var conn FloorPlanConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1773,8 +1953,9 @@ type FloorPlanReferencePointEdge struct {
 
 // FloorPlanReferencePointConnection is the connection containing edges to FloorPlanReferencePoint.
 type FloorPlanReferencePointConnection struct {
-	Edges    []*FloorPlanReferencePointEdge `json:"edges"`
-	PageInfo PageInfo                       `json:"pageInfo"`
+	TotalCount int
+	Edges      []*FloorPlanReferencePointEdge `json:"edges"`
+	PageInfo   PageInfo                       `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to FloorPlanReferencePoint.
@@ -1801,6 +1982,13 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 		}
 	}
 
+	totalCount, err := fprp.Clone().Count(ctx)
+	if err != nil {
+		return &FloorPlanReferencePointConnection{
+			Edges: []*FloorPlanReferencePointEdge{},
+		}, err
+	}
+
 	if after != nil {
 		fprp = fprp.Where(floorplanreferencepoint.IDGT(after.ID))
 	}
@@ -1818,7 +2006,8 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 	nodes, err := fprp.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &FloorPlanReferencePointConnection{
-			Edges: []*FloorPlanReferencePointEdge{},
+			TotalCount: totalCount,
+			Edges:      []*FloorPlanReferencePointEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1828,6 +2017,7 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 	}
 
 	var conn FloorPlanReferencePointConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1865,8 +2055,9 @@ type FloorPlanScaleEdge struct {
 
 // FloorPlanScaleConnection is the connection containing edges to FloorPlanScale.
 type FloorPlanScaleConnection struct {
-	Edges    []*FloorPlanScaleEdge `json:"edges"`
-	PageInfo PageInfo              `json:"pageInfo"`
+	TotalCount int
+	Edges      []*FloorPlanScaleEdge `json:"edges"`
+	PageInfo   PageInfo              `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to FloorPlanScale.
@@ -1893,6 +2084,13 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 		}
 	}
 
+	totalCount, err := fps.Clone().Count(ctx)
+	if err != nil {
+		return &FloorPlanScaleConnection{
+			Edges: []*FloorPlanScaleEdge{},
+		}, err
+	}
+
 	if after != nil {
 		fps = fps.Where(floorplanscale.IDGT(after.ID))
 	}
@@ -1910,7 +2108,8 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 	nodes, err := fps.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &FloorPlanScaleConnection{
-			Edges: []*FloorPlanScaleEdge{},
+			TotalCount: totalCount,
+			Edges:      []*FloorPlanScaleEdge{},
 		}, err
 	}
 	if last != nil {
@@ -1920,6 +2119,7 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 	}
 
 	var conn FloorPlanScaleConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1957,8 +2157,9 @@ type HyperlinkEdge struct {
 
 // HyperlinkConnection is the connection containing edges to Hyperlink.
 type HyperlinkConnection struct {
-	Edges    []*HyperlinkEdge `json:"edges"`
-	PageInfo PageInfo         `json:"pageInfo"`
+	TotalCount int
+	Edges      []*HyperlinkEdge `json:"edges"`
+	PageInfo   PageInfo         `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Hyperlink.
@@ -1985,6 +2186,13 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 		}
 	}
 
+	totalCount, err := h.Clone().Count(ctx)
+	if err != nil {
+		return &HyperlinkConnection{
+			Edges: []*HyperlinkEdge{},
+		}, err
+	}
+
 	if after != nil {
 		h = h.Where(hyperlink.IDGT(after.ID))
 	}
@@ -2002,7 +2210,8 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	nodes, err := h.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &HyperlinkConnection{
-			Edges: []*HyperlinkEdge{},
+			TotalCount: totalCount,
+			Edges:      []*HyperlinkEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2012,6 +2221,7 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	}
 
 	var conn HyperlinkConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2049,8 +2259,9 @@ type LinkEdge struct {
 
 // LinkConnection is the connection containing edges to Link.
 type LinkConnection struct {
-	Edges    []*LinkEdge `json:"edges"`
-	PageInfo PageInfo    `json:"pageInfo"`
+	TotalCount int
+	Edges      []*LinkEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Link.
@@ -2077,6 +2288,13 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
+	totalCount, err := l.Clone().Count(ctx)
+	if err != nil {
+		return &LinkConnection{
+			Edges: []*LinkEdge{},
+		}, err
+	}
+
 	if after != nil {
 		l = l.Where(link.IDGT(after.ID))
 	}
@@ -2094,7 +2312,8 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	nodes, err := l.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &LinkConnection{
-			Edges: []*LinkEdge{},
+			TotalCount: totalCount,
+			Edges:      []*LinkEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2104,6 +2323,7 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	}
 
 	var conn LinkConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2141,8 +2361,9 @@ type LocationEdge struct {
 
 // LocationConnection is the connection containing edges to Location.
 type LocationConnection struct {
-	Edges    []*LocationEdge `json:"edges"`
-	PageInfo PageInfo        `json:"pageInfo"`
+	TotalCount int
+	Edges      []*LocationEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Location.
@@ -2169,6 +2390,13 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
+	totalCount, err := l.Clone().Count(ctx)
+	if err != nil {
+		return &LocationConnection{
+			Edges: []*LocationEdge{},
+		}, err
+	}
+
 	if after != nil {
 		l = l.Where(location.IDGT(after.ID))
 	}
@@ -2186,7 +2414,8 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	nodes, err := l.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &LocationConnection{
-			Edges: []*LocationEdge{},
+			TotalCount: totalCount,
+			Edges:      []*LocationEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2196,6 +2425,7 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	}
 
 	var conn LocationConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2233,8 +2463,9 @@ type LocationTypeEdge struct {
 
 // LocationTypeConnection is the connection containing edges to LocationType.
 type LocationTypeConnection struct {
-	Edges    []*LocationTypeEdge `json:"edges"`
-	PageInfo PageInfo            `json:"pageInfo"`
+	TotalCount int
+	Edges      []*LocationTypeEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to LocationType.
@@ -2261,6 +2492,13 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 		}
 	}
 
+	totalCount, err := lt.Clone().Count(ctx)
+	if err != nil {
+		return &LocationTypeConnection{
+			Edges: []*LocationTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		lt = lt.Where(locationtype.IDGT(after.ID))
 	}
@@ -2278,7 +2516,8 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 	nodes, err := lt.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &LocationTypeConnection{
-			Edges: []*LocationTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*LocationTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2288,6 +2527,7 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 	}
 
 	var conn LocationTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2325,8 +2565,9 @@ type PermissionsPolicyEdge struct {
 
 // PermissionsPolicyConnection is the connection containing edges to PermissionsPolicy.
 type PermissionsPolicyConnection struct {
-	Edges    []*PermissionsPolicyEdge `json:"edges"`
-	PageInfo PageInfo                 `json:"pageInfo"`
+	TotalCount int
+	Edges      []*PermissionsPolicyEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to PermissionsPolicy.
@@ -2353,6 +2594,13 @@ func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, f
 		}
 	}
 
+	totalCount, err := pp.Clone().Count(ctx)
+	if err != nil {
+		return &PermissionsPolicyConnection{
+			Edges: []*PermissionsPolicyEdge{},
+		}, err
+	}
+
 	if after != nil {
 		pp = pp.Where(permissionspolicy.IDGT(after.ID))
 	}
@@ -2370,7 +2618,8 @@ func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, f
 	nodes, err := pp.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &PermissionsPolicyConnection{
-			Edges: []*PermissionsPolicyEdge{},
+			TotalCount: totalCount,
+			Edges:      []*PermissionsPolicyEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2380,6 +2629,7 @@ func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, f
 	}
 
 	var conn PermissionsPolicyConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2417,8 +2667,9 @@ type ProjectEdge struct {
 
 // ProjectConnection is the connection containing edges to Project.
 type ProjectConnection struct {
-	Edges    []*ProjectEdge `json:"edges"`
-	PageInfo PageInfo       `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ProjectEdge `json:"edges"`
+	PageInfo   PageInfo       `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Project.
@@ -2445,6 +2696,13 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
+	totalCount, err := pr.Clone().Count(ctx)
+	if err != nil {
+		return &ProjectConnection{
+			Edges: []*ProjectEdge{},
+		}, err
+	}
+
 	if after != nil {
 		pr = pr.Where(project.IDGT(after.ID))
 	}
@@ -2462,7 +2720,8 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	nodes, err := pr.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ProjectConnection{
-			Edges: []*ProjectEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ProjectEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2472,6 +2731,7 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	}
 
 	var conn ProjectConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2509,8 +2769,9 @@ type ProjectTypeEdge struct {
 
 // ProjectTypeConnection is the connection containing edges to ProjectType.
 type ProjectTypeConnection struct {
-	Edges    []*ProjectTypeEdge `json:"edges"`
-	PageInfo PageInfo           `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ProjectTypeEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to ProjectType.
@@ -2537,6 +2798,13 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 		}
 	}
 
+	totalCount, err := pt.Clone().Count(ctx)
+	if err != nil {
+		return &ProjectTypeConnection{
+			Edges: []*ProjectTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		pt = pt.Where(projecttype.IDGT(after.ID))
 	}
@@ -2554,7 +2822,8 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 	nodes, err := pt.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ProjectTypeConnection{
-			Edges: []*ProjectTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ProjectTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2564,6 +2833,7 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 	}
 
 	var conn ProjectTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2601,8 +2871,9 @@ type PropertyEdge struct {
 
 // PropertyConnection is the connection containing edges to Property.
 type PropertyConnection struct {
-	Edges    []*PropertyEdge `json:"edges"`
-	PageInfo PageInfo        `json:"pageInfo"`
+	TotalCount int
+	Edges      []*PropertyEdge `json:"edges"`
+	PageInfo   PageInfo        `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Property.
@@ -2629,6 +2900,13 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 		}
 	}
 
+	totalCount, err := pr.Clone().Count(ctx)
+	if err != nil {
+		return &PropertyConnection{
+			Edges: []*PropertyEdge{},
+		}, err
+	}
+
 	if after != nil {
 		pr = pr.Where(property.IDGT(after.ID))
 	}
@@ -2646,7 +2924,8 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	nodes, err := pr.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &PropertyConnection{
-			Edges: []*PropertyEdge{},
+			TotalCount: totalCount,
+			Edges:      []*PropertyEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2656,6 +2935,7 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	}
 
 	var conn PropertyConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2693,8 +2973,9 @@ type PropertyTypeEdge struct {
 
 // PropertyTypeConnection is the connection containing edges to PropertyType.
 type PropertyTypeConnection struct {
-	Edges    []*PropertyTypeEdge `json:"edges"`
-	PageInfo PageInfo            `json:"pageInfo"`
+	TotalCount int
+	Edges      []*PropertyTypeEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to PropertyType.
@@ -2721,6 +3002,13 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 		}
 	}
 
+	totalCount, err := pt.Clone().Count(ctx)
+	if err != nil {
+		return &PropertyTypeConnection{
+			Edges: []*PropertyTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		pt = pt.Where(propertytype.IDGT(after.ID))
 	}
@@ -2738,7 +3026,8 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 	nodes, err := pt.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &PropertyTypeConnection{
-			Edges: []*PropertyTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*PropertyTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2748,6 +3037,7 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 	}
 
 	var conn PropertyTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2785,8 +3075,9 @@ type ReportFilterEdge struct {
 
 // ReportFilterConnection is the connection containing edges to ReportFilter.
 type ReportFilterConnection struct {
-	Edges    []*ReportFilterEdge `json:"edges"`
-	PageInfo PageInfo            `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ReportFilterEdge `json:"edges"`
+	PageInfo   PageInfo            `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to ReportFilter.
@@ -2813,6 +3104,13 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 		}
 	}
 
+	totalCount, err := rf.Clone().Count(ctx)
+	if err != nil {
+		return &ReportFilterConnection{
+			Edges: []*ReportFilterEdge{},
+		}, err
+	}
+
 	if after != nil {
 		rf = rf.Where(reportfilter.IDGT(after.ID))
 	}
@@ -2830,7 +3128,8 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 	nodes, err := rf.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ReportFilterConnection{
-			Edges: []*ReportFilterEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ReportFilterEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2840,6 +3139,7 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 	}
 
 	var conn ReportFilterConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2877,8 +3177,9 @@ type ServiceEdge struct {
 
 // ServiceConnection is the connection containing edges to Service.
 type ServiceConnection struct {
-	Edges    []*ServiceEdge `json:"edges"`
-	PageInfo PageInfo       `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ServiceEdge `json:"edges"`
+	PageInfo   PageInfo       `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Service.
@@ -2905,6 +3206,13 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 		}
 	}
 
+	totalCount, err := s.Clone().Count(ctx)
+	if err != nil {
+		return &ServiceConnection{
+			Edges: []*ServiceEdge{},
+		}, err
+	}
+
 	if after != nil {
 		s = s.Where(service.IDGT(after.ID))
 	}
@@ -2922,7 +3230,8 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 	nodes, err := s.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ServiceConnection{
-			Edges: []*ServiceEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ServiceEdge{},
 		}, err
 	}
 	if last != nil {
@@ -2932,6 +3241,7 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 	}
 
 	var conn ServiceConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2969,8 +3279,9 @@ type ServiceEndpointEdge struct {
 
 // ServiceEndpointConnection is the connection containing edges to ServiceEndpoint.
 type ServiceEndpointConnection struct {
-	Edges    []*ServiceEndpointEdge `json:"edges"`
-	PageInfo PageInfo               `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ServiceEndpointEdge `json:"edges"`
+	PageInfo   PageInfo               `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to ServiceEndpoint.
@@ -2997,6 +3308,13 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 		}
 	}
 
+	totalCount, err := se.Clone().Count(ctx)
+	if err != nil {
+		return &ServiceEndpointConnection{
+			Edges: []*ServiceEndpointEdge{},
+		}, err
+	}
+
 	if after != nil {
 		se = se.Where(serviceendpoint.IDGT(after.ID))
 	}
@@ -3014,7 +3332,8 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 	nodes, err := se.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ServiceEndpointConnection{
-			Edges: []*ServiceEndpointEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ServiceEndpointEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3024,6 +3343,7 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 	}
 
 	var conn ServiceEndpointConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3061,8 +3381,9 @@ type ServiceEndpointDefinitionEdge struct {
 
 // ServiceEndpointDefinitionConnection is the connection containing edges to ServiceEndpointDefinition.
 type ServiceEndpointDefinitionConnection struct {
-	Edges    []*ServiceEndpointDefinitionEdge `json:"edges"`
-	PageInfo PageInfo                         `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ServiceEndpointDefinitionEdge `json:"edges"`
+	PageInfo   PageInfo                         `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to ServiceEndpointDefinition.
@@ -3089,6 +3410,13 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 		}
 	}
 
+	totalCount, err := sed.Clone().Count(ctx)
+	if err != nil {
+		return &ServiceEndpointDefinitionConnection{
+			Edges: []*ServiceEndpointDefinitionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		sed = sed.Where(serviceendpointdefinition.IDGT(after.ID))
 	}
@@ -3106,7 +3434,8 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 	nodes, err := sed.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ServiceEndpointDefinitionConnection{
-			Edges: []*ServiceEndpointDefinitionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ServiceEndpointDefinitionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3116,6 +3445,7 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 	}
 
 	var conn ServiceEndpointDefinitionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3153,8 +3483,9 @@ type ServiceTypeEdge struct {
 
 // ServiceTypeConnection is the connection containing edges to ServiceType.
 type ServiceTypeConnection struct {
-	Edges    []*ServiceTypeEdge `json:"edges"`
-	PageInfo PageInfo           `json:"pageInfo"`
+	TotalCount int
+	Edges      []*ServiceTypeEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to ServiceType.
@@ -3181,6 +3512,13 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 		}
 	}
 
+	totalCount, err := st.Clone().Count(ctx)
+	if err != nil {
+		return &ServiceTypeConnection{
+			Edges: []*ServiceTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		st = st.Where(servicetype.IDGT(after.ID))
 	}
@@ -3198,7 +3536,8 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 	nodes, err := st.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &ServiceTypeConnection{
-			Edges: []*ServiceTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*ServiceTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3208,6 +3547,7 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 	}
 
 	var conn ServiceTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3245,8 +3585,9 @@ type SurveyEdge struct {
 
 // SurveyConnection is the connection containing edges to Survey.
 type SurveyConnection struct {
-	Edges    []*SurveyEdge `json:"edges"`
-	PageInfo PageInfo      `json:"pageInfo"`
+	TotalCount int
+	Edges      []*SurveyEdge `json:"edges"`
+	PageInfo   PageInfo      `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Survey.
@@ -3273,6 +3614,13 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 		}
 	}
 
+	totalCount, err := s.Clone().Count(ctx)
+	if err != nil {
+		return &SurveyConnection{
+			Edges: []*SurveyEdge{},
+		}, err
+	}
+
 	if after != nil {
 		s = s.Where(survey.IDGT(after.ID))
 	}
@@ -3290,7 +3638,8 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 	nodes, err := s.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &SurveyConnection{
-			Edges: []*SurveyEdge{},
+			TotalCount: totalCount,
+			Edges:      []*SurveyEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3300,6 +3649,7 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 	}
 
 	var conn SurveyConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3337,8 +3687,9 @@ type SurveyCellScanEdge struct {
 
 // SurveyCellScanConnection is the connection containing edges to SurveyCellScan.
 type SurveyCellScanConnection struct {
-	Edges    []*SurveyCellScanEdge `json:"edges"`
-	PageInfo PageInfo              `json:"pageInfo"`
+	TotalCount int
+	Edges      []*SurveyCellScanEdge `json:"edges"`
+	PageInfo   PageInfo              `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to SurveyCellScan.
@@ -3365,6 +3716,13 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 		}
 	}
 
+	totalCount, err := scs.Clone().Count(ctx)
+	if err != nil {
+		return &SurveyCellScanConnection{
+			Edges: []*SurveyCellScanEdge{},
+		}, err
+	}
+
 	if after != nil {
 		scs = scs.Where(surveycellscan.IDGT(after.ID))
 	}
@@ -3382,7 +3740,8 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 	nodes, err := scs.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &SurveyCellScanConnection{
-			Edges: []*SurveyCellScanEdge{},
+			TotalCount: totalCount,
+			Edges:      []*SurveyCellScanEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3392,6 +3751,7 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 	}
 
 	var conn SurveyCellScanConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3429,8 +3789,9 @@ type SurveyQuestionEdge struct {
 
 // SurveyQuestionConnection is the connection containing edges to SurveyQuestion.
 type SurveyQuestionConnection struct {
-	Edges    []*SurveyQuestionEdge `json:"edges"`
-	PageInfo PageInfo              `json:"pageInfo"`
+	TotalCount int
+	Edges      []*SurveyQuestionEdge `json:"edges"`
+	PageInfo   PageInfo              `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to SurveyQuestion.
@@ -3457,6 +3818,13 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 		}
 	}
 
+	totalCount, err := sq.Clone().Count(ctx)
+	if err != nil {
+		return &SurveyQuestionConnection{
+			Edges: []*SurveyQuestionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		sq = sq.Where(surveyquestion.IDGT(after.ID))
 	}
@@ -3474,7 +3842,8 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 	nodes, err := sq.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &SurveyQuestionConnection{
-			Edges: []*SurveyQuestionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*SurveyQuestionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3484,6 +3853,7 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 	}
 
 	var conn SurveyQuestionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3521,8 +3891,9 @@ type SurveyTemplateCategoryEdge struct {
 
 // SurveyTemplateCategoryConnection is the connection containing edges to SurveyTemplateCategory.
 type SurveyTemplateCategoryConnection struct {
-	Edges    []*SurveyTemplateCategoryEdge `json:"edges"`
-	PageInfo PageInfo                      `json:"pageInfo"`
+	TotalCount int
+	Edges      []*SurveyTemplateCategoryEdge `json:"edges"`
+	PageInfo   PageInfo                      `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to SurveyTemplateCategory.
@@ -3549,6 +3920,13 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 		}
 	}
 
+	totalCount, err := stc.Clone().Count(ctx)
+	if err != nil {
+		return &SurveyTemplateCategoryConnection{
+			Edges: []*SurveyTemplateCategoryEdge{},
+		}, err
+	}
+
 	if after != nil {
 		stc = stc.Where(surveytemplatecategory.IDGT(after.ID))
 	}
@@ -3566,7 +3944,8 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 	nodes, err := stc.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &SurveyTemplateCategoryConnection{
-			Edges: []*SurveyTemplateCategoryEdge{},
+			TotalCount: totalCount,
+			Edges:      []*SurveyTemplateCategoryEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3576,6 +3955,7 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 	}
 
 	var conn SurveyTemplateCategoryConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3613,8 +3993,9 @@ type SurveyTemplateQuestionEdge struct {
 
 // SurveyTemplateQuestionConnection is the connection containing edges to SurveyTemplateQuestion.
 type SurveyTemplateQuestionConnection struct {
-	Edges    []*SurveyTemplateQuestionEdge `json:"edges"`
-	PageInfo PageInfo                      `json:"pageInfo"`
+	TotalCount int
+	Edges      []*SurveyTemplateQuestionEdge `json:"edges"`
+	PageInfo   PageInfo                      `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to SurveyTemplateQuestion.
@@ -3641,6 +4022,13 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 		}
 	}
 
+	totalCount, err := stq.Clone().Count(ctx)
+	if err != nil {
+		return &SurveyTemplateQuestionConnection{
+			Edges: []*SurveyTemplateQuestionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		stq = stq.Where(surveytemplatequestion.IDGT(after.ID))
 	}
@@ -3658,7 +4046,8 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 	nodes, err := stq.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &SurveyTemplateQuestionConnection{
-			Edges: []*SurveyTemplateQuestionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*SurveyTemplateQuestionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3668,6 +4057,7 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 	}
 
 	var conn SurveyTemplateQuestionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3705,8 +4095,9 @@ type SurveyWiFiScanEdge struct {
 
 // SurveyWiFiScanConnection is the connection containing edges to SurveyWiFiScan.
 type SurveyWiFiScanConnection struct {
-	Edges    []*SurveyWiFiScanEdge `json:"edges"`
-	PageInfo PageInfo              `json:"pageInfo"`
+	TotalCount int
+	Edges      []*SurveyWiFiScanEdge `json:"edges"`
+	PageInfo   PageInfo              `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to SurveyWiFiScan.
@@ -3733,6 +4124,13 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 		}
 	}
 
+	totalCount, err := swfs.Clone().Count(ctx)
+	if err != nil {
+		return &SurveyWiFiScanConnection{
+			Edges: []*SurveyWiFiScanEdge{},
+		}, err
+	}
+
 	if after != nil {
 		swfs = swfs.Where(surveywifiscan.IDGT(after.ID))
 	}
@@ -3750,7 +4148,8 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 	nodes, err := swfs.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &SurveyWiFiScanConnection{
-			Edges: []*SurveyWiFiScanEdge{},
+			TotalCount: totalCount,
+			Edges:      []*SurveyWiFiScanEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3760,6 +4159,7 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 	}
 
 	var conn SurveyWiFiScanConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3797,8 +4197,9 @@ type UserEdge struct {
 
 // UserConnection is the connection containing edges to User.
 type UserConnection struct {
-	Edges    []*UserEdge `json:"edges"`
-	PageInfo PageInfo    `json:"pageInfo"`
+	TotalCount int
+	Edges      []*UserEdge `json:"edges"`
+	PageInfo   PageInfo    `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to User.
@@ -3825,6 +4226,13 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
+	totalCount, err := u.Clone().Count(ctx)
+	if err != nil {
+		return &UserConnection{
+			Edges: []*UserEdge{},
+		}, err
+	}
+
 	if after != nil {
 		u = u.Where(user.IDGT(after.ID))
 	}
@@ -3842,7 +4250,8 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	nodes, err := u.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &UserConnection{
-			Edges: []*UserEdge{},
+			TotalCount: totalCount,
+			Edges:      []*UserEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3852,6 +4261,7 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	}
 
 	var conn UserConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3889,8 +4299,9 @@ type UsersGroupEdge struct {
 
 // UsersGroupConnection is the connection containing edges to UsersGroup.
 type UsersGroupConnection struct {
-	Edges    []*UsersGroupEdge `json:"edges"`
-	PageInfo PageInfo          `json:"pageInfo"`
+	TotalCount int
+	Edges      []*UsersGroupEdge `json:"edges"`
+	PageInfo   PageInfo          `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to UsersGroup.
@@ -3917,6 +4328,13 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 		}
 	}
 
+	totalCount, err := ug.Clone().Count(ctx)
+	if err != nil {
+		return &UsersGroupConnection{
+			Edges: []*UsersGroupEdge{},
+		}, err
+	}
+
 	if after != nil {
 		ug = ug.Where(usersgroup.IDGT(after.ID))
 	}
@@ -3934,7 +4352,8 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 	nodes, err := ug.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &UsersGroupConnection{
-			Edges: []*UsersGroupEdge{},
+			TotalCount: totalCount,
+			Edges:      []*UsersGroupEdge{},
 		}, err
 	}
 	if last != nil {
@@ -3944,6 +4363,7 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 	}
 
 	var conn UsersGroupConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3981,8 +4401,9 @@ type WorkOrderEdge struct {
 
 // WorkOrderConnection is the connection containing edges to WorkOrder.
 type WorkOrderConnection struct {
-	Edges    []*WorkOrderEdge `json:"edges"`
-	PageInfo PageInfo         `json:"pageInfo"`
+	TotalCount int
+	Edges      []*WorkOrderEdge `json:"edges"`
+	PageInfo   PageInfo         `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to WorkOrder.
@@ -4009,6 +4430,13 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 		}
 	}
 
+	totalCount, err := wo.Clone().Count(ctx)
+	if err != nil {
+		return &WorkOrderConnection{
+			Edges: []*WorkOrderEdge{},
+		}, err
+	}
+
 	if after != nil {
 		wo = wo.Where(workorder.IDGT(after.ID))
 	}
@@ -4026,7 +4454,8 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 	nodes, err := wo.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &WorkOrderConnection{
-			Edges: []*WorkOrderEdge{},
+			TotalCount: totalCount,
+			Edges:      []*WorkOrderEdge{},
 		}, err
 	}
 	if last != nil {
@@ -4036,6 +4465,7 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 	}
 
 	var conn WorkOrderConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4073,8 +4503,9 @@ type WorkOrderDefinitionEdge struct {
 
 // WorkOrderDefinitionConnection is the connection containing edges to WorkOrderDefinition.
 type WorkOrderDefinitionConnection struct {
-	Edges    []*WorkOrderDefinitionEdge `json:"edges"`
-	PageInfo PageInfo                   `json:"pageInfo"`
+	TotalCount int
+	Edges      []*WorkOrderDefinitionEdge `json:"edges"`
+	PageInfo   PageInfo                   `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to WorkOrderDefinition.
@@ -4101,6 +4532,13 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 		}
 	}
 
+	totalCount, err := wod.Clone().Count(ctx)
+	if err != nil {
+		return &WorkOrderDefinitionConnection{
+			Edges: []*WorkOrderDefinitionEdge{},
+		}, err
+	}
+
 	if after != nil {
 		wod = wod.Where(workorderdefinition.IDGT(after.ID))
 	}
@@ -4118,7 +4556,8 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 	nodes, err := wod.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &WorkOrderDefinitionConnection{
-			Edges: []*WorkOrderDefinitionEdge{},
+			TotalCount: totalCount,
+			Edges:      []*WorkOrderDefinitionEdge{},
 		}, err
 	}
 	if last != nil {
@@ -4128,6 +4567,7 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 	}
 
 	var conn WorkOrderDefinitionConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4165,8 +4605,9 @@ type WorkOrderTemplateEdge struct {
 
 // WorkOrderTemplateConnection is the connection containing edges to WorkOrderTemplate.
 type WorkOrderTemplateConnection struct {
-	Edges    []*WorkOrderTemplateEdge `json:"edges"`
-	PageInfo PageInfo                 `json:"pageInfo"`
+	TotalCount int
+	Edges      []*WorkOrderTemplateEdge `json:"edges"`
+	PageInfo   PageInfo                 `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to WorkOrderTemplate.
@@ -4193,6 +4634,13 @@ func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, 
 		}
 	}
 
+	totalCount, err := wot.Clone().Count(ctx)
+	if err != nil {
+		return &WorkOrderTemplateConnection{
+			Edges: []*WorkOrderTemplateEdge{},
+		}, err
+	}
+
 	if after != nil {
 		wot = wot.Where(workordertemplate.IDGT(after.ID))
 	}
@@ -4210,7 +4658,8 @@ func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, 
 	nodes, err := wot.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &WorkOrderTemplateConnection{
-			Edges: []*WorkOrderTemplateEdge{},
+			TotalCount: totalCount,
+			Edges:      []*WorkOrderTemplateEdge{},
 		}, err
 	}
 	if last != nil {
@@ -4220,6 +4669,7 @@ func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, 
 	}
 
 	var conn WorkOrderTemplateConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4257,8 +4707,9 @@ type WorkOrderTypeEdge struct {
 
 // WorkOrderTypeConnection is the connection containing edges to WorkOrderType.
 type WorkOrderTypeConnection struct {
-	Edges    []*WorkOrderTypeEdge `json:"edges"`
-	PageInfo PageInfo             `json:"pageInfo"`
+	TotalCount int
+	Edges      []*WorkOrderTypeEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to WorkOrderType.
@@ -4285,6 +4736,13 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 		}
 	}
 
+	totalCount, err := wot.Clone().Count(ctx)
+	if err != nil {
+		return &WorkOrderTypeConnection{
+			Edges: []*WorkOrderTypeEdge{},
+		}, err
+	}
+
 	if after != nil {
 		wot = wot.Where(workordertype.IDGT(after.ID))
 	}
@@ -4302,7 +4760,8 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 	nodes, err := wot.All(ctx)
 	if err != nil || len(nodes) == 0 {
 		return &WorkOrderTypeConnection{
-			Edges: []*WorkOrderTypeEdge{},
+			TotalCount: totalCount,
+			Edges:      []*WorkOrderTypeEdge{},
 		}, err
 	}
 	if last != nil {
@@ -4312,6 +4771,7 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 	}
 
 	var conn WorkOrderTypeConnection
+	conn.TotalCount = totalCount
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]

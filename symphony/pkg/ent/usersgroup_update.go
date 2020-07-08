@@ -103,6 +103,11 @@ func (ugu *UsersGroupUpdate) AddPolicies(p ...*PermissionsPolicy) *UsersGroupUpd
 	return ugu.AddPolicyIDs(ids...)
 }
 
+// Mutation returns the UsersGroupMutation object of the builder.
+func (ugu *UsersGroupUpdate) Mutation() *UsersGroupMutation {
+	return ugu.mutation
+}
+
 // RemoveMemberIDs removes the members edge to User by ids.
 func (ugu *UsersGroupUpdate) RemoveMemberIDs(ids ...int) *UsersGroupUpdate {
 	ugu.mutation.RemoveMemberIDs(ids...)
@@ -141,12 +146,12 @@ func (ugu *UsersGroupUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := ugu.mutation.Name(); ok {
 		if err := usersgroup.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := ugu.mutation.Status(); ok {
 		if err := usersgroup.StatusValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
+			return 0, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
 
@@ -415,6 +420,11 @@ func (uguo *UsersGroupUpdateOne) AddPolicies(p ...*PermissionsPolicy) *UsersGrou
 	return uguo.AddPolicyIDs(ids...)
 }
 
+// Mutation returns the UsersGroupMutation object of the builder.
+func (uguo *UsersGroupUpdateOne) Mutation() *UsersGroupMutation {
+	return uguo.mutation
+}
+
 // RemoveMemberIDs removes the members edge to User by ids.
 func (uguo *UsersGroupUpdateOne) RemoveMemberIDs(ids ...int) *UsersGroupUpdateOne {
 	uguo.mutation.RemoveMemberIDs(ids...)
@@ -453,12 +463,12 @@ func (uguo *UsersGroupUpdateOne) Save(ctx context.Context) (*UsersGroup, error) 
 	}
 	if v, ok := uguo.mutation.Name(); ok {
 		if err := usersgroup.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := uguo.mutation.Status(); ok {
 		if err := usersgroup.StatusValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
 
@@ -524,7 +534,7 @@ func (uguo *UsersGroupUpdateOne) sqlSave(ctx context.Context) (ug *UsersGroup, e
 	}
 	id, ok := uguo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing UsersGroup.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing UsersGroup.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := uguo.mutation.UpdateTime(); ok {

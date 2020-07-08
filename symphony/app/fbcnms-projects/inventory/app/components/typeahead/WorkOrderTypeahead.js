@@ -39,12 +39,14 @@ const workOrderSearchQuery = graphql`
     $filters: [WorkOrderFilterInput!]!
     $limit: Int
   ) {
-    workOrderSearch(filters: $filters, limit: $limit) {
-      workOrders {
-        id
-        name
-        workOrderType {
+    workOrders(filters: $filters, first: $limit) {
+      edges {
+        node {
+          id
           name
+          workOrderType {
+            name
+          }
         }
       }
     }
@@ -82,16 +84,19 @@ const WorkOrderTypeahead = ({
         limit: 10,
       },
     ).then(response => {
-      if (!response || !response.workOrderSearch) {
+      if (!response || !response.workOrders) {
         return;
       }
       setSuggestions(
-        response.workOrderSearch.workOrders.filter(Boolean).map(wo => ({
-          name: wo.name,
-          entityId: wo.id,
-          entityType: 'work_order',
-          type: wo.workOrderType.name,
-        })),
+        response.workOrders.edges
+          .map(edge => edge.node)
+          .filter(Boolean)
+          .map(wo => ({
+            name: wo.name,
+            entityId: wo.id,
+            entityType: 'work_order',
+            type: wo.workOrderType.name,
+          })),
       );
     });
   };

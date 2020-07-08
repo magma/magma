@@ -120,6 +120,11 @@ func (ptc *ProjectTypeCreate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectT
 	return ptc.AddWorkOrderIDs(ids...)
 }
 
+// Mutation returns the ProjectTypeMutation object of the builder.
+func (ptc *ProjectTypeCreate) Mutation() *ProjectTypeMutation {
+	return ptc.mutation
+}
+
 // Save creates the ProjectType in the database.
 func (ptc *ProjectTypeCreate) Save(ctx context.Context) (*ProjectType, error) {
 	if _, ok := ptc.mutation.CreateTime(); !ok {
@@ -131,11 +136,11 @@ func (ptc *ProjectTypeCreate) Save(ctx context.Context) (*ProjectType, error) {
 		ptc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ptc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := ptc.mutation.Name(); ok {
 		if err := projecttype.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	var (

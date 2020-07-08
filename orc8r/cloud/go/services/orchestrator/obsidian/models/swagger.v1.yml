@@ -1606,12 +1606,12 @@ definitions:
       command:
         type: string
         minLength: 1
-        example: command_name
+        example: bash
       params:
         type: object
         additionalProperties:
           type: object
-        example: {}
+        example: {"shell_params": ["-c 'ls -1 .'"]}
 
   generic_command_response:
     type: object

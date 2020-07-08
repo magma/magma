@@ -158,6 +158,11 @@ func (etc *EquipmentTypeCreate) AddServiceEndpointDefinitions(s ...*ServiceEndpo
 	return etc.AddServiceEndpointDefinitionIDs(ids...)
 }
 
+// Mutation returns the EquipmentTypeMutation object of the builder.
+func (etc *EquipmentTypeCreate) Mutation() *EquipmentTypeMutation {
+	return etc.mutation
+}
+
 // Save creates the EquipmentType in the database.
 func (etc *EquipmentTypeCreate) Save(ctx context.Context) (*EquipmentType, error) {
 	if _, ok := etc.mutation.CreateTime(); !ok {
@@ -169,7 +174,7 @@ func (etc *EquipmentTypeCreate) Save(ctx context.Context) (*EquipmentType, error
 		etc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := etc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	var (
 		err  error

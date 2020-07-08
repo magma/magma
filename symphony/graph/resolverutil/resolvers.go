@@ -18,46 +18,48 @@ import (
 	"github.com/pkg/errors"
 )
 
-// EquipmentTypes is a helper to bring equipment types
+func EquipmentFilter(query *ent.EquipmentQuery, filters []*models.EquipmentFilterInput) (*ent.EquipmentQuery, error) {
+	var err error
+	for _, f := range filters {
+		switch {
+		case strings.HasPrefix(f.FilterType.String(), "EQUIPMENT_TYPE"):
+			if query, err = handleEquipmentTypeFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "EQUIP_INST"), strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
+			if query, err = handleEquipmentFilter(query, f); err != nil {
+				return nil, err
+			}
+		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
+			if query, err = handleEquipmentLocationFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return query, nil
+}
+
 func EquipmentSearch(ctx context.Context, client *ent.Client, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error) {
 	var (
 		res []*ent.Equipment
 		c   int
 		err error
 	)
-	// TODO T46957221 support query Clone
-	for i := 0; i < 2; i++ {
-		query := client.Equipment.Query()
-		for _, f := range filters {
-			switch {
-			case strings.HasPrefix(f.FilterType.String(), "EQUIPMENT_TYPE"):
-				if query, err = handleEquipmentTypeFilter(query, f); err != nil {
-					return nil, err
-				}
-			case strings.HasPrefix(f.FilterType.String(), "EQUIP_INST"), strings.HasPrefix(f.FilterType.String(), "PROPERTY"):
-				if query, err = handleEquipmentFilter(query, f); err != nil {
-					return nil, err
-				}
-			case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
-				if query, err = handleEquipmentLocationFilter(query, f); err != nil {
-					return nil, err
-				}
-			}
-		}
-		if i == 0 {
-			c, err = query.Count(ctx)
-			if err != nil {
-				return nil, err
-			}
-			continue
-		}
-		if limit != nil {
-			query.Limit(*limit)
-		}
-		res, err = query.Order(ent.Asc(equipment.FieldName)).All(ctx)
-		if err != nil {
-			return nil, err
-		}
+	query := client.Equipment.Query()
+	query, err = EquipmentFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	c, err = query.Clone().Count(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Count query failed")
+	}
+	if limit != nil {
+		query.Limit(*limit)
+	}
+	res, err = query.Order(ent.Asc(equipment.FieldName)).All(ctx)
+	if err != nil {
+		return nil, err
 	}
 	return &models.EquipmentSearchResult{
 		Equipment: res,
@@ -65,12 +67,8 @@ func EquipmentSearch(ctx context.Context, client *ent.Client, filters []*models.
 	}, nil
 }
 
-// nolint: dupl
-func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error) {
-	var (
-		query = client.EquipmentPort.Query()
-		err   error
-	)
+func PortFilter(query *ent.EquipmentPortQuery, filters []*models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
+	var err error
 	for _, f := range filters {
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "PORT_INST"):
@@ -95,6 +93,18 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 			}
 		}
 	}
+	return query, nil
+}
+
+func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortFilterInput, limit *int) (*models.PortSearchResult, error) {
+	var (
+		query = client.EquipmentPort.Query()
+		err   error
+	)
+	query, err = PortFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
@@ -112,11 +122,8 @@ func PortSearch(ctx context.Context, client *ent.Client, filters []*models.PortF
 	}, nil
 }
 
-func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.LocationFilterInput, limit *int) (*models.LocationSearchResult, error) {
-	var (
-		query = client.Location.Query()
-		err   error
-	)
+func LocationFilter(query *ent.LocationQuery, filters []*models.LocationFilterInput) (*ent.LocationQuery, error) {
+	var err error
 	for _, f := range filters {
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "LOCATION_INST"):
@@ -132,6 +139,18 @@ func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.L
 				return nil, err
 			}
 		}
+	}
+	return query, nil
+}
+
+func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.LocationFilterInput, limit *int) (*models.LocationSearchResult, error) {
+	var (
+		query = client.Location.Query()
+		err   error
+	)
+	query, err = LocationFilter(query, filters)
+	if err != nil {
+		return nil, err
 	}
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
@@ -150,12 +169,8 @@ func LocationSearch(ctx context.Context, client *ent.Client, filters []*models.L
 	}, nil
 }
 
-// nolint: dupl
-func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error) {
-	var (
-		query = client.Link.Query()
-		err   error
-	)
+func LinkFilter(query *ent.LinkQuery, filters []*models.LinkFilterInput) (*ent.LinkQuery, error) {
+	var err error
 	for _, f := range filters {
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "LINK_"):
@@ -180,7 +195,18 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 			}
 		}
 	}
+	return query, nil
+}
 
+func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkFilterInput, limit *int) (*models.LinkSearchResult, error) {
+	var (
+		query = client.Link.Query()
+		err   error
+	)
+	query, err = LinkFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
@@ -198,12 +224,8 @@ func LinkSearch(ctx context.Context, client *ent.Client, filters []*models.LinkF
 	}, nil
 }
 
-func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
-	var (
-		query = client.Service.Query().Where(service.HasTypeWith(servicetype.IsDeleted(false)))
-		err   error
-	)
-
+func ServiceFilter(query *ent.ServiceQuery, filters []*models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	var err error
 	for _, f := range filters {
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "SERVICE_"):
@@ -224,7 +246,18 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 			}
 		}
 	}
+	return query, nil
+}
 
+func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.ServiceFilterInput, limit *int) (*models.ServiceSearchResult, error) {
+	var (
+		query = client.Service.Query().Where(service.HasTypeWith(servicetype.IsDeleted(false)))
+		err   error
+	)
+	query, err = ServiceFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
@@ -242,11 +275,8 @@ func ServiceSearch(ctx context.Context, client *ent.Client, filters []*models.Se
 	}, nil
 }
 
-func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.WorkOrderFilterInput, limit *int, fields []string) (*models.WorkOrderSearchResult, error) {
-	var (
-		query = client.WorkOrder.Query()
-		err   error
-	)
+func WorkOrderFilter(query *ent.WorkOrderQuery, filters []*models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
+	var err error
 	for _, f := range filters {
 		switch {
 		case strings.HasPrefix(f.FilterType.String(), "WORK_ORDER_"):
@@ -259,7 +289,18 @@ func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.
 			}
 		}
 	}
+	return query, nil
+}
 
+func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.WorkOrderFilterInput, limit *int, fields []string) (*models.WorkOrderSearchResult, error) {
+	var (
+		query = client.WorkOrder.Query()
+		err   error
+	)
+	query, err = WorkOrderFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	var woResult models.WorkOrderSearchResult
 	for _, field := range fields {
 		switch field {
@@ -281,11 +322,8 @@ func WorkOrderSearch(ctx context.Context, client *ent.Client, filters []*models.
 	return &woResult, nil
 }
 
-func UserSearch(ctx context.Context, client *ent.Client, filters []*models.UserFilterInput, limit *int) (*models.UserSearchResult, error) {
-	var (
-		query = client.User.Query()
-		err   error
-	)
+func UserFilter(query *ent.UserQuery, filters []*models.UserFilterInput) (*ent.UserQuery, error) {
+	var err error
 	for _, f := range filters {
 		if strings.HasPrefix(f.FilterType.String(), "USER_") {
 			if query, err = handleUserFilter(query, f); err != nil {
@@ -293,7 +331,18 @@ func UserSearch(ctx context.Context, client *ent.Client, filters []*models.UserF
 			}
 		}
 	}
+	return query, nil
+}
 
+func UserSearch(ctx context.Context, client *ent.Client, filters []*models.UserFilterInput, limit *int) (*models.UserSearchResult, error) {
+	var (
+		query = client.User.Query()
+		err   error
+	)
+	query, err = UserFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
@@ -311,6 +360,18 @@ func UserSearch(ctx context.Context, client *ent.Client, filters []*models.UserF
 	}, nil
 }
 
+func PermissionsPolicyFilter(query *ent.PermissionsPolicyQuery, filters []*models.PermissionsPolicyFilterInput) (*ent.PermissionsPolicyQuery, error) {
+	var err error
+	for _, f := range filters {
+		if strings.HasPrefix(f.FilterType.String(), "PERMISSIONS_POLICY_NAME") {
+			if query, err = handlePermissionsPolicyFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return query, nil
+}
+
 func PermissionsPolicySearch(
 	ctx context.Context,
 	client *ent.Client,
@@ -321,14 +382,10 @@ func PermissionsPolicySearch(
 		query = client.PermissionsPolicy.Query()
 		err   error
 	)
-	for _, f := range filters {
-		if strings.HasPrefix(f.FilterType.String(), "PERMISSIONS_POLICY_NAME") {
-			if query, err = handlePermissionsPolicyFilter(query, f); err != nil {
-				return nil, err
-			}
-		}
+	query, err = PermissionsPolicyFilter(query, filters)
+	if err != nil {
+		return nil, err
 	}
-
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")
@@ -346,6 +403,18 @@ func PermissionsPolicySearch(
 	}, nil
 }
 
+func UsersGroupFilter(query *ent.UsersGroupQuery, filters []*models.UsersGroupFilterInput) (*ent.UsersGroupQuery, error) {
+	var err error
+	for _, f := range filters {
+		if strings.HasPrefix(f.FilterType.String(), "GROUP_NAME") {
+			if query, err = handleUsersGroupFilter(query, f); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return query, nil
+}
+
 func UsersGroupSearch(
 	ctx context.Context,
 	client *ent.Client,
@@ -356,14 +425,10 @@ func UsersGroupSearch(
 		query = client.UsersGroup.Query()
 		err   error
 	)
-	for _, f := range filters {
-		if strings.HasPrefix(f.FilterType.String(), "GROUP_NAME") {
-			if query, err = handleUsersGroupFilter(query, f); err != nil {
-				return nil, err
-			}
-		}
+	query, err = UsersGroupFilter(query, filters)
+	if err != nil {
+		return nil, err
 	}
-
 	count, err := query.Clone().Count(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "Count query failed")

@@ -71,7 +71,7 @@ const IMSI_CONFIGS: Array<MetricGraphConfig> = [
   },
 ];
 
-export default function() {
+export default function () {
   const {history, relativePath, relativeUrl, match} = useRouter();
 
   const {response, error, isLoading} = useMagmaAPI(

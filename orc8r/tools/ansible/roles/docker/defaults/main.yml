@@ -16,6 +16,8 @@ registry_password: "{{ lookup('env','DOCKER_PASSWORD') }}"
 
 image_version: "{{ lookup('file','image_version') }}"
 
+docker_host_distribution: xenial
+
 systemd_stdout: null
 systemd_stderr: syslog
 # will run as "docker-compose {{ systemd_start_args_pre }} up {{ systemd_start_args_post }}"

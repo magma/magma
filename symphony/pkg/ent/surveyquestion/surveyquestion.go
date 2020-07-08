@@ -16,27 +16,47 @@ const (
 	// Label holds the string label denoting the surveyquestion type in the database.
 	Label = "survey_question"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID               = "id"                // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime       = "create_time"       // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime       = "update_time"       // FieldFormName holds the string denoting the form_name vertex property in the database.
-	FieldFormName         = "form_name"         // FieldFormDescription holds the string denoting the form_description vertex property in the database.
-	FieldFormDescription  = "form_description"  // FieldFormIndex holds the string denoting the form_index vertex property in the database.
-	FieldFormIndex        = "form_index"        // FieldQuestionType holds the string denoting the question_type vertex property in the database.
-	FieldQuestionType     = "question_type"     // FieldQuestionFormat holds the string denoting the question_format vertex property in the database.
-	FieldQuestionFormat   = "question_format"   // FieldQuestionText holds the string denoting the question_text vertex property in the database.
-	FieldQuestionText     = "question_text"     // FieldQuestionIndex holds the string denoting the question_index vertex property in the database.
-	FieldQuestionIndex    = "question_index"    // FieldBoolData holds the string denoting the bool_data vertex property in the database.
-	FieldBoolData         = "bool_data"         // FieldEmailData holds the string denoting the email_data vertex property in the database.
-	FieldEmailData        = "email_data"        // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude         = "latitude"          // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude        = "longitude"         // FieldLocationAccuracy holds the string denoting the location_accuracy vertex property in the database.
-	FieldLocationAccuracy = "location_accuracy" // FieldAltitude holds the string denoting the altitude vertex property in the database.
-	FieldAltitude         = "altitude"          // FieldPhoneData holds the string denoting the phone_data vertex property in the database.
-	FieldPhoneData        = "phone_data"        // FieldTextData holds the string denoting the text_data vertex property in the database.
-	FieldTextData         = "text_data"         // FieldFloatData holds the string denoting the float_data vertex property in the database.
-	FieldFloatData        = "float_data"        // FieldIntData holds the string denoting the int_data vertex property in the database.
-	FieldIntData          = "int_data"          // FieldDateData holds the string denoting the date_data vertex property in the database.
-	FieldDateData         = "date_data"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldFormName holds the string denoting the form_name field in the database.
+	FieldFormName = "form_name"
+	// FieldFormDescription holds the string denoting the form_description field in the database.
+	FieldFormDescription = "form_description"
+	// FieldFormIndex holds the string denoting the form_index field in the database.
+	FieldFormIndex = "form_index"
+	// FieldQuestionType holds the string denoting the question_type field in the database.
+	FieldQuestionType = "question_type"
+	// FieldQuestionFormat holds the string denoting the question_format field in the database.
+	FieldQuestionFormat = "question_format"
+	// FieldQuestionText holds the string denoting the question_text field in the database.
+	FieldQuestionText = "question_text"
+	// FieldQuestionIndex holds the string denoting the question_index field in the database.
+	FieldQuestionIndex = "question_index"
+	// FieldBoolData holds the string denoting the bool_data field in the database.
+	FieldBoolData = "bool_data"
+	// FieldEmailData holds the string denoting the email_data field in the database.
+	FieldEmailData = "email_data"
+	// FieldLatitude holds the string denoting the latitude field in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude field in the database.
+	FieldLongitude = "longitude"
+	// FieldLocationAccuracy holds the string denoting the location_accuracy field in the database.
+	FieldLocationAccuracy = "location_accuracy"
+	// FieldAltitude holds the string denoting the altitude field in the database.
+	FieldAltitude = "altitude"
+	// FieldPhoneData holds the string denoting the phone_data field in the database.
+	FieldPhoneData = "phone_data"
+	// FieldTextData holds the string denoting the text_data field in the database.
+	FieldTextData = "text_data"
+	// FieldFloatData holds the string denoting the float_data field in the database.
+	FieldFloatData = "float_data"
+	// FieldIntData holds the string denoting the int_data field in the database.
+	FieldIntData = "int_data"
+	// FieldDateData holds the string denoting the date_data field in the database.
+	FieldDateData = "date_data"
 
 	// EdgeSurvey holds the string denoting the survey edge name in mutations.
 	EdgeSurvey = "survey"

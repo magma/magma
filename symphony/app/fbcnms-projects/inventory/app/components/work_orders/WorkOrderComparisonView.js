@@ -37,6 +37,9 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
     height: '100%',
   },
+  workOrderComparisonView: {
+    height: '100%',
+  },
   powerSearchBarWrapper: {
     paddingRight: '8px',
   },
@@ -217,6 +220,7 @@ const WorkOrderComparisonView = () => {
       <InventoryView
         permissions={{entity: 'workorder'}}
         header={header}
+        className={classes.workOrderComparisonView}
         onViewToggleClicked={setResultsDisplayMode}>
         {workOrdersTable}
         <AddWorkOrderDialog

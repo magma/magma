@@ -8,6 +8,7 @@
  * @format
  */
 
+import PowerSearchExternalIDFilter from './PowerSearchExternalIDFilter';
 import PowerSearchLocationHasEquipmentFilter from './PowerSearchLocationHasEquipmentFilter';
 import PowerSearchLocationTypeFilter from './PowerSearchLocationTypeFilter';
 
@@ -37,9 +38,18 @@ const LocationCriteriaConfig: Array<EntityConfig> = [
     ],
   },
   {
-    type: 'location_by_types',
+    type: 'locations',
     label: 'Location Ancestor',
-    filters: [],
+    filters: [
+      {
+        key: 'location_inst_external_id',
+        name: 'location_inst_external_id',
+        entityType: 'locations',
+        label: 'Location External ID',
+        component: PowerSearchExternalIDFilter,
+        defaultOperator: 'contains',
+      },
+    ],
   },
   {
     type: 'properties',

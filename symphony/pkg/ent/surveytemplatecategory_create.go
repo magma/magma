@@ -100,6 +100,11 @@ func (stcc *SurveyTemplateCategoryCreate) SetLocationType(l *LocationType) *Surv
 	return stcc.SetLocationTypeID(l.ID)
 }
 
+// Mutation returns the SurveyTemplateCategoryMutation object of the builder.
+func (stcc *SurveyTemplateCategoryCreate) Mutation() *SurveyTemplateCategoryMutation {
+	return stcc.mutation
+}
+
 // Save creates the SurveyTemplateCategory in the database.
 func (stcc *SurveyTemplateCategoryCreate) Save(ctx context.Context) (*SurveyTemplateCategory, error) {
 	if _, ok := stcc.mutation.CreateTime(); !ok {
@@ -111,10 +116,10 @@ func (stcc *SurveyTemplateCategoryCreate) Save(ctx context.Context) (*SurveyTemp
 		stcc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := stcc.mutation.CategoryTitle(); !ok {
-		return nil, errors.New("ent: missing required field \"category_title\"")
+		return nil, &ValidationError{Name: "category_title", err: errors.New("ent: missing required field \"category_title\"")}
 	}
 	if _, ok := stcc.mutation.CategoryDescription(); !ok {
-		return nil, errors.New("ent: missing required field \"category_description\"")
+		return nil, &ValidationError{Name: "category_description", err: errors.New("ent: missing required field \"category_description\"")}
 	}
 	var (
 		err  error

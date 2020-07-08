@@ -74,6 +74,11 @@ func (ecc *EquipmentCategoryCreate) AddTypes(e ...*EquipmentType) *EquipmentCate
 	return ecc.AddTypeIDs(ids...)
 }
 
+// Mutation returns the EquipmentCategoryMutation object of the builder.
+func (ecc *EquipmentCategoryCreate) Mutation() *EquipmentCategoryMutation {
+	return ecc.mutation
+}
+
 // Save creates the EquipmentCategory in the database.
 func (ecc *EquipmentCategoryCreate) Save(ctx context.Context) (*EquipmentCategory, error) {
 	if _, ok := ecc.mutation.CreateTime(); !ok {
@@ -85,7 +90,7 @@ func (ecc *EquipmentCategoryCreate) Save(ctx context.Context) (*EquipmentCategor
 		ecc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ecc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	var (
 		err  error

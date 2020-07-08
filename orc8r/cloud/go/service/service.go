@@ -51,54 +51,37 @@ type OrchestratorService struct {
 	EchoServer *echo.Echo
 }
 
-// NewOrchestratorService returns a new GRPC orchestrator service
+// NewOrchestratorService returns a new gRPC orchestrator service
 // implementing service303. If configured, it will also initialize an HTTP echo
 // server as a part of the service. This service will implement a middleware
 // interceptor to perform identity check. If your service does not or can not
 // perform identity checks, (e.g. federation), use NewServiceWithOptions.
-func NewOrchestratorService(moduleName string, serviceName string) (*OrchestratorService, error) {
+func NewOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
 	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
-	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, grpc.UnaryInterceptor(unary.MiddlewareHandler))
-	if err != nil {
-		return nil, err
-	}
-	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
-	if err != nil {
-		return nil, err
-	}
-	return &OrchestratorService{
-		Service:    platformService,
-		EchoServer: echoSrv,
-	}, nil
-}
 
-// NewOrchestratorServiceWithOptions returns a new GRPC orchestrator service
-// implementing service303 with the specified grpc server options.
-// If configured, it will also initialize an HTTP echo server as a part of the
-// service. This service will implement a middleware interceptor to perform
-// identity check.
-func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
-	flag.Parse()
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
+	err := registry.PopulateServices()
+	if err != nil {
+		return nil, err
+	}
+
 	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.MiddlewareHandler))
 	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 	if err != nil {
 		return nil, err
 	}
+
 	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
 	if err != nil {
 		return nil, err
 	}
-	return &OrchestratorService{
-		Service:    platformService,
-		EchoServer: echoSrv,
-	}, nil
+
+	return &OrchestratorService{Service: platformService, EchoServer: echoSrv}, nil
 }
 
 // Run runs the service. If the echo HTTP server is non-nil, both the HTTP
-// server and GRPC server are run, blocking until an error occurs or a server
-// stopped. If the HTTP server is nil, only the GRPC server is run, blocking
+// server and gRPC server are run, blocking until an error occurs or a server
+// stopped. If the HTTP server is nil, only the gRPC server is run, blocking
 // until its interrupted by a signal or until the gRPC server is stopped.
 func (s *OrchestratorService) Run() error {
 	if s.EchoServer == nil {
@@ -107,12 +90,18 @@ func (s *OrchestratorService) Run() error {
 	serverErr := make(chan error, 1)
 	go func() {
 		err := s.Service.Run()
-		s.EchoServer.Shutdown(context.Background())
+		shutdownErr := s.EchoServer.Shutdown(context.Background())
+		if shutdownErr != nil {
+			glog.Errorf("Error shutting down echo server: %v", shutdownErr)
+		}
 		serverErr <- err
 	}()
 	go func() {
 		err := s.EchoServer.StartServer(s.EchoServer.Server)
-		s.Service.StopService(context.Background(), &protos.Void{})
+		_, shutdownErr := s.Service.StopService(context.Background(), &protos.Void{})
+		if shutdownErr != nil {
+			glog.Errorf("Error shutting down orc8r service: %v", shutdownErr)
+		}
 		serverErr <- err
 	}()
 	return <-serverErr
@@ -152,5 +141,6 @@ func getEchoServerForOrchestratorService(serviceName string) (*echo.Echo, error)
 	portStr := fmt.Sprintf(":%d", echoPort)
 	e := echo.New()
 	e.Server.Addr = portStr
+	e.HideBanner = true
 	return e, nil
 }

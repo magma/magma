@@ -16,29 +16,51 @@ const (
 	// Label holds the string label denoting the surveycellscan type in the database.
 	Label = "survey_cell_scan"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                    = "id"                      // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime            = "create_time"             // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime            = "update_time"             // FieldNetworkType holds the string denoting the network_type vertex property in the database.
-	FieldNetworkType           = "network_type"            // FieldSignalStrength holds the string denoting the signal_strength vertex property in the database.
-	FieldSignalStrength        = "signal_strength"         // FieldTimestamp holds the string denoting the timestamp vertex property in the database.
-	FieldTimestamp             = "timestamp"               // FieldBaseStationID holds the string denoting the base_station_id vertex property in the database.
-	FieldBaseStationID         = "base_station_id"         // FieldNetworkID holds the string denoting the network_id vertex property in the database.
-	FieldNetworkID             = "network_id"              // FieldSystemID holds the string denoting the system_id vertex property in the database.
-	FieldSystemID              = "system_id"               // FieldCellID holds the string denoting the cell_id vertex property in the database.
-	FieldCellID                = "cell_id"                 // FieldLocationAreaCode holds the string denoting the location_area_code vertex property in the database.
-	FieldLocationAreaCode      = "location_area_code"      // FieldMobileCountryCode holds the string denoting the mobile_country_code vertex property in the database.
-	FieldMobileCountryCode     = "mobile_country_code"     // FieldMobileNetworkCode holds the string denoting the mobile_network_code vertex property in the database.
-	FieldMobileNetworkCode     = "mobile_network_code"     // FieldPrimaryScramblingCode holds the string denoting the primary_scrambling_code vertex property in the database.
-	FieldPrimaryScramblingCode = "primary_scrambling_code" // FieldOperator holds the string denoting the operator vertex property in the database.
-	FieldOperator              = "operator"                // FieldArfcn holds the string denoting the arfcn vertex property in the database.
-	FieldArfcn                 = "arfcn"                   // FieldPhysicalCellID holds the string denoting the physical_cell_id vertex property in the database.
-	FieldPhysicalCellID        = "physical_cell_id"        // FieldTrackingAreaCode holds the string denoting the tracking_area_code vertex property in the database.
-	FieldTrackingAreaCode      = "tracking_area_code"      // FieldTimingAdvance holds the string denoting the timing_advance vertex property in the database.
-	FieldTimingAdvance         = "timing_advance"          // FieldEarfcn holds the string denoting the earfcn vertex property in the database.
-	FieldEarfcn                = "earfcn"                  // FieldUarfcn holds the string denoting the uarfcn vertex property in the database.
-	FieldUarfcn                = "uarfcn"                  // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude              = "latitude"                // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude             = "longitude"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldNetworkType holds the string denoting the network_type field in the database.
+	FieldNetworkType = "network_type"
+	// FieldSignalStrength holds the string denoting the signal_strength field in the database.
+	FieldSignalStrength = "signal_strength"
+	// FieldTimestamp holds the string denoting the timestamp field in the database.
+	FieldTimestamp = "timestamp"
+	// FieldBaseStationID holds the string denoting the base_station_id field in the database.
+	FieldBaseStationID = "base_station_id"
+	// FieldNetworkID holds the string denoting the network_id field in the database.
+	FieldNetworkID = "network_id"
+	// FieldSystemID holds the string denoting the system_id field in the database.
+	FieldSystemID = "system_id"
+	// FieldCellID holds the string denoting the cell_id field in the database.
+	FieldCellID = "cell_id"
+	// FieldLocationAreaCode holds the string denoting the location_area_code field in the database.
+	FieldLocationAreaCode = "location_area_code"
+	// FieldMobileCountryCode holds the string denoting the mobile_country_code field in the database.
+	FieldMobileCountryCode = "mobile_country_code"
+	// FieldMobileNetworkCode holds the string denoting the mobile_network_code field in the database.
+	FieldMobileNetworkCode = "mobile_network_code"
+	// FieldPrimaryScramblingCode holds the string denoting the primary_scrambling_code field in the database.
+	FieldPrimaryScramblingCode = "primary_scrambling_code"
+	// FieldOperator holds the string denoting the operator field in the database.
+	FieldOperator = "operator"
+	// FieldArfcn holds the string denoting the arfcn field in the database.
+	FieldArfcn = "arfcn"
+	// FieldPhysicalCellID holds the string denoting the physical_cell_id field in the database.
+	FieldPhysicalCellID = "physical_cell_id"
+	// FieldTrackingAreaCode holds the string denoting the tracking_area_code field in the database.
+	FieldTrackingAreaCode = "tracking_area_code"
+	// FieldTimingAdvance holds the string denoting the timing_advance field in the database.
+	FieldTimingAdvance = "timing_advance"
+	// FieldEarfcn holds the string denoting the earfcn field in the database.
+	FieldEarfcn = "earfcn"
+	// FieldUarfcn holds the string denoting the uarfcn field in the database.
+	FieldUarfcn = "uarfcn"
+	// FieldLatitude holds the string denoting the latitude field in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude field in the database.
+	FieldLongitude = "longitude"
 
 	// EdgeChecklistItem holds the string denoting the checklist_item edge name in mutations.
 	EdgeChecklistItem = "checklist_item"

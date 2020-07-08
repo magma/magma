@@ -179,7 +179,7 @@ export const removeWorkflowBefore: BeforeFun = (
     },
   };
   logger.debug(`Requesting ${JSON.stringify(requestOptions)}`);
-  request(requestOptions, function(error, response, body) {
+  request(requestOptions, function (error, response, body) {
     logger.debug(`Got status code: ${response.statusCode}, body: '${body}'`);
     if (response.statusCode == 200) {
       const workflow = JSON.parse(body);
@@ -204,7 +204,7 @@ export const removeWorkflowBefore: BeforeFun = (
 
 let proxyTarget: string;
 
-const registration: TransformerRegistrationFun = function(ctx) {
+const registration: TransformerRegistrationFun = function (ctx) {
   proxyTarget = ctx.proxyTarget;
   return [
     {

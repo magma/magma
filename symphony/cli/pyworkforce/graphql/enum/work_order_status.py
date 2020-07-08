@@ -10,5 +10,5 @@ class WorkOrderStatus(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "WorkOrderStatus":
+    def _missing_(cls, value: object) -> "WorkOrderStatus":
         return cls.MISSING_ENUM

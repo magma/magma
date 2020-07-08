@@ -8,6 +8,7 @@
  * @format
  */
 
+import type {Coords} from './Coords';
 import type {Equipment} from './Equipment';
 import type {FileAttachmentType} from './FileAttachment.js';
 import type {ImageAttachmentType} from './ImageAttachment.js';
@@ -38,4 +39,5 @@ export type Location = BasicLocation & {
   topology: TopologyNetwork,
   locationHierarchy: Array<Location>,
   surveys: $PropertyType<LocationSiteSurveyTab_location, 'surveys'>,
+  parentCoords: ?Coords,
 };

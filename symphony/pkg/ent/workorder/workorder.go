@@ -7,6 +7,8 @@
 package workorder
 
 import (
+	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -16,17 +18,27 @@ const (
 	// Label holds the string label denoting the workorder type in the database.
 	Label = "work_order"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"            // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"   // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"   // FieldName holds the string denoting the name vertex property in the database.
-	FieldName         = "name"          // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus       = "status"        // FieldPriority holds the string denoting the priority vertex property in the database.
-	FieldPriority     = "priority"      // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription  = "description"   // FieldInstallDate holds the string denoting the install_date vertex property in the database.
-	FieldInstallDate  = "install_date"  // FieldCreationDate holds the string denoting the creation_date vertex property in the database.
-	FieldCreationDate = "creation_date" // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex        = "index"         // FieldCloseDate holds the string denoting the close_date vertex property in the database.
-	FieldCloseDate    = "close_date"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldPriority holds the string denoting the priority field in the database.
+	FieldPriority = "priority"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldInstallDate holds the string denoting the install_date field in the database.
+	FieldInstallDate = "install_date"
+	// FieldCreationDate holds the string denoting the creation_date field in the database.
+	FieldCreationDate = "creation_date"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
+	// FieldCloseDate holds the string denoting the close_date field in the database.
+	FieldCloseDate = "close_date"
 
 	// EdgeType holds the string denoting the type edge name in mutations.
 	EdgeType = "type"
@@ -191,7 +203,7 @@ var ForeignKeys = []string{
 //	import _ "github.com/facebookincubator/symphony/pkg/ent/runtime"
 //
 var (
-	Hooks  [1]ent.Hook
+	Hooks  [2]ent.Hook
 	Policy ent.Policy
 	// DefaultCreateTime holds the default value on creation for the create_time field.
 	DefaultCreateTime func() time.Time
@@ -201,8 +213,109 @@ var (
 	UpdateDefaultUpdateTime func() time.Time
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
-	// DefaultStatus holds the default value on creation for the status field.
-	DefaultStatus string
-	// DefaultPriority holds the default value on creation for the priority field.
-	DefaultPriority string
 )
+
+// Status defines the type for the status enum field.
+type Status string
+
+// StatusPLANNED is the default Status.
+const DefaultStatus = StatusPLANNED
+
+// Status values.
+const (
+	StatusPENDING Status = "PENDING"
+	StatusPLANNED Status = "PLANNED"
+	StatusDONE    Status = "DONE"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "s" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusPENDING, StatusPLANNED, StatusDONE:
+		return nil
+	default:
+		return fmt.Errorf("workorder: invalid enum value for status field: %q", s)
+	}
+}
+
+// Priority defines the type for the priority enum field.
+type Priority string
+
+// PriorityNONE is the default Priority.
+const DefaultPriority = PriorityNONE
+
+// Priority values.
+const (
+	PriorityURGENT Priority = "URGENT"
+	PriorityHIGH   Priority = "HIGH"
+	PriorityMEDIUM Priority = "MEDIUM"
+	PriorityLOW    Priority = "LOW"
+	PriorityNONE   Priority = "NONE"
+)
+
+func (pr Priority) String() string {
+	return string(pr)
+}
+
+// PriorityValidator is a validator for the "pr" field enum values. It is called by the builders before save.
+func PriorityValidator(pr Priority) error {
+	switch pr {
+	case PriorityURGENT, PriorityHIGH, PriorityMEDIUM, PriorityLOW, PriorityNONE:
+		return nil
+	default:
+		return fmt.Errorf("workorder: invalid enum value for priority field: %q", pr)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, s)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (pr Priority) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, pr)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (pr *Priority) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*pr = Priority(str)
+	if err := PriorityValidator(*pr); err != nil {
+		return fmt.Errorf("%s is not a valid Priority", str)
+	}
+	return nil
+}

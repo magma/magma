@@ -32,10 +32,14 @@ type State = {
 
 const customerSearchQuery = graphql`
   query CustomerTypeahead_CustomersQuery($limit: Int) {
-    customerSearch(limit: $limit) {
-      id
-      name
-      externalId
+    customers(first: $limit) {
+      edges {
+        node {
+          id
+          name
+          externalId
+        }
+      }
     }
   }
 `;
@@ -51,16 +55,18 @@ class CustomerTypeahead extends React.Component<Props, State> {
       limit: 1000,
       filters: [],
     }).then(response => {
-      if (!response || !response.customerSearch) {
+      if (!response) {
         return;
       }
       this.setState({
-        customers: response.customerSearch.map(p => ({
-          name: p.name,
-          entityId: p.id,
-          entityType: 'customer',
-          type: p?.type?.name,
-        })),
+        customers: response.customers.edges
+          .map(edge => edge.node)
+          .map(p => ({
+            name: p.name,
+            entityId: p.id,
+            entityType: 'customer',
+            type: p?.type?.name,
+          })),
       });
     });
   }

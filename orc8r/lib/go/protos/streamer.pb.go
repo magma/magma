@@ -25,29 +25,13 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-// --------------------------------------------------------------------------
-// Streamer provides a pipeline for the cloud to push the updates to the
-// gateway as and when the update happens.
-//
-// The Streamer interface defines the semantics and consistency guarantees
-// between the cloud and the gateway while abstracting the details of how
-// its implemented in the cloud and what the gateway does with the updates.
-//
-// - The gateways call the GetUpdates() streaming API with a StreamRequest
-//   indicating the stream name and the offset to continue streaming from.
-// - The cloud sends a stream of DataUpdateBatch containing a batch of updates.
-// - If resync is true, then the gateway can cleanup all its data and add
-//   all the keys (the batch is guaranteed to contain only unique keys).
-// - If resync is false, then the gateway can update the keys, or add new
-//   ones if the key is not already present.
-// - Key deletions are not yet supported (#15109350)
-// --------------------------------------------------------------------------
 type StreamRequest struct {
 	GatewayId string `protobuf:"bytes,1,opt,name=gatewayId,proto3" json:"gatewayId,omitempty"`
-	// Stream name to attach to. (Eg:) subscriberdb, config, etc.
+	// stream_name to attach to.
+	// E.g., subscriberdb, config, etc.
 	StreamName string `protobuf:"bytes,2,opt,name=stream_name,json=streamName,proto3" json:"stream_name,omitempty"`
-	// Any extra data to send up with the stream request. This value will be
-	// different per stream provider.
+	// extra_args contain any extra data to send up with the stream request.
+	// This value will be different per stream provider.
 	ExtraArgs            *any.Any `protobuf:"bytes,3,opt,name=extra_args,json=extraArgs,proto3" json:"extra_args,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -100,60 +84,11 @@ func (m *StreamRequest) GetExtraArgs() *any.Any {
 	return nil
 }
 
-type DataUpdate struct {
-	// Unique key for each item
-	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
-	// value can be file contents, protobuf serialized message, etc.
-	// For key deletions, the value field would be absent.
-	Value                []byte   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *DataUpdate) Reset()         { *m = DataUpdate{} }
-func (m *DataUpdate) String() string { return proto.CompactTextString(m) }
-func (*DataUpdate) ProtoMessage()    {}
-func (*DataUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_acdce76608ae0d01, []int{1}
-}
-
-func (m *DataUpdate) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_DataUpdate.Unmarshal(m, b)
-}
-func (m *DataUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_DataUpdate.Marshal(b, m, deterministic)
-}
-func (m *DataUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_DataUpdate.Merge(m, src)
-}
-func (m *DataUpdate) XXX_Size() int {
-	return xxx_messageInfo_DataUpdate.Size(m)
-}
-func (m *DataUpdate) XXX_DiscardUnknown() {
-	xxx_messageInfo_DataUpdate.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_DataUpdate proto.InternalMessageInfo
-
-func (m *DataUpdate) GetKey() string {
-	if m != nil {
-		return m.Key
-	}
-	return ""
-}
-
-func (m *DataUpdate) GetValue() []byte {
-	if m != nil {
-		return m.Value
-	}
-	return nil
-}
-
 type DataUpdateBatch struct {
+	// updates to config values
 	Updates []*DataUpdate `protobuf:"bytes,1,rep,name=updates,proto3" json:"updates,omitempty"`
-	// If resync is true, the updates would be a snapshot of all the
-	// contents in the cloud.
+	// resync is true iff the updates would be a snapshot of all the contents
+	// in the cloud.
 	Resync               bool     `protobuf:"varint,2,opt,name=resync,proto3" json:"resync,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -164,7 +99,7 @@ func (m *DataUpdateBatch) Reset()         { *m = DataUpdateBatch{} }
 func (m *DataUpdateBatch) String() string { return proto.CompactTextString(m) }
 func (*DataUpdateBatch) ProtoMessage()    {}
 func (*DataUpdateBatch) Descriptor() ([]byte, []int) {
-	return fileDescriptor_acdce76608ae0d01, []int{2}
+	return fileDescriptor_acdce76608ae0d01, []int{1}
 }
 
 func (m *DataUpdateBatch) XXX_Unmarshal(b []byte) error {
@@ -199,37 +134,86 @@ func (m *DataUpdateBatch) GetResync() bool {
 	return false
 }
 
+type DataUpdate struct {
+	// key is the unique key for each item
+	Key string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	// value can be file contents, protobuf serialized message, etc.
+	// For key deletions, the value field would be absent.
+	Value                []byte   `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DataUpdate) Reset()         { *m = DataUpdate{} }
+func (m *DataUpdate) String() string { return proto.CompactTextString(m) }
+func (*DataUpdate) ProtoMessage()    {}
+func (*DataUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_acdce76608ae0d01, []int{2}
+}
+
+func (m *DataUpdate) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_DataUpdate.Unmarshal(m, b)
+}
+func (m *DataUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_DataUpdate.Marshal(b, m, deterministic)
+}
+func (m *DataUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DataUpdate.Merge(m, src)
+}
+func (m *DataUpdate) XXX_Size() int {
+	return xxx_messageInfo_DataUpdate.Size(m)
+}
+func (m *DataUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_DataUpdate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DataUpdate proto.InternalMessageInfo
+
+func (m *DataUpdate) GetKey() string {
+	if m != nil {
+		return m.Key
+	}
+	return ""
+}
+
+func (m *DataUpdate) GetValue() []byte {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*StreamRequest)(nil), "magma.orc8r.StreamRequest")
-	proto.RegisterType((*DataUpdate)(nil), "magma.orc8r.DataUpdate")
 	proto.RegisterType((*DataUpdateBatch)(nil), "magma.orc8r.DataUpdateBatch")
+	proto.RegisterType((*DataUpdate)(nil), "magma.orc8r.DataUpdate")
 }
 
 func init() { proto.RegisterFile("orc8r/protos/streamer.proto", fileDescriptor_acdce76608ae0d01) }
 
 var fileDescriptor_acdce76608ae0d01 = []byte{
-	// 329 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x92, 0xcd, 0x4f, 0xf2, 0x40,
-	0x10, 0xc6, 0xdf, 0xbe, 0x44, 0x84, 0xa9, 0x5f, 0xd9, 0x10, 0x2d, 0x1f, 0x89, 0xa4, 0x27, 0x4e,
-	0xad, 0x16, 0x0f, 0x5e, 0x21, 0x26, 0x7e, 0x1c, 0x8c, 0x29, 0xc1, 0x03, 0x31, 0x21, 0x03, 0x8c,
-	0x2b, 0x91, 0x76, 0x71, 0x77, 0x8b, 0xf6, 0xec, 0x3f, 0x6e, 0xdc, 0x2d, 0x41, 0x0e, 0xde, 0x3c,
-	0xb5, 0xcf, 0xec, 0xef, 0x99, 0x67, 0x32, 0x19, 0x68, 0x0a, 0x39, 0xbd, 0x94, 0xe1, 0x52, 0x0a,
-	0x2d, 0x54, 0xa8, 0xb4, 0x24, 0x4c, 0x48, 0x06, 0x46, 0x33, 0x37, 0x41, 0x9e, 0x60, 0x60, 0x90,
-	0x46, 0x9d, 0x0b, 0xc1, 0x17, 0x64, 0xd1, 0x49, 0xf6, 0x1c, 0x62, 0x9a, 0x5b, 0xce, 0xff, 0x74,
-	0x60, 0x7f, 0x60, 0xac, 0x31, 0xbd, 0x65, 0xa4, 0x34, 0x6b, 0x41, 0x95, 0xa3, 0xa6, 0x77, 0xcc,
-	0x6f, 0x67, 0x9e, 0xd3, 0x76, 0x3a, 0xd5, 0x78, 0x53, 0x60, 0xa7, 0xe0, 0xda, 0xa4, 0x71, 0x8a,
-	0x09, 0x79, 0xff, 0xcd, 0x3b, 0xd8, 0xd2, 0x3d, 0x26, 0xc4, 0xba, 0x00, 0xf4, 0xa1, 0x25, 0x8e,
-	0x51, 0x72, 0xe5, 0x95, 0xda, 0x4e, 0xc7, 0x8d, 0x6a, 0x81, 0x1d, 0x20, 0x58, 0x0f, 0x10, 0xf4,
-	0xd2, 0x3c, 0xae, 0x1a, 0xae, 0x27, 0xb9, 0xf2, 0x2f, 0x00, 0xae, 0x50, 0xe3, 0x70, 0x39, 0x43,
-	0x4d, 0xec, 0x08, 0x4a, 0xaf, 0x94, 0x17, 0xd9, 0xdf, 0xbf, 0xac, 0x06, 0x3b, 0x2b, 0x5c, 0x64,
-	0x36, 0x6f, 0x2f, 0xb6, 0xc2, 0x7f, 0x82, 0xc3, 0x8d, 0xab, 0x8f, 0x7a, 0xfa, 0xc2, 0xce, 0x61,
-	0x37, 0x33, 0x52, 0x79, 0x4e, 0xbb, 0xd4, 0x71, 0xa3, 0x93, 0xe0, 0xc7, 0x22, 0x82, 0x0d, 0x1e,
-	0xaf, 0x39, 0x76, 0x0c, 0x65, 0x49, 0x2a, 0x4f, 0xa7, 0xa6, 0x79, 0x25, 0x2e, 0x54, 0xf4, 0x08,
-	0x95, 0x41, 0xb1, 0x53, 0x76, 0x07, 0x70, 0x4d, 0x7a, 0x58, 0x38, 0x1a, 0x5b, 0x3d, 0xb7, 0xb6,
-	0xd7, 0x68, 0xfd, 0x92, 0x67, 0xc6, 0xf3, 0xff, 0x9d, 0x39, 0xd1, 0x08, 0x0e, 0xac, 0xe5, 0x41,
-	0x8a, 0xd5, 0x7c, 0x46, 0x92, 0xdd, 0xfc, 0x55, 0xf7, 0x7e, 0x73, 0x54, 0x37, 0x40, 0x68, 0x4f,
-	0x63, 0x31, 0x9f, 0x84, 0x5c, 0x14, 0x17, 0x32, 0x29, 0x9b, 0x6f, 0xf7, 0x2b, 0x00, 0x00, 0xff,
-	0xff, 0x5f, 0x6a, 0x9f, 0xf7, 0x38, 0x02, 0x00, 0x00,
+	// 310 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x91, 0x4f, 0x4f, 0x02, 0x31,
+	0x10, 0xc5, 0x5d, 0x89, 0x08, 0xb3, 0x1a, 0x4d, 0x43, 0x74, 0xf9, 0x93, 0x48, 0xf6, 0xc4, 0xa9,
+	0xab, 0xe0, 0xc1, 0x2b, 0xc4, 0xc4, 0xe8, 0xc1, 0x43, 0x09, 0x1e, 0x8c, 0x09, 0x19, 0x60, 0xac,
+	0x46, 0x76, 0x8b, 0x6d, 0x57, 0xdd, 0xb3, 0x5f, 0xdc, 0xd8, 0x2e, 0x41, 0x0e, 0x9e, 0xda, 0x37,
+	0xfd, 0x35, 0xf3, 0xde, 0x0c, 0xb4, 0x95, 0x9e, 0x5f, 0xe9, 0x64, 0xa5, 0x95, 0x55, 0x26, 0x31,
+	0x56, 0x13, 0xa6, 0xa4, 0xb9, 0xd3, 0x2c, 0x4c, 0x51, 0xa6, 0xc8, 0x1d, 0xd2, 0x6a, 0x4a, 0xa5,
+	0xe4, 0x92, 0x3c, 0x3a, 0xcb, 0x9f, 0x13, 0xcc, 0x0a, 0xcf, 0xc5, 0xdf, 0x01, 0x1c, 0x8e, 0xdd,
+	0x57, 0x41, 0xef, 0x39, 0x19, 0xcb, 0x3a, 0x50, 0x97, 0x68, 0xe9, 0x13, 0x8b, 0xdb, 0x45, 0x14,
+	0x74, 0x83, 0x5e, 0x5d, 0x6c, 0x0a, 0xec, 0x0c, 0x42, 0xdf, 0x69, 0x9a, 0x61, 0x4a, 0xd1, 0xae,
+	0x7b, 0x07, 0x5f, 0xba, 0xc7, 0x94, 0xd8, 0x00, 0x80, 0xbe, 0xac, 0xc6, 0x29, 0x6a, 0x69, 0xa2,
+	0x4a, 0x37, 0xe8, 0x85, 0xfd, 0x06, 0xf7, 0x06, 0xf8, 0xda, 0x00, 0x1f, 0x66, 0x85, 0xa8, 0x3b,
+	0x6e, 0xa8, 0xa5, 0x89, 0x9f, 0xe0, 0xe8, 0x1a, 0x2d, 0x4e, 0x56, 0x0b, 0xb4, 0x34, 0x42, 0x3b,
+	0x7f, 0x61, 0x17, 0xb0, 0x9f, 0x3b, 0x69, 0xa2, 0xa0, 0x5b, 0xe9, 0x85, 0xfd, 0x53, 0xfe, 0x27,
+	0x12, 0xdf, 0xe0, 0x62, 0xcd, 0xb1, 0x13, 0xa8, 0x6a, 0x32, 0x45, 0x36, 0x77, 0xb6, 0x6a, 0xa2,
+	0x54, 0xf1, 0x25, 0xc0, 0x06, 0x67, 0xc7, 0x50, 0x79, 0xa3, 0xa2, 0x4c, 0xf6, 0x7b, 0x65, 0x0d,
+	0xd8, 0xfb, 0xc0, 0x65, 0xee, 0xd3, 0x1c, 0x08, 0x2f, 0xfa, 0x0f, 0x50, 0x1b, 0x97, 0x33, 0x65,
+	0x77, 0x00, 0x37, 0x64, 0x27, 0x65, 0x9f, 0xd6, 0x96, 0x93, 0xad, 0xe9, 0xb5, 0x3a, 0xff, 0xb8,
+	0x74, 0xa1, 0xe2, 0x9d, 0xf3, 0x60, 0xd4, 0x7e, 0x6c, 0x3a, 0x24, 0xf1, 0xeb, 0x5b, 0xbe, 0xce,
+	0x12, 0xa9, 0xca, 0x2d, 0xce, 0xaa, 0xee, 0x1c, 0xfc, 0x04, 0x00, 0x00, 0xff, 0xff, 0x98, 0x86,
+	0xe8, 0x16, 0xdc, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -244,7 +228,7 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type StreamerClient interface {
-	// Get the stream of updates from the cloud.
+	// GetUpdates streams config updates from the cloud.
 	// The RPC call would be kept open to push new updates as they happen.
 	GetUpdates(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (Streamer_GetUpdatesClient, error)
 }
@@ -291,7 +275,7 @@ func (x *streamerGetUpdatesClient) Recv() (*DataUpdateBatch, error) {
 
 // StreamerServer is the server API for Streamer service.
 type StreamerServer interface {
-	// Get the stream of updates from the cloud.
+	// GetUpdates streams config updates from the cloud.
 	// The RPC call would be kept open to push new updates as they happen.
 	GetUpdates(*StreamRequest, Streamer_GetUpdatesServer) error
 }
@@ -340,77 +324,5 @@ var _Streamer_serviceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 	},
-	Metadata: "orc8r/protos/streamer.proto",
-}
-
-// StreamProviderClient is the client API for StreamProvider service.
-//
-// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type StreamProviderClient interface {
-	GetUpdates(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (*DataUpdateBatch, error)
-}
-
-type streamProviderClient struct {
-	cc grpc.ClientConnInterface
-}
-
-func NewStreamProviderClient(cc grpc.ClientConnInterface) StreamProviderClient {
-	return &streamProviderClient{cc}
-}
-
-func (c *streamProviderClient) GetUpdates(ctx context.Context, in *StreamRequest, opts ...grpc.CallOption) (*DataUpdateBatch, error) {
-	out := new(DataUpdateBatch)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.StreamProvider/GetUpdates", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// StreamProviderServer is the server API for StreamProvider service.
-type StreamProviderServer interface {
-	GetUpdates(context.Context, *StreamRequest) (*DataUpdateBatch, error)
-}
-
-// UnimplementedStreamProviderServer can be embedded to have forward compatible implementations.
-type UnimplementedStreamProviderServer struct {
-}
-
-func (*UnimplementedStreamProviderServer) GetUpdates(ctx context.Context, req *StreamRequest) (*DataUpdateBatch, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetUpdates not implemented")
-}
-
-func RegisterStreamProviderServer(s *grpc.Server, srv StreamProviderServer) {
-	s.RegisterService(&_StreamProvider_serviceDesc, srv)
-}
-
-func _StreamProvider_GetUpdates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StreamRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(StreamProviderServer).GetUpdates(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/magma.orc8r.StreamProvider/GetUpdates",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(StreamProviderServer).GetUpdates(ctx, req.(*StreamRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-var _StreamProvider_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "magma.orc8r.StreamProvider",
-	HandlerType: (*StreamProviderServer)(nil),
-	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "GetUpdates",
-			Handler:    _StreamProvider_GetUpdates_Handler,
-		},
-	},
-	Streams:  []grpc.StreamDesc{},
 	Metadata: "orc8r/protos/streamer.proto",
 }

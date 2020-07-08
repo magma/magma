@@ -32,10 +32,11 @@ func TestEditUser(t *testing.T) {
 	require.Empty(t, u.FirstName)
 
 	mr := r.Mutation()
-	u, err := mr.EditUser(ctx, models.EditUserInput{ID: u.ID, Status: toStatusPointer(user.StatusDEACTIVATED), FirstName: pointer.ToString("John")})
+	u, err := mr.EditUser(ctx, models.EditUserInput{ID: u.ID, Status: toStatusPointer(user.StatusDEACTIVATED), FirstName: pointer.ToString("John"), LastName: pointer.ToString("Doe")})
 	require.NoError(t, err)
 	require.Equal(t, user.StatusDEACTIVATED, u.Status)
 	require.Equal(t, "John", u.FirstName)
+	require.Equal(t, "Doe", u.LastName)
 }
 
 func TestAddAndDeleteProfileImage(t *testing.T) {

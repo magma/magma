@@ -40,6 +40,9 @@ type Subscriber struct {
 	// monitoring
 	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
 
+	// Optional name associated with the subscriber
+	Name string `json:"name,omitempty"`
+
 	// state
 	State *SubscriberState `json:"state,omitempty"`
 }

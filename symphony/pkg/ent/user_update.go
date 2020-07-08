@@ -202,6 +202,11 @@ func (uu *UserUpdate) AddCreatedProjects(p ...*Project) *UserUpdate {
 	return uu.AddCreatedProjectIDs(ids...)
 }
 
+// Mutation returns the UserMutation object of the builder.
+func (uu *UserUpdate) Mutation() *UserMutation {
+	return uu.mutation
+}
+
 // ClearProfilePhoto clears the profile_photo edge to File.
 func (uu *UserUpdate) ClearProfilePhoto() *UserUpdate {
 	uu.mutation.ClearProfilePhoto()
@@ -276,27 +281,27 @@ func (uu *UserUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := uu.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"first_name\": %v", err)
+			return 0, &ValidationError{Name: "first_name", err: fmt.Errorf("ent: validator failed for field \"first_name\": %w", err)}
 		}
 	}
 	if v, ok := uu.mutation.LastName(); ok {
 		if err := user.LastNameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
+			return 0, &ValidationError{Name: "last_name", err: fmt.Errorf("ent: validator failed for field \"last_name\": %w", err)}
 		}
 	}
 	if v, ok := uu.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+			return 0, &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
 		}
 	}
 	if v, ok := uu.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
+			return 0, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
 	if v, ok := uu.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
+			return 0, &ValidationError{Name: "role", err: fmt.Errorf("ent: validator failed for field \"role\": %w", err)}
 		}
 	}
 
@@ -799,6 +804,11 @@ func (uuo *UserUpdateOne) AddCreatedProjects(p ...*Project) *UserUpdateOne {
 	return uuo.AddCreatedProjectIDs(ids...)
 }
 
+// Mutation returns the UserMutation object of the builder.
+func (uuo *UserUpdateOne) Mutation() *UserMutation {
+	return uuo.mutation
+}
+
 // ClearProfilePhoto clears the profile_photo edge to File.
 func (uuo *UserUpdateOne) ClearProfilePhoto() *UserUpdateOne {
 	uuo.mutation.ClearProfilePhoto()
@@ -873,27 +883,27 @@ func (uuo *UserUpdateOne) Save(ctx context.Context) (*User, error) {
 	}
 	if v, ok := uuo.mutation.FirstName(); ok {
 		if err := user.FirstNameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"first_name\": %v", err)
+			return nil, &ValidationError{Name: "first_name", err: fmt.Errorf("ent: validator failed for field \"first_name\": %w", err)}
 		}
 	}
 	if v, ok := uuo.mutation.LastName(); ok {
 		if err := user.LastNameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"last_name\": %v", err)
+			return nil, &ValidationError{Name: "last_name", err: fmt.Errorf("ent: validator failed for field \"last_name\": %w", err)}
 		}
 	}
 	if v, ok := uuo.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"email\": %v", err)
+			return nil, &ValidationError{Name: "email", err: fmt.Errorf("ent: validator failed for field \"email\": %w", err)}
 		}
 	}
 	if v, ok := uuo.mutation.Status(); ok {
 		if err := user.StatusValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
 	if v, ok := uuo.mutation.Role(); ok {
 		if err := user.RoleValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"role\": %v", err)
+			return nil, &ValidationError{Name: "role", err: fmt.Errorf("ent: validator failed for field \"role\": %w", err)}
 		}
 	}
 
@@ -959,7 +969,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (u *User, err error) {
 	}
 	id, ok := uuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing User.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing User.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := uuo.mutation.UpdateTime(); ok {

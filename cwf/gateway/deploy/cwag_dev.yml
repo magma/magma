@@ -11,7 +11,8 @@
   vars:
     - magma_root: /home/{{ ansible_user }}/magma
     - user: "{{ ansible_user }}"
-    - full_provision: true
+    - full_provision: yes
+    - docker_host_distribution: bionic
   roles:
     - role: gomod_cache
     - role: distro_snapshot
