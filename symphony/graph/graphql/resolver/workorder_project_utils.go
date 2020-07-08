@@ -27,8 +27,8 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 	typeIDToInput := make(map[int]*models.PropertyInput)
 	switch entity {
 	case models.PropertyEntityWorkOrder:
-		var template *ent.WorkOrderType
-		if template, err = r.ClientFrom(ctx).WorkOrderType.Get(ctx, tmplID); err != nil {
+		var template *ent.WorkOrderTemplate
+		if template, err = r.ClientFrom(ctx).WorkOrderTemplate.Get(ctx, tmplID); err != nil {
 			return nil, fmt.Errorf("can't read work order type: %w", err)
 		}
 		types, err = template.QueryPropertyTypes().
