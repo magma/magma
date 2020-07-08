@@ -4,7 +4,7 @@
 # license that can be found in the LICENSE file.
 
 from numbers import Number
-from typing import Dict, List, Optional, Sequence, Tuple, cast
+from typing import Dict, Iterator, List, Optional, Sequence, Tuple, cast
 
 from pysymphony import SymphonyClient
 
@@ -285,32 +285,36 @@ def get_location(
     )
 
 
-def get_locations(client: SymphonyClient) -> List[Location]:
+def get_locations(client: SymphonyClient) -> Iterator[Location]:
     """This function returns all existing locations
 
         Returns:
-            List[ `pyinventory.common.data_class.Location` ]
+            Iterator[ `pyinventory.common.data_class.Location` ]
 
         Example:
             ```
             all_locations = client.get_locations()
             ```
     """
-    locations = GetLocationsQuery.execute(client, first=PAGINATION_STEP)
-    edges = locations.edges if locations else []
-    while locations is not None and locations.pageInfo.hasNextPage:
-        locations = GetLocationsQuery.execute(
-            client, after=locations.pageInfo.endCursor, first=PAGINATION_STEP
-        )
-        if locations is not None:
-            edges.extend(locations.edges)
 
-    result = []
-    for edge in edges:
-        node = edge.node
-        if node is not None:
-            result.append(
-                Location(
+    def generate_pages(
+        client: SymphonyClient,
+    ) -> Iterator[GetLocationsQuery.GetLocationsQueryData.LocationConnection]:
+        locations = GetLocationsQuery.execute(client, first=PAGINATION_STEP)
+        if locations:
+            yield locations
+        while locations is not None and locations.pageInfo.hasNextPage:
+            locations = GetLocationsQuery.execute(
+                client, after=locations.pageInfo.endCursor, first=PAGINATION_STEP
+            )
+            if locations is not None:
+                yield locations
+
+    for page in generate_pages(client):
+        for edge in page.edges:
+            node = edge.node
+            if node is not None:
+                yield Location(
                     name=node.name,
                     id=node.id,
                     latitude=node.latitude,
@@ -319,19 +323,18 @@ def get_locations(client: SymphonyClient) -> List[Location]:
                     location_type_name=node.locationType.name,
                     properties=node.properties,
                 )
-            )
-
-    return result
 
 
-def get_location_children(client: SymphonyClient, location_id: str) -> List[Location]:
+def get_location_children(
+    client: SymphonyClient, location_id: str
+) -> Iterator[Location]:
     """This function returns all children locations of the given location
 
         Args:
             location_id (str): parent location ID
 
         Returns:
-            List[ `pyinventory.common.data_class.Location` ]
+            Iterator[ `pyinventory.common.data_class.Location` ]
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location does not exist
@@ -349,8 +352,8 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
     if not location_with_children:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
 
-    return [
-        Location(
+    for location in location_with_children.children:
+        yield Location(
             name=location.name,
             id=location.id,
             latitude=location.latitude,
@@ -359,8 +362,6 @@ def get_location_children(client: SymphonyClient, location_id: str) -> List[Loca
             location_type_name=location.locationType.name,
             properties=location.properties,
         )
-        for location in location_with_children.children
-    ]
 
 
 def edit_location(

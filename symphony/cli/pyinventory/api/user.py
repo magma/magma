@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Iterator, List, Optional
 
 from pysymphony import SymphonyClient
 
@@ -170,11 +170,11 @@ def activate_user(client: SymphonyClient, user: User) -> None:
     )
 
 
-def get_users(client: SymphonyClient) -> List[User]:
+def get_users(client: SymphonyClient) -> Iterator[User]:
     """Get the list of users in the system (both active and deactivate)
 
         Returns:
-            List[ `pyinventory.common.data_class.User` ]
+            Iterator[ `pyinventory.common.data_class.User` ]
 
         Raises:
             FailedOperationException: internal inventory error
@@ -188,21 +188,17 @@ def get_users(client: SymphonyClient) -> List[User]:
     """
     result = UsersQuery.execute(client)
     if result is None:
-        return []
-    users = []
+        return
     for edge in result.edges:
         node = edge.node
         if node is not None:
-            users.append(
-                User(
-                    id=node.id,
-                    auth_id=node.authID,
-                    email=node.email,
-                    status=node.status,
-                    role=node.role,
-                )
+            yield User(
+                id=node.id,
+                auth_id=node.authID,
+                email=node.email,
+                status=node.status,
+                role=node.role,
             )
-    return users
 
 
 def get_active_users(client: SymphonyClient) -> List[User]:

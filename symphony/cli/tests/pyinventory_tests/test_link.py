@@ -128,7 +128,7 @@ class TestLink(BaseTest):
         self.assertEqual(self.link1, fetched_link2)
 
     def test_get_links(self) -> None:
-        links = get_links(client=self.client)
+        links = list(get_links(client=self.client))
         self.assertEqual(len(links), 1)
         add_link(
             client=self.client,
@@ -137,7 +137,7 @@ class TestLink(BaseTest):
             equipment_b=self.equipment3,
             port_name_b="Port 1",
         )
-        links = get_links(client=self.client)
+        links = list(get_links(client=self.client))
         self.assertEqual(len(links), 2)
 
     def test_cannot_create_link_if_port_occupied(self) -> None:
