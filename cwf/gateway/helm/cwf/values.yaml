@@ -50,7 +50,10 @@ cwf:
 #  dpi:
 #    dpi_license_name: cwftest.bin
 #  env: |
-#    key=value
+#    INGRESS_PORT=eth1
+#    UPLINK_PORTS=eth2 eth3
+#    LI_PORT=eth4
+
 
 ## Key Values for VM running using virtlet runtime
 image:
