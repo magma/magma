@@ -2487,6 +2487,64 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
+    static async getEventsByNetworkId(
+            parameters: {
+                'networkId': string,
+                'streams' ? : string,
+                'events' ? : string,
+                'tags' ? : string,
+                'hwIds' ? : string,
+                'from' ? : string,
+                'size' ? : string,
+                'start' ? : string,
+                'end' ? : string,
+            }
+        ): Promise < Array < {} >
+        >
+        {
+            let path = '/events/{network_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['streams'] !== undefined) {
+                query['streams'] = parameters['streams'];
+            }
+
+            if (parameters['events'] !== undefined) {
+                query['events'] = parameters['events'];
+            }
+
+            if (parameters['tags'] !== undefined) {
+                query['tags'] = parameters['tags'];
+            }
+
+            if (parameters['hwIds'] !== undefined) {
+                query['hw_ids'] = parameters['hwIds'];
+            }
+
+            if (parameters['from'] !== undefined) {
+                query['from'] = parameters['from'];
+            }
+
+            if (parameters['size'] !== undefined) {
+                query['size'] = parameters['size'];
+            }
+
+            if (parameters['start'] !== undefined) {
+                query['start'] = parameters['start'];
+            }
+
+            if (parameters['end'] !== undefined) {
+                query['end'] = parameters['end'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getEventsByNetworkIdByStreamName(
             parameters: {
                 'networkId': string,
