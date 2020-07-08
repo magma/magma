@@ -29,10 +29,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type Props = {
+type Props = $ReadOnly<{|
   user: User,
   isForCurrentUserSettings?: ?boolean,
-};
+|}>;
 
 export default function UserAccountPane(props: Props) {
   const {user, isForCurrentUserSettings = false} = props;

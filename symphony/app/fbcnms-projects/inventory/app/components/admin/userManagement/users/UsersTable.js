@@ -157,7 +157,9 @@ function UsersTable() {
         user={users[userIndex]}
         onChange={user => {
           if (haveDifferentValues(users[userIndex], user)) {
-            editUser(user).catch(handleError);
+            return editUser(user)
+              .catch(handleError)
+              .then(() => undefined);
           }
         }}
       />

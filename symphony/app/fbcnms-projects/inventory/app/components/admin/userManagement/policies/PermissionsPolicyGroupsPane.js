@@ -12,7 +12,7 @@ import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
 import Card from '@fbcnms/ui/components/design-system/Card/Card';
-import GroupSearchBox from '../utils/search/GroupSearchBox';
+import GroupSearchBar from '../utils/search/GroupSearchBar';
 import InfoTinyIcon from '@fbcnms/ui/components/design-system/Icons/Indications/InfoTinyIcon';
 import PermissionsPolicyGroupsList from './PermissionsPolicyGroupsList';
 import Switch from '@fbcnms/ui/components/design-system/switch/Switch';
@@ -22,10 +22,7 @@ import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
 import {GroupIcon} from '@fbcnms/ui/components/design-system/Icons/';
-import {
-  GroupSearchContextProvider,
-  useGroupSearchContext,
-} from '../utils/search/GroupSearchContext';
+import {GroupSearchContextProvider} from '../utils/search/GroupSearchContext';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
 
@@ -46,15 +43,6 @@ const useStyles = makeStyles(() => ({
   },
   titleIcon: {
     marginRight: '4px',
-  },
-  userSearch: {
-    marginTop: '8px',
-  },
-  usersListHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    marginTop: '12px',
-    marginBottom: '-3px',
   },
   body: {
     display: 'flex',
@@ -98,37 +86,6 @@ type Props = $ReadOnly<{|
   className?: ?string,
 |}>;
 
-function SearchBar(
-  props: $ReadOnly<{|
-    policy: PermissionsPolicy,
-  |}>,
-) {
-  const {policy} = props;
-  const classes = useStyles();
-  const userSearch = useGroupSearchContext();
-
-  return (
-    <>
-      <div className={classes.userSearch}>
-        <GroupSearchBox />
-      </div>
-      {!userSearch.isEmptySearchTerm ? null : (
-        <div className={classes.usersListHeader}>
-          {policy.groups.length > 0 ? (
-            <Text variant="subtitle2" useEllipsis={true}>
-              <fbt desc="">
-                <fbt:plural count={policy.groups.length} showCount="yes">
-                  Group
-                </fbt:plural>
-              </fbt>
-            </Text>
-          ) : null}
-        </div>
-      )}
-    </>
-  );
-}
-
 export default function PermissionsPolicyGroupsPane(props: Props) {
   const {policy, onChange, className} = props;
   const classes = useStyles();
@@ -149,7 +106,10 @@ export default function PermissionsPolicyGroupsPane(props: Props) {
   );
 
   const searchBar = useMemo(
-    () => (policy.isGlobal ? null : <SearchBar policy={policy} />),
+    () =>
+      policy.isGlobal ? null : (
+        <GroupSearchBar staticShownGroups={policy.groups} />
+      ),
     [policy],
   );
 

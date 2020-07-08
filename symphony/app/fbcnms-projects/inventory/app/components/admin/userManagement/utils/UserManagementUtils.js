@@ -37,7 +37,7 @@ graphql`
   fragment UserManagementUtils_user on User {
     ...UserManagementUtils_user_base @relay(mask: false)
     groups {
-      ...UserManagementUtils_group_base @relay(mask: false)
+      ...UserManagementUtils_group @relay(mask: false)
     }
   }
 `;

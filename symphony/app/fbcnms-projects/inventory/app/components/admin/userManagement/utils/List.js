@@ -19,6 +19,7 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
     width: '100%',
     minWidth: '240px',
+    position: 'relative',
   },
   item: {
     borderBottom: `1px solid ${symphony.palette.separatorLight}`,

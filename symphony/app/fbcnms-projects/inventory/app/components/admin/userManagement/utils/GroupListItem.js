@@ -8,8 +8,7 @@
  * @format
  */
 
-import type {PermissionsPolicy} from '../data/PermissionsPolicies';
-import type {ToggleButtonDisplay} from './ListItem';
+import type {AssigenmentButtonProp} from './MemberListItem';
 import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
@@ -24,7 +23,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useState} from 'react';
 
 const useStyles = makeStyles(() => ({
-  policyContainer: {
+  groupContainer: {
     display: 'flex',
     height: '100%',
     overflow: 'hidden',
@@ -59,57 +58,47 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export type AssigenmentButtonProp = $ReadOnly<{|
-  assigmentButton?: ?ToggleButtonDisplay,
-|}>;
-
 type Props = $ReadOnly<{|
   group: UsersGroup,
   isMember?: ?boolean,
-  policy?: ?PermissionsPolicy,
-  onChange: PermissionsPolicy => void,
+  onChange?: boolean => Promise<void> | void,
   className?: ?string,
   ...AssigenmentButtonProp,
 |}>;
 
-const checkIsGroupInPolicy = (group: UsersGroup, policy?: ?PermissionsPolicy) =>
-  policy == null || policy.groups.find(g => g.id === group.id) != null;
-
-export default function PolicyGroupListItem(props: Props) {
-  const {group, policy, assigmentButton, className, onChange} = props;
+export default function GroupListItem(props: Props) {
+  const {
+    group,
+    isMember: isMemberProp,
+    assigmentButton,
+    className,
+    onChange,
+  } = props;
   const classes = useStyles();
 
-  const [isGroupInPolicy, setIsGroupInPolicy] = useState(false);
-  useEffect(() => setIsGroupInPolicy(checkIsGroupInPolicy(group, policy)), [
-    group,
-    policy,
-  ]);
+  const [isMember, setIsMember] = useState(false);
+  useEffect(() => setIsMember(isMemberProp === true), [isMemberProp]);
 
-  const toggleAssigment = useCallback(
-    (group: UsersGroup, shouldAssign) => {
-      if (policy == null) {
+  const callOnChange = useCallback(
+    newValue => {
+      if (onChange == null) {
         return;
       }
-      const newGroups = shouldAssign
-        ? [...policy.groups, group]
-        : policy.groups.filter(g => g.id != group.id);
-      onChange({
-        ...policy,
-        groups: newGroups,
-      });
+      return onChange(newValue);
     },
-    [onChange, policy],
+    [onChange],
   );
+
   return (
     <MemberListItem
       member={{
         item: group,
-        isMember: isGroupInPolicy,
+        isMember,
       }}
       className={className}
       assigmentButton={assigmentButton}
-      onAssignToggle={() => toggleAssigment(group, !isGroupInPolicy)}>
-      <div className={classNames(classes.policyContainer, className)}>
+      onAssignToggle={() => callOnChange(!isMember)}>
+      <div className={classNames(classes.groupContainer, className)}>
         <div className={classes.photoContainer}>
           <GroupIcon color="gray" />
         </div>
