@@ -37,7 +37,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.LteNetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
 	assert.NoError(t, err)
 
 	listPolicies := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.GET).HandlerFunc
@@ -504,7 +504,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.LteNetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
 	assert.NoError(t, err)
 
 	createPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.POST).HandlerFunc

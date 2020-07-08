@@ -6,28 +6,20 @@
  LICENSE file in the root directory of this source tree.
 */
 
-package main
+package test_init
 
 import (
+	"testing"
+
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
 	"magma/lte/cloud/go/services/lte/servicers"
-	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/streamer/protos"
-
-	"github.com/golang/glog"
+	"magma/orc8r/cloud/go/test_utils"
 )
 
-func main() {
-	srv, err := service.NewOrchestratorService(lte.ModuleName, lte_service.ServiceName)
-	if err != nil {
-		glog.Fatalf("Error creating LTE service: %s", err)
-	}
-
+func StartTestService(t *testing.T) {
+	srv, lis := test_utils.NewTestService(t, lte.ModuleName, lte_service.ServiceName)
 	protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewLTEStreamProviderServicer())
-
-	err = srv.Run()
-	if err != nil {
-		glog.Fatalf("Error while running LTE service and echo server: %s", err)
-	}
+	go srv.RunTest(lis)
 }

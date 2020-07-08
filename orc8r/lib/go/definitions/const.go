@@ -12,7 +12,6 @@ package definitions
 const (
 	MconfigStreamName = "configs"
 
-	// service names
 	ControlProxyServiceName = "control_proxy"
 	DispatcherServiceName   = "dispatcher"
 	MagmadServiceName       = "magmad"

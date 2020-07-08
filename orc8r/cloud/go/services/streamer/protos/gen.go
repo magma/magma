@@ -6,9 +6,5 @@
  LICENSE file in the root directory of this source tree.
 */
 
-// Package lte provides the LTE service mesh service.
-package lte
-
-const (
-	ServiceName = "LTE"
-)
+//go:generate bash -c "protoc -I . -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
+package protos

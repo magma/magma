@@ -14,8 +14,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
-	"magma/orc8r/cloud/go/pluginimpl/stream_providers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
@@ -106,9 +104,8 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 }
 
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
-	factory := legacy_stream_providers.LegacyProviderFactory{}
 	return []providers.StreamProvider{
-		factory.CreateLegacyProvider(definitions.MconfigStreamName, &stream_providers.BaseOrchestratorStreamProviderServicer{}),
+		providers.NewRemoteProvider(definitions.StreamerServiceName, definitions.MconfigStreamName),
 	}
 }
 

@@ -1,32 +1,36 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
 */
 
-package mconfig
+package providers
 
 import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/streamer"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 )
 
-// ConfigProvider implements the legacy StreamProvider plugin interface for
-// mconfigs
-type ConfigProvider struct{}
+// MconfigProvider provides streamer mconfigs (magma configs).
+type MconfigProvider struct{}
 
-// GetUpdatesImpl implements GetUpdates for the mconfig stream provider
-func (s *ConfigProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *MconfigProvider) GetStreamName() string {
+	return definitions.MconfigStreamName
+}
+
+func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	resp, err := configurator.GetMconfigFor(gatewayId)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "error getting mconfig from configurator")
 	}
 
 	if extraArgs != nil {
@@ -49,13 +53,9 @@ func mconfigToUpdate(configs *protos.GatewayConfigs, key string, digest string) 
 	if digest == configs.Metadata.Digest.Md5HexDigest {
 		return []*protos.DataUpdate{}, streamer.EAGAIN // do not close the stream, there were no changes in configs
 	}
-
 	marshaledConfig, err := protos.MarshalJSON(configs)
 	if err != nil {
 		return nil, err
 	}
-	update := new(protos.DataUpdate)
-	update.Key = key
-	update.Value = marshaledConfig
-	return []*protos.DataUpdate{update}, nil
+	return []*protos.DataUpdate{{Key: key, Value: marshaledConfig}}, nil
 }

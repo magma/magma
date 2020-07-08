@@ -12,16 +12,18 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	plugin2 "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/protos"
-	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
-	pdbstreamer "magma/lte/cloud/go/services/policydb/streamer"
+	lte_plugin "magma/lte/cloud/go/plugin"
+	lte_protos "magma/lte/cloud/go/protos"
+	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/streamer"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
-	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/cloud/go/storage"
-	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
@@ -30,10 +32,14 @@ import (
 )
 
 func TestPolicyStreamers(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	provider, err := providers.GetStreamProvider(lte.PolicyStreamName)
+	assert.NoError(t, err)
+
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
@@ -43,11 +49,11 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r1",
-			Config: &policyModels.PolicyRuleConfig{
-				FlowList: []*policyModels.FlowDescription{
+			Config: &models.PolicyRuleConfig{
+				FlowList: []*models.FlowDescription{
 					{
 						Action: swag.String("PERMIT"),
-						Match: &policyModels.FlowMatch{
+						Match: &models.FlowMatch{
 							Direction: swag.String("UPLINK"),
 							IPProto:   swag.String("IPPROTO_IP "),
 							IPV4Dst:   "192.168.160.0/24",
@@ -61,9 +67,9 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r2",
-			Config: &policyModels.PolicyRuleConfig{
+			Config: &models.PolicyRuleConfig{
 				Priority: swag.Uint32(42),
-				Redirect: &policyModels.RedirectInformation{
+				Redirect: &models.RedirectInformation{
 					AddressType:   swag.String("IPv4"),
 					ServerAddress: swag.String("https://www.google.com"),
 					Support:       swag.String("ENABLED"),
@@ -73,7 +79,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r3",
-			Config: &policyModels.PolicyRuleConfig{
+			Config: &models.PolicyRuleConfig{
 				MonitoringKey: "bar",
 			},
 		},
@@ -83,7 +89,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b1",
-			Config: &policyModels.BaseNameRecord{Name: "b1"},
+			Config: &models.BaseNameRecord{Name: "b1"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r1"},
 				{Type: lte.PolicyRuleEntityType, Key: "r2"},
@@ -92,7 +98,7 @@ func TestPolicyStreamers(t *testing.T) {
 		{
 			Type:   lte.BaseNameEntityType,
 			Key:    "b2",
-			Config: &policyModels.BaseNameRecord{Name: "b2"},
+			Config: &models.BaseNameRecord{Name: "b2"},
 			Associations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "r3"},
 			},
@@ -100,29 +106,28 @@ func TestPolicyStreamers(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
-	policyPro := &pdbstreamer.PoliciesProvider{}
-	expectedProtos := []*protos.PolicyRule{
+	expectedProtos := []*lte_protos.PolicyRule{
 		{
 			Id:            "r1",
 			MonitoringKey: []byte("foo"),
-			FlowList: []*protos.FlowDescription{
+			FlowList: []*lte_protos.FlowDescription{
 				{
-					Match: &protos.FlowMatch{
-						Direction: protos.FlowMatch_UPLINK,
-						IpProto:   protos.FlowMatch_IPPROTO_IP,
+					Match: &lte_protos.FlowMatch{
+						Direction: lte_protos.FlowMatch_UPLINK,
+						IpProto:   lte_protos.FlowMatch_IPPROTO_IP,
 						Ipv4Dst:   "192.168.160.0/24",
 						Ipv4Src:   "192.168.128.0/24",
 					},
-					Action: protos.FlowDescription_PERMIT,
+					Action: lte_protos.FlowDescription_PERMIT,
 				},
 			},
 		},
 		{
 			Id:       "r2",
 			Priority: 42,
-			Redirect: &protos.RedirectInformation{
-				Support:       protos.RedirectInformation_ENABLED,
-				AddressType:   protos.RedirectInformation_IPv4,
+			Redirect: &lte_protos.RedirectInformation{
+				Support:       lte_protos.RedirectInformation_ENABLED,
+				AddressType:   lte_protos.RedirectInformation_IPv4,
 				ServerAddress: "https://www.google.com",
 			},
 		},
@@ -130,39 +135,45 @@ func TestPolicyStreamers(t *testing.T) {
 	}
 	expected := funk.Map(
 		expectedProtos,
-		func(r *protos.PolicyRule) *orcprotos.DataUpdate {
+		func(r *lte_protos.PolicyRule) *protos.DataUpdate {
 			data, err := proto.Marshal(r)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Key: r.Id, Value: data}
+			return &protos.DataUpdate{Key: r.Id, Value: data}
 		},
-	)
-	actual, err := policyPro.GetUpdatesImpl("hw1", nil)
+	).([]*protos.DataUpdate)
+
+	actual, err := provider.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	bnPro := &pdbstreamer.BaseNamesProvider{}
-	expectedBNProtos := []*protos.ChargingRuleBaseNameRecord{
-		{Name: "b1", RuleNamesSet: &protos.ChargingRuleNameSet{RuleNames: []string{"r1", "r2"}}},
-		{Name: "b2", RuleNamesSet: &protos.ChargingRuleNameSet{RuleNames: []string{"r3"}}},
+	bnPro := &streamer.BaseNamesProvider{}
+	expectedBNProtos := []*lte_protos.ChargingRuleBaseNameRecord{
+		{Name: "b1", RuleNamesSet: &lte_protos.ChargingRuleNameSet{RuleNames: []string{"r1", "r2"}}},
+		{Name: "b2", RuleNamesSet: &lte_protos.ChargingRuleNameSet{RuleNames: []string{"r3"}}},
 	}
 	expected = funk.Map(
 		expectedBNProtos,
-		func(bn *protos.ChargingRuleBaseNameRecord) *orcprotos.DataUpdate {
+		func(bn *lte_protos.ChargingRuleBaseNameRecord) *protos.DataUpdate {
 			data, err := proto.Marshal(bn.RuleNamesSet)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Key: bn.Name, Value: data}
+			return &protos.DataUpdate{Key: bn.Name, Value: data}
 		},
-	)
-	actual, err = bnPro.GetUpdatesImpl("hw1", nil)
+	).([]*protos.DataUpdate)
+
+	actual, err = bnPro.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
 func TestRuleMappingsProvider(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	provider, err := providers.GetStreamProvider(lte.MappingsStreamName)
+	assert.NoError(t, err)
+
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
@@ -187,7 +198,7 @@ func TestRuleMappingsProvider(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	expectedProtos := []*protos.AssignedPolicies{
+	expectedProtos := []*lte_protos.AssignedPolicies{
 		{
 			AssignedBaseNames: []string{"b1", "b3"},
 			AssignedPolicies:  []string{"r1", "r3"},
@@ -199,25 +210,28 @@ func TestRuleMappingsProvider(t *testing.T) {
 	}
 	expected := funk.Map(
 		expectedProtos,
-		func(ap *protos.AssignedPolicies) *orcprotos.DataUpdate {
+		func(ap *lte_protos.AssignedPolicies) *protos.DataUpdate {
 			data, err := proto.Marshal(ap)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Value: data}
+			return &protos.DataUpdate{Value: data}
 		},
-	).([]*orcprotos.DataUpdate)
+	).([]*protos.DataUpdate)
 	expected[0].Key, expected[1].Key = "s1", "s2"
 
-	mappingPro := &pdbstreamer.RuleMappingsProvider{DeterministicReturn: true}
-	actual, err := mappingPro.GetUpdatesImpl("hw1", nil)
+	actual, err := provider.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
 func TestNetworkWideRulesProvider(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	provider, err := providers.GetStreamProvider(lte.NetworkWideRulesStreamName)
+	assert.NoError(t, err)
+
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
@@ -235,13 +249,13 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	config := &policyModels.NetworkSubscriberConfig{
-		NetworkWideBaseNames: []policyModels.BaseName{"b1", "b2"},
+	config := &models.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []models.BaseName{"b1", "b2"},
 		NetworkWideRuleNames: []string{"r1", "r2"},
 	}
 	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config))
 
-	expectedProtos := []*protos.AssignedPolicies{
+	expectedProtos := []*lte_protos.AssignedPolicies{
 		{
 			AssignedBaseNames: []string{"b1", "b2"},
 			AssignedPolicies:  []string{"r1", "r2"},
@@ -249,15 +263,14 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 	}
 	expected := funk.Map(
 		expectedProtos,
-		func(ap *protos.AssignedPolicies) *orcprotos.DataUpdate {
+		func(ap *lte_protos.AssignedPolicies) *protos.DataUpdate {
 			data, err := proto.Marshal(ap)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Value: data}
+			return &protos.DataUpdate{Value: data}
 		},
-	).([]*orcprotos.DataUpdate)
+	).([]*protos.DataUpdate)
 
-	mappingPro := &pdbstreamer.NetworkWideRulesProvider{}
-	actual, err := mappingPro.GetUpdatesImpl("hw1", nil)
+	actual, err := provider.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

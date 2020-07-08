@@ -73,7 +73,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = streamerClient.Recv()
 	assert.Error(t, err)
-	assert.Equal(t, "rpc error: code = Aborted desc = Error while streaming updates: MOCK", err.Error())
+	assert.Equal(t, "rpc error: code = Aborted desc = error while streaming updates: MOCK", err.Error())
 
 	// Provider does not exist
 	streamerClient, err = grpcClient.GetUpdates(

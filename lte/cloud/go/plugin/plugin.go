@@ -10,17 +10,16 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/plugin/stream_provider"
-	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
-	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
-	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
-	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
+	lte_service "magma/lte/cloud/go/services/lte"
+	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydb_handlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberdbHandlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
-	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	subscriberdb_handlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
+	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -49,8 +48,8 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		state.NewStateSerde(lte.EnodebStateType, &lteModels.EnodebState{}),
-		state.NewStateSerde(lte.ICMPStateType, &subscriberModels.IcmpStatus{}),
+		state.NewStateSerde(lte.EnodebStateType, &lte_models.EnodebState{}),
+		state.NewStateSerde(lte.ICMPStateType, &subscriberdb_models.IcmpStatus{}),
 
 		// AGW state messages which use arbitrary untyped JSON serdes because
 		// they're defined/used as protos in the AGW codebase
@@ -60,18 +59,18 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitaryJSON{}),
 
 		// Configurator serdes
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lteModels.NetworkCellularConfigs{}),
-		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policyModels.NetworkSubscriberConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lteModels.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lteModels.EnodebConfiguration{}),
+		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lte_models.NetworkCellularConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policydb_models.NetworkSubscriberConfig{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lte_models.GatewayCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lte_models.EnodebConfiguration{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policyModels.PolicyRuleConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policyModels.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &subscriberModels.LteSubscription{}),
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policydb_models.PolicyRuleConfig{}),
+		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
+		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &subscriberdb_models.LteSubscription{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policyModels.RatingGroup{}),
+		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.ApnEntityType, &lteModels.ApnConfiguration{}),
+		configurator.NewNetworkEntityConfigSerde(lte.ApnEntityType, &lte_models.ApnConfiguration{}),
 	}
 }
 
@@ -87,20 +86,19 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 
 func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
-		lteHandlers.GetHandlers(),
-		policydbHandlers.GetHandlers(),
-		subscriberdbHandlers.GetHandlers(),
+		lte_handlers.GetHandlers(),
+		policydb_handlers.GetHandlers(),
+		subscriberdb_handlers.GetHandlers(),
 	)
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
-	factory := legacy_stream_providers.LegacyProviderFactory{}
 	return []providers.StreamProvider{
-		factory.CreateLegacyProvider(lte.SubscriberStreamName, &stream_provider.LteStreamProviderServicer{}),
-		factory.CreateLegacyProvider(lte.PolicyStreamName, &stream_provider.LteStreamProviderServicer{}),
-		factory.CreateLegacyProvider(lte.BaseNameStreamName, &stream_provider.LteStreamProviderServicer{}),
-		factory.CreateLegacyProvider(lte.MappingsStreamName, &stream_provider.LteStreamProviderServicer{}),
-		factory.CreateLegacyProvider(lte.NetworkWideRules, &stream_provider.LteStreamProviderServicer{}),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.SubscriberStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.PolicyStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.BaseNameStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.MappingsStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.NetworkWideRulesStreamName),
 	}
 }
 

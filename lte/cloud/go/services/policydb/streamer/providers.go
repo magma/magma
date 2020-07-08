@@ -12,22 +12,25 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
-
 	"magma/lte/cloud/go/lte"
-	lteProtos "magma/lte/cloud/go/protos"
-	lteModels "magma/lte/cloud/go/services/policydb/obsidian/models"
+	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 )
 
 type PoliciesProvider struct{}
 
-// GetUpdatesImpl implements GetUpdates for the policies stream provider
-func (provider *PoliciesProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *PoliciesProvider) GetStreamName() string {
+	return lte.PolicyStreamName
+}
+
+func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -38,23 +41,23 @@ func (provider *PoliciesProvider) GetUpdatesImpl(gatewayId string, extraArgs *an
 		return nil, err
 	}
 
-	ruleProtos := make([]*lteProtos.PolicyRule, 0, len(ruleEnts))
+	ruleProtos := make([]*lte_protos.PolicyRule, 0, len(ruleEnts))
 	for _, rule := range ruleEnts {
 		ruleProtos = append(ruleProtos, createRuleProtoFromEnt(rule))
 	}
 	return rulesToUpdates(ruleProtos)
 }
 
-func createRuleProtoFromEnt(ruleEnt configurator.NetworkEntity) *lteProtos.PolicyRule {
+func createRuleProtoFromEnt(ruleEnt configurator.NetworkEntity) *lte_protos.PolicyRule {
 	if ruleEnt.Config == nil {
-		return &lteProtos.PolicyRule{Id: ruleEnt.Key}
+		return &lte_protos.PolicyRule{Id: ruleEnt.Key}
 	}
 
-	cfg := ruleEnt.Config.(*lteModels.PolicyRuleConfig)
+	cfg := ruleEnt.Config.(*models.PolicyRuleConfig)
 	return cfg.ToProto(ruleEnt.Key)
 }
 
-func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error) {
+func rulesToUpdates(rules []*lte_protos.PolicyRule) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(rules))
 	for _, policy := range rules {
 		marshaledPolicy, err := proto.Marshal(policy)
@@ -69,12 +72,11 @@ func rulesToUpdates(rules []*lteProtos.PolicyRule) ([]*protos.DataUpdate, error)
 
 type BaseNamesProvider struct{}
 
-func (provider *BaseNamesProvider) GetStreamName() string {
+func (p *BaseNamesProvider) GetStreamName() string {
 	return lte.BaseNameStreamName
 }
 
-// GetUpdatesImpl implements GetUpdates for the base names stream provider
-func (provider *BaseNamesProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -89,19 +91,19 @@ func (provider *BaseNamesProvider) GetUpdatesImpl(gatewayId string, extraArgs *a
 		return nil, err
 	}
 
-	bnProtos := make([]*lteProtos.ChargingRuleBaseNameRecord, 0, len(bnEnts))
+	bnProtos := make([]*lte_protos.ChargingRuleBaseNameRecord, 0, len(bnEnts))
 	for _, bn := range bnEnts {
-		baseNameRecord := (&lteModels.BaseNameRecord{}).FromEntity(bn)
-		bnProto := &lteProtos.ChargingRuleBaseNameRecord{
+		baseNameRecord := (&models.BaseNameRecord{}).FromEntity(bn)
+		bnProto := &lte_protos.ChargingRuleBaseNameRecord{
 			Name:         string(baseNameRecord.Name),
-			RuleNamesSet: &lteProtos.ChargingRuleNameSet{RuleNames: baseNameRecord.RuleNames},
+			RuleNamesSet: &lte_protos.ChargingRuleNameSet{RuleNames: baseNameRecord.RuleNames},
 		}
 		bnProtos = append(bnProtos, bnProto)
 	}
 	return bnsToUpdates(bnProtos)
 }
 
-func bnsToUpdates(bns []*lteProtos.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
+func bnsToUpdates(bns []*lte_protos.ChargingRuleBaseNameRecord) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(bns))
 	for _, bn := range bns {
 		// We only send the rule names set here
@@ -115,14 +117,14 @@ func bnsToUpdates(bns []*lteProtos.ChargingRuleBaseNameRecord) ([]*protos.DataUp
 	return ret, nil
 }
 
-type RuleMappingsProvider struct {
-	// Set DeterministicReturn to true to sort all returned collections (to
-	// make testing easier for e.g.)
-	DeterministicReturn bool
+type RuleMappingsProvider struct{}
+
+func (p *RuleMappingsProvider) GetStreamName() string {
+	return lte.MappingsStreamName
 }
 
-// GetUpdatesImpl implements GetUpdates for the rule mapppings stream provider
-func (r *RuleMappingsProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+// GetUpdates implements GetUpdates for the rule mappings stream provider
+func (p *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -138,7 +140,7 @@ func (r *RuleMappingsProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.A
 		return nil, errors.Wrap(err, "failed to load base names")
 	}
 
-	policiesBySid, err := r.getAssignedPoliciesBySid(ruleEnts, bnEnts)
+	policiesBySid, err := p.getAssignedPoliciesBySid(ruleEnts, bnEnts)
 	if err != nil {
 		return nil, err
 	}
@@ -151,25 +153,23 @@ func (r *RuleMappingsProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.A
 		}
 		ret = append(ret, &protos.DataUpdate{Key: sid, Value: marshaledPolicies})
 	}
-	if r.DeterministicReturn {
-		sortUpdates(ret)
-	}
+	sortUpdates(ret)
 	return ret, nil
 }
 
-func (r *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lteProtos.AssignedPolicies, error) {
+func (p *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lte_protos.AssignedPolicies, error) {
 	allEnts := make([]configurator.NetworkEntity, 0, len(policyRules)+len(baseNames))
 	allEnts = append(allEnts, policyRules...)
 	allEnts = append(allEnts, baseNames...)
 
-	policiesBySid := map[string]*lteProtos.AssignedPolicies{}
+	policiesBySid := map[string]*lte_protos.AssignedPolicies{}
 	for _, ent := range allEnts {
 		for _, tk := range ent.Associations {
 			switch tk.Type {
 			case lte.SubscriberEntityType:
 				policies, found := policiesBySid[tk.Key]
 				if !found {
-					policies = &lteProtos.AssignedPolicies{}
+					policies = &lte_protos.AssignedPolicies{}
 					policiesBySid[tk.Key] = policies
 				}
 
@@ -185,11 +185,9 @@ func (r *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurat
 		}
 	}
 
-	if r.DeterministicReturn {
-		for _, policies := range policiesBySid {
-			sort.Strings(policies.AssignedBaseNames)
-			sort.Strings(policies.AssignedPolicies)
-		}
+	for _, policies := range policiesBySid {
+		sort.Strings(policies.AssignedBaseNames)
+		sort.Strings(policies.AssignedPolicies)
 	}
 
 	return policiesBySid, nil
@@ -201,9 +199,11 @@ func sortUpdates(updates []*protos.DataUpdate) {
 
 type NetworkWideRulesProvider struct{}
 
-// GetUpdatesImpl implements GetUpdates for the network wide rules stream
-// provider
-func (r *NetworkWideRulesProvider) GetUpdatesImpl(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *NetworkWideRulesProvider) GetStreamName() string {
+	return lte.NetworkWideRulesStreamName
+}
+
+func (p *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -215,12 +215,12 @@ func (r *NetworkWideRulesProvider) GetUpdatesImpl(gatewayId string, extraArgs *a
 	if err != nil {
 		return nil, err
 	}
-	config, ok := iNetworkSubscriberConfig.(*lteModels.NetworkSubscriberConfig)
+	config, ok := iNetworkSubscriberConfig.(*models.NetworkSubscriberConfig)
 	if !ok {
-		return nil, fmt.Errorf("Failed to convert to NetworkSubscriberConfig")
+		return nil, fmt.Errorf("failed to convert to NetworkSubscriberConfig")
 	}
 
-	assignedPolicies := &lteProtos.AssignedPolicies{AssignedPolicies: config.NetworkWideRuleNames}
+	assignedPolicies := &lte_protos.AssignedPolicies{AssignedPolicies: config.NetworkWideRuleNames}
 	for _, baseName := range config.NetworkWideBaseNames {
 		assignedPolicies.AssignedBaseNames = append(assignedPolicies.AssignedBaseNames, string(baseName))
 	}

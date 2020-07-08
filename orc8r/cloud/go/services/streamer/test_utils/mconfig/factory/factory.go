@@ -59,8 +59,8 @@ func registerUnsafe(builder MconfigBuilder) {
 	factory.builders = append(factory.builders, builder)
 }
 
-// Create an mconfig by delegating to all builders that have been registered
-// with the factory and append those results together.
+// CreateMconfig creates an mconfig by delegating to all builders that have
+// been registered with the factory and append those results together.
 // Note that the keys which builders return must be globally unique.
 func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, error) {
 	factory.RLock()
@@ -81,7 +81,7 @@ func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, 
 
 			vAny, err := ptypes.MarshalAny(v)
 			if err != nil {
-				return nil, fmt.Errorf("Error marshaling builder value to Any: %s", err)
+				return nil, fmt.Errorf("error marshaling builder value to Any: %s", err)
 			}
 			ret[k] = vAny
 		}
@@ -94,8 +94,7 @@ func CreateMconfig(networkId string, gatewayId string) (*protos.GatewayConfigs, 
 	}, nil
 }
 
-// Methods below exist ONLY for testing - thus the required but unused *testing.T param
-// DO NOT USE IN ANYTHING BUT TESTS
+// ClearMconfigBuilders clears existing mconfig builders.
 func ClearMconfigBuilders(_ *testing.T) {
 	factory.Lock()
 	factory.builders = factory.builders[:0]

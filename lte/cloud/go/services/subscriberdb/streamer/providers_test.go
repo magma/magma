@@ -12,27 +12,32 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	plugin2 "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/protos"
-	models2 "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
-	sdbstreamer "magma/lte/cloud/go/services/subscriberdb/streamer"
+	lte_plugin "magma/lte/cloud/go/plugin"
+	lte_protos "magma/lte/cloud/go/protos"
+	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
+	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
-	cfg_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/cloud/go/storage"
-	orcprotos "magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/stretchr/testify/assert"
+	assert "github.com/stretchr/testify/require"
 	"github.com/thoas/go-funk"
 )
 
 func TestSubscriberdbStreamer(t *testing.T) {
-	cfg_test_init.StartTestService(t)
-	_ = plugin.RegisterPluginForTests(t, &plugin2.LteOrchestratorPlugin{})
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	provider, err := providers.GetStreamProvider(lte.SubscriberStreamName)
+	assert.NoError(t, err)
+
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
@@ -42,44 +47,43 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
 			Type: lte.SubscriberEntityType, Key: "IMSI12345",
-			Config: &models2.LteSubscription{
+			Config: &models.LteSubscription{
 				State:   "ACTIVE",
 				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models2.LteSubscription{State: "INACTIVE", SubProfile: "foo"}},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}},
 	})
 	assert.NoError(t, err)
 
-	pro := &sdbstreamer.SubscribersProvider{}
-	expectedProtos := []*protos.SubscriberData{
+	expectedProtos := []*lte_protos.SubscriberData{
 		{
-			Sid: &protos.SubscriberID{Id: "12345", Type: protos.SubscriberID_IMSI},
-			Lte: &protos.LTESubscription{
-				State:   protos.LTESubscription_ACTIVE,
+			Sid: &lte_protos.SubscriberID{Id: "12345", Type: lte_protos.SubscriberID_IMSI},
+			Lte: &lte_protos.LTESubscription{
+				State:   lte_protos.LTESubscription_ACTIVE,
 				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
 			},
-			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "default",
 		},
 		{
-			Sid:        &protos.SubscriberID{Id: "67890", Type: protos.SubscriberID_IMSI},
-			Lte:        &protos.LTESubscription{State: protos.LTESubscription_INACTIVE},
-			NetworkId:  &orcprotos.NetworkID{Id: "n1"},
+			Sid:        &lte_protos.SubscriberID{Id: "67890", Type: lte_protos.SubscriberID_IMSI},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "foo",
 		},
 	}
 	expected := funk.Map(
 		expectedProtos,
-		func(sub *protos.SubscriberData) *orcprotos.DataUpdate {
+		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {
 			data, err := proto.Marshal(sub)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
+			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err := pro.GetUpdatesImpl("hw1", nil)
+	actual, err := provider.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -104,13 +108,13 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	expectedProtos[0].Lte.AssignedBaseNames = []string{"bn1"}
 	expected = funk.Map(
 		expectedProtos,
-		func(sub *protos.SubscriberData) *orcprotos.DataUpdate {
+		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {
 			data, err := proto.Marshal(sub)
 			assert.NoError(t, err)
-			return &orcprotos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
+			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
 	)
-	actual, err = pro.GetUpdatesImpl("hw1", nil)
+	actual, err = provider.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

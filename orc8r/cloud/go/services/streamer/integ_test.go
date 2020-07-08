@@ -13,25 +13,23 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/lib/go/definitions"
-
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-
 	streamer_client "magma/gateway/streamer"
 	"magma/orc8r/cloud/go/services/streamer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
+
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	assert "github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 )
 
 const (
 	testStreamName = "mock1"
-	testGwID       = "hwId"
 )
 
 // Mock Cloud Streamer
@@ -78,13 +76,13 @@ func (l testListener) ReportError(e error) error {
 
 func (l testListener) Update(ub *protos.DataUpdateBatch) bool {
 	if len(expected) != len(ub.GetUpdates()) {
-		l.updateErr <- fmt.Errorf("Updates # %d != expected # %d", len(ub.GetUpdates()), len(expected))
+		l.updateErr <- fmt.Errorf("updates # %d != expected # %d", len(ub.GetUpdates()), len(expected))
 		return false
 	}
 	for i, u := range ub.GetUpdates() {
 		if protos.TestMarshal(expected[i]) != protos.TestMarshal(u) {
 			l.updateErr <- fmt.Errorf(
-				"Update %s != expected %s", protos.TestMarshal(u), protos.TestMarshal(expected[i]))
+				"update %s != expected %s", protos.TestMarshal(u), protos.TestMarshal(expected[i]))
 			return false
 		}
 	}
@@ -99,13 +97,13 @@ type mockedCloudRegistry struct {
 
 func (cr mockedCloudRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	if service != definitions.StreamerServiceName {
-		return nil, fmt.Errorf("Not Implemented")
+		return nil, fmt.Errorf("not Implemented")
 	}
 	return platform_registry.GetConnection(streamer.ServiceName)
 }
 
 func (cr mockedCloudRegistry) GetCloudConnectionFromServiceConfig(serviceConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
-	return nil, fmt.Errorf("Not Implemented")
+	return nil, fmt.Errorf("not Implemented")
 
 }
 
@@ -116,7 +114,8 @@ func TestStreamerClient(t *testing.T) {
 	streamerClient := streamer_client.NewStreamerClient(mockedCloudRegistry{})
 	mockProvider := &mockStreamProvider{name: testStreamName, retVal: expected}
 
-	providers.RegisterStreamProvider(mockProvider)
+	err := providers.RegisterStreamProvider(mockProvider)
+	assert.NoError(t, err)
 
 	l := testListener{}
 	l.err = make(chan error)

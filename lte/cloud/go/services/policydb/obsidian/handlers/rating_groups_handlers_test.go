@@ -35,7 +35,7 @@ func TestRatingGroupHandlersBasic(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.LteNetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
 	assert.NoError(t, err)
 
 	listRatingGroups := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/rating_groups", obsidian.GET).HandlerFunc

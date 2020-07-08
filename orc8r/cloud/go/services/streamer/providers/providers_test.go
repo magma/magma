@@ -1,47 +1,41 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
 */
 
-package mconfig_test
+package providers_test
 
 import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	legacyProviders "magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
-	"magma/orc8r/cloud/go/pluginimpl/stream_providers"
+	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mocks"
-	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/factory"
-	"magma/orc8r/cloud/go/services/streamer/mconfig/test_protos"
-	"magma/orc8r/cloud/go/services/streamer/providers"
-	streamerTestInit "magma/orc8r/cloud/go/services/streamer/test_init"
-	"magma/orc8r/lib/go/definitions"
+	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
+	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/factory"
+	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/test_protos"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	assert "github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func TestMconfigStreamer_Configurator(t *testing.T) {
-	configuratorTestInit.StartTestService(t)
-	streamerTestInit.StartTestService(t)
-	legacyProviderFactory := legacyProviders.LegacyProviderFactory{}
-	legacyProvider := legacyProviderFactory.CreateLegacyProvider(
-		definitions.MconfigStreamName,
-		&stream_providers.BaseOrchestratorStreamProviderServicer{})
-	_ = providers.RegisterStreamProvider(legacyProvider)
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})) // load remote providers
+	configurator_test_init.StartTestService(t)
+	streamer_test_init.StartTestService(t)
 
 	// set up mock mconfig builders (legacy and new)
 	configurator.ClearMconfigBuilders(t)
@@ -75,7 +69,7 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	// Make normal call for config updates
 	extraArgs := &protos.GatewayConfigsDigest{Md5HexDigest: "useless_digest"}
 	serializedExtraArgs, _ := ptypes.MarshalAny(extraArgs)
-	streamerClient, err := grpcClient.GetUpdates(
+	stream, err := grpcClient.GetUpdates(
 		context.Background(),
 		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
 	)
@@ -90,7 +84,7 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 		assert.NoError(t, err)
 		expected[k] = anyV
 	}
-	actualMarshaled, err := streamerClient.Recv()
+	actualMarshaled, err := stream.Recv()
 	assert.NoError(t, err)
 	actual := &protos.GatewayConfigs{}
 	err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
@@ -101,12 +95,13 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	// matches provider's digest, empty update batch is returned
 	extraArgs = &protos.GatewayConfigsDigest{Md5HexDigest: actual.Metadata.Digest.Md5HexDigest}
 	serializedExtraArgs, _ = ptypes.MarshalAny(extraArgs)
-	streamerClient, err = grpcClient.GetUpdates(
+	stream, err = grpcClient.GetUpdates(
 		context.Background(),
 		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
 	)
+	assert.NoError(t, err)
 
-	actualMarshaled, err = streamerClient.Recv()
+	actualMarshaled, err = stream.Recv()
 	assert.NoError(t, err)
 	assert.Empty(t, actualMarshaled.Updates)
 
