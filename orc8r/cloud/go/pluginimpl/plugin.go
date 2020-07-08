@@ -31,7 +31,6 @@ import (
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/service/serviceregistry"
 
 	"github.com/labstack/echo"
 )
@@ -44,7 +43,7 @@ func (*BaseOrchestratorPlugin) GetName() string {
 }
 
 func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
-	serviceLocations, err := serviceregistry.LoadServiceRegistryConfig(orc8r.ModuleName)
+	serviceLocations, err := registry.LoadServiceRegistryConfig(orc8r.ModuleName)
 	if err != nil {
 		return []registry.ServiceLocation{}
 	}

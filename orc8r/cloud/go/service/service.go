@@ -56,44 +56,27 @@ type OrchestratorService struct {
 // server as a part of the service. This service will implement a middleware
 // interceptor to perform identity check. If your service does not or can not
 // perform identity checks, (e.g. federation), use NewServiceWithOptions.
-func NewOrchestratorService(moduleName string, serviceName string) (*OrchestratorService, error) {
+func NewOrchestratorService(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
 	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
-	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, grpc.UnaryInterceptor(unary.MiddlewareHandler))
-	if err != nil {
-		return nil, err
-	}
-	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
-	if err != nil {
-		return nil, err
-	}
-	return &OrchestratorService{
-		Service:    platformService,
-		EchoServer: echoSrv,
-	}, nil
-}
 
-// NewOrchestratorServiceWithOptions returns a new gRPC orchestrator service
-// implementing service303 with the specified gRPC server options.
-// If configured, it will also initialize an HTTP echo server as a part of the
-// service. This service will implement a middleware interceptor to perform
-// identity check.
-func NewOrchestratorServiceWithOptions(moduleName string, serviceName string, serverOptions ...grpc.ServerOption) (*OrchestratorService, error) {
-	flag.Parse()
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
+	err := registry.PopulateServices()
+	if err != nil {
+		return nil, err
+	}
+
 	serverOptions = append(serverOptions, grpc.UnaryInterceptor(unary.MiddlewareHandler))
 	platformService, err := platform_service.NewServiceWithOptionsImpl(moduleName, serviceName, serverOptions...)
 	if err != nil {
 		return nil, err
 	}
+
 	echoSrv, err := getEchoServerForOrchestratorService(serviceName)
 	if err != nil {
 		return nil, err
 	}
-	return &OrchestratorService{
-		Service:    platformService,
-		EchoServer: echoSrv,
-	}, nil
+
+	return &OrchestratorService{Service: platformService, EchoServer: echoSrv}, nil
 }
 
 // Run runs the service. If the echo HTTP server is non-nil, both the HTTP

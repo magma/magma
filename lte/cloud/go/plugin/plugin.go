@@ -28,7 +28,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/service/serviceregistry"
 )
 
 // LteOrchestratorPlugin implements OrchestratorPlugin for the LTE module
@@ -39,7 +38,7 @@ func (*LteOrchestratorPlugin) GetName() string {
 }
 
 func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
-	serviceLocations, err := serviceregistry.LoadServiceRegistryConfig(lte.ModuleName)
+	serviceLocations, err := registry.LoadServiceRegistryConfig(lte.ModuleName)
 	if err != nil {
 		return []registry.ServiceLocation{}
 	}

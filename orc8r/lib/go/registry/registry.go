@@ -51,7 +51,7 @@ func New() *ServiceRegistry {
 }
 
 // String implements ServiceLocation stringer interface
-// Returns string in the form: <Service name> @ host:port (also known as: host:port, ...)
+// Returns string in the form: <service name> @ host:port (also known as: host:port, ...)
 func (sl ServiceLocation) String() string {
 	alsoKnown := ""
 	if len(sl.ProxyAliases) > 0 {
@@ -103,11 +103,11 @@ func (registry *ServiceRegistry) GetServiceAddress(service string) (string, erro
 		// uppercase the name and lookup again, local service keys are usually uppercased
 		ucService := strings.ToUpper(service)
 		if location, ok = registry.ServiceLocations[ucService]; !ok {
-			return "", fmt.Errorf("Service '%s|%s' not registered", service, ucService)
+			return "", fmt.Errorf("service '%s' ('%s') not registered", service, ucService)
 		}
 	}
 	if location.Port == 0 {
-		return "", fmt.Errorf("Service %s is not available", service)
+		return "", fmt.Errorf("service %s is not available", service)
 	}
 	return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
 }
@@ -130,7 +130,7 @@ func (registry *ServiceRegistry) GetServiceProxyAliases(service string) (map[str
 	defer registry.RUnlock()
 	location, ok := registry.ServiceLocations[service]
 	if !ok {
-		return nil, fmt.Errorf("failed to retrieve proxy alias: Service '%s' not registered", service)
+		return nil, fmt.Errorf("failed to retrieve proxy alias: service '%s' not registered", service)
 	}
 	return location.ProxyAliases, nil
 }
@@ -140,13 +140,13 @@ func (registry *ServiceRegistry) GetServiceProxyAliases(service string) (map[str
 func (registry *ServiceRegistry) GetServicePort(service string) (int, error) {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.ServiceLocations[strings.ToUpper(string(service))]
+	location, ok := registry.ServiceLocations[strings.ToUpper(service)]
 	if !ok {
-		return 0, fmt.Errorf("failed to get service port: Service '%s' not registered", service)
+		return 0, fmt.Errorf("service %s not registered", service)
 	}
 
 	if location.Port == 0 {
-		return 0, fmt.Errorf("Service %s is not available", service)
+		return 0, fmt.Errorf("service %s not available", service)
 	}
 	return location.Port, nil
 }
@@ -156,13 +156,13 @@ func (registry *ServiceRegistry) GetServicePort(service string) (int, error) {
 func (registry *ServiceRegistry) GetEchoServerPort(service string) (int, error) {
 	registry.RLock()
 	defer registry.RUnlock()
-	location, ok := registry.ServiceLocations[strings.ToUpper(string(service))]
+	location, ok := registry.ServiceLocations[strings.ToUpper(service)]
 	if !ok {
-		return 0, fmt.Errorf("failed to get echo server port: Service '%s' not registered", service)
+		return 0, fmt.Errorf("failed to get echo server port: service '%s' not registered", service)
 	}
 
 	if location.EchoPort == 0 {
-		return 0, fmt.Errorf("Echo server port for service %s is not available", service)
+		return 0, fmt.Errorf("echo server port for service %s is not available", service)
 	}
 	return location.EchoPort, nil
 }
@@ -203,7 +203,7 @@ func (registry *ServiceRegistry) GetConnectionImpl(ctx context.Context, service 
 	// Attempt to connect outside of the lock
 	newConn, err := GetClientConnection(ctx, addr, opts...)
 	if err != nil || newConn == nil {
-		return newConn, fmt.Errorf("Service %v connection error: %s", service, err)
+		return newConn, fmt.Errorf("service %v connection error: %s", service, err)
 	}
 
 	registry.Lock()
@@ -225,7 +225,7 @@ func GetClientConnection(ctx context.Context, addr string, opts ...grpc.DialOpti
 	opts = append(opts, grpc.WithInsecure())
 	conn, err := grpc.DialContext(ctx, addr, opts...)
 	if err != nil {
-		return nil, fmt.Errorf("Address: %s GRPC Dial error: %s", addr, err)
+		return nil, fmt.Errorf("address: %s gRPC Dial error: %s", addr, err)
 	} else if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}

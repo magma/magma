@@ -36,7 +36,7 @@ func main() {
 	keepaliveParams.MaxConnectionAgeGrace = 0
 
 	// Create the service
-	srv, err := service.NewOrchestratorServiceWithOptions(
+	srv, err := service.NewOrchestratorService(
 		orc8r.ModuleName,
 		dispatcher.ServiceName,
 		grpc.KeepaliveParams(keepaliveParams),

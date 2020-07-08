@@ -171,24 +171,23 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	return ret, nil
 }
 
-func registerPlugin(orc8rPlugin OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
-	registry.AddServices(orc8rPlugin.GetServices()...)
-	if err := serde.RegisterSerdes(orc8rPlugin.GetSerdes()...); err != nil {
+func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
+	if err := serde.RegisterSerdes(plug.GetSerdes()...); err != nil {
 		return err
 	}
-	if err := metricsd.RegisterMetricsProfiles(orc8rPlugin.GetMetricsProfiles(metricsConfig)...); err != nil {
+	if err := metricsd.RegisterMetricsProfiles(plug.GetMetricsProfiles(metricsConfig)...); err != nil {
 		return err
 	}
-	if err := obsidian.RegisterAll(orc8rPlugin.GetObsidianHandlers(metricsConfig)); err != nil {
+	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}
-	if err := providers.RegisterStreamProviders(orc8rPlugin.GetStreamerProviders()...); err != nil {
+	if err := providers.RegisterStreamProviders(plug.GetStreamerProviders()...); err != nil {
 		return err
 	}
-	configurator.RegisterMconfigBuilders(orc8rPlugin.GetMconfigBuilders()...)
 
-	// TODO(hcgatewood): fix this once k8s polling is enabled
-	if err := indexer.RegisterIndexers(orc8rPlugin.GetStateIndexers()...); err != nil {
+	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
+
+	if err := indexer.RegisterIndexers(plug.GetStateIndexers()...); err != nil {
 		return err
 	}
 

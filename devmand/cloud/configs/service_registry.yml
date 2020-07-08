@@ -12,5 +12,3 @@ services:
     port: 9116
     echo_port: 10116
     proxy_type: "clientcert"
-
-
