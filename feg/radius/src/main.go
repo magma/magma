@@ -9,10 +9,6 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/loader"
-	"fbc/cwf/radius/monitoring"
-	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -24,8 +20,14 @@ import (
 	"sort"
 	"syscall"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/loader"
+	"fbc/cwf/radius/monitoring"
+	"fbc/cwf/radius/server"
+
 	_ "magma/orc8r/lib/go/initflag"
+
+	"go.uber.org/zap"
 )
 
 func createLogger(encoding string) (*zap.Logger, error) {
@@ -85,8 +87,9 @@ func main() {
 	}
 
 	logger = logger.With(zap.String("host", getHostIdentifier()))
-	logger = logger.With(zap.String("partner_shortname", config.Monitoring.Scuba.PartnerShortName))
-
+	if config.Monitoring.Scuba != nil {
+		logger = logger.With(zap.String("partner_shortname", config.Monitoring.Scuba.PartnerShortName))
+	}
 	loader := loader.NewStaticLoader(logger)
 
 	// Create server
