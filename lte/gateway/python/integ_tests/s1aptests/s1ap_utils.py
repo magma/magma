@@ -15,6 +15,8 @@ import threading
 import time
 from queue import Queue
 import grpc
+import json
+import re
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -512,64 +514,75 @@ class MagmadUtil(object):
         Remove default PLMN and TAC from MME configuration file
         """
 
-        print("Removing default GUMMEI_LIST from MME configuration")
-        self.exec_command(
-            "sed -i '/GUMMEI_LIST/{n;d}' " + self.mme_config_file
+        print(
+            "Removing default values of GUMMEI_LIST, TAI_LIST and TAC_LIST "
+            "from MME configuration"
         )
-
-        print("Removing default TAI_LIST from MME configuration")
         self.exec_command(
-            "sed -i '/TAI_LIST/{n;N;N;N;N;N;N;d}' " + self.mme_config_file
-        )
-
-        print("Removing default TAC_LIST from MME configuration")
-        self.exec_command(
-            "sed -i '/TAC_LIST/{n;N;N;d}' " + self.mme_config_file
+            "sed -i -e '/GUMMEI_LIST/{n;d}' -e '/TAI_LIST/{n;N;N;N;N;N;N;d}' "
+            "-e '/TAC_LIST/{n;N;N;d}' "
+            + self.mme_config_file
         )
 
     def configure_multiple_plmn_tac(self):
         """
         Configure multiple PLMNs and TACs in MME configuration file
         """
-        config_list = [
+
+        print("Updating multiple PLMNs and TACs in MME configuration")
+
+        gummei_config = [
+            {"MCC": "001", "MNC": "01", "MME_GID": "1", "MME_CODE": "1"},
+            {"MCC": "001", "MNC": "02", "MME_GID": "1", "MME_CODE": "1"},
+            {"MCC": "001", "MNC": "03", "MME_GID": "1", "MME_CODE": "1"},
+            {"MCC": "001", "MNC": "04", "MME_GID": "1", "MME_CODE": "1"},
+            {"MCC": "001", "MNC": "05", "MME_GID": "1", "MME_CODE": "1"},
+        ]
+        gummei_cmd_str = ""
+        for each_entry in gummei_config:
+            gummei_cmd_str += (
+                "         { "
+                + "; ".join(
+                    [
+                        "=".join([key, json.dumps(val)])
+                        for key, val in each_entry.items()
+                    ]
+                )
+                + " },\\n"
+            )
+        gummei_cmd_str = re.escape(gummei_cmd_str[:-3])
+
+        tac_config = [
             {"MCC": "001", "MNC": "01", "TAC": "1"},
             {"MCC": "001", "MNC": "02", "TAC": "2"},
             {"MCC": "001", "MNC": "03", "TAC": "3"},
             {"MCC": "001", "MNC": "04", "TAC": "4"},
             {"MCC": "001", "MNC": "05", "TAC": "5"},
         ]
-
-        print("Updating multiple PLMNs and TACs in MME configuration")
-        gummei_cmd_str = ""
         tac_cmd_str = ""
-        count_tacs = len(config_list)
-        for idx in range(count_tacs):
-            gummei_cmd_str += "\ \ \ \ \ \ \ \ \ "
-            gummei_cmd_str += "{ "
-            gummei_cmd_str += 'MCC=\\"' + config_list[idx]["MCC"] + '\\" ; '
-            gummei_cmd_str += 'MNC=\\"' + config_list[idx]["MNC"] + '\\" ; '
-            gummei_cmd_str += 'MME_GID=\\"1\\" ; '
-            gummei_cmd_str += 'MME_CODE=\\"1\\" ; '
+        for each_entry in tac_config:
+            tac_cmd_str += (
+                "         { "
+                + "; ".join(
+                    [
+                        "=".join([key, json.dumps(val)])
+                        for key, val in each_entry.items()
+                    ]
+                )
+                + " },\\n"
+            )
+        tac_cmd_str = re.escape(tac_cmd_str[:-3])
 
-            tac_cmd_str += "\ \ \ \ \ \ \ \ \ "
-            tac_cmd_str += "{ "
-            tac_cmd_str += 'MCC=\\"' + config_list[idx]["MCC"] + '\\" ; '
-            tac_cmd_str += 'MNC=\\"' + config_list[idx]["MNC"] + '\\" ; '
-            tac_cmd_str += 'TAC=\\"' + config_list[idx]["TAC"] + '\\" ; '
-
-            if idx == (count_tacs - 1):
-                gummei_cmd_str += "}"
-                tac_cmd_str += "}"
-            else:
-                gummei_cmd_str += "},\\n"
-                tac_cmd_str += "},\\n"
-
-        gummei_cmd_str += "' " + self.mme_config_file
-        tac_cmd_str += "' " + self.mme_config_file
-
-        self.exec_command("sed -i '/GUMMEI_LIST/a " + gummei_cmd_str)
-        self.exec_command("sed -i '/TAI_LIST/a " + tac_cmd_str)
-        self.exec_command("sed -i '/TAC_LIST/a " + tac_cmd_str)
+        self.exec_command(
+            "sed -i -e '/GUMMEI_LIST/a "
+            + gummei_cmd_str
+            + "' -e '/TAI_LIST/a "
+            + tac_cmd_str
+            + "' -e '/TAC_LIST/a "
+            + tac_cmd_str
+            + "' "
+            + self.mme_config_file
+        )
 
     def reduce_mobile_reachability_timer_value(self):
         """
