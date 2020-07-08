@@ -71,5 +71,4 @@
 
 - name: Configure gw0 and uplink_br0 flows
   become: true
-  script: configure_default_uplink_flows.sh
-
+  script: configure_default_uplink_flows.sh {{ uplink_ports | default() }}
