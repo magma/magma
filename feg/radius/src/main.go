@@ -11,6 +11,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strings"
 	"syscall"
 
 	"fbc/cwf/radius/config"
@@ -29,6 +31,8 @@ import (
 
 	"go.uber.org/zap"
 )
+
+const versionFile = "/app/VERSION"
 
 func createLogger(encoding string) (*zap.Logger, error) {
 	if encoding == "json" {
@@ -90,6 +94,7 @@ func main() {
 	if config.Monitoring.Scuba != nil {
 		logger = logger.With(zap.String("partner_shortname", config.Monitoring.Scuba.PartnerShortName))
 	}
+	logger = logger.With(zap.String("app_version", GetVersion()))
 	loader := loader.NewStaticLoader(logger)
 
 	// Create server
@@ -136,4 +141,13 @@ func getHostIdentifier() string {
 
 	// Just a random, unstable identifer
 	return fmt.Sprintf("random:%d", rand.Intn(9999999))
+}
+
+// GetVersion returns version of the app
+func GetVersion() string {
+	data, err := ioutil.ReadFile(versionFile)
+	if err != nil {
+		return "NA"
+	}
+	return strings.TrimSuffix(string(data), "\n")
 }
