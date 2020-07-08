@@ -55,8 +55,9 @@ func prepareLinkData(ctx context.Context, r *TestResolver, props []*models.Prope
 	})
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: "loc_inst1",
-		Type: locType1.ID,
+		Name:       "loc_inst1",
+		Type:       locType1.ID,
+		ExternalID: pointer.ToString("111"),
 	})
 
 	ptyp, _ := mr.AddEquipmentPortType(ctx, models.AddEquipmentPortTypeInput{
@@ -354,6 +355,16 @@ func TestSearchLinksByLocation(t *testing.T) {
 	res1, err := qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1}, &limit)
 	require.NoError(t, err)
 	require.Len(t, res1.Links, 2)
+
+	f1External := models.LinkFilterInput{
+		FilterType:  models.LinkFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("111"),
+	}
+	res1, err = qr.LinkSearch(ctx, []*models.LinkFilterInput{&f1External}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Links, 2)
+
 	f2 := models.LinkFilterInput{
 		FilterType: models.LinkFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,

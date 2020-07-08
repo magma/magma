@@ -30,7 +30,10 @@ func handleLocationFilter(q *ent.LocationQuery, filter *models.LocationFilterInp
 }
 
 func locationExternalIDFilter(q *ent.LocationQuery, filter *models.LocationFilterInput) (*ent.LocationQuery, error) {
-	if filter.Operator == models.FilterOperatorIs {
+	switch filter.Operator {
+	case models.FilterOperatorContains:
+		return q.Where(location.ExternalIDContainsFold(*filter.StringValue)), nil
+	case models.FilterOperatorIs:
 		return q.Where(location.ExternalID(*filter.StringValue)), nil
 	}
 	return nil, errors.Errorf("operation %s is not supported", filter.Operator)

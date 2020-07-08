@@ -143,10 +143,20 @@ func priorityFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) 
 }
 
 func handleWOLocationFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
-	if filter.FilterType == models.WorkOrderFilterTypeLocationInst {
+	switch filter.FilterType {
+	case models.WorkOrderFilterTypeLocationInst:
 		return woLocationFilter(q, filter)
+	case models.WorkOrderFilterTypeLocationInstExternalID:
+		return woLocationExternalIDFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func woLocationExternalIDFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {
+	if filter.Operator == models.FilterOperatorContains {
+		return q.Where(workorder.HasLocationWith(location.ExternalIDContainsFold(*filter.StringValue))), nil
+	}
+	return nil, errors.Errorf("operation %s is not supported", filter.Operator)
 }
 
 func woLocationFilter(q *ent.WorkOrderQuery, filter *models.WorkOrderFilterInput) (*ent.WorkOrderQuery, error) {

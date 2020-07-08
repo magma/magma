@@ -131,12 +131,14 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	})
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: name + "loc_inst1",
-		Type: locType1.ID,
+		Name:       name + "loc_inst1",
+		Type:       locType1.ID,
+		ExternalID: pointer.ToString("111"),
 	})
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: name + "loc_inst2",
-		Type: locType2.ID,
+		Name:       name + "loc_inst2",
+		Type:       locType2.ID,
+		ExternalID: pointer.ToString("222"),
 	})
 
 	woType1, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_a"})
@@ -445,8 +447,9 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	})
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: "loc_inst1",
-		Type: locType.ID,
+		Name:       "loc_inst1",
+		Type:       locType.ID,
+		ExternalID: pointer.ToString("111"),
 	})
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "loc_inst2",
@@ -479,6 +482,15 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	res1, err := qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1}, &limit)
 	require.NoError(t, err)
 	require.Len(t, res1.Equipment, 2)
+
+	f1External := models.EquipmentFilterInput{
+		FilterType:  models.EquipmentFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("11"),
+	}
+	res1, err = qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1External}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Equipment, 1, "1 equipment on the direct location")
 
 	f2 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
@@ -807,4 +819,16 @@ func TestSearchWOByLocation(t *testing.T) {
 		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
 	require.Zero(t, result.WorkOrderSearch.Count)
+
+	f2 := models.WorkOrderFilterInput{
+		FilterType:  models.WorkOrderFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("111"),
+	}
+	c.MustPost(
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+	)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 }

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 39c74807834d9fc4e15a0818b696ae89
+ * @relayHash 23bd1c7f5b9de9216e9a6314a0da7b19
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 type PowerSearchLinksResultsTable_links$ref = any;
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_OR_EQUAL_THAN" | "DATE_GREATER_THAN" | "DATE_LESS_OR_EQUAL_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
-export type LinkFilterType = "EQUIPMENT_INST" | "EQUIPMENT_TYPE" | "LINK_FUTURE_STATUS" | "LOCATION_INST" | "PROPERTY" | "SERVICE_INST" | "%future added value";
+export type LinkFilterType = "EQUIPMENT_INST" | "EQUIPMENT_TYPE" | "LINK_FUTURE_STATUS" | "LOCATION_INST" | "LOCATION_INST_EXTERNAL_ID" | "PROPERTY" | "SERVICE_INST" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type LinkFilterInput = {|
   filterType: LinkFilterType,

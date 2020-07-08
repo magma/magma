@@ -142,18 +142,30 @@ func TestSearchLocationByExternalID(t *testing.T) {
 			loc2 (loc_type2)
 	*/
 	qr := r.Query()
-
-	f1 := models.LocationFilterInput{
-		FilterType:  models.LocationFilterTypeLocationInstExternalID,
-		Operator:    models.FilterOperatorIs,
-		StringValue: &data.loc1.ExternalID,
-	}
 	resAll, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{}, pointer.ToInt(100))
 	require.NoError(t, err)
 	require.Len(t, resAll.Locations, 2)
 	require.Equal(t, resAll.Count, 2)
 
+	f1 := models.LocationFilterInput{
+		FilterType:  models.LocationFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: &data.loc1.ExternalID,
+	}
+
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, res.Locations, 1)
+	require.Equal(t, res.Count, 1)
+
+	// same filter - with 'IS" operator
+	f2 := models.LocationFilterInput{
+		FilterType:  models.LocationFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorIs,
+		StringValue: &data.loc1.ExternalID,
+	}
+
+	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f2}, pointer.ToInt(100))
 	require.NoError(t, err)
 	require.Len(t, res.Locations, 1)
 	require.Equal(t, res.Count, 1)

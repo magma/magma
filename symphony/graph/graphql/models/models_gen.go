@@ -1059,11 +1059,12 @@ func (e DiscoveryMethod) MarshalGQL(w io.Writer) {
 type EquipmentFilterType string
 
 const (
-	EquipmentFilterTypeEquipInstName       EquipmentFilterType = "EQUIP_INST_NAME"
-	EquipmentFilterTypeEquipInstExternalID EquipmentFilterType = "EQUIP_INST_EXTERNAL_ID"
-	EquipmentFilterTypeProperty            EquipmentFilterType = "PROPERTY"
-	EquipmentFilterTypeLocationInst        EquipmentFilterType = "LOCATION_INST"
-	EquipmentFilterTypeEquipmentType       EquipmentFilterType = "EQUIPMENT_TYPE"
+	EquipmentFilterTypeEquipInstName          EquipmentFilterType = "EQUIP_INST_NAME"
+	EquipmentFilterTypeEquipInstExternalID    EquipmentFilterType = "EQUIP_INST_EXTERNAL_ID"
+	EquipmentFilterTypeProperty               EquipmentFilterType = "PROPERTY"
+	EquipmentFilterTypeLocationInst           EquipmentFilterType = "LOCATION_INST"
+	EquipmentFilterTypeLocationInstExternalID EquipmentFilterType = "LOCATION_INST_EXTERNAL_ID"
+	EquipmentFilterTypeEquipmentType          EquipmentFilterType = "EQUIPMENT_TYPE"
 )
 
 var AllEquipmentFilterType = []EquipmentFilterType{
@@ -1071,12 +1072,13 @@ var AllEquipmentFilterType = []EquipmentFilterType{
 	EquipmentFilterTypeEquipInstExternalID,
 	EquipmentFilterTypeProperty,
 	EquipmentFilterTypeLocationInst,
+	EquipmentFilterTypeLocationInstExternalID,
 	EquipmentFilterTypeEquipmentType,
 }
 
 func (e EquipmentFilterType) IsValid() bool {
 	switch e {
-	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeEquipInstExternalID, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeEquipmentType:
+	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeEquipInstExternalID, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeLocationInstExternalID, EquipmentFilterTypeEquipmentType:
 		return true
 	}
 	return false
@@ -1301,18 +1303,20 @@ func (e ImageEntity) MarshalGQL(w io.Writer) {
 type LinkFilterType string
 
 const (
-	LinkFilterTypeLinkFutureStatus LinkFilterType = "LINK_FUTURE_STATUS"
-	LinkFilterTypeEquipmentType    LinkFilterType = "EQUIPMENT_TYPE"
-	LinkFilterTypeLocationInst     LinkFilterType = "LOCATION_INST"
-	LinkFilterTypeProperty         LinkFilterType = "PROPERTY"
-	LinkFilterTypeServiceInst      LinkFilterType = "SERVICE_INST"
-	LinkFilterTypeEquipmentInst    LinkFilterType = "EQUIPMENT_INST"
+	LinkFilterTypeLinkFutureStatus       LinkFilterType = "LINK_FUTURE_STATUS"
+	LinkFilterTypeEquipmentType          LinkFilterType = "EQUIPMENT_TYPE"
+	LinkFilterTypeLocationInst           LinkFilterType = "LOCATION_INST"
+	LinkFilterTypeLocationInstExternalID LinkFilterType = "LOCATION_INST_EXTERNAL_ID"
+	LinkFilterTypeProperty               LinkFilterType = "PROPERTY"
+	LinkFilterTypeServiceInst            LinkFilterType = "SERVICE_INST"
+	LinkFilterTypeEquipmentInst          LinkFilterType = "EQUIPMENT_INST"
 )
 
 var AllLinkFilterType = []LinkFilterType{
 	LinkFilterTypeLinkFutureStatus,
 	LinkFilterTypeEquipmentType,
 	LinkFilterTypeLocationInst,
+	LinkFilterTypeLocationInstExternalID,
 	LinkFilterTypeProperty,
 	LinkFilterTypeServiceInst,
 	LinkFilterTypeEquipmentInst,
@@ -1320,7 +1324,7 @@ var AllLinkFilterType = []LinkFilterType{
 
 func (e LinkFilterType) IsValid() bool {
 	switch e {
-	case LinkFilterTypeLinkFutureStatus, LinkFilterTypeEquipmentType, LinkFilterTypeLocationInst, LinkFilterTypeProperty, LinkFilterTypeServiceInst, LinkFilterTypeEquipmentInst:
+	case LinkFilterTypeLinkFutureStatus, LinkFilterTypeEquipmentType, LinkFilterTypeLocationInst, LinkFilterTypeLocationInstExternalID, LinkFilterTypeProperty, LinkFilterTypeServiceInst, LinkFilterTypeEquipmentInst:
 		return true
 	}
 	return false
@@ -1441,12 +1445,13 @@ func (e PermissionsPolicyFilterType) MarshalGQL(w io.Writer) {
 type PortFilterType string
 
 const (
-	PortFilterTypePortDef           PortFilterType = "PORT_DEF"
-	PortFilterTypePortInstHasLink   PortFilterType = "PORT_INST_HAS_LINK"
-	PortFilterTypePortInstEquipment PortFilterType = "PORT_INST_EQUIPMENT"
-	PortFilterTypeLocationInst      PortFilterType = "LOCATION_INST"
-	PortFilterTypeProperty          PortFilterType = "PROPERTY"
-	PortFilterTypeServiceInst       PortFilterType = "SERVICE_INST"
+	PortFilterTypePortDef                PortFilterType = "PORT_DEF"
+	PortFilterTypePortInstHasLink        PortFilterType = "PORT_INST_HAS_LINK"
+	PortFilterTypePortInstEquipment      PortFilterType = "PORT_INST_EQUIPMENT"
+	PortFilterTypeLocationInst           PortFilterType = "LOCATION_INST"
+	PortFilterTypeLocationInstExternalID PortFilterType = "LOCATION_INST_EXTERNAL_ID"
+	PortFilterTypeProperty               PortFilterType = "PROPERTY"
+	PortFilterTypeServiceInst            PortFilterType = "SERVICE_INST"
 )
 
 var AllPortFilterType = []PortFilterType{
@@ -1454,13 +1459,14 @@ var AllPortFilterType = []PortFilterType{
 	PortFilterTypePortInstHasLink,
 	PortFilterTypePortInstEquipment,
 	PortFilterTypeLocationInst,
+	PortFilterTypeLocationInstExternalID,
 	PortFilterTypeProperty,
 	PortFilterTypeServiceInst,
 }
 
 func (e PortFilterType) IsValid() bool {
 	switch e {
-	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty, PortFilterTypeServiceInst:
+	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeLocationInstExternalID, PortFilterTypeProperty, PortFilterTypeServiceInst:
 		return true
 	}
 	return false
@@ -1589,6 +1595,7 @@ const (
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
 	ServiceFilterTypeProperty                ServiceFilterType = "PROPERTY"
 	ServiceFilterTypeLocationInst            ServiceFilterType = "LOCATION_INST"
+	ServiceFilterTypeLocationInstExternalID  ServiceFilterType = "LOCATION_INST_EXTERNAL_ID"
 	ServiceFilterTypeEquipmentInService      ServiceFilterType = "EQUIPMENT_IN_SERVICE"
 )
 
@@ -1601,12 +1608,13 @@ var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceInstCustomerName,
 	ServiceFilterTypeProperty,
 	ServiceFilterTypeLocationInst,
+	ServiceFilterTypeLocationInstExternalID,
 	ServiceFilterTypeEquipmentInService,
 }
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceDiscoveryMethod, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceDiscoveryMethod, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeLocationInstExternalID, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false
@@ -1907,16 +1915,17 @@ func (e UsersGroupFilterType) MarshalGQL(w io.Writer) {
 type WorkOrderFilterType string
 
 const (
-	WorkOrderFilterTypeWorkOrderName         WorkOrderFilterType = "WORK_ORDER_NAME"
-	WorkOrderFilterTypeWorkOrderStatus       WorkOrderFilterType = "WORK_ORDER_STATUS"
-	WorkOrderFilterTypeWorkOrderOwnedBy      WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
-	WorkOrderFilterTypeWorkOrderType         WorkOrderFilterType = "WORK_ORDER_TYPE"
-	WorkOrderFilterTypeWorkOrderCreationDate WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
-	WorkOrderFilterTypeWorkOrderCloseDate    WorkOrderFilterType = "WORK_ORDER_CLOSE_DATE"
-	WorkOrderFilterTypeWorkOrderAssignedTo   WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
-	WorkOrderFilterTypeWorkOrderLocationInst WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
-	WorkOrderFilterTypeWorkOrderPriority     WorkOrderFilterType = "WORK_ORDER_PRIORITY"
-	WorkOrderFilterTypeLocationInst          WorkOrderFilterType = "LOCATION_INST"
+	WorkOrderFilterTypeWorkOrderName          WorkOrderFilterType = "WORK_ORDER_NAME"
+	WorkOrderFilterTypeWorkOrderStatus        WorkOrderFilterType = "WORK_ORDER_STATUS"
+	WorkOrderFilterTypeWorkOrderOwnedBy       WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
+	WorkOrderFilterTypeWorkOrderType          WorkOrderFilterType = "WORK_ORDER_TYPE"
+	WorkOrderFilterTypeWorkOrderCreationDate  WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
+	WorkOrderFilterTypeWorkOrderCloseDate     WorkOrderFilterType = "WORK_ORDER_CLOSE_DATE"
+	WorkOrderFilterTypeWorkOrderAssignedTo    WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
+	WorkOrderFilterTypeWorkOrderLocationInst  WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
+	WorkOrderFilterTypeWorkOrderPriority      WorkOrderFilterType = "WORK_ORDER_PRIORITY"
+	WorkOrderFilterTypeLocationInst           WorkOrderFilterType = "LOCATION_INST"
+	WorkOrderFilterTypeLocationInstExternalID WorkOrderFilterType = "LOCATION_INST_EXTERNAL_ID"
 )
 
 var AllWorkOrderFilterType = []WorkOrderFilterType{
@@ -1930,11 +1939,12 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 	WorkOrderFilterTypeWorkOrderLocationInst,
 	WorkOrderFilterTypeWorkOrderPriority,
 	WorkOrderFilterTypeLocationInst,
+	WorkOrderFilterTypeLocationInstExternalID,
 }
 
 func (e WorkOrderFilterType) IsValid() bool {
 	switch e {
-	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderCloseDate, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
+	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderCloseDate, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst, WorkOrderFilterTypeLocationInstExternalID:
 		return true
 	}
 	return false
