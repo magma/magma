@@ -78,7 +78,7 @@ const bulkOperationBefore: BeforeFun = (
     method: 'GET',
   };
   logger.debug(`Requesting ${JSON.stringify(requestOptions)}`);
-  request(requestOptions, function(error, response, body) {
+  request(requestOptions, function (error, response, body) {
     logger.debug(`Got status code: ${response.statusCode}, body: ${body}`);
     const searchResult = JSON.parse(body);
     // only keep found workflows

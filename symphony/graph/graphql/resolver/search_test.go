@@ -12,7 +12,9 @@ import (
 
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -86,7 +88,7 @@ func prepareEquipmentData(ctx context.Context, r *TestResolver, name string, pro
 	})
 	propType := models.PropertyTypeInput{
 		Name: "Owner",
-		Type: models.PropertyKindString,
+		Type: propertytype.TypeString,
 	}
 	equType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       name + "eq_type",
@@ -129,12 +131,14 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 	})
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: name + "loc_inst1",
-		Type: locType1.ID,
+		Name:       name + "loc_inst1",
+		Type:       locType1.ID,
+		ExternalID: pointer.ToString("111"),
 	})
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: name + "loc_inst2",
-		Type: locType2.ID,
+		Name:       name + "loc_inst2",
+		Type:       locType2.ID,
+		ExternalID: pointer.ToString("222"),
 	})
 
 	woType1, _ := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "wo_type_a"})
@@ -178,8 +182,8 @@ func prepareWOData(ctx context.Context, r *TestResolver, name string) woSearchDa
 		ID:         wo1.ID,
 		Name:       wo1.Name,
 		OwnerID:    &owner.ID,
-		Status:     models.WorkOrderStatusDone,
-		Priority:   models.WorkOrderPriorityHigh,
+		Status:     workOrderStatusPtr(workorder.StatusDONE),
+		Priority:   workOrderPriorityPtr(workorder.PriorityHIGH),
 		LocationID: &loc1.ID,
 		AssigneeID: &assignee1.ID,
 	})
@@ -321,7 +325,7 @@ func TestEquipmentSearch(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        fetchedPropType.Name,
-			Type:        models.PropertyKind(fetchedPropType.Type),
+			Type:        fetchedPropType.Type,
 			StringValue: &owner,
 		},
 		MaxDepth: &maxDepth,
@@ -410,25 +414,25 @@ func TestQueryEquipmentPossibleProperties(t *testing.T) {
 
 	namePropType := models.PropertyTypeInput{
 		Name: "Name",
-		Type: "string",
+		Type: propertytype.TypeString,
 	}
 
 	widthPropType := models.PropertyTypeInput{
 		Name: "Width",
-		Type: "number",
+		Type: propertytype.TypeInt,
 	}
 
-	_, _ = mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+	_, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name:       "example_type_a",
 		Properties: []*models.PropertyTypeInput{&namePropType, &widthPropType},
 	})
+	require.NoError(t, err)
 
 	propDefs, err := qr.PossibleProperties(ctx, models.PropertyEntityEquipment)
 	require.NoError(t, err)
 	for _, propDef := range propDefs {
-		assert.True(t, propDef.Name == "Name" || propDef.Name == "Width")
+		assert.True(t, propDef.Name == namePropType.Name || propDef.Name == widthPropType.Name)
 	}
-
 	assert.Len(t, propDefs, 2)
 }
 
@@ -443,8 +447,9 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	})
 
 	loc1, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name: "loc_inst1",
-		Type: locType.ID,
+		Name:       "loc_inst1",
+		Type:       locType.ID,
+		ExternalID: pointer.ToString("111"),
 	})
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "loc_inst2",
@@ -478,6 +483,15 @@ func TestSearchEquipmentByLocation(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, res1.Equipment, 2)
 
+	f1External := models.EquipmentFilterInput{
+		FilterType:  models.EquipmentFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("11"),
+	}
+	res1, err = qr.EquipmentSearch(ctx, []*models.EquipmentFilterInput{&f1External}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res1.Equipment, 1, "1 equipment on the direct location")
+
 	f2 := models.EquipmentFilterInput{
 		FilterType: models.EquipmentFilterTypeLocationInst,
 		Operator:   models.FilterOperatorIsOneOf,
@@ -506,7 +520,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 	date := "2020-01-01"
 	propType := models.PropertyTypeInput{
 		Name:        "install_date",
-		Type:        models.PropertyKindDate,
+		Type:        propertytype.TypeDate,
 		StringValue: &date,
 	}
 	eqType, _ := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
@@ -539,7 +553,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 		Operator:   models.FilterOperatorDateGreaterThan,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "install_date",
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: &date,
 		},
 	}
@@ -554,7 +568,7 @@ func TestSearchEquipmentByDate(t *testing.T) {
 		Operator:   models.FilterOperatorDateLessThan,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "install_date",
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: &date,
 		},
 	}
@@ -608,7 +622,7 @@ func TestSearchWO(t *testing.T) {
 	require.Equal(t, 1, result.WorkOrderSearch.Count)
 	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
-	status := models.WorkOrderStatusPlanned.String()
+	status := workorder.StatusPLANNED.String()
 	f2 := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderStatus,
 		Operator:   models.FilterOperatorIsOneOf,
@@ -743,7 +757,7 @@ func TestSearchWOByPriority(t *testing.T) {
 	f := models.WorkOrderFilterInput{
 		FilterType: models.WorkOrderFilterTypeWorkOrderPriority,
 		Operator:   models.FilterOperatorIsOneOf,
-		StringSet:  []string{models.WorkOrderPriorityHigh.String()},
+		StringSet:  []string{workorder.PriorityHIGH.String()},
 	}
 	c.MustPost(
 		woAllQuery,
@@ -753,7 +767,7 @@ func TestSearchWOByPriority(t *testing.T) {
 	require.Equal(t, 1, result.WorkOrderSearch.Count)
 	require.Equal(t, strconv.Itoa(data.wo1), result.WorkOrderSearch.WorkOrders[0].ID)
 
-	f.StringSet = []string{models.WorkOrderPriorityLow.String()}
+	f.StringSet = []string{workorder.PriorityLOW.String()}
 	c.MustPost(
 		woAllQuery,
 		&result,
@@ -805,4 +819,16 @@ func TestSearchWOByLocation(t *testing.T) {
 		client.Var("filters", []models.WorkOrderFilterInput{f}),
 	)
 	require.Zero(t, result.WorkOrderSearch.Count)
+
+	f2 := models.WorkOrderFilterInput{
+		FilterType:  models.WorkOrderFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("111"),
+	}
+	c.MustPost(
+		woCountQuery,
+		&result,
+		client.Var("filters", []models.WorkOrderFilterInput{f2}),
+	)
+	require.Equal(t, 2, result.WorkOrderSearch.Count)
 }

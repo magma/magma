@@ -32,7 +32,7 @@ type PropertyType struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
+	Type propertytype.Type `json:"type,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
@@ -292,7 +292,7 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 	if value, ok := values[2].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field type", values[2])
 	} else if value.Valid {
-		pt.Type = value.String
+		pt.Type = propertytype.Type(value.String)
 	}
 	if value, ok := values[3].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field name", values[3])
@@ -506,7 +506,7 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(", update_time=")
 	builder.WriteString(pt.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", type=")
-	builder.WriteString(pt.Type)
+	builder.WriteString(fmt.Sprintf("%v", pt.Type))
 	builder.WriteString(", name=")
 	builder.WriteString(pt.Name)
 	builder.WriteString(", external_id=")

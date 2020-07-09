@@ -9,7 +9,7 @@ LICENSE file in the root directory of this source tree.
 package orc8r
 
 const (
-	ModuleName string = "orc8r"
+	ModuleName = "orc8r"
 
 	NetworkFeaturesConfig   = "orc8r_features"
 	MagmadGatewayType       = "magmad_gateway"

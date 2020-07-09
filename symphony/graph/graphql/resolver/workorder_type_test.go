@@ -135,8 +135,8 @@ func TestAddWorkOrderTypeWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	intProp := woType.QueryPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
-	strProp := woType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	intProp := woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
+	strProp := woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 
 	require.Equal(t, "int_prop", intProp.Name, "verifying int property type's name")
 	require.Equal(t, "", intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
@@ -424,7 +424,7 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a", Properties: propTypeInput})
 	require.NoError(t, err)
 
-	strProp := woType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp := woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	strValue = "Foo - edited"
 	intValue := 5
 	strPropType = models.PropertyTypeInput{
@@ -447,11 +447,11 @@ func TestEditWorkOrderTypeWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, woType.Name, newType.Name, "successfully edited work order type name")
 
-	strProp = woType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp = woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
 	require.Equal(t, strValue, strProp.StringVal, "successfully edited prop type string value")
 
-	intProp := woType.QueryPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
+	intProp := woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
 	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
 
@@ -486,7 +486,7 @@ func TestDeleteWorkOrderTypeProperty(t *testing.T) {
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type_a", Properties: propTypeInput})
 	require.NoError(t, err)
 
-	strProp := woType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	strProp := woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	strPropType = models.PropertyTypeInput{
 		ID:          &strProp.ID,
 		Name:        "str_prop",
@@ -495,7 +495,7 @@ func TestDeleteWorkOrderTypeProperty(t *testing.T) {
 		IsDeleted:   pointer.ToBool(true),
 	}
 
-	strProp = woType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	strProp = woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.False(t, strProp.Deleted, "successfully edited prop type name")
 
 	editedPropTypeInput := []*models.PropertyTypeInput{&strPropType}
@@ -507,6 +507,6 @@ func TestDeleteWorkOrderTypeProperty(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, woType.Name, newType.Name, "successfully edited work order type name")
 
-	strProp = woType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	strProp = woType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.True(t, strProp.Deleted, "successfully edited prop type name")
 }

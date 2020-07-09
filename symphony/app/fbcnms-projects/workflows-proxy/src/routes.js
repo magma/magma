@@ -36,7 +36,7 @@ const findSchedule = (schedules, name) => {
 };
 
 //TODO merge with proxy
-export default async function(
+export default async function (
   baseURL: string,
   addScheduleMetadata: boolean,
 ): Promise<$Application<ExpressRequest, ExpressResponse>> {
@@ -473,7 +473,7 @@ export default async function(
         }
 
         for (let i = 0; i < separatedWfs.length; i++) {
-          const wfs = async function(sepWfs) {
+          const wfs = async function (sepWfs) {
             return await Promise.all(
               sepWfs.map(wf =>
                 http.get(

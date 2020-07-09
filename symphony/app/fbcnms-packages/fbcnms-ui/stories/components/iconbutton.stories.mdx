@@ -1,0 +1,40 @@
+import IconButton from '../../components/design-system/IconButton';
+import StoryFrame from '../StoryFrame';
+import {AddIcon} from '../../components/design-system/Icons';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+
+export const onClick = () => window.alert('Clicked!');
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/Icon Button`} />
+
+# Icon Button
+
+```js
+import Button from '@fbcnms/ui/components/design-system/IconButton';
+```
+
+The `IconButton` component has the same skin variants as the `Button` component.
+
+### Variants
+
+<Preview>
+  <Story name="Variants">
+    <StoryFrame>
+      <IconButton icon={AddIcon} onClick={onClick} />
+      <IconButton icon={AddIcon} skin="regular" onClick={onClick} />
+      <IconButton icon={AddIcon} skin="red" onClick={onClick} />
+      <IconButton icon={AddIcon} skin="gray" onClick={onClick} />
+      <IconButton icon={AddIcon} skin="secondaryGray" onClick={onClick} />
+    </StoryFrame>
+  </Story>
+</Preview>
+
+### Disabled
+
+<Preview>
+  <Story name="Disabled">
+    <IconButton icon={AddIcon} onClick={onClick} disabled={true} />
+  </Story>
+</Preview>
+

@@ -127,7 +127,7 @@ function MultiMetrics(props: {
   );
 }
 
-export default function(props: {configs: Array<MetricGraphConfig>}) {
+export default function (props: {configs: Array<MetricGraphConfig>}) {
   const {history, relativePath, relativeUrl} = useRouter();
   return (
     <Route

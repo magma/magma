@@ -141,9 +141,7 @@ function PermissionsGroupCard(props: Props) {
               return;
             }
             const saveAction = isOnNewGroup ? addGroup : editGroup;
-            saveAction(group)
-              .then(onClose)
-              .catch(handleError);
+            saveAction(group).then(onClose).catch(handleError);
           }}>
           {Strings.common.saveButton}
         </Button>

@@ -94,7 +94,6 @@ enum GrantTrackingType {
   TX_ONLY = 1,
   RX_ONLY = 2,
   TX_AND_RX = 3,
-  NO_TRACKING = 4,
 };
 
 /**

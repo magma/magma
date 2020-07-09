@@ -33,7 +33,7 @@ export const getLogBefore: BeforeFun = (
     },
   };
   logger.debug(`Requesting ${JSON.stringify(requestOptions)}`);
-  request(requestOptions, function(error, response, body) {
+  request(requestOptions, function (error, response, body) {
     logger.debug(`Got status code: ${response.statusCode}, body: '${body}'`);
     if (response.statusCode == 200) {
       const task = JSON.parse(body);
@@ -56,7 +56,7 @@ export const getLogBefore: BeforeFun = (
   });
 };
 
-const registration: TransformerRegistrationFun = function(ctx) {
+const registration: TransformerRegistrationFun = function (ctx) {
   proxyTarget = ctx.proxyTarget;
   return [
     {

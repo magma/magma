@@ -1,0 +1,77 @@
+import StoryFrame from '../StoryFrame';
+import Tokenizer from '../../components/design-system/Token/Tokenizer';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {useState} from 'react';
+
+export const ALL_TOKENS = [
+  {key: '0', label: 'Tel Aviv'},
+  {key: '1', label: 'San Francisco'},
+  {key: '2', label: 'A long name of a famous city'},
+  {key: '3', label: 'Budapest'},
+  {key: '4', label: 'Los Angeles'},
+  {key: '5', label: 'Some other city with a long name'},
+];
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/Tokenizer`} />
+
+# Tokenizer
+
+```js
+import Tokenizer from '@fbcnms/ui/components/design-system/Token/Tokenizer';
+```
+
+`Tokenizer` displays a text input that allows the user to enter tokens that originate from a network request.
+
+<Preview>
+  <Story name="Tokenizer">
+    {() => {
+      const [queryString, setQueryString] = useState('');
+      const [tokens, setTokens] = useState([
+        {key: '0', label: 'Tel Aviv'},
+        {key: '1', label: 'San Francisco'},
+        {key: '2', label: 'A long name of a famous city'},
+      ]);
+      return (
+        <Tokenizer
+          tokens={tokens}
+          onTokensChange={setTokens}
+          queryString={queryString}
+          onQueryStringChange={setQueryString}
+          dataSource={{
+            fetchNetwork: _searchTerm => Promise.resolve(ALL_TOKENS),
+          }}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Disabled
+
+<Preview>
+  <Story name="Disabled">
+    {() => {
+      const [queryString, setQueryString] = useState('');
+      const [tokens, setTokens] = useState([
+        {key: '0', label: 'Tel Aviv'},
+        {key: '1', label: 'San Francisco'},
+        {key: '2', label: 'A long name of a famous city'},
+      ]);
+      return (
+        <StoryFrame background="light" stretchContents>
+          <Tokenizer
+            disabled={true}
+            tokens={tokens}
+            onTokensChange={setTokens}
+            queryString={queryString}
+            onQueryStringChange={setQueryString}
+            dataSource={{
+              fetchNetwork: _searchTerm => Promise.resolve(ALL_TOKENS),
+            }}
+          />
+        </StoryFrame>
+      );
+    }}
+  </Story>
+</Preview>

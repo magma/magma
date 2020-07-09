@@ -169,7 +169,7 @@ func CreateTimeIn(vs ...time.Time) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -186,7 +186,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -245,7 +245,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -262,7 +262,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -335,7 +335,7 @@ func NameIn(vs ...string) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -352,7 +352,7 @@ func NameNotIn(vs ...string) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -446,7 +446,7 @@ func MapTypeIn(vs ...string) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -463,7 +463,7 @@ func MapTypeNotIn(vs ...string) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -571,7 +571,7 @@ func MapZoomLevelIn(vs ...int) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -588,7 +588,7 @@ func MapZoomLevelNotIn(vs ...int) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -661,7 +661,7 @@ func IndexIn(vs ...int) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -678,7 +678,7 @@ func IndexNotIn(vs ...int) predicate.LocationType {
 	return predicate.LocationType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

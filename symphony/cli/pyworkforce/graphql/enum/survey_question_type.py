@@ -19,5 +19,5 @@ class SurveyQuestionType(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "SurveyQuestionType":
+    def _missing_(cls, value: object) -> "SurveyQuestionType":
         return cls.MISSING_ENUM

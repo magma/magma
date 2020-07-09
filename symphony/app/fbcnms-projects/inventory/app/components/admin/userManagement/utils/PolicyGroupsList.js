@@ -9,35 +9,53 @@
  */
 
 import type {AssigenmentButtonProp} from './GroupMemberListItem';
+import type {GroupsListProps} from './GroupsList';
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 import type {UsersGroup} from '../data/UsersGroups';
 
 import * as React from 'react';
-import List from './List';
-import PolicyGroupListItem from './PolicyGroupListItem';
+import GroupsList from './GroupsList';
+import {useCallback} from 'react';
 
 type Props = $ReadOnly<{|
-  groups: $ReadOnlyArray<UsersGroup>,
   policy?: ?PermissionsPolicy,
   onChange: PermissionsPolicy => void,
-  emptyState?: ?React.Node,
-  className?: ?string,
+  ...GroupsListProps,
   ...AssigenmentButtonProp,
 |}>;
 
+const checkIsGroupInPolicy = (policy?: ?PermissionsPolicy) => (
+  group: UsersGroup,
+) => policy == null || policy.groups.find(g => g.id === group.id) != null;
+
 export default function PolicyGroupsList(props: Props) {
-  const {groups, policy, onChange, assigmentButton, ...rest} = props;
+  const {policy, onChange, assigmentButton, ...rest} = props;
+
+  const toggleAssigment = useCallback(
+    (group, shouldAssign) => {
+      if (policy == null) {
+        return;
+      }
+      const newGroups =
+        shouldAssign === true
+          ? [...policy.groups, group]
+          : policy.groups.filter(g => g.id != group.id);
+      onChange({
+        ...policy,
+        groups: newGroups,
+      });
+    },
+    [onChange, policy],
+  );
 
   return (
-    <List items={groups} {...rest}>
-      {group => (
-        <PolicyGroupListItem
-          group={group}
-          assigmentButton={assigmentButton}
-          policy={policy}
-          onChange={onChange}
-        />
-      )}
-    </List>
+    <GroupsList
+      {...rest}
+      assignment={{
+        assigmentButton,
+        isGroupAssigned: checkIsGroupInPolicy(policy),
+        onGroupAssignmentChange: toggleAssigment,
+      }}
+    />
   );
 }

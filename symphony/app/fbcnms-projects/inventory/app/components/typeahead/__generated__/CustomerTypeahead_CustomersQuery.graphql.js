@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2beb626c12ee24bd5f4c4199a825e03f
+ * @relayHash f3cdf937dd6146cc44ffb9ebb07a76ba
  */
 
 /* eslint-disable */
@@ -19,11 +19,15 @@ export type CustomerTypeahead_CustomersQueryVariables = {|
   limit?: ?number
 |};
 export type CustomerTypeahead_CustomersQueryResponse = {|
-  +customerSearch: $ReadOnlyArray<?{|
-    +id: string,
-    +name: string,
-    +externalId: ?string,
-  |}>
+  +customers: ?{|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +id: string,
+        +name: string,
+        +externalId: ?string,
+      |}
+    |}>
+  |}
 |};
 export type CustomerTypeahead_CustomersQuery = {|
   variables: CustomerTypeahead_CustomersQueryVariables,
@@ -36,10 +40,14 @@ export type CustomerTypeahead_CustomersQuery = {|
 query CustomerTypeahead_CustomersQuery(
   $limit: Int
 ) {
-  customerSearch(limit: $limit) {
-    id
-    name
-    externalId
+  customers(first: $limit) {
+    edges {
+      node {
+        id
+        name
+        externalId
+      }
+    }
   }
 }
 */
@@ -57,38 +65,60 @@ v1 = [
   {
     "kind": "LinkedField",
     "alias": null,
-    "name": "customerSearch",
+    "name": "customers",
     "storageKey": null,
     "args": [
       {
         "kind": "Variable",
-        "name": "limit",
+        "name": "first",
         "variableName": "limit"
       }
     ],
-    "concreteType": "Customer",
-    "plural": true,
+    "concreteType": "CustomerConnection",
+    "plural": false,
     "selections": [
       {
-        "kind": "ScalarField",
+        "kind": "LinkedField",
         "alias": null,
-        "name": "id",
+        "name": "edges",
+        "storageKey": null,
         "args": null,
-        "storageKey": null
-      },
-      {
-        "kind": "ScalarField",
-        "alias": null,
-        "name": "name",
-        "args": null,
-        "storageKey": null
-      },
-      {
-        "kind": "ScalarField",
-        "alias": null,
-        "name": "externalId",
-        "args": null,
-        "storageKey": null
+        "concreteType": "CustomerEdge",
+        "plural": true,
+        "selections": [
+          {
+            "kind": "LinkedField",
+            "alias": null,
+            "name": "node",
+            "storageKey": null,
+            "args": null,
+            "concreteType": "Customer",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "id",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "name",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "externalId",
+                "args": null,
+                "storageKey": null
+              }
+            ]
+          }
+        ]
       }
     ]
   }
@@ -113,11 +143,11 @@ return {
     "operationKind": "query",
     "name": "CustomerTypeahead_CustomersQuery",
     "id": null,
-    "text": "query CustomerTypeahead_CustomersQuery(\n  $limit: Int\n) {\n  customerSearch(limit: $limit) {\n    id\n    name\n    externalId\n  }\n}\n",
+    "text": "query CustomerTypeahead_CustomersQuery(\n  $limit: Int\n) {\n  customers(first: $limit) {\n    edges {\n      node {\n        id\n        name\n        externalId\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'ce52a287db805de0357e25ea1c021505';
+(node/*: any*/).hash = '18df0202c887393e4158102ab7e9ba4c';
 module.exports = node;

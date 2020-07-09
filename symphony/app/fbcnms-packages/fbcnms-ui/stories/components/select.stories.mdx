@@ -1,0 +1,96 @@
+import Select from '../../components/design-system/Select/Select';
+import symphony from '../../theme/symphony';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
+
+export const useStyles = makeStyles(_theme => ({
+  root: {
+    width: '100%',
+  },
+  card: {
+    marginBottom: '16px',
+  },
+  popover: {
+    backgroundColor: symphony.palette.white,
+    boxShadow: symphony.shadows.DP1,
+    borderRadius: '4px',
+  },
+  select: {
+    minWidth: '120px',
+  },
+}));
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/Select`} />
+
+# Select
+
+```js
+import Select from '@fbcnms/ui/components/design-system/Select/Select';
+```
+
+The `Select` component supports two sizes.
+
+`normal` size gives the menu a fixed width.
+
+`full` size adjusts the menu's width according the its content.
+
+export const OPTIONS = [
+  {
+    key: 'option_1',
+    label: 'Option 1',
+    value: 'wow1',
+  },
+  {
+    key: 'option_2',
+    label: 'Option 2',
+    value: 'wow2',
+  },
+  {
+    key: 'long_option',
+    label: 'Option with a long label',
+    value: 'wow3',
+  },
+];
+
+### Normal Size
+
+<Preview>
+  <Story name="Normal Size">
+    {() => {
+      const classes = useStyles();
+      const [selectedValue, setSelectedValue] = useState(null);
+      return (
+        <Select
+          className={classes.select}
+          label="Project"
+          options={OPTIONS}
+          selectedValue={selectedValue}
+          onChange={value => setSelectedValue(value)}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Full Size
+
+<Preview>
+  <Story name="Full Size">
+    {() => {
+      const classes = useStyles();
+      const [selectedValue, setSelectedValue] = useState(null);
+      return (
+        <Select
+          className={classes.select}
+          label="Project"
+          options={OPTIONS}
+          selectedValue={selectedValue}
+          size="full"
+          onChange={value => setSelectedValue(value)}
+        />
+      );
+    }}
+  </Story>
+</Preview>

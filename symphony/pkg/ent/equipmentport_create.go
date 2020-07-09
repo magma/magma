@@ -136,6 +136,11 @@ func (epc *EquipmentPortCreate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPo
 	return epc.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the EquipmentPortMutation object of the builder.
+func (epc *EquipmentPortCreate) Mutation() *EquipmentPortMutation {
+	return epc.mutation
+}
+
 // Save creates the EquipmentPort in the database.
 func (epc *EquipmentPortCreate) Save(ctx context.Context) (*EquipmentPort, error) {
 	if _, ok := epc.mutation.CreateTime(); !ok {
@@ -147,7 +152,7 @@ func (epc *EquipmentPortCreate) Save(ctx context.Context) (*EquipmentPort, error
 		epc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := epc.mutation.DefinitionID(); !ok {
-		return nil, errors.New("ent: missing required edge \"definition\"")
+		return nil, &ValidationError{Name: "definition", err: errors.New("ent: missing required edge \"definition\"")}
 	}
 	var (
 		err  error

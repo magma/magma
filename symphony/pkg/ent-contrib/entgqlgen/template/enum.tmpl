@@ -1,0 +1,46 @@
+{{/*
+Copyright 2019-present Facebook Inc. All rights reserved.
+This source code is licensed under the Apache 2.0 license found
+in the LICENSE file in the root directory of this source tree.
+*/}}
+
+{{ define "meta/additional/graphql-enum" }}
+
+{{ range $i, $f := $.EnumFields }}
+	{{ $enum := trimPackage $f.Type.String $.Package -}}
+	{{ $receiver := receiver $f.BuilderField -}}
+	// MarshalGQL implements graphql.Marshaler interface.
+	func ({{ $receiver }} {{ $enum }}) MarshalGQL(w io.Writer) {
+		writeQuotedStringer(w, {{ $receiver }})
+	}
+
+	// UnmarshalGQL implements graphql.Unmarshaler interface.
+	func ({{ $receiver }} *{{ $enum }}) UnmarshalGQL(v interface{}) error {
+		str, ok := v.(string)
+		if !ok {
+			return fmt.Errorf("enum %T must be a string", v)
+		}
+		*{{ $receiver }} = {{ $enum }}(str)
+		if err := {{ $f.Validator }}(*{{ $receiver }}); err != nil {
+			return fmt.Errorf("%s is not a valid {{ $enum }}", str)
+		}
+		return nil
+	}
+
+	{{ if eq $i 0 }}
+		func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+			const quote = '"'
+			switch w := w.(type) {
+			case io.ByteWriter:
+				w.WriteByte(quote)
+				defer w.WriteByte(quote)
+			default:
+				w.Write([]byte{quote})
+				defer w.Write([]byte{quote})
+			}
+			io.WriteString(w, s.String())
+		}
+	{{ end }}
+{{ end }}
+
+{{ end }}

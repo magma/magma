@@ -9,5 +9,5 @@ class CheckListItemEnumSelectionMode(Enum):
     MISSING_ENUM = ""
 
     @classmethod
-    def _missing_(cls, value: str) -> "CheckListItemEnumSelectionMode":
+    def _missing_(cls, value: object) -> "CheckListItemEnumSelectionMode":
         return cls.MISSING_ENUM

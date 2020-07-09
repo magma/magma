@@ -16,14 +16,21 @@ const (
 	// Label holds the string label denoting the floorplanscale type in the database.
 	Label = "floor_plan_scale"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID               = "id"                 // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime       = "create_time"        // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime       = "update_time"        // FieldReferencePoint1X holds the string denoting the reference_point1_x vertex property in the database.
-	FieldReferencePoint1X = "reference_point1_x" // FieldReferencePoint1Y holds the string denoting the reference_point1_y vertex property in the database.
-	FieldReferencePoint1Y = "reference_point1_y" // FieldReferencePoint2X holds the string denoting the reference_point2_x vertex property in the database.
-	FieldReferencePoint2X = "reference_point2_x" // FieldReferencePoint2Y holds the string denoting the reference_point2_y vertex property in the database.
-	FieldReferencePoint2Y = "reference_point2_y" // FieldScaleInMeters holds the string denoting the scale_in_meters vertex property in the database.
-	FieldScaleInMeters    = "scale_in_meters"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldReferencePoint1X holds the string denoting the reference_point1_x field in the database.
+	FieldReferencePoint1X = "reference_point1_x"
+	// FieldReferencePoint1Y holds the string denoting the reference_point1_y field in the database.
+	FieldReferencePoint1Y = "reference_point1_y"
+	// FieldReferencePoint2X holds the string denoting the reference_point2_x field in the database.
+	FieldReferencePoint2X = "reference_point2_x"
+	// FieldReferencePoint2Y holds the string denoting the reference_point2_y field in the database.
+	FieldReferencePoint2Y = "reference_point2_y"
+	// FieldScaleInMeters holds the string denoting the scale_in_meters field in the database.
+	FieldScaleInMeters = "scale_in_meters"
 
 	// Table holds the table name of the floorplanscale in the database.
 	Table = "floor_plan_scales"

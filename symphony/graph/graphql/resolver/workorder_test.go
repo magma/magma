@@ -9,19 +9,18 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/facebookincubator/symphony/pkg/ent/activity"
-
-	"github.com/facebookincubator/symphony/pkg/authz"
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-
 	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/pkg/authz"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistcategory"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
 	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/ent/user"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
 
@@ -84,6 +83,14 @@ func createWorkOrder(ctx context.Context, t *testing.T, r TestResolver, name str
 	return workOrder
 }
 
+func workOrderStatusPtr(status workorder.Status) *workorder.Status {
+	return &status
+}
+
+func workOrderPriorityPtr(priority workorder.Priority) *workorder.Priority {
+	return &priority
+}
+
 func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationResolver, workOrder ent.WorkOrder) (*models.WorkOrderExecutionResult, error) {
 	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
@@ -101,8 +108,7 @@ func executeWorkOrder(ctx context.Context, t *testing.T, mr generated.MutationRe
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
 		InstallDate: &workOrder.InstallDate,
-		Status:      models.WorkOrderStatusDone,
-		Priority:    models.WorkOrderPriorityNone,
+		Status:      workOrderStatusPtr(workorder.StatusDONE),
 		AssigneeID:  assigneeID,
 	})
 	require.NoError(t, err)
@@ -205,8 +211,7 @@ func TestAddWorkOrderWithAssignee(t *testing.T) {
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
-		Status:      models.WorkOrderStatusPending,
-		Priority:    models.WorkOrderPriorityNone,
+		Status:      workOrderStatusPtr(workorder.StatusPENDING),
 		AssigneeID:  &assignee.ID,
 	})
 	require.NoError(t, err)
@@ -313,15 +318,15 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 	name := longWorkOrderName
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type"})
 	require.NoError(t, err)
-	pri := models.WorkOrderPriorityLow
+	priority := workorder.PriorityLOW
 	workOrder, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            name,
 		WorkOrderTypeID: woType.ID,
-		Priority:        &pri,
+		Priority:        &priority,
 	})
 	require.NoError(t, err)
 	require.False(t, workOrder.QueryAssignee().ExistX(ctx))
-	require.EqualValues(t, pri, workOrder.Priority)
+	require.Equal(t, priority, workOrder.Priority)
 
 	var ownerID *int
 	owner, _ := workOrder.QueryOwner().Only(ctx)
@@ -334,21 +339,21 @@ func TestAddWorkOrderWithPriority(t *testing.T) {
 		Name:        workOrder.Name,
 		Description: &workOrder.Description,
 		OwnerID:     ownerID,
-		Status:      models.WorkOrderStatusPending,
-		Priority:    models.WorkOrderPriorityHigh,
+		Status:      workOrderStatusPtr(workorder.StatusPENDING),
+		Priority:    workOrderPriorityPtr(workorder.PriorityHIGH),
 		Index:       pointer.ToInt(42),
 	}
 
 	workOrder, err = mr.EditWorkOrder(ctx, input)
 	require.NoError(t, err)
-	require.EqualValues(t, input.Priority, workOrder.Priority)
+	require.Equal(t, *input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 
 	node, err := qr.Node(ctx, workOrder.ID)
 	require.NoError(t, err)
 	workOrder, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
-	require.EqualValues(t, input.Priority, workOrder.Priority)
+	require.Equal(t, *input.Priority, workOrder.Priority)
 	require.Equal(t, *input.Index, workOrder.Index)
 }
 
@@ -464,13 +469,13 @@ func TestAddWorkOrderWithActivity(t *testing.T) {
 	act, err := r.client.Activity.Create().
 		SetWorkOrder(w).
 		SetChangedField(activity.ChangedFieldPRIORITY).
-		SetOldValue(models.WorkOrderPriorityLow.String()).
-		SetNewValue(models.WorkOrderPriorityHigh.String()).
+		SetOldValue(workorder.PriorityLOW.String()).
+		SetNewValue(workorder.PriorityHIGH.String()).
 		SetAuthor(v.User()).
 		Save(ctx)
 
 	require.NoError(t, err)
-	assert.Equal(t, models.WorkOrderPriorityHigh.String(), act.NewValue)
+	assert.EqualValues(t, workorder.PriorityHIGH, act.NewValue)
 
 	node, err = qr.Node(ctx, w.ID)
 	require.NoError(t, err)
@@ -478,7 +483,7 @@ func TestAddWorkOrderWithActivity(t *testing.T) {
 	activities, err = w.QueryActivities().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, activities, 1)
-	assert.Equal(t, models.WorkOrderPriorityLow.String(), activities[0].OldValue)
+	assert.EqualValues(t, workorder.PriorityLOW, activities[0].OldValue)
 }
 
 func TestAddWorkOrderNoDescription(t *testing.T) {
@@ -563,8 +568,7 @@ func TestFetchWorkOrders(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	trueVal := true
-	types, err := qr.WorkOrders(ctx, nil, nil, nil, nil, &trueVal)
+	types, err := qr.WorkOrders(ctx, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Len(t, types.Edges, 2)
 }
@@ -1314,8 +1318,14 @@ func TestDeleteWorkOrderWithAttachmentAndLinksAdded(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	wot, err := workOrder.QueryTemplate().Only(ctx)
+	require.NoError(t, err)
+
 	_, err = mr.RemoveWorkOrder(ctx, workOrder.ID)
 	require.NoError(t, err)
+
+	fetchedWorkOrderTemplateNode, _ := qr.Node(ctx, wot.ID)
+	assert.Nil(t, fetchedWorkOrderTemplateNode)
 
 	fetchedParentWorkOrderNode, _ := qr.Node(ctx, parentEquipment.ID)
 	assert.Nil(t, fetchedParentWorkOrderNode)
@@ -1391,23 +1401,33 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	fetchedWo, ok := node.(*ent.WorkOrder)
 	require.True(t, ok)
+	fetchedWorkOrderTemplate, err := fetchedWo.QueryTemplate().Only(ctx)
+	require.NoError(t, err)
 
 	intFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
+	tIntFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("int_prop")).OnlyX(ctx)
 	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
-	require.Equal(t, intFetchProp.QueryType().OnlyXID(ctx), intProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.NotEqual(t, intFetchProp.QueryType().OnlyXID(ctx), intProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.Equal(t, intFetchProp.QueryType().OnlyXID(ctx), tIntFetchProp.ID, "Comparing properties: PropertyType value")
 
 	strFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	tStrFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyX(ctx)
 	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
-	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.NotEqual(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), tStrFetchProp.ID, "Comparing properties: PropertyType value")
 
 	fixedStrFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	tFixedStrFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyX(ctx)
 	require.Equal(t, fixedStrFetchProp.StringVal, *strFixedProp.StringValue, "Comparing properties: fixed string value")
-	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.NotEqual(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), tFixedStrFetchProp.ID, "Comparing properties: PropertyType value")
 
 	rngFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
+	tRngFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("rng_prop")).OnlyX(ctx)
 	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
 	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
-	require.Equal(t, rngFetchProp.QueryType().OnlyXID(ctx), rngProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.NotEqual(t, rngFetchProp.QueryType().OnlyXID(ctx), rngProp.PropertyTypeID, "Comparing properties: PropertyType value")
+	require.Equal(t, rngFetchProp.QueryType().OnlyXID(ctx), tRngFetchProp.ID, "Comparing properties: PropertyType value")
 
 	fetchedProps, err := wr.Properties(ctx, fetchedWo)
 	require.NoError(t, err)
@@ -1471,13 +1491,18 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	fetchedProps, _ = wr.Properties(ctx, updatedWO)
 	require.Equal(t, len(propInputs), len(fetchedProps), "number of properties should remain he same")
 
+	fetchedUWorkOrderTemplate := updatedWO.QueryTemplate().OnlyX(ctx)
 	updatedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
+	tUpdatedProp := fetchedUWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyX(ctx)
 	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
-	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
+	require.NotEqual(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
+	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), tUpdatedProp.ID, "Comparing updated properties: PropertyType value")
 
 	notUpdatedFixedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
+	tNotUpdatedFixedProp := fetchedUWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyX(ctx)
 	require.Equal(t, notUpdatedFixedProp.StringVal, *strFixedProp.StringValue, "Comparing not changed fixed property: string value")
-	require.Equal(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing updated properties: PropertyType value")
+	require.NotEqual(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing updated properties: PropertyType value")
+	require.Equal(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), tNotUpdatedFixedProp.ID, "Comparing updated properties: PropertyType value")
 }
 
 func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
@@ -1794,7 +1819,7 @@ func TestTechnicianCheckinToWorkOrder(t *testing.T) {
 	w, err := mr.TechnicianWorkOrderCheckIn(ctx, w.ID)
 	require.NoError(t, err)
 
-	assert.Equal(t, w.Status, models.WorkOrderStatusPending.String())
+	assert.Equal(t, w.Status, workorder.StatusPENDING)
 	comments, err := w.QueryComments().All(ctx)
 	require.NoError(t, err)
 	assert.Len(t, comments, 1)
@@ -1909,7 +1934,7 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 						FileName    string
 						SizeInBytes int
 						MimeType    string
-						FileType    models.FileType
+						FileType    file.Type
 					}
 				}
 			}
@@ -1958,7 +1983,7 @@ func TestTechnicianUploadDataToWorkOrder(t *testing.T) {
 
 			require.Equal(t, "StoreKeyAlreadyIn", item.Files[0].StoreKey)
 			require.Equal(t, 120, item.Files[0].SizeInBytes)
-			require.Equal(t, models.FileTypeImage, item.Files[0].FileType)
+			require.Equal(t, file.TypeIMAGE, item.Files[0].FileType)
 
 			require.Equal(t, "StoreKeyToAdd", item.Files[1].StoreKey)
 		}

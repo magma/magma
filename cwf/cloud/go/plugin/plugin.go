@@ -22,7 +22,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/service/serviceregistry"
 )
 
 // CwfOrchestratorPlugin implements OrchestratorPlugin for the CWF module
@@ -33,7 +32,7 @@ func (*CwfOrchestratorPlugin) GetName() string {
 }
 
 func (*CwfOrchestratorPlugin) GetServices() []registry.ServiceLocation {
-	serviceLocations, err := serviceregistry.LoadServiceRegistryConfig(cwf.ModuleName)
+	serviceLocations, err := registry.LoadServiceRegistryConfig(cwf.ModuleName)
 	if err != nil {
 		return []registry.ServiceLocation{}
 	}

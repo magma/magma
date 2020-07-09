@@ -133,6 +133,11 @@ func (lc *LinkCreate) AddService(s ...*Service) *LinkCreate {
 	return lc.AddServiceIDs(ids...)
 }
 
+// Mutation returns the LinkMutation object of the builder.
+func (lc *LinkCreate) Mutation() *LinkMutation {
+	return lc.mutation
+}
+
 // Save creates the Link in the database.
 func (lc *LinkCreate) Save(ctx context.Context) (*Link, error) {
 	if _, ok := lc.mutation.CreateTime(); !ok {

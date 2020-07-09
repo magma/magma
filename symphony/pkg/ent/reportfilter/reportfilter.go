@@ -8,6 +8,7 @@ package reportfilter
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -17,12 +18,17 @@ const (
 	// Label holds the string label denoting the reportfilter type in the database.
 	Label = "report_filter"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName       = "name"        // FieldEntity holds the string denoting the entity vertex property in the database.
-	FieldEntity     = "entity"      // FieldFilters holds the string denoting the filters vertex property in the database.
-	FieldFilters    = "filters"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldEntity holds the string denoting the entity field in the database.
+	FieldEntity = "entity"
+	// FieldFilters holds the string denoting the filters field in the database.
+	FieldFilters = "filters"
 
 	// Table holds the table name of the reportfilter in the database.
 	Table = "report_filters"
@@ -72,8 +78,8 @@ const (
 	EntitySERVICE   Entity = "SERVICE"
 )
 
-func (s Entity) String() string {
-	return string(s)
+func (e Entity) String() string {
+	return string(e)
 }
 
 // EntityValidator is a validator for the "e" field enum values. It is called by the builders before save.
@@ -84,4 +90,35 @@ func EntityValidator(e Entity) error {
 	default:
 		return fmt.Errorf("reportfilter: invalid enum value for entity field: %q", e)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (e Entity) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, e)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (e *Entity) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*e = Entity(str)
+	if err := EntityValidator(*e); err != nil {
+		return fmt.Errorf("%s is not a valid Entity", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

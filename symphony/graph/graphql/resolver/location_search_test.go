@@ -32,11 +32,11 @@ func prepareLocationData(ctx context.Context, r *TestResolver) locationSearchDat
 		Properties: []*models.PropertyTypeInput{
 			{
 				Name: "date_established",
-				Type: models.PropertyKindDate,
+				Type: propertytype.TypeDate,
 			},
 			{
 				Name: "stringProp",
-				Type: models.PropertyKindString,
+				Type: propertytype.TypeString,
 			},
 		},
 	})
@@ -142,18 +142,30 @@ func TestSearchLocationByExternalID(t *testing.T) {
 			loc2 (loc_type2)
 	*/
 	qr := r.Query()
-
-	f1 := models.LocationFilterInput{
-		FilterType:  models.LocationFilterTypeLocationInstExternalID,
-		Operator:    models.FilterOperatorIs,
-		StringValue: &data.loc1.ExternalID,
-	}
 	resAll, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{}, pointer.ToInt(100))
 	require.NoError(t, err)
 	require.Len(t, resAll.Locations, 2)
 	require.Equal(t, resAll.Count, 2)
 
+	f1 := models.LocationFilterInput{
+		FilterType:  models.LocationFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: &data.loc1.ExternalID,
+	}
+
 	res, err := qr.LocationSearch(ctx, []*models.LocationFilterInput{&f1}, pointer.ToInt(100))
+	require.NoError(t, err)
+	require.Len(t, res.Locations, 1)
+	require.Equal(t, res.Count, 1)
+
+	// same filter - with 'IS" operator
+	f2 := models.LocationFilterInput{
+		FilterType:  models.LocationFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorIs,
+		StringValue: &data.loc1.ExternalID,
+	}
+
+	res, err = qr.LocationSearch(ctx, []*models.LocationFilterInput{&f2}, pointer.ToInt(100))
 	require.NoError(t, err)
 	require.Len(t, res.Locations, 1)
 	require.Equal(t, res.Count, 1)
@@ -299,7 +311,7 @@ func TestSearchLocationProperties(t *testing.T) {
 		FilterType: models.LocationFilterTypeProperty,
 		Operator:   models.FilterOperatorDateLessThan,
 		PropertyValue: &models.PropertyTypeInput{
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			Name:        "date_established",
 			StringValue: pointer.ToString("2019-11-15"),
 		},
@@ -314,7 +326,7 @@ func TestSearchLocationProperties(t *testing.T) {
 		FilterType: models.LocationFilterTypeProperty,
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
-			Type:        models.PropertyKindString,
+			Type:        propertytype.TypeString,
 			Name:        "stringProp",
 			StringValue: pointer.ToString("testProp"),
 		},

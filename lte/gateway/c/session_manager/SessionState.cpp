@@ -190,8 +190,7 @@ void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
   if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE,
-                  update_criteria);
+    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
   }
 
   CreditKey charging_key;
@@ -257,11 +256,12 @@ void SessionState::get_monitor_updates(
       continue;
     }
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key "
-                 << mkey << " updating due to quota exhaustion";
+                 << mkey << " updating due to quota exhaustion"
+                 << " with request number " << request_number_;
     auto credit_uc = get_monitor_uc(mkey, update_criteria);
     auto usage = credit.get_usage_for_reporting(*credit_uc);
-    auto update = make_usage_monitor_update(
-        usage, mkey, monitor_pair.second->level);
+    auto update =
+      make_usage_monitor_update(usage, mkey, monitor_pair.second->level);
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
 
     add_common_fields_to_usage_monitor_update(new_req);
@@ -974,7 +974,8 @@ void SessionState::get_charging_updates(
           // Create Update struct
           MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group "
                    << key << " updating due to type "
-                   << credit_update_type_to_str(update_type);
+                   << credit_update_type_to_str(update_type)
+                   << " with request number " << request_number_;
 
           if (update_type == CreditUsage::REAUTH_REQUIRED) {
             grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
@@ -1016,6 +1017,14 @@ void SessionState::get_charging_updates(
 bool SessionState::receive_monitor(
     const UsageMonitoringUpdateResponse &update,
     SessionStateUpdateCriteria &update_criteria) {
+  if (!update.has_credit()) {
+    // We are overloading UsageMonitoringUpdateResponse/Request with other
+    // EventTriggered requests, so we could receive updates that don't affect
+    // UsageMonitors.
+    MLOG(MINFO) << "Received a UsageMonitoringUpdateResponse without a monitor"
+                << ", not creating a monitor.";
+    return true;
+  }
   if (update.success() &&
       update.credit().level() == MonitoringLevel::SESSION_LEVEL) {
     update_session_level_key(update, update_criteria);
@@ -1166,6 +1175,9 @@ void SessionState::get_event_trigger_updates(
   // todo We should also handle other event triggers here too
   auto it = pending_event_triggers_.find(REVALIDATION_TIMEOUT);
   if (it != pending_event_triggers_.end() && it->second == READY) {
+    MLOG(MDEBUG) << "Session " << session_id_
+                 <<  " updating due to EventTrigger: REVALIDATION_TIMEOUT"
+                 << " with request number " << request_number_;
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
     add_common_fields_to_usage_monitor_update(new_req);
     new_req->set_event_trigger(REVALIDATION_TIMEOUT);

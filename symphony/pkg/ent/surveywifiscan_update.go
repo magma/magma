@@ -284,6 +284,11 @@ func (swfsu *SurveyWiFiScanUpdate) SetLocation(l *Location) *SurveyWiFiScanUpdat
 	return swfsu.SetLocationID(l.ID)
 }
 
+// Mutation returns the SurveyWiFiScanMutation object of the builder.
+func (swfsu *SurveyWiFiScanUpdate) Mutation() *SurveyWiFiScanMutation {
+	return swfsu.mutation
+}
+
 // ClearChecklistItem clears the checklist_item edge to CheckListItem.
 func (swfsu *SurveyWiFiScanUpdate) ClearChecklistItem() *SurveyWiFiScanUpdate {
 	swfsu.mutation.ClearChecklistItem()
@@ -910,6 +915,11 @@ func (swfsuo *SurveyWiFiScanUpdateOne) SetLocation(l *Location) *SurveyWiFiScanU
 	return swfsuo.SetLocationID(l.ID)
 }
 
+// Mutation returns the SurveyWiFiScanMutation object of the builder.
+func (swfsuo *SurveyWiFiScanUpdateOne) Mutation() *SurveyWiFiScanMutation {
+	return swfsuo.mutation
+}
+
 // ClearChecklistItem clears the checklist_item edge to CheckListItem.
 func (swfsuo *SurveyWiFiScanUpdateOne) ClearChecklistItem() *SurveyWiFiScanUpdateOne {
 	swfsuo.mutation.ClearChecklistItem()
@@ -997,7 +1007,7 @@ func (swfsuo *SurveyWiFiScanUpdateOne) sqlSave(ctx context.Context) (swfs *Surve
 	}
 	id, ok := swfsuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing SurveyWiFiScan.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing SurveyWiFiScan.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := swfsuo.mutation.UpdateTime(); ok {

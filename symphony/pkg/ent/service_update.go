@@ -170,6 +170,11 @@ func (su *ServiceUpdate) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdate {
 	return su.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the ServiceMutation object of the builder.
+func (su *ServiceUpdate) Mutation() *ServiceMutation {
+	return su.mutation
+}
+
 // ClearType clears the type edge to ServiceType.
 func (su *ServiceUpdate) ClearType() *ServiceUpdate {
 	su.mutation.ClearType()
@@ -274,12 +279,12 @@ func (su *ServiceUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := su.mutation.Name(); ok {
 		if err := service.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := su.mutation.ExternalID(); ok {
 		if err := service.ExternalIDValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
+			return 0, &ValidationError{Name: "external_id", err: fmt.Errorf("ent: validator failed for field \"external_id\": %w", err)}
 		}
 	}
 
@@ -802,6 +807,11 @@ func (suo *ServiceUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *ServiceUpdateO
 	return suo.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the ServiceMutation object of the builder.
+func (suo *ServiceUpdateOne) Mutation() *ServiceMutation {
+	return suo.mutation
+}
+
 // ClearType clears the type edge to ServiceType.
 func (suo *ServiceUpdateOne) ClearType() *ServiceUpdateOne {
 	suo.mutation.ClearType()
@@ -906,12 +916,12 @@ func (suo *ServiceUpdateOne) Save(ctx context.Context) (*Service, error) {
 	}
 	if v, ok := suo.mutation.Name(); ok {
 		if err := service.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := suo.mutation.ExternalID(); ok {
 		if err := service.ExternalIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"external_id\": %v", err)
+			return nil, &ValidationError{Name: "external_id", err: fmt.Errorf("ent: validator failed for field \"external_id\": %w", err)}
 		}
 	}
 
@@ -981,7 +991,7 @@ func (suo *ServiceUpdateOne) sqlSave(ctx context.Context) (s *Service, err error
 	}
 	id, ok := suo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Service.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Service.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := suo.mutation.UpdateTime(); ok {

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7459bf2367b15af6a91cd7c5fe6d9e21
+ * @relayHash fd8869358b45762cd371c459bf49531b
  */
 
 /* eslint-disable */
@@ -20,7 +20,6 @@ export type EditProjectInput = {|
   id: string,
   name: string,
   description?: ?string,
-  creator?: ?string,
   creatorId?: ?string,
   type: string,
   location?: ?string,

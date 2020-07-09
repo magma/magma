@@ -191,7 +191,7 @@ const deleteBefore: BeforeFun = (tenantId, groups, req, res, proxyCallback) => {
   proxyCallback({target: schellarTarget});
 };
 
-const registration: TransformerRegistrationFun = function(ctx) {
+const registration: TransformerRegistrationFun = function (ctx) {
   schellarTarget = ctx.schellarTarget;
   return [
     {

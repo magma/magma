@@ -202,11 +202,11 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	require.Equal(t, "D243", *s1.ExternalID)
 	require.Equal(t, models.ServiceStatusPending.String(), s1.Status)
 
-	prop1, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.Type("string"))).Only(ctx)
+	prop1, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeString))).Only(ctx)
 	require.NoError(t, err)
 	require.Equal(t, "root", prop1.StringVal)
 
-	prop2, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.Type("int"))).Only(ctx)
+	prop2, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeInt))).Only(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 20, prop2.IntVal)
 
@@ -219,10 +219,10 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	require.Equal(t, "U333", *customer.ExternalID)
 	require.Equal(t, models.ServiceStatusInService.String(), s2.Status)
 
-	prop3, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.Type("float"))).Only(ctx)
+	prop3, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeFloat))).Only(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 22.4, prop3.FloatVal)
-	prop4, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.Type("bool"))).Only(ctx)
+	prop4, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeBool))).Only(ctx)
 	require.NoError(t, err)
 	require.Equal(t, true, prop4.BoolVal)
 }

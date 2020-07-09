@@ -26,7 +26,7 @@ import type {
 
 const logger = logging.getLogger(module);
 
-export default async function(
+export default async function (
   proxyTarget: string,
   schellarTarget: string,
   transformFx: Array<TransformerRegistrationFun>,
@@ -55,7 +55,7 @@ export default async function(
       // TODO set timeouts
     });
 
-    proxy.on('proxyRes', async function(proxyRes, req, res) {
+    proxy.on('proxyRes', async function (proxyRes, req, res) {
       const tenantId = getTenantId(req);
       const role = getUserRole(req);
       const groups = await getUserGroups(req, groupLoadingStrategy);
@@ -70,10 +70,10 @@ export default async function(
         `RES ${proxyRes.statusCode} ${req.method} ${req.url} tenantId ${tenantId}`,
       );
       const body = [];
-      proxyRes.on('data', function(chunk) {
+      proxyRes.on('data', function (chunk) {
         body.push(chunk);
       });
-      proxyRes.on('end', function() {
+      proxyRes.on('end', function () {
         const data = Buffer.concat(body).toString();
         res.statusCode = proxyRes.statusCode;
         if (
@@ -119,8 +119,8 @@ export default async function(
         }
         // start with 'before'
         logger.info(`REQ ${req.method} ${req.url} tenantId ${tenantId}`);
-        const proxyCallback: ProxyCallback = function(proxyOptions) {
-          proxy.web(req, res, proxyOptions, function(e) {
+        const proxyCallback: ProxyCallback = function (proxyOptions) {
+          proxy.web(req, res, proxyOptions, function (e) {
             logger.error('Inline error handler', e);
             next(e);
           });

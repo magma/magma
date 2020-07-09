@@ -16,9 +16,12 @@ const (
 	// Label holds the string label denoting the link type in the database.
 	Label = "link"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time" // FieldFutureState holds the string denoting the future_state vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldFutureState holds the string denoting the future_state field in the database.
 	FieldFutureState = "future_state"
 
 	// EdgePorts holds the string denoting the ports edge name in mutations.

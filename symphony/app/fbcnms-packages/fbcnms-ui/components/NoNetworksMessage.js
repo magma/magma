@@ -29,7 +29,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function({children}: {children: React.Node}) {
+export default function ({children}: {children: React.Node}) {
   const classes = useStyles();
   return (
     <Typography variant="h6" className={classes.noAccess}>

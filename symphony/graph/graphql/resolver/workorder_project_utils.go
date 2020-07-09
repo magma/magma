@@ -27,8 +27,8 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 	typeIDToInput := make(map[int]*models.PropertyInput)
 	switch entity {
 	case models.PropertyEntityWorkOrder:
-		var template *ent.WorkOrderType
-		if template, err = r.ClientFrom(ctx).WorkOrderType.Get(ctx, tmplID); err != nil {
+		var template *ent.WorkOrderTemplate
+		if template, err = r.ClientFrom(ctx).WorkOrderTemplate.Get(ctx, tmplID); err != nil {
 			return nil, fmt.Errorf("can't read work order type: %w", err)
 		}
 		types, err = template.QueryPropertyTypes().
@@ -67,7 +67,7 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 				return nil, fmt.Errorf("property type %v is mandatory and must be specified", propTyp.Name)
 			}
 			stringValue := &propTyp.StringVal
-			if models.PropertyKind(propTyp.Type) == models.PropertyKindEnum {
+			if propTyp.Type == propertytype.TypeEnum {
 				stringValue = nil
 			}
 			validInput = append(validInput, &models.PropertyInput{

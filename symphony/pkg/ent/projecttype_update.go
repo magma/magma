@@ -105,6 +105,11 @@ func (ptu *ProjectTypeUpdate) AddWorkOrders(w ...*WorkOrderDefinition) *ProjectT
 	return ptu.AddWorkOrderIDs(ids...)
 }
 
+// Mutation returns the ProjectTypeMutation object of the builder.
+func (ptu *ProjectTypeUpdate) Mutation() *ProjectTypeMutation {
+	return ptu.mutation
+}
+
 // RemoveProjectIDs removes the projects edge to Project by ids.
 func (ptu *ProjectTypeUpdate) RemoveProjectIDs(ids ...int) *ProjectTypeUpdate {
 	ptu.mutation.RemoveProjectIDs(ids...)
@@ -158,7 +163,7 @@ func (ptu *ProjectTypeUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := ptu.mutation.Name(); ok {
 		if err := projecttype.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -459,6 +464,11 @@ func (ptuo *ProjectTypeUpdateOne) AddWorkOrders(w ...*WorkOrderDefinition) *Proj
 	return ptuo.AddWorkOrderIDs(ids...)
 }
 
+// Mutation returns the ProjectTypeMutation object of the builder.
+func (ptuo *ProjectTypeUpdateOne) Mutation() *ProjectTypeMutation {
+	return ptuo.mutation
+}
+
 // RemoveProjectIDs removes the projects edge to Project by ids.
 func (ptuo *ProjectTypeUpdateOne) RemoveProjectIDs(ids ...int) *ProjectTypeUpdateOne {
 	ptuo.mutation.RemoveProjectIDs(ids...)
@@ -512,7 +522,7 @@ func (ptuo *ProjectTypeUpdateOne) Save(ctx context.Context) (*ProjectType, error
 	}
 	if v, ok := ptuo.mutation.Name(); ok {
 		if err := projecttype.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -578,7 +588,7 @@ func (ptuo *ProjectTypeUpdateOne) sqlSave(ctx context.Context) (pt *ProjectType,
 	}
 	id, ok := ptuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing ProjectType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ProjectType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := ptuo.mutation.UpdateTime(); ok {

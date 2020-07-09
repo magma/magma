@@ -1,0 +1,41 @@
+import Text from '../../components/design-system/Text';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/Text`} />
+
+# Text
+
+```js
+import Text from '@fbcnms/ui/components/design-system/Text';
+```
+
+`variant` supports: `h1`, `h2`, `h3`, `h4`, `h5`, `h6`, `subtitle1`, `subtitle2`, `subtitle3`, `body1`, `body2`, `caption`, `overline`.
+
+`weight` supports: `inherit`, `light`, `regular`, `medium`, `bold`.
+
+`color` supports: `light`, `regular`, `primary`, `error`, `gray`, `warning`, `inherit`,
+
+Use `useEllipsis` to display elipsis when the text doesn't have enough space.
+
+export const param = 'a';
+
+<Preview>
+  <Story name="Regular">
+    <Text variant="body2" color="regular" weight="regular">
+      Regular Text
+    </Text>
+  </Story>
+</Preview>
+
+### Multiple Children
+
+<Preview>
+  <Story name="Multiple Children">
+    <Text variant="body2" color="regular" weight="regular">
+      <Text variant="body2">
+        <span style={{fontWeight: 500}}>Text with multiple children:</span> yay
+      </Text>
+    </Text>
+  </Story>
+</Preview>

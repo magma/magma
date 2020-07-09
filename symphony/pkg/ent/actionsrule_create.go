@@ -77,6 +77,11 @@ func (arc *ActionsRuleCreate) SetRuleActions(cra []*core.ActionsRuleAction) *Act
 	return arc
 }
 
+// Mutation returns the ActionsRuleMutation object of the builder.
+func (arc *ActionsRuleCreate) Mutation() *ActionsRuleMutation {
+	return arc.mutation
+}
+
 // Save creates the ActionsRule in the database.
 func (arc *ActionsRuleCreate) Save(ctx context.Context) (*ActionsRule, error) {
 	if _, ok := arc.mutation.CreateTime(); !ok {
@@ -88,16 +93,16 @@ func (arc *ActionsRuleCreate) Save(ctx context.Context) (*ActionsRule, error) {
 		arc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := arc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if _, ok := arc.mutation.TriggerID(); !ok {
-		return nil, errors.New("ent: missing required field \"triggerID\"")
+		return nil, &ValidationError{Name: "triggerID", err: errors.New("ent: missing required field \"triggerID\"")}
 	}
 	if _, ok := arc.mutation.RuleFilters(); !ok {
-		return nil, errors.New("ent: missing required field \"ruleFilters\"")
+		return nil, &ValidationError{Name: "ruleFilters", err: errors.New("ent: missing required field \"ruleFilters\"")}
 	}
 	if _, ok := arc.mutation.RuleActions(); !ok {
-		return nil, errors.New("ent: missing required field \"ruleActions\"")
+		return nil, &ValidationError{Name: "ruleActions", err: errors.New("ent: missing required field \"ruleActions\"")}
 	}
 	var (
 		err  error

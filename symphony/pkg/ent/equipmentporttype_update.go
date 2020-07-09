@@ -84,6 +84,11 @@ func (eptu *EquipmentPortTypeUpdate) AddPortDefinitions(e ...*EquipmentPortDefin
 	return eptu.AddPortDefinitionIDs(ids...)
 }
 
+// Mutation returns the EquipmentPortTypeMutation object of the builder.
+func (eptu *EquipmentPortTypeUpdate) Mutation() *EquipmentPortTypeMutation {
+	return eptu.mutation
+}
+
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (eptu *EquipmentPortTypeUpdate) RemovePropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdate {
 	eptu.mutation.RemovePropertyTypeIDs(ids...)
@@ -400,6 +405,11 @@ func (eptuo *EquipmentPortTypeUpdateOne) AddPortDefinitions(e ...*EquipmentPortD
 	return eptuo.AddPortDefinitionIDs(ids...)
 }
 
+// Mutation returns the EquipmentPortTypeMutation object of the builder.
+func (eptuo *EquipmentPortTypeUpdateOne) Mutation() *EquipmentPortTypeMutation {
+	return eptuo.mutation
+}
+
 // RemovePropertyTypeIDs removes the property_types edge to PropertyType by ids.
 func (eptuo *EquipmentPortTypeUpdateOne) RemovePropertyTypeIDs(ids ...int) *EquipmentPortTypeUpdateOne {
 	eptuo.mutation.RemovePropertyTypeIDs(ids...)
@@ -514,7 +524,7 @@ func (eptuo *EquipmentPortTypeUpdateOne) sqlSave(ctx context.Context) (ept *Equi
 	}
 	id, ok := eptuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPortType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentPortType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := eptuo.mutation.UpdateTime(); ok {

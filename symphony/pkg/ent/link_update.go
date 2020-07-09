@@ -119,6 +119,11 @@ func (lu *LinkUpdate) AddService(s ...*Service) *LinkUpdate {
 	return lu.AddServiceIDs(ids...)
 }
 
+// Mutation returns the LinkMutation object of the builder.
+func (lu *LinkUpdate) Mutation() *LinkMutation {
+	return lu.mutation
+}
+
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
 func (lu *LinkUpdate) RemovePortIDs(ids ...int) *LinkUpdate {
 	lu.mutation.RemovePortIDs(ids...)
@@ -515,6 +520,11 @@ func (luo *LinkUpdateOne) AddService(s ...*Service) *LinkUpdateOne {
 	return luo.AddServiceIDs(ids...)
 }
 
+// Mutation returns the LinkMutation object of the builder.
+func (luo *LinkUpdateOne) Mutation() *LinkMutation {
+	return luo.mutation
+}
+
 // RemovePortIDs removes the ports edge to EquipmentPort by ids.
 func (luo *LinkUpdateOne) RemovePortIDs(ids ...int) *LinkUpdateOne {
 	luo.mutation.RemovePortIDs(ids...)
@@ -635,7 +645,7 @@ func (luo *LinkUpdateOne) sqlSave(ctx context.Context) (l *Link, err error) {
 	}
 	id, ok := luo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Link.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Link.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := luo.mutation.UpdateTime(); ok {

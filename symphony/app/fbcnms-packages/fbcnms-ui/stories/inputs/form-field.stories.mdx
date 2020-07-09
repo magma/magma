@@ -1,0 +1,59 @@
+import FormField from '../../components/design-system/FormField/FormField';
+import StoryFrame from '../StoryFrame';
+import TextInput from '../../components/design-system/Input/TextInput';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+
+<Meta title={`${STORY_CATEGORIES.INPUTS}/FormField`} />
+
+# FormField
+
+```js
+import FormField from '@fbcnms/ui/components/design-system/FormField';
+```
+
+`FormField` allows adding a title and help text to inputs.
+
+<Preview>
+  <Story name="Form Field">
+    <FormField label="Label" helpText="Help Text">
+      <TextInput type="string" placeholder="Placeholder" />
+    </FormField>
+  </Story>
+</Preview>
+
+### Required Fields
+
+<Preview>
+  <Story name="Required">
+    <FormField label="Required" helpText="Help Text" required>
+      <TextInput type="string" placeholder="Placeholder" />
+    </FormField>
+  </Story>
+</Preview>
+
+### Disabled
+
+<Preview>
+  <Story name="Disabled">
+    <StoryFrame background="light" stretchContents={true}>
+      <FormField label="Label" helpText="Help Text" disabled>
+        <TextInput type="string" placeholder="Placeholder" />
+      </FormField>
+    </StoryFrame>
+  </Story>
+</Preview>
+
+### Error Message
+
+<Preview>
+  <Story name="Error Message">
+    <FormField
+      label="Label"
+      helpText="Help Text"
+      hasError
+      errorText="Error Message">
+      <TextInput type="string" placeholder="Placeholder" value="Bad Value" />
+    </FormField>
+  </Story>
+</Preview>

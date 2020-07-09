@@ -167,6 +167,11 @@ func (ltu *LocationTypeUpdate) AddSurveyTemplateCategories(s ...*SurveyTemplateC
 	return ltu.AddSurveyTemplateCategoryIDs(ids...)
 }
 
+// Mutation returns the LocationTypeMutation object of the builder.
+func (ltu *LocationTypeUpdate) Mutation() *LocationTypeMutation {
+	return ltu.mutation
+}
+
 // RemoveLocationIDs removes the locations edge to Location by ids.
 func (ltu *LocationTypeUpdate) RemoveLocationIDs(ids ...int) *LocationTypeUpdate {
 	ltu.mutation.RemoveLocationIDs(ids...)
@@ -619,6 +624,11 @@ func (ltuo *LocationTypeUpdateOne) AddSurveyTemplateCategories(s ...*SurveyTempl
 	return ltuo.AddSurveyTemplateCategoryIDs(ids...)
 }
 
+// Mutation returns the LocationTypeMutation object of the builder.
+func (ltuo *LocationTypeUpdateOne) Mutation() *LocationTypeMutation {
+	return ltuo.mutation
+}
+
 // RemoveLocationIDs removes the locations edge to Location by ids.
 func (ltuo *LocationTypeUpdateOne) RemoveLocationIDs(ids ...int) *LocationTypeUpdateOne {
 	ltuo.mutation.RemoveLocationIDs(ids...)
@@ -733,7 +743,7 @@ func (ltuo *LocationTypeUpdateOne) sqlSave(ctx context.Context) (lt *LocationTyp
 	}
 	id, ok := ltuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing LocationType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing LocationType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := ltuo.mutation.UpdateTime(); ok {

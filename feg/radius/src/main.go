@@ -9,12 +9,9 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"fbc/cwf/radius/config"
-	"fbc/cwf/radius/loader"
-	"fbc/cwf/radius/monitoring"
-	"fbc/cwf/radius/server"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"net/http"
@@ -22,11 +19,20 @@ import (
 	"os"
 	"os/signal"
 	"sort"
+	"strings"
 	"syscall"
 
-	"go.uber.org/zap"
+	"fbc/cwf/radius/config"
+	"fbc/cwf/radius/loader"
+	"fbc/cwf/radius/monitoring"
+	"fbc/cwf/radius/server"
+
 	_ "magma/orc8r/lib/go/initflag"
+
+	"go.uber.org/zap"
 )
+
+const versionFile = "/app/VERSION"
 
 func createLogger(encoding string) (*zap.Logger, error) {
 	if encoding == "json" {
@@ -85,7 +91,10 @@ func main() {
 	}
 
 	logger = logger.With(zap.String("host", getHostIdentifier()))
-
+	if config.Monitoring.Scuba != nil {
+		logger = logger.With(zap.String("partner_shortname", config.Monitoring.Scuba.PartnerShortName))
+	}
+	logger = logger.With(zap.String("app_version", GetVersion()))
 	loader := loader.NewStaticLoader(logger)
 
 	// Create server
@@ -132,4 +141,13 @@ func getHostIdentifier() string {
 
 	// Just a random, unstable identifer
 	return fmt.Sprintf("random:%d", rand.Intn(9999999))
+}
+
+// GetVersion returns version of the app
+func GetVersion() string {
+	data, err := ioutil.ReadFile(versionFile)
+	if err != nil {
+		return "NA"
+	}
+	return strings.TrimSuffix(string(data), "\n")
 }

@@ -83,6 +83,11 @@ func (epu *EquipmentPositionUpdate) SetAttachment(e *Equipment) *EquipmentPositi
 	return epu.SetAttachmentID(e.ID)
 }
 
+// Mutation returns the EquipmentPositionMutation object of the builder.
+func (epu *EquipmentPositionUpdate) Mutation() *EquipmentPositionMutation {
+	return epu.mutation
+}
+
 // ClearDefinition clears the definition edge to EquipmentPositionDefinition.
 func (epu *EquipmentPositionUpdate) ClearDefinition() *EquipmentPositionUpdate {
 	epu.mutation.ClearDefinition()
@@ -358,6 +363,11 @@ func (epuo *EquipmentPositionUpdateOne) SetAttachment(e *Equipment) *EquipmentPo
 	return epuo.SetAttachmentID(e.ID)
 }
 
+// Mutation returns the EquipmentPositionMutation object of the builder.
+func (epuo *EquipmentPositionUpdateOne) Mutation() *EquipmentPositionMutation {
+	return epuo.mutation
+}
+
 // ClearDefinition clears the definition edge to EquipmentPositionDefinition.
 func (epuo *EquipmentPositionUpdateOne) ClearDefinition() *EquipmentPositionUpdateOne {
 	epuo.mutation.ClearDefinition()
@@ -449,7 +459,7 @@ func (epuo *EquipmentPositionUpdateOne) sqlSave(ctx context.Context) (ep *Equipm
 	}
 	id, ok := epuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPosition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentPosition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := epuo.mutation.UpdateTime(); ok {

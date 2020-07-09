@@ -105,9 +105,7 @@ class RestartResilienceTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': False,
             },
-            mconfig=PipelineD(
-                relay_enabled=True
-            ),
+            mconfig=PipelineD(),
             loop=loop_mock,
             service_manager=cls.service_manager,
             integ_test=False,

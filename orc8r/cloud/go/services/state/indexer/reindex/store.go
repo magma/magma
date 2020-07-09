@@ -38,7 +38,7 @@ func (s *storeImpl) GetAllIDs() (state_types.IDsByNetwork, error) {
 	}
 
 	blobsByNetwork, err := store.Search(
-		blobstore.CreateSearchFilter(nil, nil, nil),
+		blobstore.CreateSearchFilter(nil, nil, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	)
 	if err != nil {

@@ -71,7 +71,7 @@ func TestEditServiceTypeWithProperties(t *testing.T) {
 	serviceType, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{Name: "example_type_a", HasCustomer: true, Properties: propTypeInput})
 	require.NoError(t, err)
 
-	strProp := serviceType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp := serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	strValue = "Foo - edited"
 	intValue := 5
 	strPropType = models.PropertyTypeInput{
@@ -95,11 +95,11 @@ func TestEditServiceTypeWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, serviceType.Name, newType.Name, "successfully edited service type name")
 
-	strProp = serviceType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp = serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
 	require.Equal(t, strValue, strProp.StringVal, "successfully edited prop type string value")
 
-	intProp := serviceType.QueryPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
+	intProp := serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
 	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
 
@@ -118,7 +118,7 @@ func TestEditServiceTypeWithProperties(t *testing.T) {
 		HasCustomer: true,
 	})
 	require.NoError(t, err)
-	intProp = serviceType.QueryPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
+	intProp = serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
 	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
 }

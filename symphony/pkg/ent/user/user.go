@@ -8,6 +8,7 @@ package user
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -17,15 +18,23 @@ const (
 	// Label holds the string label denoting the user type in the database.
 	Label = "user"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID         = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime = "update_time" // FieldAuthID holds the string denoting the auth_id vertex property in the database.
-	FieldAuthID     = "auth_id"     // FieldFirstName holds the string denoting the first_name vertex property in the database.
-	FieldFirstName  = "first_name"  // FieldLastName holds the string denoting the last_name vertex property in the database.
-	FieldLastName   = "last_name"   // FieldEmail holds the string denoting the email vertex property in the database.
-	FieldEmail      = "email"       // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus     = "status"      // FieldRole holds the string denoting the role vertex property in the database.
-	FieldRole       = "role"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldAuthID holds the string denoting the auth_id field in the database.
+	FieldAuthID = "auth_id"
+	// FieldFirstName holds the string denoting the first_name field in the database.
+	FieldFirstName = "first_name"
+	// FieldLastName holds the string denoting the last_name field in the database.
+	FieldLastName = "last_name"
+	// FieldEmail holds the string denoting the email field in the database.
+	FieldEmail = "email"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 
 	// EdgeProfilePhoto holds the string denoting the profile_photo edge name in mutations.
 	EdgeProfilePhoto = "profile_photo"
@@ -158,8 +167,8 @@ const (
 	RoleOWNER Role = "OWNER"
 )
 
-func (s Role) String() string {
-	return string(s)
+func (r Role) String() string {
+	return string(r)
 }
 
 // RoleValidator is a validator for the "r" field enum values. It is called by the builders before save.
@@ -170,4 +179,53 @@ func RoleValidator(r Role) error {
 	default:
 		return fmt.Errorf("user: invalid enum value for role field: %q", r)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, s)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (r Role) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, r)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (r *Role) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*r = Role(str)
+	if err := RoleValidator(*r); err != nil {
+		return fmt.Errorf("%s is not a valid Role", str)
+	}
+	return nil
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import List, Optional
+from typing import Iterator, Optional
 
 from pysymphony import SymphonyClient
 
@@ -37,12 +37,12 @@ def add_customer(
     return Customer(name=result.name, id=result.id, external_id=result.externalId)
 
 
-def get_all_customers(client: SymphonyClient) -> List[Customer]:
+def get_all_customers(client: SymphonyClient) -> Iterator[Customer]:
 
     """This function returns all Customers.
 
         Returns:
-            List[ `pyinventory.common.data_class.Customer` ]
+            Iterator[ `pyinventory.common.data_class.Customer` ]
 
         Example:
             ```
@@ -51,15 +51,11 @@ def get_all_customers(client: SymphonyClient) -> List[Customer]:
     """
     customers = CustomersQuery.execute(client)
     if not customers:
-        return []
-    result = []
+        return
     for customer in customers.edges:
         node = customer.node
         if node:
-            result.append(
-                Customer(name=node.name, id=node.id, external_id=node.externalId)
-            )
-    return result
+            yield Customer(name=node.name, id=node.id, external_id=node.externalId)
 
 
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:

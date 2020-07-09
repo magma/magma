@@ -81,17 +81,17 @@ export function mockRuleInterface<TRule>(
     friendlyName: friendlyName ?? 'mock rule',
     RuleEditor:
       RuleEditor ??
-      function(_props: RuleEditorProps<TRule>) {
+      function (_props: RuleEditorProps<TRule>) {
         return <span />;
       },
     RuleViewer:
       RuleViewer ??
-      function(_props: RuleViewerProps<TRule>) {
+      function (_props: RuleViewerProps<TRule>) {
         return <span />;
       },
     AlertViewer:
       AlertViewer ??
-      function(_props: AlertViewerProps) {
+      function (_props: AlertViewerProps) {
         return <span />;
       },
     deleteRule: deleteRule ?? jest.fn(() => Promise.resolve()),

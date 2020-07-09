@@ -14,7 +14,7 @@ import type {PropertyType} from '../../common/PropertyType';
 export const EntityTypeMap = Object.freeze({
   equipment: 'equipment',
   location: 'location',
-  location_by_types: 'location_by_types',
+  locations: 'locations',
   link: 'link',
   port: 'port',
   properties: 'properties',

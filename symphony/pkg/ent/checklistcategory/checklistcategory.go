@@ -16,10 +16,14 @@ const (
 	// Label holds the string label denoting the checklistcategory type in the database.
 	Label = "check_list_category"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time" // FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle       = "title"       // FieldDescription holds the string denoting the description vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
 
 	// EdgeCheckListItems holds the string denoting the check_list_items edge name in mutations.

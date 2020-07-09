@@ -60,7 +60,7 @@ function resolveSuccess(res, resolve) {
 
 function doHttpRequestWithOptions(options): Promise<FrontendResponse> {
   return new Promise<FrontendResponse>((resolve, reject) => {
-    request(options, function(err, res) {
+    request(options, function (err, res) {
       if (res != null && isSuccess(res)) {
         resolveSuccess(res, resolve);
       } else if (res != null) {
@@ -88,7 +88,7 @@ const HttpClient = {
   get: <T>(path: string, parentRequest: express$Request): Promise<T> =>
     new Promise<T>((resolve, reject) => {
       const options = makeOptions('GET', path, parentRequest);
-      request(options, function(err, res) {
+      request(options, function (err, res) {
         if (res != null && isSuccess(res)) {
           // TODO get rid of explicit json parsing when
           // conductor's #376 is fixed

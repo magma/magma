@@ -33,7 +33,7 @@ const severityMap: {[string]: Severity} = {
   minor: 'Minor',
 };
 
-export default function() {
+export default function () {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
 

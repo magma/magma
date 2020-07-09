@@ -118,6 +118,11 @@ func (ppu *PermissionsPolicyUpdate) AddGroups(u ...*UsersGroup) *PermissionsPoli
 	return ppu.AddGroupIDs(ids...)
 }
 
+// Mutation returns the PermissionsPolicyMutation object of the builder.
+func (ppu *PermissionsPolicyUpdate) Mutation() *PermissionsPolicyMutation {
+	return ppu.mutation
+}
+
 // RemoveGroupIDs removes the groups edge to UsersGroup by ids.
 func (ppu *PermissionsPolicyUpdate) RemoveGroupIDs(ids ...int) *PermissionsPolicyUpdate {
 	ppu.mutation.RemoveGroupIDs(ids...)
@@ -141,7 +146,7 @@ func (ppu *PermissionsPolicyUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := ppu.mutation.Name(); ok {
 		if err := permissionspolicy.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -419,6 +424,11 @@ func (ppuo *PermissionsPolicyUpdateOne) AddGroups(u ...*UsersGroup) *Permissions
 	return ppuo.AddGroupIDs(ids...)
 }
 
+// Mutation returns the PermissionsPolicyMutation object of the builder.
+func (ppuo *PermissionsPolicyUpdateOne) Mutation() *PermissionsPolicyMutation {
+	return ppuo.mutation
+}
+
 // RemoveGroupIDs removes the groups edge to UsersGroup by ids.
 func (ppuo *PermissionsPolicyUpdateOne) RemoveGroupIDs(ids ...int) *PermissionsPolicyUpdateOne {
 	ppuo.mutation.RemoveGroupIDs(ids...)
@@ -442,7 +452,7 @@ func (ppuo *PermissionsPolicyUpdateOne) Save(ctx context.Context) (*PermissionsP
 	}
 	if v, ok := ppuo.mutation.Name(); ok {
 		if err := permissionspolicy.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 
@@ -508,7 +518,7 @@ func (ppuo *PermissionsPolicyUpdateOne) sqlSave(ctx context.Context) (pp *Permis
 	}
 	id, ok := ppuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing PermissionsPolicy.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing PermissionsPolicy.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := ppuo.mutation.UpdateTime(); ok {

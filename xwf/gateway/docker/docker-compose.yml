@@ -91,5 +91,6 @@ services:
       - AAA_ACCESS_TOKEN=${AAA_ACCESS_TOKEN}
       - RADIUS_SECRET=123456
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
+      - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
     command: >
       /bin/sh -c "./docker-entrypoint.sh"

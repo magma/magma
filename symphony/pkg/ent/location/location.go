@@ -16,13 +16,20 @@ const (
 	// Label holds the string label denoting the location type in the database.
 	Label = "location"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID               = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime       = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime       = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName             = "name"        // FieldExternalID holds the string denoting the external_id vertex property in the database.
-	FieldExternalID       = "external_id" // FieldLatitude holds the string denoting the latitude vertex property in the database.
-	FieldLatitude         = "latitude"    // FieldLongitude holds the string denoting the longitude vertex property in the database.
-	FieldLongitude        = "longitude"   // FieldSiteSurveyNeeded holds the string denoting the site_survey_needed vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldExternalID holds the string denoting the external_id field in the database.
+	FieldExternalID = "external_id"
+	// FieldLatitude holds the string denoting the latitude field in the database.
+	FieldLatitude = "latitude"
+	// FieldLongitude holds the string denoting the longitude field in the database.
+	FieldLongitude = "longitude"
+	// FieldSiteSurveyNeeded holds the string denoting the site_survey_needed field in the database.
 	FieldSiteSurveyNeeded = "site_survey_needed"
 
 	// EdgeType holds the string denoting the type edge name in mutations.

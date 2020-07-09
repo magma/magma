@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List, Mapping, Optional, Tuple, cast
+from typing import Dict, Iterator, Mapping, Optional, Tuple, cast
 
 from pysymphony import SymphonyClient
 from tqdm import tqdm
@@ -97,11 +97,11 @@ def get_equipment(client: SymphonyClient, name: str, location: Location) -> Equi
     return equipment
 
 
-def get_equipments(client: SymphonyClient) -> List[Equipment]:
+def get_equipments(client: SymphonyClient) -> Iterator[Equipment]:
     """This function returns all existing equipments
 
         Returns:
-            List[ `pyinventory.common.data_class.Equipment` ]
+            Iterator[ `pyinventory.common.data_class.Equipment` ]
 
         Example:
             ```
@@ -117,20 +117,15 @@ def get_equipments(client: SymphonyClient) -> List[Equipment]:
         if equipments is not None:
             edges.extend(equipments.edges)
 
-    result = []
     for edge in edges:
         node = edge.node
         if node is not None:
-            result.append(
-                Equipment(
-                    id=node.id,
-                    external_id=node.externalId,
-                    name=node.name,
-                    equipment_type_name=node.equipmentType.name,
-                )
+            yield Equipment(
+                id=node.id,
+                external_id=node.externalId,
+                name=node.name,
+                equipment_type_name=node.equipmentType.name,
             )
-
-    return result
 
 
 def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Equipment:
@@ -163,24 +158,26 @@ def get_equipment_by_external_id(client: SymphonyClient, external_id: str) -> Eq
         stringSet=[],
     )
 
-    equipments = EquipmentSearchQuery.execute(
-        client, filters=[equipment_filter], limit=5
-    )
+    res = EquipmentSearchQuery.execute(client, filters=[equipment_filter], limit=5)
 
-    if not equipments or equipments.count == 0:
+    if not res or res.totalCount == 0:
         raise EntityNotFoundError(
             entity=Entity.Equipment, msg=f"external_id={external_id}"
         )
 
-    if equipments.count > 1:
+    if res.totalCount > 1:
         raise EquipmentIsNotUniqueException(external_id)
 
-    return Equipment(
-        id=equipments.equipment[0].id,
-        external_id=equipments.equipment[0].externalId,
-        name=equipments.equipment[0].name,
-        equipment_type_name=equipments.equipment[0].equipmentType.name,
-    )
+    for edge in res.edges:
+        node = edge.node
+        if node is not None:
+            return Equipment(
+                id=node.id,
+                external_id=node.externalId,
+                name=node.name,
+                equipment_type_name=node.equipmentType.name,
+            )
+    raise EntityNotFoundError(entity=Entity.Equipment, msg=f"external_id={external_id}")
 
 
 def get_equipment_properties(
@@ -211,14 +208,14 @@ def get_equipment_properties(
 
 def get_equipments_by_type(
     client: SymphonyClient, equipment_type_id: str
-) -> List[Equipment]:
+) -> Iterator[Equipment]:
     """Get equipments by ID of specific type.
 
         Args:
             equipment_type_id (str): equipment type ID
 
         Returns:
-            List[ `pyinventory.common.data_class.Equipment` ]: List of found equipments
+            Iterator[ `pyinventory.common.data_class.Equipment` ]: List of found equipments
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: equipment type with this ID does not exist
@@ -235,30 +232,25 @@ def get_equipments_by_type(
         raise EntityNotFoundError(
             entity=Entity.EquipmentType, entity_id=equipment_type_id
         )
-    result = []
     for equipment in equipment_type_with_equipments.equipments:
-        result.append(
-            Equipment(
-                id=equipment.id,
-                external_id=equipment.externalId,
-                name=equipment.name,
-                equipment_type_name=equipment.equipmentType.name,
-            )
+        yield Equipment(
+            id=equipment.id,
+            external_id=equipment.externalId,
+            name=equipment.name,
+            equipment_type_name=equipment.equipmentType.name,
         )
-
-    return result
 
 
 def get_equipments_by_location(
     client: SymphonyClient, location_id: str
-) -> List[Equipment]:
+) -> Iterator[Equipment]:
     """Get equipments by ID of specific location.
 
         Args:
             location_id (str): location ID
 
         Returns:
-            List[ `pyinventory.common.data_class.Equipment` ]: List of found equipments
+            Iterator[ `pyinventory.common.data_class.Equipment` ]: List of found equipments
 
         Raises:
             `pyinventory.exceptions.EntityNotFoundError`: location with this ID does not exist
@@ -271,17 +263,14 @@ def get_equipments_by_location(
     location_details = LocationEquipmentsQuery.execute(client, id=location_id)
     if location_details is None:
         raise EntityNotFoundError(entity=Entity.Location, entity_id=location_id)
-    result = []
+
     for equipment in location_details.equipments:
-        result.append(
-            Equipment(
-                id=equipment.id,
-                external_id=equipment.externalId,
-                name=equipment.name,
-                equipment_type_name=equipment.equipmentType.name,
-            )
+        yield Equipment(
+            id=equipment.id,
+            external_id=equipment.externalId,
+            name=equipment.name,
+            equipment_type_name=equipment.equipmentType.name,
         )
-    return result
 
 
 def _get_equipment_in_position_if_exists(
@@ -604,32 +593,38 @@ def delete_equipment(client: SymphonyClient, equipment: Equipment) -> None:
 
 def search_for_equipments(
     client: SymphonyClient, limit: int
-) -> Tuple[List[Equipment], int]:
+) -> Tuple[Iterator[Equipment], int]:
     """Search for equipments.
 
         Args:
             limit (int): search result limit
 
         Returns:
-            Tuple[List[ `pyinventory.common.data_class.Equipment` ], int]
+            Tuple[Iterator[ `pyinventory.common.data_class.Equipment` ], int]
 
         Example:
             ```
             client.search_for_equipments(limit=10)
             ```
     """
-    equipments_result = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
 
-    total_count = equipments_result.count
-    equipments = [
-        Equipment(
-            id=equipment.id,
-            external_id=equipment.externalId,
-            name=equipment.name,
-            equipment_type_name=equipment.equipmentType.name,
-        )
-        for equipment in equipments_result.equipment
-    ]
+    def generate_equipments(
+        data: EquipmentSearchQuery.EquipmentSearchQueryData.EquipmentConnection,
+    ) -> Iterator[Equipment]:
+        for edge in data.edges:
+            node = edge.node
+            if node is not None:
+                yield Equipment(
+                    id=node.id,
+                    external_id=node.externalId,
+                    name=node.name,
+                    equipment_type_name=node.equipmentType.name,
+                )
+
+    equipments_result = EquipmentSearchQuery.execute(client, filters=[], limit=limit)
+    total_count = equipments_result.totalCount
+
+    equipments = generate_equipments(equipments_result)
     return equipments, total_count
 
 
@@ -641,25 +636,27 @@ def delete_all_equipments(client: SymphonyClient) -> None:
             client.delete_all_equipment()
             ```
     """
-    equipments, total_count = search_for_equipments(
-        client=client, limit=EQUIPMENTS_TO_SEARCH
-    )
 
-    for equipment in equipments:
-        delete_equipment(client=client, equipment=equipment)
+    def delete_equipments(client: SymphonyClient) -> Tuple[int, int]:
+        equipments, total = search_for_equipments(
+            client=client, limit=EQUIPMENTS_TO_SEARCH
+        )
+        deleted = 0
+        for equipment in equipments:
+            deleted += 1
+            delete_equipment(client=client, equipment=equipment)
 
-    if total_count == len(equipments):
+        return total, deleted
+
+    total_count, deleted_count = delete_equipments(client)
+    if total_count == deleted_count:
         return
 
     with tqdm(total=total_count) as progress_bar:
-        progress_bar.update(len(equipments))
-        while len(equipments) != 0:
-            equipments, _ = search_for_equipments(
-                client=client, limit=EQUIPMENTS_TO_SEARCH
-            )
-            for equipment in equipments:
-                delete_equipment(client=client, equipment=equipment)
-            progress_bar.update(len(equipments))
+        progress_bar.update(deleted_count)
+        while deleted_count != 0:
+            total_count, deleted_count = delete_equipments(client)
+            progress_bar.update(deleted_count)
 
 
 def _get_equipment_type_and_properties_dict(

@@ -18,6 +18,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent"
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -70,12 +71,14 @@ type ComplexityRoot struct {
 		Children func(childComplexity int) int
 		ID       func(childComplexity int) int
 		Parent   func(childComplexity int) int
+		Status   func(childComplexity int) int
 		Text     func(childComplexity int) int
 	}
 
 	TodoConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	TodoEdge struct {
@@ -204,6 +207,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Todo.Parent(childComplexity), true
 
+	case "Todo.status":
+		if e.complexity.Todo.Status == nil {
+			break
+		}
+
+		return e.complexity.Todo.Status(childComplexity), true
+
 	case "Todo.text":
 		if e.complexity.Todo.Text == nil {
 			break
@@ -224,6 +234,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TodoConnection.PageInfo(childComplexity), true
+
+	case "TodoConnection.totalCount":
+		if e.complexity.TodoConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.TodoConnection.TotalCount(childComplexity), true
 
 	case "TodoEdge.cursor":
 		if e.complexity.TodoEdge.Cursor == nil {
@@ -307,14 +324,21 @@ var sources = []*ast.Source{
   id: ID!
 }
 
+enum Status {
+  IN_PROGRESS
+  COMPLETED
+}
+
 type Todo implements Node {
   id: ID!
+  status: Status!
   text: String!
   parent: Todo
   children: [Todo!]
 }
 
 input TodoInput {
+  status: Status! = IN_PROGRESS
   text: String!
   parent: ID
 }
@@ -329,6 +353,7 @@ type PageInfo {
 }
 
 type TodoConnection {
+  totalCount: Int!
   pageInfo: PageInfo!
   edges: [TodoEdge]
 }
@@ -855,6 +880,40 @@ func (ec *executionContext) _Todo_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Todo_status(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Todo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(todo.Status)
+	fc.Result = res
+	return ec.marshalNStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Todo_text(ctx context.Context, field graphql.CollectedField, obj *ent.Todo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -949,6 +1008,40 @@ func (ec *executionContext) _Todo_children(ctx context.Context, field graphql.Co
 	res := resTmp.([]*ent.Todo)
 	fc.Result = res
 	return ec.marshalOTodo2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐTodoᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TodoConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "TodoConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TodoConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.TodoConnection) (ret graphql.Marshaler) {
@@ -2140,8 +2233,18 @@ func (ec *executionContext) unmarshalInputTodoInput(ctx context.Context, obj int
 	var it TodoInput
 	var asMap = obj.(map[string]interface{})
 
+	if _, present := asMap["status"]; !present {
+		asMap["status"] = "IN_PROGRESS"
+	}
+
 	for k, v := range asMap {
 		switch k {
+		case "status":
+			var err error
+			it.Status, err = ec.unmarshalNStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "text":
 			var err error
 			it.Text, err = ec.unmarshalNString2string(ctx, v)
@@ -2322,6 +2425,11 @@ func (ec *executionContext) _Todo(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "status":
+			out.Values[i] = ec._Todo_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "text":
 			out.Values[i] = ec._Todo_text(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2371,6 +2479,11 @@ func (ec *executionContext) _TodoConnection(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("TodoConnection")
+		case "totalCount":
+			out.Values[i] = ec._TodoConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "pageInfo":
 			out.Values[i] = ec._TodoConnection_pageInfo(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -2716,6 +2829,15 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 
 func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
+}
+
+func (ec *executionContext) unmarshalNStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, v interface{}) (todo.Status, error) {
+	var res todo.Status
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚑcontribᚋentgqlgenᚋinternalᚋtodoᚋentᚋtodoᚐStatus(ctx context.Context, sel ast.SelectionSet, v todo.Status) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

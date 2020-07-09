@@ -12,11 +12,12 @@ from time import sleep
 
 import s1ap_types
 import s1ap_wrapper
-
+from s1ap_utils import MagmadUtil
 
 class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
         self._ip_block = '192.168.125.0/24'
 
     def tearDown(self):

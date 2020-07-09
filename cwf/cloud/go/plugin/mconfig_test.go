@@ -87,7 +87,6 @@ func TestBuilder_Build(t *testing.T) {
 			UeIpBlock:     "192.168.128.0/24", // Unused by CWF
 			NatEnabled:    false,
 			DefaultRuleId: "",
-			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
 				ltemconfig.PipelineD_DPI,
 				ltemconfig.PipelineD_ENFORCEMENT,

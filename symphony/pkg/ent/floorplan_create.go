@@ -138,6 +138,11 @@ func (fpc *FloorPlanCreate) SetImage(f *File) *FloorPlanCreate {
 	return fpc.SetImageID(f.ID)
 }
 
+// Mutation returns the FloorPlanMutation object of the builder.
+func (fpc *FloorPlanCreate) Mutation() *FloorPlanMutation {
+	return fpc.mutation
+}
+
 // Save creates the FloorPlan in the database.
 func (fpc *FloorPlanCreate) Save(ctx context.Context) (*FloorPlan, error) {
 	if _, ok := fpc.mutation.CreateTime(); !ok {
@@ -149,7 +154,7 @@ func (fpc *FloorPlanCreate) Save(ctx context.Context) (*FloorPlan, error) {
 		fpc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := fpc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	var (
 		err  error

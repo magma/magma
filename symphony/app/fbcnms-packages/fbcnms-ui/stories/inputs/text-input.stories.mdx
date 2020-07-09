@@ -1,0 +1,153 @@
+import CancelIcon from '@material-ui/icons/Cancel';
+import InputAffix from '../../components/design-system/Input/InputAffix';
+import StoryFrame from '../StoryFrame';
+import TextInput from '../../components/design-system/Input/TextInput';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {makeStyles} from '@material-ui/styles';
+import {useEffect, useRef, useState} from 'react';
+
+export const useStyles = makeStyles(() => ({
+  suffix: {
+    cursor: 'pointer',
+  },
+  disabledInput: {
+    flexGrow: 1,
+  },
+}));
+
+<Meta title={`${STORY_CATEGORIES.INPUTS}/TextInput`} />
+
+# Inputs
+
+```js
+import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+```
+
+`TextInput` supports all the HTML input types (see the [MDN docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Form_%3Cinput%3E_types)).
+
+In addition, `TextInput` also supports affixes and suffixes using `InputAffix`.
+
+### String Input
+
+For example, if `type` is passed `string`, the input allows entering text.
+
+<Preview>
+  <Story name="String Input">
+    {() => {
+      const [value, setValue] = useState('');
+      const inputRef = useRef(null);
+      useEffect(() => {
+        inputRef.current && inputRef.current.focus();
+      }, [inputRef]);
+      return (
+        <TextInput
+          type="string"
+          placeholder="Placeholder"
+          onChange={({target}) => setValue(target.value)}
+          value={value}
+          ref={inputRef}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Disabled State
+
+<Preview>
+  <Story name="Disabled State">
+    {() => {
+      const classes = useStyles();
+      const [value, setValue] = useState('');
+      const inputRef = useRef(null);
+      useEffect(() => {
+        inputRef.current && inputRef.current.focus();
+      }, [inputRef]);
+      return (
+        <StoryFrame background="light">
+          <TextInput
+            className={classes.disabledInput}
+            type="string"
+            placeholder="Placeholder"
+            onChange={({target}) => setValue(target.value)}
+            value={value}
+            ref={inputRef}
+            disabled
+          />
+        </StoryFrame>
+      );
+    }}
+  </Story>
+</Preview>
+
+### Error State
+
+<Preview>
+  <Story name="Error State">
+    {() => {
+      return (
+        <TextInput
+          type="string"
+          placeholder="Placeholder"
+          hasError={true}
+          value="Bad Value"
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Prefix
+
+<Preview>
+  <Story name="Prefix">
+    {() => {
+      const [numberValue, setNumberValue] = useState(123.4);
+      return (
+        <TextInput
+          type="number"
+          value={numberValue}
+          onChange={({target}) => setNumberValue(target.value)}
+          prefix={<InputAffix>$</InputAffix>}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Suffix
+
+<Preview>
+  <Story name="Suffix">
+    {() => {
+      const classes = useStyles();
+      const [affixValue, setAffixValue] = useState('Default');
+      return (
+        <TextInput
+          type="string"
+          placeholder="Search..."
+          value={affixValue}
+          onChange={({target}) => setAffixValue(target.value)}
+          suffix={
+            affixValue ? (
+              <InputAffix
+                className={classes.suffix}
+                onClick={() => setAffixValue('')}>
+                <CancelIcon />
+              </InputAffix>
+            ) : null
+          }
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Hinting
+
+<Preview>
+  <Story name="Hinting">
+    <TextInput type="string" hint="Hinting" />
+  </Story>
+</Preview>

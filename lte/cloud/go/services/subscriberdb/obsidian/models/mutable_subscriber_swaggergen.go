@@ -36,6 +36,9 @@ type MutableSubscriber struct {
 	// lte
 	// Required: true
 	Lte *LteSubscription `json:"lte"`
+
+	// Name for the subscriber
+	Name string `json:"name,omitempty"`
 }
 
 // Validate validates this mutable subscriber

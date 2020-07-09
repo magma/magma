@@ -18,6 +18,8 @@ type Todo struct {
 // Fields returns todo fields.
 func (Todo) Fields() []ent.Field {
 	return []ent.Field{
+		field.Enum("status").
+			Values("IN_PROGRESS", "COMPLETED"),
 		field.Text("text").
 			NotEmpty(),
 	}

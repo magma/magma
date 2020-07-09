@@ -33,7 +33,7 @@ func TestStateServicer_GetStates(t *testing.T) {
 	// GetMany
 	mockStore := &mocks.TransactionalBlobStorage{}
 	mockStore.On("Search",
-		blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"}),
+		blobstore.CreateSearchFilter(strPtr("network1"), []string{"t1", "t2"}, []string{"k1", "k2"}, nil),
 		blobstore.GetDefaultLoadCriteria(),
 	).
 		Return(map[string][]blobstore.Blob{

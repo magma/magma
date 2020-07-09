@@ -110,6 +110,11 @@ func (cc *CommentCreate) SetProject(p *Project) *CommentCreate {
 	return cc.SetProjectID(p.ID)
 }
 
+// Mutation returns the CommentMutation object of the builder.
+func (cc *CommentCreate) Mutation() *CommentMutation {
+	return cc.mutation
+}
+
 // Save creates the Comment in the database.
 func (cc *CommentCreate) Save(ctx context.Context) (*Comment, error) {
 	if _, ok := cc.mutation.CreateTime(); !ok {
@@ -121,10 +126,10 @@ func (cc *CommentCreate) Save(ctx context.Context) (*Comment, error) {
 		cc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := cc.mutation.Text(); !ok {
-		return nil, errors.New("ent: missing required field \"text\"")
+		return nil, &ValidationError{Name: "text", err: errors.New("ent: missing required field \"text\"")}
 	}
 	if _, ok := cc.mutation.AuthorID(); !ok {
-		return nil, errors.New("ent: missing required edge \"author\"")
+		return nil, &ValidationError{Name: "author", err: errors.New("ent: missing required edge \"author\"")}
 	}
 	var (
 		err  error

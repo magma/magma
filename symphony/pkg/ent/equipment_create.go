@@ -267,6 +267,11 @@ func (ec *EquipmentCreate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentCreate 
 	return ec.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the EquipmentMutation object of the builder.
+func (ec *EquipmentCreate) Mutation() *EquipmentMutation {
+	return ec.mutation
+}
+
 // Save creates the Equipment in the database.
 func (ec *EquipmentCreate) Save(ctx context.Context) (*Equipment, error) {
 	if _, ok := ec.mutation.CreateTime(); !ok {
@@ -278,20 +283,20 @@ func (ec *EquipmentCreate) Save(ctx context.Context) (*Equipment, error) {
 		ec.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ec.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := ec.mutation.Name(); ok {
 		if err := equipment.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if v, ok := ec.mutation.DeviceID(); ok {
 		if err := equipment.DeviceIDValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"device_id\": %v", err)
+			return nil, &ValidationError{Name: "device_id", err: fmt.Errorf("ent: validator failed for field \"device_id\": %w", err)}
 		}
 	}
 	if _, ok := ec.mutation.TypeID(); !ok {
-		return nil, errors.New("ent: missing required edge \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required edge \"type\"")}
 	}
 	var (
 		err  error

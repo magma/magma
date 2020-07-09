@@ -34,6 +34,9 @@ aliases:
   - &appdir
     working_directory: app
 
+  - &invdir
+    working_directory: app/fbcnms-projects/inventory
+
   - &clidir
     working_directory: cli
 
@@ -53,7 +56,7 @@ executors:
   golangci:
     parameters:
       tag:
-        default: v1.26.0
+        default: v1.28
         type: string
     docker:
       - image: golangci/golangci-lint:<<parameters.tag>>
@@ -656,6 +659,23 @@ jobs:
           <<: *appdir
           command: yarn run eslint ./
 
+  test-relay-build:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: Run Relay Build Check
+          <<: *invdir
+          command: |
+            yarn relay_oss
+            if ! git status | grep 'nothing to commit'; then
+              echo "'yarn relay_oss' modified changes. Please run 'yarn relay_oss' from /fbcnms-projects/inventory" >&2
+              echo "'git status' output is:"
+              git status
+              exit 1
+            fi
+
   npm-publish-alarms:
     executor: yarnnode
     steps:
@@ -697,6 +717,7 @@ workflows:
       - pdoctest
       - blacktest
       - flake8test
+      - test-relay-build
       - eslint:
           <<: *onlypr
       - unit

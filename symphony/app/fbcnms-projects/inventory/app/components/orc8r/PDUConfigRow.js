@@ -34,7 +34,7 @@ type Props = {
   onChange: DeviceConfig => void,
 };
 
-export default function(props: Props) {
+export default function (props: Props) {
   const classes = useStyles();
   const onChange = (field: 'name' | 'ipAddress') => event => {
     const newConfig = {
