@@ -13,6 +13,7 @@
 
 #include "LocalSessionManagerHandler.h"
 #include "magma_logging.h"
+#include "GrpcMagmaUtils.h"
 
 using grpc::Status;
 
@@ -94,6 +95,8 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
       [this, request, session_update,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
+        PrintGrpcMessage(
+            static_cast<const google::protobuf::Message&>(response));
         if (!status.ok()) {
           MLOG(MERROR) << "Update of size " << request.updates_size()
                        << " to OCS failed entirely: " << status.error_message();
@@ -264,6 +267,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
     ServerContext* context, const LocalCreateSessionRequest* request,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
   auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread([this, context,
                                                     response_callback,
                                                     request_cpy]() {
@@ -340,6 +344,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
       [this, imsi, sid, cfg, response_callback,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, CreateSessionResponse response) mutable {
+        PrintGrpcMessage(
+            static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
           bool success = enforcer_->init_session_credit(
               *session_map_ptr, imsi, sid, cfg, response);
@@ -427,6 +433,7 @@ void LocalSessionManagerHandlerImpl::EndSession(
     ServerContext* context, const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, request_cpy = std::move(request_cpy), response_callback]() {
         auto session_map = get_sessions_for_deletion(request_cpy);
