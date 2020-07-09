@@ -10,7 +10,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
@@ -88,10 +87,10 @@ func TestGeneralLinksEditImport(t *testing.T) {
 				switch ptyp.Name {
 				case propNameDate:
 					require.Equal(t, *value.StringValue, "2019-01-01")
-					require.Equal(t, ptyp.Type, models.PropertyKindDate.String())
+					require.Equal(t, ptyp.Type, propertytype.TypeDate)
 				case propNameBool:
 					require.Equal(t, *value.BooleanValue, false)
-					require.Equal(t, ptyp.Type, models.PropertyKindBool.String())
+					require.Equal(t, ptyp.Type, propertytype.TypeBool)
 				default:
 					require.Fail(t, "property type name should be one of the two")
 				}
@@ -102,7 +101,7 @@ func TestGeneralLinksEditImport(t *testing.T) {
 			ptyp := etyp1.QueryPortDefinitions().QueryEquipmentPortType().QueryLinkPropertyTypes().Where(propertytype.ID(val.PropertyTypeID)).OnlyX(ctx)
 			require.Equal(t, ptyp.Name, propNameInt)
 			require.Equal(t, *val.IntValue, 44)
-			require.Equal(t, ptyp.Type, models.PropertyKindInt.String())
+			require.Equal(t, ptyp.Type, propertytype.TypeInt)
 		}
 	}
 	links, err := importer.validateServicesForLinks(ctx, r1)
@@ -185,9 +184,9 @@ func TestGeneralLinksAddImport(t *testing.T) {
 	require.NotEqual(t, propertyInputs[0].PropertyTypeID, propertyInputs[1].PropertyTypeID)
 	for _, inp := range propertyInputs {
 		ptype := importer.ClientFrom(ctx).PropertyType.GetX(ctx, inp.PropertyTypeID)
-		if ptype.Type == models.PropertyKindDate.String() {
+		if ptype.Type == propertytype.TypeDate {
 			require.Equal(t, "2019-01-01", *inp.StringValue)
-		} else if ptype.Type == models.PropertyKindBool.String() {
+		} else if ptype.Type == propertytype.TypeBool {
 			require.False(t, *inp.BooleanValue)
 		}
 	}

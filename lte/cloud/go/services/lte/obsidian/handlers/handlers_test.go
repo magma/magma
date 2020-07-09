@@ -134,7 +134,7 @@ func TestCreateNetwork(t *testing.T) {
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
-		Type:        lte.LteNetworkType,
+		Type:        lte.NetworkType,
 		Name:        "foobar",
 		Description: "Foo Bar",
 		Configs: map[string]interface{}{
@@ -318,7 +318,7 @@ func TestUpdateNetwork(t *testing.T) {
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
-		Type:        lte.LteNetworkType,
+		Type:        lte.NetworkType,
 		Name:        "updated foobar",
 		Description: "Updated Foo Bar",
 		Configs: map[string]interface{}{
@@ -2953,7 +2953,7 @@ func seedNetworks(t *testing.T) {
 		[]configurator.Network{
 			{
 				ID:          "n1",
-				Type:        lte.LteNetworkType,
+				Type:        lte.NetworkType,
 				Name:        "foobar",
 				Description: "Foo Bar",
 				Configs: map[string]interface{}{
@@ -2971,7 +2971,7 @@ func seedNetworks(t *testing.T) {
 			},
 			{
 				ID:          "n3",
-				Type:        lte.LteNetworkType,
+				Type:        lte.NetworkType,
 				Name:        "barfoo",
 				Description: "Bar Foo",
 				Configs:     map[string]interface{}{},

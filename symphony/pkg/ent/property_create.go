@@ -412,6 +412,11 @@ func (pc *PropertyCreate) SetUserValue(u *User) *PropertyCreate {
 	return pc.SetUserValueID(u.ID)
 }
 
+// Mutation returns the PropertyMutation object of the builder.
+func (pc *PropertyCreate) Mutation() *PropertyMutation {
+	return pc.mutation
+}
+
 // Save creates the Property in the database.
 func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
 	if _, ok := pc.mutation.CreateTime(); !ok {
@@ -423,7 +428,7 @@ func (pc *PropertyCreate) Save(ctx context.Context) (*Property, error) {
 		pc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := pc.mutation.TypeID(); !ok {
-		return nil, errors.New("ent: missing required edge \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required edge \"type\"")}
 	}
 	var (
 		err  error

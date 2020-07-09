@@ -77,7 +77,7 @@ export const getSearchBefore: BeforeFun = (
   getSearchBeforeDelegate(tenantId, groups, req, res, proxyCallback);
 };
 
-const registration: TransformerRegistrationFun = function() {
+const registration: TransformerRegistrationFun = function () {
   return [
     {
       method: 'get',

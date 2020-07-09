@@ -10,8 +10,6 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/facebookincubator/symphony/pkg/ent/user"
-
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
@@ -20,27 +18,13 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	boolVal          = "bool"
-	emailVal         = "email"
-	stringVal        = "string"
-	dateVal          = "date"
-	intVal           = "int"
-	floatVal         = "float"
-	gpsLocationVal   = "gps_location"
-	rangeVal         = "range"
-	enum             = "enum"
-	datetimeLocalVal = "datetime_local"
-	nodeVal          = "node"
-)
-
 type AddPropertyArgs struct {
 	Context    context.Context
 	EntSetter  func(*ent.PropertyCreate)
 	IsTemplate *bool
 }
 
-func PropertyValue(ctx context.Context, typ string, v interface{}) (string, error) {
+func PropertyValue(ctx context.Context, typ propertytype.Type, v interface{}) (string, error) {
 	switch v.(type) {
 	case *ent.PropertyType, *ent.Property:
 	default:
@@ -48,22 +32,23 @@ func PropertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 	}
 	vo := reflect.ValueOf(v).Elem()
 	switch typ {
-	case emailVal, stringVal, dateVal, enum, datetimeLocalVal:
+	case propertytype.TypeEmail, propertytype.TypeString, propertytype.TypeDate,
+		propertytype.TypeEnum, propertytype.TypeDatetimeLocal:
 		return vo.FieldByName("StringVal").String(), nil
-	case intVal:
+	case propertytype.TypeInt:
 		i := vo.FieldByName("IntVal").Int()
 		return strconv.Itoa(int(i)), nil
-	case floatVal:
+	case propertytype.TypeFloat:
 		return fmt.Sprintf("%.3f", vo.FieldByName("FloatVal").Float()), nil
-	case gpsLocationVal:
+	case propertytype.TypeGpsLocation:
 		la, lo := vo.FieldByName("LatitudeVal").Float(), vo.FieldByName("LongitudeVal").Float()
 		return fmt.Sprintf("%f", la) + ", " + fmt.Sprintf("%f", lo), nil
-	case rangeVal:
+	case propertytype.TypeRange:
 		rf, rt := vo.FieldByName("RangeFromVal").Float(), vo.FieldByName("RangeToVal").Float()
 		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
-	case boolVal:
+	case propertytype.TypeBool:
 		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
-	case nodeVal:
+	case propertytype.TypeNode:
 		p, ok := v.(*ent.Property)
 		if !ok {
 			return "", nil
@@ -94,23 +79,23 @@ func PropertyValue(ctx context.Context, typ string, v interface{}) (string, erro
 func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error) {
 	var pred predicate.Property
 	switch p.Type {
-	case models.PropertyKindString,
-		models.PropertyKindEmail,
-		models.PropertyKindDate,
-		models.PropertyKindEnum,
-		models.PropertyKindDatetimeLocal:
+	case propertytype.TypeString,
+		propertytype.TypeEmail,
+		propertytype.TypeDate,
+		propertytype.TypeEnum,
+		propertytype.TypeDatetimeLocal:
 		if p.StringValue != nil {
 			pred = property.StringVal(*p.StringValue)
 		}
-	case models.PropertyKindInt:
+	case propertytype.TypeInt:
 		if p.IntValue != nil {
 			pred = property.IntVal(*p.IntValue)
 		}
-	case models.PropertyKindBool:
+	case propertytype.TypeBool:
 		if p.BooleanValue != nil {
 			pred = property.BoolVal(*p.BooleanValue)
 		}
-	case models.PropertyKindFloat:
+	case propertytype.TypeFloat:
 		if p.FloatValue != nil {
 			pred = property.FloatVal(*p.FloatValue)
 		}
@@ -124,23 +109,23 @@ func GetPropertyPredicate(p models.PropertyTypeInput) (predicate.Property, error
 func GetPropertyTypePredicate(p models.PropertyTypeInput) (predicate.PropertyType, error) {
 	var pred predicate.PropertyType
 	switch p.Type {
-	case models.PropertyKindString,
-		models.PropertyKindEmail,
-		models.PropertyKindDate,
-		models.PropertyKindEnum,
-		models.PropertyKindDatetimeLocal:
+	case propertytype.TypeString,
+		propertytype.TypeEmail,
+		propertytype.TypeDate,
+		propertytype.TypeEnum,
+		propertytype.TypeDatetimeLocal:
 		if p.StringValue != nil {
 			pred = propertytype.StringVal(*p.StringValue)
 		}
-	case models.PropertyKindInt:
+	case propertytype.TypeInt:
 		if p.IntValue != nil {
 			pred = propertytype.IntVal(*p.IntValue)
 		}
-	case models.PropertyKindBool:
+	case propertytype.TypeBool:
 		if p.BooleanValue != nil {
 			pred = propertytype.BoolVal(*p.BooleanValue)
 		}
-	case models.PropertyKindFloat:
+	case propertytype.TypeFloat:
 		if p.FloatValue != nil {
 			pred = propertytype.FloatVal(*p.FloatValue)
 		}
@@ -152,23 +137,11 @@ func GetPropertyTypePredicate(p models.PropertyTypeInput) (predicate.PropertyTyp
 
 // GetDatePropertyPred returns the property and propertyType predicate for the date
 func GetDatePropertyPred(p models.PropertyTypeInput, operator models.FilterOperator) (predicate.Property, predicate.PropertyType, error) {
-	if p.Type != models.PropertyKindDate && p.Type != models.PropertyKindDatetimeLocal {
+	if p.Type != propertytype.TypeDate && p.Type != propertytype.TypeDatetimeLocal {
 		return nil, nil, errors.Errorf("property kind should be type")
 	}
 	if operator == models.FilterOperatorDateLessThan {
 		return property.StringValLT(*p.StringValue), propertytype.StringValLT(*p.StringValue), nil
 	}
 	return property.StringValGT(*p.StringValue), propertytype.StringValGT(*p.StringValue), nil
-}
-
-func GetUserID(ctx context.Context, userID *int, userName *string) (*int, error) {
-	if userName != nil && *userName != "" {
-		c := ent.FromContext(ctx)
-		id, err := c.User.Query().Where(user.AuthID(*userName)).OnlyID(ctx)
-		if err != nil {
-			return nil, fmt.Errorf("fetching assignee user: %w", err)
-		}
-		return &id, nil
-	}
-	return userID, nil
 }

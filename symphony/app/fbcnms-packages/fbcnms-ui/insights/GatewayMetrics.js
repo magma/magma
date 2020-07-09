@@ -20,7 +20,7 @@ import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useSnackbar} from '@fbcnms/ui/hooks';
 
-export default function(props: {configs: MetricGraphConfig[]}) {
+export default function (props: {configs: MetricGraphConfig[]}) {
   const {history, relativePath, relativeUrl, match} = useRouter();
 
   const {error, isLoading, response: selectors} = useMagmaAPI(

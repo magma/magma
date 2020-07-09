@@ -15,7 +15,7 @@ import (
 	"io/ioutil"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"strings"
 	"testing"
 	"time"

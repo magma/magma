@@ -47,7 +47,7 @@ class TestWrapper(object):
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
 
-    def __init__(self):
+    def __init__(self, stateless_mode=MagmadUtil.stateless_cmds.DISABLE):
         """
         Initialize the various classes required by the tests and setup.
         """
@@ -63,6 +63,7 @@ class TestWrapper(object):
         self._mobility_util = MobilityUtil(mobility_client)
         self._mobility_util.cleanup()
         self._magmad_util = MagmadUtil(magmad_client)
+        self._magmad_util.config_stateless(stateless_mode)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
         self.wait_gateway_healthy = True

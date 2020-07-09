@@ -131,6 +131,11 @@ func (au *ActivityUpdate) SetWorkOrder(w *WorkOrder) *ActivityUpdate {
 	return au.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the ActivityMutation object of the builder.
+func (au *ActivityUpdate) Mutation() *ActivityMutation {
+	return au.mutation
+}
+
 // ClearAuthor clears the author edge to User.
 func (au *ActivityUpdate) ClearAuthor() *ActivityUpdate {
 	au.mutation.ClearAuthor()
@@ -151,7 +156,7 @@ func (au *ActivityUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := au.mutation.ChangedField(); ok {
 		if err := activity.ChangedFieldValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"changed_field\": %v", err)
+			return 0, &ValidationError{Name: "changed_field", err: fmt.Errorf("ent: validator failed for field \"changed_field\": %w", err)}
 		}
 	}
 
@@ -455,6 +460,11 @@ func (auo *ActivityUpdateOne) SetWorkOrder(w *WorkOrder) *ActivityUpdateOne {
 	return auo.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the ActivityMutation object of the builder.
+func (auo *ActivityUpdateOne) Mutation() *ActivityMutation {
+	return auo.mutation
+}
+
 // ClearAuthor clears the author edge to User.
 func (auo *ActivityUpdateOne) ClearAuthor() *ActivityUpdateOne {
 	auo.mutation.ClearAuthor()
@@ -475,7 +485,7 @@ func (auo *ActivityUpdateOne) Save(ctx context.Context) (*Activity, error) {
 	}
 	if v, ok := auo.mutation.ChangedField(); ok {
 		if err := activity.ChangedFieldValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"changed_field\": %v", err)
+			return nil, &ValidationError{Name: "changed_field", err: fmt.Errorf("ent: validator failed for field \"changed_field\": %w", err)}
 		}
 	}
 
@@ -541,7 +551,7 @@ func (auo *ActivityUpdateOne) sqlSave(ctx context.Context) (a *Activity, err err
 	}
 	id, ok := auo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Activity.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Activity.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := auo.mutation.UpdateTime(); ok {

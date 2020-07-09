@@ -172,6 +172,11 @@ func (pc *ProjectCreate) SetCreator(u *User) *ProjectCreate {
 	return pc.SetCreatorID(u.ID)
 }
 
+// Mutation returns the ProjectMutation object of the builder.
+func (pc *ProjectCreate) Mutation() *ProjectMutation {
+	return pc.mutation
+}
+
 // Save creates the Project in the database.
 func (pc *ProjectCreate) Save(ctx context.Context) (*Project, error) {
 	if _, ok := pc.mutation.CreateTime(); !ok {
@@ -183,15 +188,15 @@ func (pc *ProjectCreate) Save(ctx context.Context) (*Project, error) {
 		pc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := pc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := pc.mutation.Name(); ok {
 		if err := project.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := pc.mutation.TypeID(); !ok {
-		return nil, errors.New("ent: missing required edge \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required edge \"type\"")}
 	}
 	var (
 		err  error

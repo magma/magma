@@ -13,8 +13,8 @@ import (
 
 	"google.golang.org/grpc"
 
+	"magma/orc8r/lib/go/registry"
 	platform_registry "magma/orc8r/lib/go/registry"
-	"magma/orc8r/lib/go/service/serviceregistry"
 )
 
 const (
@@ -97,7 +97,7 @@ func init() {
 
 	// Overwrite/Add from /etc/magma/service_registry.yml if it exists
 	// moduleName is "" since all feg configs lie in /etc/magma without a module name
-	locations, err := serviceregistry.LoadServiceRegistryConfig("")
+	locations, err := registry.LoadServiceRegistryConfig("")
 	if err != nil {
 		log.Printf("Error loading FeG service_registry.yml: %v", err)
 	} else if len(locations) > 0 {

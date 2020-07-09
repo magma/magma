@@ -155,7 +155,7 @@ func CreateTimeIn(vs ...time.Time) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -172,7 +172,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -231,7 +231,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -248,7 +248,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -307,7 +307,7 @@ func ChangedFieldIn(vs ...ChangedField) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -324,7 +324,7 @@ func ChangedFieldNotIn(vs ...ChangedField) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -369,7 +369,7 @@ func OldValueIn(vs ...string) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -386,7 +386,7 @@ func OldValueNotIn(vs ...string) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -494,7 +494,7 @@ func NewValueIn(vs ...string) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -511,7 +511,7 @@ func NewValueNotIn(vs ...string) predicate.Activity {
 	return predicate.Activity(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

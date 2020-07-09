@@ -9,11 +9,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 from magma.common.service import MagmaService
 from .rpc_servicer import EventDRpcServicer
+from orc8r.protos.mconfig.mconfigs_pb2 import EventD
 
 
 def main():
     """ main() for eventd """
-    service = MagmaService('eventd', None)
+    service = MagmaService('eventd', EventD())
 
     eventd_servicer = EventDRpcServicer(service.config)
     eventd_servicer.load_specs_from_registry()

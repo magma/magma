@@ -26,7 +26,7 @@ import {POLICY_TYPES} from '../utils/UserManagementUtils';
 import {makeStyles} from '@material-ui/styles';
 import {useMemo} from 'react';
 
-export const SYSTEM_DEFAULT_POLICY_PREFIX = fbt('Default Policy', '');
+export const SYSTEM_DEFAULT_POLICY_PREFIX = fbt('Global Policy', '');
 
 const ALL_USERS = `${fbt('All Users', '')}`;
 
@@ -113,6 +113,7 @@ export default function PermissionsPoliciesTable(props: Props) {
             <span>{PolicyRow.name}</span>
           </div>
         ),
+        tooltip: PolicyRow => PolicyRow.name,
       },
       {
         key: 'description',
@@ -135,6 +136,7 @@ export default function PermissionsPoliciesTable(props: Props) {
             {PolicyRow.description}
           </>
         ),
+        tooltip: PolicyRow => PolicyRow.description,
         titleClassName: classes.wideColumn,
         className: classes.wideColumn,
       },
@@ -147,6 +149,7 @@ export default function PermissionsPoliciesTable(props: Props) {
         ),
         getSortingValue: getPolicyType,
         render: getPolicyType,
+        tooltip: getPolicyType,
         titleClassName: classes.narrowColumn,
         className: classes.narrowColumn,
       },
@@ -162,6 +165,7 @@ export default function PermissionsPoliciesTable(props: Props) {
         ),
         getSortingValue: getPolicyUsersCount,
         render: getPolicyUsersCount,
+        tooltip: getPolicyUsersCount,
         titleClassName: classes.narrowColumn,
         className: classes.narrowColumn,
       });

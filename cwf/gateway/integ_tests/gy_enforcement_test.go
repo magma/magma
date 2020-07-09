@@ -20,7 +20,7 @@ import (
 	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
 	lteprotos "magma/lte/cloud/go/protos"
-	"magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"

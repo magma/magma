@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d3f3b97841ae8e665697ef987601ef91
+ * @relayHash f57b3c755ddadc3fd0c372fe986958ac
  */
 
 /* eslint-disable */
@@ -17,7 +17,7 @@
 import type { ConcreteRequest } from 'relay-runtime';
 export type FilterOperator = "CONTAINS" | "DATE_GREATER_OR_EQUAL_THAN" | "DATE_GREATER_THAN" | "DATE_LESS_OR_EQUAL_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
-export type WorkOrderFilterType = "LOCATION_INST" | "WORK_ORDER_ASSIGNED_TO" | "WORK_ORDER_CLOSE_DATE" | "WORK_ORDER_CREATION_DATE" | "WORK_ORDER_LOCATION_INST" | "WORK_ORDER_NAME" | "WORK_ORDER_OWNED_BY" | "WORK_ORDER_PRIORITY" | "WORK_ORDER_STATUS" | "WORK_ORDER_TYPE" | "%future added value";
+export type WorkOrderFilterType = "LOCATION_INST" | "LOCATION_INST_EXTERNAL_ID" | "WORK_ORDER_ASSIGNED_TO" | "WORK_ORDER_CLOSE_DATE" | "WORK_ORDER_CREATION_DATE" | "WORK_ORDER_LOCATION_INST" | "WORK_ORDER_NAME" | "WORK_ORDER_OWNED_BY" | "WORK_ORDER_PRIORITY" | "WORK_ORDER_STATUS" | "WORK_ORDER_TYPE" | "%future added value";
 export type WorkOrderFilterInput = {|
   filterType: WorkOrderFilterType,
   operator: FilterOperator,
@@ -54,13 +54,15 @@ export type WorkOrderTypeaheadQueryVariables = {|
   limit?: ?number,
 |};
 export type WorkOrderTypeaheadQueryResponse = {|
-  +workOrderSearch: {|
-    +workOrders: $ReadOnlyArray<?{|
-      +id: string,
-      +name: string,
-      +workOrderType: {|
-        +name: string
-      |},
+  +workOrders: {|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +id: string,
+        +name: string,
+        +workOrderType: {|
+          +name: string
+        |},
+      |}
     |}>
   |}
 |};
@@ -76,13 +78,15 @@ query WorkOrderTypeaheadQuery(
   $filters: [WorkOrderFilterInput!]!
   $limit: Int
 ) {
-  workOrderSearch(filters: $filters, limit: $limit) {
-    workOrders {
-      id
-      name
-      workOrderType {
-        name
+  workOrders(filters: $filters, first: $limit) {
+    edges {
+      node {
         id
+        name
+        workOrderType {
+          name
+          id
+        }
       }
     }
   }
@@ -112,7 +116,7 @@ v1 = [
   },
   {
     "kind": "Variable",
-    "name": "limit",
+    "name": "first",
     "variableName": "limit"
   }
 ],
@@ -142,33 +146,44 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "workOrderSearch",
+        "name": "workOrders",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "WorkOrderSearchResult",
+        "concreteType": "WorkOrderConnection",
         "plural": false,
         "selections": [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "workOrders",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "WorkOrder",
+            "concreteType": "WorkOrderEdge",
             "plural": true,
             "selections": [
-              (v2/*: any*/),
-              (v3/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "workOrderType",
+                "name": "node",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "WorkOrderType",
+                "concreteType": "WorkOrder",
                 "plural": false,
                 "selections": [
-                  (v3/*: any*/)
+                  (v2/*: any*/),
+                  (v3/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "workOrderType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkOrderType",
+                    "plural": false,
+                    "selections": [
+                      (v3/*: any*/)
+                    ]
+                  }
                 ]
               }
             ]
@@ -185,34 +200,45 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "workOrderSearch",
+        "name": "workOrders",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "WorkOrderSearchResult",
+        "concreteType": "WorkOrderConnection",
         "plural": false,
         "selections": [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "workOrders",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "WorkOrder",
+            "concreteType": "WorkOrderEdge",
             "plural": true,
             "selections": [
-              (v2/*: any*/),
-              (v3/*: any*/),
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "workOrderType",
+                "name": "node",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "WorkOrderType",
+                "concreteType": "WorkOrder",
                 "plural": false,
                 "selections": [
+                  (v2/*: any*/),
                   (v3/*: any*/),
-                  (v2/*: any*/)
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "workOrderType",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "WorkOrderType",
+                    "plural": false,
+                    "selections": [
+                      (v3/*: any*/),
+                      (v2/*: any*/)
+                    ]
+                  }
                 ]
               }
             ]
@@ -225,11 +251,11 @@ return {
     "operationKind": "query",
     "name": "WorkOrderTypeaheadQuery",
     "id": null,
-    "text": "query WorkOrderTypeaheadQuery(\n  $filters: [WorkOrderFilterInput!]!\n  $limit: Int\n) {\n  workOrderSearch(filters: $filters, limit: $limit) {\n    workOrders {\n      id\n      name\n      workOrderType {\n        name\n        id\n      }\n    }\n  }\n}\n",
+    "text": "query WorkOrderTypeaheadQuery(\n  $filters: [WorkOrderFilterInput!]!\n  $limit: Int\n) {\n  workOrders(filters: $filters, first: $limit) {\n    edges {\n      node {\n        id\n        name\n        workOrderType {\n          name\n          id\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c3fc01cc3f00124bf813150b3dcf28e0';
+(node/*: any*/).hash = 'eb5581f3aa38d5102b5c7f7776d96d09';
 module.exports = node;

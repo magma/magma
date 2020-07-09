@@ -24,7 +24,7 @@ const isValid = (start, end): boolean => {
   return start.isValid() && end.isValid() && moment.min(start, end) === start;
 };
 
-export default function({startEnd}: Props) {
+export default function ({startEnd}: Props) {
   const [start, end] = startEnd;
   const state = {
     title: 'Frequency of Alerts and Events',

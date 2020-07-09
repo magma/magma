@@ -116,6 +116,11 @@ func (sec *ServiceEndpointCreate) SetDefinition(s *ServiceEndpointDefinition) *S
 	return sec.SetDefinitionID(s.ID)
 }
 
+// Mutation returns the ServiceEndpointMutation object of the builder.
+func (sec *ServiceEndpointCreate) Mutation() *ServiceEndpointMutation {
+	return sec.mutation
+}
+
 // Save creates the ServiceEndpoint in the database.
 func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, error) {
 	if _, ok := sec.mutation.CreateTime(); !ok {
@@ -127,10 +132,10 @@ func (sec *ServiceEndpointCreate) Save(ctx context.Context) (*ServiceEndpoint, e
 		sec.mutation.SetUpdateTime(v)
 	}
 	if _, ok := sec.mutation.EquipmentID(); !ok {
-		return nil, errors.New("ent: missing required edge \"equipment\"")
+		return nil, &ValidationError{Name: "equipment", err: errors.New("ent: missing required edge \"equipment\"")}
 	}
 	if _, ok := sec.mutation.ServiceID(); !ok {
-		return nil, errors.New("ent: missing required edge \"service\"")
+		return nil, &ValidationError{Name: "service", err: errors.New("ent: missing required edge \"service\"")}
 	}
 	var (
 		err  error

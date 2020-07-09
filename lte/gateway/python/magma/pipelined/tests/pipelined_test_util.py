@@ -340,7 +340,7 @@ def create_service_manager(services: List[int],
     Returns:
         A service manager instance from the given config
     """
-    mconfig = PipelineD(relay_enabled=True, services=services)
+    mconfig = PipelineD(services=services)
     magma_service = MagicMock()
     magma_service.mconfig = mconfig
     if static_services is None:

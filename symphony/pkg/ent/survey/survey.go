@@ -16,12 +16,18 @@ const (
 	// Label holds the string label denoting the survey type in the database.
 	Label = "survey"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                  = "id"                 // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime          = "create_time"        // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime          = "update_time"        // FieldName holds the string denoting the name vertex property in the database.
-	FieldName                = "name"               // FieldOwnerName holds the string denoting the owner_name vertex property in the database.
-	FieldOwnerName           = "owner_name"         // FieldCreationTimestamp holds the string denoting the creation_timestamp vertex property in the database.
-	FieldCreationTimestamp   = "creation_timestamp" // FieldCompletionTimestamp holds the string denoting the completion_timestamp vertex property in the database.
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldOwnerName holds the string denoting the owner_name field in the database.
+	FieldOwnerName = "owner_name"
+	// FieldCreationTimestamp holds the string denoting the creation_timestamp field in the database.
+	FieldCreationTimestamp = "creation_timestamp"
+	// FieldCompletionTimestamp holds the string denoting the completion_timestamp field in the database.
 	FieldCompletionTimestamp = "completion_timestamp"
 
 	// EdgeLocation holds the string denoting the location edge name in mutations.

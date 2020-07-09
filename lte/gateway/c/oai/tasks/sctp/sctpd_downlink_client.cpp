@@ -176,7 +176,9 @@ int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload)
 
   auto rc = _client->sendDl(req, &res);
 
-  OAILOG_ERROR(LOG_SCTP, "rc = %d\n", rc);
+  if (rc != 0) {
+    OAILOG_ERROR(LOG_SCTP, "assoc_id %u stream %u rc = %d\n", assoc_id, (uint32_t) stream, rc);
+  }
 
   return rc == 0 && res.result() == SendDlRes::SEND_DL_OK ? 0 : -1;
 }

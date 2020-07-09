@@ -192,14 +192,6 @@ func (r queryResolver) ProjectTypes(
 		Paginate(ctx, after, first, before, last)
 }
 
-func (projectResolver) Creator(ctx context.Context, obj *ent.Project) (*string, error) {
-	assignee, err := obj.QueryCreator().Only(ctx)
-	if err != nil {
-		return nil, ent.MaskNotFound(err)
-	}
-	return &assignee.Email, nil
-}
-
 func (projectResolver) CreatedBy(ctx context.Context, obj *ent.Project) (*ent.User, error) {
 	c, err := obj.QueryCreator().Only(ctx)
 	if err != nil && !ent.IsNotFound(err) {
@@ -250,17 +242,13 @@ func (projectResolver) NumberOfWorkOrders(ctx context.Context, obj *ent.Project)
 
 func (r mutationResolver) CreateProject(ctx context.Context, input models.AddProjectInput) (*ent.Project, error) {
 	client := r.ClientFrom(ctx)
-	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
-	if err != nil {
-		return nil, err
-	}
 	proj, err := client.
 		Project.Create().
 		SetName(input.Name).
 		SetNillableDescription(input.Description).
 		SetTypeID(input.Type).
 		SetNillableLocationID(input.Location).
-		SetNillableCreatorID(creatorID).
+		SetNillableCreatorID(input.CreatorID).
 		Save(ctx)
 	if err != nil {
 		if ent.IsConstraintError(err) {
@@ -374,12 +362,8 @@ func (r mutationResolver) EditProject(ctx context.Context, input models.EditProj
 		SetName(input.Name).
 		SetNillableDescription(input.Description)
 
-	creatorID, err := resolverutil.GetUserID(ctx, input.CreatorID, input.Creator)
-	if err != nil {
-		return nil, err
-	}
-	if creatorID != nil {
-		mutation.SetCreatorID(*creatorID)
+	if input.CreatorID != nil {
+		mutation.SetCreatorID(*input.CreatorID)
 	} else {
 		mutation.ClearCreator()
 	}

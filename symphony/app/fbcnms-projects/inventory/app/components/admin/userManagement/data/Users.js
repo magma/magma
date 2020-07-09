@@ -13,6 +13,7 @@ import type {EditUserMutationResponse} from '../../../../mutations/__generated__
 import type {MutationCallbacks} from '../../../../mutations/MutationCallbacks';
 import type {OptionalRefTypeWrapper} from '../../../../common/EntUtils';
 import type {SelectorStoreUpdater} from 'relay-runtime';
+import type {UpdateUserGroupsMutationResponse} from '../../../../mutations/__generated__/UpdateUserGroupsMutation.graphql';
 import type {UserRole, UsersQuery} from './__generated__/UsersQuery.graphql';
 import type {UsersByAuthIDQuery} from './__generated__/UsersByAuthIDQuery.graphql';
 import type {UserManagementUtils_user as user} from '../utils/__generated__/UserManagementUtils_user.graphql';
@@ -20,6 +21,7 @@ import type {UserManagementUtils_user_base as user_base} from '../utils/__genera
 
 import EditUserMutation from '../../../../mutations/EditUserMutation';
 import RelayEnvironment from '../../../../common/RelayEnvironment';
+import UpdateUserGroupsMutation from '../../../../mutations/UpdateUserGroupsMutation';
 import axios from 'axios';
 import nullthrows from 'nullthrows';
 import {ConnectionHandler, fetchQuery, graphql} from 'relay-runtime';
@@ -195,6 +197,36 @@ export function editUser(
       },
       callbacks,
       updater,
+    );
+  });
+}
+
+export function updateUserGroups(
+  user: User,
+  addGroupIds: $ReadOnlyArray<string>,
+  removeGroupIds: $ReadOnlyArray<string>,
+): Promise<User> {
+  return new Promise<User>((resolve, reject) => {
+    const callbacks: MutationCallbacks<UpdateUserGroupsMutationResponse> = {
+      onCompleted: (response, errors) => {
+        if (errors && errors[0]) {
+          reject(getGraphError(errors[0]));
+        }
+        resolve(response.updateUserGroups);
+      },
+      onError: e => {
+        reject(getGraphError(e));
+      },
+    };
+    UpdateUserGroupsMutation(
+      {
+        input: {
+          id: user.id,
+          addGroupIds,
+          removeGroupIds,
+        },
+      },
+      callbacks,
     );
   });
 }

@@ -32,6 +32,8 @@ type remoteIndexer struct {
 	types []string
 }
 
+// NewRemoteIndexer returns an indexer that forwards its methods to the
+// remote indexer servicer.
 func NewRemoteIndexer(serviceName string, version Version, types ...string) Indexer {
 	return &remoteIndexer{service: strings.ToUpper(serviceName), version: version, types: types}
 }

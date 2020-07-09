@@ -85,9 +85,7 @@ class InternalPktIpfixExportTest(unittest.TestCase):
                     'idle_timeout': 42,
                 },
             },
-            mconfig=PipelineD(
-                relay_enabled=True
-            ),
+            mconfig=PipelineD(),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False

@@ -13,7 +13,7 @@ download:
 	go mod download
 
 install:
-	go install ./...
+	go install ./... magma/gateway/services/magmad
 
 test:
 	go test ./...

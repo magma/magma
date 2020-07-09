@@ -103,6 +103,11 @@ func (epc *EquipmentPositionCreate) SetAttachment(e *Equipment) *EquipmentPositi
 	return epc.SetAttachmentID(e.ID)
 }
 
+// Mutation returns the EquipmentPositionMutation object of the builder.
+func (epc *EquipmentPositionCreate) Mutation() *EquipmentPositionMutation {
+	return epc.mutation
+}
+
 // Save creates the EquipmentPosition in the database.
 func (epc *EquipmentPositionCreate) Save(ctx context.Context) (*EquipmentPosition, error) {
 	if _, ok := epc.mutation.CreateTime(); !ok {
@@ -114,7 +119,7 @@ func (epc *EquipmentPositionCreate) Save(ctx context.Context) (*EquipmentPositio
 		epc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := epc.mutation.DefinitionID(); !ok {
-		return nil, errors.New("ent: missing required edge \"definition\"")
+		return nil, &ValidationError{Name: "definition", err: errors.New("ent: missing required edge \"definition\"")}
 	}
 	var (
 		err  error

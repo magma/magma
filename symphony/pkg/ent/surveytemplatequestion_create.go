@@ -96,6 +96,11 @@ func (stqc *SurveyTemplateQuestionCreate) SetCategory(s *SurveyTemplateCategory)
 	return stqc.SetCategoryID(s.ID)
 }
 
+// Mutation returns the SurveyTemplateQuestionMutation object of the builder.
+func (stqc *SurveyTemplateQuestionCreate) Mutation() *SurveyTemplateQuestionMutation {
+	return stqc.mutation
+}
+
 // Save creates the SurveyTemplateQuestion in the database.
 func (stqc *SurveyTemplateQuestionCreate) Save(ctx context.Context) (*SurveyTemplateQuestion, error) {
 	if _, ok := stqc.mutation.CreateTime(); !ok {
@@ -107,16 +112,16 @@ func (stqc *SurveyTemplateQuestionCreate) Save(ctx context.Context) (*SurveyTemp
 		stqc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := stqc.mutation.QuestionTitle(); !ok {
-		return nil, errors.New("ent: missing required field \"question_title\"")
+		return nil, &ValidationError{Name: "question_title", err: errors.New("ent: missing required field \"question_title\"")}
 	}
 	if _, ok := stqc.mutation.QuestionDescription(); !ok {
-		return nil, errors.New("ent: missing required field \"question_description\"")
+		return nil, &ValidationError{Name: "question_description", err: errors.New("ent: missing required field \"question_description\"")}
 	}
 	if _, ok := stqc.mutation.QuestionType(); !ok {
-		return nil, errors.New("ent: missing required field \"question_type\"")
+		return nil, &ValidationError{Name: "question_type", err: errors.New("ent: missing required field \"question_type\"")}
 	}
 	if _, ok := stqc.mutation.Index(); !ok {
-		return nil, errors.New("ent: missing required field \"index\"")
+		return nil, &ValidationError{Name: "index", err: errors.New("ent: missing required field \"index\"")}
 	}
 	var (
 		err  error

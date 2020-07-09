@@ -26,6 +26,7 @@ import (
 
 func Start() {
 	e := echo.New()
+	e.HideBanner = true
 
 	obsidian.AttachAll(e)
 	// metrics middleware is used before all other middlewares

@@ -1,0 +1,57 @@
+import BubbleChartIcon from '@material-ui/icons/BubbleChart';
+import ListAltIcon from '@material-ui/icons/ListAlt';
+import ToggleButtonGroup from '../../components/design-system/ToggleButton/ToggleButtonGroup';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {useState} from 'react';
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/ToggleButtonGroup`} />
+
+# ToggleButtonGroup
+
+```js
+import ToggleButtonGroup from '@fbcnms/ui/components/design-system/ToggleButton/ToggleButtonGroup';
+```
+
+`ToggleButtonGroup` can render text and icon toggle buttons.
+
+### Text
+
+<Preview>
+  <Story name="Text">
+    {() => {
+      const [selectedTextButtonId, setSelectedTextButtonId] = useState('0');
+      return (
+        <ToggleButtonGroup
+          buttons={[
+            {id: '0', item: 'Status'},
+            {id: '1', item: 'Technician'},
+            {id: '2', item: 'Project'},
+          ]}
+          selectedButtonId={selectedTextButtonId}
+          onItemClicked={id => setSelectedTextButtonId(id)}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Icons
+
+<Preview>
+  <Story name="Icons">
+    {() => {
+      const [selectedIconButtonId, setSelectedIconButtonId] = useState('0');
+      return (
+        <ToggleButtonGroup
+          buttons={[
+            {id: '0', item: <ListAltIcon />},
+            {id: '1', item: <BubbleChartIcon />},
+          ]}
+          selectedButtonId={selectedIconButtonId}
+          onItemClicked={id => setSelectedIconButtonId(id)}
+        />
+      );
+    }}
+  </Story>
+</Preview>

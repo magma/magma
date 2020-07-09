@@ -96,6 +96,11 @@ func (fpsu *FloorPlanScaleUpdate) AddScaleInMeters(f float64) *FloorPlanScaleUpd
 	return fpsu
 }
 
+// Mutation returns the FloorPlanScaleMutation object of the builder.
+func (fpsu *FloorPlanScaleUpdate) Mutation() *FloorPlanScaleMutation {
+	return fpsu.mutation
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fpsu *FloorPlanScaleUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := fpsu.mutation.UpdateTime(); !ok {
@@ -329,6 +334,11 @@ func (fpsuo *FloorPlanScaleUpdateOne) AddScaleInMeters(f float64) *FloorPlanScal
 	return fpsuo
 }
 
+// Mutation returns the FloorPlanScaleMutation object of the builder.
+func (fpsuo *FloorPlanScaleUpdateOne) Mutation() *FloorPlanScaleMutation {
+	return fpsuo.mutation
+}
+
 // Save executes the query and returns the updated entity.
 func (fpsuo *FloorPlanScaleUpdateOne) Save(ctx context.Context) (*FloorPlanScale, error) {
 	if _, ok := fpsuo.mutation.UpdateTime(); !ok {
@@ -397,7 +407,7 @@ func (fpsuo *FloorPlanScaleUpdateOne) sqlSave(ctx context.Context) (fps *FloorPl
 	}
 	id, ok := fpsuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing FloorPlanScale.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FloorPlanScale.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := fpsuo.mutation.UpdateTime(); ok {

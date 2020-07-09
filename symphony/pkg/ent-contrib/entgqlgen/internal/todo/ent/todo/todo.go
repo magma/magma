@@ -6,11 +6,19 @@
 
 package todo
 
+import (
+	"fmt"
+	"io"
+)
+
 const (
 	// Label holds the string label denoting the todo type in the database.
 	Label = "todo"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID   = "id" // FieldText holds the string denoting the text vertex property in the database.
+	FieldID = "id"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldText holds the string denoting the text field in the database.
 	FieldText = "text"
 
 	// EdgeParent holds the string denoting the parent edge name in mutations.
@@ -33,6 +41,7 @@ const (
 // Columns holds all SQL columns for todo fields.
 var Columns = []string{
 	FieldID,
+	FieldStatus,
 	FieldText,
 }
 
@@ -45,3 +54,57 @@ var (
 	// TextValidator is a validator for the "text" field. It is called by the builders before save.
 	TextValidator func(string) error
 )
+
+// Status defines the type for the status enum field.
+type Status string
+
+// Status values.
+const (
+	StatusINPROGRESS Status = "IN_PROGRESS"
+	StatusCOMPLETED  Status = "COMPLETED"
+)
+
+func (s Status) String() string {
+	return string(s)
+}
+
+// StatusValidator is a validator for the "s" field enum values. It is called by the builders before save.
+func StatusValidator(s Status) error {
+	switch s {
+	case StatusINPROGRESS, StatusCOMPLETED:
+		return nil
+	default:
+		return fmt.Errorf("todo: invalid enum value for status field: %q", s)
+	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, s)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
+}

@@ -11,6 +11,8 @@ import (
 	"github.com/facebookincubator/ent/schema/index"
 	"github.com/facebookincubator/ent/schema/mixin"
 	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+	"github.com/facebookincubator/symphony/pkg/hooks"
 )
 
 // WorkOrderTemplateMixin defines the work order template mixin schema.
@@ -99,7 +101,7 @@ func (WorkOrderTemplate) Edges() []ent.Edge {
 func (WorkOrderTemplate) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithMutationRules(
-			authz.WorkOrderTemplateWritePolicyRule(),
+			privacy.AlwaysAllowRule(),
 		),
 	)
 }
@@ -112,10 +114,23 @@ type WorkOrder struct {
 // Fields returns work order fields.
 func (WorkOrder) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").NotEmpty(),
-		field.String("status").
+		field.String("name").
+			NotEmpty(),
+		field.Enum("status").
+			Values(
+				"PENDING",
+				"PLANNED",
+				"DONE",
+			).
 			Default("PLANNED"),
-		field.String("priority").
+		field.Enum("priority").
+			Values(
+				"URGENT",
+				"HIGH",
+				"MEDIUM",
+				"LOW",
+				"NONE",
+			).
 			Default("NONE"),
 		field.Text("description").
 			Optional(),
@@ -175,6 +190,13 @@ func (WorkOrder) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("creation_date"),
 		index.Fields("close_date"),
+	}
+}
+
+// Hooks returns work order hooks.
+func (WorkOrder) Hooks() []ent.Hook {
+	return []ent.Hook{
+		hooks.WorkOrderCloseDateHook(),
 	}
 }
 

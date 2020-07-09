@@ -19,11 +19,13 @@ from ..input.equipment_filter import EquipmentFilterInput
 
 QUERY: List[str] = EquipmentFragmentQuery + ["""
 query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
-  equipmentSearch(filters: $filters, limit: $limit) {
-    equipment {
-      ...EquipmentFragment
+  equipments(filters: $filters, first: $limit) {
+    edges {
+      node {
+        ...EquipmentFragment
+      }
     }
-    count
+    totalCount
   }
 }
 
@@ -34,21 +36,25 @@ class EquipmentSearchQuery(DataClassJsonMixin):
     @dataclass
     class EquipmentSearchQueryData(DataClassJsonMixin):
         @dataclass
-        class EquipmentSearchResult(DataClassJsonMixin):
+        class EquipmentConnection(DataClassJsonMixin):
             @dataclass
-            class Equipment(EquipmentFragment):
-                pass
+            class EquipmentEdge(DataClassJsonMixin):
+                @dataclass
+                class Equipment(EquipmentFragment):
+                    pass
 
-            equipment: List[Equipment]
-            count: int
+                node: Optional[Equipment]
 
-        equipmentSearch: EquipmentSearchResult
+            edges: List[EquipmentEdge]
+            totalCount: int
+
+        equipments: EquipmentConnection
 
     data: EquipmentSearchQueryData
 
     @classmethod
     # fmt: off
-    def execute(cls, client: GraphqlClient, filters: List[EquipmentFilterInput] = [], limit: Optional[int] = None) -> EquipmentSearchQueryData.EquipmentSearchResult:
+    def execute(cls, client: GraphqlClient, filters: List[EquipmentFilterInput] = [], limit: Optional[int] = None) -> EquipmentSearchQueryData.EquipmentConnection:
         # fmt: off
         variables: Dict[str, Any] = {"filters": filters, "limit": limit}
         try:
@@ -59,7 +65,7 @@ class EquipmentSearchQuery(DataClassJsonMixin):
             decode_time = perf_counter() - decode_start
             network_time = decode_start - network_start
             client.reporter.log_successful_operation("EquipmentSearchQuery", variables, network_time, decode_time)
-            return res.equipmentSearch
+            return res.equipments
         except OperationException as e:
             raise FailedOperationException(
                 client.reporter,

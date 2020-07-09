@@ -132,7 +132,7 @@ func NameIn(vs ...string) predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -149,7 +149,7 @@ func NameNotIn(vs ...string) predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -243,7 +243,7 @@ func DescriptionIn(vs ...string) predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -260,7 +260,7 @@ func DescriptionNotIn(vs ...string) predicate.WorkOrderType {
 	return predicate.WorkOrderType(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

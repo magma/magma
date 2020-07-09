@@ -493,33 +493,22 @@ func TestWorkOrderTypeWritePolicyRule(t *testing.T) {
 	})
 }
 
-func TestWorkOrderTemplateWritePolicyRule(t *testing.T) {
+func TestWorkOrderTemplateIsAlwaysEditable(t *testing.T) {
 	c := viewertest.NewTestClient(t)
-	ctx := viewertest.NewContext(context.Background(), c)
-	workOrderTemplate := c.WorkOrderTemplate.Create().
+	ctx := viewertest.NewContext(
+		context.Background(),
+		c,
+		viewertest.WithRole(user.RoleUSER),
+		viewertest.WithPermissions(authz.EmptyPermissions()))
+	workOrderTemplate, err := c.WorkOrderTemplate.Create().
 		SetName("WorkOrderTemplate").
-		SaveX(ctx)
-	createWorkOrderTemplate := func(ctx context.Context) error {
-		_, err := c.WorkOrderTemplate.Create().
-			SetName("NewWorkOrderTemplate").
-			Save(ctx)
-		return err
-	}
-	updateWorkOrderTemplate := func(ctx context.Context) error {
-		return c.WorkOrderTemplate.UpdateOne(workOrderTemplate).
-			SetName("NewName").
-			Exec(ctx)
-	}
-	deleteWorkOrderTemplate := func(ctx context.Context) error {
-		return c.WorkOrderTemplate.DeleteOne(workOrderTemplate).
-			Exec(ctx)
-	}
-	runCudPolicyTest(t, cudPolicyTest{
-		getCud: func(p *models.PermissionSettings) *models.Cud {
-			return p.WorkforcePolicy.Templates
-		},
-		create: createWorkOrderTemplate,
-		update: updateWorkOrderTemplate,
-		delete: deleteWorkOrderTemplate,
-	})
+		Save(ctx)
+	require.NoError(t, err)
+	err = c.WorkOrderTemplate.UpdateOne(workOrderTemplate).
+		SetName("NewName").
+		Exec(ctx)
+	require.NoError(t, err)
+	err = c.WorkOrderTemplate.DeleteOne(workOrderTemplate).
+		Exec(ctx)
+	require.NoError(t, err)
 }

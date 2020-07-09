@@ -486,7 +486,7 @@ func TestSearchServicesByProperties(t *testing.T) {
 		Operator:   models.FilterOperatorIs,
 		PropertyValue: &models.PropertyTypeInput{
 			Name:        "service_str_prop",
-			Type:        models.PropertyKind("string"),
+			Type:        propertytype.TypeString,
 			StringValue: pointer.ToString("Foo is the best"),
 		},
 	}
@@ -507,9 +507,10 @@ func TestSearchServicesByLocations(t *testing.T) {
 		Type: data.locBuilding,
 	})
 	loc2, _ := mr.AddLocation(ctx, models.AddLocationInput{
-		Name:   "loc_inst2",
-		Type:   data.locRoom,
-		Parent: &loc1.ID,
+		Name:       "loc_inst2",
+		Type:       data.locRoom,
+		Parent:     &loc1.ID,
+		ExternalID: pointer.ToString("222"),
 	})
 	loc3, _ := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   "loc_inst3",
@@ -603,6 +604,15 @@ func TestSearchServicesByLocations(t *testing.T) {
 		MaxDepth:   &maxDepth,
 	}
 	res2, err := qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2}, &limit)
+	require.NoError(t, err)
+	require.Len(t, res2.Services, 2)
+
+	f2ExternalID := models.ServiceFilterInput{
+		FilterType:  models.ServiceFilterTypeLocationInstExternalID,
+		Operator:    models.FilterOperatorContains,
+		StringValue: pointer.ToString("22"),
+	}
+	res2, err = qr.ServiceSearch(ctx, []*models.ServiceFilterInput{&f2ExternalID}, &limit)
 	require.NoError(t, err)
 	require.Len(t, res2.Services, 2)
 

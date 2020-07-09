@@ -111,13 +111,6 @@ func UpdateTime(v time.Time) predicate.File {
 	})
 }
 
-// Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
-func Type(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldType), v))
-	})
-}
-
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
 func Name(v string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
@@ -197,7 +190,7 @@ func CreateTimeIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -214,7 +207,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -273,7 +266,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -290,7 +283,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -327,21 +320,21 @@ func UpdateTimeLTE(v time.Time) predicate.File {
 }
 
 // TypeEQ applies the EQ predicate on the "type" field.
-func TypeEQ(v string) predicate.File {
+func TypeEQ(v Type) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldType), v))
 	})
 }
 
 // TypeNEQ applies the NEQ predicate on the "type" field.
-func TypeNEQ(v string) predicate.File {
+func TypeNEQ(v Type) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldType), v))
 	})
 }
 
 // TypeIn applies the In predicate on the "type" field.
-func TypeIn(vs ...string) predicate.File {
+func TypeIn(vs ...Type) predicate.File {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -349,7 +342,7 @@ func TypeIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -358,7 +351,7 @@ func TypeIn(vs ...string) predicate.File {
 }
 
 // TypeNotIn applies the NotIn predicate on the "type" field.
-func TypeNotIn(vs ...string) predicate.File {
+func TypeNotIn(vs ...Type) predicate.File {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -366,74 +359,11 @@ func TypeNotIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldType), v...))
-	})
-}
-
-// TypeGT applies the GT predicate on the "type" field.
-func TypeGT(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldType), v))
-	})
-}
-
-// TypeGTE applies the GTE predicate on the "type" field.
-func TypeGTE(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldType), v))
-	})
-}
-
-// TypeLT applies the LT predicate on the "type" field.
-func TypeLT(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldType), v))
-	})
-}
-
-// TypeLTE applies the LTE predicate on the "type" field.
-func TypeLTE(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldType), v))
-	})
-}
-
-// TypeContains applies the Contains predicate on the "type" field.
-func TypeContains(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldType), v))
-	})
-}
-
-// TypeHasPrefix applies the HasPrefix predicate on the "type" field.
-func TypeHasPrefix(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldType), v))
-	})
-}
-
-// TypeHasSuffix applies the HasSuffix predicate on the "type" field.
-func TypeHasSuffix(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldType), v))
-	})
-}
-
-// TypeEqualFold applies the EqualFold predicate on the "type" field.
-func TypeEqualFold(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldType), v))
-	})
-}
-
-// TypeContainsFold applies the ContainsFold predicate on the "type" field.
-func TypeContainsFold(v string) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldType), v))
 	})
 }
 
@@ -460,7 +390,7 @@ func NameIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -477,7 +407,7 @@ func NameNotIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -571,7 +501,7 @@ func SizeIn(vs ...int) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -588,7 +518,7 @@ func SizeNotIn(vs ...int) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -661,7 +591,7 @@ func ModifiedAtIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -678,7 +608,7 @@ func ModifiedAtNotIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -751,7 +681,7 @@ func UploadedAtIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -768,7 +698,7 @@ func UploadedAtNotIn(vs ...time.Time) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -841,7 +771,7 @@ func ContentTypeIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -858,7 +788,7 @@ func ContentTypeNotIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -952,7 +882,7 @@ func StoreKeyIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -969,7 +899,7 @@ func StoreKeyNotIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1063,7 +993,7 @@ func CategoryIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1080,7 +1010,7 @@ func CategoryNotIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1188,7 +1118,7 @@ func AnnotationIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1205,7 +1135,7 @@ func AnnotationNotIn(vs ...string) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

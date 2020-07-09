@@ -35,11 +35,13 @@ const locationSearchQuery = graphql`
     $limit: Int
     $filters: [LocationFilterInput!]!
   ) {
-    locationSearch(limit: $limit, filters: $filters) {
-      locations {
-        ...PowerSearchLocationsResultsTable_locations
+    locations(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...PowerSearchLocationsResultsTable_locations
+        }
       }
-      count
+      totalCount
     }
   }
 `;
@@ -64,14 +66,16 @@ const LocationViewQueryRenderer = (props: Props) => {
         })),
       }}
       render={props => {
-        const {count, locations} = props.locationSearch;
-        onQueryReturn(count);
-        if (count === 0) {
+        const {totalCount, edges} = props.locations;
+        onQueryReturn(totalCount);
+        if (totalCount === 0) {
           return <ComparisonViewNoResults />;
         }
         return (
           <div className={classes.searchResults}>
-            <PowerSearchLocationsResultsTable locations={locations} />
+            <PowerSearchLocationsResultsTable
+              locations={edges.map(edge => edge.node)}
+            />
           </div>
         );
       }}

@@ -76,9 +76,7 @@ class EnforcementTableTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': True,
             },
-            mconfig=PipelineD(
-                relay_enabled=True
-            ),
+            mconfig=PipelineD(),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False

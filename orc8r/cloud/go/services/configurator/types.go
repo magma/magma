@@ -422,6 +422,10 @@ func (euc EntityUpdateCriteria) isEntityWriteOperation() {}
 func marshalConfigs(configs map[string]interface{}, domain string) (map[string][]byte, error) {
 	ret := map[string][]byte{}
 	for configType, iConfig := range configs {
+		if iConfig == nil {
+			continue
+		}
+
 		sConfig, err := serde.Serialize(domain, configType, iConfig)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize config %s", configType)

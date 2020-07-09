@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// nolint: goconst
 package resolver
 
 import (
@@ -59,13 +58,13 @@ func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		Index:       &strIndex,
 		StringValue: &strValue,
 	}
 	intPropType := models.PropertyTypeInput{
 		Name:     "int_prop",
-		Type:     models.PropertyKindInt,
+		Type:     propertytype.TypeInt,
 		Index:    &intIndex,
 		IntValue: &intValue,
 	}
@@ -76,8 +75,8 @@ func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	intProp := portType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindInt.String())).OnlyX(ctx)
-	strProp := portType.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	intProp := portType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
+	strProp := portType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 
 	require.Equal(t, "int_prop", intProp.Name, "verifying int property type's name")
 	require.Equal(t, "", intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
@@ -100,13 +99,13 @@ func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		Index:       &strIndex,
 		StringValue: &strValue,
 	}
 	intPropType := models.PropertyTypeInput{
 		Name:     "int_prop",
-		Type:     models.PropertyKindInt,
+		Type:     propertytype.TypeInt,
 		Index:    &intIndex,
 		IntValue: &intValue,
 	}
@@ -117,8 +116,8 @@ func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	intProp := portType.QueryLinkPropertyTypes().Where(propertytype.Type(models.PropertyKindInt.String())).OnlyX(ctx)
-	strProp := portType.QueryLinkPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
+	intProp := portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
+	strProp := portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 
 	require.Equal(t, "int_prop", intProp.Name, "verifying int property type's name")
 	require.Equal(t, "", intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
@@ -218,7 +217,7 @@ func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	strProp := portType.QueryLinkPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp := portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	strValue = "Foo - edited"
 	intValue := 5
 	strPropType = models.PropertyTypeInput{
@@ -241,11 +240,11 @@ func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, portType.Name, newType.Name, "successfully edited EquipmentPort type name")
 
-	strProp = portType.QueryLinkPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp = portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
 	require.Equal(t, strValue, strProp.StringVal, "successfully edited prop type string value")
 
-	intProp := portType.QueryLinkPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
+	intProp := portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
 	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
 

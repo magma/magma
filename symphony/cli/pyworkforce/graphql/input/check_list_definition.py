@@ -18,9 +18,9 @@ from ..enum.check_list_item_type import CheckListItemType
 class CheckListDefinitionInput(DataClassJsonMixin):
     title: str
     type: CheckListItemType = enum_field(CheckListItemType)
+    enumSelectionMode: Optional[CheckListItemEnumSelectionMode] = None
     id: Optional[str] = None
     index: Optional[int] = None
     enumValues: Optional[str] = None
-    enumSelectionMode: Optional[CheckListItemEnumSelectionMode] = None
     helpText: Optional[str] = None
 

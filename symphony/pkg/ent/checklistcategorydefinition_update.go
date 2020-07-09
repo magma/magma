@@ -113,6 +113,11 @@ func (clcdu *CheckListCategoryDefinitionUpdate) SetWorkOrderTemplate(w *WorkOrde
 	return clcdu.SetWorkOrderTemplateID(w.ID)
 }
 
+// Mutation returns the CheckListCategoryDefinitionMutation object of the builder.
+func (clcdu *CheckListCategoryDefinitionUpdate) Mutation() *CheckListCategoryDefinitionMutation {
+	return clcdu.mutation
+}
+
 // RemoveCheckListItemDefinitionIDs removes the check_list_item_definitions edge to CheckListItemDefinition by ids.
 func (clcdu *CheckListCategoryDefinitionUpdate) RemoveCheckListItemDefinitionIDs(ids ...int) *CheckListCategoryDefinitionUpdate {
 	clcdu.mutation.RemoveCheckListItemDefinitionIDs(ids...)
@@ -148,7 +153,7 @@ func (clcdu *CheckListCategoryDefinitionUpdate) Save(ctx context.Context) (int, 
 	}
 	if v, ok := clcdu.mutation.Title(); ok {
 		if err := checklistcategorydefinition.TitleValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+			return 0, &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
 		}
 	}
 
@@ -451,6 +456,11 @@ func (clcduo *CheckListCategoryDefinitionUpdateOne) SetWorkOrderTemplate(w *Work
 	return clcduo.SetWorkOrderTemplateID(w.ID)
 }
 
+// Mutation returns the CheckListCategoryDefinitionMutation object of the builder.
+func (clcduo *CheckListCategoryDefinitionUpdateOne) Mutation() *CheckListCategoryDefinitionMutation {
+	return clcduo.mutation
+}
+
 // RemoveCheckListItemDefinitionIDs removes the check_list_item_definitions edge to CheckListItemDefinition by ids.
 func (clcduo *CheckListCategoryDefinitionUpdateOne) RemoveCheckListItemDefinitionIDs(ids ...int) *CheckListCategoryDefinitionUpdateOne {
 	clcduo.mutation.RemoveCheckListItemDefinitionIDs(ids...)
@@ -486,7 +496,7 @@ func (clcduo *CheckListCategoryDefinitionUpdateOne) Save(ctx context.Context) (*
 	}
 	if v, ok := clcduo.mutation.Title(); ok {
 		if err := checklistcategorydefinition.TitleValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+			return nil, &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
 		}
 	}
 
@@ -552,7 +562,7 @@ func (clcduo *CheckListCategoryDefinitionUpdateOne) sqlSave(ctx context.Context)
 	}
 	id, ok := clcduo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing CheckListCategoryDefinition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CheckListCategoryDefinition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := clcduo.mutation.UpdateTime(); ok {

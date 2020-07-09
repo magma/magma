@@ -513,6 +513,11 @@ func (scsu *SurveyCellScanUpdate) SetLocation(l *Location) *SurveyCellScanUpdate
 	return scsu.SetLocationID(l.ID)
 }
 
+// Mutation returns the SurveyCellScanMutation object of the builder.
+func (scsu *SurveyCellScanUpdate) Mutation() *SurveyCellScanMutation {
+	return scsu.mutation
+}
+
 // ClearChecklistItem clears the checklist_item edge to CheckListItem.
 func (scsu *SurveyCellScanUpdate) ClearChecklistItem() *SurveyCellScanUpdate {
 	scsu.mutation.ClearChecklistItem()
@@ -1510,6 +1515,11 @@ func (scsuo *SurveyCellScanUpdateOne) SetLocation(l *Location) *SurveyCellScanUp
 	return scsuo.SetLocationID(l.ID)
 }
 
+// Mutation returns the SurveyCellScanMutation object of the builder.
+func (scsuo *SurveyCellScanUpdateOne) Mutation() *SurveyCellScanMutation {
+	return scsuo.mutation
+}
+
 // ClearChecklistItem clears the checklist_item edge to CheckListItem.
 func (scsuo *SurveyCellScanUpdateOne) ClearChecklistItem() *SurveyCellScanUpdateOne {
 	scsuo.mutation.ClearChecklistItem()
@@ -1597,7 +1607,7 @@ func (scsuo *SurveyCellScanUpdateOne) sqlSave(ctx context.Context) (scs *SurveyC
 	}
 	id, ok := scsuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing SurveyCellScan.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing SurveyCellScan.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := scsuo.mutation.UpdateTime(); ok {

@@ -137,6 +137,11 @@ func (etu *EquipmentTypeUpdate) AddServiceEndpointDefinitions(s ...*ServiceEndpo
 	return etu.AddServiceEndpointDefinitionIDs(ids...)
 }
 
+// Mutation returns the EquipmentTypeMutation object of the builder.
+func (etu *EquipmentTypeUpdate) Mutation() *EquipmentTypeMutation {
+	return etu.mutation
+}
+
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (etu *EquipmentTypeUpdate) RemovePortDefinitionIDs(ids ...int) *EquipmentTypeUpdate {
 	etu.mutation.RemovePortDefinitionIDs(ids...)
@@ -649,6 +654,11 @@ func (etuo *EquipmentTypeUpdateOne) AddServiceEndpointDefinitions(s ...*ServiceE
 	return etuo.AddServiceEndpointDefinitionIDs(ids...)
 }
 
+// Mutation returns the EquipmentTypeMutation object of the builder.
+func (etuo *EquipmentTypeUpdateOne) Mutation() *EquipmentTypeMutation {
+	return etuo.mutation
+}
+
 // RemovePortDefinitionIDs removes the port_definitions edge to EquipmentPortDefinition by ids.
 func (etuo *EquipmentTypeUpdateOne) RemovePortDefinitionIDs(ids ...int) *EquipmentTypeUpdateOne {
 	etuo.mutation.RemovePortDefinitionIDs(ids...)
@@ -799,7 +809,7 @@ func (etuo *EquipmentTypeUpdateOne) sqlSave(ctx context.Context) (et *EquipmentT
 	}
 	id, ok := etuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := etuo.mutation.UpdateTime(); ok {

@@ -11,31 +11,16 @@
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
-import Button from '@fbcnms/ui/components/design-system/Button';
+import GroupsSearchEmptyState from '../utils/search/GroupsSearchEmptyState';
+import NoGroupsEmptyState from '../utils/NoGroupsEmptyState';
 import PolicyGroupsList from '../utils/PolicyGroupsList';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import fbt from 'fbt';
 import {TOGGLE_BUTTON_DISPLAY} from '../utils/ListItem';
 import {makeStyles} from '@material-ui/styles';
 import {useGroupSearchContext} from '../utils/search/GroupSearchContext';
-import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
     flexGrow: '1',
-  },
-  noGroups: {
-    width: '124px',
-    paddingTop: '50%',
-    alignSelf: 'center',
-  },
-  noSearchResults: {
-    paddingTop: '50%',
-    alignSelf: 'center',
-    textAlign: 'center',
-  },
-  clearSearchWrapper: {
-    marginTop: '16px',
   },
 }));
 
@@ -49,53 +34,6 @@ export default function PermissionsPolicyGroupsList(props: Props) {
   const classes = useStyles();
   const groupSearch = useGroupSearchContext();
 
-  const policyGroupsEmptyState = useMemo(
-    () => (
-      <img
-        className={classes.noGroups}
-        src="/inventory/static/images/noGroups.png"
-      />
-    ),
-    [classes.noGroups],
-  );
-
-  const emptyState = useMemo(() => {
-    if (groupSearch.isEmptySearchTerm) {
-      return policyGroupsEmptyState;
-    }
-
-    if (groupSearch.isSearchInProgress) {
-      return null;
-    }
-
-    return (
-      <div className={classes.noSearchResults}>
-        <Text variant="h6" color="gray">
-          <fbt desc="">
-            No groups found for '<fbt:param name="given search term">
-              {groupSearch.searchTerm}
-            </fbt:param>'
-          </fbt>
-        </Text>
-        <div className={classes.clearSearchWrapper}>
-          <Button variant="text" skin="gray" onClick={groupSearch.clearSearch}>
-            <Text variant="subtitle2">
-              <fbt desc="">Clear Search</fbt>
-            </Text>
-          </Button>
-        </div>
-      </div>
-    );
-  }, [
-    classes.clearSearchWrapper,
-    classes.noSearchResults,
-    groupSearch.clearSearch,
-    groupSearch.isEmptySearchTerm,
-    groupSearch.isSearchInProgress,
-    groupSearch.searchTerm,
-    policyGroupsEmptyState,
-  ]);
-
   return (
     <PolicyGroupsList
       groups={
@@ -108,7 +46,9 @@ export default function PermissionsPolicyGroupsList(props: Props) {
           ? TOGGLE_BUTTON_DISPLAY.onHover
           : TOGGLE_BUTTON_DISPLAY.always
       }
-      emptyState={emptyState}
+      emptyState={
+        <GroupsSearchEmptyState noSearchEmptyState={<NoGroupsEmptyState />} />
+      }
       className={classes.root}
     />
   );

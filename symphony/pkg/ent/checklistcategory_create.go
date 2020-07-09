@@ -100,6 +100,11 @@ func (clcc *CheckListCategoryCreate) SetWorkOrder(w *WorkOrder) *CheckListCatego
 	return clcc.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the CheckListCategoryMutation object of the builder.
+func (clcc *CheckListCategoryCreate) Mutation() *CheckListCategoryMutation {
+	return clcc.mutation
+}
+
 // Save creates the CheckListCategory in the database.
 func (clcc *CheckListCategoryCreate) Save(ctx context.Context) (*CheckListCategory, error) {
 	if _, ok := clcc.mutation.CreateTime(); !ok {
@@ -111,10 +116,10 @@ func (clcc *CheckListCategoryCreate) Save(ctx context.Context) (*CheckListCatego
 		clcc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := clcc.mutation.Title(); !ok {
-		return nil, errors.New("ent: missing required field \"title\"")
+		return nil, &ValidationError{Name: "title", err: errors.New("ent: missing required field \"title\"")}
 	}
 	if _, ok := clcc.mutation.WorkOrderID(); !ok {
-		return nil, errors.New("ent: missing required edge \"work_order\"")
+		return nil, &ValidationError{Name: "work_order", err: errors.New("ent: missing required edge \"work_order\"")}
 	}
 	var (
 		err  error

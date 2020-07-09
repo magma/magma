@@ -7,4 +7,5 @@ type Scuba struct {
 	BatchSize        int    `json:"batch_size" default:"15"`
 	GraphURL         string `json:"graph_url" default:"https://graph.facebook.com/scribe_logs"`
 	AccessToken      string `json:"access_token"`
+	PartnerShortName string `json:"partner_shortname"`
 }

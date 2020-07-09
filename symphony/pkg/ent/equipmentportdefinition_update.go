@@ -160,6 +160,11 @@ func (epdu *EquipmentPortDefinitionUpdate) SetEquipmentType(e *EquipmentType) *E
 	return epdu.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the EquipmentPortDefinitionMutation object of the builder.
+func (epdu *EquipmentPortDefinitionUpdate) Mutation() *EquipmentPortDefinitionMutation {
+	return epdu.mutation
+}
+
 // ClearEquipmentPortType clears the equipment_port_type edge to EquipmentPortType.
 func (epdu *EquipmentPortDefinitionUpdate) ClearEquipmentPortType() *EquipmentPortDefinitionUpdate {
 	epdu.mutation.ClearEquipmentPortType()
@@ -573,6 +578,11 @@ func (epduo *EquipmentPortDefinitionUpdateOne) SetEquipmentType(e *EquipmentType
 	return epduo.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the EquipmentPortDefinitionMutation object of the builder.
+func (epduo *EquipmentPortDefinitionUpdateOne) Mutation() *EquipmentPortDefinitionMutation {
+	return epduo.mutation
+}
+
 // ClearEquipmentPortType clears the equipment_port_type edge to EquipmentPortType.
 func (epduo *EquipmentPortDefinitionUpdateOne) ClearEquipmentPortType() *EquipmentPortDefinitionUpdateOne {
 	epduo.mutation.ClearEquipmentPortType()
@@ -669,7 +679,7 @@ func (epduo *EquipmentPortDefinitionUpdateOne) sqlSave(ctx context.Context) (epd
 	}
 	id, ok := epduo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPortDefinition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentPortDefinition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := epduo.mutation.UpdateTime(); ok {

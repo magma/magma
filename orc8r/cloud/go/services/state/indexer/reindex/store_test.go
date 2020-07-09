@@ -32,7 +32,7 @@ func TestIndexerServicer_GetAllIDs(t *testing.T) {
 
 	store := &mocks.TransactionalBlobStorage{}
 	store.On("Search",
-		blobstore.CreateSearchFilter(nil, nil, nil),
+		blobstore.CreateSearchFilter(nil, nil, nil, nil),
 		blobstore.LoadCriteria{LoadValue: false},
 	).Return(blobs, nil)
 	store.On("Commit").Return(nil)

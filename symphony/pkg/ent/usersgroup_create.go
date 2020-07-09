@@ -118,6 +118,11 @@ func (ugc *UsersGroupCreate) AddPolicies(p ...*PermissionsPolicy) *UsersGroupCre
 	return ugc.AddPolicyIDs(ids...)
 }
 
+// Mutation returns the UsersGroupMutation object of the builder.
+func (ugc *UsersGroupCreate) Mutation() *UsersGroupMutation {
+	return ugc.mutation
+}
+
 // Save creates the UsersGroup in the database.
 func (ugc *UsersGroupCreate) Save(ctx context.Context) (*UsersGroup, error) {
 	if _, ok := ugc.mutation.CreateTime(); !ok {
@@ -129,11 +134,11 @@ func (ugc *UsersGroupCreate) Save(ctx context.Context) (*UsersGroup, error) {
 		ugc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := ugc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if v, ok := ugc.mutation.Name(); ok {
 		if err := usersgroup.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
 		}
 	}
 	if _, ok := ugc.mutation.Status(); !ok {
@@ -142,7 +147,7 @@ func (ugc *UsersGroupCreate) Save(ctx context.Context) (*UsersGroup, error) {
 	}
 	if v, ok := ugc.mutation.Status(); ok {
 		if err := usersgroup.StatusValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"status\": %v", err)
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
 		}
 	}
 	var (

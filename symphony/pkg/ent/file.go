@@ -33,7 +33,7 @@ type File struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// Type holds the value of the "type" field.
-	Type string `json:"type,omitempty"`
+	Type file.Type `json:"type,omitempty" gqlgen:"fileType"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty" gqlgen:"fileName"`
 	// Size holds the value of the "size" field.
@@ -273,7 +273,7 @@ func (f *File) assignValues(values ...interface{}) error {
 	if value, ok := values[2].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field type", values[2])
 	} else if value.Valid {
-		f.Type = value.String
+		f.Type = file.Type(value.String)
 	}
 	if value, ok := values[3].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field name", values[3])
@@ -448,7 +448,7 @@ func (f *File) String() string {
 	builder.WriteString(", update_time=")
 	builder.WriteString(f.UpdateTime.Format(time.ANSIC))
 	builder.WriteString(", type=")
-	builder.WriteString(f.Type)
+	builder.WriteString(fmt.Sprintf("%v", f.Type))
 	builder.WriteString(", name=")
 	builder.WriteString(f.Name)
 	builder.WriteString(", size=")

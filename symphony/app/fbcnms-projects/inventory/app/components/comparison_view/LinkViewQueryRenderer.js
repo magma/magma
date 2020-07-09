@@ -35,11 +35,13 @@ const linkSearchQuery = graphql`
     $limit: Int
     $filters: [LinkFilterInput!]!
   ) {
-    linkSearch(limit: $limit, filters: $filters) {
-      links {
-        ...PowerSearchLinksResultsTable_links
+    links(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...PowerSearchLinksResultsTable_links
+        }
       }
-      count
+      totalCount
     }
   }
 `;
@@ -63,14 +65,16 @@ const LinkViewQueryRenderer = (props: Props) => {
         })),
       }}
       render={props => {
-        const {count, links} = props.linkSearch;
-        onQueryReturn(count);
-        if (count === 0) {
+        const {totalCount, edges} = props.links;
+        onQueryReturn(totalCount);
+        if (totalCount === 0) {
           return <ComparisonViewNoResults />;
         }
         return (
           <div className={classes.searchResults}>
-            <PowerSearchLinksResultsTable links={links} />
+            <PowerSearchLinksResultsTable
+              links={edges.map(edge => edge.node)}
+            />
           </div>
         );
       }}

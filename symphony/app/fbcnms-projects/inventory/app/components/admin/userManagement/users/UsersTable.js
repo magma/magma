@@ -104,12 +104,15 @@ function UsersTable() {
             className={classes.field}
           />
         ),
+        tooltip: userRow =>
+          `${userFullName(userRow.data, '')} (${userRow.data.authID})`.trim(),
       },
       {
         key: 'role',
         title: <fbt desc="Role column header in users table">Role</fbt>,
         getSortingValue: userRow2UserRole,
         render: userRow2UserRole,
+        tooltip: userRow2UserRole,
       },
       {
         key: 'status',
@@ -126,6 +129,7 @@ function UsersTable() {
             {USER_STATUSES[userRow.data.status].value}
           </Text>
         ),
+        tooltip: userRow => USER_STATUSES[userRow.data.status].value,
       },
     ];
     return returnCols;
@@ -153,7 +157,9 @@ function UsersTable() {
         user={users[userIndex]}
         onChange={user => {
           if (haveDifferentValues(users[userIndex], user)) {
-            editUser(user).catch(handleError);
+            return editUser(user)
+              .catch(handleError)
+              .then(() => undefined);
           }
         }}
       />

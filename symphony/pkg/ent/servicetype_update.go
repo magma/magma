@@ -133,6 +133,11 @@ func (stu *ServiceTypeUpdate) AddEndpointDefinitions(s ...*ServiceEndpointDefini
 	return stu.AddEndpointDefinitionIDs(ids...)
 }
 
+// Mutation returns the ServiceTypeMutation object of the builder.
+func (stu *ServiceTypeUpdate) Mutation() *ServiceTypeMutation {
+	return stu.mutation
+}
+
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (stu *ServiceTypeUpdate) RemoveServiceIDs(ids ...int) *ServiceTypeUpdate {
 	stu.mutation.RemoveServiceIDs(ids...)
@@ -186,7 +191,7 @@ func (stu *ServiceTypeUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := stu.mutation.DiscoveryMethod(); ok {
 		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+			return 0, &ValidationError{Name: "discovery_method", err: fmt.Errorf("ent: validator failed for field \"discovery_method\": %w", err)}
 		}
 	}
 
@@ -529,6 +534,11 @@ func (stuo *ServiceTypeUpdateOne) AddEndpointDefinitions(s ...*ServiceEndpointDe
 	return stuo.AddEndpointDefinitionIDs(ids...)
 }
 
+// Mutation returns the ServiceTypeMutation object of the builder.
+func (stuo *ServiceTypeUpdateOne) Mutation() *ServiceTypeMutation {
+	return stuo.mutation
+}
+
 // RemoveServiceIDs removes the services edge to Service by ids.
 func (stuo *ServiceTypeUpdateOne) RemoveServiceIDs(ids ...int) *ServiceTypeUpdateOne {
 	stuo.mutation.RemoveServiceIDs(ids...)
@@ -582,7 +592,7 @@ func (stuo *ServiceTypeUpdateOne) Save(ctx context.Context) (*ServiceType, error
 	}
 	if v, ok := stuo.mutation.DiscoveryMethod(); ok {
 		if err := servicetype.DiscoveryMethodValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"discovery_method\": %v", err)
+			return nil, &ValidationError{Name: "discovery_method", err: fmt.Errorf("ent: validator failed for field \"discovery_method\": %w", err)}
 		}
 	}
 
@@ -648,7 +658,7 @@ func (stuo *ServiceTypeUpdateOne) sqlSave(ctx context.Context) (st *ServiceType,
 	}
 	id, ok := stuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing ServiceType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ServiceType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := stuo.mutation.UpdateTime(); ok {

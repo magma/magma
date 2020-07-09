@@ -124,16 +124,16 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	locTypeS, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{Name: locTypeNameS, Properties: []*models.PropertyTypeInput{
 		{
 			Name:        propNameStr,
-			Type:        models.PropertyKindString,
+			Type:        propertytype.TypeString,
 			StringValue: pointer.ToString("default"),
 		},
 		{
 			Name: propNameBool,
-			Type: models.PropertyKindBool,
+			Type: propertytype.TypeBool,
 		},
 		{
 			Name:        propNameDate,
-			Type:        models.PropertyKindDate,
+			Type:        propertytype.TypeDate,
 			StringValue: pointer.ToString("1988-03-29"),
 		},
 	}})
@@ -173,8 +173,8 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 		Longitude:  pointer.ToFloat64(long),
 	})
 	require.NoError(t, err)
-	strProp := locTypeS.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindString.String())).OnlyX(ctx)
-	boolProp := locTypeS.QueryPropertyTypes().Where(propertytype.Type(models.PropertyKindBool.String())).OnlyX(ctx)
+	strProp := locTypeS.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
+	boolProp := locTypeS.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeBool)).OnlyX(ctx)
 	clocation, err := mr.AddLocation(ctx, models.AddLocationInput{
 		Name:   childLocation,
 		Type:   locTypeS.ID,
@@ -293,7 +293,7 @@ func prepareData(ctx context.Context, t *testing.T, r TestExporterResolver) {
 	})
 
 	val := propDefValue2
-	propertyInput := models.PropertyTypeInput{Name: newPropNameStr, StringValue: &val, Type: models.PropertyKindString}
+	propertyInput := models.PropertyTypeInput{Name: newPropNameStr, StringValue: &val, Type: propertytype.TypeString}
 	_, err = r.Mutation().EditEquipmentType(ctx, models.EditEquipmentTypeInput{
 		ID:         equipmentType2.ID,
 		Name:       equipmentType2.Name,

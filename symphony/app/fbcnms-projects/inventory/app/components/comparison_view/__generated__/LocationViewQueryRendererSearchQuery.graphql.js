@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 53c5306aba11dfa6abfac68ccf43b005
+ * @relayHash 33c024b2b4476119137c6e34d728315a
  */
 
 /* eslint-disable */
@@ -55,11 +55,13 @@ export type LocationViewQueryRendererSearchQueryVariables = {|
   filters: $ReadOnlyArray<LocationFilterInput>,
 |};
 export type LocationViewQueryRendererSearchQueryResponse = {|
-  +locationSearch: {|
-    +locations: $ReadOnlyArray<?{|
-      +$fragmentRefs: PowerSearchLocationsResultsTable_locations$ref
+  +locations: ?{|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +$fragmentRefs: PowerSearchLocationsResultsTable_locations$ref
+      |}
     |}>,
-    +count: number,
+    +totalCount: number,
   |}
 |};
 export type LocationViewQueryRendererSearchQuery = {|
@@ -74,12 +76,14 @@ query LocationViewQueryRendererSearchQuery(
   $limit: Int
   $filters: [LocationFilterInput!]!
 ) {
-  locationSearch(limit: $limit, filters: $filters) {
-    locations {
-      ...PowerSearchLocationsResultsTable_locations
-      id
+  locations(first: $limit, filters: $filters) {
+    edges {
+      node {
+        ...PowerSearchLocationsResultsTable_locations
+        id
+      }
     }
-    count
+    totalCount
   }
 }
 
@@ -168,14 +172,14 @@ v1 = [
   },
   {
     "kind": "Variable",
-    "name": "limit",
+    "name": "first",
     "variableName": "limit"
   }
 ],
 v2 = {
   "kind": "ScalarField",
   "alias": null,
-  "name": "count",
+  "name": "totalCount",
   "args": null,
   "storageKey": null
 },
@@ -261,25 +265,36 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "locationSearch",
+        "name": "locations",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "LocationSearchResult",
+        "concreteType": "LocationConnection",
         "plural": false,
         "selections": [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "locations",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "Location",
+            "concreteType": "LocationEdge",
             "plural": true,
             "selections": [
               {
-                "kind": "FragmentSpread",
-                "name": "PowerSearchLocationsResultsTable_locations",
-                "args": null
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "node",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Location",
+                "plural": false,
+                "selections": [
+                  {
+                    "kind": "FragmentSpread",
+                    "name": "PowerSearchLocationsResultsTable_locations",
+                    "args": null
+                  }
+                ]
               }
             ]
           },
@@ -296,48 +311,79 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "locationSearch",
+        "name": "locations",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "LocationSearchResult",
+        "concreteType": "LocationConnection",
         "plural": false,
         "selections": [
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "locations",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "Location",
+            "concreteType": "LocationEdge",
             "plural": true,
             "selections": [
-              (v3/*: any*/),
-              (v4/*: any*/),
-              {
-                "kind": "ScalarField",
-                "alias": null,
-                "name": "externalId",
-                "args": null,
-                "storageKey": null
-              },
               {
                 "kind": "LinkedField",
                 "alias": null,
-                "name": "locationType",
+                "name": "node",
                 "storageKey": null,
                 "args": null,
-                "concreteType": "LocationType",
+                "concreteType": "Location",
                 "plural": false,
                 "selections": [
                   (v3/*: any*/),
                   (v4/*: any*/),
                   {
+                    "kind": "ScalarField",
+                    "alias": null,
+                    "name": "externalId",
+                    "args": null,
+                    "storageKey": null
+                  },
+                  {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "propertyTypes",
+                    "name": "locationType",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "PropertyType",
+                    "concreteType": "LocationType",
+                    "plural": false,
+                    "selections": [
+                      (v3/*: any*/),
+                      (v4/*: any*/),
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "propertyTypes",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "PropertyType",
+                        "plural": true,
+                        "selections": [
+                          (v3/*: any*/),
+                          (v5/*: any*/),
+                          (v6/*: any*/),
+                          (v7/*: any*/),
+                          (v8/*: any*/),
+                          (v9/*: any*/),
+                          (v10/*: any*/),
+                          (v11/*: any*/),
+                          (v12/*: any*/)
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "properties",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "Property",
                     "plural": true,
                     "selections": [
                       (v3/*: any*/),
@@ -348,122 +394,102 @@ return {
                       (v9/*: any*/),
                       (v10/*: any*/),
                       (v11/*: any*/),
-                      (v12/*: any*/)
-                    ]
-                  }
-                ]
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "properties",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "Property",
-                "plural": true,
-                "selections": [
-                  (v3/*: any*/),
-                  (v5/*: any*/),
-                  (v6/*: any*/),
-                  (v7/*: any*/),
-                  (v8/*: any*/),
-                  (v9/*: any*/),
-                  (v10/*: any*/),
-                  (v11/*: any*/),
-                  (v12/*: any*/),
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "nodeValue",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": null,
-                    "plural": false,
-                    "selections": [
+                      (v12/*: any*/),
                       {
-                        "kind": "ScalarField",
+                        "kind": "LinkedField",
                         "alias": null,
-                        "name": "__typename",
+                        "name": "nodeValue",
+                        "storageKey": null,
                         "args": null,
-                        "storageKey": null
+                        "concreteType": null,
+                        "plural": false,
+                        "selections": [
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "__typename",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          (v3/*: any*/),
+                          (v4/*: any*/)
+                        ]
                       },
-                      (v3/*: any*/),
-                      (v4/*: any*/)
+                      {
+                        "kind": "LinkedField",
+                        "alias": null,
+                        "name": "propertyType",
+                        "storageKey": null,
+                        "args": null,
+                        "concreteType": "PropertyType",
+                        "plural": false,
+                        "selections": [
+                          (v3/*: any*/),
+                          (v4/*: any*/),
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "type",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "nodeType",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "isEditable",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          {
+                            "kind": "ScalarField",
+                            "alias": null,
+                            "name": "isInstanceProperty",
+                            "args": null,
+                            "storageKey": null
+                          },
+                          (v5/*: any*/),
+                          (v6/*: any*/),
+                          (v7/*: any*/),
+                          (v8/*: any*/),
+                          (v9/*: any*/),
+                          (v10/*: any*/),
+                          (v11/*: any*/),
+                          (v12/*: any*/)
+                        ]
+                      }
                     ]
                   },
                   {
                     "kind": "LinkedField",
                     "alias": null,
-                    "name": "propertyType",
+                    "name": "locationHierarchy",
                     "storageKey": null,
                     "args": null,
-                    "concreteType": "PropertyType",
-                    "plural": false,
+                    "concreteType": "Location",
+                    "plural": true,
                     "selections": [
                       (v3/*: any*/),
                       (v4/*: any*/),
                       {
-                        "kind": "ScalarField",
+                        "kind": "LinkedField",
                         "alias": null,
-                        "name": "type",
+                        "name": "locationType",
+                        "storageKey": null,
                         "args": null,
-                        "storageKey": null
-                      },
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "nodeType",
-                        "args": null,
-                        "storageKey": null
-                      },
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "isEditable",
-                        "args": null,
-                        "storageKey": null
-                      },
-                      {
-                        "kind": "ScalarField",
-                        "alias": null,
-                        "name": "isInstanceProperty",
-                        "args": null,
-                        "storageKey": null
-                      },
-                      (v5/*: any*/),
-                      (v6/*: any*/),
-                      (v7/*: any*/),
-                      (v8/*: any*/),
-                      (v9/*: any*/),
-                      (v10/*: any*/),
-                      (v11/*: any*/),
-                      (v12/*: any*/)
-                    ]
-                  }
-                ]
-              },
-              {
-                "kind": "LinkedField",
-                "alias": null,
-                "name": "locationHierarchy",
-                "storageKey": null,
-                "args": null,
-                "concreteType": "Location",
-                "plural": true,
-                "selections": [
-                  (v3/*: any*/),
-                  (v4/*: any*/),
-                  {
-                    "kind": "LinkedField",
-                    "alias": null,
-                    "name": "locationType",
-                    "storageKey": null,
-                    "args": null,
-                    "concreteType": "LocationType",
-                    "plural": false,
-                    "selections": [
-                      (v4/*: any*/),
-                      (v3/*: any*/)
+                        "concreteType": "LocationType",
+                        "plural": false,
+                        "selections": [
+                          (v4/*: any*/),
+                          (v3/*: any*/)
+                        ]
+                      }
                     ]
                   }
                 ]
@@ -479,11 +505,11 @@ return {
     "operationKind": "query",
     "name": "LocationViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query LocationViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LocationFilterInput!]!\n) {\n  locationSearch(limit: $limit, filters: $filters) {\n    locations {\n      ...PowerSearchLocationsResultsTable_locations\n      id\n    }\n    count\n  }\n}\n\nfragment PowerSearchLocationsResultsTable_locations on Location {\n  id\n  name\n  externalId\n  locationType {\n    id\n    name\n    propertyTypes {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    nodeValue {\n      __typename\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      nodeType\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n",
+    "text": "query LocationViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [LocationFilterInput!]!\n) {\n  locations(first: $limit, filters: $filters) {\n    edges {\n      node {\n        ...PowerSearchLocationsResultsTable_locations\n        id\n      }\n    }\n    totalCount\n  }\n}\n\nfragment PowerSearchLocationsResultsTable_locations on Location {\n  id\n  name\n  externalId\n  locationType {\n    id\n    name\n    propertyTypes {\n      id\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  properties {\n    id\n    stringValue\n    intValue\n    floatValue\n    booleanValue\n    latitudeValue\n    longitudeValue\n    rangeFromValue\n    rangeToValue\n    nodeValue {\n      __typename\n      id\n      name\n    }\n    propertyType {\n      id\n      name\n      type\n      nodeType\n      isEditable\n      isInstanceProperty\n      stringValue\n      intValue\n      floatValue\n      booleanValue\n      latitudeValue\n      longitudeValue\n      rangeFromValue\n      rangeToValue\n    }\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'c2287d9f2e71a1aea3980fca8118ad97';
+(node/*: any*/).hash = 'e72970e01f322c366760ad66534ce502';
 module.exports = node;

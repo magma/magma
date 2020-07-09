@@ -9,6 +9,8 @@
  */
 
 import * as React from 'react';
+import classNames from 'classnames';
+import symphony from '../theme/symphony';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -18,15 +20,36 @@ const useStyles = makeStyles(() => ({
     justifyContent: 'space-around',
     alignItems: 'center',
   },
+  lightBackground: {
+    backgroundColor: symphony.palette.white,
+    padding: '6px',
+  },
+  stretchContents: {
+    justifyContent: 'flex-start',
+  },
 }));
 
 type Props = $ReadOnly<{|
   children: React.Node,
+  background?: 'regular' | 'light',
+  stretchContents?: boolean,
 |}>;
 
-const StoryFrame = ({children}: Props) => {
+const StoryFrame = ({
+  children,
+  background = 'regular',
+  stretchContents = false,
+}: Props) => {
   const classes = useStyles();
-  return <div className={classes.root}>{children}</div>;
+  return (
+    <div
+      className={classNames(classes.root, {
+        [classes.lightBackground]: background === 'light',
+        [classes.stretchContents]: stretchContents === true,
+      })}>
+      {children}
+    </div>
+  );
 };
 
 export default StoryFrame;

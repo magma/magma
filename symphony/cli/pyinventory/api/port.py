@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import Dict, List
+from typing import Dict, Iterator
 
 from pysymphony import SymphonyClient
 
@@ -88,38 +88,42 @@ def get_port(
     )
 
 
-def get_ports(client: SymphonyClient) -> List[EquipmentPort]:
+def get_ports(client: SymphonyClient) -> Iterator[EquipmentPort]:
     """This function returns all existing ports
 
         Returns:
-            List[ `pyinventory.common.data_class.EquipmentPort` ]
+            Iterator[ `pyinventory.common.data_class.EquipmentPort` ]
 
         Example:
             ```
             all_ports = client.get_ports()
             ```
     """
-    ports = PortsQuery.execute(client, first=PAGINATION_STEP)
-    edges = ports.edges if ports else []
-    while ports is not None and ports.pageInfo.hasNextPage:
-        ports = PortsQuery.execute(
-            client, after=ports.pageInfo.endCursor, first=PAGINATION_STEP
-        )
-        if ports is not None:
-            edges.extend(ports.edges)
 
-    result = []
-    for edge in edges:
-        node = edge.node
-        if node is not None:
-            port_type = None
-            if node.definition.portType is not None:
-                port_type = node.definition.portType
-            link = None
-            if node.link is not None:
-                link = node.link
-            result.append(
-                EquipmentPort(
+    def generate_pages(
+        client: SymphonyClient,
+    ) -> Iterator[PortsQuery.PortsQueryData.EquipmentPortConnection]:
+        ports = PortsQuery.execute(client, first=PAGINATION_STEP)
+        if ports:
+            yield ports
+        while ports is not None and ports.pageInfo.hasNextPage:
+            ports = PortsQuery.execute(
+                client, after=ports.pageInfo.endCursor, first=PAGINATION_STEP
+            )
+            if ports is not None:
+                yield ports
+
+    for page in generate_pages(client):
+        for edge in page.edges:
+            node = edge.node
+            if node is not None:
+                port_type = None
+                if node.definition.portType is not None:
+                    port_type = node.definition.portType
+                link = None
+                if node.link is not None:
+                    link = node.link
+                yield EquipmentPort(
                     id=node.id,
                     properties=node.properties,
                     definition=EquipmentPortDefinition(
@@ -135,9 +139,6 @@ def get_ports(client: SymphonyClient) -> List[EquipmentPort]:
                     if link
                     else None,
                 )
-            )
-
-    return result
 
 
 def edit_port_properties(

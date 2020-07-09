@@ -1,0 +1,71 @@
+import BaseContexualLayer from '../../components/design-system/ContexualLayer/BaseContexualLayer';
+import Text from '../../components/design-system/Text';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {useCallback, useRef, useState} from 'react';
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/BaseContexualLayer`} />
+
+# BaseContexualLayer
+
+```js
+import BaseContexualLayer from '@fbcnms/ui/components/design-system/ContexualLayer/BaseContexualLayer';
+```
+
+`BaseContexualLayer` is a base component that allows displaying elements above or below it.
+
+This component is used by the `SelectMenu` for example.
+
+export const BelowContexualContainer = ({element}) => {
+  if (element == null) {
+    return null;
+  }
+  return (
+    <BaseContexualLayer context={element} position="below">
+      <div>
+        <Text variant="body2">Below the input</Text>
+      </div>
+    </BaseContexualLayer>
+  );
+};
+
+export const AboveContexualContainer = ({element}) => {
+  if (element == null) {
+    return null;
+  }
+  return (
+    <BaseContexualLayer context={element} position="above">
+      <div>
+        <Text variant="body2">
+          Above the input
+        </Text>
+      </div>
+    </BaseContexualLayer>
+  );
+};
+
+<Preview>
+  <Story name="BaseContexualLayer">
+    {() => {
+      const [isVisible, setIsVisible] = useState(false);
+      const contextRef = useRef(null);
+      const refCallback = useCallback(element => {
+        contextRef.current = element;
+        setIsVisible(true);
+      }, []);
+      return (
+        <div>
+          <input
+            ref={refCallback}
+          />
+          {isVisible ? (
+            <BelowContexualContainer element={contextRef.current} />
+          ) : null}
+          {isVisible ? (
+            <AboveContexualContainer element={contextRef.current} />
+          ) : null}
+        </div>
+      );
+    }}
+  </Story>
+</Preview>

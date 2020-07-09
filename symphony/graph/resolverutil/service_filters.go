@@ -11,6 +11,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
 	"github.com/facebookincubator/symphony/pkg/ent/link"
+	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
@@ -123,7 +124,7 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 					property.And(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						),
 						pred,
 					),
@@ -131,13 +132,13 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 				service.And(
 					service.HasTypeWith(servicetype.HasPropertyTypesWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 						predForType,
 					)),
 					service.Not(service.HasPropertiesWith(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						)),
 					))))
 		return q, nil
@@ -147,10 +148,21 @@ func servicePropertyFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInpu
 }
 
 func handleServiceLocationFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
-	if filter.FilterType == models.ServiceFilterTypeLocationInst {
+	switch filter.FilterType {
+	case models.ServiceFilterTypeLocationInst:
 		return serviceLocationFilter(q, filter)
+	case models.ServiceFilterTypeLocationInstExternalID:
+		return serviceLocationExternalIDFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
+}
+
+func serviceLocationExternalIDFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {
+	if filter.Operator == models.FilterOperatorContains {
+		return q.Where(service.HasEndpointsWith(serviceendpoint.HasEquipmentWith(
+			equipment.HasLocationWith(location.ExternalIDContainsFold(*filter.StringValue))))), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
 
 func serviceLocationFilter(q *ent.ServiceQuery, filter *models.ServiceFilterInput) (*ent.ServiceQuery, error) {

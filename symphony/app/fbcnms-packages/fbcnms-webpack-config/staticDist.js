@@ -17,10 +17,7 @@ const MANIFEST_FILE = path.join(paths.appSrc, '../static/dist/manifest.json');
 
 let manifest = null;
 if (fs.existsSync(MANIFEST_FILE)) {
-  const manifestRaw = fs
-    .readFileSync(MANIFEST_FILE)
-    .toString('utf8')
-    .trim();
+  const manifestRaw = fs.readFileSync(MANIFEST_FILE).toString('utf8').trim();
   manifest = JSON.parse(manifestRaw);
 }
 export default function staticDist(

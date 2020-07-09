@@ -162,7 +162,7 @@ func CreateTimeIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -179,7 +179,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -238,7 +238,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -255,7 +255,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -314,7 +314,7 @@ func NameIn(vs ...string) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -331,7 +331,7 @@ func NameNotIn(vs ...string) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -425,7 +425,7 @@ func OwnerNameIn(vs ...string) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -442,7 +442,7 @@ func OwnerNameNotIn(vs ...string) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -550,7 +550,7 @@ func CreationTimestampIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -567,7 +567,7 @@ func CreationTimestampNotIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -640,7 +640,7 @@ func CompletionTimestampIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -657,7 +657,7 @@ func CompletionTimestampNotIn(vs ...time.Time) predicate.Survey {
 	return predicate.Survey(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

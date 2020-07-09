@@ -148,6 +148,11 @@ func (sc *SurveyCreate) AddQuestions(s ...*SurveyQuestion) *SurveyCreate {
 	return sc.AddQuestionIDs(ids...)
 }
 
+// Mutation returns the SurveyMutation object of the builder.
+func (sc *SurveyCreate) Mutation() *SurveyMutation {
+	return sc.mutation
+}
+
 // Save creates the Survey in the database.
 func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
 	if _, ok := sc.mutation.CreateTime(); !ok {
@@ -159,10 +164,10 @@ func (sc *SurveyCreate) Save(ctx context.Context) (*Survey, error) {
 		sc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := sc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	if _, ok := sc.mutation.CompletionTimestamp(); !ok {
-		return nil, errors.New("ent: missing required field \"completion_timestamp\"")
+		return nil, &ValidationError{Name: "completion_timestamp", err: errors.New("ent: missing required field \"completion_timestamp\"")}
 	}
 	var (
 		err  error

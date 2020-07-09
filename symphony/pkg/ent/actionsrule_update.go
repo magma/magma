@@ -56,6 +56,11 @@ func (aru *ActionsRuleUpdate) SetRuleActions(cra []*core.ActionsRuleAction) *Act
 	return aru
 }
 
+// Mutation returns the ActionsRuleMutation object of the builder.
+func (aru *ActionsRuleUpdate) Mutation() *ActionsRuleMutation {
+	return aru.mutation
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (aru *ActionsRuleUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := aru.mutation.UpdateTime(); !ok {
@@ -206,6 +211,11 @@ func (aruo *ActionsRuleUpdateOne) SetRuleActions(cra []*core.ActionsRuleAction) 
 	return aruo
 }
 
+// Mutation returns the ActionsRuleMutation object of the builder.
+func (aruo *ActionsRuleUpdateOne) Mutation() *ActionsRuleMutation {
+	return aruo.mutation
+}
+
 // Save executes the query and returns the updated entity.
 func (aruo *ActionsRuleUpdateOne) Save(ctx context.Context) (*ActionsRule, error) {
 	if _, ok := aruo.mutation.UpdateTime(); !ok {
@@ -274,7 +284,7 @@ func (aruo *ActionsRuleUpdateOne) sqlSave(ctx context.Context) (ar *ActionsRule,
 	}
 	id, ok := aruo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing ActionsRule.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing ActionsRule.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := aruo.mutation.UpdateTime(); ok {

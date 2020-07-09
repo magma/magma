@@ -271,6 +271,11 @@ func (cliu *CheckListItemUpdate) SetCheckListCategory(c *CheckListCategory) *Che
 	return cliu.SetCheckListCategoryID(c.ID)
 }
 
+// Mutation returns the CheckListItemMutation object of the builder.
+func (cliu *CheckListItemUpdate) Mutation() *CheckListItemMutation {
+	return cliu.mutation
+}
+
 // RemoveFileIDs removes the files edge to File by ids.
 func (cliu *CheckListItemUpdate) RemoveFileIDs(ids ...int) *CheckListItemUpdate {
 	cliu.mutation.RemoveFileIDs(ids...)
@@ -326,12 +331,12 @@ func (cliu *CheckListItemUpdate) ClearCheckListCategory() *CheckListItemUpdate {
 func (cliu *CheckListItemUpdate) Save(ctx context.Context) (int, error) {
 	if v, ok := cliu.mutation.EnumSelectionModeValue(); ok {
 		if err := checklistitem.EnumSelectionModeValueValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+			return 0, &ValidationError{Name: "enum_selection_mode_value", err: fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %w", err)}
 		}
 	}
 	if v, ok := cliu.mutation.YesNoVal(); ok {
 		if err := checklistitem.YesNoValValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+			return 0, &ValidationError{Name: "yes_no_val", err: fmt.Errorf("ent: validator failed for field \"yes_no_val\": %w", err)}
 		}
 	}
 
@@ -932,6 +937,11 @@ func (cliuo *CheckListItemUpdateOne) SetCheckListCategory(c *CheckListCategory) 
 	return cliuo.SetCheckListCategoryID(c.ID)
 }
 
+// Mutation returns the CheckListItemMutation object of the builder.
+func (cliuo *CheckListItemUpdateOne) Mutation() *CheckListItemMutation {
+	return cliuo.mutation
+}
+
 // RemoveFileIDs removes the files edge to File by ids.
 func (cliuo *CheckListItemUpdateOne) RemoveFileIDs(ids ...int) *CheckListItemUpdateOne {
 	cliuo.mutation.RemoveFileIDs(ids...)
@@ -987,12 +997,12 @@ func (cliuo *CheckListItemUpdateOne) ClearCheckListCategory() *CheckListItemUpda
 func (cliuo *CheckListItemUpdateOne) Save(ctx context.Context) (*CheckListItem, error) {
 	if v, ok := cliuo.mutation.EnumSelectionModeValue(); ok {
 		if err := checklistitem.EnumSelectionModeValueValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+			return nil, &ValidationError{Name: "enum_selection_mode_value", err: fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %w", err)}
 		}
 	}
 	if v, ok := cliuo.mutation.YesNoVal(); ok {
 		if err := checklistitem.YesNoValValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+			return nil, &ValidationError{Name: "yes_no_val", err: fmt.Errorf("ent: validator failed for field \"yes_no_val\": %w", err)}
 		}
 	}
 
@@ -1061,7 +1071,7 @@ func (cliuo *CheckListItemUpdateOne) sqlSave(ctx context.Context) (cli *CheckLis
 	}
 	id, ok := cliuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing CheckListItem.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing CheckListItem.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := cliuo.mutation.Title(); ok {

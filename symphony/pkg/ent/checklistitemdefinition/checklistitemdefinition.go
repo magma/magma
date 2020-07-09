@@ -8,6 +8,7 @@ package checklistitemdefinition
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -17,15 +18,23 @@ const (
 	// Label holds the string label denoting the checklistitemdefinition type in the database.
 	Label = "check_list_item_definition"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID                     = "id"                        // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime             = "create_time"               // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime             = "update_time"               // FieldTitle holds the string denoting the title vertex property in the database.
-	FieldTitle                  = "title"                     // FieldType holds the string denoting the type vertex property in the database.
-	FieldType                   = "type"                      // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex                  = "index"                     // FieldEnumValues holds the string denoting the enum_values vertex property in the database.
-	FieldEnumValues             = "enum_values"               // FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value vertex property in the database.
-	FieldEnumSelectionModeValue = "enum_selection_mode_value" // FieldHelpText holds the string denoting the help_text vertex property in the database.
-	FieldHelpText               = "help_text"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldType holds the string denoting the type field in the database.
+	FieldType = "type"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
+	// FieldEnumValues holds the string denoting the enum_values field in the database.
+	FieldEnumValues = "enum_values"
+	// FieldEnumSelectionModeValue holds the string denoting the enum_selection_mode_value field in the database.
+	FieldEnumSelectionModeValue = "enum_selection_mode_value"
+	// FieldHelpText holds the string denoting the help_text field in the database.
+	FieldHelpText = "help_text"
 
 	// EdgeCheckListCategoryDefinition holds the string denoting the check_list_category_definition edge name in mutations.
 	EdgeCheckListCategoryDefinition = "check_list_category_definition"
@@ -85,8 +94,8 @@ const (
 	EnumSelectionModeValueMultiple EnumSelectionModeValue = "multiple"
 )
 
-func (s EnumSelectionModeValue) String() string {
-	return string(s)
+func (esmv EnumSelectionModeValue) String() string {
+	return string(esmv)
 }
 
 // EnumSelectionModeValueValidator is a validator for the "esmv" field enum values. It is called by the builders before save.
@@ -97,4 +106,35 @@ func EnumSelectionModeValueValidator(esmv EnumSelectionModeValue) error {
 	default:
 		return fmt.Errorf("checklistitemdefinition: invalid enum value for enum_selection_mode_value field: %q", esmv)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (esmv EnumSelectionModeValue) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, esmv)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (esmv *EnumSelectionModeValue) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*esmv = EnumSelectionModeValue(str)
+	if err := EnumSelectionModeValueValidator(*esmv); err != nil {
+		return fmt.Errorf("%s is not a valid EnumSelectionModeValue", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

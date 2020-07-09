@@ -17,7 +17,7 @@ from orc8r.protos.common_pb2 import Void
 from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 
-#from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
+# from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 
 
@@ -122,6 +122,8 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address = ipaddress.ip_address(address_int)
                 ip_block_list.append(ipaddress.ip_network(
                     "%s/%d" % (address, block.prefix_len)))
+            if ip_block_list is not None:
+                ip_block_list.sort()
             return ip_block_list
         except grpc.RpcError as error:
             err_code = error.exception().code()
@@ -175,7 +177,7 @@ class MobilityServiceGrpc(MobilityServiceClient):
         return
 
 
-#class MobilityServiceRest(MobilityServiceClient):
+# class MobilityServiceRest(MobilityServiceClient):
 #    """
 #    Handle mobility actions by making REST calls to the cloud.
 #

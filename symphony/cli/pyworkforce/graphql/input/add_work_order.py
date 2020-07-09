@@ -24,14 +24,12 @@ class AddWorkOrderInput(DataClassJsonMixin):
     properties: List[PropertyInput]
     checkList: List[CheckListItemInput]
     checkListCategories: List[CheckListCategoryInput]
+    status: Optional[WorkOrderStatus] = None
+    priority: Optional[WorkOrderPriority] = None
     description: Optional[str] = None
     locationId: Optional[str] = None
     projectId: Optional[str] = None
-    ownerName: Optional[str] = None
     ownerId: Optional[str] = None
-    assignee: Optional[str] = None
     assigneeId: Optional[str] = None
     index: Optional[int] = None
-    status: Optional[WorkOrderStatus] = None
-    priority: Optional[WorkOrderPriority] = None
 
