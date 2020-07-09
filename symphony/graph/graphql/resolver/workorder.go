@@ -217,6 +217,7 @@ func (r mutationResolver) convertToTemplatePropertyInputs(
 			LongitudeValue:     p.LongitudeValue,
 			RangeFromValue:     p.RangeFromValue,
 			RangeToValue:       p.RangeToValue,
+			NodeIDValue:        p.NodeIDValue,
 			IsInstanceProperty: p.IsInstanceProperty,
 			IsEditable:         p.IsEditable,
 		})
