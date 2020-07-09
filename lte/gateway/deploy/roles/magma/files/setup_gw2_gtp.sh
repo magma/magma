@@ -27,7 +27,7 @@ check_success "Removing systemd files for unused Magma services"
 
 # Reload systemd service files
 systemctl daemon-reload
-check_success "Reloading systemctl"
+check_success "Reloading systemctl daemon"
 
 # Remove the openvswitch gtp bridge
 ifdown gtp_br0
