@@ -54,8 +54,6 @@ void PagingApplication::event_callback(
     ofpi.unpack(const_cast<uint8_t *>(pi.get_data()));
     handle_paging_message(
       ev.get_connection(), static_cast<uint8_t *>(ofpi.data()), messenger);
-  } else if (ev.get_type() == EVENT_SWITCH_UP) {
-    // install_default_flow(ev.get_connection(), messenger);
   } else if (ev.get_type() == EVENT_ADD_PAGING_RULE) {
     auto add_paging_rule_event = static_cast<const AddPagingRuleEvent&>(ev);
     add_paging_flow(add_paging_rule_event, messenger);
@@ -98,45 +96,6 @@ void PagingApplication::handle_paging_message(
   // No actions mean packet is dropped
   messenger.send_of_msg(fm, ofconn);
   return;
-}
-
-void PagingApplication::install_default_flow(
-  fluid_base::OFConnection *ofconn,
-  const OpenflowMessenger &messenger)
-{
-  // Get assigned IP block from mobilityd,
-  // In case of error allow entire IP space.
-  struct in_addr netaddr = { .s_addr = INADDR_ANY };
-  uint32_t prefix = 0;
-  int ret = get_assigned_ipv4_block(0, &netaddr, &prefix);
-
-  // Convert to string for logging
-  char ip_str[INET_ADDRSTRLEN];
-  inet_ntop(AF_INET, &(netaddr.s_addr), ip_str, INET_ADDRSTRLEN);
-  OAILOG_INFO(
-    LOG_GTPV1U,
-    "Setting default paging flow for UE IP block %s/%d\n",
-    ip_str,
-    prefix);
-
-  of13::FlowMod fm =
-    messenger.create_default_flow_mod(0, of13::OFPFC_ADD, MID_PRIORITY);
-  // IP eth type
-  of13::EthType type_match(IP_ETH_TYPE);
-  fm.add_oxm_field(type_match);
-
-  // Match on ip dest equalling assigned ue ip block
-  of13::IPv4Dst ip_match(netaddr.s_addr, prefix2mask(prefix));
-  fm.add_oxm_field(ip_match);
-
-  // Output to controller
-  of13::OutputAction act(of13::OFPP_CONTROLLER, of13::OFPCML_NO_BUFFER);
-  of13::ApplyActions inst;
-  inst.add_action(act);
-  fm.add_instruction(inst);
-
-  messenger.send_of_msg(fm, ofconn);
-  OAILOG_DEBUG(LOG_GTPV1U, "Default paging flow added\n");
 }
 
 void PagingApplication::add_paging_flow(
