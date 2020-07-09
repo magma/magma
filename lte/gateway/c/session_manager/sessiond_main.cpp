@@ -23,6 +23,7 @@
 #include "magma_logging.h"
 #include "SessionCredit.h"
 #include "SessionStore.h"
+#include "GrpcMagmaUtils.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -104,15 +105,14 @@ int main(int argc, char *argv[])
   __gcov_flush();
 #endif
 
-  MLOG(MINFO) << "Starting Session Manager";
   magma::init_logging(argv[0]);
+
   auto mconfig = load_mconfig();
   auto config =
     magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
-
+  MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
-
 
   // prep rule manager and rule update loop
   auto rule_store = std::make_shared<magma::StaticRuleStore>();

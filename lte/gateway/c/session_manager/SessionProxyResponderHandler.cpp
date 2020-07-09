@@ -13,6 +13,9 @@
 #include "SessionProxyResponderHandler.h"
 #include "magma_logging.h"
 
+#include "magma_logging.h"
+#include "GrpcMagmaUtils.h"
+
 using grpc::Status;
 
 namespace magma {
@@ -24,6 +27,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
     ServerContext* context, const ChargingReAuthRequest* request,
     std::function<void(Status, ChargingReAuthAnswer)> response_callback) {
   auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received a Gy (Charging) ReAuthRequest for "
                << request->session_id() << " and charging_key "
                << request->charging_key();
@@ -43,6 +47,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
         if (update_success) {
           MLOG(MDEBUG) << "Sending RAA response for Gy ReAuth "
                        << request_cpy.session_id();
+          PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
           response_callback(Status::OK, ans);
         } else {
           // Todo If update fails, we should rollback changes from the request
@@ -51,6 +56,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
               grpc::ABORTED,
               "ChargingReAuth no longer valid due to another update that "
               "updated the session first.");
+          PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
           response_callback(status, ans);
         }
         MLOG(MDEBUG) << "Sent RAA response for Gy ReAuth "
@@ -62,6 +68,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
     ServerContext* context, const PolicyReAuthRequest* request,
     std::function<void(Status, PolicyReAuthAnswer)> response_callback) {
   auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received a Gx (Policy) ReAuthRequest for session_id "
                << request->session_id();
   enforcer_->get_event_base().runInEventBaseThread(
@@ -77,6 +84,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
         if (update_success) {
           MLOG(MDEBUG) << "Sending RAA response for Gx ReAuth "
                        << request_cpy.session_id();
+          PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
           response_callback(Status::OK, ans);
         } else {
         // Todo If update fails, we should rollback changes from the request
@@ -85,6 +93,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
               grpc::ABORTED,
               "PolicyReAuth no longer valid due to another update that "
               "updated the session first.");
+          PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
           response_callback(status, ans);
         }
         MLOG(MDEBUG) << "Sent RAA response for Gx ReAuth "

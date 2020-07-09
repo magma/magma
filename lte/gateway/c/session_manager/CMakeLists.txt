@@ -148,9 +148,10 @@ add_library(SESSION_MANAGER
     StoreClient.h
     MeteringReporter.cpp
     MeteringReporter.h
+    GrpcMagmaUtils.cpp
+    GrpcMagmaUtils.h
     ${PROTO_SRCS}
-    ${PROTO_HDRS}
-    )
+    ${PROTO_HDRS})
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
