@@ -44,28 +44,36 @@ func (PropertyType) Fields() []ent.Field {
 			Optional(),
 		field.Int("int_val").
 			StructTag(`json:"intValue" gqlgen:"intValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Bool("bool_val").
 			StructTag(`json:"booleanValue" gqlgen:"booleanValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("float_val").
 			StructTag(`json:"floatValue" gqlgen:"floatValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("latitude_val").
 			StructTag(`json:"latitudeValue" gqlgen:"latitudeValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("longitude_val").
 			StructTag(`json:"longitudeValue" gqlgen:"longitudeValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Text("string_val").
 			StructTag(`json:"stringValue" gqlgen:"stringValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("range_from_val").
 			StructTag(`json:"rangeFromValue" gqlgen:"rangeFromValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("range_to_val").
 			StructTag(`json:"rangeToValue" gqlgen:"rangeToValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Bool("is_instance_property").
 			StructTag(`gqlgen:"isInstanceProperty"`).
 			Default(true),
@@ -155,28 +163,36 @@ func (Property) Fields() []ent.Field {
 	return []ent.Field{
 		field.Int("int_val").
 			StructTag(`json:"intValue" gqlgen:"intValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Bool("bool_val").
 			StructTag(`json:"booleanValue" gqlgen:"booleanValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("float_val").
 			StructTag(`json:"floatValue" gqlgen:"floatValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("latitude_val").
 			StructTag(`json:"latitudeValue" gqlgen:"latitudeValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("longitude_val").
 			StructTag(`json:"longitudeValue" gqlgen:"longitudeValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("range_from_val").
 			StructTag(`json:"rangeFromValue" gqlgen:"rangeFromValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.Float("range_to_val").
 			StructTag(`json:"rangeToValue" gqlgen:"rangeToValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 		field.String("string_val").
 			StructTag(`json:"stringValue" gqlgen:"stringValue"`).
-			Optional(),
+			Optional().
+			Nillable(),
 	}
 }
 

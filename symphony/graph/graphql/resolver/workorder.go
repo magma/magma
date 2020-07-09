@@ -206,20 +206,9 @@ func (r mutationResolver) convertToTemplatePropertyInputs(
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, &models.PropertyInput{
-			ID:                 p.ID,
-			PropertyTypeID:     tID,
-			StringValue:        p.StringValue,
-			IntValue:           p.IntValue,
-			BooleanValue:       p.BooleanValue,
-			FloatValue:         p.FloatValue,
-			LatitudeValue:      p.LatitudeValue,
-			LongitudeValue:     p.LongitudeValue,
-			RangeFromValue:     p.RangeFromValue,
-			RangeToValue:       p.RangeToValue,
-			IsInstanceProperty: p.IsInstanceProperty,
-			IsEditable:         p.IsEditable,
-		})
+		pInput := *p
+		pInput.PropertyTypeID = tID
+		pInputs = append(pInputs, &pInput)
 	}
 	return pInputs, nil
 }
@@ -655,15 +644,15 @@ func (r mutationResolver) addWorkOrderTemplate(
 			SetNodeType(pt.NodeType).
 			SetIndex(pt.Index).
 			SetCategory(pt.Category).
-			SetStringVal(pt.StringVal).
-			SetIntVal(pt.IntVal).
-			SetBoolVal(pt.BoolVal).
-			SetFloatVal(pt.FloatVal).
-			SetLatitudeVal(pt.LatitudeVal).
-			SetLongitudeVal(pt.LongitudeVal).
+			SetNillableStringVal(pt.StringVal).
+			SetNillableIntVal(pt.IntVal).
+			SetNillableBoolVal(pt.BoolVal).
+			SetNillableFloatVal(pt.FloatVal).
+			SetNillableLatitudeVal(pt.LatitudeVal).
+			SetNillableLongitudeVal(pt.LongitudeVal).
 			SetIsInstanceProperty(pt.IsInstanceProperty).
-			SetRangeFromVal(pt.RangeFromVal).
-			SetRangeToVal(pt.RangeToVal).
+			SetNillableRangeFromVal(pt.RangeFromVal).
+			SetNillableRangeToVal(pt.RangeToVal).
 			SetEditable(pt.Editable).
 			SetMandatory(pt.Mandatory).
 			SetDeleted(pt.Deleted).

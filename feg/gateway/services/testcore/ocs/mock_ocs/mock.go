@@ -88,13 +88,16 @@ func compareMsccAgainstExpected(actualMscc map[uint32]ccrCredit, expectedMscc []
 		if !exists {
 			return false
 		}
-		actualTotal := actualCredit.UsedServiceUnit.TotalOctets
-		expectedTotal := expectedCredit.UsedServiceUnit.TotalOctets
-		if !mock_driver.EqualWithinDelta(actualTotal, expectedTotal, delta) {
-			return false
+		// If there is no expectation set for UsedServiceUnit, don't assert
+		if expectedCredit.UsedServiceUnit != nil {
+			actualTotal := actualCredit.UsedServiceUnit.TotalOctets
+			expectedTotal := expectedCredit.UsedServiceUnit.TotalOctets
+			if !mock_driver.EqualWithinDelta(actualTotal, expectedTotal, delta) {
+				return false
+			}
 		}
 		switch gy.UsedCreditsType(expectedCredit.UpdateType) {
-		case gy.VALIDITY_TIMER_EXPIRED, gy.FINAL:
+		case gy.VALIDITY_TIMER_EXPIRED, gy.FINAL, gy.FORCED_REAUTHORISATION:
 			return expectedCredit.UpdateType == int32(actualCredit.ReportingReason)
 		case gy.QUOTA_EXHAUSTED:
 			return expectedCredit.UpdateType == int32(actualCredit.UsedServiceUnit.ReportingReason)

@@ -21987,7 +21987,7 @@ func (m *PropertyMutation) IntVal() (r int, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldIntVal(ctx context.Context) (v int, err error) {
+func (m *PropertyMutation) OldIntVal(ctx context.Context) (v *int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldIntVal is allowed only on UpdateOne operations")
 	}
@@ -22057,7 +22057,7 @@ func (m *PropertyMutation) BoolVal() (r bool, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldBoolVal(ctx context.Context) (v bool, err error) {
+func (m *PropertyMutation) OldBoolVal(ctx context.Context) (v *bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldBoolVal is allowed only on UpdateOne operations")
 	}
@@ -22108,7 +22108,7 @@ func (m *PropertyMutation) FloatVal() (r float64, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldFloatVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyMutation) OldFloatVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldFloatVal is allowed only on UpdateOne operations")
 	}
@@ -22179,7 +22179,7 @@ func (m *PropertyMutation) LatitudeVal() (r float64, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldLatitudeVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyMutation) OldLatitudeVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldLatitudeVal is allowed only on UpdateOne operations")
 	}
@@ -22250,7 +22250,7 @@ func (m *PropertyMutation) LongitudeVal() (r float64, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldLongitudeVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyMutation) OldLongitudeVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldLongitudeVal is allowed only on UpdateOne operations")
 	}
@@ -22321,7 +22321,7 @@ func (m *PropertyMutation) RangeFromVal() (r float64, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldRangeFromVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyMutation) OldRangeFromVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldRangeFromVal is allowed only on UpdateOne operations")
 	}
@@ -22392,7 +22392,7 @@ func (m *PropertyMutation) RangeToVal() (r float64, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldRangeToVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyMutation) OldRangeToVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldRangeToVal is allowed only on UpdateOne operations")
 	}
@@ -22462,7 +22462,7 @@ func (m *PropertyMutation) StringVal() (r string, exists bool) {
 // If the Property object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyMutation) OldStringVal(ctx context.Context) (v string, err error) {
+func (m *PropertyMutation) OldStringVal(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldStringVal is allowed only on UpdateOne operations")
 	}
@@ -24162,7 +24162,7 @@ func (m *PropertyTypeMutation) IntVal() (r int, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldIntVal(ctx context.Context) (v int, err error) {
+func (m *PropertyTypeMutation) OldIntVal(ctx context.Context) (v *int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldIntVal is allowed only on UpdateOne operations")
 	}
@@ -24232,7 +24232,7 @@ func (m *PropertyTypeMutation) BoolVal() (r bool, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldBoolVal(ctx context.Context) (v bool, err error) {
+func (m *PropertyTypeMutation) OldBoolVal(ctx context.Context) (v *bool, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldBoolVal is allowed only on UpdateOne operations")
 	}
@@ -24283,7 +24283,7 @@ func (m *PropertyTypeMutation) FloatVal() (r float64, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldFloatVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyTypeMutation) OldFloatVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldFloatVal is allowed only on UpdateOne operations")
 	}
@@ -24354,7 +24354,7 @@ func (m *PropertyTypeMutation) LatitudeVal() (r float64, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldLatitudeVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyTypeMutation) OldLatitudeVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldLatitudeVal is allowed only on UpdateOne operations")
 	}
@@ -24425,7 +24425,7 @@ func (m *PropertyTypeMutation) LongitudeVal() (r float64, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldLongitudeVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyTypeMutation) OldLongitudeVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldLongitudeVal is allowed only on UpdateOne operations")
 	}
@@ -24495,7 +24495,7 @@ func (m *PropertyTypeMutation) StringVal() (r string, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldStringVal(ctx context.Context) (v string, err error) {
+func (m *PropertyTypeMutation) OldStringVal(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldStringVal is allowed only on UpdateOne operations")
 	}
@@ -24546,7 +24546,7 @@ func (m *PropertyTypeMutation) RangeFromVal() (r float64, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldRangeFromVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyTypeMutation) OldRangeFromVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldRangeFromVal is allowed only on UpdateOne operations")
 	}
@@ -24617,7 +24617,7 @@ func (m *PropertyTypeMutation) RangeToVal() (r float64, exists bool) {
 // If the PropertyType object wasn't provided to the builder, the object is fetched
 // from the database.
 // An error is returned if the mutation operation is not UpdateOne, or database query fails.
-func (m *PropertyTypeMutation) OldRangeToVal(ctx context.Context) (v float64, err error) {
+func (m *PropertyTypeMutation) OldRangeToVal(ctx context.Context) (v *float64, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, fmt.Errorf("OldRangeToVal is allowed only on UpdateOne operations")
 	}

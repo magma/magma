@@ -17,7 +17,6 @@ import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import GatewayConfig from './GatewayDetailConfig';
-import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
@@ -33,26 +32,27 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors} from '../../theme/default';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
+    margin: theme.spacing(5),
   },
   topBar: {
     backgroundColor: colors.primary.mirage,
     padding: '20px 40px 20px 40px',
+    color: colors.primary.white,
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: '0 0 0 20px',
+    padding: `0 ${theme.spacing(5)}px`,
   },
   tabs: {
     color: colors.primary.white,
@@ -62,19 +62,34 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'none',
   },
   tabLabel: {
-    padding: '20px 0 20px 0',
+    padding: '16px 0 16px 0',
+    display: 'flex',
+    alignItems: 'center',
   },
   tabIconLabel: {
-    verticalAlign: 'middle',
-    margin: '0 5px 3px 0',
+    marginRight: '8px',
+  },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
+  appBarBtnSecondary: {
+    color: colors.primary.white,
   },
   // TODO: remove this when we actually fill out the grid sections
   contentPlaceholder: {
     padding: '50px 0',
   },
   paper: {
-    height: 100,
-    padding: theme.spacing(10),
     textAlign: 'center',
   },
 }));
@@ -94,14 +109,12 @@ export function GatewayDetail({
   return (
     <>
       <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          Equipment/{gatewayId}
-        </Text>
+        <Text variant="body2">Equipment/{gatewayId}</Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
-          <Grid item xs={6}>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
+          <Grid item xs={8}>
             <Tabs
               value={tabPos}
               onChange={(_, v) => setTabPos(v)}
@@ -146,13 +159,20 @@ export function GatewayDetail({
               />
             </Tabs>
           </Grid>
-          <Grid item xs={6}>
+          <Grid
+            item
+            xs={4}
+            direction="row"
+            justify="flex-end"
+            alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Text color="light">Secondary Action</Text>
+                <Button variant="text" className={classes.appBarBtnSecondary}>
+                  Secondary Action
+                </Button>
               </Grid>
               <Grid item>
-                <Button color="primary" variant="contained">
+                <Button variant="contained" className={classes.appBarBtn}>
                   Reboot
                 </Button>
               </Grid>
@@ -177,58 +197,49 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview({
-  gwInfo,
-  enbInfo,
-}: {
-  gwInfo: lte_gateway,
-  enbInfo: {[string]: EnodebInfo},
-}) {
+function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3} alignItems="stretch">
-        <Grid container spacing={3} alignItems="stretch" item xs={6}>
-          <Grid item xs={12}>
-            <Text>
-              <CellWifiIcon /> {gatewayId}
-            </Text>
-            <GatewaySummary gwInfo={gwInfo} />
-          </Grid>
-          <Grid item xs={12}>
-            <Text>
-              <MyLocationIcon /> Events
-            </Text>
-            <Paper className={classes.paper}>Event Information</Paper>
+      <Grid container spacing={4}>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction="column">
+            <Grid item xs={12} alignItems="center">
+              <CardTitleRow icon={CellWifiIcon} label={gatewayId} />
+              <GatewaySummary gwInfo={gwInfo} />
+            </Grid>
+            <Grid item xs={12} alignItems="center">
+              <CardTitleRow icon={MyLocationIcon} label="Events" />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Event Information</Text>
+              </Paper>
+            </Grid>
           </Grid>
         </Grid>
-
-        <Grid container spacing={3} alignItems="stretch" item xs={6}>
-          <Grid item xs={12}>
-            <Text>
-              <GraphicEqIcon />
-              Status
-            </Text>
-            <Paper>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4} direction="column">
+            <Grid item>
+              <CardTitleRow icon={GraphicEqIcon} label="Status" />
               <GatewayDetailStatus gwInfo={gwInfo} />
-            </Paper>
-          </Grid>
-          <Grid item xs={12}>
-            <Text>
-              <SettingsInputAntennaIcon /> Connected eNodeBs
-            </Text>
-            <Paper>
-              <GatewayDetailEnodebs gwInfo={gwInfo} enbInfo={enbInfo} />
-            </Paper>
-          </Grid>
-          <Grid item xs={12}>
-            <Text>
-              <PeopleIcon /> Subscribers
-            </Text>
-            <Paper className={classes.paper}>Subscribers data</Paper>
+            </Grid>
+            <Grid item>
+              <CardTitleRow
+                icon={SettingsInputAntennaIcon}
+                label="Connected eNodeBs"
+              />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Connected eNodeB Information</Text>
+              </Paper>
+            </Grid>
+            <Grid item>
+              <CardTitleRow icon={PeopleIcon} label="Subscribers" />
+              <Paper className={classes.paper} elevation={0}>
+                <Text variant="body2">Subscribers data</Text>
+              </Paper>
+            </Grid>
           </Grid>
         </Grid>
       </Grid>
