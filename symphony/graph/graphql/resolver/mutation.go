@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 
@@ -2370,7 +2372,7 @@ func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, inp
 	if err != nil {
 		return err
 	}
-	if isEmpty {
+	if isEmpty && pointer.GetBool(input.IsMandatory) {
 		return gqlerror.Errorf("The new property %v must have a default value", input.Name)
 	}
 	return r.AddPropertyTypes(ctx, entSetter, input)

@@ -1525,6 +1525,18 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 		WorkOrderTypeID: woType.ID,
 	})
 	require.Error(t, err, "Adding work order instance with missing mandatory properties")
+	_, err = mr.EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
+		ID:   woType.ID,
+		Name: woType.Name,
+		Properties: []*models.PropertyTypeInput{
+			{
+				Name:        "textMandatory",
+				Type:        propertytype.TypeString,
+				IsMandatory: pointer.ToBool(true),
+			},
+		},
+	})
+	require.Error(t, err, "Editing  work order type instance with missing default values for mandatory properties")
 
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
