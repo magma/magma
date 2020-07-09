@@ -362,13 +362,13 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 		Where(propertytype.TypeEQ(propertytype.TypeString)).
 		OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
-	require.Equal(t, "Foo - edited", strProp.StringVal, "successfully edited prop type string value")
+	require.Equal(t, "Foo - edited", pointer.GetString(strProp.StringVal), "successfully edited prop type string value")
 
 	intProp := eqType.QueryPropertyTypes().
 		Where(propertytype.TypeEQ(propertytype.TypeInt)).
 		OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
-	require.Equal(t, 5, intProp.IntVal, "successfully edited prop type int value")
+	require.Equal(t, 5, pointer.GetInt(intProp.IntVal), "successfully edited prop type int value")
 
 	intPropType = models.PropertyTypeInput{
 		Name:     "int_prop",

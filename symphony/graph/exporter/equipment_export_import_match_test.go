@@ -16,6 +16,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/equipment"
@@ -209,13 +210,13 @@ func TestEquipmentExportAndImportMatch(t *testing.T) {
 					require.Equal(t, positionName, pos.QueryDefinition().OnlyX(ctx).Name)
 					require.Equal(t, parentEquip, pos.QueryParent().OnlyX(ctx).Name)
 					prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
-					require.Equal(t, propInstanceValue, prop.StringVal)
+					require.Equal(t, propInstanceValue, pointer.GetString(prop.StringVal))
 
 					prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameInt))).OnlyX(ctx)
-					require.Equal(t, propDevValInt, prop.IntVal)
+					require.Equal(t, propDevValInt, pointer.GetInt(prop.IntVal))
 
 					prop = equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(newPropNameStr))).OnlyX(ctx)
-					require.Equal(t, propDefValue2, prop.StringVal)
+					require.Equal(t, propDefValue2, pointer.GetString(prop.StringVal))
 
 				case parentEquip:
 					require.Equal(t, childLocation, equip.QueryLocation().OnlyX(ctx).Name)
@@ -264,7 +265,7 @@ func TestEquipmentImportAndEdit(t *testing.T) {
 					require.True(t, verify)
 					require.Equal(t, equipmentType2Name, equip.QueryType().OnlyX(ctx).Name)
 					prop := equip.QueryProperties().Where(property.HasTypeWith(propertytype.Name(propNameStr))).OnlyX(ctx)
-					require.Equal(t, propInstanceValue, prop.StringVal)
+					require.Equal(t, propInstanceValue, pointer.GetString(prop.StringVal))
 				}
 			}
 		})

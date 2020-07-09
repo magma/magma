@@ -198,8 +198,8 @@ func TestAddLinkWithProperties(t *testing.T) {
 	propA := linkA.QueryProperties().FirstX(ctx)
 	propZ := linkB.QueryProperties().FirstX(ctx)
 
-	assert.Equal(t, propA.StringVal, linkVal)
-	assert.Equal(t, propZ.StringVal, linkVal)
+	assert.Equal(t, pointer.GetString(propA.StringVal), linkVal)
+	assert.Equal(t, pointer.GetString(propZ.StringVal), linkVal)
 }
 
 func TestEditLinkWithProperties(t *testing.T) {
@@ -315,8 +315,8 @@ func TestEditLinkWithProperties(t *testing.T) {
 	propA := linkA.QueryProperties().FirstX(ctx)
 	propZ := linkB.QueryProperties().FirstX(ctx)
 
-	assert.Equal(t, propA.StringVal, editedLinkVal)
-	assert.Equal(t, propZ.StringVal, editedLinkVal)
+	assert.Equal(t, pointer.GetString(propA.StringVal), editedLinkVal)
+	assert.Equal(t, pointer.GetString(propZ.StringVal), editedLinkVal)
 }
 
 func TestRemoveLink(t *testing.T) {

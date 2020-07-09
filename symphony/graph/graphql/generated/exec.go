@@ -646,7 +646,6 @@ type ComplexityRoot struct {
 		EditWorkOrder                            func(childComplexity int, input models.EditWorkOrderInput) int
 		EditWorkOrderType                        func(childComplexity int, input models.EditWorkOrderTypeInput) int
 		ExecuteWorkOrder                         func(childComplexity int, id int) int
-		MarkLocationPropertyAsExternalID         func(childComplexity int, propertyName string) int
 		MarkSiteSurveyNeeded                     func(childComplexity int, locationID int, needed bool) int
 		MoveEquipmentToPosition                  func(childComplexity int, parentEquipmentID *int, positionDefinitionID *int, equipmentID int) int
 		MoveLocation                             func(childComplexity int, locationID int, parentLocationID *int) int
@@ -1410,7 +1409,6 @@ type MutationResolver interface {
 	RemoveServiceType(ctx context.Context, id int) (int, error)
 	EditLocationTypeSurveyTemplateCategories(ctx context.Context, id int, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) ([]*ent.SurveyTemplateCategory, error)
 	EditEquipmentPort(ctx context.Context, input models.EditEquipmentPortInput) (*ent.EquipmentPort, error)
-	MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (string, error)
 	RemoveSiteSurvey(ctx context.Context, id int) (int, error)
 	AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID int) ([]*ent.SurveyWiFiScan, error)
 	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID int) ([]*ent.SurveyCellScan, error)
@@ -4340,18 +4338,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ExecuteWorkOrder(childComplexity, args["id"].(int)), true
-
-	case "Mutation.markLocationPropertyAsExternalID":
-		if e.complexity.Mutation.MarkLocationPropertyAsExternalID == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_markLocationPropertyAsExternalID_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MarkLocationPropertyAsExternalID(childComplexity, args["propertyName"].(string)), true
 
 	case "Mutation.markSiteSurveyNeeded":
 		if e.complexity.Mutation.MarkSiteSurveyNeeded == nil {
@@ -7498,13 +7484,13 @@ directive @deprecatedInput(
 ) on INPUT_FIELD_DEFINITION
 
 enum UserStatus
-  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/user.Status") {
+@goModel(model: "github.com/facebookincubator/symphony/pkg/ent/user.Status") {
   ACTIVE
   DEACTIVATED
 }
 
 enum UserRole
-  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/user.Role") {
+@goModel(model: "github.com/facebookincubator/symphony/pkg/ent/user.Role") {
   USER
   ADMIN
   OWNER
@@ -7524,9 +7510,9 @@ type User implements Node & NamedNode {
 }
 
 enum UsersGroupStatus
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/ent/usersgroup.Status"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/ent/usersgroup.Status"
+) {
   ACTIVE
   DEACTIVATED
 }
@@ -7541,9 +7527,9 @@ type UsersGroup implements Node {
 }
 
 type PermissionSettings
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.PermissionSettings"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.PermissionSettings"
+) {
   canWrite: Boolean!
   adminPolicy: AdministrativePolicy!
   inventoryPolicy: InventoryPolicy!
@@ -7551,109 +7537,109 @@ type PermissionSettings
 }
 
 enum PermissionValue
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.PermissionValue"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.PermissionValue"
+) {
   YES
   NO
   BY_CONDITION
 }
 
 type BasicPermissionRule
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicPermissionRule"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicPermissionRule"
+) {
   isAllowed: PermissionValue!
 }
 
 type LocationPermissionRule
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationPermissionRule"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationPermissionRule"
+) {
   isAllowed: PermissionValue!
   locationTypeIds: [ID!]
 }
 
 type WorkforcePermissionRule
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePermissionRule"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePermissionRule"
+) {
   isAllowed: PermissionValue!
   projectTypeIds: [ID!]
   workOrderTypeIds: [ID!]
 }
 
 input BasicPermissionRuleInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicPermissionRuleInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicPermissionRuleInput"
+) {
   isAllowed: PermissionValue!
 }
 
 input LocationPermissionRuleInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationPermissionRuleInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationPermissionRuleInput"
+) {
   isAllowed: PermissionValue!
   locationTypeIds: [ID!]
 }
 
 input WorkforcePermissionRuleInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePermissionRuleInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePermissionRuleInput"
+) {
   isAllowed: PermissionValue!
   projectTypeIds: [ID!]
   workOrderTypeIds: [ID!]
 }
 
 type CUD
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.Cud"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.Cud"
+) {
   create: BasicPermissionRule!
   update: BasicPermissionRule!
   delete: BasicPermissionRule!
 }
 
 type LocationCUD
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCud"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCud"
+) {
   create: LocationPermissionRule!
   update: LocationPermissionRule!
   delete: LocationPermissionRule!
 }
 
 input BasicCUDInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicCUDInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.BasicCUDInput"
+) {
   create: BasicPermissionRuleInput
   update: BasicPermissionRuleInput
   delete: BasicPermissionRuleInput
 }
 
 input LocationCUDInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.LocationCUDInput"
+) {
   create: BasicPermissionRuleInput
   update: LocationPermissionRuleInput
   delete: BasicPermissionRuleInput
 }
 
 type AdministrativePolicy
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.AdministrativePolicy"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.AdministrativePolicy"
+) {
   access: BasicPermissionRule!
 }
 
 type InventoryPolicy
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.InventoryPolicy"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.InventoryPolicy"
+) {
   read: BasicPermissionRule!
   location: LocationCUD!
   equipment: CUD!
@@ -7664,9 +7650,9 @@ type InventoryPolicy
 }
 
 input InventoryPolicyInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.InventoryPolicyInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.InventoryPolicyInput"
+) {
   read: BasicPermissionRuleInput
   location: LocationCUDInput
   equipment: BasicCUDInput
@@ -7677,9 +7663,9 @@ input InventoryPolicyInput
 }
 
 type WorkforceCUD
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCud"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCud"
+) {
   create: WorkforcePermissionRule!
   update: WorkforcePermissionRule!
   delete: WorkforcePermissionRule!
@@ -7688,9 +7674,9 @@ type WorkforceCUD
 }
 
 input WorkforceCUDInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforceCUDInput"
+) {
   create: BasicPermissionRuleInput
   update: BasicPermissionRuleInput
   delete: BasicPermissionRuleInput
@@ -7699,28 +7685,28 @@ input WorkforceCUDInput
 }
 
 type WorkforcePolicy
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePolicy"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePolicy"
+) {
   read: WorkforcePermissionRule!
   data: WorkforceCUD!
   templates: CUD!
 }
 
 input WorkforcePolicyInput
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePolicyInput"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.WorkforcePolicyInput"
+) {
   read: WorkforcePermissionRuleInput
   data: WorkforceCUDInput
   templates: BasicCUDInput
 }
 
 union SystemPolicy
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/authz/models.SystemPolicy"
-  ) =
-    InventoryPolicy
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/authz/models.SystemPolicy"
+) =
+  InventoryPolicy
   | WorkforcePolicy
 
 type PermissionsPolicy implements Node {
@@ -7752,7 +7738,7 @@ input EditPermissionsPolicyInput {
 }
 
 type Viewer
-  @goModel(model: "github.com/facebookincubator/symphony/pkg/viewer.Viewer") {
+@goModel(model: "github.com/facebookincubator/symphony/pkg/viewer.Viewer") {
   tenant: String!
   user: User
   permissions: PermissionSettings!
@@ -7762,7 +7748,7 @@ type Viewer
 An object with an ID
 """
 interface Node
-  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent.Noder") {
+@goModel(model: "github.com/facebookincubator/symphony/pkg/ent.Noder") {
   """
   The id of the object.
   """
@@ -7793,7 +7779,7 @@ type Edge {
 }
 
 type Vertex
-  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent.Node") {
+@goModel(model: "github.com/facebookincubator/symphony/pkg/ent.Node") {
   id: ID!
   type: String!
   fields: [Field!]!
@@ -7901,7 +7887,7 @@ input AddLocationTypeInput {
   mapZoomLevel: Int
   isSite: Boolean
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   surveyTemplateCategories: [SurveyTemplateCategoryInput!]
 }
 
@@ -7912,7 +7898,7 @@ input EditLocationTypeInput {
   mapZoomLevel: Int
   isSite: Boolean
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
 }
 
 type NetworkTopology {
@@ -7933,7 +7919,7 @@ type TopologyLink {
 scalar Time
 
 enum FileType
-  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/file.Type") {
+@goModel(model: "github.com/facebookincubator/symphony/pkg/ent/file.Type") {
   IMAGE
   FILE
 }
@@ -7993,9 +7979,9 @@ input CommentInput {
 }
 
 enum ActivityField
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/ent/activity.ChangedField"
+) {
   STATUS
   PRIORITY
   ASSIGNEE
@@ -8088,7 +8074,7 @@ input AddEquipmentTypeInput {
   positions: [EquipmentPositionInput!]
   ports: [EquipmentPortInput!]
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
 }
 
 input EditEquipmentTypeInput {
@@ -8098,7 +8084,7 @@ input EditEquipmentTypeInput {
   positions: [EquipmentPositionInput!]
   ports: [EquipmentPortInput!]
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
 }
 
 type EquipmentPositionDefinition implements Node {
@@ -8135,7 +8121,7 @@ input AddWorkOrderTypeInput {
   name: String!
   description: String
   properties: [PropertyTypeInput]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
@@ -8144,7 +8130,7 @@ input EditWorkOrderTypeInput {
   name: String!
   description: String
   properties: [PropertyTypeInput]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   checkListCategories: [CheckListCategoryDefinitionInput!]
 }
 
@@ -8208,18 +8194,18 @@ type EquipmentPortType implements Node {
 input AddEquipmentPortTypeInput {
   name: String!
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   linkProperties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
 }
 
 input EditEquipmentPortTypeInput {
   id: ID!
   name: String!
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   linkProperties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
 }
 
 type EquipmentPortDefinition implements Node {
@@ -8644,9 +8630,9 @@ type ServiceTypeEdge {
 }
 
 enum PropertyKind
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/ent/propertytype.Type"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/ent/propertytype.Type"
+) {
   string
   int
   bool
@@ -8740,9 +8726,9 @@ input PropertyInput {
 Work Order priority
 """
 enum WorkOrderPriority
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Priority"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Priority"
+) {
   URGENT
   HIGH
   MEDIUM
@@ -8754,9 +8740,9 @@ enum WorkOrderPriority
 Work Order status
 """
 enum WorkOrderStatus
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Status"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Status"
+) {
   PENDING
   PLANNED
   DONE
@@ -8857,9 +8843,9 @@ enum CheckListItemType {
 }
 
 enum CheckListItemEnumSelectionMode
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/ent/checklistitem.EnumSelectionModeValue"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/ent/checklistitem.EnumSelectionModeValue"
+) {
   single
   multiple
 }
@@ -9353,7 +9339,7 @@ input AddProjectTypeInput {
   name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -9362,7 +9348,7 @@ input EditProjectTypeInput {
   name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   workOrders: [WorkOrderDefinitionInput!]
 }
 
@@ -9839,7 +9825,7 @@ input ServiceTypeCreateData {
   name: String!
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   endpoints: [ServiceEndpointDefinitionInput]
   discoveryMethod: DiscoveryMethod
 }
@@ -9849,7 +9835,7 @@ input ServiceTypeEditData {
   name: String!
   hasCustomer: Boolean!
   properties: [PropertyTypeInput]
-    @uniqueField(typ: "property type", field: "Name")
+  @uniqueField(typ: "property type", field: "Name")
   endpoints: [ServiceEndpointDefinitionInput]
 }
 
@@ -10161,24 +10147,24 @@ type LatestPythonPackageResult {
 }
 
 enum ActionID
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionID"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionID"
+) {
   magma_reboot_node
 }
 
 enum TriggerID
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/actions/core.TriggerID"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/actions/core.TriggerID"
+) {
   magma_alert
 }
 
 # Data type for the input to be
 enum ActionsDataType
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/actions/core.DataType"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/actions/core.DataType"
+) {
   string
   stringArray
 }
@@ -10232,9 +10218,9 @@ type ActionsTriggersSearchResult {
 # ActionsRuleAction is a user-configured data about an action to execute, along
 # with data for executing that action
 type ActionsRuleAction
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleAction"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleAction"
+) {
   action: ActionsAction! @goField(forceResolver: true)
   actionID: ActionID!
   data: String!
@@ -10242,9 +10228,9 @@ type ActionsRuleAction
 
 # ActionsRuleFilter is a user-configured ActionsFilter to filter the trigger on
 type ActionsRuleFilter
-  @goModel(
-    model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleFilter"
-  ) {
+@goModel(
+  model: "github.com/facebookincubator/symphony/pkg/actions/core.ActionsRuleFilter"
+) {
   filterID: String
   operatorID: String
   operator: ActionsOperator! @goField(forceResolver: true)
@@ -10417,68 +10403,68 @@ type Query {
     filters: [EquipmentFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): EquipmentSearchResult!
-    @deprecated(
-      reason: "Use ` + "`" + `equipments` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `equipments` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): WorkOrderSearchResult!
-    @deprecated(
-      reason: "Use ` + "`" + `workOrders` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `workOrders` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   linkSearch(
     filters: [LinkFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): LinkSearchResult!
-    @deprecated(reason: "Use ` + "`" + `links` + "`" + ` instead. Will be removed on 2020-09-01")
+  @deprecated(reason: "Use ` + "`" + `links` + "`" + ` instead. Will be removed on 2020-09-01")
   portSearch(
     filters: [PortFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): PortSearchResult!
-    @deprecated(
-      reason: "Use ` + "`" + `equipmentPorts` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `equipmentPorts` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   locationSearch(
     filters: [LocationFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): LocationSearchResult!
-    @deprecated(
-      reason: "Use ` + "`" + `locations` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `locations` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   projectSearch(
     filters: [ProjectFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): [Project]!
-    @deprecated(reason: "Use ` + "`" + `projects` + "`" + ` instead. Will be removed on 2020-09-01")
+  @deprecated(reason: "Use ` + "`" + `projects` + "`" + ` instead. Will be removed on 2020-09-01")
   customerSearch(limit: Int = 500 @numberValue(min: 0)): [Customer]!
-    @deprecated(
-      reason: "Use ` + "`" + `customers` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `customers` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   serviceSearch(
     filters: [ServiceFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): ServiceSearchResult!
-    @deprecated(reason: "Use ` + "`" + `services` + "`" + ` instead. Will be removed on 2020-09-01")
+  @deprecated(reason: "Use ` + "`" + `services` + "`" + ` instead. Will be removed on 2020-09-01")
   userSearch(
     filters: [UserFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): UserSearchResult!
-    @deprecated(reason: "Use ` + "`" + `users` + "`" + ` instead. Will be removed on 2020-09-01")
+  @deprecated(reason: "Use ` + "`" + `users` + "`" + ` instead. Will be removed on 2020-09-01")
   permissionsPolicySearch(
     filters: [PermissionsPolicyFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): PermissionsPolicySearchResult!
-    @deprecated(
-      reason: "Use ` + "`" + `permissionsPolicies` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `permissionsPolicies` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
     limit: Int = 500 @numberValue(min: 0)
   ): UsersGroupSearchResult!
-    @deprecated(
-      reason: "Use ` + "`" + `usersGroups` + "`" + ` instead. Will be removed on 2020-09-01"
-    )
+  @deprecated(
+    reason: "Use ` + "`" + `usersGroups` + "`" + ` instead. Will be removed on 2020-09-01"
+  )
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
@@ -10629,7 +10615,6 @@ type Mutation {
     surveyTemplateCategories: [SurveyTemplateCategoryInput!]!
   ): [SurveyTemplateCategory!]
   editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort!
-  markLocationPropertyAsExternalID(propertyName: String!): String!
   removeSiteSurvey(id: ID!): ID!
   addWiFiScans(
     """
@@ -11842,20 +11827,6 @@ func (ec *executionContext) field_Mutation_executeWorkOrder_args(ctx context.Con
 		}
 	}
 	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_markLocationPropertyAsExternalID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["propertyName"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["propertyName"] = arg0
 	return args, nil
 }
 
@@ -25957,47 +25928,6 @@ func (ec *executionContext) _Mutation_editEquipmentPort(ctx context.Context, fie
 	return ec.marshalNEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐEquipmentPort(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_markLocationPropertyAsExternalID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_markLocationPropertyAsExternalID_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkLocationPropertyAsExternalID(rctx, args["propertyName"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_removeSiteSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29099,9 +29029,9 @@ func (ec *executionContext) _Property_stringValue(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_intValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29130,9 +29060,9 @@ func (ec *executionContext) _Property_intValue(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_booleanValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29161,9 +29091,9 @@ func (ec *executionContext) _Property_booleanValue(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_floatValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29192,9 +29122,9 @@ func (ec *executionContext) _Property_floatValue(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_latitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29223,9 +29153,9 @@ func (ec *executionContext) _Property_latitudeValue(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_longitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29254,9 +29184,9 @@ func (ec *executionContext) _Property_longitudeValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_rangeFromValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29285,9 +29215,9 @@ func (ec *executionContext) _Property_rangeFromValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_rangeToValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29316,9 +29246,9 @@ func (ec *executionContext) _Property_rangeToValue(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_nodeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29666,9 +29596,9 @@ func (ec *executionContext) _PropertyType_stringValue(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_intValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29697,9 +29627,9 @@ func (ec *executionContext) _PropertyType_intValue(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_booleanValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29728,9 +29658,9 @@ func (ec *executionContext) _PropertyType_booleanValue(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_floatValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29759,9 +29689,9 @@ func (ec *executionContext) _PropertyType_floatValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_latitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29790,9 +29720,9 @@ func (ec *executionContext) _PropertyType_latitudeValue(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_longitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29821,9 +29751,9 @@ func (ec *executionContext) _PropertyType_longitudeValue(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_rangeFromValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29852,9 +29782,9 @@ func (ec *executionContext) _PropertyType_rangeFromValue(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_rangeToValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29883,9 +29813,9 @@ func (ec *executionContext) _PropertyType_rangeToValue(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_isEditable(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -49211,11 +49141,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editLocationTypeSurveyTemplateCategories(ctx, field)
 		case "editEquipmentPort":
 			out.Values[i] = ec._Mutation_editEquipmentPort(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "markLocationPropertyAsExternalID":
-			out.Values[i] = ec._Mutation_markLocationPropertyAsExternalID(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

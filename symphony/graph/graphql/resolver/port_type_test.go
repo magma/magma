@@ -8,6 +8,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/viewer/viewertest"
@@ -79,12 +80,12 @@ func TestAddEquipmentPortTypeWithProperties(t *testing.T) {
 	strProp := portType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 
 	require.Equal(t, "int_prop", intProp.Name, "verifying int property type's name")
-	require.Equal(t, "", intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
-	require.Equal(t, intValue, intProp.IntVal, "verifying int property type's int value")
+	require.Nil(t, intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
+	require.Equal(t, intValue, pointer.GetInt(intProp.IntVal), "verifying int property type's int value")
 	require.Equal(t, intIndex, intProp.Index, "verifying int property type's index")
 	require.Equal(t, "str_prop", strProp.Name, "verifying string property type's name")
-	require.Equal(t, strValue, strProp.StringVal, "verifying string property type's String value")
-	require.Equal(t, 0, strProp.IntVal, "verifying int property type's int value")
+	require.Equal(t, strValue, pointer.GetString(strProp.StringVal), "verifying string property type's String value")
+	require.Nil(t, strProp.IntVal, "verifying int property type's int value")
 	require.Equal(t, strIndex, strProp.Index, "verifying string property type's index")
 }
 
@@ -120,12 +121,12 @@ func TestAddEquipmentPortTypeWithLinkProperties(t *testing.T) {
 	strProp := portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 
 	require.Equal(t, "int_prop", intProp.Name, "verifying int property type's name")
-	require.Equal(t, "", intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
-	require.Equal(t, intValue, intProp.IntVal, "verifying int property type's int value")
+	require.Nil(t, intProp.StringVal, "verifying int property type's string value (default as this is an int property)")
+	require.Equal(t, intValue, pointer.GetInt(intProp.IntVal), "verifying int property type's int value")
 	require.Equal(t, intIndex, intProp.Index, "verifying int property type's index")
 	require.Equal(t, "str_prop", strProp.Name, "verifying string property type's name")
-	require.Equal(t, strValue, strProp.StringVal, "verifying string property type's String value")
-	require.Equal(t, 0, strProp.IntVal, "verifying int property type's int value")
+	require.Equal(t, strValue, pointer.GetString(strProp.StringVal), "verifying string property type's String value")
+	require.Nil(t, strProp.IntVal, "verifying int property type's int value")
 	require.Equal(t, strIndex, strProp.Index, "verifying string property type's index")
 }
 
@@ -242,11 +243,11 @@ func TestEditEquipmentPortTypeWithLinkProperties(t *testing.T) {
 
 	strProp = portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
-	require.Equal(t, strValue, strProp.StringVal, "successfully edited prop type string value")
+	require.Equal(t, strValue, pointer.GetString(strProp.StringVal), "successfully edited prop type string value")
 
 	intProp := portType.QueryLinkPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
-	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
+	require.Equal(t, intValue, pointer.GetInt(intProp.IntVal), "successfully edited prop type int value")
 
 	intValue = 6
 	intPropType = models.PropertyTypeInput{

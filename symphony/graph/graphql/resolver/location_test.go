@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
@@ -185,16 +186,16 @@ func TestAddLocationWithProperties(t *testing.T) {
 	require.True(t, ok)
 
 	intFetchProp := fetchedLoc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
-	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
+	require.Equal(t, pointer.GetInt(intFetchProp.IntVal), pointer.GetInt(intProp.IntValue), "Comparing properties: int value")
 	require.Equal(t, intFetchProp.QueryType().OnlyXID(ctx), intProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
 	strFetchProp := fetchedLoc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
-	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, pointer.GetString(strFetchProp.StringVal), pointer.GetString(strProp.StringValue), "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
 	rngFetchProp := fetchedLoc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
-	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
-	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
+	require.Equal(t, pointer.GetFloat64(rngFetchProp.RangeFromVal), pointer.GetFloat64(rngProp.RangeFromValue), "Comparing properties: range value")
+	require.Equal(t, pointer.GetFloat64(rngFetchProp.RangeToVal), pointer.GetFloat64(rngProp.RangeToValue), "Comparing properties: range value")
 	require.Equal(t, rngFetchProp.QueryType().OnlyXID(ctx), rngProp.PropertyTypeID, "Comparing properties: PropertyType value")
 }
 
@@ -240,7 +241,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 	require.NoError(t, err, "Adding location instance")
 
 	strFetchProp := loc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
-	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, pointer.GetString(strFetchProp.StringVal), pointer.GetString(strProp.StringValue), "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
 	require.NoError(t, err, "Adding location instance")
@@ -253,7 +254,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 	strFetchProp = loc.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
-	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, pointer.GetString(strFetchProp.StringVal), pointer.GetString(strProp.StringValue), "Comparing properties: string value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 
 	// same for equipment
@@ -270,7 +271,7 @@ func TestDontAddDuplicateProperties(t *testing.T) {
 	})
 	require.NoError(t, err, "Adding location instance")
 	strFetchProp = eq.QueryProperties().OnlyX(ctx)
-	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, pointer.GetString(strFetchProp.StringVal), pointer.GetString(strProp.StringValue), "Comparing properties: string value")
 
 	strProp.StringValue = pointer.ToString("new value")
 	_, err = mr.EditLocation(ctx, models.EditLocationInput{
@@ -618,7 +619,8 @@ func TestEditLocationWithProperties(t *testing.T) {
 	// Property[] -> PropertyInput[]
 	var propInputClone []*models.PropertyInput
 	for _, v := range fetchedProps {
-		var strValue = v.StringVal + "-2"
+		require.NotNil(t, v.StringVal)
+		strValue := *v.StringVal + "-2"
 		propInput := &models.PropertyInput{
 			ID:             &v.ID,
 			PropertyTypeID: v.QueryType().OnlyXID(ctx),
@@ -1302,7 +1304,7 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 	r := newTestResolver(t)
 	defer r.Close()
 	ctx := viewertest.NewContext(context.Background(), r.client)
-	mr := r.Mutation()
+	mr, pr := r.Mutation(), r.Property()
 
 	elt, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "regular_location_type",
@@ -1316,9 +1318,10 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 
 	index := 0
 	locationPropType := models.PropertyTypeInput{
-		Name:  "location_prop",
-		Type:  propertytype.TypeNode,
-		Index: &index,
+		Name:     "location_prop",
+		Type:     propertytype.TypeNode,
+		NodeType: pointer.ToString("location"),
+		Index:    &index,
 	}
 
 	propTypeInputs := []*models.PropertyTypeInput{&locationPropType}
@@ -1343,6 +1346,13 @@ func TestAddLocationWithLocationProperty(t *testing.T) {
 
 	locationProp := l.QueryProperties().Where(property.HasTypeWith(propertytype.Name("location_prop"))).OnlyX(ctx)
 	locationValue := locationProp.QueryLocationValue().OnlyX(ctx)
-
+	rawValue, err := pr.RawValue(ctx, locationProp)
+	require.NoError(t, err)
+	require.Equal(t, strconv.Itoa(locationValue.ID), pointer.GetString(rawValue))
+	namedNode, err := pr.NodeValue(ctx, locationProp)
+	require.NoError(t, err)
+	location, ok := namedNode.(*ent.Location)
+	require.True(t, ok)
+	require.Equal(t, location.ID, locationValue.ID)
 	require.Equal(t, "location_1", locationValue.Name)
 }

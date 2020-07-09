@@ -18,13 +18,53 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	NodeTypeLocation  = "location"
+	NodeTypeEquipment = "equipment"
+	NodeTypeService   = "service"
+	NodeTypeWorkOrder = "work_order"
+	NodeTypeUser      = "user"
+)
+
 type AddPropertyArgs struct {
 	Context    context.Context
 	EntSetter  func(*ent.PropertyCreate)
 	IsTemplate *bool
 }
 
-func PropertyValue(ctx context.Context, typ propertytype.Type, v interface{}) (string, error) {
+func NodePropertyValue(ctx context.Context, p *ent.Property, nodeType string) string {
+	var id *int
+	switch nodeType {
+	case NodeTypeLocation:
+		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
+			id = &i
+		}
+	case NodeTypeEquipment:
+		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
+			id = &i
+		}
+	case NodeTypeService:
+		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
+			id = &i
+		}
+	case NodeTypeWorkOrder:
+		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
+			id = &i
+		}
+	case NodeTypeUser:
+		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
+			id = &i
+		}
+	default:
+		return ""
+	}
+	if id == nil {
+		return ""
+	}
+	return strconv.Itoa(*id)
+}
+
+func PropertyValue(ctx context.Context, typ propertytype.Type, nodeType string, v interface{}) (string, error) {
 	switch v.(type) {
 	case *ent.PropertyType, *ent.Property:
 	default:
@@ -34,42 +74,51 @@ func PropertyValue(ctx context.Context, typ propertytype.Type, v interface{}) (s
 	switch typ {
 	case propertytype.TypeEmail, propertytype.TypeString, propertytype.TypeDate,
 		propertytype.TypeEnum, propertytype.TypeDatetimeLocal:
-		return vo.FieldByName("StringVal").String(), nil
+		strValue := vo.FieldByName("StringVal")
+		if strValue.IsNil() {
+			return "", nil
+		}
+		return reflect.Indirect(strValue).String(), nil
 	case propertytype.TypeInt:
-		i := vo.FieldByName("IntVal").Int()
-		return strconv.Itoa(int(i)), nil
+		intValue := vo.FieldByName("IntVal")
+		if intValue.IsNil() {
+			return "", nil
+		}
+		return strconv.Itoa(int(reflect.Indirect(intValue).Int())), nil
 	case propertytype.TypeFloat:
-		return fmt.Sprintf("%.3f", vo.FieldByName("FloatVal").Float()), nil
+		floatValue := vo.FieldByName("FloatVal")
+		if floatValue.IsNil() {
+			return "", nil
+		}
+		return fmt.Sprintf("%.3f", reflect.Indirect(floatValue).Float()), nil
 	case propertytype.TypeGpsLocation:
-		la, lo := vo.FieldByName("LatitudeVal").Float(), vo.FieldByName("LongitudeVal").Float()
+		latitudeValue := vo.FieldByName("LatitudeVal")
+		longitudeValue := vo.FieldByName("LongitudeVal")
+		if latitudeValue.IsNil() || longitudeValue.IsNil() {
+			return "", nil
+		}
+		la, lo := reflect.Indirect(latitudeValue).Float(), reflect.Indirect(longitudeValue).Float()
 		return fmt.Sprintf("%f", la) + ", " + fmt.Sprintf("%f", lo), nil
 	case propertytype.TypeRange:
-		rf, rt := vo.FieldByName("RangeFromVal").Float(), vo.FieldByName("RangeToVal").Float()
+		rangeFromValue := vo.FieldByName("RangeFromVal")
+		rangeToValue := vo.FieldByName("RangeToVal")
+		if rangeFromValue.IsNil() || rangeToValue.IsNil() {
+			return "", nil
+		}
+		rf, rt := reflect.Indirect(rangeFromValue).Float(), reflect.Indirect(rangeToValue).Float()
 		return fmt.Sprintf("%.3f", rf) + " - " + fmt.Sprintf("%.3f", rt), nil
 	case propertytype.TypeBool:
-		return strconv.FormatBool(vo.FieldByName("BoolVal").Bool()), nil
+		boolValue := vo.FieldByName("BoolVal")
+		if boolValue.IsNil() {
+			return "", nil
+		}
+		return strconv.FormatBool(reflect.Indirect(boolValue).Bool()), nil
 	case propertytype.TypeNode:
 		p, ok := v.(*ent.Property)
 		if !ok {
 			return "", nil
 		}
-		var id int
-		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
-			id = i
-		}
-		return strconv.Itoa(id), nil
+		return NodePropertyValue(ctx, p, nodeType), nil
 	default:
 		return "", errors.Errorf("type not supported %s", typ)
 	}

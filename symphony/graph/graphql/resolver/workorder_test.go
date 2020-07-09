@@ -1406,26 +1406,26 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 
 	intFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("int_prop"))).OnlyX(ctx)
 	tIntFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("int_prop")).OnlyX(ctx)
-	require.Equal(t, intFetchProp.IntVal, *intProp.IntValue, "Comparing properties: int value")
+	require.Equal(t, pointer.GetInt(intFetchProp.IntVal), pointer.GetInt(intProp.IntValue), "Comparing properties: int value")
 	require.NotEqual(t, intFetchProp.QueryType().OnlyXID(ctx), intProp.PropertyTypeID, "Comparing properties: PropertyType value")
 	require.Equal(t, intFetchProp.QueryType().OnlyXID(ctx), tIntFetchProp.ID, "Comparing properties: PropertyType value")
 
 	strFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
 	tStrFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyX(ctx)
-	require.Equal(t, strFetchProp.StringVal, *strProp.StringValue, "Comparing properties: string value")
+	require.Equal(t, pointer.GetString(strFetchProp.StringVal), pointer.GetString(strProp.StringValue), "Comparing properties: string value")
 	require.NotEqual(t, strFetchProp.QueryType().OnlyXID(ctx), strProp.PropertyTypeID, "Comparing properties: PropertyType value")
 	require.Equal(t, strFetchProp.QueryType().OnlyXID(ctx), tStrFetchProp.ID, "Comparing properties: PropertyType value")
 
 	fixedStrFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
 	tFixedStrFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyX(ctx)
-	require.Equal(t, fixedStrFetchProp.StringVal, *strFixedProp.StringValue, "Comparing properties: fixed string value")
+	require.Equal(t, pointer.GetString(fixedStrFetchProp.StringVal), pointer.GetString(strFixedProp.StringValue), "Comparing properties: fixed string value")
 	require.NotEqual(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing properties: PropertyType value")
 	require.Equal(t, fixedStrFetchProp.QueryType().OnlyXID(ctx), tFixedStrFetchProp.ID, "Comparing properties: PropertyType value")
 
 	rngFetchProp := fetchedWo.QueryProperties().Where(property.HasTypeWith(propertytype.Name("rng_prop"))).OnlyX(ctx)
 	tRngFetchProp := fetchedWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("rng_prop")).OnlyX(ctx)
-	require.Equal(t, rngFetchProp.RangeFromVal, *rngProp.RangeFromValue, "Comparing properties: range value")
-	require.Equal(t, rngFetchProp.RangeToVal, *rngProp.RangeToValue, "Comparing properties: range value")
+	require.Equal(t, pointer.GetFloat64(rngFetchProp.RangeFromVal), pointer.GetFloat64(rngProp.RangeFromValue), "Comparing properties: range value")
+	require.Equal(t, pointer.GetFloat64(rngFetchProp.RangeToVal), pointer.GetFloat64(rngProp.RangeToValue), "Comparing properties: range value")
 	require.NotEqual(t, rngFetchProp.QueryType().OnlyXID(ctx), rngProp.PropertyTypeID, "Comparing properties: PropertyType value")
 	require.Equal(t, rngFetchProp.QueryType().OnlyXID(ctx), tRngFetchProp.ID, "Comparing properties: PropertyType value")
 
@@ -1494,13 +1494,13 @@ func TestAddWorkOrderWithProperties(t *testing.T) {
 	fetchedUWorkOrderTemplate := updatedWO.QueryTemplate().OnlyX(ctx)
 	updatedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_prop"))).OnlyX(ctx)
 	tUpdatedProp := fetchedUWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyX(ctx)
-	require.Equal(t, updatedProp.StringVal, *prop.StringValue, "Comparing updated properties: string value")
+	require.Equal(t, pointer.GetString(updatedProp.StringVal), pointer.GetString(prop.StringValue), "Comparing updated properties: string value")
 	require.NotEqual(t, updatedProp.QueryType().OnlyXID(ctx), prop.PropertyTypeID, "Comparing updated properties: PropertyType value")
 	require.Equal(t, updatedProp.QueryType().OnlyXID(ctx), tUpdatedProp.ID, "Comparing updated properties: PropertyType value")
 
 	notUpdatedFixedProp := updatedWO.QueryProperties().Where(property.HasTypeWith(propertytype.Name("str_fixed_prop"))).OnlyX(ctx)
 	tNotUpdatedFixedProp := fetchedUWorkOrderTemplate.QueryPropertyTypes().Where(propertytype.Name("str_fixed_prop")).OnlyX(ctx)
-	require.Equal(t, notUpdatedFixedProp.StringVal, *strFixedProp.StringValue, "Comparing not changed fixed property: string value")
+	require.Equal(t, pointer.GetString(notUpdatedFixedProp.StringVal), pointer.GetString(strFixedProp.StringValue), "Comparing not changed fixed property: string value")
 	require.NotEqual(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), strFixedProp.PropertyTypeID, "Comparing updated properties: PropertyType value")
 	require.Equal(t, notUpdatedFixedProp.QueryType().OnlyXID(ctx), tNotUpdatedFixedProp.ID, "Comparing updated properties: PropertyType value")
 }

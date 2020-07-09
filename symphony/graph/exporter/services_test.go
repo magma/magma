@@ -333,7 +333,7 @@ func TestServicesExport(t *testing.T) {
 				"Foo",
 				"10",
 				"false",
-				"0.000",
+				"",
 			})
 		case ln[1] == "L3 S2":
 			require.EqualValues(t, ln[1:], []string{
@@ -360,8 +360,8 @@ func TestServicesExport(t *testing.T) {
 				"",
 				"",
 				"Foo is the best",
-				"0",
-				"false",
+				"",
+				"",
 				"3.500",
 			})
 		default:
@@ -456,7 +456,7 @@ func TestServiceWithFilters(t *testing.T) {
 						"Foo",
 						"10",
 						"false",
-						"0.000",
+						"",
 					})
 				}
 			}
