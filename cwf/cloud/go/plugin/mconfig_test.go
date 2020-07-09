@@ -13,8 +13,8 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/plugin"
-	"magma/cwf/cloud/go/plugin/models"
 	cwfmconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	fegmconfig "magma/feg/cloud/go/protos/mconfig"
 	ltemconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
@@ -87,7 +87,6 @@ func TestBuilder_Build(t *testing.T) {
 			UeIpBlock:     "192.168.128.0/24", // Unused by CWF
 			NatEnabled:    false,
 			DefaultRuleId: "",
-			RelayEnabled:  true,
 			Services: []ltemconfig.PipelineD_NetworkServices{
 				ltemconfig.PipelineD_DPI,
 				ltemconfig.PipelineD_ENFORCEMENT,

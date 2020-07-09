@@ -82,6 +82,11 @@ func (fpsc *FloorPlanScaleCreate) SetScaleInMeters(f float64) *FloorPlanScaleCre
 	return fpsc
 }
 
+// Mutation returns the FloorPlanScaleMutation object of the builder.
+func (fpsc *FloorPlanScaleCreate) Mutation() *FloorPlanScaleMutation {
+	return fpsc.mutation
+}
+
 // Save creates the FloorPlanScale in the database.
 func (fpsc *FloorPlanScaleCreate) Save(ctx context.Context) (*FloorPlanScale, error) {
 	if _, ok := fpsc.mutation.CreateTime(); !ok {
@@ -93,19 +98,19 @@ func (fpsc *FloorPlanScaleCreate) Save(ctx context.Context) (*FloorPlanScale, er
 		fpsc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := fpsc.mutation.ReferencePoint1X(); !ok {
-		return nil, errors.New("ent: missing required field \"reference_point1_x\"")
+		return nil, &ValidationError{Name: "reference_point1_x", err: errors.New("ent: missing required field \"reference_point1_x\"")}
 	}
 	if _, ok := fpsc.mutation.ReferencePoint1Y(); !ok {
-		return nil, errors.New("ent: missing required field \"reference_point1_y\"")
+		return nil, &ValidationError{Name: "reference_point1_y", err: errors.New("ent: missing required field \"reference_point1_y\"")}
 	}
 	if _, ok := fpsc.mutation.ReferencePoint2X(); !ok {
-		return nil, errors.New("ent: missing required field \"reference_point2_x\"")
+		return nil, &ValidationError{Name: "reference_point2_x", err: errors.New("ent: missing required field \"reference_point2_x\"")}
 	}
 	if _, ok := fpsc.mutation.ReferencePoint2Y(); !ok {
-		return nil, errors.New("ent: missing required field \"reference_point2_y\"")
+		return nil, &ValidationError{Name: "reference_point2_y", err: errors.New("ent: missing required field \"reference_point2_y\"")}
 	}
 	if _, ok := fpsc.mutation.ScaleInMeters(); !ok {
-		return nil, errors.New("ent: missing required field \"scale_in_meters\"")
+		return nil, &ValidationError{Name: "scale_in_meters", err: errors.New("ent: missing required field \"scale_in_meters\"")}
 	}
 	var (
 		err  error

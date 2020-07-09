@@ -101,6 +101,7 @@ services:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
       - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
+      - /etc/snowflake:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
@@ -144,7 +145,7 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
-        /var/opt/magma/scripts/add_uplink_bridge_flows.sh &&
+        /var/opt/magma/scripts/add_uplink_bridge_flows.sh eth2 eth3 &&
         python3.5 -m magma.pipelined.main"
 
   policydb:
@@ -226,5 +227,3 @@ services:
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
-
-

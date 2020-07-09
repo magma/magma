@@ -85,8 +85,7 @@ class GYTableTest(unittest.TestCase):
                 'clean_restart': True,
             },
             mconfig=PipelineD(
-                ue_ip_block='192.168.128.0/24',
-                relay_enabled=True
+                ue_ip_block='192.168.128.0/24'
             ),
             loop=None,
             service_manager=cls.service_manager,

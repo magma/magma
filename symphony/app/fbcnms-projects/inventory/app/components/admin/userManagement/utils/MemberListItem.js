@@ -40,7 +40,7 @@ type Props<T> = $ReadOnly<{|
   member: MemberItem<T>,
   className?: ?string,
   ...AssigenmentButtonProp,
-  onAssignToggle: () => void,
+  onAssignToggle: () => Promise<void> | void,
   children: React.Node,
 |}>;
 

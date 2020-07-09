@@ -128,6 +128,11 @@ func (clcdc *CheckListCategoryDefinitionCreate) SetWorkOrderTemplate(w *WorkOrde
 	return clcdc.SetWorkOrderTemplateID(w.ID)
 }
 
+// Mutation returns the CheckListCategoryDefinitionMutation object of the builder.
+func (clcdc *CheckListCategoryDefinitionCreate) Mutation() *CheckListCategoryDefinitionMutation {
+	return clcdc.mutation
+}
+
 // Save creates the CheckListCategoryDefinition in the database.
 func (clcdc *CheckListCategoryDefinitionCreate) Save(ctx context.Context) (*CheckListCategoryDefinition, error) {
 	if _, ok := clcdc.mutation.CreateTime(); !ok {
@@ -139,11 +144,11 @@ func (clcdc *CheckListCategoryDefinitionCreate) Save(ctx context.Context) (*Chec
 		clcdc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := clcdc.mutation.Title(); !ok {
-		return nil, errors.New("ent: missing required field \"title\"")
+		return nil, &ValidationError{Name: "title", err: errors.New("ent: missing required field \"title\"")}
 	}
 	if v, ok := clcdc.mutation.Title(); ok {
 		if err := checklistcategorydefinition.TitleValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"title\": %v", err)
+			return nil, &ValidationError{Name: "title", err: fmt.Errorf("ent: validator failed for field \"title\": %w", err)}
 		}
 	}
 	var (

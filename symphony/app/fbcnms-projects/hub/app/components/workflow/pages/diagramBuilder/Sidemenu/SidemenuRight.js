@@ -131,6 +131,42 @@ const systemTasks = type => {
         },
       };
     }
+    case 'js': {
+      return {
+        name: 'GLOBAL___js',
+        taskReferenceName: 'lambdaJsTaskRef_' + hash(),
+        type: 'SIMPLE',
+        inputParameters: {
+          lambdaValue: '${workflow.input.lambdaValue}',
+          scriptExpression:
+`if ($.lambdaValue == 1) {
+  return {testvalue: true};
+} else {
+  return {testvalue: false};
+}`,
+        },
+        optional: false,
+        startDelay: 0,
+      };
+    }
+    case 'py': {
+      return {
+        name: 'GLOBAL___py',
+        taskReferenceName: 'lambdaPyTaskRef_' + hash(),
+        type: 'SIMPLE',
+        inputParameters: {
+          lambdaValue: '${workflow.input.lambdaValue}',
+          scriptExpression:
+`if inputData["lambdaValue"] == "1":
+  return {"testValue": True}
+else:
+  return {"testValue": False}`,
+        },
+        optional: false,
+        startDelay: 0,
+      };
+    }
+
     default:
       break;
   }
@@ -192,6 +228,14 @@ const icons = taskDef => {
     case 'wait':
       return (
         <div className="lambda-icon">{task.substring(0, 1).toUpperCase()}</div>
+      );
+    case 'js':
+      return (
+        <div className="lambda-icon">JS</div>
+      );
+    case 'py':
+      return (
+        <div className="lambda-icon">PY</div>
       );
     default:
       break;

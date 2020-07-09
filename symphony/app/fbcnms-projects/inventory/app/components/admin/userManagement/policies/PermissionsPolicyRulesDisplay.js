@@ -11,6 +11,7 @@
 import type {PermissionsPolicy} from '../data/PermissionsPolicies';
 
 import * as React from 'react';
+import InventorySuspense from '../../../../common/InventorySuspense';
 import PermissionsPolicyInventoryCatalogRulesTab from './PermissionsPolicyInventoryCatalogRulesTab';
 import PermissionsPolicyInventoryDataRulesTab from './PermissionsPolicyInventoryDataRulesTab';
 import PermissionsPolicyWorkforceDataRulesTab from './PermissionsPolicyWorkforceDataRulesTab';
@@ -73,6 +74,8 @@ export default function PermissionsPolicyRulesDisplay(props: Props) {
   }, [classes.rule, policy.inventoryRules, policy.type, policy.workforceRules]);
 
   return (
-    <div className={classNames(classes.container, className)}>{rules}</div>
+    <InventorySuspense>
+      <div className={classNames(classes.container, className)}>{rules}</div>
+    </InventorySuspense>
   );
 }

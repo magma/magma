@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
@@ -58,14 +59,14 @@ const badID = -1
 
 func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) (bool, error) {
 	var (
-		typ                           models.PropertyKind
+		typ                           propertytype.Type
 		strVal                        *string
 		boolVal                       *bool
 		lat, long, rangeTo, rangeFrom *float64
 	)
 	switch v := input.(type) {
 	case *models.PropertyInput:
-		typ = models.PropertyKind(ptype.Type)
+		typ = ptype.Type
 		strVal = v.StringValue
 		boolVal = v.BooleanValue
 		lat, long = v.LatitudeValue, v.LongitudeValue
@@ -80,26 +81,26 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		return false, errors.New("input not of type property or property type")
 	}
 	switch typ {
-	case models.PropertyKindDate,
-		models.PropertyKindEmail,
-		models.PropertyKindString,
-		models.PropertyKindEnum,
-		models.PropertyKindDatetimeLocal:
+	case propertytype.TypeDate,
+		propertytype.TypeEmail,
+		propertytype.TypeString,
+		propertytype.TypeEnum,
+		propertytype.TypeDatetimeLocal:
 		return strVal == nil || *strVal == "", nil
-	case models.PropertyKindInt:
+	case propertytype.TypeInt:
 		// TODO detect int no-value
 		return false, nil
-	case models.PropertyKindGpsLocation:
+	case propertytype.TypeGpsLocation:
 		if lat == nil || long == nil {
 			return false, errors.New("gps_location type, with no lat/long provided")
 		}
 		return *lat == 0 && *long == 0, nil
-	case models.PropertyKindRange:
+	case propertytype.TypeRange:
 		if rangeTo == nil || rangeFrom == nil {
 			return false, gqlerror.Errorf("range type, with no to/from provided")
 		}
 		return *rangeTo == 0 && *rangeFrom == 0, nil
-	case models.PropertyKindBool:
+	case propertytype.TypeBool:
 		return boolVal == nil, nil
 	default:
 		return false, nil
@@ -219,7 +220,7 @@ func (r mutationResolver) AddPropertyTypes(
 	for _, input := range inputs {
 		query := client.Create().
 			SetName(input.Name).
-			SetType(input.Type.String()).
+			SetType(input.Type).
 			SetNillableNodeType(input.NodeType).
 			SetNillableExternalID(input.ExternalID).
 			SetNillableIndex(input.Index).
@@ -1125,11 +1126,11 @@ func (r mutationResolver) createImage(ctx context.Context, input *models.AddImag
 		SetSize(input.FileSize).
 		SetModifiedAt(input.Modified).
 		SetUploadedAt(time.Now()).
-		SetType(func() string {
+		SetType(func() file.Type {
 			if strings.HasPrefix(input.ContentType, "image/") {
-				return models.FileTypeImage.String()
+				return file.TypeIMAGE
 			}
-			return models.FileTypeFile.String()
+			return file.TypeFILE
 		}()).
 		SetContentType(input.ContentType).
 		SetNillableCategory(input.Category).
@@ -1533,7 +1534,14 @@ func (r mutationResolver) RemoveWorkOrder(ctx context.Context, id int) (int, err
 			}
 		}
 	}
-
+	wot, err := wo.QueryTemplate().Only(ctx)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return id, errors.Wrapf(err, "query work order template: id=%q", wot.ID)
+		}
+	} else if _, err := r.deleteWorkOrderTemplate(ctx, wot.ID); err != nil {
+		return id, errors.Wrapf(err, "deleting work order template id=%q", wot.ID)
+	}
 	if err := client.WorkOrder.DeleteOne(wo).Exec(ctx); err != nil {
 		return id, errors.Wrapf(err, "deleting work order wo=%q", id)
 	}
@@ -1828,9 +1836,10 @@ func (r mutationResolver) ExecuteWorkOrder(ctx context.Context, id int) (*models
 		}
 	}
 
-	if err := r.ClientFrom(ctx).WorkOrder.
+	if err := r.ClientFrom(ctx).
+		WorkOrder.
 		UpdateOne(wo).
-		SetStatus(models.WorkOrderStatusDone.String()).
+		SetStatus(workorder.StatusDONE).
 		Exec(ctx); err != nil {
 		return nil, errors.Wrapf(err, "Installing and removing work order items wo=%q", id)
 	}
@@ -2720,7 +2729,7 @@ func (r mutationResolver) updatePropType(ctx context.Context, input *models.Prop
 	if err := r.ClientFrom(ctx).PropertyType.
 		UpdateOneID(*input.ID).
 		SetName(input.Name).
-		SetType(input.Type.String()).
+		SetType(input.Type).
 		SetNillableNodeType(input.NodeType).
 		SetNillableIndex(input.Index).
 		SetNillableExternalID(input.ExternalID).
@@ -3072,11 +3081,11 @@ func (r mutationResolver) TechnicianWorkOrderCheckIn(ctx context.Context, id int
 	if !ok {
 		return nil, gqlerror.Errorf("could not be executed in automation")
 	}
-	if wo.Status != models.WorkOrderStatusPlanned.String() {
+	if wo.Status != workorder.StatusPLANNED {
 		return wo, nil
 	}
 	if wo, err = wo.Update().
-		SetStatus(models.WorkOrderStatusPending.String()).
+		SetStatus(workorder.StatusPENDING).
 		Save(ctx); err != nil {
 		return nil, fmt.Errorf("updating work order %q status to pending: %w", id, err)
 	}

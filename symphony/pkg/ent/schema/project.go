@@ -32,9 +32,12 @@ func (ProjectType) Fields() []ent.Field {
 // Edges return project type edges.
 func (ProjectType) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("projects", Project.Type),
-		edge.To("properties", PropertyType.Type),
-		edge.To("work_orders", WorkOrderDefinition.Type),
+		edge.To("projects", Project.Type).
+			StructTag(`gqlgen:"projects"`),
+		edge.To("properties", PropertyType.Type).
+			StructTag(`gqlgen:"properties"`),
+		edge.To("work_orders", WorkOrderDefinition.Type).
+			StructTag(`gqlgen:"workOrders"`),
 	}
 }
 
@@ -70,14 +73,20 @@ func (Project) Edges() []ent.Edge {
 		edge.From("type", ProjectType.Type).
 			Ref("projects").
 			Unique().
-			Required(),
+			Required().
+			StructTag(`gqlgen:"type"`),
 		edge.To("location", Location.Type).
-			Unique(),
-		edge.To("comments", Comment.Type),
-		edge.To("work_orders", WorkOrder.Type),
-		edge.To("properties", Property.Type),
+			Unique().
+			StructTag(`gqlgen:"location"`),
+		edge.To("comments", Comment.Type).
+			StructTag(`gqlgen:"comments"`),
+		edge.To("work_orders", WorkOrder.Type).
+			StructTag(`gqlgen:"workOrders"`),
+		edge.To("properties", Property.Type).
+			StructTag(`gqlgen:"properties"`),
 		edge.To("creator", User.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"createdBy"`),
 	}
 }
 
@@ -120,7 +129,8 @@ func (WorkOrderDefinition) Fields() []ent.Field {
 func (WorkOrderDefinition) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", WorkOrderType.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"type"`),
 		edge.From("project_type", ProjectType.Type).
 			Ref("work_orders").
 			Unique(),

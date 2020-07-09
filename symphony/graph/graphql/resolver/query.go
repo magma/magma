@@ -13,16 +13,18 @@ import (
 
 	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/actions"
 	"github.com/facebookincubator/symphony/pkg/actions/core"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/locationtype"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/reportfilter"
-	"github.com/facebookincubator/symphony/pkg/ent/workorder"
+	"github.com/facebookincubator/symphony/pkg/ent/service"
+	"github.com/facebookincubator/symphony/pkg/ent/servicetype"
 	"github.com/facebookincubator/symphony/pkg/viewer"
-
 	"go.uber.org/zap"
 )
 
@@ -59,8 +61,13 @@ func (r queryResolver) Locations(
 	types []int, name *string, needsSiteSurvey *bool,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
+	filters []*models.LocationFilterInput,
 ) (*ent.LocationConnection, error) {
 	query := r.ClientFrom(ctx).Location.Query()
+	query, err := resolverutil.LocationFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
 	if pointer.GetBool(onlyTopLevel) {
 		query = query.Where(location.Not(location.HasParent()))
 	}
@@ -121,32 +128,40 @@ func (r queryResolver) EquipmentPorts(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
+	filters []*models.PortFilterInput,
 ) (*ent.EquipmentPortConnection, error) {
-	return r.ClientFrom(ctx).EquipmentPort.Query().
-		Paginate(ctx, after, first, before, last)
+	query := r.ClientFrom(ctx).EquipmentPort.Query()
+	query, err := resolverutil.PortFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) Equipments(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
+	filters []*models.EquipmentFilterInput,
 ) (*ent.EquipmentConnection, error) {
-	return r.ClientFrom(ctx).Equipment.Query().
-		Paginate(ctx, after, first, before, last)
+	query := r.ClientFrom(ctx).Equipment.Query()
+	query, err := resolverutil.EquipmentFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
-	showCompleted *bool,
+	filters []*models.WorkOrderFilterInput,
 ) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
-	if pointer.GetBool(showCompleted) {
-		query = query.Where(workorder.StatusIn(
-			models.WorkOrderStatusPending.String(),
-			models.WorkOrderStatusPlanned.String(),
-		))
+	query, err := resolverutil.WorkOrderFilter(query, filters)
+	if err != nil {
+		return nil, err
 	}
 	return query.Paginate(ctx, after, first, before, last)
 }
@@ -158,6 +173,82 @@ func (r queryResolver) WorkOrderTypes(
 ) (*ent.WorkOrderTypeConnection, error) {
 	return r.ClientFrom(ctx).WorkOrderType.Query().
 		Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Links(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.LinkFilterInput,
+) (*ent.LinkConnection, error) {
+	query := r.ClientFrom(ctx).Link.Query()
+	query, err := resolverutil.LinkFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Projects(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	_ []*models.ProjectFilterInput,
+) (*ent.ProjectConnection, error) {
+	query := r.ClientFrom(ctx).Project.Query()
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Services(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.ServiceFilterInput) (*ent.ServiceConnection, error) {
+	query := r.ClientFrom(ctx).Service.Query().Where(service.HasTypeWith(servicetype.IsDeleted(false)))
+	query, err := resolverutil.ServiceFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) Users(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.UserFilterInput) (*ent.UserConnection, error) {
+	query := r.ClientFrom(ctx).User.Query()
+	query, err := resolverutil.UserFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) UsersGroups(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.UsersGroupFilterInput) (*ent.UsersGroupConnection, error) {
+	query := r.ClientFrom(ctx).UsersGroup.Query()
+	query, err := resolverutil.UsersGroupFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
+}
+
+func (r queryResolver) PermissionsPolicies(
+	ctx context.Context,
+	after *ent.Cursor, first *int,
+	before *ent.Cursor, last *int,
+	filters []*models.PermissionsPolicyFilterInput) (*ent.PermissionsPolicyConnection, error) {
+	query := r.ClientFrom(ctx).PermissionsPolicy.Query()
+	query, err := resolverutil.PermissionsPolicyFilter(query, filters)
+	if err != nil {
+		return nil, err
+	}
+	return query.Paginate(ctx, after, first, before, last)
 }
 
 func (r queryResolver) SearchForNode(
@@ -230,7 +321,10 @@ func (r queryResolver) PossibleProperties(ctx context.Context, entityType models
 		return nil, fmt.Errorf("querying property types: %w", err)
 	}
 
-	type key struct{ name, typ string }
+	type key struct {
+		name string
+		typ  propertytype.Type
+	}
 	var (
 		groups = map[key]struct{}{}
 		types  []*ent.PropertyType
@@ -344,7 +438,7 @@ func (r queryResolver) LatestPythonPackage(ctx context.Context) (*models.LatestP
 	}, nil
 }
 
-func (queryResolver) PythonPackages(ctx context.Context) ([]*models.PythonPackage, error) {
+func (queryResolver) PythonPackages(context.Context) ([]*models.PythonPackage, error) {
 	var (
 		packages []models.PythonPackage
 		res      []*models.PythonPackage

@@ -77,6 +77,9 @@ func (srv *CentralSessionController) CreateSession(
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
+	if err := checkCreateSessionRequest(request); err != nil {
+		return nil, err
+	}
 	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
@@ -89,6 +92,7 @@ func (srv *CentralSessionController) CreateSession(
 
 	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
 	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
+	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 
 	// These rules should not be tracked by OCS or PCRF, they come directly from the orc8r
 	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
@@ -120,12 +124,14 @@ func (srv *CentralSessionController) CreateSession(
 	usageMonitors := getUsageMonitorsFromCCA_I(imsi, gyOriginHost, request.SessionId, gxCCAInit)
 
 	return &protos.CreateSessionResponse{
-		Credits:       credits,
-		StaticRules:   staticRuleInstalls,
-		DynamicRules:  dynamicRuleInstalls,
-		UsageMonitors: usageMonitors,
-		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
-		SessionId:     request.SessionId,
+		Credits:          credits,
+		StaticRules:      staticRuleInstalls,
+		DynamicRules:     dynamicRuleInstalls,
+		UsageMonitors:    usageMonitors,
+		TgppCtx:          &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
+		SessionId:        request.SessionId,
+		EventTriggers:    eventTriggers,
+		RevalidationTime: revalidationTime,
 	}, nil
 }
 
@@ -406,4 +412,14 @@ func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, tota
 		Health:        fegprotos.HealthStatus_HEALTHY,
 		HealthMessage: "Gy metrics appear healthy",
 	}
+}
+
+func checkCreateSessionRequest(req *protos.CreateSessionRequest) error {
+	if req.Subscriber == nil || req.Subscriber.Id == "" {
+		return fmt.Errorf("Missing Subscriber information on CreateSessionRequest %+v", req)
+	}
+	if req.SessionId == "" {
+		return fmt.Errorf("Missing magma SessionId information on CreateSessionRequest %+v", req)
+	}
+	return nil
 }

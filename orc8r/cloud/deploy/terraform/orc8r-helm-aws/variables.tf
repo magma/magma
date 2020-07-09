@@ -12,7 +12,7 @@ variable "region" {
 }
 
 variable "state_backend" {
-  description = "State backend for terraform (e.g. s3, local)"
+  description = "State backend for terraform (e.g. s3, local)."
   type        = string
   default     = "local"
 }
@@ -29,17 +29,17 @@ data "aws_availability_zones" "available" {}
 ##############################################################################
 
 variable "orc8r_domain_name" {
-  description = "Base domain name for Orchestrator"
+  description = "Base domain name for Orchestrator."
   type        = string
 }
 
 variable "orc8r_route53_zone_id" {
-  description = "Route53 zone ID of Orchestrator domain name for external-DNS"
+  description = "Route53 zone ID of Orchestrator domain name for ExternalDNS."
   type        = string
 }
 
 variable "external_dns_role_arn" {
-  description = "IAM role ARN for external-dns"
+  description = "IAM role ARN for ExternalDNS."
   type        = string
 }
 
@@ -48,7 +48,7 @@ variable "external_dns_role_arn" {
 ##############################################################################
 
 variable "eks_cluster_id" {
-  description = "EKS cluster ID for the kubernetes cluster"
+  description = "EKS cluster ID for the K8s cluster."
   type        = string
 }
 
@@ -58,13 +58,20 @@ variable "orc8r_kubernetes_namespace" {
   default     = "orc8r"
 }
 
+variable "monitoring_kubernetes_namespace" {
+  description = "K8s namespace to install Orchestrator monitoring components into."
+  type        = string
+  default     = "monitoring"
+}
+
 ##############################################################################
 # General Orchestrator configuration
 ##############################################################################
 
 variable "deploy_nms" {
-  description = "Flag to deploy NMS"
+  description = "Flag to deploy NMS."
   type        = bool
+  default     = true
 }
 
 variable "orc8r_controller_replicas" {
@@ -80,44 +87,44 @@ variable "orc8r_proxy_replicas" {
 }
 
 variable "use_nginx_proxy" {
-  description = "Feature flag for Nginx proxy"
+  description = "Feature flag for Nginx proxy."
   type        = bool
   default     = false
 }
 
 variable "orc8r_db_name" {
-  description = "DB name for Orchestrator database connection"
+  description = "DB name for Orchestrator database connection."
   type        = string
 }
 
 variable "orc8r_db_host" {
-  description = "DB hostname for Orchestrator database connection"
+  description = "DB hostname for Orchestrator database connection."
   type        = string
 }
 
 variable "orc8r_db_port" {
-  description = "DB port for Orchestrator database connection"
+  description = "DB port for Orchestrator database connection."
   type        = number
   default     = 5432
 }
 
 variable "orc8r_db_user" {
-  description = "DB username for Orchestrator database connection"
+  description = "DB username for Orchestrator database connection."
   type        = string
 }
 
 variable "nms_db_name" {
-  description = "DB name for NMS database connection"
+  description = "DB name for NMS database connection."
   type        = string
 }
 
 variable "nms_db_host" {
-  description = "DB hostname for NMS database connection"
+  description = "DB hostname for NMS database connection."
   type        = string
 }
 
 variable "nms_db_user" {
-  description = "DB username for NMS database connection"
+  description = "DB username for NMS database connection."
   type        = string
 }
 
@@ -126,31 +133,31 @@ variable "nms_db_user" {
 ##############################################################################
 
 variable "existing_tiller_service_account_name" {
-  description = "Name of existing tiller service account to use for Helm"
+  description = "Name of existing Tiller service account to use for Helm."
   type        = string
   default     = null
 }
 
 variable "tiller_namespace" {
-  description = "Namepsace where tiller is installed or should be installed into."
+  description = "Namespace where Tiller is installed or should be installed into."
   type        = string
   default     = "kube-system"
 }
 
 variable "install_tiller" {
-  description = "Install tiller in the cluster or not"
+  description = "Install Tiller in the cluster or not."
   type        = bool
   default     = true
 }
 
 variable "helm_deployment_name" {
-  description = "Name for the Helm release"
+  description = "Name for the Helm release."
   type        = string
   default     = "orc8r"
 }
 
 variable "orc8r_chart_version" {
-  description = "Version of the Orhcestrator Helm chart to install"
+  description = "Version of the Orchestrator Helm chart to install."
   type        = string
 }
 
@@ -165,7 +172,7 @@ variable "orc8r_tag" {
 ##############################################################################
 
 variable "efs_file_system_id" {
-  description = "ID of the EFS file system to use for k8s persistent volumes."
+  description = "ID of the EFS file system to use for K8s persistent volumes."
   type        = string
 }
 
@@ -185,7 +192,7 @@ variable "elasticsearch_endpoint" {
 }
 
 variable "elasticsearch_retention_days" {
-  description = "Retention period in days of ES indices."
+  description = "Retention period in days of Elasticsearch indices."
   type        = number
   default     = 7
 }
@@ -195,52 +202,52 @@ variable "elasticsearch_retention_days" {
 ##############################################################################
 
 variable "secretsmanager_orc8r_name" {
-  description = "Name of the AWS secretsmanager secret where Orchestrator deployment secrets will be stored."
+  description = "Name of the AWS Secrets Manager secret where Orchestrator deployment secrets will be stored."
   type        = string
 }
 
 variable "orc8r_db_pass" {
-  description = "Orchestrator DB password"
+  description = "Orchestrator DB password."
   type        = string
 }
 
 variable "nms_db_pass" {
-  description = "NMS DB password"
+  description = "NMS DB password."
   type        = string
 }
 
 variable "docker_registry" {
-  description = "Docker registry to pull orc8r containers from"
+  description = "Docker registry to pull Orchestrator containers from."
   type        = string
 }
 
 variable "docker_user" {
-  description = "Docker username to login to registry with"
+  description = "Docker username to login to registry with."
   type        = string
 }
 
 variable "docker_pass" {
-  description = "Docker registry password"
+  description = "Docker registry password."
   type        = string
 }
 
 variable "seed_certs_dir" {
-  description = "Directory on LOCAL disk where orc8r certificates are stored to seed Secretsmanager values. Home directory and env vars will be expanded."
+  description = "Directory on LOCAL disk where Orchestrator certificates are stored to seed Secrets Manager values. Home directory and env vars will be expanded."
   type        = string
 }
 
 variable "helm_repo" {
-  description = "Helm repository URL for orc8r charts"
+  description = "Helm repository URL for Orchestrator charts."
   type        = string
 }
 
 variable "helm_user" {
-  description = "Helm username to login to repositoriy with"
+  description = "Helm username to login to repository with."
   type        = string
 }
 
 variable "helm_pass" {
-  description = "Helm repository password"
+  description = "Helm repository password."
   type        = string
 }
 
@@ -249,7 +256,7 @@ variable "helm_pass" {
 ##############################################################################
 
 variable "deploy_openvpn" {
-  description = "Flag to deploy openvpn server into cluster. This is useful if you want to remotely access AGW's."
+  description = "Flag to deploy OpenVPN server into cluster. This is useful if you want to remotely access AGWs."
   type        = bool
   default     = false
 }

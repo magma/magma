@@ -118,20 +118,6 @@ func Name(v string) predicate.WorkOrder {
 	})
 }
 
-// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
-func Status(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldStatus), v))
-	})
-}
-
-// Priority applies equality check predicate on the "priority" field. It's identical to PriorityEQ.
-func Priority(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EQ(s.C(FieldPriority), v))
-	})
-}
-
 // Description applies equality check predicate on the "description" field. It's identical to DescriptionEQ.
 func Description(v string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
@@ -190,7 +176,7 @@ func CreateTimeIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -207,7 +193,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -266,7 +252,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -283,7 +269,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -342,7 +328,7 @@ func NameIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -359,7 +345,7 @@ func NameNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -431,21 +417,21 @@ func NameContainsFold(v string) predicate.WorkOrder {
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
-func StatusEQ(v string) predicate.WorkOrder {
+func StatusEQ(v Status) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusNEQ applies the NEQ predicate on the "status" field.
-func StatusNEQ(v string) predicate.WorkOrder {
+func StatusNEQ(v Status) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldStatus), v))
 	})
 }
 
 // StatusIn applies the In predicate on the "status" field.
-func StatusIn(vs ...string) predicate.WorkOrder {
+func StatusIn(vs ...Status) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -453,7 +439,7 @@ func StatusIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -462,7 +448,7 @@ func StatusIn(vs ...string) predicate.WorkOrder {
 }
 
 // StatusNotIn applies the NotIn predicate on the "status" field.
-func StatusNotIn(vs ...string) predicate.WorkOrder {
+func StatusNotIn(vs ...Status) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -470,7 +456,7 @@ func StatusNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -478,85 +464,22 @@ func StatusNotIn(vs ...string) predicate.WorkOrder {
 	})
 }
 
-// StatusGT applies the GT predicate on the "status" field.
-func StatusGT(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldStatus), v))
-	})
-}
-
-// StatusGTE applies the GTE predicate on the "status" field.
-func StatusGTE(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldStatus), v))
-	})
-}
-
-// StatusLT applies the LT predicate on the "status" field.
-func StatusLT(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldStatus), v))
-	})
-}
-
-// StatusLTE applies the LTE predicate on the "status" field.
-func StatusLTE(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldStatus), v))
-	})
-}
-
-// StatusContains applies the Contains predicate on the "status" field.
-func StatusContains(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldStatus), v))
-	})
-}
-
-// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
-func StatusHasPrefix(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldStatus), v))
-	})
-}
-
-// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
-func StatusHasSuffix(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldStatus), v))
-	})
-}
-
-// StatusEqualFold applies the EqualFold predicate on the "status" field.
-func StatusEqualFold(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldStatus), v))
-	})
-}
-
-// StatusContainsFold applies the ContainsFold predicate on the "status" field.
-func StatusContainsFold(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldStatus), v))
-	})
-}
-
 // PriorityEQ applies the EQ predicate on the "priority" field.
-func PriorityEQ(v string) predicate.WorkOrder {
+func PriorityEQ(v Priority) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.EQ(s.C(FieldPriority), v))
 	})
 }
 
 // PriorityNEQ applies the NEQ predicate on the "priority" field.
-func PriorityNEQ(v string) predicate.WorkOrder {
+func PriorityNEQ(v Priority) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		s.Where(sql.NEQ(s.C(FieldPriority), v))
 	})
 }
 
 // PriorityIn applies the In predicate on the "priority" field.
-func PriorityIn(vs ...string) predicate.WorkOrder {
+func PriorityIn(vs ...Priority) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -564,7 +487,7 @@ func PriorityIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -573,7 +496,7 @@ func PriorityIn(vs ...string) predicate.WorkOrder {
 }
 
 // PriorityNotIn applies the NotIn predicate on the "priority" field.
-func PriorityNotIn(vs ...string) predicate.WorkOrder {
+func PriorityNotIn(vs ...Priority) predicate.WorkOrder {
 	v := make([]interface{}, len(vs))
 	for i := range v {
 		v[i] = vs[i]
@@ -581,74 +504,11 @@ func PriorityNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
 		s.Where(sql.NotIn(s.C(FieldPriority), v...))
-	})
-}
-
-// PriorityGT applies the GT predicate on the "priority" field.
-func PriorityGT(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GT(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityGTE applies the GTE predicate on the "priority" field.
-func PriorityGTE(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.GTE(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityLT applies the LT predicate on the "priority" field.
-func PriorityLT(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LT(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityLTE applies the LTE predicate on the "priority" field.
-func PriorityLTE(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.LTE(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityContains applies the Contains predicate on the "priority" field.
-func PriorityContains(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.Contains(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityHasPrefix applies the HasPrefix predicate on the "priority" field.
-func PriorityHasPrefix(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasPrefix(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityHasSuffix applies the HasSuffix predicate on the "priority" field.
-func PriorityHasSuffix(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.HasSuffix(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityEqualFold applies the EqualFold predicate on the "priority" field.
-func PriorityEqualFold(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.EqualFold(s.C(FieldPriority), v))
-	})
-}
-
-// PriorityContainsFold applies the ContainsFold predicate on the "priority" field.
-func PriorityContainsFold(v string) predicate.WorkOrder {
-	return predicate.WorkOrder(func(s *sql.Selector) {
-		s.Where(sql.ContainsFold(s.C(FieldPriority), v))
 	})
 }
 
@@ -675,7 +535,7 @@ func DescriptionIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -692,7 +552,7 @@ func DescriptionNotIn(vs ...string) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -800,7 +660,7 @@ func InstallDateIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -817,7 +677,7 @@ func InstallDateNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -890,7 +750,7 @@ func CreationDateIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -907,7 +767,7 @@ func CreationDateNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -966,7 +826,7 @@ func IndexIn(vs ...int) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -983,7 +843,7 @@ func IndexNotIn(vs ...int) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1056,7 +916,7 @@ func CloseDateIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1073,7 +933,7 @@ func CloseDateNotIn(vs ...time.Time) predicate.WorkOrder {
 	return predicate.WorkOrder(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

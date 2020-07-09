@@ -29,6 +29,9 @@ extern "C" {
 #include "spgw_config.h"
 }
 
+static const int OFP_LOCAL = 65534;
+static const int OF13P_LOCAL = 0xfffffffe;
+
 namespace {
 openflow::OpenflowController
   ctrl(CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS, false);
@@ -38,12 +41,14 @@ int start_of_controller(bool persist_state)
 {
   static openflow::PagingApplication paging_app;
   static openflow::BaseApplication base_app(persist_state);
-  int uplink_port_num_;
+  int uplink_port_num_ = OF13P_LOCAL; // default is LOCAL port.
 
-  if (spgw_config.sgw_config.ovs_config.uplink_port_num == 65534) {      // convert it to OF 1.3 LOCAL port no.
-    uplink_port_num_ = 0xfffffffe;
-  } else {
+  if (spgw_config.pgw_config.enable_nat == false) {
+    // For Non NAT config we need to know uplink bridge port.
     uplink_port_num_ = spgw_config.sgw_config.ovs_config.uplink_port_num;
+  }
+  if (uplink_port_num_ == OFP_LOCAL) { // convert it to OF 1.3 LOCAL port no.
+    uplink_port_num_ = OF13P_LOCAL;
   }
 
   static openflow::GTPApplication gtp_app(

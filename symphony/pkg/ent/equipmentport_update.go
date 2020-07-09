@@ -116,6 +116,11 @@ func (epu *EquipmentPortUpdate) AddEndpoints(s ...*ServiceEndpoint) *EquipmentPo
 	return epu.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the EquipmentPortMutation object of the builder.
+func (epu *EquipmentPortUpdate) Mutation() *EquipmentPortMutation {
+	return epu.mutation
+}
+
 // ClearDefinition clears the definition edge to EquipmentPortDefinition.
 func (epu *EquipmentPortUpdate) ClearDefinition() *EquipmentPortUpdate {
 	epu.mutation.ClearDefinition()
@@ -527,6 +532,11 @@ func (epuo *EquipmentPortUpdateOne) AddEndpoints(s ...*ServiceEndpoint) *Equipme
 	return epuo.AddEndpointIDs(ids...)
 }
 
+// Mutation returns the EquipmentPortMutation object of the builder.
+func (epuo *EquipmentPortUpdateOne) Mutation() *EquipmentPortMutation {
+	return epuo.mutation
+}
+
 // ClearDefinition clears the definition edge to EquipmentPortDefinition.
 func (epuo *EquipmentPortUpdateOne) ClearDefinition() *EquipmentPortUpdateOne {
 	epuo.mutation.ClearDefinition()
@@ -648,7 +658,7 @@ func (epuo *EquipmentPortUpdateOne) sqlSave(ctx context.Context) (ep *EquipmentP
 	}
 	id, ok := epuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentPort.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentPort.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := epuo.mutation.UpdateTime(); ok {

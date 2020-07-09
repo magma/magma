@@ -17,9 +17,9 @@ import (
 )
 
 type remoteRegistry struct {
-	sync.RWMutex
 	// TODO(hcgatewood): convert to RemoteIndexer-only once supercontainer is broken up
 	indexerByService map[string]Indexer
+	sync.RWMutex
 }
 
 var (

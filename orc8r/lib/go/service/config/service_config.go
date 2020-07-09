@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 
 	_ "magma/orc8r/lib/go/initflag"
@@ -47,6 +48,28 @@ func MustGetServiceConfig(moduleName string, serviceName string) *ConfigMap {
 		glog.Fatal(err)
 	}
 	return cfg
+}
+
+// GetServiceConfigs returns module-keyed configs for the named service
+// from all known modules.
+// The list of known modules is determined by listing all non-directory files
+// under /etc/magma/configs.
+func GetServiceConfigs(serviceName string) (map[string]*ConfigMap, error) {
+	modules, err := getModules()
+	if err != nil {
+		return nil, err
+	}
+
+	ret := map[string]*ConfigMap{}
+	for _, moduleName := range modules {
+		cfg, err := GetServiceConfig(moduleName, serviceName)
+		if err != nil {
+			return nil, errors.Wrapf(err, "get service config for %v.%v", moduleName, serviceName)
+		}
+		ret[moduleName] = cfg
+	}
+
+	return ret, nil
 }
 
 // GetStructuredServiceConfig updates 'out' structure with configs from the configs YML
@@ -178,6 +201,22 @@ func updateMap(baseMap, overrides *ConfigMap) *ConfigMap {
 		baseMap.RawMap[k] = v
 	}
 	return baseMap
+}
+
+// getModules returns the list of known modules.
+// Each directory name in /etc/magma/configs is considered a known module.
+func getModules() ([]string, error) {
+	moduleFiles, err := ioutil.ReadDir(configDir)
+	if err != nil {
+		return nil, errors.Wrap(err, "read modules from config directory")
+	}
+	var modules []string
+	for _, m := range moduleFiles {
+		if m.IsDir() {
+			modules = append(modules, m.Name())
+		}
+	}
+	return modules, nil
 }
 
 // loadYamlFile loads a config by file name to a map of parameters

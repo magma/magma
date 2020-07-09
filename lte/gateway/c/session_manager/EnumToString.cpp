@@ -65,8 +65,6 @@ namespace magma {
       return "RX_ONLY";
     case TX_AND_RX:
       return "TX_AND_RX";
-    case NO_TRACKING:
-      return "NO_TRACKING";
     default:
       return "INVALID GRANT TRACKING TYPE";
     }
@@ -88,6 +86,46 @@ namespace magma {
       return "SESSION_TERMINATION_SCHEDULED";
     default:
       return "INVALID SESSION FSM STATE";
+    }
+  }
+
+  std::string credit_update_type_to_str(CreditUsage::UpdateType update) {
+    switch (update) {
+      case CreditUsage::THRESHOLD:
+        return "THRESHOLD";
+      case CreditUsage::QHT:
+        return "QHT";
+      case CreditUsage::TERMINATED:
+        return "TERMINATED";
+      case CreditUsage::QUOTA_EXHAUSTED:
+        return "QUOTA_EXHAUSTED";
+      case CreditUsage::VALIDITY_TIMER_EXPIRED:
+        return "VALIDITY_TIMER_EXPIRED";
+      case CreditUsage::OTHER_QUOTA_TYPE:
+        return "OTHER_QUOTA_TYPE";
+      case CreditUsage::RATING_CONDITION_CHANGE:
+        return "RATING_CONDITION_CHANGE";
+      case CreditUsage::REAUTH_REQUIRED:
+        return "REAUTH_REQUIRED";
+      case CreditUsage::POOL_EXHAUSTED:
+        return "POOL_EXHAUSTED";
+      default:
+        return "INVALID CREDIT UPDATE TYPE";
+    }
+  }
+
+  std::string raa_result_to_str(ReAuthResult res) {
+    switch (res) {
+      case UPDATE_INITIATED:
+        return "UPDATE_INITIATED";
+      case UPDATE_NOT_NEEDED:
+        return "UPDATE_NOT_NEEDED";
+      case SESSION_NOT_FOUND:
+        return "SESSION_NOT_FOUND";
+      case OTHER_FAILURE:
+        return "OTHER_FAILURE";
+      default:
+        return "UNKNOWN_RESULT";
     }
   }
 } // namespace magma

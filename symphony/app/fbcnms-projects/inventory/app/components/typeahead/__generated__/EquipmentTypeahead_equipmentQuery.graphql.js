@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 24ee349692fb5ed50707ea0382d47870
+ * @relayHash d5dd56bd591d1e07063af19b13aa901b
  */
 
 /* eslint-disable */
@@ -15,8 +15,8 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type EquipmentFilterType = "EQUIPMENT_TYPE" | "EQUIP_INST_EXTERNAL_ID" | "EQUIP_INST_NAME" | "LOCATION_INST" | "PROPERTY" | "%future added value";
-export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
+export type EquipmentFilterType = "EQUIPMENT_TYPE" | "EQUIP_INST_EXTERNAL_ID" | "EQUIP_INST_NAME" | "LOCATION_INST" | "LOCATION_INST_EXTERNAL_ID" | "PROPERTY" | "%future added value";
+export type FilterOperator = "CONTAINS" | "DATE_GREATER_OR_EQUAL_THAN" | "DATE_GREATER_THAN" | "DATE_LESS_OR_EQUAL_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type PropertyKind = "bool" | "date" | "datetime_local" | "email" | "enum" | "float" | "gps_location" | "int" | "node" | "range" | "string" | "%future added value";
 export type EquipmentFilterInput = {|
   filterType: EquipmentFilterType,
@@ -52,10 +52,12 @@ export type EquipmentTypeahead_equipmentQueryVariables = {|
   filters: $ReadOnlyArray<EquipmentFilterInput>
 |};
 export type EquipmentTypeahead_equipmentQueryResponse = {|
-  +equipmentSearch: {|
-    +equipment: $ReadOnlyArray<?{|
-      +id: string,
-      +name: string,
+  +equipments: {|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +id: string,
+        +name: string,
+      |}
     |}>
   |}
 |};
@@ -70,10 +72,12 @@ export type EquipmentTypeahead_equipmentQuery = {|
 query EquipmentTypeahead_equipmentQuery(
   $filters: [EquipmentFilterInput!]!
 ) {
-  equipmentSearch(limit: 10, filters: $filters) {
-    equipment {
-      id
-      name
+  equipments(first: 10, filters: $filters) {
+    edges {
+      node {
+        id
+        name
+      }
     }
   }
 }
@@ -92,7 +96,7 @@ v1 = [
   {
     "kind": "LinkedField",
     "alias": null,
-    "name": "equipmentSearch",
+    "name": "equipments",
     "storageKey": null,
     "args": [
       {
@@ -102,35 +106,46 @@ v1 = [
       },
       {
         "kind": "Literal",
-        "name": "limit",
+        "name": "first",
         "value": 10
       }
     ],
-    "concreteType": "EquipmentSearchResult",
+    "concreteType": "EquipmentConnection",
     "plural": false,
     "selections": [
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "equipment",
+        "name": "edges",
         "storageKey": null,
         "args": null,
-        "concreteType": "Equipment",
+        "concreteType": "EquipmentEdge",
         "plural": true,
         "selections": [
           {
-            "kind": "ScalarField",
+            "kind": "LinkedField",
             "alias": null,
-            "name": "id",
+            "name": "node",
+            "storageKey": null,
             "args": null,
-            "storageKey": null
-          },
-          {
-            "kind": "ScalarField",
-            "alias": null,
-            "name": "name",
-            "args": null,
-            "storageKey": null
+            "concreteType": "Equipment",
+            "plural": false,
+            "selections": [
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "id",
+                "args": null,
+                "storageKey": null
+              },
+              {
+                "kind": "ScalarField",
+                "alias": null,
+                "name": "name",
+                "args": null,
+                "storageKey": null
+              }
+            ]
           }
         ]
       }
@@ -157,11 +172,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypeahead_equipmentQuery",
     "id": null,
-    "text": "query EquipmentTypeahead_equipmentQuery(\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipmentSearch(limit: 10, filters: $filters) {\n    equipment {\n      id\n      name\n    }\n  }\n}\n",
+    "text": "query EquipmentTypeahead_equipmentQuery(\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipments(first: 10, filters: $filters) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '432c2659bc5f9c4f3650a27a9e6690d6';
+(node/*: any*/).hash = '2cdeaea36c041326380f7dfcdde45112';
 module.exports = node;

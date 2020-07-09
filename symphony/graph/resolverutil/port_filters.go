@@ -6,6 +6,7 @@ package resolverutil
 
 import (
 	"github.com/facebookincubator/symphony/pkg/ent/equipmentporttype"
+	"github.com/facebookincubator/symphony/pkg/ent/location"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/service"
@@ -54,8 +55,11 @@ func portHasLinkFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput
 }
 
 func handlePortLocationFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
-	if filter.FilterType == models.PortFilterTypeLocationInst {
+	switch filter.FilterType {
+	case models.PortFilterTypeLocationInst:
 		return portLocationFilter(q, filter)
+	case models.PortFilterTypeLocationInstExternalID:
+		return portLocationExternalIDFilter(q, filter)
 	}
 	return nil, errors.Errorf("filter type is not supported: %s", filter.FilterType)
 }
@@ -68,6 +72,13 @@ func portLocationFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInpu
 			pp = append(pp, GetPortLocationPredicate(lid, filter.MaxDepth))
 		}
 		return q.Where(equipmentport.Or(pp...)), nil
+	}
+	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
+}
+
+func portLocationExternalIDFilter(q *ent.EquipmentPortQuery, filter *models.PortFilterInput) (*ent.EquipmentPortQuery, error) {
+	if filter.Operator == models.FilterOperatorContains {
+		return q.Where(equipmentport.HasParentWith(equipment.HasLocationWith(location.ExternalIDContainsFold(*filter.StringValue)))), nil
 	}
 	return nil, errors.Errorf("operation is not supported: %s", filter.Operator)
 }
@@ -105,7 +116,7 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 					property.And(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						),
 						pred,
 					),
@@ -114,13 +125,13 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 					equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(
 						equipmentporttype.HasPropertyTypesWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 							predForType,
 						))),
 					equipmentport.Not(equipmentport.HasPropertiesWith(
 						property.HasTypeWith(
 							propertytype.Name(p.Name),
-							propertytype.Type(p.Type.String()),
+							propertytype.TypeEQ(p.Type),
 						)),
 					),
 				),
@@ -137,7 +148,7 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -145,13 +156,13 @@ func handlePortPropertyFilter(q *ent.EquipmentPortQuery, filter *models.PortFilt
 			equipmentport.And(
 				equipmentport.HasDefinitionWith(equipmentportdefinition.HasEquipmentPortTypeWith(equipmentporttype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					propTypePred,
 				))),
 				equipmentport.Not(equipmentport.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 		return q, nil

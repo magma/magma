@@ -41,8 +41,8 @@ func (fu *FileUpdate) Where(ps ...predicate.File) *FileUpdate {
 }
 
 // SetType sets the type field.
-func (fu *FileUpdate) SetType(s string) *FileUpdate {
-	fu.mutation.SetType(s)
+func (fu *FileUpdate) SetType(f file.Type) *FileUpdate {
+	fu.mutation.SetType(f)
 	return fu
 }
 
@@ -342,6 +342,11 @@ func (fu *FileUpdate) SetSurveyQuestion(s *SurveyQuestion) *FileUpdate {
 	return fu.SetSurveyQuestionID(s.ID)
 }
 
+// Mutation returns the FileMutation object of the builder.
+func (fu *FileUpdate) Mutation() *FileMutation {
+	return fu.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (fu *FileUpdate) ClearLocation() *FileUpdate {
 	fu.mutation.ClearLocation()
@@ -402,9 +407,14 @@ func (fu *FileUpdate) Save(ctx context.Context) (int, error) {
 		v := file.UpdateDefaultUpdateTime()
 		fu.mutation.SetUpdateTime(v)
 	}
+	if v, ok := fu.mutation.GetType(); ok {
+		if err := file.TypeValidator(v); err != nil {
+			return 0, &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+		}
+	}
 	if v, ok := fu.mutation.Size(); ok {
 		if err := file.SizeValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
+			return 0, &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
 		}
 	}
 
@@ -484,7 +494,7 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: file.FieldType,
 		})
@@ -916,8 +926,8 @@ type FileUpdateOne struct {
 }
 
 // SetType sets the type field.
-func (fuo *FileUpdateOne) SetType(s string) *FileUpdateOne {
-	fuo.mutation.SetType(s)
+func (fuo *FileUpdateOne) SetType(f file.Type) *FileUpdateOne {
+	fuo.mutation.SetType(f)
 	return fuo
 }
 
@@ -1217,6 +1227,11 @@ func (fuo *FileUpdateOne) SetSurveyQuestion(s *SurveyQuestion) *FileUpdateOne {
 	return fuo.SetSurveyQuestionID(s.ID)
 }
 
+// Mutation returns the FileMutation object of the builder.
+func (fuo *FileUpdateOne) Mutation() *FileMutation {
+	return fuo.mutation
+}
+
 // ClearLocation clears the location edge to Location.
 func (fuo *FileUpdateOne) ClearLocation() *FileUpdateOne {
 	fuo.mutation.ClearLocation()
@@ -1277,9 +1292,14 @@ func (fuo *FileUpdateOne) Save(ctx context.Context) (*File, error) {
 		v := file.UpdateDefaultUpdateTime()
 		fuo.mutation.SetUpdateTime(v)
 	}
+	if v, ok := fuo.mutation.GetType(); ok {
+		if err := file.TypeValidator(v); err != nil {
+			return nil, &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+		}
+	}
 	if v, ok := fuo.mutation.Size(); ok {
 		if err := file.SizeValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"size\": %v", err)
+			return nil, &ValidationError{Name: "size", err: fmt.Errorf("ent: validator failed for field \"size\": %w", err)}
 		}
 	}
 
@@ -1345,7 +1365,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 	}
 	id, ok := fuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing File.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing File.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := fuo.mutation.UpdateTime(); ok {
@@ -1357,7 +1377,7 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (f *File, err error) {
 	}
 	if value, ok := fuo.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: file.FieldType,
 		})

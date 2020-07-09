@@ -3,7 +3,7 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-from typing import List, Tuple
+from typing import Iterator, Tuple
 
 from pysymphony import SymphonyClient
 
@@ -25,7 +25,7 @@ from .port import get_port
 
 def get_all_links_and_port_names_of_equipment(
     client: SymphonyClient, equipment: Equipment
-) -> List[Tuple[Link, str]]:
+) -> Iterator[Tuple[Link, str]]:
     """Returns all links and port names in equipment.
 
         Args:
@@ -36,7 +36,7 @@ def get_all_links_and_port_names_of_equipment(
             - `pyinventory.api.equipment.add_equipment_to_position`
 
         Returns:
-            List[Tuple[ `pyinventory.common.data_class.Link` , str]]:
+            Iterator[Tuple[ `pyinventory.common.data_class.Link` , str]]:
 
             - `pyinventory.common.data_class.Link` - link object
             - str - port definition name
@@ -57,19 +57,19 @@ def get_all_links_and_port_names_of_equipment(
     if equipment_data is None:
         raise EntityNotFoundError(entity=Entity.Equipment, entity_id=equipment.id)
     ports = equipment_data.ports
-    result = []
     for port in ports:
         port_link = port.link
         if port_link is not None:
-            link = Link(
-                id=port_link.id,
-                properties=port_link.properties,
-                service_ids=[s.id for s in port_link.services if port_link.services]
-                if port_link.services is not None
-                else [],
+            yield (
+                Link(
+                    id=port_link.id,
+                    properties=port_link.properties,
+                    service_ids=[s.id for s in port_link.services if port_link.services]
+                    if port_link.services is not None
+                    else [],
+                ),
+                port.definition.name,
             )
-            result.append((link, port.definition.name))
-    return result
 
 
 def add_link(
@@ -144,11 +144,11 @@ def add_link(
     )
 
 
-def get_links(client: SymphonyClient) -> List[Link]:
+def get_links(client: SymphonyClient) -> Iterator[Link]:
     """This function returns all existing links
 
         Returns:
-            List[ `pyinventory.common.data_class.Link` ]
+            Iterator[ `pyinventory.common.data_class.Link` ]
 
         Example:
             ```
@@ -164,19 +164,14 @@ def get_links(client: SymphonyClient) -> List[Link]:
         if links is not None:
             edges.extend(links.edges)
 
-    result = []
     for edge in edges:
         node = edge.node
         if node is not None:
-            result.append(
-                Link(
-                    id=node.id,
-                    properties=node.properties,
-                    service_ids=[s.id for s in node.services],
-                )
+            yield Link(
+                id=node.id,
+                properties=node.properties,
+                service_ids=[s.id for s in node.services],
             )
-
-    return result
 
 
 def get_link_in_port_of_equipment(

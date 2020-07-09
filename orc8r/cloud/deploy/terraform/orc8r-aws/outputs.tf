@@ -22,13 +22,13 @@ output "kubeconfig" {
 }
 
 output "eks_config_map_aws_auth" {
-  description = "A k8s configmap to allow authentication to the EKS cluster."
+  description = "A K8s ConfigMap to allow authentication to the EKS cluster."
   value       = module.eks.config_map_aws_auth
   sensitive   = true
 }
 
 output "efs_file_system_id" {
-  description = "ID of the EFS file system created for k8s persistent volumes."
+  description = "ID of the EFS file system created for K8s persistent volumes."
   value       = aws_efs_file_system.eks_pv.id
 }
 
@@ -43,7 +43,7 @@ output "es_endpoint" {
 }
 
 output "secretsmanager_secret_name" {
-  description = "Name of the secretsmanager secret for deployment secrets"
+  description = "Name of the Secrets Manager secret for deployment secrets"
   value       = aws_secretsmanager_secret.orc8r_secrets.name
 }
 

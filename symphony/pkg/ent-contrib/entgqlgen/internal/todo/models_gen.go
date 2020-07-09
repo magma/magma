@@ -6,7 +6,12 @@
 
 package todo
 
+import (
+	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
+)
+
 type TodoInput struct {
-	Text   string `json:"text"`
-	Parent *int   `json:"parent"`
+	Status todo.Status `json:"status"`
+	Text   string      `json:"text"`
+	Parent *int        `json:"parent"`
 }

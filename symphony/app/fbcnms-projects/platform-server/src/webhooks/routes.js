@@ -26,10 +26,7 @@ router.post(
     const {status, alerts} = req.body;
 
     const error = (message: string) =>
-      res
-        .status(200)
-        .send({success: false, message})
-        .end();
+      res.status(200).send({success: false, message}).end();
 
     if (status !== 'firing') {
       error('"firing" webhooks are only supported');
@@ -59,10 +56,7 @@ router.post(
       }),
     );
 
-    res
-      .status(200)
-      .send({success: true, message: 'ok'})
-      .end();
+    res.status(200).send({success: true, message: 'ok'}).end();
   }),
 );
 

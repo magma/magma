@@ -25,7 +25,6 @@ import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkDashboard from '../../views/network/NetworkDashboard';
 import PeopleIcon from '@material-ui/icons/People';
-import PolicyDashboard from '../../views/policy/PolicyOverview';
 import PublicIcon from '@material-ui/icons/Public';
 import React from 'react';
 import RouterIcon from '@material-ui/icons/Router';
@@ -34,6 +33,7 @@ import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import SubscriberDashboard from '../../views/subscriber/SubscriberOverview';
 import Subscribers from '../Subscribers';
+import TrafficDashboard from '../../views/traffic/TrafficOverview';
 import WifiTetheringIcon from '@material-ui/icons/WifiTethering';
 
 export function getLteSections(
@@ -124,10 +124,10 @@ export function getLteSections(
       component: SubscriberDashboard,
     });
     sections[1].splice(5, 0, {
-      path: 'policy',
-      label: 'PolicyV2',
+      path: 'traffic',
+      label: 'Traffic',
       icon: <WifiTetheringIcon />,
-      component: PolicyDashboard,
+      component: TrafficDashboard,
     });
   }
   return sections;

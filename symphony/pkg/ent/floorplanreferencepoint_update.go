@@ -83,6 +83,11 @@ func (fprpu *FloorPlanReferencePointUpdate) AddLongitude(f float64) *FloorPlanRe
 	return fprpu
 }
 
+// Mutation returns the FloorPlanReferencePointMutation object of the builder.
+func (fprpu *FloorPlanReferencePointUpdate) Mutation() *FloorPlanReferencePointMutation {
+	return fprpu.mutation
+}
+
 // Save executes the query and returns the number of rows/vertices matched by this operation.
 func (fprpu *FloorPlanReferencePointUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := fprpu.mutation.UpdateTime(); !ok {
@@ -289,6 +294,11 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) AddLongitude(f float64) *FloorPl
 	return fprpuo
 }
 
+// Mutation returns the FloorPlanReferencePointMutation object of the builder.
+func (fprpuo *FloorPlanReferencePointUpdateOne) Mutation() *FloorPlanReferencePointMutation {
+	return fprpuo.mutation
+}
+
 // Save executes the query and returns the updated entity.
 func (fprpuo *FloorPlanReferencePointUpdateOne) Save(ctx context.Context) (*FloorPlanReferencePoint, error) {
 	if _, ok := fprpuo.mutation.UpdateTime(); !ok {
@@ -357,7 +367,7 @@ func (fprpuo *FloorPlanReferencePointUpdateOne) sqlSave(ctx context.Context) (fp
 	}
 	id, ok := fprpuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing FloorPlanReferencePoint.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing FloorPlanReferencePoint.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := fprpuo.mutation.UpdateTime(); ok {

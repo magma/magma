@@ -376,6 +376,11 @@ func (scsc *SurveyCellScanCreate) SetLocation(l *Location) *SurveyCellScanCreate
 	return scsc.SetLocationID(l.ID)
 }
 
+// Mutation returns the SurveyCellScanMutation object of the builder.
+func (scsc *SurveyCellScanCreate) Mutation() *SurveyCellScanMutation {
+	return scsc.mutation
+}
+
 // Save creates the SurveyCellScan in the database.
 func (scsc *SurveyCellScanCreate) Save(ctx context.Context) (*SurveyCellScan, error) {
 	if _, ok := scsc.mutation.CreateTime(); !ok {
@@ -387,10 +392,10 @@ func (scsc *SurveyCellScanCreate) Save(ctx context.Context) (*SurveyCellScan, er
 		scsc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := scsc.mutation.NetworkType(); !ok {
-		return nil, errors.New("ent: missing required field \"network_type\"")
+		return nil, &ValidationError{Name: "network_type", err: errors.New("ent: missing required field \"network_type\"")}
 	}
 	if _, ok := scsc.mutation.SignalStrength(); !ok {
-		return nil, errors.New("ent: missing required field \"signal_strength\"")
+		return nil, &ValidationError{Name: "signal_strength", err: errors.New("ent: missing required field \"signal_strength\"")}
 	}
 	var (
 		err  error

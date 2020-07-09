@@ -33,9 +33,9 @@ type WorkOrderTemplate struct {
 // WorkOrderTemplateEdges holds the relations/edges for other nodes in the graph.
 type WorkOrderTemplateEdges struct {
 	// PropertyTypes holds the value of the property_types edge.
-	PropertyTypes []*PropertyType
+	PropertyTypes []*PropertyType `gqlgen:"propertyTypes"`
 	// CheckListCategoryDefinitions holds the value of the check_list_category_definitions edge.
-	CheckListCategoryDefinitions []*CheckListCategoryDefinition
+	CheckListCategoryDefinitions []*CheckListCategoryDefinition `gqlgen:"checkListCategoryDefinitions"`
 	// Type holds the value of the type edge.
 	Type *WorkOrderType
 	// loadedTypes holds the information for reporting if a

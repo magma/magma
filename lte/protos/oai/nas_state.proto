@@ -326,7 +326,7 @@ message BearerQos {
 message PcoProtocolOrContainerId {
   uint32 id = 1;
   uint32 length = 2;
-  string contents = 3;
+  bytes contents = 3;
 }
 
 // protocol_configuration_options_t

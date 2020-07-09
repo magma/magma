@@ -102,7 +102,7 @@ const FormAlertsContext = createContext<FormAlertsContextType>(
   DEFAULT_CONTEXT_VALUE,
 );
 
-const FormRulesMaintainer = function() {
+const FormRulesMaintainer = function () {
   const [alertsMap, setAlertsMap] = useState<immMap<string, string>>(
     new immMap<string, string>(),
   );

@@ -7,6 +7,12 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 services:
+  feg:
+    host: "localhost"
+    port: 9114
+    echo_port: 10114
+    proxy_type: "clientcert"
+
   feg_relay:
     host: "localhost"
     port: 9103

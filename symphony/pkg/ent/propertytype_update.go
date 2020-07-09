@@ -40,8 +40,8 @@ func (ptu *PropertyTypeUpdate) Where(ps ...predicate.PropertyType) *PropertyType
 }
 
 // SetType sets the type field.
-func (ptu *PropertyTypeUpdate) SetType(s string) *PropertyTypeUpdate {
-	ptu.mutation.SetType(s)
+func (ptu *PropertyTypeUpdate) SetType(pr propertytype.Type) *PropertyTypeUpdate {
+	ptu.mutation.SetType(pr)
 	return ptu
 }
 
@@ -563,6 +563,11 @@ func (ptu *PropertyTypeUpdate) SetProjectType(p *ProjectType) *PropertyTypeUpdat
 	return ptu.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the PropertyTypeMutation object of the builder.
+func (ptu *PropertyTypeUpdate) Mutation() *PropertyTypeMutation {
+	return ptu.mutation
+}
+
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (ptu *PropertyTypeUpdate) RemovePropertyIDs(ids ...int) *PropertyTypeUpdate {
 	ptu.mutation.RemovePropertyIDs(ids...)
@@ -631,6 +636,11 @@ func (ptu *PropertyTypeUpdate) Save(ctx context.Context) (int, error) {
 	if _, ok := ptu.mutation.UpdateTime(); !ok {
 		v := propertytype.UpdateDefaultUpdateTime()
 		ptu.mutation.SetUpdateTime(v)
+	}
+	if v, ok := ptu.mutation.GetType(); ok {
+		if err := propertytype.TypeValidator(v); err != nil {
+			return 0, &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+		}
 	}
 
 	var (
@@ -709,7 +719,7 @@ func (ptu *PropertyTypeUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ptu.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: propertytype.FieldType,
 		})
@@ -1291,8 +1301,8 @@ type PropertyTypeUpdateOne struct {
 }
 
 // SetType sets the type field.
-func (ptuo *PropertyTypeUpdateOne) SetType(s string) *PropertyTypeUpdateOne {
-	ptuo.mutation.SetType(s)
+func (ptuo *PropertyTypeUpdateOne) SetType(pr propertytype.Type) *PropertyTypeUpdateOne {
+	ptuo.mutation.SetType(pr)
 	return ptuo
 }
 
@@ -1814,6 +1824,11 @@ func (ptuo *PropertyTypeUpdateOne) SetProjectType(p *ProjectType) *PropertyTypeU
 	return ptuo.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the PropertyTypeMutation object of the builder.
+func (ptuo *PropertyTypeUpdateOne) Mutation() *PropertyTypeMutation {
+	return ptuo.mutation
+}
+
 // RemovePropertyIDs removes the properties edge to Property by ids.
 func (ptuo *PropertyTypeUpdateOne) RemovePropertyIDs(ids ...int) *PropertyTypeUpdateOne {
 	ptuo.mutation.RemovePropertyIDs(ids...)
@@ -1883,6 +1898,11 @@ func (ptuo *PropertyTypeUpdateOne) Save(ctx context.Context) (*PropertyType, err
 		v := propertytype.UpdateDefaultUpdateTime()
 		ptuo.mutation.SetUpdateTime(v)
 	}
+	if v, ok := ptuo.mutation.GetType(); ok {
+		if err := propertytype.TypeValidator(v); err != nil {
+			return nil, &ValidationError{Name: "type", err: fmt.Errorf("ent: validator failed for field \"type\": %w", err)}
+		}
+	}
 
 	var (
 		err  error
@@ -1946,7 +1966,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	}
 	id, ok := ptuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing PropertyType.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing PropertyType.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := ptuo.mutation.UpdateTime(); ok {
@@ -1958,7 +1978,7 @@ func (ptuo *PropertyTypeUpdateOne) sqlSave(ctx context.Context) (pt *PropertyTyp
 	}
 	if value, ok := ptuo.mutation.GetType(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: propertytype.FieldType,
 		})

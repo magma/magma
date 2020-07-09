@@ -154,6 +154,10 @@ const locationsPropertiesCardQuery = graphql`
         surveys {
           id
         }
+        parentCoords {
+          latitude
+          longitude
+        }
         ...LocationSiteSurveyTab_location
         ...LocationDocumentsCard_location
         ...LocationFloorPlansTab_location

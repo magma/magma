@@ -47,12 +47,8 @@ def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
     ret = {}
     for fname in ALL_CERTS:
         full_fpath = os.path.join(certs_dir_abs, fname)
-        # admin_operator.* certs are optional
         if not os.path.isfile(full_fpath):
-            if fname not in ADMIN_CERTS:
-                raise ValueError(f'No cert {fname} found in certs directory')
-            else:
-                continue
+            raise ValueError(f'No cert {fname} found in certs directory')
         with open(full_fpath, 'r') as f:
             # readlines elements already have \n at the end
             ret[fname] = ''.join(f.readlines())

@@ -11,6 +11,7 @@
 import type {EntityConfig} from './ComparisonViewTypes';
 
 import PowerSearchEquipmentTypeFilter from './PowerSearchEquipmentTypeFilter';
+import PowerSearchExternalIDFilter from './PowerSearchExternalIDFilter';
 import PowerSearchLinkFutureStateFilter from './PowerSearchLinkFutureStateFilter';
 import PowerSearchLinkServiceNameFilter from './PowerSearchLinkServiceNameFilter';
 
@@ -46,9 +47,18 @@ const LinkCriteriaConfig: Array<EntityConfig> = [
     ],
   },
   {
-    type: 'location_by_types',
+    type: 'locations',
     label: 'Location',
-    filters: [],
+    filters: [
+      {
+        key: 'location_inst_external_id',
+        name: 'location_inst_external_id',
+        entityType: 'locations',
+        label: 'Location External ID',
+        component: PowerSearchExternalIDFilter,
+        defaultOperator: 'contains',
+      },
+    ],
   },
   {
     type: 'properties',

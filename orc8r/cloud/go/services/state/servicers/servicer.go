@@ -215,7 +215,7 @@ func (srv *stateServicer) searchStates(ctx context.Context, req *protos.GetState
 	}
 
 	searchResults, err := store.Search(
-		blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter),
+		blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter, nil),
 		blobstore.LoadCriteria{LoadValue: req.LoadValues},
 	)
 	if err != nil {

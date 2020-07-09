@@ -9,6 +9,7 @@ LICENSE file in the root directory of this source tree.
 package service_test
 
 import (
+	"flag"
 	"testing"
 	"time"
 
@@ -24,6 +25,8 @@ import (
 
 func init() {
 	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+
+	_ = flag.Set("run_echo_server", "true")
 }
 
 func TestServiceRun(t *testing.T) {
@@ -32,9 +35,10 @@ func TestServiceRun(t *testing.T) {
 	serviceName := state.ServiceName
 
 	// Create the service
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, serviceName)
+	srv, lis := test_utils.NewOrchestratorTestService(t, orc8r.ModuleName, serviceName)
 	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
+	assert.NotNil(t, srv.EchoServer)
 
 	// start the service
 	go srv.RunTest(lis)

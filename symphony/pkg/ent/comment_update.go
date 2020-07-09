@@ -90,6 +90,11 @@ func (cu *CommentUpdate) SetProject(p *Project) *CommentUpdate {
 	return cu.SetProjectID(p.ID)
 }
 
+// Mutation returns the CommentMutation object of the builder.
+func (cu *CommentUpdate) Mutation() *CommentMutation {
+	return cu.mutation
+}
+
 // ClearAuthor clears the author edge to User.
 func (cu *CommentUpdate) ClearAuthor() *CommentUpdate {
 	cu.mutation.ClearAuthor()
@@ -378,6 +383,11 @@ func (cuo *CommentUpdateOne) SetProject(p *Project) *CommentUpdateOne {
 	return cuo.SetProjectID(p.ID)
 }
 
+// Mutation returns the CommentMutation object of the builder.
+func (cuo *CommentUpdateOne) Mutation() *CommentMutation {
+	return cuo.mutation
+}
+
 // ClearAuthor clears the author edge to User.
 func (cuo *CommentUpdateOne) ClearAuthor() *CommentUpdateOne {
 	cuo.mutation.ClearAuthor()
@@ -469,7 +479,7 @@ func (cuo *CommentUpdateOne) sqlSave(ctx context.Context) (c *Comment, err error
 	}
 	id, ok := cuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Comment.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Comment.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := cuo.mutation.UpdateTime(); ok {

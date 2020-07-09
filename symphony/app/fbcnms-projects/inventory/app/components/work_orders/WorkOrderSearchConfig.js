@@ -10,6 +10,7 @@
 
 import type {EntityConfig} from '../comparison_view/ComparisonViewTypes';
 
+import PowerSearchExternalIDFilter from '../comparison_view/PowerSearchExternalIDFilter';
 import PowerSearchWorkOrderAssigneeFilter from './PowerSearchWorkOrderAssigneeFilter';
 import PowerSearchWorkOrderNameFilter from './PowerSearchWorkOrderNameFilter';
 import PowerSearchWorkOrderOwnerFilter from './PowerSearchWorkOrderOwnerFilter';
@@ -73,9 +74,18 @@ const WorkOrderSearchConfig: Array<EntityConfig> = [
     ],
   },
   {
-    type: 'location_by_types',
+    type: 'locations',
     label: 'Location',
-    filters: [],
+    filters: [
+      {
+        key: 'location_inst_external_id',
+        name: 'location_inst_external_id',
+        entityType: 'locations',
+        label: 'Location External ID',
+        component: PowerSearchExternalIDFilter,
+        defaultOperator: 'contains',
+      },
+    ],
   },
 ];
 

@@ -13,8 +13,8 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin/handlers"
-	"magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/handlers"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
@@ -24,7 +24,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/service/serviceregistry"
 )
 
 // FegOrchestratorPlugin is an implementation of OrchestratorPlugin for the
@@ -36,7 +35,7 @@ func (*FegOrchestratorPlugin) GetName() string {
 }
 
 func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
-	serviceLocations, err := serviceregistry.LoadServiceRegistryConfig(feg.ModuleName)
+	serviceLocations, err := registry.LoadServiceRegistryConfig(feg.ModuleName)
 	if err != nil {
 		return []registry.ServiceLocation{}
 	}

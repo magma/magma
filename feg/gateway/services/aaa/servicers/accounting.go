@@ -23,6 +23,7 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/pipelined"
 	"magma/feg/gateway/services/aaa/protos"
@@ -137,6 +138,11 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	}
 	metrics.AcctStop.WithLabelValues(apn, imsi)
 
+	if err != nil && srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationFailedEvent(req.GetCtx(), events.AccountingStop, err.Error())
+	} else if srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationSucceededEvent(req.GetCtx(), events.AccountingStop)
+	}
 	return &protos.AcctResp{}, err
 }
 
@@ -210,7 +216,11 @@ func (srv *accountingService) TerminateSession(
 // session. It should be called for a timed out and recently removed from the sessions table session.
 func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	if aaaCtx == nil {
-		return status.Errorf(codes.InvalidArgument, "Nil AAA Context")
+		errMsg := fmt.Sprintf("Nil AAA Context")
+		if srv.config.GetEventLoggingEnabled() {
+			events.LogSessionTerminationFailedEvent(aaaCtx, "Session Timeout Notification", errMsg)
+		}
+		return status.Errorf(codes.InvalidArgument, errMsg)
 	}
 	var err, radErr error
 
@@ -242,6 +252,11 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 		} else {
 			err = Error(codes.Unavailable, radErr)
 		}
+	}
+	if err != nil && srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationFailedEvent(aaaCtx, events.SessionTimeout, err.Error())
+	} else if srv.config.GetEventLoggingEnabled() {
+		events.LogSessionTerminationSucceededEvent(aaaCtx, events.SessionTimeout)
 	}
 	return err
 }

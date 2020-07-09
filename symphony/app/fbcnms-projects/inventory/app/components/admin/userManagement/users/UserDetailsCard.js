@@ -12,13 +12,13 @@ import type {TabProps} from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import type {User} from '../utils/UserManagementUtils';
 
 import * as React from 'react';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
 import UserAccountPane from './UserAccountPane';
-import UserPermissionsPane from './UserPermissionsPane';
+import UserGroupsPane from './UserGroupsPane';
 import UserProfilePane from './UserProfilePane';
 import fbt from 'fbt';
 import {MessageShowingContextProvider} from '@fbcnms/ui/components/design-system/Dialog/MessageShowingContext';
+import {PERMISSION_GROUPS_VIEW_NAME} from '../groups/PermissionsGroupsView';
 import {
   Redirect,
   Route,
@@ -28,7 +28,7 @@ import {
   useRouteMatch,
 } from 'react-router-dom';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useMemo} from 'react';
+import {useMemo} from 'react';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -48,7 +48,7 @@ const useStyles = makeStyles(() => ({
 
 export type Props = $ReadOnly<{|
   user: User,
-  onChange: User => void,
+  onChange: User => Promise<void> | void,
 |}>;
 
 type ViewTab = {|
@@ -59,14 +59,12 @@ type ViewTab = {|
 
 function UserDetailsCard(props: Props) {
   const classes = useStyles();
-  const {isFeatureEnabled} = useContext(AppContext);
-  const userManagementDevMode = isFeatureEnabled('user_management_dev');
   const history = useHistory();
 
   const {user, onChange} = props;
 
   const userDetailParts: Array<ViewTab> = useMemo(() => {
-    const parts = [
+    return [
       {
         tab: {
           label: `${fbt('Profile', '')}`,
@@ -83,20 +81,17 @@ function UserDetailsCard(props: Props) {
           label: `${fbt('Account', '')}`,
         },
         path: 'account',
-        view: <UserAccountPane user={user} onChange={onChange} />,
+        view: <UserAccountPane user={user} />,
+      },
+      {
+        tab: {
+          label: PERMISSION_GROUPS_VIEW_NAME,
+        },
+        path: 'groups',
+        view: <UserGroupsPane user={user} />,
       },
     ];
-    if (userManagementDevMode) {
-      parts.push({
-        tab: {
-          label: `${fbt('Permissions', '')}`,
-        },
-        path: 'permissions',
-        view: <UserPermissionsPane user={user} />,
-      });
-    }
-    return parts;
-  }, [onChange, user, userManagementDevMode]);
+  }, [onChange, user]);
 
   const match = useRouteMatch();
   const location = useLocation();

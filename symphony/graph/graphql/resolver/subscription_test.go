@@ -5,12 +5,9 @@
 package resolver
 
 import (
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
-
-	"github.com/facebookincubator/symphony/graph/graphql/models"
 
 	"github.com/99designs/gqlgen/client"
 	"github.com/stretchr/testify/assert"
@@ -41,9 +38,8 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 	{
 		var rsp struct{ AddWorkOrderType struct{ ID string } }
 		c.MustPost(
-			`mutation($input: AddWorkOrderTypeInput!) { addWorkOrderType(input: $input) { id } }`,
+			`mutation { addWorkOrderType(input: { name: "chore" }) { id } }`,
 			&rsp,
-			client.Var("input", models.AddWorkOrderTypeInput{Name: "chore"}),
 		)
 		typ = rsp.AddWorkOrderType.ID
 	}
@@ -77,13 +73,11 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 
 	var id string
 	{
-		input := models.AddWorkOrderInput{Name: "clean"}
-		input.WorkOrderTypeID, _ = strconv.Atoi(typ)
 		var rsp struct{ AddWorkOrder struct{ ID string } }
 		c.MustPost(
-			`mutation($input: AddWorkOrderInput!) { addWorkOrder(input: $input) { id } }`,
+			`mutation($type: ID!) { addWorkOrder(input: { name: "clean", workOrderTypeId: $type }) { id } }`,
 			&rsp,
-			client.Var("input", input),
+			client.Var("type", typ),
 		)
 		id = rsp.AddWorkOrder.ID
 	}
@@ -105,15 +99,9 @@ func TestSubscriptionWorkOrder(t *testing.T) {
 
 	{
 		var rsp struct{ EditWorkOrder struct{ ID string } }
-		input := models.EditWorkOrderInput{
-			Name:     "foo",
-			Status:   models.WorkOrderStatusDone,
-			Priority: models.WorkOrderPriorityNone,
-		}
-		input.ID, _ = strconv.Atoi(id)
-		c.MustPost(`mutation($input: EditWorkOrderInput!) { editWorkOrder(input: $input) { id } }`,
+		c.MustPost(`mutation($id: ID!) { editWorkOrder(input: { id: $id, name: "foo", status: DONE }) { id } }`,
 			&rsp,
-			client.Var("input", input),
+			client.Var("id", id),
 		)
 		id = rsp.EditWorkOrder.ID
 	}

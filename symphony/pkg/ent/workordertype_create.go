@@ -107,10 +107,15 @@ func (wotc *WorkOrderTypeCreate) AddDefinitions(w ...*WorkOrderDefinition) *Work
 	return wotc.AddDefinitionIDs(ids...)
 }
 
+// Mutation returns the WorkOrderTypeMutation object of the builder.
+func (wotc *WorkOrderTypeCreate) Mutation() *WorkOrderTypeMutation {
+	return wotc.mutation
+}
+
 // Save creates the WorkOrderType in the database.
 func (wotc *WorkOrderTypeCreate) Save(ctx context.Context) (*WorkOrderType, error) {
 	if _, ok := wotc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	var (
 		err  error

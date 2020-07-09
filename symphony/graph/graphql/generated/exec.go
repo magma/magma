@@ -25,8 +25,11 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/activity"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/file"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 	"github.com/facebookincubator/symphony/pkg/viewer"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
@@ -66,7 +69,6 @@ type ResolverRoot interface {
 	EquipmentPortType() EquipmentPortTypeResolver
 	EquipmentPosition() EquipmentPositionResolver
 	EquipmentType() EquipmentTypeResolver
-	File() FileResolver
 	FloorPlan() FloorPlanResolver
 	Link() LinkResolver
 	Location() LocationResolver
@@ -101,8 +103,9 @@ type ResolverRoot interface {
 
 type DirectiveRoot struct {
 	DeprecatedInput func(ctx context.Context, obj interface{}, next graphql.Resolver, name string, duplicateError string, newField *string) (res interface{}, err error)
-	Length          func(ctx context.Context, obj interface{}, next graphql.Resolver, min int, max *int) (res interface{}, err error)
-	Range           func(ctx context.Context, obj interface{}, next graphql.Resolver, min *float64, max *float64) (res interface{}, err error)
+	List            func(ctx context.Context, obj interface{}, next graphql.Resolver, maxItems *int, minItems *int, uniqueItems *bool) (res interface{}, err error)
+	NumberValue     func(ctx context.Context, obj interface{}, next graphql.Resolver, multipleOf *float64, max *float64, min *float64, exclusiveMax *float64, exclusiveMin *float64, oneOf []float64, equals *float64) (res interface{}, err error)
+	StringValue     func(ctx context.Context, obj interface{}, next graphql.Resolver, maxLength *int, minLength *int, startsWith *string, endsWith *string, includes *string, regex *string, oneOf []string, equals *string) (res interface{}, err error)
 	UniqueField     func(ctx context.Context, obj interface{}, next graphql.Resolver, typ string, field string) (res interface{}, err error)
 }
 
@@ -240,6 +243,11 @@ type ComplexityRoot struct {
 		Text       func(childComplexity int) int
 	}
 
+	Coordinates struct {
+		Latitude  func(childComplexity int) int
+		Longitude func(childComplexity int) int
+	}
+
 	Customer struct {
 		ExternalID func(childComplexity int) int
 		ID         func(childComplexity int) int
@@ -247,8 +255,9 @@ type ComplexityRoot struct {
 	}
 
 	CustomerConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	CustomerEdge struct {
@@ -292,8 +301,9 @@ type ComplexityRoot struct {
 	}
 
 	EquipmentConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	EquipmentEdge struct {
@@ -311,8 +321,9 @@ type ComplexityRoot struct {
 	}
 
 	EquipmentPortConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	EquipmentPortDefinition struct {
@@ -325,8 +336,9 @@ type ComplexityRoot struct {
 	}
 
 	EquipmentPortDefinitionConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	EquipmentPortDefinitionEdge struct {
@@ -348,8 +360,9 @@ type ComplexityRoot struct {
 	}
 
 	EquipmentPortTypeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	EquipmentPortTypeEdge struct {
@@ -388,8 +401,9 @@ type ComplexityRoot struct {
 	}
 
 	EquipmentTypeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	EquipmentTypeEdge struct {
@@ -407,12 +421,12 @@ type ComplexityRoot struct {
 		Annotation  func(childComplexity int) int
 		Category    func(childComplexity int) int
 		ContentType func(childComplexity int) int
-		FileType    func(childComplexity int) int
 		ID          func(childComplexity int) int
 		ModifiedAt  func(childComplexity int) int
 		Name        func(childComplexity int) int
 		Size        func(childComplexity int) int
 		StoreKey    func(childComplexity int) int
+		Type        func(childComplexity int) int
 		UploadedAt  func(childComplexity int) int
 	}
 
@@ -484,8 +498,9 @@ type ComplexityRoot struct {
 	}
 
 	LinkConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	LinkEdge struct {
@@ -515,11 +530,12 @@ type ComplexityRoot struct {
 		Longitude         func(childComplexity int) int
 		Name              func(childComplexity int) int
 		NumChildren       func(childComplexity int) int
+		ParentCoords      func(childComplexity int) int
 		ParentLocation    func(childComplexity int) int
 		Properties        func(childComplexity int) int
 		SiteSurveyNeeded  func(childComplexity int) int
 		Surveys           func(childComplexity int) int
-		Topology          func(childComplexity int, depth *int) int
+		Topology          func(childComplexity int, depth int) int
 		WifiData          func(childComplexity int) int
 	}
 
@@ -530,8 +546,9 @@ type ComplexityRoot struct {
 	}
 
 	LocationConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	LocationEdge struct {
@@ -563,8 +580,9 @@ type ComplexityRoot struct {
 	}
 
 	LocationTypeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	LocationTypeEdge struct {
@@ -682,8 +700,9 @@ type ComplexityRoot struct {
 	}
 
 	PermissionsPolicyConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	PermissionsPolicyEdge struct {
@@ -704,7 +723,6 @@ type ComplexityRoot struct {
 	Project struct {
 		Comments           func(childComplexity int) int
 		CreatedBy          func(childComplexity int) int
-		Creator            func(childComplexity int) int
 		Description        func(childComplexity int) int
 		ID                 func(childComplexity int) int
 		Location           func(childComplexity int) int
@@ -716,8 +734,9 @@ type ComplexityRoot struct {
 	}
 
 	ProjectConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	ProjectEdge struct {
@@ -736,8 +755,9 @@ type ComplexityRoot struct {
 	}
 
 	ProjectTypeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	ProjectTypeEdge struct {
@@ -797,41 +817,42 @@ type ComplexityRoot struct {
 		Customers                func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortDefinitions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortTypes       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		EquipmentPorts           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		EquipmentPorts           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PortFilterInput) int
 		EquipmentSearch          func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
 		EquipmentTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Equipments               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Equipments               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.EquipmentFilterInput) int
 		LatestPythonPackage      func(childComplexity int) int
 		LinkSearch               func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
-		Links                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Links                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LinkFilterInput) int
 		LocationSearch           func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
 		LocationTypes            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Locations                func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Locations                func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LocationFilterInput) int
 		Me                       func(childComplexity int) int
 		NearestSites             func(childComplexity int, latitude float64, longitude float64, first int) int
 		Node                     func(childComplexity int, id int) int
-		PermissionsPolicies      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		PermissionsPolicies      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PermissionsPolicyFilterInput) int
 		PermissionsPolicySearch  func(childComplexity int, filters []*models.PermissionsPolicyFilterInput, limit *int) int
 		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Projects                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Projects                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ProjectFilterInput) int
 		PythonPackages           func(childComplexity int) int
 		ReportFilters            func(childComplexity int, entity models.FilterEntity) int
 		SearchForNode            func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Services                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ServiceFilterInput) int
 		Surveys                  func(childComplexity int) int
 		User                     func(childComplexity int, authID string) int
 		UserSearch               func(childComplexity int, filters []*models.UserFilterInput, limit *int) int
-		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UserFilterInput) int
 		UsersGroupSearch         func(childComplexity int, filters []*models.UsersGroupFilterInput, limit *int) int
-		UsersGroups              func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
+		UsersGroups              func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UsersGroupFilterInput) int
 		Vertex                   func(childComplexity int, id int) int
 		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) int
+		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.WorkOrderFilterInput) int
 	}
 
 	ReportFilter struct {
@@ -839,11 +860,6 @@ type ComplexityRoot struct {
 		Filters func(childComplexity int) int
 		ID      func(childComplexity int) int
 		Name    func(childComplexity int) int
-	}
-
-	SearchEntriesConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
 	}
 
 	SearchEntry struct {
@@ -854,19 +870,15 @@ type ComplexityRoot struct {
 		Type       func(childComplexity int) int
 	}
 
-	SearchEntryEdge struct {
-		Cursor func(childComplexity int) int
-		Node   func(childComplexity int) int
-	}
-
 	SearchNodeEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
 	}
 
 	SearchNodesConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	Service struct {
@@ -882,6 +894,17 @@ type ComplexityRoot struct {
 		Status      func(childComplexity int) int
 		Topology    func(childComplexity int) int
 		Upstream    func(childComplexity int) int
+	}
+
+	ServiceConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	ServiceEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
 	}
 
 	ServiceEndpoint struct {
@@ -920,8 +943,9 @@ type ComplexityRoot struct {
 	}
 
 	ServiceTypeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	ServiceTypeEdge struct {
@@ -1044,8 +1068,9 @@ type ComplexityRoot struct {
 	}
 
 	UserConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	UserEdge struct {
@@ -1068,8 +1093,9 @@ type ComplexityRoot struct {
 	}
 
 	UsersGroupConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	UsersGroupEdge struct {
@@ -1098,7 +1124,6 @@ type ComplexityRoot struct {
 	WorkOrder struct {
 		Activities          func(childComplexity int) int
 		AssignedTo          func(childComplexity int) int
-		Assignee            func(childComplexity int) int
 		CheckListCategories func(childComplexity int) int
 		CloseDate           func(childComplexity int) int
 		Comments            func(childComplexity int) int
@@ -1117,7 +1142,6 @@ type ComplexityRoot struct {
 		Location            func(childComplexity int) int
 		Name                func(childComplexity int) int
 		Owner               func(childComplexity int) int
-		OwnerName           func(childComplexity int) int
 		Priority            func(childComplexity int) int
 		Project             func(childComplexity int) int
 		Properties          func(childComplexity int) int
@@ -1127,8 +1151,9 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrderConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	WorkOrderDefinition struct {
@@ -1173,8 +1198,9 @@ type ComplexityRoot struct {
 	}
 
 	WorkOrderTypeConnection struct {
-		Edges    func(childComplexity int) int
-		PageInfo func(childComplexity int) int
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
 	}
 
 	WorkOrderTypeEdge struct {
@@ -1296,9 +1322,6 @@ type EquipmentTypeResolver interface {
 	Equipments(ctx context.Context, obj *ent.EquipmentType) ([]*ent.Equipment, error)
 	NumberOfEquipment(ctx context.Context, obj *ent.EquipmentType) (int, error)
 }
-type FileResolver interface {
-	FileType(ctx context.Context, obj *ent.File) (*models.FileType, error)
-}
 type FloorPlanResolver interface {
 	LocationID(ctx context.Context, obj *ent.FloorPlan) (int, error)
 	Image(ctx context.Context, obj *ent.FloorPlan) (*ent.File, error)
@@ -1318,12 +1341,13 @@ type LocationResolver interface {
 	Children(ctx context.Context, obj *ent.Location) ([]*ent.Location, error)
 	NumChildren(ctx context.Context, obj *ent.Location) (int, error)
 
+	ParentCoords(ctx context.Context, obj *ent.Location) (*models.Coordinates, error)
 	Equipments(ctx context.Context, obj *ent.Location) ([]*ent.Equipment, error)
 	Properties(ctx context.Context, obj *ent.Location) ([]*ent.Property, error)
 	Images(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
 	Files(ctx context.Context, obj *ent.Location) ([]*ent.File, error)
 
-	Topology(ctx context.Context, obj *ent.Location, depth *int) (*models.NetworkTopology, error)
+	Topology(ctx context.Context, obj *ent.Location, depth int) (*models.NetworkTopology, error)
 	LocationHierarchy(ctx context.Context, obj *ent.Location) ([]*ent.Location, error)
 	Surveys(ctx context.Context, obj *ent.Location) ([]*ent.Survey, error)
 	WifiData(ctx context.Context, obj *ent.Location) ([]*ent.SurveyWiFiScan, error)
@@ -1423,7 +1447,6 @@ type PermissionsPolicyResolver interface {
 	Groups(ctx context.Context, obj *ent.PermissionsPolicy) ([]*ent.UsersGroup, error)
 }
 type ProjectResolver interface {
-	Creator(ctx context.Context, obj *ent.Project) (*string, error)
 	CreatedBy(ctx context.Context, obj *ent.Project) (*ent.User, error)
 	Type(ctx context.Context, obj *ent.Project) (*ent.ProjectType, error)
 	Location(ctx context.Context, obj *ent.Project) (*ent.Location, error)
@@ -1445,8 +1468,6 @@ type PropertyResolver interface {
 	RawValue(ctx context.Context, obj *ent.Property) (*string, error)
 }
 type PropertyTypeResolver interface {
-	Type(ctx context.Context, obj *ent.PropertyType) (models.PropertyKind, error)
-
 	RawValue(ctx context.Context, obj *ent.PropertyType) (*string, error)
 }
 type QueryResolver interface {
@@ -1454,19 +1475,20 @@ type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	User(ctx context.Context, authID string) (*ent.User, error)
 	LocationTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationTypeConnection, error)
-	Locations(ctx context.Context, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationConnection, error)
+	Locations(ctx context.Context, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LocationFilterInput) (*ent.LocationConnection, error)
 	EquipmentPortTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortTypeConnection, error)
 	EquipmentPortDefinitions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortDefinitionConnection, error)
-	EquipmentPorts(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortConnection, error)
+	EquipmentPorts(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PortFilterInput) (*ent.EquipmentPortConnection, error)
 	EquipmentTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentTypeConnection, error)
-	Equipments(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentConnection, error)
+	Equipments(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.EquipmentFilterInput) (*ent.EquipmentConnection, error)
 	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
-	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, showCompleted *bool) (*ent.WorkOrderConnection, error)
+	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.WorkOrderFilterInput) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
-	Links(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LinkConnection, error)
-	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UserConnection, error)
-	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.UsersGroupConnection, error)
-	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.PermissionsPolicyConnection, error)
+	Links(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LinkFilterInput) (*ent.LinkConnection, error)
+	Services(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ServiceFilterInput) (*ent.ServiceConnection, error)
+	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UserFilterInput) (*ent.UserConnection, error)
+	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UsersGroupFilterInput) (*ent.UsersGroupConnection, error)
+	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PermissionsPolicyFilterInput) (*ent.PermissionsPolicyConnection, error)
 	SearchForNode(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchNodesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
 	WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error)
@@ -1486,7 +1508,7 @@ type QueryResolver interface {
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id int) (*ent.Node, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
-	Projects(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectConnection, error)
+	Projects(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ProjectFilterInput) (*ent.ProjectConnection, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
@@ -1577,14 +1599,10 @@ type WorkOrderResolver interface {
 	WorkOrderType(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderType, error)
 	WorkOrderTemplate(ctx context.Context, obj *ent.WorkOrder) (*ent.WorkOrderTemplate, error)
 
-	OwnerName(ctx context.Context, obj *ent.WorkOrder) (string, error)
 	Owner(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
-	Assignee(ctx context.Context, obj *ent.WorkOrder) (*string, error)
 	AssignedTo(ctx context.Context, obj *ent.WorkOrder) (*ent.User, error)
 
-	Status(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderStatus, error)
-	Priority(ctx context.Context, obj *ent.WorkOrder) (models.WorkOrderPriority, error)
 	EquipmentToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error)
 	EquipmentToRemove(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error)
 	LinksToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Link, error)
@@ -2180,6 +2198,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Comment.Text(childComplexity), true
 
+	case "Coordinates.latitude":
+		if e.complexity.Coordinates.Latitude == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Latitude(childComplexity), true
+
+	case "Coordinates.longitude":
+		if e.complexity.Coordinates.Longitude == nil {
+			break
+		}
+
+		return e.complexity.Coordinates.Longitude(childComplexity), true
+
 	case "Customer.externalId":
 		if e.complexity.Customer.ExternalID == nil {
 			break
@@ -2214,6 +2246,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.CustomerConnection.PageInfo(childComplexity), true
+
+	case "CustomerConnection.totalCount":
+		if e.complexity.CustomerConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.CustomerConnection.TotalCount(childComplexity), true
 
 	case "CustomerEdge.cursor":
 		if e.complexity.CustomerEdge.Cursor == nil {
@@ -2430,6 +2469,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EquipmentConnection.PageInfo(childComplexity), true
 
+	case "EquipmentConnection.totalCount":
+		if e.complexity.EquipmentConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EquipmentConnection.TotalCount(childComplexity), true
+
 	case "EquipmentEdge.cursor":
 		if e.complexity.EquipmentEdge.Cursor == nil {
 			break
@@ -2500,6 +2546,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EquipmentPortConnection.PageInfo(childComplexity), true
 
+	case "EquipmentPortConnection.totalCount":
+		if e.complexity.EquipmentPortConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortConnection.TotalCount(childComplexity), true
+
 	case "EquipmentPortDefinition.bandwidth":
 		if e.complexity.EquipmentPortDefinition.Bandwidth == nil {
 			break
@@ -2555,6 +2608,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPortDefinitionConnection.PageInfo(childComplexity), true
+
+	case "EquipmentPortDefinitionConnection.totalCount":
+		if e.complexity.EquipmentPortDefinitionConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortDefinitionConnection.TotalCount(childComplexity), true
 
 	case "EquipmentPortDefinitionEdge.cursor":
 		if e.complexity.EquipmentPortDefinitionEdge.Cursor == nil {
@@ -2632,6 +2692,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EquipmentPortTypeConnection.PageInfo(childComplexity), true
+
+	case "EquipmentPortTypeConnection.totalCount":
+		if e.complexity.EquipmentPortTypeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EquipmentPortTypeConnection.TotalCount(childComplexity), true
 
 	case "EquipmentPortTypeEdge.cursor":
 		if e.complexity.EquipmentPortTypeEdge.Cursor == nil {
@@ -2787,6 +2854,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EquipmentTypeConnection.PageInfo(childComplexity), true
 
+	case "EquipmentTypeConnection.totalCount":
+		if e.complexity.EquipmentTypeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.EquipmentTypeConnection.TotalCount(childComplexity), true
+
 	case "EquipmentTypeEdge.cursor":
 		if e.complexity.EquipmentTypeEdge.Cursor == nil {
 			break
@@ -2843,13 +2917,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.File.ContentType(childComplexity), true
 
-	case "File.fileType":
-		if e.complexity.File.FileType == nil {
-			break
-		}
-
-		return e.complexity.File.FileType(childComplexity), true
-
 	case "File.id":
 		if e.complexity.File.ID == nil {
 			break
@@ -2884,6 +2951,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.File.StoreKey(childComplexity), true
+
+	case "File.fileType":
+		if e.complexity.File.Type == nil {
+			break
+		}
+
+		return e.complexity.File.Type(childComplexity), true
 
 	case "File.uploaded":
 		if e.complexity.File.UploadedAt == nil {
@@ -3207,6 +3281,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LinkConnection.PageInfo(childComplexity), true
 
+	case "LinkConnection.totalCount":
+		if e.complexity.LinkConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.LinkConnection.TotalCount(childComplexity), true
+
 	case "LinkEdge.cursor":
 		if e.complexity.LinkEdge.Cursor == nil {
 			break
@@ -3352,6 +3433,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Location.NumChildren(childComplexity), true
 
+	case "Location.parentCoords":
+		if e.complexity.Location.ParentCoords == nil {
+			break
+		}
+
+		return e.complexity.Location.ParentCoords(childComplexity), true
+
 	case "Location.parentLocation":
 		if e.complexity.Location.ParentLocation == nil {
 			break
@@ -3390,7 +3478,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Location.Topology(childComplexity, args["depth"].(*int)), true
+		return e.complexity.Location.Topology(childComplexity, args["depth"].(int)), true
 
 	case "Location.wifiData":
 		if e.complexity.Location.WifiData == nil {
@@ -3433,6 +3521,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LocationConnection.PageInfo(childComplexity), true
+
+	case "LocationConnection.totalCount":
+		if e.complexity.LocationConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.LocationConnection.TotalCount(childComplexity), true
 
 	case "LocationEdge.cursor":
 		if e.complexity.LocationEdge.Cursor == nil {
@@ -3564,6 +3659,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.LocationTypeConnection.PageInfo(childComplexity), true
+
+	case "LocationTypeConnection.totalCount":
+		if e.complexity.LocationTypeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.LocationTypeConnection.TotalCount(childComplexity), true
 
 	case "LocationTypeEdge.cursor":
 		if e.complexity.LocationTypeEdge.Cursor == nil {
@@ -4641,6 +4743,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PermissionsPolicyConnection.PageInfo(childComplexity), true
 
+	case "PermissionsPolicyConnection.totalCount":
+		if e.complexity.PermissionsPolicyConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.PermissionsPolicyConnection.TotalCount(childComplexity), true
+
 	case "PermissionsPolicyEdge.cursor":
 		if e.complexity.PermissionsPolicyEdge.Cursor == nil {
 			break
@@ -4696,13 +4805,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Project.CreatedBy(childComplexity), true
-
-	case "Project.creator":
-		if e.complexity.Project.Creator == nil {
-			break
-		}
-
-		return e.complexity.Project.Creator(childComplexity), true
 
 	case "Project.description":
 		if e.complexity.Project.Description == nil {
@@ -4773,6 +4875,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProjectConnection.PageInfo(childComplexity), true
+
+	case "ProjectConnection.totalCount":
+		if e.complexity.ProjectConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ProjectConnection.TotalCount(childComplexity), true
 
 	case "ProjectEdge.cursor":
 		if e.complexity.ProjectEdge.Cursor == nil {
@@ -4850,6 +4959,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ProjectTypeConnection.PageInfo(childComplexity), true
+
+	case "ProjectTypeConnection.totalCount":
+		if e.complexity.ProjectTypeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ProjectTypeConnection.TotalCount(childComplexity), true
 
 	case "ProjectTypeEdge.cursor":
 		if e.complexity.ProjectTypeEdge.Cursor == nil {
@@ -5189,7 +5305,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EquipmentPorts(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.EquipmentPorts(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PortFilterInput)), true
 
 	case "Query.equipmentSearch":
 		if e.complexity.Query.EquipmentSearch == nil {
@@ -5225,7 +5341,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Equipments(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Equipments(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.EquipmentFilterInput)), true
 
 	case "Query.latestPythonPackage":
 		if e.complexity.Query.LatestPythonPackage == nil {
@@ -5256,7 +5372,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Links(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Links(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LinkFilterInput)), true
 
 	case "Query.locationSearch":
 		if e.complexity.Query.LocationSearch == nil {
@@ -5292,7 +5408,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LocationFilterInput)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -5335,7 +5451,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.PermissionsPolicies(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.PermissionsPolicies(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PermissionsPolicyFilterInput)), true
 
 	case "Query.permissionsPolicySearch":
 		if e.complexity.Query.PermissionsPolicySearch == nil {
@@ -5407,7 +5523,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Projects(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Projects(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ProjectFilterInput)), true
 
 	case "Query.pythonPackages":
 		if e.complexity.Query.PythonPackages == nil {
@@ -5464,6 +5580,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.ServiceTypes(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
 
+	case "Query.services":
+		if e.complexity.Query.Services == nil {
+			break
+		}
+
+		args, err := ec.field_Query_services_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Services(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ServiceFilterInput)), true
+
 	case "Query.surveys":
 		if e.complexity.Query.Surveys == nil {
 			break
@@ -5505,7 +5633,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UserFilterInput)), true
 
 	case "Query.usersGroupSearch":
 		if e.complexity.Query.UsersGroupSearch == nil {
@@ -5529,7 +5657,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.UsersGroups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int)), true
+		return e.complexity.Query.UsersGroups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UsersGroupFilterInput)), true
 
 	case "Query.vertex":
 		if e.complexity.Query.Vertex == nil {
@@ -5577,7 +5705,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["showCompleted"].(*bool)), true
+		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.WorkOrderFilterInput)), true
 
 	case "ReportFilter.entity":
 		if e.complexity.ReportFilter.Entity == nil {
@@ -5606,20 +5734,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ReportFilter.Name(childComplexity), true
-
-	case "SearchEntriesConnection.edges":
-		if e.complexity.SearchEntriesConnection.Edges == nil {
-			break
-		}
-
-		return e.complexity.SearchEntriesConnection.Edges(childComplexity), true
-
-	case "SearchEntriesConnection.pageInfo":
-		if e.complexity.SearchEntriesConnection.PageInfo == nil {
-			break
-		}
-
-		return e.complexity.SearchEntriesConnection.PageInfo(childComplexity), true
 
 	case "SearchEntry.entityId":
 		if e.complexity.SearchEntry.EntityID == nil {
@@ -5656,20 +5770,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SearchEntry.Type(childComplexity), true
 
-	case "SearchEntryEdge.cursor":
-		if e.complexity.SearchEntryEdge.Cursor == nil {
-			break
-		}
-
-		return e.complexity.SearchEntryEdge.Cursor(childComplexity), true
-
-	case "SearchEntryEdge.node":
-		if e.complexity.SearchEntryEdge.Node == nil {
-			break
-		}
-
-		return e.complexity.SearchEntryEdge.Node(childComplexity), true
-
 	case "SearchNodeEdge.cursor":
 		if e.complexity.SearchNodeEdge.Cursor == nil {
 			break
@@ -5697,6 +5797,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SearchNodesConnection.PageInfo(childComplexity), true
+
+	case "SearchNodesConnection.totalCount":
+		if e.complexity.SearchNodesConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.SearchNodesConnection.TotalCount(childComplexity), true
 
 	case "Service.customer":
 		if e.complexity.Service.Customer == nil {
@@ -5781,6 +5888,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Service.Upstream(childComplexity), true
+
+	case "ServiceConnection.edges":
+		if e.complexity.ServiceConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.ServiceConnection.Edges(childComplexity), true
+
+	case "ServiceConnection.pageInfo":
+		if e.complexity.ServiceConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.ServiceConnection.PageInfo(childComplexity), true
+
+	case "ServiceConnection.totalCount":
+		if e.complexity.ServiceConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ServiceConnection.TotalCount(childComplexity), true
+
+	case "ServiceEdge.cursor":
+		if e.complexity.ServiceEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.ServiceEdge.Cursor(childComplexity), true
+
+	case "ServiceEdge.node":
+		if e.complexity.ServiceEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.ServiceEdge.Node(childComplexity), true
 
 	case "ServiceEndpoint.definition":
 		if e.complexity.ServiceEndpoint.Definition == nil {
@@ -5956,6 +6098,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ServiceTypeConnection.PageInfo(childComplexity), true
+
+	case "ServiceTypeConnection.totalCount":
+		if e.complexity.ServiceTypeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ServiceTypeConnection.TotalCount(childComplexity), true
 
 	case "ServiceTypeEdge.cursor":
 		if e.complexity.ServiceTypeEdge.Cursor == nil {
@@ -6594,6 +6743,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserConnection.PageInfo(childComplexity), true
 
+	case "UserConnection.totalCount":
+		if e.complexity.UserConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.UserConnection.TotalCount(childComplexity), true
+
 	case "UserEdge.cursor":
 		if e.complexity.UserEdge.Cursor == nil {
 			break
@@ -6677,6 +6833,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UsersGroupConnection.PageInfo(childComplexity), true
+
+	case "UsersGroupConnection.totalCount":
+		if e.complexity.UsersGroupConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.UsersGroupConnection.TotalCount(childComplexity), true
 
 	case "UsersGroupEdge.cursor":
 		if e.complexity.UsersGroupEdge.Cursor == nil {
@@ -6768,13 +6931,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WorkOrder.AssignedTo(childComplexity), true
-
-	case "WorkOrder.assignee":
-		if e.complexity.WorkOrder.Assignee == nil {
-			break
-		}
-
-		return e.complexity.WorkOrder.Assignee(childComplexity), true
 
 	case "WorkOrder.checkListCategories":
 		if e.complexity.WorkOrder.CheckListCategories == nil {
@@ -6902,13 +7058,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.WorkOrder.Owner(childComplexity), true
 
-	case "WorkOrder.ownerName":
-		if e.complexity.WorkOrder.OwnerName == nil {
-			break
-		}
-
-		return e.complexity.WorkOrder.OwnerName(childComplexity), true
-
 	case "WorkOrder.priority":
 		if e.complexity.WorkOrder.Priority == nil {
 			break
@@ -6964,6 +7113,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WorkOrderConnection.PageInfo(childComplexity), true
+
+	case "WorkOrderConnection.totalCount":
+		if e.complexity.WorkOrderConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderConnection.TotalCount(childComplexity), true
 
 	case "WorkOrderDefinition.id":
 		if e.complexity.WorkOrderDefinition.ID == nil {
@@ -7139,6 +7295,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.WorkOrderTypeConnection.PageInfo(childComplexity), true
+
+	case "WorkOrderTypeConnection.totalCount":
+		if e.complexity.WorkOrderTypeConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.WorkOrderTypeConnection.TotalCount(childComplexity), true
 
 	case "WorkOrderTypeEdge.cursor":
 		if e.complexity.WorkOrderTypeEdge.Cursor == nil {
@@ -7637,6 +7800,11 @@ type Vertex
   edges: [Edge!]!
 }
 
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
 # location or site: e.g. building at specific address.
 type Location implements Node & NamedNode {
   id: ID!
@@ -7648,12 +7816,13 @@ type Location implements Node & NamedNode {
   numChildren: Int!
   latitude: Float!
   longitude: Float!
+  parentCoords: Coordinates
   equipments: [Equipment]!
   properties: [Property]!
   images: [File]!
   files: [File]!
   siteSurveyNeeded: Boolean!
-  topology(depth: Int = 3): NetworkTopology!
+  topology(depth: Int! = 3 @numberValue(min: 0, max: 10)): NetworkTopology!
   locationHierarchy: [Location!]!
   surveys: [Survey]!
   wifiData: [SurveyWiFiScan]!
@@ -7763,7 +7932,8 @@ type TopologyLink {
 
 scalar Time
 
-enum FileType {
+enum FileType
+  @goModel(model: "github.com/facebookincubator/symphony/pkg/ent/file.Type") {
   IMAGE
   FILE
 }
@@ -7986,20 +8156,8 @@ input AddWorkOrderInput {
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
-  ownerName: String
-    @deprecatedInput(
-      newField: "ownerId"
-      name: "AddWorkOrderInput.ownerName"
-      duplicateError: "Use ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `AddWorkOrderInput.ownerId` + "`" + ` together"
-    )
   ownerId: ID
   checkListCategories: [CheckListCategoryInput!]
-  assignee: String
-    @deprecatedInput(
-      newField: "assigneeId"
-      name: "AddWorkOrderInput.assignee"
-      duplicateError: "Use ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddWorkOrderInput.assignee` + "`" + ` and ` + "`" + `AddWorkOrderInput.assigneeId` + "`" + ` together"
-    )
   assigneeId: ID
   index: Int
   status: WorkOrderStatus
@@ -8010,24 +8168,12 @@ input EditWorkOrderInput {
   id: ID!
   name: String!
   description: String
-  ownerName: String
-    @deprecatedInput(
-      newField: "ownerId"
-      name: "EditWorkOrderInput.ownerName"
-      duplicateError: "Use ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.ownerName` + "`" + ` and ` + "`" + `EditWorkOrderInput.ownerId` + "`" + ` together"
-    )
   ownerId: ID
   installDate: Time
-  assignee: String
-    @deprecatedInput(
-      newField: "assigneeId"
-      name: "EditWorkOrderInput.assignee"
-      duplicateError: "Use ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditWorkOrderInput.assignee` + "`" + ` and ` + "`" + `EditWorkOrderInput.assigneeId` + "`" + ` together"
-    )
   assigneeId: ID
   index: Int
-  status: WorkOrderStatus!
-  priority: WorkOrderPriority!
+  status: WorkOrderStatus
+  priority: WorkOrderPriority
   projectId: ID
   properties: [PropertyInput!]
   checkList: [CheckListItemInput!]
@@ -8112,39 +8258,11 @@ type SearchEntry {
 }
 
 """
-A connection to a list of search entries.
-"""
-type SearchEntriesConnection {
-  """
-  A list of search entry edges.
-  """
-  edges: [SearchEntryEdge!]
-  """
-  Information to aid in pagination.
-  """
-  pageInfo: PageInfo!
-}
-
-"""
-A search entry edge in a connection.
-"""
-type SearchEntryEdge {
-  """
-  The search entry at the end of the edge.
-  """
-  node: SearchEntry
-  """
-  A cursor for use in pagination.
-  """
-  cursor: Cursor!
-}
-
-"""
-A search entry edge in a connection.
+A search node edge in a connection.
 """
 type SearchNodeEdge {
   """
-  The search entry at the end of the edge.
+  The search node at the end of the edge.
   """
   node: Node
   """
@@ -8154,11 +8272,15 @@ type SearchNodeEdge {
 }
 
 """
-A connection to a list of search entries.
+A connection to a list of search nodes.
 """
 type SearchNodesConnection {
   """
-  A list of search entry edges.
+  Total count of search nodes in all pages.
+  """
+  totalCount: Int!
+  """
+  A list of search node edges.
   """
   edges: [SearchNodeEdge!]
   """
@@ -8171,6 +8293,10 @@ type SearchNodesConnection {
 A connection to a list of equipment port types.
 """
 type EquipmentPortTypeConnection {
+  """
+  Total count of equipment port types in all pages.
+  """
+  totalCount: Int!
   """
   A list of equipment port type edges.
   """
@@ -8200,6 +8326,10 @@ A connection to a list of equipment port definitions.
 """
 type EquipmentPortDefinitionConnection {
   """
+  Total count of equipment port definitions in all pages.
+  """
+  totalCount: Int!
+  """
   A list of equipment port definition edges.
   """
   edges: [EquipmentPortDefinitionEdge!]!
@@ -8227,6 +8357,10 @@ type EquipmentPortDefinitionEdge {
 A connection to a list of equipment ports.
 """
 type EquipmentPortConnection {
+  """
+  Total count of equipment ports in all pages.
+  """
+  totalCount: Int!
   """
   A list of equipment port edges.
   """
@@ -8256,6 +8390,10 @@ A connection to a list of equipment types.
 """
 type EquipmentTypeConnection {
   """
+  Total count of equipment types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of equipment type edges.
   """
   edges: [EquipmentTypeEdge!]!
@@ -8283,6 +8421,10 @@ type EquipmentTypeEdge {
 A connection to a list of equipments.
 """
 type EquipmentConnection {
+  """
+  Total count of equipment in all pages.
+  """
+  totalCount: Int!
   """
   A list of equipment edges.
   """
@@ -8312,6 +8454,10 @@ A connection to a list of location types.
 """
 type LocationTypeConnection {
   """
+  Total count of location types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of location type edges.
   """
   edges: [LocationTypeEdge!]!
@@ -8339,6 +8485,10 @@ type LocationTypeEdge {
 A connection to a list of locations.
 """
 type LocationConnection {
+  """
+  Total count of locations in all pages.
+  """
+  totalCount: Int!
   """
   A list of location edges.
   """
@@ -8368,6 +8518,10 @@ A connection to a list of links.
 """
 type LinkConnection {
   """
+  Total count of links in all pages.
+  """
+  totalCount: Int!
+  """
   A list of link edges.
   """
   edges: [LinkEdge!]!
@@ -8385,6 +8539,38 @@ type LinkEdge {
   The link at the end of the edge.
   """
   node: Link
+  """
+  A cursor for use in pagination.
+  """
+  cursor: Cursor!
+}
+
+"""
+A connection to a list of services.
+"""
+type ServiceConnection {
+  """
+  Total count of services in all pages.
+  """
+  totalCount: Int!
+  """
+  A list of service edges.
+  """
+  edges: [ServiceEdge!]!
+  """
+  Information to aid in pagination.
+  """
+  pageInfo: PageInfo!
+}
+
+"""
+A service edge in a connection.
+"""
+type ServiceEdge {
+  """
+  The service at the end of the edge.
+  """
+  node: Service
   """
   A cursor for use in pagination.
   """
@@ -8430,6 +8616,10 @@ A connection to a list of service types.
 """
 type ServiceTypeConnection {
   """
+  Total count of service types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of service type edges.
   """
   edges: [ServiceTypeEdge!]!
@@ -8453,7 +8643,10 @@ type ServiceTypeEdge {
   cursor: Cursor!
 }
 
-enum PropertyKind {
+enum PropertyKind
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/propertytype.Type"
+  ) {
   string
   int
   bool
@@ -8546,7 +8739,10 @@ input PropertyInput {
 """
 Work Order priority
 """
-enum WorkOrderPriority {
+enum WorkOrderPriority
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Priority"
+  ) {
   URGENT
   HIGH
   MEDIUM
@@ -8557,7 +8753,10 @@ enum WorkOrderPriority {
 """
 Work Order status
 """
-enum WorkOrderStatus {
+enum WorkOrderStatus
+  @goModel(
+    model: "github.com/facebookincubator/symphony/pkg/ent/workorder.Status"
+  ) {
   PENDING
   PLANNED
   DONE
@@ -8618,7 +8817,7 @@ input LinkSide {
 }
 
 input AddLinkInput {
-  sides: [LinkSide!]! @length(min: 2, max: 2)
+  sides: [LinkSide!]! @list(minItems: 2, maxItems: 2)
   workOrder: ID
   properties: [PropertyInput!]
   serviceIds: [ID!]
@@ -8822,17 +9021,9 @@ type WorkOrder implements Node & NamedNode {
   workOrderTemplate: WorkOrderTemplate
   name: String!
   description: String
-  ownerName: String!
-    @deprecated(
-      reason: "Use ` + "`" + `WorkOrder.owner.email` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   owner: User!
   creationDate: Time!
   installDate: Time
-  assignee: String
-    @deprecated(
-      reason: "Use ` + "`" + `WorkOrder.assignedTo.email` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   assignedTo: User
   index: Int!
   status: WorkOrderStatus!
@@ -8858,6 +9049,10 @@ A connection to a list of users.
 """
 type UserConnection {
   """
+  Total count of users in all pages.
+  """
+  totalCount: Int!
+  """
   A list of user type edges.
   """
   edges: [UserEdge!]!
@@ -8872,6 +9067,10 @@ A connection to a list of permissions policies.
 """
 type PermissionsPolicyConnection {
   """
+  Total count of permission policies in all pages.
+  """
+  totalCount: Int!
+  """
   A list of permissions policies type edges.
   """
   edges: [PermissionsPolicyEdge!]!
@@ -8885,6 +9084,10 @@ type PermissionsPolicyConnection {
 A connection to a list of users groups.
 """
 type UsersGroupConnection {
+  """
+  Total count of user groups in all pages.
+  """
+  totalCount: Int!
   """
   A list of users group type edges.
   """
@@ -8942,6 +9145,10 @@ A connection to a list of work order types.
 """
 type WorkOrderTypeConnection {
   """
+  Total count of work order types in all pages.
+  """
+  totalCount: Int!
+  """
   A list of work order type edges.
   """
   edges: [WorkOrderTypeEdge!]!
@@ -8970,6 +9177,10 @@ A connection to a list of work orders.
 """
 type WorkOrderConnection {
   """
+  Total count of work orders in all pages.
+  """
+  totalCount: Int!
+  """
   A list of work order edges.
   """
   edges: [WorkOrderEdge!]!
@@ -8993,21 +9204,144 @@ type WorkOrderEdge {
   cursor: Cursor!
 }
 
-# enforces length constraint
-directive @length(
-  min: Int!
-  max: Int
+"""
+@numberValue directive is used to describe possible numeric values.
+"""
+directive @numberValue(
+  """
+  The value of multipleOf MUST be a number, strictly greater than 0.
+  A numeric instance is valid only if division by this constraint's
+  value results in an integer.
+  """
+  multipleOf: Float
+
+  """
+  The value of max MUST be a number, representing an inclusive upper
+  limit for a numeric instance. A numeric instance is valid only if
+  the instance is less than or exactly equal to max.
+  """
+  max: Float
+
+  """
+  The value of min MUST be a number, representing an inclusive
+  upper limit for a numeric instance. A numeric instance is
+  valid only if the instance is greater than or exactly equal to min.
+  """
+  min: Float
+
+  """
+  The value of exclusiveMax MUST be a number, representing an exclusive
+  upper limit for a numeric instance. A numeric instance is valid only if
+  it is strictly less than (not equal to) exclusiveMax.
+  """
+  exclusiveMax: Float
+
+  """
+  The value of exclusiveMin MUST be a number, representing an exclusive
+  upper limit for a numeric instance. A numeric instance is valid only
+  if it has a value strictly greater than (not equal to) exclusiveMin.
+  """
+  exclusiveMin: Float
+
+  """
+  The value of this argument MUST be an array. This array SHOULD
+  have at least one element. Elements in the array SHOULD be unique.
+  An instance is valid only if its value is equal to one of the elements
+  in this constraint's array value.
+  """
+  oneOf: [Float!]
+
+  """
+  A numeric instance is valid only if its value is equal to
+  the value of the constrain.
+  """
+  equals: Float
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
-# enforces range constraint on numeric value
-directive @range(
-  min: Float
-  max: Float
+"""
+@stringValue directive is used to describe possible string values.
+"""
+directive @stringValue(
+  """
+  The value of this constraint MUST be a non-negative integer. A string instance
+  is valid against this constraint if its length is less than, or equal to maxLength.
+  The length of a string instance is defined as the number of its characters.
+  """
+  maxLength: Int
+
+  """
+  The value of this constraint MUST be a non-negative integer. A string instance
+  is valid against this constraint if its length is greater than, or equal to minLength.
+  The length of a string instance is defined as the number of its characters.
+  """
+  minLength: Int
+
+  """
+  The value of this constraint MUST be a string.
+  An instance is valid if it begins with the characters of the constraint's string.
+  """
+  startsWith: String
+
+  """
+  The value of this constraint MUST be a string.
+  An instance is valid if it ends with the characters of the constraint's string.
+  """
+  endsWith: String
+
+  """
+  The value of this constraint MUST be a string. An instance is valid if
+  constraint's value may be found within the instance string.
+  """
+  includes: String
+
+  """
+  The value of this constraint MUST be a string. This string SHOULD be a valid regular expression.
+  An instance is valid if the regular expression matches the instance successfully.
+  """
+  regex: String
+
+  """
+  The value of this argument MUST be an array. This array SHOULD
+  have at least one element. Elements in the array SHOULD be unique.
+  An instance is valid only if its value is equal to one of the elements
+  in this constraint's array value.
+  """
+  oneOf: [String!]
+
+  """
+  A value is valid only if its equal to the value of the constrain.
+  """
+  equals: String
+) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
+
+"""
+@list directive is used to describe list values.
+"""
+directive @list(
+  """
+  The value of this constraint MUST be a non-negative integer.
+  An instance is valid if only its size is less than, or equal to,
+  the value of this directive.
+  """
+  maxItems: Int
+  """
+  The value of this constraint MUST be a non-negative integer.
+  An instance is valid against minItems if its size is greater than,
+  or equal to, the value of this constraint.
+  Omitting this constraint has the same behavior as a value of 0.
+  """
+  minItems: Int
+  """
+  The value of this constraint MUST be a boolean.
+  If it has boolean value true, the instance is valid
+  if all of its elements are unique.
+  """
+  uniqueItems: Boolean
 ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION
 
 type ProjectType implements Node {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   projects: [Project!]!
   numberOfProjects: Int!
@@ -9016,7 +9350,7 @@ type ProjectType implements Node {
 }
 
 input AddProjectTypeInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
@@ -9025,7 +9359,7 @@ input AddProjectTypeInput {
 
 input EditProjectTypeInput {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
   properties: [PropertyTypeInput!]
     @uniqueField(typ: "property type", field: "Name")
@@ -9033,7 +9367,7 @@ input EditProjectTypeInput {
 }
 
 input AddCustomerInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   externalId: String
 }
 
@@ -9048,6 +9382,10 @@ directive @goField(
 A connection to a list of project types.
 """
 type ProjectTypeConnection {
+  """
+  Total count of project types in all pages.
+  """
+  totalCount: Int!
   """
   A list of project type edges.
   """
@@ -9077,6 +9415,10 @@ A connection to a list of projects.
 """
 type ProjectConnection {
   """
+  Total count of projects in all pages.
+  """
+  totalCount: Int!
+  """
   A list of project edges.
   """
   edges: [ProjectEdge!]!
@@ -9102,12 +9444,8 @@ type ProjectEdge {
 
 type Project implements Node {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
-  creator: String
-    @deprecated(
-      reason: "Use ` + "`" + `Project.createdBy.email` + "`" + ` instead. Will be removed on 2020-05-01"
-    )
   createdBy: User
   type: ProjectType!
   location: Location
@@ -9118,14 +9456,8 @@ type Project implements Node {
 }
 
 input AddProjectInput {
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
-  creator: String
-    @deprecatedInput(
-      newField: "creatorId"
-      name: "AddProjectInput.creator"
-      duplicateError: "Use ` + "`" + `AddProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `AddProjectInput.creator` + "`" + ` and ` + "`" + `AddProjectInput.creatorId` + "`" + ` together"
-    )
   creatorId: ID
   type: ID!
   location: ID
@@ -9134,14 +9466,8 @@ input AddProjectInput {
 
 input EditProjectInput {
   id: ID!
-  name: String! @length(min: 1)
+  name: String! @stringValue(minLength: 1)
   description: String
-  creator: String
-    @deprecatedInput(
-      newField: "creatorId"
-      name: "EditProjectInput.creator"
-      duplicateError: "Use ` + "`" + `EditProjectInput.creatorId` + "`" + ` instead. Will be removed on 2020-05-01. You cannot use ` + "`" + `EditProjectInput.creator` + "`" + ` and ` + "`" + `EditProjectInput.creatorId` + "`" + ` together"
-    )
   creatorId: ID
   type: ID!
   location: ID
@@ -9158,6 +9484,8 @@ enum FilterOperator {
   IS_NOT_ONE_OF
   DATE_GREATER_THAN
   DATE_LESS_THAN
+  DATE_GREATER_OR_EQUAL_THAN
+  DATE_LESS_OR_EQUAL_THAN
 }
 
 """
@@ -9168,6 +9496,7 @@ enum EquipmentFilterType {
   EQUIP_INST_EXTERNAL_ID
   PROPERTY
   LOCATION_INST
+  LOCATION_INST_EXTERNAL_ID
   EQUIPMENT_TYPE
 }
 
@@ -9229,6 +9558,7 @@ enum PortFilterType {
   PORT_INST_HAS_LINK
   PORT_INST_EQUIPMENT
   LOCATION_INST
+  LOCATION_INST_EXTERNAL_ID
   PROPERTY
   SERVICE_INST
 }
@@ -9240,6 +9570,7 @@ enum LinkFilterType {
   LINK_FUTURE_STATUS
   EQUIPMENT_TYPE
   LOCATION_INST
+  LOCATION_INST_EXTERNAL_ID
   PROPERTY
   SERVICE_INST
   EQUIPMENT_INST
@@ -9269,6 +9600,7 @@ enum ServiceFilterType {
   SERVICE_INST_CUSTOMER_NAME
   PROPERTY
   LOCATION_INST
+  LOCATION_INST_EXTERNAL_ID
   EQUIPMENT_IN_SERVICE
 }
 
@@ -9370,11 +9702,12 @@ enum WorkOrderFilterType {
   WORK_ORDER_OWNED_BY
   WORK_ORDER_TYPE
   WORK_ORDER_CREATION_DATE
-  WORK_ORDER_INSTALL_DATE
+  WORK_ORDER_CLOSE_DATE
   WORK_ORDER_ASSIGNED_TO
   WORK_ORDER_LOCATION_INST
   WORK_ORDER_PRIORITY
   LOCATION_INST
+  LOCATION_INST_EXTERNAL_ID
 }
 
 input WorkOrderFilterInput {
@@ -9384,6 +9717,7 @@ input WorkOrderFilterInput {
   idSet: [ID!]
   stringSet: [String!]
   propertyValue: PropertyTypeInput
+  timeValue: Time
   maxDepth: Int = 5
 }
 
@@ -9401,6 +9735,10 @@ input ProjectFilterInput {
 A connection to a list of customers.
 """
 type CustomerConnection {
+  """
+  Total count of customers in all pages.
+  """
+  totalCount: Int!
   """
   A list of customer edges.
   """
@@ -9967,9 +10305,9 @@ type Query {
   user(authID: String!): User
   locationTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): LocationTypeConnection
   locations(
     onlyTopLevel: Boolean
@@ -9977,142 +10315,198 @@ type Query {
     name: String
     needsSiteSurvey: Boolean
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
+    filters: [LocationFilterInput!]
   ): LocationConnection
   equipmentPortTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortTypeConnection!
   equipmentPortDefinitions(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentPortDefinitionConnection!
   equipmentPorts(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
+    filters: [PortFilterInput!]
   ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): EquipmentTypeConnection!
   equipments(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
+    filters: [EquipmentFilterInput!]
   ): EquipmentConnection!
   serviceTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ServiceTypeConnection
   workOrders(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
-    showCompleted: Boolean
+    last: Int @numberValue(min: 0)
+    filters: [WorkOrderFilterInput!]
   ): WorkOrderConnection!
   workOrderTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): WorkOrderTypeConnection
-  links(after: Cursor, first: Int, before: Cursor, last: Int): LinkConnection!
-  users(after: Cursor, first: Int, before: Cursor, last: Int): UserConnection
+  links(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+    filters: [LinkFilterInput!]
+  ): LinkConnection!
+  services(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+    filters: [ServiceFilterInput!]
+  ): ServiceConnection!
+  users(
+    after: Cursor
+    first: Int @numberValue(min: 0)
+    before: Cursor
+    last: Int @numberValue(min: 0)
+    filters: [UserFilterInput!]
+  ): UserConnection
   usersGroups(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
+    filters: [UsersGroupFilterInput!]
   ): UsersGroupConnection
   permissionsPolicies(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
+    filters: [PermissionsPolicyFilterInput!]
   ): PermissionsPolicyConnection
   searchForNode(
     name: String!
     after: Cursor
-    first: Int = 10
+    first: Int = 10 @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): SearchNodesConnection!
   equipmentSearch(
     filters: [EquipmentFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): EquipmentSearchResult!
+    @deprecated(
+      reason: "Use ` + "`" + `equipments` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
   workOrderSearch(
     filters: [WorkOrderFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): WorkOrderSearchResult!
-  linkSearch(filters: [LinkFilterInput!]!, limit: Int = 500): LinkSearchResult!
-  portSearch(filters: [PortFilterInput!]!, limit: Int = 500): PortSearchResult!
+    @deprecated(
+      reason: "Use ` + "`" + `workOrders` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
+  linkSearch(
+    filters: [LinkFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): LinkSearchResult!
+    @deprecated(reason: "Use ` + "`" + `links` + "`" + ` instead. Will be removed on 2020-09-01")
+  portSearch(
+    filters: [PortFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): PortSearchResult!
+    @deprecated(
+      reason: "Use ` + "`" + `equipmentPorts` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
   locationSearch(
     filters: [LocationFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): LocationSearchResult!
+    @deprecated(
+      reason: "Use ` + "`" + `locations` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
   projectSearch(
-    """
-    array of the work order filters to be applied
-    """
     filters: [ProjectFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): [Project]!
-  customerSearch(limit: Int = 500): [Customer]!
+    @deprecated(reason: "Use ` + "`" + `projects` + "`" + ` instead. Will be removed on 2020-09-01")
+  customerSearch(limit: Int = 500 @numberValue(min: 0)): [Customer]!
+    @deprecated(
+      reason: "Use ` + "`" + `customers` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
   serviceSearch(
     filters: [ServiceFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): ServiceSearchResult!
-  userSearch(filters: [UserFilterInput!]!, limit: Int = 500): UserSearchResult!
+    @deprecated(reason: "Use ` + "`" + `services` + "`" + ` instead. Will be removed on 2020-09-01")
+  userSearch(
+    filters: [UserFilterInput!]!
+    limit: Int = 500 @numberValue(min: 0)
+  ): UserSearchResult!
+    @deprecated(reason: "Use ` + "`" + `users` + "`" + ` instead. Will be removed on 2020-09-01")
   permissionsPolicySearch(
     filters: [PermissionsPolicyFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): PermissionsPolicySearchResult!
+    @deprecated(
+      reason: "Use ` + "`" + `permissionsPolicies` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
   usersGroupSearch(
     filters: [UsersGroupFilterInput!]!
-    limit: Int = 500
+    limit: Int = 500 @numberValue(min: 0)
   ): UsersGroupSearchResult!
+    @deprecated(
+      reason: "Use ` + "`" + `usersGroups` + "`" + ` instead. Will be removed on 2020-09-01"
+    )
   possibleProperties(entityType: PropertyEntity!): [PropertyType!]!
   surveys: [Survey!]!
   latestPythonPackage: LatestPythonPackageResult
   pythonPackages: [PythonPackage!]!
   nearestSites(
-    latitude: Float!
-    longitude: Float!
-    first: Int! = 10
+    latitude: Float! @numberValue(min: -90, max: 90)
+    longitude: Float! @numberValue(min: -180, max: 180)
+    first: Int! = 10 @numberValue(min: 0)
   ): [Location!]!
   vertex(id: ID!): Vertex
   projectTypes(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): ProjectTypeConnection
   projects(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
+    filters: [ProjectFilterInput!]
   ): ProjectConnection
   customers(
     after: Cursor
-    first: Int
+    first: Int @numberValue(min: 0)
     before: Cursor
-    last: Int
+    last: Int @numberValue(min: 0)
   ): CustomerConnection
   actionsRules: ActionsRulesSearchResult
   actionsTriggers: ActionsTriggersSearchResult
@@ -10356,39 +10750,47 @@ func (ec *executionContext) dir_deprecatedInput_args(ctx context.Context, rawArg
 	return args, nil
 }
 
-func (ec *executionContext) dir_length_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) dir_list_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 int
-	if tmp, ok := rawArgs["min"]; ok {
-		arg0, err = ec.unmarshalNInt2int(ctx, tmp)
+	var arg0 *int
+	if tmp, ok := rawArgs["maxItems"]; ok {
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["min"] = arg0
+	args["maxItems"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["max"]; ok {
+	if tmp, ok := rawArgs["minItems"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["max"] = arg1
+	args["minItems"] = arg1
+	var arg2 *bool
+	if tmp, ok := rawArgs["uniqueItems"]; ok {
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["uniqueItems"] = arg2
 	return args, nil
 }
 
-func (ec *executionContext) dir_range_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) dir_numberValue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *float64
-	if tmp, ok := rawArgs["min"]; ok {
+	if tmp, ok := rawArgs["multipleOf"]; ok {
 		arg0, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["min"] = arg0
+	args["multipleOf"] = arg0
 	var arg1 *float64
 	if tmp, ok := rawArgs["max"]; ok {
 		arg1, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
@@ -10397,6 +10799,116 @@ func (ec *executionContext) dir_range_args(ctx context.Context, rawArgs map[stri
 		}
 	}
 	args["max"] = arg1
+	var arg2 *float64
+	if tmp, ok := rawArgs["min"]; ok {
+		arg2, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["min"] = arg2
+	var arg3 *float64
+	if tmp, ok := rawArgs["exclusiveMax"]; ok {
+		arg3, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["exclusiveMax"] = arg3
+	var arg4 *float64
+	if tmp, ok := rawArgs["exclusiveMin"]; ok {
+		arg4, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["exclusiveMin"] = arg4
+	var arg5 []float64
+	if tmp, ok := rawArgs["oneOf"]; ok {
+		arg5, err = ec.unmarshalOFloat2ᚕfloat64ᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oneOf"] = arg5
+	var arg6 *float64
+	if tmp, ok := rawArgs["equals"]; ok {
+		arg6, err = ec.unmarshalOFloat2ᚖfloat64(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["equals"] = arg6
+	return args, nil
+}
+
+func (ec *executionContext) dir_stringValue_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["maxLength"]; ok {
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["maxLength"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["minLength"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["minLength"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["startsWith"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["startsWith"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["endsWith"]; ok {
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["endsWith"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["includes"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["includes"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["regex"]; ok {
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["regex"] = arg5
+	var arg6 []string
+	if tmp, ok := rawArgs["oneOf"]; ok {
+		arg6, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oneOf"] = arg6
+	var arg7 *string
+	if tmp, ok := rawArgs["equals"]; ok {
+		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["equals"] = arg7
 	return args, nil
 }
 
@@ -10475,11 +10987,32 @@ func (ec *executionContext) field_Location_distanceKm_args(ctx context.Context, 
 func (ec *executionContext) field_Location_topology_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *int
+	var arg0 int
 	if tmp, ok := rawArgs["depth"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNInt2int(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			max, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 10)
+			if err != nil {
+				return nil, err
+			}
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, max, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(int); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be int`, tmp)
 		}
 	}
 	args["depth"] = arg0
@@ -11717,9 +12250,28 @@ func (ec *executionContext) field_Query_customerSearch_args(ctx context.Context,
 	args := map[string]interface{}{}
 	var arg0 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg0
@@ -11739,9 +12291,28 @@ func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawA
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11755,9 +12326,28 @@ func (ec *executionContext) field_Query_customers_args(ctx context.Context, rawA
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11777,9 +12367,28 @@ func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx contex
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11793,9 +12402,28 @@ func (ec *executionContext) field_Query_equipmentPortDefinitions_args(ctx contex
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11815,9 +12443,28 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11831,9 +12478,28 @@ func (ec *executionContext) field_Query_equipmentPortTypes_args(ctx context.Cont
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11853,9 +12519,28 @@ func (ec *executionContext) field_Query_equipmentPorts_args(ctx context.Context,
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11869,12 +12554,39 @@ func (ec *executionContext) field_Query_equipmentPorts_args(ctx context.Context,
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.PortFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOPortFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -11891,9 +12603,28 @@ func (ec *executionContext) field_Query_equipmentSearch_args(ctx context.Context
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -11913,9 +12644,28 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11929,9 +12679,28 @@ func (ec *executionContext) field_Query_equipmentTypes_args(ctx context.Context,
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -11951,9 +12720,28 @@ func (ec *executionContext) field_Query_equipments_args(ctx context.Context, raw
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -11967,12 +12755,39 @@ func (ec *executionContext) field_Query_equipments_args(ctx context.Context, raw
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.EquipmentFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOEquipmentFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -11989,9 +12804,28 @@ func (ec *executionContext) field_Query_linkSearch_args(ctx context.Context, raw
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12011,9 +12845,28 @@ func (ec *executionContext) field_Query_links_args(ctx context.Context, rawArgs 
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12027,12 +12880,39 @@ func (ec *executionContext) field_Query_links_args(ctx context.Context, rawArgs 
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.LinkFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOLinkFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -12049,9 +12929,28 @@ func (ec *executionContext) field_Query_locationSearch_args(ctx context.Context,
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12071,9 +12970,28 @@ func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, 
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12087,9 +13005,28 @@ func (ec *executionContext) field_Query_locationTypes_args(ctx context.Context, 
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12141,9 +13078,28 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 	args["after"] = arg4
 	var arg5 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg5, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg5 = data
+		} else if tmp == nil {
+			arg5 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg5
@@ -12157,12 +13113,39 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 	args["before"] = arg6
 	var arg7 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg7, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg7 = data
+		} else if tmp == nil {
+			arg7 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg7
+	var arg8 []*models.LocationFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg8, err = ec.unmarshalOLocationFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg7
+	args["filters"] = arg8
 	return args, nil
 }
 
@@ -12171,25 +13154,84 @@ func (ec *executionContext) field_Query_nearestSites_args(ctx context.Context, r
 	args := map[string]interface{}{}
 	var arg0 float64
 	if tmp, ok := rawArgs["latitude"]; ok {
-		arg0, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNFloat2float64(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			max, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 90)
+			if err != nil {
+				return nil, err
+			}
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, -90)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, max, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(float64); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be float64`, tmp)
 		}
 	}
 	args["latitude"] = arg0
 	var arg1 float64
 	if tmp, ok := rawArgs["longitude"]; ok {
-		arg1, err = ec.unmarshalNFloat2float64(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNFloat2float64(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			max, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 180)
+			if err != nil {
+				return nil, err
+			}
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, -180)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, max, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(float64); ok {
+			arg1 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be float64`, tmp)
 		}
 	}
 	args["longitude"] = arg1
 	var arg2 int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalNInt2int(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNInt2int(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(int); ok {
+			arg2 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be int`, tmp)
 		}
 	}
 	args["first"] = arg2
@@ -12223,9 +13265,28 @@ func (ec *executionContext) field_Query_permissionsPolicies_args(ctx context.Con
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12239,12 +13300,39 @@ func (ec *executionContext) field_Query_permissionsPolicies_args(ctx context.Con
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.PermissionsPolicyFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOPermissionsPolicyFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionsPolicyFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -12261,9 +13349,28 @@ func (ec *executionContext) field_Query_permissionsPolicySearch_args(ctx context
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12283,9 +13390,28 @@ func (ec *executionContext) field_Query_portSearch_args(ctx context.Context, raw
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12319,9 +13445,28 @@ func (ec *executionContext) field_Query_projectSearch_args(ctx context.Context, 
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12341,9 +13486,28 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12357,9 +13521,28 @@ func (ec *executionContext) field_Query_projectTypes_args(ctx context.Context, r
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12379,9 +13562,28 @@ func (ec *executionContext) field_Query_projects_args(ctx context.Context, rawAr
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12395,12 +13597,39 @@ func (ec *executionContext) field_Query_projects_args(ctx context.Context, rawAr
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.ProjectFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOProjectFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -12439,9 +13668,28 @@ func (ec *executionContext) field_Query_searchForNode_args(ctx context.Context, 
 	args["after"] = arg1
 	var arg2 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg2 = data
+		} else if tmp == nil {
+			arg2 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg2
@@ -12455,9 +13703,28 @@ func (ec *executionContext) field_Query_searchForNode_args(ctx context.Context, 
 	args["before"] = arg3
 	var arg4 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg4 = data
+		} else if tmp == nil {
+			arg4 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg4
@@ -12477,9 +13744,28 @@ func (ec *executionContext) field_Query_serviceSearch_args(ctx context.Context, 
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12499,9 +13785,28 @@ func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, r
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12515,12 +13820,115 @@ func (ec *executionContext) field_Query_serviceTypes_args(ctx context.Context, r
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_services_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *ent.Cursor
+	if tmp, ok := rawArgs["after"]; ok {
+		arg0, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
+	args["after"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["first"] = arg1
+	var arg2 *ent.Cursor
+	if tmp, ok := rawArgs["before"]; ok {
+		arg2, err = ec.unmarshalOCursor2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
 	args["last"] = arg3
+	var arg4 []*models.ServiceFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOServiceFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceFilterInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -12537,9 +13945,28 @@ func (ec *executionContext) field_Query_userSearch_args(ctx context.Context, raw
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12573,9 +14000,28 @@ func (ec *executionContext) field_Query_usersGroupSearch_args(ctx context.Contex
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12595,9 +14041,28 @@ func (ec *executionContext) field_Query_usersGroups_args(ctx context.Context, ra
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12611,12 +14076,39 @@ func (ec *executionContext) field_Query_usersGroups_args(ctx context.Context, ra
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.UsersGroupFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOUsersGroupFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUsersGroupFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -12633,9 +14125,28 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12649,12 +14160,39 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
+		}
+	}
+	args["last"] = arg3
+	var arg4 []*models.UserFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -12685,9 +14223,28 @@ func (ec *executionContext) field_Query_workOrderSearch_args(ctx context.Context
 	args["filters"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["limit"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["limit"] = arg1
@@ -12707,9 +14264,28 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12723,9 +14299,28 @@ func (ec *executionContext) field_Query_workOrderTypes_args(ctx context.Context,
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
@@ -12745,9 +14340,28 @@ func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, raw
 	args["after"] = arg0
 	var arg1 *int
 	if tmp, ok := rawArgs["first"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg1 = data
+		} else if tmp == nil {
+			arg1 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["first"] = arg1
@@ -12761,20 +14375,39 @@ func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, raw
 	args["before"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
-		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOInt2ᚖint(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			min, err := ec.unmarshalOFloat2ᚖfloat64(ctx, 0)
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.NumberValue == nil {
+				return nil, errors.New("directive numberValue is not implemented")
+			}
+			return ec.directives.NumberValue(ctx, rawArgs, directive0, nil, nil, min, nil, nil, nil, nil)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(*int); ok {
+			arg3 = data
+		} else if tmp == nil {
+			arg3 = nil
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be *int`, tmp)
 		}
 	}
 	args["last"] = arg3
-	var arg4 *bool
-	if tmp, ok := rawArgs["showCompleted"]; ok {
-		arg4, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	var arg4 []*models.WorkOrderFilterInput
+	if tmp, ok := rawArgs["filters"]; ok {
+		arg4, err = ec.unmarshalOWorkOrderFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["showCompleted"] = arg4
+	args["filters"] = arg4
 	return args, nil
 }
 
@@ -15428,6 +17061,74 @@ func (ec *executionContext) _Comment_createTime(ctx context.Context, field graph
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Coordinates_latitude(ctx context.Context, field graphql.CollectedField, obj *models.Coordinates) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Coordinates",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Latitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Coordinates_longitude(ctx context.Context, field graphql.CollectedField, obj *models.Coordinates) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Coordinates",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Longitude, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(float64)
+	fc.Result = res
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Customer_id(ctx context.Context, field graphql.CollectedField, obj *ent.Customer) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15525,6 +17226,40 @@ func (ec *executionContext) _Customer_externalId(ctx context.Context, field grap
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _CustomerConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.CustomerConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "CustomerConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _CustomerConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.CustomerConnection) (ret graphql.Marshaler) {
@@ -16530,6 +18265,40 @@ func (ec *executionContext) _Equipment_hyperlinks(ctx context.Context, field gra
 	return ec.marshalNHyperlink2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐHyperlinkᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EquipmentConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EquipmentConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -16864,6 +18633,40 @@ func (ec *executionContext) _EquipmentPort_serviceEndpoints(ctx context.Context,
 	return ec.marshalNServiceEndpoint2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceEndpointᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EquipmentPortConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EquipmentPortConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -17122,6 +18925,40 @@ func (ec *executionContext) _EquipmentPortDefinition_bandwidth(ctx context.Conte
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalOString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentPortDefinitionConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinitionConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortDefinitionConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EquipmentPortDefinitionConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortDefinitionConnection) (ret graphql.Marshaler) {
@@ -17476,6 +19313,40 @@ func (ec *executionContext) _EquipmentPortType_numberOfPortDefinitions(ctx conte
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.EquipmentPortType().NumberOfPortDefinitions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EquipmentPortTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentPortTypeConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentPortTypeConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18225,6 +20096,40 @@ func (ec *executionContext) _EquipmentType_numberOfEquipment(ctx context.Context
 	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EquipmentTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentTypeConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EquipmentTypeConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EquipmentTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.EquipmentTypeConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -18632,13 +20537,13 @@ func (ec *executionContext) _File_fileType(ctx context.Context, field graphql.Co
 		Object:   "File",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.File().FileType(rctx, obj)
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18647,9 +20552,9 @@ func (ec *executionContext) _File_fileType(ctx context.Context, field graphql.Co
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.FileType)
+	res := resTmp.(file.Type)
 	fc.Result = res
-	return ec.marshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx, field.Selections, res)
+	return ec.marshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_mimeType(ctx context.Context, field graphql.CollectedField, obj *ent.File) (ret graphql.Marshaler) {
@@ -20205,6 +22110,40 @@ func (ec *executionContext) _Link_services(ctx context.Context, field graphql.Co
 	return ec.marshalNService2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐService(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _LinkConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.LinkConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LinkConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _LinkConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LinkConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20706,6 +22645,37 @@ func (ec *executionContext) _Location_longitude(ctx context.Context, field graph
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Location_parentCoords(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Location",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Location().ParentCoords(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Coordinates)
+	fc.Result = res
+	return ec.marshalOCoordinates2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCoordinates(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Location_equipments(ctx context.Context, field graphql.CollectedField, obj *ent.Location) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -20900,7 +22870,7 @@ func (ec *executionContext) _Location_topology(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Location().Topology(rctx, obj, args["depth"].(*int))
+		return ec.resolvers.Location().Topology(rctx, obj, args["depth"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -21262,6 +23232,40 @@ func (ec *executionContext) _LocationCUD_delete(ctx context.Context, field graph
 	res := resTmp.(*models1.LocationPermissionRule)
 	fc.Result = res
 	return ec.marshalNLocationPermissionRule2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐLocationPermissionRule(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LocationConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.LocationConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LocationConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LocationConnection) (ret graphql.Marshaler) {
@@ -21860,6 +23864,40 @@ func (ec *executionContext) _LocationType_surveyTemplateCategories(ctx context.C
 	res := resTmp.([]*ent.SurveyTemplateCategory)
 	fc.Result = res
 	return ec.marshalOSurveyTemplateCategory2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐSurveyTemplateCategory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _LocationTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.LocationTypeConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "LocationTypeConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.LocationTypeConnection) (ret graphql.Marshaler) {
@@ -25716,6 +27754,40 @@ func (ec *executionContext) _PermissionsPolicy_groups(ctx context.Context, field
 	return ec.marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUsersGroupᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PermissionsPolicyConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicyConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PermissionsPolicyConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PermissionsPolicyConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.PermissionsPolicyConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26040,14 +28112,14 @@ func (ec *executionContext) _Project_name(ctx context.Context, field graphql.Col
 			return obj.Name, nil
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			min, err := ec.unmarshalNInt2int(ctx, 1)
+			minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 			if err != nil {
 				return nil, err
 			}
-			if ec.directives.Length == nil {
-				return nil, errors.New("directive length is not implemented")
+			if ec.directives.StringValue == nil {
+				return nil, errors.New("directive stringValue is not implemented")
 			}
-			return ec.directives.Length(ctx, obj, directive0, min, nil)
+			return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 		}
 
 		tmp, err := directive1(rctx)
@@ -26095,37 +28167,6 @@ func (ec *executionContext) _Project_description(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Project_creator(ctx context.Context, field graphql.CollectedField, obj *ent.Project) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Project",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Project().Creator(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -26371,6 +28412,40 @@ func (ec *executionContext) _Project_comments(ctx context.Context, field graphql
 	return ec.marshalNComment2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐComment(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ProjectConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ProjectConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -26559,14 +28634,14 @@ func (ec *executionContext) _ProjectType_name(ctx context.Context, field graphql
 			return obj.Name, nil
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			min, err := ec.unmarshalNInt2int(ctx, 1)
+			minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 			if err != nil {
 				return nil, err
 			}
-			if ec.directives.Length == nil {
-				return nil, errors.New("directive length is not implemented")
+			if ec.directives.StringValue == nil {
+				return nil, errors.New("directive stringValue is not implemented")
 			}
-			return ec.directives.Length(ctx, obj, directive0, min, nil)
+			return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 		}
 
 		tmp, err := directive1(rctx)
@@ -26761,6 +28836,40 @@ func (ec *executionContext) _ProjectType_workOrders(ctx context.Context, field g
 	res := resTmp.([]*ent.WorkOrderDefinition)
 	fc.Result = res
 	return ec.marshalNWorkOrderDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrderDefinition(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ProjectTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectTypeConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ProjectTypeConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ProjectTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ProjectTypeConnection) (ret graphql.Marshaler) {
@@ -27384,13 +29493,13 @@ func (ec *executionContext) _PropertyType_type(ctx context.Context, field graphq
 		Object:   "PropertyType",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.PropertyType().Type(rctx, obj)
+		return obj.Type, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -27402,9 +29511,9 @@ func (ec *executionContext) _PropertyType_type(ctx context.Context, field graphq
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.PropertyKind)
+	res := resTmp.(propertytype.Type)
 	fc.Result = res
-	return ec.marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx, field.Selections, res)
+	return ec.marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_nodeType(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -28208,7 +30317,7 @@ func (ec *executionContext) _Query_locations(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LocationFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28328,7 +30437,7 @@ func (ec *executionContext) _Query_equipmentPorts(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentPorts(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().EquipmentPorts(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PortFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28410,7 +30519,7 @@ func (ec *executionContext) _Query_equipments(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Equipments(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Equipments(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.EquipmentFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28489,7 +30598,7 @@ func (ec *executionContext) _Query_workOrders(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WorkOrders(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["showCompleted"].(*bool))
+		return ec.resolvers.Query().WorkOrders(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.WorkOrderFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28568,7 +30677,7 @@ func (ec *executionContext) _Query_links(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Links(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Links(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LinkFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28583,6 +30692,47 @@ func (ec *executionContext) _Query_links(ctx context.Context, field graphql.Coll
 	res := resTmp.(*ent.LinkConnection)
 	fc.Result = res
 	return ec.marshalNLinkConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐLinkConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_services(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_services_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Services(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ServiceFilterInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ServiceConnection)
+	fc.Result = res
+	return ec.marshalNServiceConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -28609,7 +30759,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Users(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UserFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28647,7 +30797,7 @@ func (ec *executionContext) _Query_usersGroups(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UsersGroups(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().UsersGroups(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UsersGroupFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -28685,7 +30835,7 @@ func (ec *executionContext) _Query_permissionsPolicies(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().PermissionsPolicies(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().PermissionsPolicies(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PermissionsPolicyFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29472,7 +31622,7 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Projects(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int))
+		return ec.resolvers.Query().Projects(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ProjectFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -29832,71 +31982,6 @@ func (ec *executionContext) _ReportFilter_filters(ctx context.Context, field gra
 	return ec.marshalNGeneralFilter2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐGeneralFilterᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SearchEntriesConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntriesConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "SearchEntriesConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Edges, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.SearchEntryEdge)
-	fc.Result = res
-	return ec.marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SearchEntriesConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntriesConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "SearchEntriesConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PageInfo, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*ent.PageInfo)
-	fc.Result = res
-	return ec.marshalNPageInfo2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐPageInfo(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SearchEntry_entityId(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntry) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -30064,71 +32149,6 @@ func (ec *executionContext) _SearchEntry_externalId(ctx context.Context, field g
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SearchEntryEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntryEdge) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "SearchEntryEdge",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Node, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.SearchEntry)
-	fc.Result = res
-	return ec.marshalOSearchEntry2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntry(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _SearchEntryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *models.SearchEntryEdge) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "SearchEntryEdge",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.Cursor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(ent.Cursor)
-	fc.Result = res
-	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SearchNodeEdge_node(ctx context.Context, field graphql.CollectedField, obj *models.SearchNodeEdge) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -30192,6 +32212,40 @@ func (ec *executionContext) _SearchNodeEdge_cursor(ctx context.Context, field gr
 	res := resTmp.(ent.Cursor)
 	fc.Result = res
 	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SearchNodesConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *models.SearchNodesConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SearchNodesConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SearchNodesConnection_edges(ctx context.Context, field graphql.CollectedField, obj *models.SearchNodesConnection) (ret graphql.Marshaler) {
@@ -30659,6 +32713,173 @@ func (ec *executionContext) _Service_topology(ctx context.Context, field graphql
 	res := resTmp.(*models.NetworkTopology)
 	fc.Result = res
 	return ec.marshalNNetworkTopology2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐNetworkTopology(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ServiceEdge)
+	fc.Result = res
+	return ec.marshalNServiceEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceEdgeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.PageInfo)
+	fc.Result = res
+	return ec.marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.Service)
+	fc.Result = res
+	return ec.marshalOService2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐService(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEdge) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceEdge",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ent.Cursor)
+	fc.Result = res
+	return ec.marshalNCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceEndpoint_id(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceEndpoint) (ret graphql.Marshaler) {
@@ -31435,6 +33656,40 @@ func (ec *executionContext) _ServiceType_discoveryMethod(ctx context.Context, fi
 	res := resTmp.(models.DiscoveryMethod)
 	fc.Result = res
 	return ec.marshalNDiscoveryMethod2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐDiscoveryMethod(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ServiceTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ServiceTypeConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ServiceTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ServiceTypeConnection) (ret graphql.Marshaler) {
@@ -34401,6 +36656,40 @@ func (ec *executionContext) _User_groups(ctx context.Context, field graphql.Coll
 	return ec.marshalNUsersGroup2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUsersGroup(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UserConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UserConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _UserConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UserConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -34801,6 +37090,40 @@ func (ec *executionContext) _UsersGroup_policies(ctx context.Context, field grap
 	res := resTmp.([]*ent.PermissionsPolicy)
 	fc.Result = res
 	return ec.marshalNPermissionsPolicy2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐPermissionsPolicyᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UsersGroupConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UsersGroupConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UsersGroupConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.UsersGroupConnection) (ret graphql.Marshaler) {
@@ -35403,40 +37726,6 @@ func (ec *executionContext) _WorkOrder_description(ctx context.Context, field gr
 	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrder_ownerName(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "WorkOrder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrder().OwnerName(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _WorkOrder_owner(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -35536,37 +37825,6 @@ func (ec *executionContext) _WorkOrder_installDate(ctx context.Context, field gr
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _WorkOrder_assignee(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "WorkOrder",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrder().Assignee(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _WorkOrder_assignedTo(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -35643,13 +37901,13 @@ func (ec *executionContext) _WorkOrder_status(ctx context.Context, field graphql
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrder().Status(rctx, obj)
+		return obj.Status, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -35661,9 +37919,9 @@ func (ec *executionContext) _WorkOrder_status(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.WorkOrderStatus)
+	res := resTmp.(workorder.Status)
 	fc.Result = res
-	return ec.marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_priority(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -35677,13 +37935,13 @@ func (ec *executionContext) _WorkOrder_priority(ctx context.Context, field graph
 		Object:   "WorkOrder",
 		Field:    field,
 		Args:     nil,
-		IsMethod: true,
+		IsMethod: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.WorkOrder().Priority(rctx, obj)
+		return obj.Priority, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -35695,9 +37953,9 @@ func (ec *executionContext) _WorkOrder_priority(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(models.WorkOrderPriority)
+	res := resTmp.(workorder.Priority)
 	fc.Result = res
-	return ec.marshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx, field.Selections, res)
+	return ec.marshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrder_equipmentToAdd(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrder) (ret graphql.Marshaler) {
@@ -36165,6 +38423,40 @@ func (ec *executionContext) _WorkOrder_closeDate(ctx context.Context, field grap
 	res := resTmp.(time.Time)
 	fc.Result = res
 	return ec.marshalOTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrderConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderConnection) (ret graphql.Marshaler) {
@@ -37003,6 +39295,40 @@ func (ec *executionContext) _WorkOrderType_checkListCategoryDefinitions(ctx cont
 	res := resTmp.([]*ent.CheckListCategoryDefinition)
 	fc.Result = res
 	return ec.marshalNCheckListCategoryDefinition2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCheckListCategoryDefinitionᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _WorkOrderTypeConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeConnection) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "WorkOrderTypeConnection",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WorkOrderTypeConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.WorkOrderTypeConnection) (ret graphql.Marshaler) {
@@ -38661,14 +40987,14 @@ func (ec *executionContext) unmarshalInputAddCustomerInput(ctx context.Context, 
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39097,18 +41423,18 @@ func (ec *executionContext) unmarshalInputAddLinkInput(ctx context.Context, obj 
 				return ec.unmarshalNLinkSide2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkSideᚄ(ctx, v)
 			}
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 2)
+				maxItems, err := ec.unmarshalOInt2ᚖint(ctx, 2)
 				if err != nil {
 					return nil, err
 				}
-				max, err := ec.unmarshalOInt2ᚖint(ctx, 2)
+				minItems, err := ec.unmarshalOInt2ᚖint(ctx, 2)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.List == nil {
+					return nil, errors.New("directive list is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, max)
+				return ec.directives.List(ctx, obj, directive0, maxItems, minItems, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39327,14 +41653,14 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39351,39 +41677,6 @@ func (ec *executionContext) unmarshalInputAddProjectInput(ctx context.Context, o
 			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
-			}
-		case "creator":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				name, err := ec.unmarshalNString2string(ctx, "AddProjectInput.creator")
-				if err != nil {
-					return nil, err
-				}
-				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `AddProjectInput.creator` and `AddProjectInput.creatorId` together")
-				if err != nil {
-					return nil, err
-				}
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.DeprecatedInput == nil {
-					return nil, errors.New("directive deprecatedInput is not implemented")
-				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.(*string); ok {
-				it.Creator = data
-			} else if tmp == nil {
-				it.Creator = nil
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
 			}
 		case "creatorId":
 			var err error
@@ -39425,14 +41718,14 @@ func (ec *executionContext) unmarshalInputAddProjectTypeInput(ctx context.Contex
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -39611,39 +41904,6 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			if err != nil {
 				return it, err
 			}
-		case "ownerName":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				name, err := ec.unmarshalNString2string(ctx, "AddWorkOrderInput.ownerName")
-				if err != nil {
-					return nil, err
-				}
-				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.ownerName` and `AddWorkOrderInput.ownerId` together")
-				if err != nil {
-					return nil, err
-				}
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.DeprecatedInput == nil {
-					return nil, errors.New("directive deprecatedInput is not implemented")
-				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.(*string); ok {
-				it.OwnerName = data
-			} else if tmp == nil {
-				it.OwnerName = nil
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
-			}
 		case "ownerId":
 			var err error
 			it.OwnerID, err = ec.unmarshalOID2ᚖint(ctx, v)
@@ -39655,39 +41915,6 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			it.CheckListCategories, err = ec.unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListCategoryInputᚄ(ctx, v)
 			if err != nil {
 				return it, err
-			}
-		case "assignee":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				name, err := ec.unmarshalNString2string(ctx, "AddWorkOrderInput.assignee")
-				if err != nil {
-					return nil, err
-				}
-				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `AddWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `AddWorkOrderInput.assignee` and `AddWorkOrderInput.assigneeId` together")
-				if err != nil {
-					return nil, err
-				}
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.DeprecatedInput == nil {
-					return nil, errors.New("directive deprecatedInput is not implemented")
-				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.(*string); ok {
-				it.Assignee = data
-			} else if tmp == nil {
-				it.Assignee = nil
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
 			}
 		case "assigneeId":
 			var err error
@@ -39703,13 +41930,13 @@ func (ec *executionContext) unmarshalInputAddWorkOrderInput(ctx context.Context,
 			}
 		case "status":
 			var err error
-			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, v)
+			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "priority":
 			var err error
-			it.Priority, err = ec.unmarshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx, v)
+			it.Priority, err = ec.unmarshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -40504,14 +42731,14 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -40528,39 +42755,6 @@ func (ec *executionContext) unmarshalInputEditProjectInput(ctx context.Context, 
 			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
-			}
-		case "creator":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				name, err := ec.unmarshalNString2string(ctx, "EditProjectInput.creator")
-				if err != nil {
-					return nil, err
-				}
-				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditProjectInput.creatorId` instead. Will be removed on 2020-05-01. You cannot use `EditProjectInput.creator` and `EditProjectInput.creatorId` together")
-				if err != nil {
-					return nil, err
-				}
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "creatorId")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.DeprecatedInput == nil {
-					return nil, errors.New("directive deprecatedInput is not implemented")
-				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.(*string); ok {
-				it.Creator = data
-			} else if tmp == nil {
-				it.Creator = nil
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
 			}
 		case "creatorId":
 			var err error
@@ -40608,14 +42802,14 @@ func (ec *executionContext) unmarshalInputEditProjectTypeInput(ctx context.Conte
 			var err error
 			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, v) }
 			directive1 := func(ctx context.Context) (interface{}, error) {
-				min, err := ec.unmarshalNInt2int(ctx, 1)
+				minLength, err := ec.unmarshalOInt2ᚖint(ctx, 1)
 				if err != nil {
 					return nil, err
 				}
-				if ec.directives.Length == nil {
-					return nil, errors.New("directive length is not implemented")
+				if ec.directives.StringValue == nil {
+					return nil, errors.New("directive stringValue is not implemented")
 				}
-				return ec.directives.Length(ctx, obj, directive0, min, nil)
+				return ec.directives.StringValue(ctx, obj, directive0, nil, minLength, nil, nil, nil, nil, nil, nil)
 			}
 
 			tmp, err := directive1(ctx)
@@ -40812,39 +43006,6 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-		case "ownerName":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				name, err := ec.unmarshalNString2string(ctx, "EditWorkOrderInput.ownerName")
-				if err != nil {
-					return nil, err
-				}
-				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditWorkOrderInput.ownerId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.ownerName` and `EditWorkOrderInput.ownerId` together")
-				if err != nil {
-					return nil, err
-				}
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "ownerId")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.DeprecatedInput == nil {
-					return nil, errors.New("directive deprecatedInput is not implemented")
-				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.(*string); ok {
-				it.OwnerName = data
-			} else if tmp == nil {
-				it.OwnerName = nil
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
-			}
 		case "ownerId":
 			var err error
 			it.OwnerID, err = ec.unmarshalOID2ᚖint(ctx, v)
@@ -40856,39 +43017,6 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			it.InstallDate, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
-			}
-		case "assignee":
-			var err error
-			directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalOString2ᚖstring(ctx, v) }
-			directive1 := func(ctx context.Context) (interface{}, error) {
-				name, err := ec.unmarshalNString2string(ctx, "EditWorkOrderInput.assignee")
-				if err != nil {
-					return nil, err
-				}
-				duplicateError, err := ec.unmarshalNString2string(ctx, "Use `EditWorkOrderInput.assigneeId` instead. Will be removed on 2020-05-01. You cannot use `EditWorkOrderInput.assignee` and `EditWorkOrderInput.assigneeId` together")
-				if err != nil {
-					return nil, err
-				}
-				newField, err := ec.unmarshalOString2ᚖstring(ctx, "assigneeId")
-				if err != nil {
-					return nil, err
-				}
-				if ec.directives.DeprecatedInput == nil {
-					return nil, errors.New("directive deprecatedInput is not implemented")
-				}
-				return ec.directives.DeprecatedInput(ctx, obj, directive0, name, duplicateError, newField)
-			}
-
-			tmp, err := directive1(ctx)
-			if err != nil {
-				return it, err
-			}
-			if data, ok := tmp.(*string); ok {
-				it.Assignee = data
-			} else if tmp == nil {
-				it.Assignee = nil
-			} else {
-				return it, fmt.Errorf(`unexpected type %T from directive, should be *string`, tmp)
 			}
 		case "assigneeId":
 			var err error
@@ -40904,13 +43032,13 @@ func (ec *executionContext) unmarshalInputEditWorkOrderInput(ctx context.Context
 			}
 		case "status":
 			var err error
-			it.Status, err = ec.unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, v)
+			it.Status, err = ec.unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, v)
 			if err != nil {
 				return it, err
 			}
 		case "priority":
 			var err error
-			it.Priority, err = ec.unmarshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx, v)
+			it.Priority, err = ec.unmarshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41195,7 +43323,7 @@ func (ec *executionContext) unmarshalInputFileInput(ctx context.Context, obj int
 			}
 		case "fileType":
 			var err error
-			it.FileType, err = ec.unmarshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx, v)
+			it.FileType, err = ec.unmarshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -41811,7 +43939,7 @@ func (ec *executionContext) unmarshalInputPropertyTypeInput(ctx context.Context,
 			}
 		case "type":
 			var err error
-			it.Type, err = ec.unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx, v)
+			it.Type, err = ec.unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -43054,6 +45182,12 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 		case "propertyValue":
 			var err error
 			it.PropertyValue, err = ec.unmarshalOPropertyTypeInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyTypeInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timeValue":
+			var err error
+			it.TimeValue, err = ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -44353,6 +46487,38 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 	return out
 }
 
+var coordinatesImplementors = []string{"Coordinates"}
+
+func (ec *executionContext) _Coordinates(ctx context.Context, sel ast.SelectionSet, obj *models.Coordinates) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, coordinatesImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Coordinates")
+		case "latitude":
+			out.Values[i] = ec._Coordinates_latitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "longitude":
+			out.Values[i] = ec._Coordinates_longitude(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var customerImplementors = []string{"Customer", "Node"}
 
 func (ec *executionContext) _Customer(ctx context.Context, sel ast.SelectionSet, obj *ent.Customer) graphql.Marshaler {
@@ -44398,6 +46564,11 @@ func (ec *executionContext) _CustomerConnection(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("CustomerConnection")
+		case "totalCount":
+			out.Values[i] = ec._CustomerConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._CustomerConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -44787,6 +46958,11 @@ func (ec *executionContext) _EquipmentConnection(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EquipmentConnection")
+		case "totalCount":
+			out.Values[i] = ec._EquipmentConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._EquipmentConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -44942,6 +47118,11 @@ func (ec *executionContext) _EquipmentPortConnection(ctx context.Context, sel as
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EquipmentPortConnection")
+		case "totalCount":
+			out.Values[i] = ec._EquipmentPortConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._EquipmentPortConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -45023,6 +47204,11 @@ func (ec *executionContext) _EquipmentPortDefinitionConnection(ctx context.Conte
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EquipmentPortDefinitionConnection")
+		case "totalCount":
+			out.Values[i] = ec._EquipmentPortDefinitionConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._EquipmentPortDefinitionConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -45187,6 +47373,11 @@ func (ec *executionContext) _EquipmentPortTypeConnection(ctx context.Context, se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EquipmentPortTypeConnection")
+		case "totalCount":
+			out.Values[i] = ec._EquipmentPortTypeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._EquipmentPortTypeConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -45495,6 +47686,11 @@ func (ec *executionContext) _EquipmentTypeConnection(ctx context.Context, sel as
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EquipmentTypeConnection")
+		case "totalCount":
+			out.Values[i] = ec._EquipmentTypeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._EquipmentTypeConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -45596,12 +47792,12 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._File_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "fileName":
 			out.Values[i] = ec._File_fileName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "sizeInBytes":
 			out.Values[i] = ec._File_sizeInBytes(ctx, field, obj)
@@ -45610,16 +47806,7 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 		case "uploaded":
 			out.Values[i] = ec._File_uploaded(ctx, field, obj)
 		case "fileType":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._File_fileType(ctx, field, obj)
-				return res
-			})
+			out.Values[i] = ec._File_fileType(ctx, field, obj)
 		case "mimeType":
 			out.Values[i] = ec._File_mimeType(ctx, field, obj)
 		case "storeKey":
@@ -46089,6 +48276,11 @@ func (ec *executionContext) _LinkConnection(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("LinkConnection")
+		case "totalCount":
+			out.Values[i] = ec._LinkConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._LinkConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -46257,6 +48449,17 @@ func (ec *executionContext) _Location(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "parentCoords":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Location_parentCoords(ctx, field, obj)
+				return res
+			})
 		case "equipments":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -46489,6 +48692,11 @@ func (ec *executionContext) _LocationConnection(ctx context.Context, sel ast.Sel
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("LocationConnection")
+		case "totalCount":
+			out.Values[i] = ec._LocationConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._LocationConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -46704,6 +48912,11 @@ func (ec *executionContext) _LocationTypeConnection(ctx context.Context, sel ast
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("LocationTypeConnection")
+		case "totalCount":
+			out.Values[i] = ec._LocationTypeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._LocationTypeConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -47346,6 +49559,11 @@ func (ec *executionContext) _PermissionsPolicyConnection(ctx context.Context, se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("PermissionsPolicyConnection")
+		case "totalCount":
+			out.Values[i] = ec._PermissionsPolicyConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._PermissionsPolicyConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -47483,17 +49701,6 @@ func (ec *executionContext) _Project(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "description":
 			out.Values[i] = ec._Project_description(ctx, field, obj)
-		case "creator":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Project_creator(ctx, field, obj)
-				return res
-			})
 		case "createdBy":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -47608,6 +49815,11 @@ func (ec *executionContext) _ProjectConnection(ctx context.Context, sel ast.Sele
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProjectConnection")
+		case "totalCount":
+			out.Values[i] = ec._ProjectConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._ProjectConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -47759,6 +49971,11 @@ func (ec *executionContext) _ProjectTypeConnection(ctx context.Context, sel ast.
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ProjectTypeConnection")
+		case "totalCount":
+			out.Values[i] = ec._ProjectTypeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._ProjectTypeConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -47912,19 +50129,10 @@ func (ec *executionContext) _PropertyType(ctx context.Context, sel ast.Selection
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._PropertyType_type(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._PropertyType_type(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "nodeType":
 			out.Values[i] = ec._PropertyType_nodeType(ctx, field, obj)
 		case "index":
@@ -48204,6 +50412,20 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_links(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "services":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_services(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -48632,35 +50854,6 @@ func (ec *executionContext) _ReportFilter(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var searchEntriesConnectionImplementors = []string{"SearchEntriesConnection"}
-
-func (ec *executionContext) _SearchEntriesConnection(ctx context.Context, sel ast.SelectionSet, obj *models.SearchEntriesConnection) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, searchEntriesConnectionImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SearchEntriesConnection")
-		case "edges":
-			out.Values[i] = ec._SearchEntriesConnection_edges(ctx, field, obj)
-		case "pageInfo":
-			out.Values[i] = ec._SearchEntriesConnection_pageInfo(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
 var searchEntryImplementors = []string{"SearchEntry"}
 
 func (ec *executionContext) _SearchEntry(ctx context.Context, sel ast.SelectionSet, obj *models.SearchEntry) graphql.Marshaler {
@@ -48694,35 +50887,6 @@ func (ec *executionContext) _SearchEntry(ctx context.Context, sel ast.SelectionS
 			}
 		case "externalId":
 			out.Values[i] = ec._SearchEntry_externalId(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch()
-	if invalids > 0 {
-		return graphql.Null
-	}
-	return out
-}
-
-var searchEntryEdgeImplementors = []string{"SearchEntryEdge"}
-
-func (ec *executionContext) _SearchEntryEdge(ctx context.Context, sel ast.SelectionSet, obj *models.SearchEntryEdge) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, searchEntryEdgeImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	var invalids uint32
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("SearchEntryEdge")
-		case "node":
-			out.Values[i] = ec._SearchEntryEdge_node(ctx, field, obj)
-		case "cursor":
-			out.Values[i] = ec._SearchEntryEdge_cursor(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -48774,6 +50938,11 @@ func (ec *executionContext) _SearchNodesConnection(ctx context.Context, sel ast.
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SearchNodesConnection")
+		case "totalCount":
+			out.Values[i] = ec._SearchNodesConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._SearchNodesConnection_edges(ctx, field, obj)
 		case "pageInfo":
@@ -48938,6 +51107,72 @@ func (ec *executionContext) _Service(ctx context.Context, sel ast.SelectionSet, 
 				}
 				return res
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceConnectionImplementors = []string{"ServiceConnection"}
+
+func (ec *executionContext) _ServiceConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.ServiceConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceConnection")
+		case "totalCount":
+			out.Values[i] = ec._ServiceConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "edges":
+			out.Values[i] = ec._ServiceConnection_edges(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._ServiceConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var serviceEdgeImplementors = []string{"ServiceEdge"}
+
+func (ec *executionContext) _ServiceEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.ServiceEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, serviceEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ServiceEdge")
+		case "node":
+			out.Values[i] = ec._ServiceEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._ServiceEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -49265,6 +51500,11 @@ func (ec *executionContext) _ServiceTypeConnection(ctx context.Context, sel ast.
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ServiceTypeConnection")
+		case "totalCount":
+			out.Values[i] = ec._ServiceTypeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._ServiceTypeConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -49979,6 +52219,11 @@ func (ec *executionContext) _UserConnection(ctx context.Context, sel ast.Selecti
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UserConnection")
+		case "totalCount":
+			out.Values[i] = ec._UserConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._UserConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -50139,6 +52384,11 @@ func (ec *executionContext) _UsersGroupConnection(ctx context.Context, sel ast.S
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("UsersGroupConnection")
+		case "totalCount":
+			out.Values[i] = ec._UsersGroupConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._UsersGroupConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -50363,20 +52613,6 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 			}
 		case "description":
 			out.Values[i] = ec._WorkOrder_description(ctx, field, obj)
-		case "ownerName":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrder_ownerName(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "owner":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -50398,17 +52634,6 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 			}
 		case "installDate":
 			out.Values[i] = ec._WorkOrder_installDate(ctx, field, obj)
-		case "assignee":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrder_assignee(ctx, field, obj)
-				return res
-			})
 		case "assignedTo":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -50426,33 +52651,15 @@ func (ec *executionContext) _WorkOrder(ctx context.Context, sel ast.SelectionSet
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "status":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrder_status(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._WorkOrder_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "priority":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._WorkOrder_priority(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
+			out.Values[i] = ec._WorkOrder_priority(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "equipmentToAdd":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -50653,6 +52860,11 @@ func (ec *executionContext) _WorkOrderConnection(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("WorkOrderConnection")
+		case "totalCount":
+			out.Values[i] = ec._WorkOrderConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._WorkOrderConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -50974,6 +53186,11 @@ func (ec *executionContext) _WorkOrderTypeConnection(ctx context.Context, sel as
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("WorkOrderTypeConnection")
+		case "totalCount":
+			out.Values[i] = ec._WorkOrderTypeConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "edges":
 			out.Values[i] = ec._WorkOrderTypeConnection_edges(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -51809,18 +54026,12 @@ func (ec *executionContext) marshalNActivity2ᚖgithubᚗcomᚋfacebookincubator
 }
 
 func (ec *executionContext) unmarshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx context.Context, v interface{}) (activity.ChangedField, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return activity.ChangedField(tmp), err
+	var res activity.ChangedField
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNActivityField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋactivityᚐChangedField(ctx context.Context, sel ast.SelectionSet, v activity.ChangedField) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) unmarshalNAddActionsRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐAddActionsRuleInput(ctx context.Context, v interface{}) (models.AddActionsRuleInput, error) {
@@ -54966,12 +57177,12 @@ func (ec *executionContext) unmarshalNPropertyInput2ᚖgithubᚗcomᚋfacebookin
 	return &res, err
 }
 
-func (ec *executionContext) unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx context.Context, v interface{}) (models.PropertyKind, error) {
-	var res models.PropertyKind
+func (ec *executionContext) unmarshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx context.Context, v interface{}) (propertytype.Type, error) {
+	var res propertytype.Type
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPropertyKind(ctx context.Context, sel ast.SelectionSet, v models.PropertyKind) graphql.Marshaler {
+func (ec *executionContext) marshalNPropertyKind2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋpropertytypeᚐType(ctx context.Context, sel ast.SelectionSet, v propertytype.Type) graphql.Marshaler {
 	return v
 }
 
@@ -55181,20 +57392,6 @@ func (ec *executionContext) unmarshalNReportFilterInput2githubᚗcomᚋfacebooki
 	return ec.unmarshalInputReportFilterInput(ctx, v)
 }
 
-func (ec *executionContext) marshalNSearchEntryEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v models.SearchEntryEdge) graphql.Marshaler {
-	return ec._SearchEntryEdge(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNSearchEntryEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx context.Context, sel ast.SelectionSet, v *models.SearchEntryEdge) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._SearchEntryEdge(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNSearchNodeEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchNodeEdge(ctx context.Context, sel ast.SelectionSet, v models.SearchNodeEdge) graphql.Marshaler {
 	return ec._SearchNodeEdge(ctx, sel, &v)
 }
@@ -55274,8 +57471,73 @@ func (ec *executionContext) marshalNService2ᚖgithubᚗcomᚋfacebookincubator�
 	return ec._Service(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNServiceConnection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceConnection(ctx context.Context, sel ast.SelectionSet, v ent.ServiceConnection) graphql.Marshaler {
+	return ec._ServiceConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceConnection2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceConnection(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNServiceCreateData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceCreateData(ctx context.Context, v interface{}) (models.ServiceCreateData, error) {
 	return ec.unmarshalInputServiceCreateData(ctx, v)
+}
+
+func (ec *executionContext) marshalNServiceEdge2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceEdge(ctx context.Context, sel ast.SelectionSet, v ent.ServiceEdge) graphql.Marshaler {
+	return ec._ServiceEdge(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNServiceEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ServiceEdge) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNServiceEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNServiceEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐServiceEdge(ctx context.Context, sel ast.SelectionSet, v *ent.ServiceEdge) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ServiceEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNServiceEditData2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEditData(ctx context.Context, v interface{}) (models.ServiceEditData, error) {
@@ -56268,18 +58530,12 @@ func (ec *executionContext) marshalNUserFilterType2githubᚗcomᚋfacebookincuba
 }
 
 func (ec *executionContext) unmarshalNUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (user.Role, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Role(tmp), err
+	var res user.Role
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, sel ast.SelectionSet, v user.Role) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNUserSearchResult2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserSearchResult(ctx context.Context, sel ast.SelectionSet, v models.UserSearchResult) graphql.Marshaler {
@@ -56297,18 +58553,12 @@ func (ec *executionContext) marshalNUserSearchResult2ᚖgithubᚗcomᚋfacebooki
 }
 
 func (ec *executionContext) unmarshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (user.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Status(tmp), err
+	var res user.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, sel ast.SelectionSet, v user.Status) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNUsersGroup2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroup) graphql.Marshaler {
@@ -56506,18 +58756,12 @@ func (ec *executionContext) marshalNUsersGroupSearchResult2ᚖgithubᚗcomᚋfac
 }
 
 func (ec *executionContext) unmarshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (usersgroup.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return usersgroup.Status(tmp), err
+	var res usersgroup.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalNUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v usersgroup.Status) graphql.Marshaler {
-	res := graphql.MarshalString(string(v))
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
+	return v
 }
 
 func (ec *executionContext) marshalNWorkOrder2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐWorkOrder(ctx context.Context, sel ast.SelectionSet, v ent.WorkOrder) graphql.Marshaler {
@@ -56777,12 +59021,12 @@ func (ec *executionContext) marshalNWorkOrderFilterType2githubᚗcomᚋfacebooki
 	return v
 }
 
-func (ec *executionContext) unmarshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, v interface{}) (models.WorkOrderPriority, error) {
-	var res models.WorkOrderPriority
+func (ec *executionContext) unmarshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (workorder.Priority, error) {
+	var res workorder.Priority
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderPriority) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, sel ast.SelectionSet, v workorder.Priority) graphql.Marshaler {
 	return v
 }
 
@@ -56800,12 +59044,12 @@ func (ec *executionContext) marshalNWorkOrderSearchResult2ᚖgithubᚗcomᚋface
 	return ec._WorkOrderSearchResult(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (models.WorkOrderStatus, error) {
-	var res models.WorkOrderStatus
+func (ec *executionContext) unmarshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (workorder.Status, error) {
+	var res workorder.Status
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderStatus) graphql.Marshaler {
+func (ec *executionContext) marshalNWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v workorder.Status) graphql.Marshaler {
 	return v
 }
 
@@ -57367,12 +59611,12 @@ func (ec *executionContext) unmarshalOCheckListCategoryInput2ᚕᚖgithubᚗcom�
 }
 
 func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, v interface{}) (checklistitem.EnumSelectionModeValue, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return checklistitem.EnumSelectionModeValue(tmp), err
+	var res checklistitem.EnumSelectionModeValue
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, sel ast.SelectionSet, v checklistitem.EnumSelectionModeValue) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOCheckListItemEnumSelectionMode2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx context.Context, v interface{}) (*checklistitem.EnumSelectionModeValue, error) {
@@ -57387,7 +59631,7 @@ func (ec *executionContext) marshalOCheckListItemEnumSelectionMode2ᚖgithubᚗc
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOCheckListItemEnumSelectionMode2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋchecklistitemᚐEnumSelectionModeValue(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOCheckListItemInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCheckListItemInputᚄ(ctx context.Context, v interface{}) ([]*models.CheckListItemInput, error) {
@@ -57419,6 +59663,17 @@ func (ec *executionContext) marshalOComment2ᚖgithubᚗcomᚋfacebookincubator�
 		return graphql.Null
 	}
 	return ec._Comment(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOCoordinates2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v models.Coordinates) graphql.Marshaler {
+	return ec._Coordinates(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOCoordinates2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐCoordinates(ctx context.Context, sel ast.SelectionSet, v *models.Coordinates) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Coordinates(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOCursor2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐCursor(ctx context.Context, v interface{}) (ent.Cursor, error) {
@@ -57511,6 +59766,26 @@ func (ec *executionContext) marshalOEquipment2ᚖgithubᚗcomᚋfacebookincubato
 		return graphql.Null
 	}
 	return ec._Equipment(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOEquipmentFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.EquipmentFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.EquipmentFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNEquipmentFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOEquipmentPort2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐEquipmentPort(ctx context.Context, sel ast.SelectionSet, v ent.EquipmentPort) graphql.Marshaler {
@@ -57702,24 +59977,24 @@ func (ec *executionContext) unmarshalOFileInput2ᚖgithubᚗcomᚋfacebookincuba
 	return &res, err
 }
 
-func (ec *executionContext) unmarshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx context.Context, v interface{}) (models.FileType, error) {
-	var res models.FileType
+func (ec *executionContext) unmarshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx context.Context, v interface{}) (file.Type, error) {
+	var res file.Type
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx context.Context, sel ast.SelectionSet, v models.FileType) graphql.Marshaler {
+func (ec *executionContext) marshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx context.Context, sel ast.SelectionSet, v file.Type) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx context.Context, v interface{}) (*models.FileType, error) {
+func (ec *executionContext) unmarshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx context.Context, v interface{}) (*file.Type, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx, v)
+	res, err := ec.unmarshalOFileType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐFileType(ctx context.Context, sel ast.SelectionSet, v *models.FileType) graphql.Marshaler {
+func (ec *executionContext) marshalOFileType2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋfileᚐType(ctx context.Context, sel ast.SelectionSet, v *file.Type) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -57732,6 +60007,38 @@ func (ec *executionContext) unmarshalOFloat2float64(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOFloat2float64(ctx context.Context, sel ast.SelectionSet, v float64) graphql.Marshaler {
 	return graphql.MarshalFloat(v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚕfloat64ᚄ(ctx context.Context, v interface{}) ([]float64, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]float64, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNFloat2float64(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOFloat2ᚕfloat64ᚄ(ctx context.Context, sel ast.SelectionSet, v []float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNFloat2float64(ctx, sel, v[i])
+	}
+
+	return ret
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
@@ -57928,6 +60235,26 @@ func (ec *executionContext) marshalOLink2ᚖgithubᚗcomᚋfacebookincubatorᚋs
 	return ec._Link(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOLinkFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.LinkFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.LinkFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNLinkFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalOLocation2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐLocation(ctx context.Context, sel ast.SelectionSet, v ent.Location) graphql.Marshaler {
 	return ec._Location(ctx, sel, &v)
 }
@@ -57960,6 +60287,26 @@ func (ec *executionContext) marshalOLocationConnection2ᚖgithubᚗcomᚋfaceboo
 		return graphql.Null
 	}
 	return ec._LocationConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOLocationFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.LocationFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.LocationFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNLocationFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOLocationPermissionRuleInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋauthzᚋmodelsᚐLocationPermissionRuleInput(ctx context.Context, v interface{}) (models1.LocationPermissionRuleInput, error) {
@@ -58084,6 +60431,46 @@ func (ec *executionContext) marshalOPermissionsPolicyConnection2ᚖgithubᚗcom�
 	return ec._PermissionsPolicyConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOPermissionsPolicyFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionsPolicyFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.PermissionsPolicyFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.PermissionsPolicyFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNPermissionsPolicyFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionsPolicyFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOPortFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.PortFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.PortFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNPortFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) marshalOProject2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐProject(ctx context.Context, sel ast.SelectionSet, v ent.Project) graphql.Marshaler {
 	return ec._Project(ctx, sel, &v)
 }
@@ -58104,6 +60491,26 @@ func (ec *executionContext) marshalOProjectConnection2ᚖgithubᚗcomᚋfacebook
 		return graphql.Null
 	}
 	return ec._ProjectConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOProjectFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.ProjectFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.ProjectFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNProjectFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) marshalOProjectType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐProjectType(ctx context.Context, sel ast.SelectionSet, v ent.ProjectType) graphql.Marshaler {
@@ -58265,57 +60672,6 @@ func (ec *executionContext) marshalOPythonPackage2ᚖgithubᚗcomᚋfacebookincu
 	return ec._PythonPackage(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOSearchEntry2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntry(ctx context.Context, sel ast.SelectionSet, v models.SearchEntry) graphql.Marshaler {
-	return ec._SearchEntry(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOSearchEntry2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntry(ctx context.Context, sel ast.SelectionSet, v *models.SearchEntry) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._SearchEntry(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOSearchEntryEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.SearchEntryEdge) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNSearchEntryEdge2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchEntryEdge(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
 func (ec *executionContext) marshalOSearchNodeEdge2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐSearchNodeEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.SearchNodeEdge) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -58408,6 +60764,26 @@ func (ec *executionContext) unmarshalOServiceEndpointDefinitionInput2ᚖgithub�
 	}
 	res, err := ec.unmarshalOServiceEndpointDefinitionInput2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceEndpointDefinitionInput(ctx, v)
 	return &res, err
+}
+
+func (ec *executionContext) unmarshalOServiceFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.ServiceFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.ServiceFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNServiceFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
 }
 
 func (ec *executionContext) unmarshalOServiceStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceStatus(ctx context.Context, v interface{}) (models.ServiceStatus, error) {
@@ -59066,13 +61442,33 @@ func (ec *executionContext) marshalOUserConnection2ᚖgithubᚗcomᚋfacebookinc
 	return ec._UserConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.UserFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.UserFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNUserFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (user.Role, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Role(tmp), err
+	var res user.Role
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, sel ast.SelectionSet, v user.Role) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOUserRole2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx context.Context, v interface{}) (*user.Role, error) {
@@ -59087,16 +61483,16 @@ func (ec *executionContext) marshalOUserRole2ᚖgithubᚗcomᚋfacebookincubator
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUserRole2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐRole(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) unmarshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (user.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return user.Status(tmp), err
+	var res user.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, sel ast.SelectionSet, v user.Status) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx context.Context, v interface{}) (*user.Status, error) {
@@ -59111,7 +61507,7 @@ func (ec *executionContext) marshalOUserStatus2ᚖgithubᚗcomᚋfacebookincubat
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUserStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋuserᚐStatus(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) marshalOUsersGroup2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐUsersGroup(ctx context.Context, sel ast.SelectionSet, v ent.UsersGroup) graphql.Marshaler {
@@ -59136,13 +61532,33 @@ func (ec *executionContext) marshalOUsersGroupConnection2ᚖgithubᚗcomᚋfaceb
 	return ec._UsersGroupConnection(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalOUsersGroupFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUsersGroupFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.UsersGroupFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.UsersGroupFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNUsersGroupFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUsersGroupFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
 func (ec *executionContext) unmarshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (usersgroup.Status, error) {
-	tmp, err := graphql.UnmarshalString(v)
-	return usersgroup.Status(tmp), err
+	var res usersgroup.Status
+	return res, res.UnmarshalGQL(v)
 }
 
 func (ec *executionContext) marshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, sel ast.SelectionSet, v usersgroup.Status) graphql.Marshaler {
-	return graphql.MarshalString(string(v))
+	return v
 }
 
 func (ec *executionContext) unmarshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx context.Context, v interface{}) (*usersgroup.Status, error) {
@@ -59157,7 +61573,7 @@ func (ec *executionContext) marshalOUsersGroupStatus2ᚖgithubᚗcomᚋfacebooki
 	if v == nil {
 		return graphql.Null
 	}
-	return ec.marshalOUsersGroupStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋusersgroupᚐStatus(ctx, sel, *v)
+	return v
 }
 
 func (ec *executionContext) marshalOVertex2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐNode(ctx context.Context, sel ast.SelectionSet, v ent.Node) graphql.Marshaler {
@@ -59220,48 +61636,68 @@ func (ec *executionContext) unmarshalOWorkOrderDefinitionInput2ᚕᚖgithubᚗco
 	return res, nil
 }
 
-func (ec *executionContext) unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, v interface{}) (models.WorkOrderPriority, error) {
-	var res models.WorkOrderPriority
+func (ec *executionContext) unmarshalOWorkOrderFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInputᚄ(ctx context.Context, v interface{}) ([]*models.WorkOrderFilterInput, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.WorkOrderFilterInput, len(vSlice))
+	for i := range vSlice {
+		res[i], err = ec.unmarshalNWorkOrderFilterInput2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (workorder.Priority, error) {
+	var res workorder.Priority
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderPriority) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, sel ast.SelectionSet, v workorder.Priority) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, v interface{}) (*models.WorkOrderPriority, error) {
+func (ec *executionContext) unmarshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (*workorder.Priority, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx, v)
+	res, err := ec.unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderPriority(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderPriority) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderPriority2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, sel ast.SelectionSet, v *workorder.Priority) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return v
 }
 
-func (ec *executionContext) unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (models.WorkOrderStatus, error) {
-	var res models.WorkOrderStatus
+func (ec *executionContext) unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (workorder.Status, error) {
+	var res workorder.Status
 	return res, res.UnmarshalGQL(v)
 }
 
-func (ec *executionContext) marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v workorder.Status) graphql.Marshaler {
 	return v
 }
 
-func (ec *executionContext) unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, v interface{}) (*models.WorkOrderStatus, error) {
+func (ec *executionContext) unmarshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, v interface{}) (*workorder.Status, error) {
 	if v == nil {
 		return nil, nil
 	}
-	res, err := ec.unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx, v)
+	res, err := ec.unmarshalOWorkOrderStatus2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx, v)
 	return &res, err
 }
 
-func (ec *executionContext) marshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderStatus(ctx context.Context, sel ast.SelectionSet, v *models.WorkOrderStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOWorkOrderStatus2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐStatus(ctx context.Context, sel ast.SelectionSet, v *workorder.Status) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

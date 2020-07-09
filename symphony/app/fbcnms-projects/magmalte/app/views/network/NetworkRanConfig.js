@@ -8,213 +8,300 @@
  * @flow strict-local
  * @format
  */
-import type {network_ran_configs} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+import type {network_ran_configs} from '@fbcnms/magma-api';
 
+import Button from '@fbcnms/ui/components/design-system/Button';
 import Collapse from '@material-ui/core/Collapse';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import FddConfig from './NetworkRanFddConfig';
+import FormControl from '@material-ui/core/FormControl';
+import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
+import Input from '@material-ui/core/Input';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MenuItem from '@material-ui/core/MenuItem';
+import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import Select from '@material-ui/core/Select';
+import TddConfig from './NetworkRanTddConfig';
 
-import {useCallback, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {colors} from '../../theme/default';
+import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useState} from 'react';
 
-export default function NetworkRanConfig(props: {readOnly: boolean}) {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [open, setOpen] = React.useState(true);
-  const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
-  const {isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularRan,
-    {
-      networkId: networkId,
+const useStyles = makeStyles(() => ({
+  input: {
+    display: 'inline-flex',
+    margin: '5px 0',
+    width: '50%',
+    fullWidth: true,
+  },
+  itemTitle: {
+    color: colors.primary.comet,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  itemValue: {
+    color: colors.primary.brightGray,
+  },
+}));
+
+type Props = {
+  lteRanConfigs: network_ran_configs,
+};
+
+export default function NetworkRan(props: Props) {
+  const classes = useStyles();
+  const typographyProps = {
+    primaryTypographyProps: {
+      variant: 'caption',
+      className: classes.itemTitle,
     },
-    useCallback(lteRanConfigs => setLteRanConfigs(lteRanConfigs), []),
-  );
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  if (Object.keys(lteRanConfigs).length === 0) {
-    return null;
-  }
+    secondaryTypographyProps: {
+      variant: 'h6',
+      className: classes.itemValue,
+    },
+  };
+  const [open, setOpen] = React.useState(true);
 
   return (
-    <Grid container>
-      <Grid container item xs={12}>
-        <Grid item>
-          <Text weight="medium" variant="h5">
-            RAN
-          </Text>
-        </Grid>
-        <Grid container item justify="flex-end">
-          <Text>Edit</Text>
-        </Grid>
-      </Grid>
-      <Grid item xs={12}>
-        <List component={Paper}>
-          <ListItem>
-            <TextField
-              fullWidth={true}
-              value={lteRanConfigs.bandwidth_mhz}
-              label="Bandwidth"
-              onChange={({target}) =>
-                setLteRanConfigs({...lteRanConfigs, bandwidth: target.value})
-              }
-              InputProps={{disableUnderline: true, readOnly: props.readOnly}}
+    <List component={Paper} data-testid="ran">
+      <ListItem>
+        <ListItemText
+          primary={'Bandwidth'}
+          secondary={props.lteRanConfigs?.bandwidth_mhz}
+          {...typographyProps}
+        />
+      </ListItem>
+      <Divider />
+      {props.lteRanConfigs?.tdd_config && (
+        <List key="tddConfigs">
+          <ListItem button onClick={() => setOpen(!open)}>
+            <ListItemText
+              primary="RAN Config"
+              secondary="TDD"
+              {...typographyProps}
             />
+            {open ? <ExpandLess /> : <ExpandMore />}
+          </ListItem>
+          <Collapse key="tdd" in={open} timeout="auto" unmountOnExit>
+            <ListItem>
+              <ListItemText
+                primary={'EARFCNDL'}
+                secondary={props.lteRanConfigs?.tdd_config?.earfcndl}
+                {...typographyProps}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={'Special Subframe Pattern'}
+                secondary={
+                  props.lteRanConfigs.tdd_config?.special_subframe_pattern
+                }
+                {...typographyProps}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary={'Subframe Assignment'}
+                secondary={props.lteRanConfigs?.tdd_config?.subframe_assignment}
+                {...typographyProps}
+              />
+            </ListItem>
+          </Collapse>
+        </List>
+      )}
+      {props.lteRanConfigs?.fdd_config && (
+        <List key="fddConfigs">
+          <ListItem button onClick={() => setOpen(!open)}>
+            <ListItemText
+              primary="RAN Config"
+              secondary="FDD"
+              {...typographyProps}
+            />
+            {open ? <ExpandLess /> : <ExpandMore />}
           </ListItem>
           <Divider />
-          {lteRanConfigs?.tdd_config && (
-            <List key="tddConfigs">
-              <ListItem button onClick={() => setOpen(!open)}>
-                <ListItemText primary="TDD" />
-                {open ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse key="tdd" in={open} timeout="auto" unmountOnExit>
-                <ListItem>
-                  <TextField
-                    type="number"
-                    fullWidth={true}
-                    value={lteRanConfigs.tdd_config?.earfcndl}
-                    label="EARFCNDL"
-                    onChange={({target}) =>
-                      setLteRanConfigs({
-                        ...lteRanConfigs,
-                        tdd_config: {
-                          special_subframe_pattern:
-                            lteRanConfigs.tdd_config
-                              ?.special_subframe_pattern ?? 0,
-                          subframe_assignment:
-                            lteRanConfigs.tdd_config?.subframe_assignment ?? 0,
-                          earfcndl: parseInt(target.value),
-                        },
-                      })
-                    }
-                    InputProps={{
-                      disableUnderline: true,
-                      readOnly: props.readOnly,
-                    }}
+          <Collapse key="fdd" in={open} timeout="auto" unmountOnExit>
+            <ListItem>
+              <Grid container>
+                <Grid item xs={6}>
+                  <ListItemText
+                    primary={'EARFCNDL'}
+                    secondary={props.lteRanConfigs?.fdd_config?.earfcndl}
+                    {...typographyProps}
                   />
-                </ListItem>
-                <ListItem>
-                  <TextField
-                    fullWidth={true}
-                    value={lteRanConfigs.tdd_config?.special_subframe_pattern}
-                    label="Special Subframe Pattern"
-                    onChange={({target}) =>
-                      setLteRanConfigs({
-                        ...lteRanConfigs,
-                        tdd_config: {
-                          special_subframe_pattern: parseInt(target.value),
-                          subframe_assignment:
-                            lteRanConfigs.tdd_config?.subframe_assignment ?? 0,
-                          earfcndl: lteRanConfigs.tdd_config?.earfcndl ?? 0,
-                        },
-                      })
-                    }
-                    InputProps={{
-                      disableUnderline: true,
-                      readOnly: props.readOnly,
-                    }}
+                </Grid>
+                <Grid item xs={6}>
+                  <ListItemText
+                    primary={'EARFCNUL'}
+                    secondary={props.lteRanConfigs?.fdd_config?.earfcnul}
+                    {...typographyProps}
                   />
-                </ListItem>
-                <ListItem>
-                  <TextField
-                    fullWidth={true}
-                    value={lteRanConfigs.tdd_config?.subframe_assignment}
-                    label="Subframe Assignment"
-                    onChange={({target}) =>
-                      setLteRanConfigs({
-                        ...lteRanConfigs,
-                        tdd_config: {
-                          subframe_assignment: parseInt(target.value),
-                          special_subframe_pattern:
-                            lteRanConfigs.tdd_config
-                              ?.special_subframe_pattern ?? 0,
-                          earfcndl: lteRanConfigs.tdd_config?.earfcndl ?? 0,
-                        },
-                      })
-                    }
-                    InputProps={{
-                      disableUnderline: true,
-                      readOnly: props.readOnly,
+                </Grid>
+              </Grid>
+            </ListItem>
+          </Collapse>
+        </List>
+      )}
+    </List>
+  );
+}
+
+type EditProps = {
+  saveButtonTitle: string,
+  networkId: string,
+  lteRanConfigs: ?network_ran_configs,
+  onClose: () => void,
+  onSave: network_ran_configs => void,
+};
+type BandType = 'tdd' | 'fdd';
+const ValidBandwidths = [3, 5, 10, 15, 20];
+
+export function NetworkRanEdit(props: EditProps) {
+  const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
+  const [bandType, setBandType] = useState<BandType>('tdd');
+  const defaultTddConfig = {
+    earfcndl: 0,
+    special_subframe_pattern: 0,
+    subframe_assignment: 0,
+  };
+  const defaulFddConfig = {
+    earfcndl: 0,
+    earfcnul: 0,
+  };
+  const [lteRanConfigs, setLteRanConfigs] = useState(
+    props?.lteRanConfigs || {
+      bandwidth_mhz: 20,
+      fdd_config: undefined,
+      tdd_config: defaultTddConfig,
+    },
+  );
+
+  const onSave = async () => {
+    const config: network_ran_configs = {
+      ...lteRanConfigs,
+    };
+    if (bandType === 'tdd') {
+      config.fdd_config = undefined;
+    } else {
+      config.tdd_config = undefined;
+    }
+    try {
+      await MagmaV1API.putLteByNetworkIdCellularRan({
+        networkId: props.networkId,
+        config: config,
+      });
+      enqueueSnackbar('RAN configs saved successfully', {variant: 'success'});
+      props.onSave(config);
+    } catch (e) {
+      setError(e.response.data?.message ?? e.message);
+    }
+  };
+
+  return (
+    <>
+      <DialogContent data-testid="networkRanEdit">
+        {error !== '' && <FormLabel error>{error}</FormLabel>}
+        <List component={Paper}>
+          <ListItem>
+            <Grid container>
+              <Grid item xs={12}>
+                Bandwidth
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl className={classes.input}>
+                  <Select
+                    value={lteRanConfigs.bandwidth_mhz}
+                    onChange={({target}) => {
+                      if (
+                        target.value === 3 ||
+                        target.value === 5 ||
+                        target.value === 10 ||
+                        target.value === 15 ||
+                        target.value === 20
+                      ) {
+                        setLteRanConfigs({
+                          ...lteRanConfigs,
+                          bandwidth_mhz: target.value,
+                        });
+                      }
                     }}
-                  />
-                </ListItem>
-              </Collapse>
-            </List>
+                    input={<OutlinedInput id="bandwidth" />}>
+                    {ValidBandwidths.map((k: number, idx: number) => (
+                      <MenuItem key={idx} value={k}>
+                        {k}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </ListItem>
+          <ListItem>
+            <Grid container>
+              <Grid item xs={12}>
+                Band Type
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl className={classes.input}>
+                  <Select
+                    value={bandType}
+                    onChange={({target}) => {
+                      if (target.value === 'fdd') {
+                        setLteRanConfigs({
+                          fdd_config: defaulFddConfig,
+                          ...lteRanConfigs,
+                        });
+                        setBandType('fdd');
+                      } else {
+                        setLteRanConfigs({
+                          tdd_config: defaultTddConfig,
+                          ...lteRanConfigs,
+                        });
+                        setBandType(target.value === 'tdd' ? 'tdd' : 'fdd');
+                      }
+                    }}
+                    input={<Input id="bandType" />}>
+                    <MenuItem value={'tdd'}>TDD</MenuItem>
+                    <MenuItem value={'fdd'}>FDD</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </ListItem>
+          {bandType === 'tdd' && (
+            <TddConfig
+              lteRanConfigs={lteRanConfigs}
+              setLteRanConfigs={setLteRanConfigs}
+            />
           )}
-          {lteRanConfigs?.fdd_config && (
-            <List key="fddConfigs">
-              <ListItem button onClick={() => setOpen(!open)}>
-                <ListItemText primary="FDD" />
-                {open ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Divider />
-              <Collapse key="fdd" in={open} timeout="auto" unmountOnExit>
-                <ListItem>
-                  <Grid container>
-                    <Grid item xs={6}>
-                      <TextField
-                        type="number"
-                        fullWidth={true}
-                        value={lteRanConfigs.fdd_config?.earfcndl}
-                        label="EARFCNDL"
-                        onChange={({target}) =>
-                          setLteRanConfigs({
-                            ...lteRanConfigs,
-                            fdd_config: {
-                              earfcndl: parseInt(target.value),
-                              earfcnul: lteRanConfigs.fdd_config?.earfcnul ?? 0,
-                            },
-                          })
-                        }
-                        InputProps={{
-                          disableUnderline: true,
-                          readOnly: props.readOnly,
-                        }}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        type="number"
-                        fullWidth={true}
-                        value={lteRanConfigs.fdd_config?.earfcnul}
-                        label="EARFCNUL"
-                        onChange={({target}) =>
-                          setLteRanConfigs({
-                            ...lteRanConfigs,
-                            fdd_config: {
-                              earfcndl: lteRanConfigs.fdd_config?.earfcndl ?? 0,
-                              earfcnul: parseInt(target.value),
-                            },
-                          })
-                        }
-                        InputProps={{
-                          disableUnderline: true,
-                          readOnly: props.readOnly,
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </ListItem>
-              </Collapse>
-            </List>
+          {bandType === 'fdd' && (
+            <FddConfig
+              lteRanConfigs={lteRanConfigs}
+              setLteRanConfigs={setLteRanConfigs}
+            />
           )}
         </List>
-      </Grid>
-    </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave}>{props.saveButtonTitle}</Button>
+      </DialogActions>
+    </>
   );
 }

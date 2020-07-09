@@ -156,6 +156,11 @@ func (epdc *EquipmentPortDefinitionCreate) SetEquipmentType(e *EquipmentType) *E
 	return epdc.SetEquipmentTypeID(e.ID)
 }
 
+// Mutation returns the EquipmentPortDefinitionMutation object of the builder.
+func (epdc *EquipmentPortDefinitionCreate) Mutation() *EquipmentPortDefinitionMutation {
+	return epdc.mutation
+}
+
 // Save creates the EquipmentPortDefinition in the database.
 func (epdc *EquipmentPortDefinitionCreate) Save(ctx context.Context) (*EquipmentPortDefinition, error) {
 	if _, ok := epdc.mutation.CreateTime(); !ok {
@@ -167,7 +172,7 @@ func (epdc *EquipmentPortDefinitionCreate) Save(ctx context.Context) (*Equipment
 		epdc.mutation.SetUpdateTime(v)
 	}
 	if _, ok := epdc.mutation.Name(); !ok {
-		return nil, errors.New("ent: missing required field \"name\"")
+		return nil, &ValidationError{Name: "name", err: errors.New("ent: missing required field \"name\"")}
 	}
 	var (
 		err  error

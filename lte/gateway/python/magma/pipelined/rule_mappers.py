@@ -6,11 +6,19 @@ This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
+import json
 import threading
-from collections import defaultdict
+from collections import namedtuple
 from typing import Optional
 
 from magma.pipelined.imsi import encode_imsi
+from magma.common.redis.client import get_default_client
+from magma.common.redis.containers import RedisHashDict
+from magma.common.redis.serializers import get_json_deserializer, \
+    get_json_serializer
+
+
+SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi rule_id')
 
 
 class RuleIDToNumMapper:
@@ -22,9 +30,10 @@ class RuleIDToNumMapper:
     """
 
     def __init__(self):
+        self.redis_cli = get_default_client()
         self._curr_rule_num = 1
-        self._rule_nums_by_rule = {}
-        self._rules_by_rule_num = {}
+        self._rule_nums_by_rule = RuleIDDict()
+        self._rules_by_rule_num = RuleNameDict()
         self._lock = threading.Lock()  # write lock
 
     def _register_rule(self, rule_id):
@@ -66,14 +75,15 @@ class SessionRuleToVersionMapper:
     VERSION_LIMIT = 0xFFFFFFFF  # 32 bit unsigned int limit (inclusive)
 
     def __init__(self):
-        self._version_by_imsi_and_rule = defaultdict(lambda: defaultdict(int))
+        self._version_by_imsi_and_rule = RuleVersionDict()
         self._lock = threading.Lock()  # write lock
 
     def _update_version_unsafe(self, imsi: str, rule_id: str):
-        encoded_imsi = encode_imsi(imsi)
-        version = self._version_by_imsi_and_rule[encoded_imsi][
-            rule_id]
-        self._version_by_imsi_and_rule[encoded_imsi][rule_id] = \
+        key = self._get_json_key(encode_imsi(imsi), rule_id)
+        version = self._version_by_imsi_and_rule.get(key)
+        if not version:
+            version = 0
+        self._version_by_imsi_and_rule[key] = \
             (version % self.VERSION_LIMIT) + 1
 
     def update_version(self, imsi: str, rule_id: Optional[str] = None):
@@ -82,10 +92,13 @@ class SessionRuleToVersionMapper:
         rule id is not specified, then all rules for the subscriber will be
         incremented.
         """
+        encoded_imsi = encode_imsi(imsi)
         with self._lock:
             if rule_id is None:
-                for rule in self._version_by_imsi_and_rule[encode_imsi(imsi)]:
-                    self._update_version_unsafe(imsi, rule)
+                for k, v in self._version_by_imsi_and_rule.items():
+                    _, i, _ = SubscriberRuleKey(*json.loads(k))
+                    if i == encoded_imsi:
+                        self._version_by_imsi_and_rule[k] = v + 1
             else:
                 self._update_version_unsafe(imsi, rule_id)
 
@@ -93,5 +106,72 @@ class SessionRuleToVersionMapper:
         """
         Returns the version number given a subscriber and a rule.
         """
+        key = self._get_json_key(encode_imsi(imsi), rule_id)
         with self._lock:
-            return self._version_by_imsi_and_rule[encode_imsi(imsi)][rule_id]
+            version = self._version_by_imsi_and_rule.get(key)
+            if version is None:
+                version = 0
+        return version
+
+    def _get_json_key(self, imsi: str, rule_id: str):
+        return json.dumps(SubscriberRuleKey('imsi_rule', imsi, rule_id))
+
+
+class RuleIDDict(RedisHashDict):
+    """
+    RuleIDDict uses the RedisHashDict collection to store a mapping of
+    rule name to rule id.
+    Setting and deleting items in the dictionary syncs with Redis automatically
+    """
+    _DICT_HASH = "pipelined:rule_ids"
+
+    def __init__(self):
+        client = get_default_client()
+        super().__init__(
+            client,
+            self._DICT_HASH,
+            get_json_serializer(), get_json_deserializer())
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None
+
+
+class RuleNameDict(RedisHashDict):
+    """
+    RuleNameDict uses the RedisHashDict collection to store a mapping of
+    rule id to rule name.
+    Setting and deleting items in the dictionary syncs with Redis automatically
+    """
+    _DICT_HASH = "pipelined:rule_names"
+
+    def __init__(self):
+        client = get_default_client()
+        super().__init__(
+            client,
+            self._DICT_HASH,
+            get_json_serializer(), get_json_deserializer())
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None
+
+
+class RuleVersionDict(RedisHashDict):
+    """
+    RuleVersionDict uses the RedisHashDict collection to store a mapping of
+    subscriber+rule_id to rule version.
+    Setting and deleting items in the dictionary syncs with Redis automatically
+    """
+    _DICT_HASH = "pipelined:rule_versions"
+
+    def __init__(self):
+        client = get_default_client()
+        super().__init__(
+            client,
+            self._DICT_HASH,
+            get_json_serializer(), get_json_deserializer())
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None

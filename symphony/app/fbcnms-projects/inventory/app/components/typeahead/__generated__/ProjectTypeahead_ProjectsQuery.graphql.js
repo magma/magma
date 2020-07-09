@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7191b6634e06abbdc90ae53a7963f340
+ * @relayHash a335ca770ed563248a88cef5b9c717da
  */
 
 /* eslint-disable */
@@ -15,7 +15,7 @@
 
 /*::
 import type { ConcreteRequest } from 'relay-runtime';
-export type FilterOperator = "CONTAINS" | "DATE_GREATER_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
+export type FilterOperator = "CONTAINS" | "DATE_GREATER_OR_EQUAL_THAN" | "DATE_GREATER_THAN" | "DATE_LESS_OR_EQUAL_THAN" | "DATE_LESS_THAN" | "IS" | "IS_NOT_ONE_OF" | "IS_ONE_OF" | "%future added value";
 export type ProjectFilterType = "PROJECT_NAME" | "%future added value";
 export type ProjectFilterInput = {|
   filterType: ProjectFilterType,
@@ -27,13 +27,17 @@ export type ProjectTypeahead_ProjectsQueryVariables = {|
   filters: $ReadOnlyArray<ProjectFilterInput>,
 |};
 export type ProjectTypeahead_ProjectsQueryResponse = {|
-  +projectSearch: $ReadOnlyArray<?{|
-    +id: string,
-    +name: string,
-    +type: {|
-      +name: string
-    |},
-  |}>
+  +projects: ?{|
+    +edges: $ReadOnlyArray<{|
+      +node: ?{|
+        +id: string,
+        +name: string,
+        +type: {|
+          +name: string
+        |},
+      |}
+    |}>
+  |}
 |};
 export type ProjectTypeahead_ProjectsQuery = {|
   variables: ProjectTypeahead_ProjectsQueryVariables,
@@ -47,12 +51,16 @@ query ProjectTypeahead_ProjectsQuery(
   $limit: Int
   $filters: [ProjectFilterInput!]!
 ) {
-  projectSearch(limit: $limit, filters: $filters) {
-    id
-    name
-    type {
-      name
-      id
+  projects(first: $limit, filters: $filters) {
+    edges {
+      node {
+        id
+        name
+        type {
+          name
+          id
+        }
+      }
     }
   }
 }
@@ -81,7 +89,7 @@ v1 = [
   },
   {
     "kind": "Variable",
-    "name": "limit",
+    "name": "first",
     "variableName": "limit"
   }
 ],
@@ -111,24 +119,46 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "projectSearch",
+        "name": "projects",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "Project",
-        "plural": true,
+        "concreteType": "ProjectConnection",
+        "plural": false,
         "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "type",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "ProjectType",
-            "plural": false,
+            "concreteType": "ProjectEdge",
+            "plural": true,
             "selections": [
-              (v3/*: any*/)
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "node",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Project",
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  (v3/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "type",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ProjectType",
+                    "plural": false,
+                    "selections": [
+                      (v3/*: any*/)
+                    ]
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -143,25 +173,47 @@ return {
       {
         "kind": "LinkedField",
         "alias": null,
-        "name": "projectSearch",
+        "name": "projects",
         "storageKey": null,
         "args": (v1/*: any*/),
-        "concreteType": "Project",
-        "plural": true,
+        "concreteType": "ProjectConnection",
+        "plural": false,
         "selections": [
-          (v2/*: any*/),
-          (v3/*: any*/),
           {
             "kind": "LinkedField",
             "alias": null,
-            "name": "type",
+            "name": "edges",
             "storageKey": null,
             "args": null,
-            "concreteType": "ProjectType",
-            "plural": false,
+            "concreteType": "ProjectEdge",
+            "plural": true,
             "selections": [
-              (v3/*: any*/),
-              (v2/*: any*/)
+              {
+                "kind": "LinkedField",
+                "alias": null,
+                "name": "node",
+                "storageKey": null,
+                "args": null,
+                "concreteType": "Project",
+                "plural": false,
+                "selections": [
+                  (v2/*: any*/),
+                  (v3/*: any*/),
+                  {
+                    "kind": "LinkedField",
+                    "alias": null,
+                    "name": "type",
+                    "storageKey": null,
+                    "args": null,
+                    "concreteType": "ProjectType",
+                    "plural": false,
+                    "selections": [
+                      (v3/*: any*/),
+                      (v2/*: any*/)
+                    ]
+                  }
+                ]
+              }
             ]
           }
         ]
@@ -172,11 +224,11 @@ return {
     "operationKind": "query",
     "name": "ProjectTypeahead_ProjectsQuery",
     "id": null,
-    "text": "query ProjectTypeahead_ProjectsQuery(\n  $limit: Int\n  $filters: [ProjectFilterInput!]!\n) {\n  projectSearch(limit: $limit, filters: $filters) {\n    id\n    name\n    type {\n      name\n      id\n    }\n  }\n}\n",
+    "text": "query ProjectTypeahead_ProjectsQuery(\n  $limit: Int\n  $filters: [ProjectFilterInput!]!\n) {\n  projects(first: $limit, filters: $filters) {\n    edges {\n      node {\n        id\n        name\n        type {\n          name\n          id\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '6041501fde832bf8b99f06d0c5d9103a';
+(node/*: any*/).hash = '90f01e4ffb85771670d2cbdd7e799185';
 module.exports = node;

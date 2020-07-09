@@ -14,9 +14,9 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
-	"magma/orc8r/cloud/go/pluginimpl/models"
 	"magma/orc8r/cloud/go/services/directoryd"
 	directoryd_test "magma/orc8r/cloud/go/services/directoryd/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 

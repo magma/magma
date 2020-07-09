@@ -42,6 +42,15 @@ func getAaaClient() (*aaaClient, error) {
 	}, err
 }
 
+// SupportedMethods returns sorted list (ascending, by type) of registered EAP Provider Methods
+func SupportedMethods() (*protos.EapMethodList, error) {
+	cli, err := getAaaClient()
+	if err != nil {
+		return nil, err
+	}
+	return cli.SupportedMethods(context.Background(), &protos.Void{})
+}
+
 // HandleIdentity passes Identity EAP payload to corresponding method provider & returns corresponding
 // EAP result
 // NOTE: Identity Request is handled by APs & does not involve EAP Authenticator's support

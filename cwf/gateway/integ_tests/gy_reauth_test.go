@@ -17,7 +17,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/protobuf/ptypes/wrappers"

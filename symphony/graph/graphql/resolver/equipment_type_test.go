@@ -120,7 +120,7 @@ func TestAddEquipmentTypeWithProperties(t *testing.T) {
 	fetchedPropertyTypes, _ := etr.PropertyTypes(ctx, fetchedEquipmentType)
 	require.Len(t, fetchedPropertyTypes, 1)
 	assert.Equal(t, fetchedPropertyTypes[0].Name, "str_prop")
-	assert.Equal(t, fetchedPropertyTypes[0].Type, "string")
+	assert.Equal(t, fetchedPropertyTypes[0].Type, propertytype.TypeString)
 	assert.Equal(t, fetchedPropertyTypes[0].Index, 5)
 	assert.Equal(t, fetchedPropertyTypes[0].ExternalID, extID)
 }
@@ -221,7 +221,7 @@ func TestRemoveEquipmentType(t *testing.T) {
 	}
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: pointer.ToString("Foo"),
 	}
 	position1 := models.EquipmentPositionInput{
@@ -325,7 +325,7 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 	mr := r.Mutation()
 	strPropType := models.PropertyTypeInput{
 		Name:        "str_prop",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: pointer.ToString("Foo"),
 	}
 	propTypeInput := []*models.PropertyTypeInput{&strPropType}
@@ -335,16 +335,18 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	strProp := eqType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp := eqType.QueryPropertyTypes().
+		Where(propertytype.TypeEQ(propertytype.TypeString)).
+		OnlyX(ctx)
 	strPropType = models.PropertyTypeInput{
 		ID:          &strProp.ID,
 		Name:        "str_prop_new",
-		Type:        models.PropertyKindString,
+		Type:        propertytype.TypeString,
 		StringValue: pointer.ToString("Foo - edited"),
 	}
 	intPropType := models.PropertyTypeInput{
 		Name:     "int_prop",
-		Type:     models.PropertyKindInt,
+		Type:     propertytype.TypeInt,
 		IntValue: pointer.ToInt(5),
 	}
 	editedPropTypeInput := []*models.PropertyTypeInput{&strPropType, &intPropType}
@@ -356,17 +358,21 @@ func TestEditEquipmentTypeWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, eqType.Name, newType.Name, "successfully edited equipment type name")
 
-	strProp = eqType.QueryPropertyTypes().Where(propertytype.Type("string")).OnlyX(ctx)
+	strProp = eqType.QueryPropertyTypes().
+		Where(propertytype.TypeEQ(propertytype.TypeString)).
+		OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
 	require.Equal(t, "Foo - edited", strProp.StringVal, "successfully edited prop type string value")
 
-	intProp := eqType.QueryPropertyTypes().Where(propertytype.Type("int")).OnlyX(ctx)
+	intProp := eqType.QueryPropertyTypes().
+		Where(propertytype.TypeEQ(propertytype.TypeInt)).
+		OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
 	require.Equal(t, 5, intProp.IntVal, "successfully edited prop type int value")
 
 	intPropType = models.PropertyTypeInput{
 		Name:     "int_prop",
-		Type:     models.PropertyKindInt,
+		Type:     propertytype.TypeInt,
 		IntValue: pointer.ToInt(6),
 	}
 	editedPropTypeInput = []*models.PropertyTypeInput{&intPropType}

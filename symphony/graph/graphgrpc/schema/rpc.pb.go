@@ -581,15 +581,15 @@ func file_rpc_proto_rawDescGZIP() []byte {
 
 var file_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_rpc_proto_goTypes = []interface{}{
-	(*Tenant)(nil),               // 0: graph.Tenant
-	(*TenantList)(nil),           // 1: graph.TenantList
-	(*UserInput)(nil),            // 2: graph.UserInput
-	(*AddUserInput)(nil),         // 3: graph.AddUserInput
-	(*User)(nil),                 // 4: graph.User
-	(*AlertPayload)(nil),         // 5: graph.AlertPayload
-	(*ExecutionResult)(nil),      // 6: graph.ExecutionResult
-	(*ExecutionError)(nil),       // 7: graph.executionError
-	nil,                          // 8: graph.AlertPayload.LabelsEntry
+	(*Tenant)(nil),          // 0: graph.Tenant
+	(*TenantList)(nil),      // 1: graph.TenantList
+	(*UserInput)(nil),       // 2: graph.UserInput
+	(*AddUserInput)(nil),    // 3: graph.AddUserInput
+	(*User)(nil),            // 4: graph.User
+	(*AlertPayload)(nil),    // 5: graph.AlertPayload
+	(*ExecutionResult)(nil), // 6: graph.ExecutionResult
+	(*ExecutionError)(nil),  // 7: graph.executionError
+	nil, // 8: graph.AlertPayload.LabelsEntry
 	(*wrappers.StringValue)(nil), // 9: google.protobuf.StringValue
 	(*empty.Empty)(nil),          // 10: google.protobuf.Empty
 }

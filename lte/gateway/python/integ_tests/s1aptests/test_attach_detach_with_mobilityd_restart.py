@@ -7,13 +7,15 @@ import unittest
 from time import sleep
 
 import s1ap_types
-from integ_tests.s1aptests import s1ap_wrapper
+import s1ap_wrapper
+from s1ap_utils import MagmadUtil
 
 
 class TestAttachDetachMobilitydRestart(unittest.TestCase):
 
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()

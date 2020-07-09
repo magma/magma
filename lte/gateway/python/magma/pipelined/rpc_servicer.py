@@ -29,8 +29,7 @@ from lte.protos.pipelined_pb2 import (
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
-    RelayDisabledException
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -265,13 +264,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut = Future()
         self._loop.call_soon_threadsafe(
             self._enforcement_stats.get_policy_usage, fut)
-        try:
-            return fut.result()
-        except RelayDisabledException:
-            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
-            context.set_details(
-                'Cannot get policy usage: Relay is not enabled!')
-            return None
+        return fut.result()
 
     # --------------------------
     # IPFIX App
@@ -306,8 +299,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(self._dpi_app.add_classify_flow,
                                         request.match, request.state,
-                                        request.app_name, request.service_type,
-                                        request.src_mac, request.dst_mac)
+                                        request.app_name, request.service_type)
         return resp
 
     def RemoveFlow(self, request, context):
@@ -321,8 +313,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(self._dpi_app.remove_classify_flow,
-                                        request.match, request.src_mac,
-                                        request.dst_mac)
+                                        request.match)
         return resp
 
     def UpdateFlowStats(self, request, context):

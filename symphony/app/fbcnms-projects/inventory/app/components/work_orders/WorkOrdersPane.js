@@ -64,8 +64,7 @@ graphql`
 
 const WorkOrdersPaneQuery = graphql`
   query WorkOrdersPaneQuery {
-    workOrders(first: 500, showCompleted: false)
-      @connection(key: "WorkOrdersPane_workOrders") {
+    workOrders(first: 500) @connection(key: "WorkOrdersPane_workOrders") {
       edges {
         node {
           ...WorkOrdersPane_workOrder @relay(mask: false)

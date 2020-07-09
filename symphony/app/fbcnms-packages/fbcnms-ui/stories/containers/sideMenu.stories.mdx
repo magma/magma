@@ -1,0 +1,62 @@
+import SideMenu from '../../components/design-system/Menu/SideMenu';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {makeStyles} from '@material-ui/styles';
+import {useState} from 'react';
+
+export const useStyles = makeStyles(() => ({
+  root: {
+    display: 'flex',
+    height: '100%',
+    minHeight: '400px',
+    maxHeight: '500px',
+  },
+  card: {
+    marginBottom: '16px',
+  },
+}));
+
+<Meta title={`${STORY_CATEGORIES.CONTAINERS}/SideMenu`} />
+
+# SideMenu
+
+```js
+import SideMenu from '@fbcnms/ui/components/design-system/Menu/SideMenu';
+```
+
+<Preview>
+  <Story name="SideMenu">
+    {() => {
+      const classes = useStyles();
+      const [selectedItem, setSelectedItem] = useState(0);
+      const menuItems = [
+        {
+          label: 'Home',
+          tooltip: 'Go to home page',
+        },
+        {
+          label: 'Products',
+          tooltip: 'See what we offer',
+        },
+        {
+          label: 'Downloads',
+          tooltip: 'Drivers, Guids and stuff',
+        },
+        {
+          label: 'About',
+          tooltip: 'Who are we',
+        },
+      ];
+      return (
+        <div className={classes.root}>
+          <SideMenu
+            header="The Company"
+            items={menuItems}
+            activeItemIndex={selectedItem}
+            onActiveItemChanged={(_item, index) => setSelectedItem(index)}
+          />
+        </div>
+      );
+    }}
+  </Story>
+</Preview>

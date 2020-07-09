@@ -109,9 +109,6 @@ class SessionState {
    * The session state transitions from SESSION_ACTIVE to
    * SESSION_TERMINATING_FLOW_ACTIVE.
    * When termination completes, the call back function is executed.
-   *
-   * @param on_termination_callback - call back function to be executed after
-   * termination
    */
   void start_termination(SessionStateUpdateCriteria& update_criteria);
 
@@ -378,7 +375,6 @@ class SessionState {
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
   magma::lte::TgppContext tgpp_context_;
-  std::function<void(SessionTerminateRequest)> on_termination_callback_;
 
   // All static rules synced from policy DB
   StaticRuleStore& static_rules_;
@@ -474,6 +470,11 @@ class SessionState {
     const std::string &key, SessionStateUpdateCriteria &uc);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
+
+  void get_event_trigger_updates(
+    UpdateSessionRequest& update_request_out,
+    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+    SessionStateUpdateCriteria& update_criteria);
 };
 
 }  // namespace magma

@@ -209,7 +209,7 @@ class ProjectsMapView extends React.Component<Props, State> {
           map && map.resize();
         }}
         className={classes.mapContainer}>
-        {map && mapboxgl.accessToken && (
+        {map && mapboxgl.accessToken ? (
           <>
             {this.props.showGeocoder && (
               <MapGeocoder
@@ -245,7 +245,7 @@ class ProjectsMapView extends React.Component<Props, State> {
               )}
             </>
           </>
-        )}
+        ) : null}
       </div>
     );
   }
@@ -278,7 +278,7 @@ class ProjectsMapView extends React.Component<Props, State> {
       const geometry = nullthrows(feature.geometry);
       const selectedFeatureId = feature.properties?.id;
       if (geometry.type === 'Point') {
-        const marker = new mapboxgl.Marker((<div />))
+        const marker = new mapboxgl.Marker(<div />)
           .setLngLat(geometry.coordinates)
           .addTo(map);
         ReactDOM.render(

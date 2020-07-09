@@ -165,6 +165,7 @@ const TableContent = <T>(props: Props<T>) => {
                 const renderedCol = col.render(d);
                 return (
                   <td
+                    title={col.tooltip && col.tooltip(d)}
                     key={`col_${colIndex}_${d.key ?? rowIndex}`}
                     id={`column${colIndex}`}
                     className={classNames(

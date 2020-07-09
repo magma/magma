@@ -35,7 +35,7 @@ import {useCallback, useContext, useMemo, useState} from 'react';
 import {useHistory, useRouteMatch} from 'react-router-dom';
 
 const USERS_HEADER = fbt(
-  'Users & Roles',
+  'Users and Roles',
   'Header for view showing system users settings',
 );
 
@@ -69,7 +69,7 @@ const UserManaementForm = () => {
           header: {
             title: `${USERS_HEADER}`,
             subtitle:
-              'Add and manage your organization users, and set their role to control their global settings',
+              'Add and manage users by entering their details and selecting a role.',
             actionButtons: [
               <Button onClick={() => setAddingNewUser(true)}>
                 <fbt desc="">Add User</fbt>
@@ -88,8 +88,7 @@ const UserManaementForm = () => {
         component: {
           header: {
             title: `${PERMISSION_GROUPS_VIEW_NAME}`,
-            subtitle:
-              'Create groups with different rules and add users to apply permissions',
+            subtitle: 'Create and manage groups and apply policies to them.',
             actionButtons: permissionPoliciesMode
               ? [
                   <Button

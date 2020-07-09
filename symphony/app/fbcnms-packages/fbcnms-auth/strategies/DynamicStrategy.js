@@ -49,8 +49,8 @@ export default class DynamicStrategy extends Strategy {
       const strategyID = await this._strategyIDBuilder(req);
       const strategy = await this._getStrategy(req, strategyID);
       strategy.authenticate(req, options);
-    })().catch(_error => {
-      this.error();
+    })().catch(error => {
+      this.error(error);
     });
   }
 }

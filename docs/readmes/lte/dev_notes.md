@@ -160,3 +160,42 @@ can list all the keys with `KEYS *`. The keys for state follow the pattern
 - Keys such as `spgw_state`,`s1ap_state`,`mme_nas_state` are used to store
 gateway wide state for a particular task in the MME process
 - Mobilityd stores state with the key `mobilityd:sid_to_descriptors`
+
+For tracing the state values, there's a specific CLI for debugging 
+different Magma services' data written into Redis. You can access it through
+the `state_cli.py` command.
+
+For example, `state_cli.py keys s1ap` will display the current keys that match
+the `s1ap` pattern.
+
+```bash
+state_cli.py keys s1ap
+
+s1ap_state
+IMSI001010000000001:S1AP
+
+```
+
+Then you can access a given key by doing `state_cli.py parse <key>`:
+
+```bash
+state_cli.py parse s1ap_state
+
+enbs {
+  key: 1
+  value {
+    enb_id: 138777000
+    s1_state: 2
+    enb_name: "HeNodeb"
+    s1ap_enb_assoc_clean_up_timer {
+      id: -1
+      sec: 4
+    }
+    sctp_assoc_id: 1
+    next_sctp_stream: 1
+    instreams: 2
+    outstreams: 2
+  }
+}
+num_enbs: 1
+```

@@ -53,6 +53,11 @@ func (ecu *EquipmentCategoryUpdate) AddTypes(e ...*EquipmentType) *EquipmentCate
 	return ecu.AddTypeIDs(ids...)
 }
 
+// Mutation returns the EquipmentCategoryMutation object of the builder.
+func (ecu *EquipmentCategoryUpdate) Mutation() *EquipmentCategoryMutation {
+	return ecu.mutation
+}
+
 // RemoveTypeIDs removes the types edge to EquipmentType by ids.
 func (ecu *EquipmentCategoryUpdate) RemoveTypeIDs(ids ...int) *EquipmentCategoryUpdate {
 	ecu.mutation.RemoveTypeIDs(ids...)
@@ -233,6 +238,11 @@ func (ecuo *EquipmentCategoryUpdateOne) AddTypes(e ...*EquipmentType) *Equipment
 	return ecuo.AddTypeIDs(ids...)
 }
 
+// Mutation returns the EquipmentCategoryMutation object of the builder.
+func (ecuo *EquipmentCategoryUpdateOne) Mutation() *EquipmentCategoryMutation {
+	return ecuo.mutation
+}
+
 // RemoveTypeIDs removes the types edge to EquipmentType by ids.
 func (ecuo *EquipmentCategoryUpdateOne) RemoveTypeIDs(ids ...int) *EquipmentCategoryUpdateOne {
 	ecuo.mutation.RemoveTypeIDs(ids...)
@@ -317,7 +327,7 @@ func (ecuo *EquipmentCategoryUpdateOne) sqlSave(ctx context.Context) (ec *Equipm
 	}
 	id, ok := ecuo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing EquipmentCategory.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing EquipmentCategory.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := ecuo.mutation.UpdateTime(); ok {

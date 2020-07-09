@@ -12,6 +12,12 @@ resource "kubernetes_namespace" "orc8r" {
   }
 }
 
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = var.monitoring_kubernetes_namespace
+  }
+}
+
 # external dns maps route53 to ingress resources
 resource "helm_release" "external_dns" {
   name       = "external-dns"

@@ -11,6 +11,8 @@ import (
 	"github.com/facebookincubator/ent/schema/index"
 	"github.com/facebookincubator/ent/schema/mixin"
 	"github.com/facebookincubator/symphony/pkg/authz"
+	"github.com/facebookincubator/symphony/pkg/ent/privacy"
+	"github.com/facebookincubator/symphony/pkg/hooks"
 )
 
 // WorkOrderTemplateMixin defines the work order template mixin schema.
@@ -30,8 +32,10 @@ func (WorkOrderTemplateMixin) Fields() []ent.Field {
 // Edges returns work order template mixin edges.
 func (WorkOrderTemplateMixin) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("property_types", PropertyType.Type),
-		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type),
+		edge.To("property_types", PropertyType.Type).
+			StructTag(`gqlgen:"propertyTypes"`),
+		edge.To("check_list_category_definitions", CheckListCategoryDefinition.Type).
+			StructTag(`gqlgen:"checkListCategoryDefinitions"`),
 	}
 }
 
@@ -97,7 +101,7 @@ func (WorkOrderTemplate) Edges() []ent.Edge {
 func (WorkOrderTemplate) Policy() ent.Policy {
 	return authz.NewPolicy(
 		authz.WithMutationRules(
-			authz.WorkOrderTemplateWritePolicyRule(),
+			privacy.AlwaysAllowRule(),
 		),
 	)
 }
@@ -110,10 +114,23 @@ type WorkOrder struct {
 // Fields returns work order fields.
 func (WorkOrder) Fields() []ent.Field {
 	return []ent.Field{
-		field.String("name").NotEmpty(),
-		field.String("status").
+		field.String("name").
+			NotEmpty(),
+		field.Enum("status").
+			Values(
+				"PENDING",
+				"PLANNED",
+				"DONE",
+			).
 			Default("PLANNED"),
-		field.String("priority").
+		field.Enum("priority").
+			Values(
+				"URGENT",
+				"HIGH",
+				"MEDIUM",
+				"LOW",
+				"NONE",
+			).
 			Default("NONE"),
 		field.Text("description").
 			Optional(),
@@ -131,29 +148,55 @@ func (WorkOrder) Fields() []ent.Field {
 func (WorkOrder) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("type", WorkOrderType.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"workOrderType"`),
 		edge.To("template", WorkOrderTemplate.Type).
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"workOrderTemplate"`),
 		edge.From("equipment", Equipment.Type).
 			Ref("work_order"),
 		edge.From("links", Link.Type).
 			Ref("work_order"),
 		edge.To("files", File.Type),
-		edge.To("hyperlinks", Hyperlink.Type),
+		edge.To("hyperlinks", Hyperlink.Type).
+			StructTag(`gqlgen:"hyperlinks"`),
 		edge.To("location", Location.Type).
-			Unique(),
-		edge.To("comments", Comment.Type),
-		edge.To("activities", Activity.Type),
-		edge.To("properties", Property.Type),
-		edge.To("check_list_categories", CheckListCategory.Type),
+			Unique().
+			StructTag(`gqlgen:"location"`),
+		edge.To("comments", Comment.Type).
+			StructTag(`gqlgen:"comments"`),
+		edge.To("activities", Activity.Type).
+			StructTag(`gqlgen:"activities"`),
+		edge.To("properties", Property.Type).
+			StructTag(`gqlgen:"properties"`),
+		edge.To("check_list_categories", CheckListCategory.Type).
+			StructTag(`gqlgen:"checkListCategories"`),
 		edge.From("project", Project.Type).
 			Ref("work_orders").
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"project"`),
 		edge.To("owner", User.Type).
 			Required().
-			Unique(),
+			Unique().
+			StructTag(`gqlgen:"owner"`),
 		edge.To("assignee", User.Type).
+			StructTag(`gqlgen:"assignedTo"`).
 			Unique(),
+	}
+}
+
+// Indexes returns work order indexes.
+func (WorkOrder) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("creation_date"),
+		index.Fields("close_date"),
+	}
+}
+
+// Hooks returns work order hooks.
+func (WorkOrder) Hooks() []ent.Hook {
+	return []ent.Hook{
+		hooks.WorkOrderCloseDateHook(),
 	}
 }
 

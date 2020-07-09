@@ -98,6 +98,11 @@ func (wodu *WorkOrderDefinitionUpdate) SetProjectType(p *ProjectType) *WorkOrder
 	return wodu.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the WorkOrderDefinitionMutation object of the builder.
+func (wodu *WorkOrderDefinitionUpdate) Mutation() *WorkOrderDefinitionMutation {
+	return wodu.mutation
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wodu *WorkOrderDefinitionUpdate) ClearType() *WorkOrderDefinitionUpdate {
 	wodu.mutation.ClearType()
@@ -364,6 +369,11 @@ func (woduo *WorkOrderDefinitionUpdateOne) SetProjectType(p *ProjectType) *WorkO
 	return woduo.SetProjectTypeID(p.ID)
 }
 
+// Mutation returns the WorkOrderDefinitionMutation object of the builder.
+func (woduo *WorkOrderDefinitionUpdateOne) Mutation() *WorkOrderDefinitionMutation {
+	return woduo.mutation
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (woduo *WorkOrderDefinitionUpdateOne) ClearType() *WorkOrderDefinitionUpdateOne {
 	woduo.mutation.ClearType()
@@ -445,7 +455,7 @@ func (woduo *WorkOrderDefinitionUpdateOne) sqlSave(ctx context.Context) (wod *Wo
 	}
 	id, ok := woduo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing WorkOrderDefinition.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WorkOrderDefinition.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := woduo.mutation.UpdateTime(); ok {

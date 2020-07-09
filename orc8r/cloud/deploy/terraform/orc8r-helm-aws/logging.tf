@@ -98,7 +98,7 @@ resource "helm_release" "elasticsearch_curator" {
   name       = "elasticsearch-curator"
   repository = local.stable_helm_repo
   chart      = "elasticsearch-curator"
-  namespace  = "monitoring"
+  namespace  = kubernetes_namespace.monitoring.metadata[0].name
   version    = "2.1.3"
   keyring    = ""
 

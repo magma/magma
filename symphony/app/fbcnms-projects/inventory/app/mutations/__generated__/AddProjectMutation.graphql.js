@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 2180aadce4e5e887770685400bced0a0
+ * @relayHash 37daf57204e64a85752ebba8673449a5
  */
 
 /* eslint-disable */
@@ -19,7 +19,6 @@ type ProjectsTableView_projects$ref = any;
 export type AddProjectInput = {|
   name: string,
   description?: ?string,
-  creator?: ?string,
   creatorId?: ?string,
   type: string,
   location?: ?string,

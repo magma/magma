@@ -14,19 +14,16 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl/handlers"
-	"magma/orc8r/cloud/go/pluginimpl/legacy_stream_providers"
-	"magma/orc8r/cloud/go/pluginimpl/models"
-	"magma/orc8r/cloud/go/pluginimpl/stream_providers"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
-	magmadh "magma/orc8r/cloud/go/services/magmad/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	metricsdh "magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -34,7 +31,6 @@ import (
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"magma/orc8r/lib/go/service/serviceregistry"
 
 	"github.com/labstack/echo"
 )
@@ -47,7 +43,7 @@ func (*BaseOrchestratorPlugin) GetName() string {
 }
 
 func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
-	serviceLocations, err := serviceregistry.LoadServiceRegistryConfig(orc8r.ModuleName)
+	serviceLocations, err := registry.LoadServiceRegistryConfig(orc8r.ModuleName)
 	if err != nil {
 		return []registry.ServiceLocation{}
 	}
@@ -90,7 +86,6 @@ func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMa
 func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
 	return plugin.FlattenHandlerLists(
 		// v1 handlers
-		magmadh.GetObsidianHandlers(),
 		metricsdh.GetObsidianHandlers(metricsConfig),
 		handlers.GetObsidianHandlers(),
 		tenantsh.GetObsidianHandlers(),
@@ -108,9 +103,8 @@ func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigM
 }
 
 func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
-	factory := legacy_stream_providers.LegacyProviderFactory{}
 	return []providers.StreamProvider{
-		factory.CreateLegacyProvider(definitions.MconfigStreamName, &stream_providers.BaseOrchestratorStreamProviderServicer{}),
+		providers.NewRemoteProvider(definitions.StreamerServiceName, definitions.MconfigStreamName),
 	}
 }
 

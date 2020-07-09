@@ -91,10 +91,6 @@ func (resolver) EquipmentType() generated.EquipmentTypeResolver {
 	return equipmentTypeResolver{}
 }
 
-func (resolver) File() generated.FileResolver {
-	return fileResolver{}
-}
-
 func (resolver) User() generated.UserResolver {
 	return userResolver{}
 }

@@ -286,8 +286,10 @@ export const getWorkflowAfter: AfterFun = (tenantId, groups, req, respObj) => {
       `Possible error in code: response contains invalid task or` +
         `workflowdef name, tenant Id: ${tenantId}`,
     );
-    throw 'Possible error in code: response contains' +
-      ' invalid task or workflowdef name'; // TODO create Exception class
+    throw (
+      'Possible error in code: response contains' +
+      ' invalid task or workflowdef name'
+    ); // TODO create Exception class
   }
 };
 

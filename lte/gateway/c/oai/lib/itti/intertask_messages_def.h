@@ -71,3 +71,7 @@ MESSAGE_DEF(DEBUG_LOG, MESSAGE_PRIORITY_MED, IttiMsgEmpty, debug_log)
 
 /* Generic log message for text */
 MESSAGE_DEF(GENERIC_LOG, MESSAGE_PRIORITY_MED, IttiMsgEmpty, generic_log)
+
+// This message leads to recovery of timers for all tasks after MME restart
+MESSAGE_DEF(
+    RECOVERY_MESSAGE, MESSAGE_PRIORITY_MAX, IttiMsgEmpty, recovery_message)

@@ -426,6 +426,10 @@ void *mme_app_thread(void *args)
         OAI_FPRINTF_INFO("TASK_MME_APP terminated\n");
         itti_exit_task();
       } break;
+      case RECOVERY_MESSAGE: {
+        OAILOG_INFO(LOG_MME_APP, "Received RECOVERY_MESSAGE \n");
+        mme_app_recover_timers_for_all_ues();
+      } break;
 
       default: {
         OAILOG_ERROR(

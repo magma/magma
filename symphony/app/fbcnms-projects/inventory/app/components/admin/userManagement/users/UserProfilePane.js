@@ -142,10 +142,10 @@ const useStyles = makeStyles(() => ({
 //   },
 // ];
 
-type Props = {
+type Props = $ReadOnly<{|
   user: User,
-  onChange: User => void,
-};
+  onChange: User => Promise<void> | void,
+|}>;
 
 function isSameUserDetails(userA: ?User, userB: ?User) {
   if (userA == null && userB == null) {

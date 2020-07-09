@@ -12,7 +12,7 @@ import React from 'react';
 import Settings from '@fbcnms/magmalte/app/components/Settings';
 import {useMainContext} from './MainContext';
 
-export default function() {
+export default function () {
   const {integrationUserDefinition} = useMainContext();
   return <Settings isSuperUser={integrationUserDefinition.isSuperUser} />;
 }

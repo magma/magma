@@ -13,7 +13,7 @@ import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 import NetworkMetrics from '@fbcnms/ui/insights/NetworkMetrics';
 import React from 'react';
 
-export default function() {
+export default function () {
   const chartConfigs: MetricGraphConfig[] = [
     {
       label: 'Disk Percent',

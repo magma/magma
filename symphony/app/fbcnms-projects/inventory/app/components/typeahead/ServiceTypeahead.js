@@ -41,10 +41,12 @@ const serviceSearchQuery = graphql`
     $filters: [ServiceFilterInput!]!
     $limit: Int
   ) {
-    serviceSearch(filters: $filters, limit: $limit) {
-      services {
-        id
-        name
+    services(filters: $filters, first: $limit) {
+      edges {
+        node {
+          id
+          name
+        }
       }
     }
   }
@@ -76,16 +78,18 @@ class ServiceTypeahead extends React.Component<Props, State> {
       ],
       limit: 1000,
     }).then(response => {
-      if (!response || !response.serviceSearch) {
+      if (!response) {
         return;
       }
       this.setState({
-        serviceSuggestions: response.serviceSearch.services.map(p => ({
-          name: p.name,
-          entityId: p.id,
-          entityType: 'service',
-          type: p?.type?.name,
-        })),
+        serviceSuggestions: response.services.edges
+          .map(edge => edge.node)
+          .map(p => ({
+            name: p.name,
+            entityId: p.id,
+            entityType: 'service',
+            type: p?.type?.name,
+          })),
       });
     });
   };

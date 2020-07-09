@@ -138,7 +138,7 @@ class TestEquipment(BaseTest):
 
     def test_get_equipments(self) -> None:
         equipments = get_equipments(client=self.client)
-        self.assertEqual(len(equipments), 2)
+        self.assertEqual(len(list(equipments)), 2)
 
     def test_equipment_properties(self) -> None:
         properties = get_equipment_properties(
@@ -154,7 +154,7 @@ class TestEquipment(BaseTest):
         self.assertEqual(self.port_type1.name, fetched_port.definition.port_type_name)
 
     def test_get_ports(self) -> None:
-        ports = get_ports(client=self.client)
+        ports = list(get_ports(client=self.client))
         self.assertEqual(len(ports), 2)
 
     def test_equipment_edit_port_properties(self) -> None:
@@ -176,15 +176,17 @@ class TestEquipment(BaseTest):
 
     def test_get_equipments_by_type(self) -> None:
         equipment_type_id = EQUIPMENT_TYPES["Tp-Link T1600G"].id
-        equipments = get_equipments_by_type(
-            client=self.client, equipment_type_id=equipment_type_id
+        equipments = list(
+            get_equipments_by_type(
+                client=self.client, equipment_type_id=equipment_type_id
+            )
         )
         self.assertEqual(len(equipments), 2)
         self.assertEqual(equipments[0].name, "TPLinkRouter")
 
     def test_get_equipments_by_location(self) -> None:
-        equipments = get_equipments_by_location(
-            client=self.client, location_id=self.location.id
+        equipments = list(
+            get_equipments_by_location(client=self.client, location_id=self.location.id)
         )
         self.assertEqual(len(equipments), 2)
         self.assertEqual(equipments[0].name, "TPLinkRouter")

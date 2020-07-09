@@ -8,6 +8,7 @@ package usersgroup
 
 import (
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/facebookincubator/ent"
@@ -17,12 +18,17 @@ const (
 	// Label holds the string label denoting the usersgroup type in the database.
 	Label = "users_group"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID          = "id"          // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime  = "create_time" // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime  = "update_time" // FieldName holds the string denoting the name vertex property in the database.
-	FieldName        = "name"        // FieldDescription holds the string denoting the description vertex property in the database.
-	FieldDescription = "description" // FieldStatus holds the string denoting the status vertex property in the database.
-	FieldStatus      = "status"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldDescription holds the string denoting the description field in the database.
+	FieldDescription = "description"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
 
 	// EdgeMembers holds the string denoting the members edge name in mutations.
 	EdgeMembers = "members"
@@ -105,4 +111,35 @@ func StatusValidator(s Status) error {
 	default:
 		return fmt.Errorf("usersgroup: invalid enum value for status field: %q", s)
 	}
+}
+
+// MarshalGQL implements graphql.Marshaler interface.
+func (s Status) MarshalGQL(w io.Writer) {
+	writeQuotedStringer(w, s)
+}
+
+// UnmarshalGQL implements graphql.Unmarshaler interface.
+func (s *Status) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enum %T must be a string", v)
+	}
+	*s = Status(str)
+	if err := StatusValidator(*s); err != nil {
+		return fmt.Errorf("%s is not a valid Status", str)
+	}
+	return nil
+}
+
+func writeQuotedStringer(w io.Writer, s fmt.Stringer) {
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
+	io.WriteString(w, s.String())
 }

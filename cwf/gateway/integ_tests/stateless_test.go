@@ -17,8 +17,8 @@ import (
 
 	cwfProtos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
 	lteProtos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -38,7 +38,7 @@ import (
 // - Restart SessionD
 // - Assert that there's > 0 data usage in the rule
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received
-func TestBasicEnforcementWithSessionDRestarts(t *testing.T) {
+func testBasicEnforcementWithSessionDRestarts(t *testing.T) {
 	fmt.Println("\nRunning TestBasicEnforcementWithSessionDRestarts...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()

@@ -225,5 +225,6 @@ def main():
     # Execute the subcommand function
     args.func(args, MobilityServiceStub, 'mobilityd')
 
+
 if __name__ == "__main__":
     main()

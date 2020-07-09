@@ -35,11 +35,13 @@ const portSearchQuery = graphql`
     $limit: Int
     $filters: [PortFilterInput!]!
   ) {
-    portSearch(limit: $limit, filters: $filters) {
-      ports {
-        ...PowerSearchPortsResultsTable_ports
+    equipmentPorts(first: $limit, filters: $filters) {
+      edges {
+        node {
+          ...PowerSearchPortsResultsTable_ports
+        }
       }
-      count
+      totalCount
     }
   }
 `;
@@ -64,11 +66,12 @@ const PortViewQueryRenderer = (props: Props) => {
         })),
       }}
       render={props => {
-        const {count, ports} = props.portSearch;
-        onQueryReturn(count);
-        if (count === 0) {
+        const {totalCount, edges} = props.equipmentPorts;
+        onQueryReturn(totalCount);
+        if (totalCount === 0) {
           return <ComparisonViewNoResults />;
         }
+        const ports = edges.map(edge => edge.node);
         return (
           <div className={classes.searchResults}>
             <PowerSearchPortsResultsTable ports={ports} />

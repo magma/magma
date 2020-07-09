@@ -188,11 +188,13 @@ const arrayConfigs = [
     id: 'permission_policies',
     title: 'Permission - Policies',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'permission_policy_per_type',
     title: 'Permission - Policies per type',
     enabledByDefault: false,
+    rules: [AlwaysEnabledInTestEnvRule],
   },
   {
     id: 'permissions_ui_enforcement',

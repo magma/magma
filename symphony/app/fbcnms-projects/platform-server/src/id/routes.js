@@ -20,7 +20,7 @@ const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 const PROXY_OPTIONS = {
   proxyReqPathResolver: (req: FBCNMSRequest) =>
     req.originalUrl.replace(/^\/id/, ''),
-  proxyReqOptDecorator: function(proxyReqOpts, srcReq: FBCNMSRequest) {
+  proxyReqOptDecorator: function (proxyReqOpts, srcReq: FBCNMSRequest) {
     proxyReqOpts.headers['x-auth-organization'] = srcReq.user.organization;
     return proxyReqOpts;
   },

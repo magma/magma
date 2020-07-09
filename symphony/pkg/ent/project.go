@@ -42,17 +42,17 @@ type Project struct {
 // ProjectEdges holds the relations/edges for other nodes in the graph.
 type ProjectEdges struct {
 	// Type holds the value of the type edge.
-	Type *ProjectType
+	Type *ProjectType `gqlgen:"type"`
 	// Location holds the value of the location edge.
-	Location *Location
+	Location *Location `gqlgen:"location"`
 	// Comments holds the value of the comments edge.
-	Comments []*Comment
+	Comments []*Comment `gqlgen:"comments"`
 	// WorkOrders holds the value of the work_orders edge.
-	WorkOrders []*WorkOrder
+	WorkOrders []*WorkOrder `gqlgen:"workOrders"`
 	// Properties holds the value of the properties edge.
-	Properties []*Property
+	Properties []*Property `gqlgen:"properties"`
 	// Creator holds the value of the creator edge.
-	Creator *User
+	Creator *User `gqlgen:"createdBy"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [6]bool

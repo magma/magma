@@ -253,9 +253,10 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
             # Copy the log files out from the node
             local('mkdir cwf-artifacts')
             get('*.log', 'cwf-artifacts')
-            get('*.tar.gz', 'cwf-artifacts')
+            if exists("coredump.tar.gz"):
+                get('coredump.tar.gz', 'cwf-artifacts')
             local('sudo mkdir -p /tmp/logs/')
-            local('sudo mv cwf-artifacts/*.log /tmp/logs/')
+            local('sudo mv cwf-artifacts/* /tmp/logs/')
         sys.exit(result.return_code)
 
 def _run_remote_lte_package(repo: str, magma_root: str,

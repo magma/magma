@@ -42,6 +42,8 @@ uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
 using google::protobuf::RepeatedPtrField;
 using google::protobuf::util::TimeUtil;
 
+using namespace std::placeholders;
+
 // We will treat rule install/uninstall failures as all-or-nothing - that is,
 // if we get a bad response from the pipelined client, we'll mark all the rules
 // as failed in the response
@@ -303,7 +305,12 @@ void LocalEnforcer::execute_actions(
     } else if (action_p->get_type() == ACTIVATE_SERVICE) {
       pipelined_client_->activate_flows_for_rules(
           action_p->get_imsi(), action_p->get_ip_addr(),
-          action_p->get_rule_ids(), action_p->get_rule_definitions());
+          action_p->get_rule_ids(), action_p->get_rule_definitions(),
+          std::bind(
+            &LocalEnforcer::handle_activate_ue_flows_callback,
+            this, action_p->get_imsi(), action_p->get_ip_addr(),
+            action_p->get_rule_ids(), action_p->get_rule_definitions(),
+            _1, _2));
     } else if (action_p->get_type() == REDIRECT) {
       // This is GY based REDIRECT, GX redirect will come in as a regular rule
       install_redirect_flow(action_p, session_update);
@@ -601,7 +608,10 @@ void LocalEnforcer::schedule_static_rule_activation(
           auto session_update =
               session_store_.get_default_session_update(session_map);
           pipelined_client_->activate_flows_for_rules(
-              imsi, ip_addr, static_rules, dynamic_rules);
+              imsi, ip_addr, static_rules, dynamic_rules,
+              std::bind(
+                &LocalEnforcer::handle_activate_ue_flows_callback,
+                this, imsi, ip_addr, static_rules, dynamic_rules, _1, _2));
           auto it = session_map.find(imsi);
           if (it == session_map.end()) {
             MLOG(MWARNING) << "Could not find session for IMSI " << imsi
@@ -639,7 +649,10 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
           auto session_update =
               session_store_.get_default_session_update(session_map);
           pipelined_client_->activate_flows_for_rules(
-              imsi, ip_addr, static_rules, dynamic_rules);
+              imsi, ip_addr, static_rules, dynamic_rules,
+              std::bind(
+                &LocalEnforcer::handle_activate_ue_flows_callback,
+                this, imsi, ip_addr, static_rules, dynamic_rules, _1, _2));
           auto it = session_map.find(imsi);
           if (it == session_map.end()) {
             MLOG(MWARNING) << "Could not find session for IMSI " << imsi
@@ -796,7 +809,11 @@ bool LocalEnforcer::handle_session_init_rule_updates(
   // when no rule is provided as the parameter.
   bool activate_success = pipelined_client_->activate_flows_for_rules(
       imsi, ip_addr, rules_to_activate.static_rules,
-      rules_to_activate.dynamic_rules);
+      rules_to_activate.dynamic_rules,
+      std::bind(
+        &LocalEnforcer::handle_activate_ue_flows_callback,
+        this, imsi, ip_addr, rules_to_activate.static_rules,
+        rules_to_activate.dynamic_rules, _1, _2));
 
   // deactivate_flows_for_rules() should not be called when there is no rule
   // to deactivate, because pipelined deactivates all rules
@@ -829,27 +846,7 @@ bool LocalEnforcer::init_session_credit(
   }
   // We don't have to check 'success' field for monitors because command level
   // errors are handled in session proxy for the init exchange
-  // Since revalidation timer is session wide, we will only schedule one for
-  // the entire session
-
-  // TODO [REMOVE] We will log error in case we get an unexpected input here
-  // The expectation is that if event triggers should be included in all
-  // monitors or none
-  auto revalidation_scheduled = false;
-  google::protobuf::Timestamp revalidation_time;
-
   for (const auto& monitor : response.usage_monitors()) {
-    if (!revalidation_scheduled && revalidation_required(monitor.event_triggers())) {
-      revalidation_scheduled = true;
-      revalidation_time = monitor.revalidation_time();
-    } else if (revalidation_scheduled &&
-          !revalidation_required(monitor.event_triggers())) {
-        // TODO [Remove This Clause]
-        auto time_from_now_ms = time_difference_from_now(revalidation_time);
-        MLOG(MWARNING) << imsi << " received some usage monitors with a "
-                       << "revalidation timer in " << time_from_now_ms.count()
-                       << " and some without";
-      }
     auto uc = get_default_update_criteria();
     session_state->receive_monitor(monitor, uc);
   }
@@ -864,11 +861,12 @@ bool LocalEnforcer::init_session_credit(
     }
   }
 
-  if (revalidation_scheduled) {
+  if (revalidation_required(response.event_triggers())) {
     // TODO This might not work since the session is not initialized properly
     // at this point
     auto _ = get_default_update_criteria();
-    schedule_revalidation(imsi, *session_state, revalidation_time, _);
+    schedule_revalidation(
+      imsi, *session_state, response.revalidation_time(), _);
   }
 
   auto it = session_map.find(imsi);
@@ -908,7 +906,7 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
     SessionState& session_state) {
   auto ue_mac_addr = session_state.get_config().mac_addr;
   bool is_exhausted = is_wallet_exhausted(session_state);
-  
+
   // This method only used for session creation and not updates, so
   // UpdateCriteria is unused.
   auto _ = get_default_update_criteria();
@@ -1120,8 +1118,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
-      session->receive_monitor(
-          usage_monitor_resp, update_criteria);
+      session->receive_monitor(usage_monitor_resp, update_criteria);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), update_criteria);
 
       RulesToProcess rules_to_activate;
@@ -1151,7 +1148,11 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         // TODO: modify the SessionUpdate
         activate_success = pipelined_client_->activate_flows_for_rules(
             imsi, ip_addr, rules_to_activate.static_rules,
-            rules_to_activate.dynamic_rules);
+            rules_to_activate.dynamic_rules,
+            std::bind(
+              &LocalEnforcer::handle_activate_ue_flows_callback,
+              this, imsi, ip_addr, rules_to_activate.static_rules,
+              rules_to_activate.dynamic_rules, _1, _2));
       }
 
       // TODO If either deactivating/activating rules fail, sessiond should
@@ -1450,7 +1451,11 @@ void LocalEnforcer::init_policy_reauth_for_session(
   if (rules_to_process_is_not_empty(rules_to_activate)) {
     activate_success = pipelined_client_->activate_flows_for_rules(
         request.imsi(), ip_addr, rules_to_activate.static_rules,
-        rules_to_activate.dynamic_rules);
+        rules_to_activate.dynamic_rules,
+        std::bind(
+          &LocalEnforcer::handle_activate_ue_flows_callback,
+          this,request.imsi(), ip_addr, rules_to_activate.static_rules,
+          rules_to_activate.dynamic_rules, _1, _2));
   }
 
   if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
@@ -1480,8 +1485,7 @@ void LocalEnforcer::receive_monitoring_credit_from_rar(
   for (const auto& usage_monitoring_credit :
        request.usage_monitoring_credits()) {
     credit->CopyFrom(usage_monitoring_credit);
-    session->receive_monitor(
-        monitoring_credit, update_criteria);
+    session->receive_monitor(monitoring_credit, update_criteria);
   }
 }
 
@@ -1651,6 +1655,33 @@ void LocalEnforcer::schedule_revalidation(
   });
 }
 
+void LocalEnforcer::handle_activate_ue_flows_callback(
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const std::vector<std::string>& static_rules,
+    const std::vector<PolicyRule>& dynamic_rules,
+    Status status, ActivateFlowsResult resp) {
+  if (status.ok()) {
+    MLOG(MDEBUG) << "Pipelined add ue enf flow succeeded for " << imsi;
+    return;
+  }
+
+  MLOG(MERROR) << "Could not activate rules for " << imsi << ", rpc failed: "
+               << status.error_message() << ", retrying...";
+
+  evb_->runInEventBaseThread([=] {
+    evb_->timer().scheduleTimeoutFn(
+        std::move([=] {
+        pipelined_client_->activate_flows_for_rules(
+        imsi, ip_addr, static_rules, dynamic_rules,
+        std::bind(
+          &LocalEnforcer::handle_activate_ue_flows_callback,
+          this, imsi, ip_addr, static_rules, dynamic_rules, _1, _2));
+        }),
+        retry_timeout_);
+  });
+}
+
 void LocalEnforcer::handle_add_ue_mac_flow_callback(
     const SubscriberID& sid,
     const std::string& ue_mac_addr,
@@ -1658,7 +1689,6 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
     const std::string& apn_mac_addr,
     const std::string& apn_name,
     Status status, FlowResponse resp) {
-  using namespace std::placeholders;
   if (status.ok() && resp.result() == resp.SUCCESS) {
     MLOG(MDEBUG) << "Pipelined add ue mac flow succeeded for " << ue_mac_addr;
     return;

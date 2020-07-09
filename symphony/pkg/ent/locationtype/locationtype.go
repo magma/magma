@@ -16,14 +16,21 @@ const (
 	// Label holds the string label denoting the locationtype type in the database.
 	Label = "location_type"
 	// FieldID holds the string denoting the id field in the database.
-	FieldID           = "id"             // FieldCreateTime holds the string denoting the create_time vertex property in the database.
-	FieldCreateTime   = "create_time"    // FieldUpdateTime holds the string denoting the update_time vertex property in the database.
-	FieldUpdateTime   = "update_time"    // FieldSite holds the string denoting the site vertex property in the database.
-	FieldSite         = "site"           // FieldName holds the string denoting the name vertex property in the database.
-	FieldName         = "name"           // FieldMapType holds the string denoting the map_type vertex property in the database.
-	FieldMapType      = "map_type"       // FieldMapZoomLevel holds the string denoting the map_zoom_level vertex property in the database.
-	FieldMapZoomLevel = "map_zoom_level" // FieldIndex holds the string denoting the index vertex property in the database.
-	FieldIndex        = "index"
+	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
+	// FieldUpdateTime holds the string denoting the update_time field in the database.
+	FieldUpdateTime = "update_time"
+	// FieldSite holds the string denoting the site field in the database.
+	FieldSite = "site"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldMapType holds the string denoting the map_type field in the database.
+	FieldMapType = "map_type"
+	// FieldMapZoomLevel holds the string denoting the map_zoom_level field in the database.
+	FieldMapZoomLevel = "map_zoom_level"
+	// FieldIndex holds the string denoting the index field in the database.
+	FieldIndex = "index"
 
 	// EdgeLocations holds the string denoting the locations edge name in mutations.
 	EdgeLocations = "locations"

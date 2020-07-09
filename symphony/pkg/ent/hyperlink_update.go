@@ -137,6 +137,11 @@ func (hu *HyperlinkUpdate) SetWorkOrder(w *WorkOrder) *HyperlinkUpdate {
 	return hu.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the HyperlinkMutation object of the builder.
+func (hu *HyperlinkUpdate) Mutation() *HyperlinkMutation {
+	return hu.mutation
+}
+
 // ClearEquipment clears the equipment edge to Equipment.
 func (hu *HyperlinkUpdate) ClearEquipment() *HyperlinkUpdate {
 	hu.mutation.ClearEquipment()
@@ -495,6 +500,11 @@ func (huo *HyperlinkUpdateOne) SetWorkOrder(w *WorkOrder) *HyperlinkUpdateOne {
 	return huo.SetWorkOrderID(w.ID)
 }
 
+// Mutation returns the HyperlinkMutation object of the builder.
+func (huo *HyperlinkUpdateOne) Mutation() *HyperlinkMutation {
+	return huo.mutation
+}
+
 // ClearEquipment clears the equipment edge to Equipment.
 func (huo *HyperlinkUpdateOne) ClearEquipment() *HyperlinkUpdateOne {
 	huo.mutation.ClearEquipment()
@@ -582,7 +592,7 @@ func (huo *HyperlinkUpdateOne) sqlSave(ctx context.Context) (h *Hyperlink, err e
 	}
 	id, ok := huo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing Hyperlink.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing Hyperlink.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := huo.mutation.UpdateTime(); ok {

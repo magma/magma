@@ -207,26 +207,31 @@ func (clic *CheckListItemCreate) SetCheckListCategory(c *CheckListCategory) *Che
 	return clic.SetCheckListCategoryID(c.ID)
 }
 
+// Mutation returns the CheckListItemMutation object of the builder.
+func (clic *CheckListItemCreate) Mutation() *CheckListItemMutation {
+	return clic.mutation
+}
+
 // Save creates the CheckListItem in the database.
 func (clic *CheckListItemCreate) Save(ctx context.Context) (*CheckListItem, error) {
 	if _, ok := clic.mutation.Title(); !ok {
-		return nil, errors.New("ent: missing required field \"title\"")
+		return nil, &ValidationError{Name: "title", err: errors.New("ent: missing required field \"title\"")}
 	}
 	if _, ok := clic.mutation.GetType(); !ok {
-		return nil, errors.New("ent: missing required field \"type\"")
+		return nil, &ValidationError{Name: "type", err: errors.New("ent: missing required field \"type\"")}
 	}
 	if v, ok := clic.mutation.EnumSelectionModeValue(); ok {
 		if err := checklistitem.EnumSelectionModeValueValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %v", err)
+			return nil, &ValidationError{Name: "enum_selection_mode_value", err: fmt.Errorf("ent: validator failed for field \"enum_selection_mode_value\": %w", err)}
 		}
 	}
 	if v, ok := clic.mutation.YesNoVal(); ok {
 		if err := checklistitem.YesNoValValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"yes_no_val\": %v", err)
+			return nil, &ValidationError{Name: "yes_no_val", err: fmt.Errorf("ent: validator failed for field \"yes_no_val\": %w", err)}
 		}
 	}
 	if _, ok := clic.mutation.CheckListCategoryID(); !ok {
-		return nil, errors.New("ent: missing required edge \"check_list_category\"")
+		return nil, &ValidationError{Name: "check_list_category", err: errors.New("ent: missing required edge \"check_list_category\"")}
 	}
 	var (
 		err  error

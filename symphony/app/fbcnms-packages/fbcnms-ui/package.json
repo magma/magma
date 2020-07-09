@@ -30,6 +30,7 @@
     "@storybook/addons": "^5.2.0",
     "@storybook/react": "^6.0.0-beta.23",
     "babel-loader": "^8.0.5",
+    "eslint-plugin-mdx": "^1.7.0",
     "react-is": "^16.8.6"
   },
   "scripts": {

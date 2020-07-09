@@ -9,29 +9,28 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"log"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/streamer"
+	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/glog"
 )
 
 func main() {
-	// Create the service
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, streamer.ServiceName)
 	if err != nil {
-		log.Fatalf("Error creating service: %s", err)
+		glog.Fatalf("Error creating streamer service: %s", err)
 	}
 
-	// Add servicers to the service
-	servicer := &servicers.StreamingServer{}
+	servicer := servicers.NewStreamerServicer()
 	protos.RegisterStreamerServer(srv.GrpcServer, servicer)
+	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewBaseOrchestratorStreamProviderServicer())
 
-	// Run the service
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error running streamer service: %s", err)
 	}
 }

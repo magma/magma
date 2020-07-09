@@ -16,8 +16,11 @@ import (
 	"github.com/facebookincubator/symphony/pkg/authz/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/checklistitem"
+	"github.com/facebookincubator/symphony/pkg/ent/file"
+	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
 	"github.com/facebookincubator/symphony/pkg/ent/user"
 	"github.com/facebookincubator/symphony/pkg/ent/usersgroup"
+	"github.com/facebookincubator/symphony/pkg/ent/workorder"
 )
 
 type NamedNode interface {
@@ -181,7 +184,6 @@ type AddPermissionsPolicyInput struct {
 type AddProjectInput struct {
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
-	Creator     *string          `json:"creator"`
 	CreatorID   *int             `json:"creatorId"`
 	Type        int              `json:"type"`
 	Location    *int             `json:"location"`
@@ -217,14 +219,12 @@ type AddWorkOrderInput struct {
 	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
-	OwnerName           *string                   `json:"ownerName"`
 	OwnerID             *int                      `json:"ownerId"`
 	CheckListCategories []*CheckListCategoryInput `json:"checkListCategories"`
-	Assignee            *string                   `json:"assignee"`
 	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
-	Status              *WorkOrderStatus          `json:"status"`
-	Priority            *WorkOrderPriority        `json:"priority"`
+	Status              *workorder.Status         `json:"status"`
+	Priority            *workorder.Priority       `json:"priority"`
 }
 
 type AddWorkOrderTypeInput struct {
@@ -277,6 +277,11 @@ type CommentInput struct {
 	EntityType CommentEntity `json:"entityType"`
 	ID         int           `json:"id"`
 	Text       string        `json:"text"`
+}
+
+type Coordinates struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 type Device struct {
@@ -352,7 +357,6 @@ type EditProjectInput struct {
 	ID          int              `json:"id"`
 	Name        string           `json:"name"`
 	Description *string          `json:"description"`
-	Creator     *string          `json:"creator"`
 	CreatorID   *int             `json:"creatorId"`
 	Type        int              `json:"type"`
 	Location    *int             `json:"location"`
@@ -393,14 +397,12 @@ type EditWorkOrderInput struct {
 	ID                  int                       `json:"id"`
 	Name                string                    `json:"name"`
 	Description         *string                   `json:"description"`
-	OwnerName           *string                   `json:"ownerName"`
 	OwnerID             *int                      `json:"ownerId"`
 	InstallDate         *time.Time                `json:"installDate"`
-	Assignee            *string                   `json:"assignee"`
 	AssigneeID          *int                      `json:"assigneeId"`
 	Index               *int                      `json:"index"`
-	Status              WorkOrderStatus           `json:"status"`
-	Priority            WorkOrderPriority         `json:"priority"`
+	Status              *workorder.Status         `json:"status"`
+	Priority            *workorder.Priority       `json:"priority"`
 	ProjectID           *int                      `json:"projectId"`
 	Properties          []*PropertyInput          `json:"properties"`
 	CheckList           []*CheckListItemInput     `json:"checkList"`
@@ -448,15 +450,15 @@ type EquipmentSearchResult struct {
 }
 
 type FileInput struct {
-	ID               *int      `json:"id"`
-	FileName         string    `json:"fileName"`
-	SizeInBytes      *int      `json:"sizeInBytes"`
-	ModificationTime *int      `json:"modificationTime"`
-	UploadTime       *int      `json:"uploadTime"`
-	FileType         *FileType `json:"fileType"`
-	MimeType         *string   `json:"mimeType"`
-	StoreKey         string    `json:"storeKey"`
-	Annotation       *string   `json:"annotation"`
+	ID               *int       `json:"id"`
+	FileName         string     `json:"fileName"`
+	SizeInBytes      *int       `json:"sizeInBytes"`
+	ModificationTime *int       `json:"modificationTime"`
+	UploadTime       *int       `json:"uploadTime"`
+	FileType         *file.Type `json:"fileType"`
+	MimeType         *string    `json:"mimeType"`
+	StoreKey         string     `json:"storeKey"`
+	Annotation       *string    `json:"annotation"`
 }
 
 type GeneralFilter struct {
@@ -583,25 +585,25 @@ type PropertyInput struct {
 }
 
 type PropertyTypeInput struct {
-	ID                 *int         `json:"id"`
-	ExternalID         *string      `json:"externalId"`
-	Name               string       `json:"name"`
-	Type               PropertyKind `json:"type"`
-	NodeType           *string      `json:"nodeType"`
-	Index              *int         `json:"index"`
-	Category           *string      `json:"category"`
-	StringValue        *string      `json:"stringValue"`
-	IntValue           *int         `json:"intValue"`
-	BooleanValue       *bool        `json:"booleanValue"`
-	FloatValue         *float64     `json:"floatValue"`
-	LatitudeValue      *float64     `json:"latitudeValue"`
-	LongitudeValue     *float64     `json:"longitudeValue"`
-	RangeFromValue     *float64     `json:"rangeFromValue"`
-	RangeToValue       *float64     `json:"rangeToValue"`
-	IsEditable         *bool        `json:"isEditable"`
-	IsInstanceProperty *bool        `json:"isInstanceProperty"`
-	IsMandatory        *bool        `json:"isMandatory"`
-	IsDeleted          *bool        `json:"isDeleted"`
+	ID                 *int              `json:"id"`
+	ExternalID         *string           `json:"externalId"`
+	Name               string            `json:"name"`
+	Type               propertytype.Type `json:"type"`
+	NodeType           *string           `json:"nodeType"`
+	Index              *int              `json:"index"`
+	Category           *string           `json:"category"`
+	StringValue        *string           `json:"stringValue"`
+	IntValue           *int              `json:"intValue"`
+	BooleanValue       *bool             `json:"booleanValue"`
+	FloatValue         *float64          `json:"floatValue"`
+	LatitudeValue      *float64          `json:"latitudeValue"`
+	LongitudeValue     *float64          `json:"longitudeValue"`
+	RangeFromValue     *float64          `json:"rangeFromValue"`
+	RangeToValue       *float64          `json:"rangeToValue"`
+	IsEditable         *bool             `json:"isEditable"`
+	IsInstanceProperty *bool             `json:"isInstanceProperty"`
+	IsMandatory        *bool             `json:"isMandatory"`
+	IsDeleted          *bool             `json:"isDeleted"`
 }
 
 type PythonPackage struct {
@@ -617,14 +619,6 @@ type ReportFilterInput struct {
 	Filters []*GeneralFilterInput `json:"filters"`
 }
 
-// A connection to a list of search entries.
-type SearchEntriesConnection struct {
-	// A list of search entry edges.
-	Edges []*SearchEntryEdge `json:"edges"`
-	// Information to aid in pagination.
-	PageInfo *ent.PageInfo `json:"pageInfo"`
-}
-
 type SearchEntry struct {
 	EntityID   int     `json:"entityId"`
 	EntityType string  `json:"entityType"`
@@ -633,25 +627,19 @@ type SearchEntry struct {
 	ExternalID *string `json:"externalId"`
 }
 
-// A search entry edge in a connection.
-type SearchEntryEdge struct {
-	// The search entry at the end of the edge.
-	Node *SearchEntry `json:"node"`
-	// A cursor for use in pagination.
-	Cursor ent.Cursor `json:"cursor"`
-}
-
-// A search entry edge in a connection.
+// A search node edge in a connection.
 type SearchNodeEdge struct {
-	// The search entry at the end of the edge.
+	// The search node at the end of the edge.
 	Node ent.Noder `json:"node"`
 	// A cursor for use in pagination.
 	Cursor ent.Cursor `json:"cursor"`
 }
 
-// A connection to a list of search entries.
+// A connection to a list of search nodes.
 type SearchNodesConnection struct {
-	// A list of search entry edges.
+	// Total count of search nodes in all pages.
+	TotalCount int `json:"totalCount"`
+	// A list of search node edges.
 	Edges []*SearchNodeEdge `json:"edges"`
 	// Information to aid in pagination.
 	PageInfo *ent.PageInfo `json:"pageInfo"`
@@ -880,6 +868,7 @@ type WorkOrderFilterInput struct {
 	IDSet         []int               `json:"idSet"`
 	StringSet     []string            `json:"stringSet"`
 	PropertyValue *PropertyTypeInput  `json:"propertyValue"`
+	TimeValue     *time.Time          `json:"timeValue"`
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
@@ -1070,11 +1059,12 @@ func (e DiscoveryMethod) MarshalGQL(w io.Writer) {
 type EquipmentFilterType string
 
 const (
-	EquipmentFilterTypeEquipInstName       EquipmentFilterType = "EQUIP_INST_NAME"
-	EquipmentFilterTypeEquipInstExternalID EquipmentFilterType = "EQUIP_INST_EXTERNAL_ID"
-	EquipmentFilterTypeProperty            EquipmentFilterType = "PROPERTY"
-	EquipmentFilterTypeLocationInst        EquipmentFilterType = "LOCATION_INST"
-	EquipmentFilterTypeEquipmentType       EquipmentFilterType = "EQUIPMENT_TYPE"
+	EquipmentFilterTypeEquipInstName          EquipmentFilterType = "EQUIP_INST_NAME"
+	EquipmentFilterTypeEquipInstExternalID    EquipmentFilterType = "EQUIP_INST_EXTERNAL_ID"
+	EquipmentFilterTypeProperty               EquipmentFilterType = "PROPERTY"
+	EquipmentFilterTypeLocationInst           EquipmentFilterType = "LOCATION_INST"
+	EquipmentFilterTypeLocationInstExternalID EquipmentFilterType = "LOCATION_INST_EXTERNAL_ID"
+	EquipmentFilterTypeEquipmentType          EquipmentFilterType = "EQUIPMENT_TYPE"
 )
 
 var AllEquipmentFilterType = []EquipmentFilterType{
@@ -1082,12 +1072,13 @@ var AllEquipmentFilterType = []EquipmentFilterType{
 	EquipmentFilterTypeEquipInstExternalID,
 	EquipmentFilterTypeProperty,
 	EquipmentFilterTypeLocationInst,
+	EquipmentFilterTypeLocationInstExternalID,
 	EquipmentFilterTypeEquipmentType,
 }
 
 func (e EquipmentFilterType) IsValid() bool {
 	switch e {
-	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeEquipInstExternalID, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeEquipmentType:
+	case EquipmentFilterTypeEquipInstName, EquipmentFilterTypeEquipInstExternalID, EquipmentFilterTypeProperty, EquipmentFilterTypeLocationInst, EquipmentFilterTypeLocationInstExternalID, EquipmentFilterTypeEquipmentType:
 		return true
 	}
 	return false
@@ -1111,47 +1102,6 @@ func (e *EquipmentFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e EquipmentFilterType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-type FileType string
-
-const (
-	FileTypeImage FileType = "IMAGE"
-	FileTypeFile  FileType = "FILE"
-)
-
-var AllFileType = []FileType{
-	FileTypeImage,
-	FileTypeFile,
-}
-
-func (e FileType) IsValid() bool {
-	switch e {
-	case FileTypeImage, FileTypeFile:
-		return true
-	}
-	return false
-}
-
-func (e FileType) String() string {
-	return string(e)
-}
-
-func (e *FileType) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = FileType(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid FileType", str)
-	}
-	return nil
-}
-
-func (e FileType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1208,12 +1158,14 @@ func (e FilterEntity) MarshalGQL(w io.Writer) {
 type FilterOperator string
 
 const (
-	FilterOperatorIs              FilterOperator = "IS"
-	FilterOperatorContains        FilterOperator = "CONTAINS"
-	FilterOperatorIsOneOf         FilterOperator = "IS_ONE_OF"
-	FilterOperatorIsNotOneOf      FilterOperator = "IS_NOT_ONE_OF"
-	FilterOperatorDateGreaterThan FilterOperator = "DATE_GREATER_THAN"
-	FilterOperatorDateLessThan    FilterOperator = "DATE_LESS_THAN"
+	FilterOperatorIs                     FilterOperator = "IS"
+	FilterOperatorContains               FilterOperator = "CONTAINS"
+	FilterOperatorIsOneOf                FilterOperator = "IS_ONE_OF"
+	FilterOperatorIsNotOneOf             FilterOperator = "IS_NOT_ONE_OF"
+	FilterOperatorDateGreaterThan        FilterOperator = "DATE_GREATER_THAN"
+	FilterOperatorDateLessThan           FilterOperator = "DATE_LESS_THAN"
+	FilterOperatorDateGreaterOrEqualThan FilterOperator = "DATE_GREATER_OR_EQUAL_THAN"
+	FilterOperatorDateLessOrEqualThan    FilterOperator = "DATE_LESS_OR_EQUAL_THAN"
 )
 
 var AllFilterOperator = []FilterOperator{
@@ -1223,11 +1175,13 @@ var AllFilterOperator = []FilterOperator{
 	FilterOperatorIsNotOneOf,
 	FilterOperatorDateGreaterThan,
 	FilterOperatorDateLessThan,
+	FilterOperatorDateGreaterOrEqualThan,
+	FilterOperatorDateLessOrEqualThan,
 }
 
 func (e FilterOperator) IsValid() bool {
 	switch e {
-	case FilterOperatorIs, FilterOperatorContains, FilterOperatorIsOneOf, FilterOperatorIsNotOneOf, FilterOperatorDateGreaterThan, FilterOperatorDateLessThan:
+	case FilterOperatorIs, FilterOperatorContains, FilterOperatorIsOneOf, FilterOperatorIsNotOneOf, FilterOperatorDateGreaterThan, FilterOperatorDateLessThan, FilterOperatorDateGreaterOrEqualThan, FilterOperatorDateLessOrEqualThan:
 		return true
 	}
 	return false
@@ -1349,18 +1303,20 @@ func (e ImageEntity) MarshalGQL(w io.Writer) {
 type LinkFilterType string
 
 const (
-	LinkFilterTypeLinkFutureStatus LinkFilterType = "LINK_FUTURE_STATUS"
-	LinkFilterTypeEquipmentType    LinkFilterType = "EQUIPMENT_TYPE"
-	LinkFilterTypeLocationInst     LinkFilterType = "LOCATION_INST"
-	LinkFilterTypeProperty         LinkFilterType = "PROPERTY"
-	LinkFilterTypeServiceInst      LinkFilterType = "SERVICE_INST"
-	LinkFilterTypeEquipmentInst    LinkFilterType = "EQUIPMENT_INST"
+	LinkFilterTypeLinkFutureStatus       LinkFilterType = "LINK_FUTURE_STATUS"
+	LinkFilterTypeEquipmentType          LinkFilterType = "EQUIPMENT_TYPE"
+	LinkFilterTypeLocationInst           LinkFilterType = "LOCATION_INST"
+	LinkFilterTypeLocationInstExternalID LinkFilterType = "LOCATION_INST_EXTERNAL_ID"
+	LinkFilterTypeProperty               LinkFilterType = "PROPERTY"
+	LinkFilterTypeServiceInst            LinkFilterType = "SERVICE_INST"
+	LinkFilterTypeEquipmentInst          LinkFilterType = "EQUIPMENT_INST"
 )
 
 var AllLinkFilterType = []LinkFilterType{
 	LinkFilterTypeLinkFutureStatus,
 	LinkFilterTypeEquipmentType,
 	LinkFilterTypeLocationInst,
+	LinkFilterTypeLocationInstExternalID,
 	LinkFilterTypeProperty,
 	LinkFilterTypeServiceInst,
 	LinkFilterTypeEquipmentInst,
@@ -1368,7 +1324,7 @@ var AllLinkFilterType = []LinkFilterType{
 
 func (e LinkFilterType) IsValid() bool {
 	switch e {
-	case LinkFilterTypeLinkFutureStatus, LinkFilterTypeEquipmentType, LinkFilterTypeLocationInst, LinkFilterTypeProperty, LinkFilterTypeServiceInst, LinkFilterTypeEquipmentInst:
+	case LinkFilterTypeLinkFutureStatus, LinkFilterTypeEquipmentType, LinkFilterTypeLocationInst, LinkFilterTypeLocationInstExternalID, LinkFilterTypeProperty, LinkFilterTypeServiceInst, LinkFilterTypeEquipmentInst:
 		return true
 	}
 	return false
@@ -1489,12 +1445,13 @@ func (e PermissionsPolicyFilterType) MarshalGQL(w io.Writer) {
 type PortFilterType string
 
 const (
-	PortFilterTypePortDef           PortFilterType = "PORT_DEF"
-	PortFilterTypePortInstHasLink   PortFilterType = "PORT_INST_HAS_LINK"
-	PortFilterTypePortInstEquipment PortFilterType = "PORT_INST_EQUIPMENT"
-	PortFilterTypeLocationInst      PortFilterType = "LOCATION_INST"
-	PortFilterTypeProperty          PortFilterType = "PROPERTY"
-	PortFilterTypeServiceInst       PortFilterType = "SERVICE_INST"
+	PortFilterTypePortDef                PortFilterType = "PORT_DEF"
+	PortFilterTypePortInstHasLink        PortFilterType = "PORT_INST_HAS_LINK"
+	PortFilterTypePortInstEquipment      PortFilterType = "PORT_INST_EQUIPMENT"
+	PortFilterTypeLocationInst           PortFilterType = "LOCATION_INST"
+	PortFilterTypeLocationInstExternalID PortFilterType = "LOCATION_INST_EXTERNAL_ID"
+	PortFilterTypeProperty               PortFilterType = "PROPERTY"
+	PortFilterTypeServiceInst            PortFilterType = "SERVICE_INST"
 )
 
 var AllPortFilterType = []PortFilterType{
@@ -1502,13 +1459,14 @@ var AllPortFilterType = []PortFilterType{
 	PortFilterTypePortInstHasLink,
 	PortFilterTypePortInstEquipment,
 	PortFilterTypeLocationInst,
+	PortFilterTypeLocationInstExternalID,
 	PortFilterTypeProperty,
 	PortFilterTypeServiceInst,
 }
 
 func (e PortFilterType) IsValid() bool {
 	switch e {
-	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeProperty, PortFilterTypeServiceInst:
+	case PortFilterTypePortDef, PortFilterTypePortInstHasLink, PortFilterTypePortInstEquipment, PortFilterTypeLocationInst, PortFilterTypeLocationInstExternalID, PortFilterTypeProperty, PortFilterTypeServiceInst:
 		return true
 	}
 	return false
@@ -1625,65 +1583,6 @@ func (e PropertyEntity) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
-type PropertyKind string
-
-const (
-	PropertyKindString        PropertyKind = "string"
-	PropertyKindInt           PropertyKind = "int"
-	PropertyKindBool          PropertyKind = "bool"
-	PropertyKindFloat         PropertyKind = "float"
-	PropertyKindDate          PropertyKind = "date"
-	PropertyKindEnum          PropertyKind = "enum"
-	PropertyKindRange         PropertyKind = "range"
-	PropertyKindEmail         PropertyKind = "email"
-	PropertyKindGpsLocation   PropertyKind = "gps_location"
-	PropertyKindDatetimeLocal PropertyKind = "datetime_local"
-	PropertyKindNode          PropertyKind = "node"
-)
-
-var AllPropertyKind = []PropertyKind{
-	PropertyKindString,
-	PropertyKindInt,
-	PropertyKindBool,
-	PropertyKindFloat,
-	PropertyKindDate,
-	PropertyKindEnum,
-	PropertyKindRange,
-	PropertyKindEmail,
-	PropertyKindGpsLocation,
-	PropertyKindDatetimeLocal,
-	PropertyKindNode,
-}
-
-func (e PropertyKind) IsValid() bool {
-	switch e {
-	case PropertyKindString, PropertyKindInt, PropertyKindBool, PropertyKindFloat, PropertyKindDate, PropertyKindEnum, PropertyKindRange, PropertyKindEmail, PropertyKindGpsLocation, PropertyKindDatetimeLocal, PropertyKindNode:
-		return true
-	}
-	return false
-}
-
-func (e PropertyKind) String() string {
-	return string(e)
-}
-
-func (e *PropertyKind) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = PropertyKind(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid PropertyKind", str)
-	}
-	return nil
-}
-
-func (e PropertyKind) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
 // what filters should we apply on services
 type ServiceFilterType string
 
@@ -1696,6 +1595,7 @@ const (
 	ServiceFilterTypeServiceInstCustomerName ServiceFilterType = "SERVICE_INST_CUSTOMER_NAME"
 	ServiceFilterTypeProperty                ServiceFilterType = "PROPERTY"
 	ServiceFilterTypeLocationInst            ServiceFilterType = "LOCATION_INST"
+	ServiceFilterTypeLocationInstExternalID  ServiceFilterType = "LOCATION_INST_EXTERNAL_ID"
 	ServiceFilterTypeEquipmentInService      ServiceFilterType = "EQUIPMENT_IN_SERVICE"
 )
 
@@ -1708,12 +1608,13 @@ var AllServiceFilterType = []ServiceFilterType{
 	ServiceFilterTypeServiceInstCustomerName,
 	ServiceFilterTypeProperty,
 	ServiceFilterTypeLocationInst,
+	ServiceFilterTypeLocationInstExternalID,
 	ServiceFilterTypeEquipmentInService,
 }
 
 func (e ServiceFilterType) IsValid() bool {
 	switch e {
-	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceDiscoveryMethod, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeEquipmentInService:
+	case ServiceFilterTypeServiceInstName, ServiceFilterTypeServiceStatus, ServiceFilterTypeServiceDiscoveryMethod, ServiceFilterTypeServiceType, ServiceFilterTypeServiceInstExternalID, ServiceFilterTypeServiceInstCustomerName, ServiceFilterTypeProperty, ServiceFilterTypeLocationInst, ServiceFilterTypeLocationInstExternalID, ServiceFilterTypeEquipmentInService:
 		return true
 	}
 	return false
@@ -2014,16 +1915,17 @@ func (e UsersGroupFilterType) MarshalGQL(w io.Writer) {
 type WorkOrderFilterType string
 
 const (
-	WorkOrderFilterTypeWorkOrderName         WorkOrderFilterType = "WORK_ORDER_NAME"
-	WorkOrderFilterTypeWorkOrderStatus       WorkOrderFilterType = "WORK_ORDER_STATUS"
-	WorkOrderFilterTypeWorkOrderOwnedBy      WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
-	WorkOrderFilterTypeWorkOrderType         WorkOrderFilterType = "WORK_ORDER_TYPE"
-	WorkOrderFilterTypeWorkOrderCreationDate WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
-	WorkOrderFilterTypeWorkOrderInstallDate  WorkOrderFilterType = "WORK_ORDER_INSTALL_DATE"
-	WorkOrderFilterTypeWorkOrderAssignedTo   WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
-	WorkOrderFilterTypeWorkOrderLocationInst WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
-	WorkOrderFilterTypeWorkOrderPriority     WorkOrderFilterType = "WORK_ORDER_PRIORITY"
-	WorkOrderFilterTypeLocationInst          WorkOrderFilterType = "LOCATION_INST"
+	WorkOrderFilterTypeWorkOrderName          WorkOrderFilterType = "WORK_ORDER_NAME"
+	WorkOrderFilterTypeWorkOrderStatus        WorkOrderFilterType = "WORK_ORDER_STATUS"
+	WorkOrderFilterTypeWorkOrderOwnedBy       WorkOrderFilterType = "WORK_ORDER_OWNED_BY"
+	WorkOrderFilterTypeWorkOrderType          WorkOrderFilterType = "WORK_ORDER_TYPE"
+	WorkOrderFilterTypeWorkOrderCreationDate  WorkOrderFilterType = "WORK_ORDER_CREATION_DATE"
+	WorkOrderFilterTypeWorkOrderCloseDate     WorkOrderFilterType = "WORK_ORDER_CLOSE_DATE"
+	WorkOrderFilterTypeWorkOrderAssignedTo    WorkOrderFilterType = "WORK_ORDER_ASSIGNED_TO"
+	WorkOrderFilterTypeWorkOrderLocationInst  WorkOrderFilterType = "WORK_ORDER_LOCATION_INST"
+	WorkOrderFilterTypeWorkOrderPriority      WorkOrderFilterType = "WORK_ORDER_PRIORITY"
+	WorkOrderFilterTypeLocationInst           WorkOrderFilterType = "LOCATION_INST"
+	WorkOrderFilterTypeLocationInstExternalID WorkOrderFilterType = "LOCATION_INST_EXTERNAL_ID"
 )
 
 var AllWorkOrderFilterType = []WorkOrderFilterType{
@@ -2032,16 +1934,17 @@ var AllWorkOrderFilterType = []WorkOrderFilterType{
 	WorkOrderFilterTypeWorkOrderOwnedBy,
 	WorkOrderFilterTypeWorkOrderType,
 	WorkOrderFilterTypeWorkOrderCreationDate,
-	WorkOrderFilterTypeWorkOrderInstallDate,
+	WorkOrderFilterTypeWorkOrderCloseDate,
 	WorkOrderFilterTypeWorkOrderAssignedTo,
 	WorkOrderFilterTypeWorkOrderLocationInst,
 	WorkOrderFilterTypeWorkOrderPriority,
 	WorkOrderFilterTypeLocationInst,
+	WorkOrderFilterTypeLocationInstExternalID,
 }
 
 func (e WorkOrderFilterType) IsValid() bool {
 	switch e {
-	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderInstallDate, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst:
+	case WorkOrderFilterTypeWorkOrderName, WorkOrderFilterTypeWorkOrderStatus, WorkOrderFilterTypeWorkOrderOwnedBy, WorkOrderFilterTypeWorkOrderType, WorkOrderFilterTypeWorkOrderCreationDate, WorkOrderFilterTypeWorkOrderCloseDate, WorkOrderFilterTypeWorkOrderAssignedTo, WorkOrderFilterTypeWorkOrderLocationInst, WorkOrderFilterTypeWorkOrderPriority, WorkOrderFilterTypeLocationInst, WorkOrderFilterTypeLocationInstExternalID:
 		return true
 	}
 	return false
@@ -2065,98 +1968,6 @@ func (e *WorkOrderFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e WorkOrderFilterType) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// Work Order priority
-type WorkOrderPriority string
-
-const (
-	WorkOrderPriorityUrgent WorkOrderPriority = "URGENT"
-	WorkOrderPriorityHigh   WorkOrderPriority = "HIGH"
-	WorkOrderPriorityMedium WorkOrderPriority = "MEDIUM"
-	WorkOrderPriorityLow    WorkOrderPriority = "LOW"
-	WorkOrderPriorityNone   WorkOrderPriority = "NONE"
-)
-
-var AllWorkOrderPriority = []WorkOrderPriority{
-	WorkOrderPriorityUrgent,
-	WorkOrderPriorityHigh,
-	WorkOrderPriorityMedium,
-	WorkOrderPriorityLow,
-	WorkOrderPriorityNone,
-}
-
-func (e WorkOrderPriority) IsValid() bool {
-	switch e {
-	case WorkOrderPriorityUrgent, WorkOrderPriorityHigh, WorkOrderPriorityMedium, WorkOrderPriorityLow, WorkOrderPriorityNone:
-		return true
-	}
-	return false
-}
-
-func (e WorkOrderPriority) String() string {
-	return string(e)
-}
-
-func (e *WorkOrderPriority) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkOrderPriority(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid WorkOrderPriority", str)
-	}
-	return nil
-}
-
-func (e WorkOrderPriority) MarshalGQL(w io.Writer) {
-	fmt.Fprint(w, strconv.Quote(e.String()))
-}
-
-// Work Order status
-type WorkOrderStatus string
-
-const (
-	WorkOrderStatusPending WorkOrderStatus = "PENDING"
-	WorkOrderStatusPlanned WorkOrderStatus = "PLANNED"
-	WorkOrderStatusDone    WorkOrderStatus = "DONE"
-)
-
-var AllWorkOrderStatus = []WorkOrderStatus{
-	WorkOrderStatusPending,
-	WorkOrderStatusPlanned,
-	WorkOrderStatusDone,
-}
-
-func (e WorkOrderStatus) IsValid() bool {
-	switch e {
-	case WorkOrderStatusPending, WorkOrderStatusPlanned, WorkOrderStatusDone:
-		return true
-	}
-	return false
-}
-
-func (e WorkOrderStatus) String() string {
-	return string(e)
-}
-
-func (e *WorkOrderStatus) UnmarshalGQL(v interface{}) error {
-	str, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("enums must be strings")
-	}
-
-	*e = WorkOrderStatus(str)
-	if !e.IsValid() {
-		return fmt.Errorf("%s is not a valid WorkOrderStatus", str)
-	}
-	return nil
-}
-
-func (e WorkOrderStatus) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

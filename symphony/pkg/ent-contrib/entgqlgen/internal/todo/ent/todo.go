@@ -19,6 +19,8 @@ type Todo struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// Status holds the value of the "status" field.
+	Status todo.Status `json:"status,omitempty"`
 	// Text holds the value of the "text" field.
 	Text string `json:"text,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
@@ -65,6 +67,7 @@ func (e TodoEdges) ChildrenOrErr() ([]*Todo, error) {
 func (*Todo) scanValues() []interface{} {
 	return []interface{}{
 		&sql.NullInt64{},  // id
+		&sql.NullString{}, // status
 		&sql.NullString{}, // text
 	}
 }
@@ -89,11 +92,16 @@ func (t *Todo) assignValues(values ...interface{}) error {
 	t.ID = int(value.Int64)
 	values = values[1:]
 	if value, ok := values[0].(*sql.NullString); !ok {
-		return fmt.Errorf("unexpected type %T for field text", values[0])
+		return fmt.Errorf("unexpected type %T for field status", values[0])
+	} else if value.Valid {
+		t.Status = todo.Status(value.String)
+	}
+	if value, ok := values[1].(*sql.NullString); !ok {
+		return fmt.Errorf("unexpected type %T for field text", values[1])
 	} else if value.Valid {
 		t.Text = value.String
 	}
-	values = values[1:]
+	values = values[2:]
 	if len(values) == len(todo.ForeignKeys) {
 		if value, ok := values[0].(*sql.NullInt64); !ok {
 			return fmt.Errorf("unexpected type %T for edge-field todo_children", value)
@@ -138,6 +146,8 @@ func (t *Todo) String() string {
 	var builder strings.Builder
 	builder.WriteString("Todo(")
 	builder.WriteString(fmt.Sprintf("id=%v", t.ID))
+	builder.WriteString(", status=")
+	builder.WriteString(fmt.Sprintf("%v", t.Status))
 	builder.WriteString(", text=")
 	builder.WriteString(t.Text)
 	builder.WriteByte(')')

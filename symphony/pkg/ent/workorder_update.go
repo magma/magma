@@ -53,29 +53,29 @@ func (wou *WorkOrderUpdate) SetName(s string) *WorkOrderUpdate {
 }
 
 // SetStatus sets the status field.
-func (wou *WorkOrderUpdate) SetStatus(s string) *WorkOrderUpdate {
-	wou.mutation.SetStatus(s)
+func (wou *WorkOrderUpdate) SetStatus(w workorder.Status) *WorkOrderUpdate {
+	wou.mutation.SetStatus(w)
 	return wou
 }
 
 // SetNillableStatus sets the status field if the given value is not nil.
-func (wou *WorkOrderUpdate) SetNillableStatus(s *string) *WorkOrderUpdate {
-	if s != nil {
-		wou.SetStatus(*s)
+func (wou *WorkOrderUpdate) SetNillableStatus(w *workorder.Status) *WorkOrderUpdate {
+	if w != nil {
+		wou.SetStatus(*w)
 	}
 	return wou
 }
 
 // SetPriority sets the priority field.
-func (wou *WorkOrderUpdate) SetPriority(s string) *WorkOrderUpdate {
-	wou.mutation.SetPriority(s)
+func (wou *WorkOrderUpdate) SetPriority(w workorder.Priority) *WorkOrderUpdate {
+	wou.mutation.SetPriority(w)
 	return wou
 }
 
 // SetNillablePriority sets the priority field if the given value is not nil.
-func (wou *WorkOrderUpdate) SetNillablePriority(s *string) *WorkOrderUpdate {
-	if s != nil {
-		wou.SetPriority(*s)
+func (wou *WorkOrderUpdate) SetNillablePriority(w *workorder.Priority) *WorkOrderUpdate {
+	if w != nil {
+		wou.SetPriority(*w)
 	}
 	return wou
 }
@@ -399,6 +399,11 @@ func (wou *WorkOrderUpdate) SetAssignee(u *User) *WorkOrderUpdate {
 	return wou.SetAssigneeID(u.ID)
 }
 
+// Mutation returns the WorkOrderMutation object of the builder.
+func (wou *WorkOrderUpdate) Mutation() *WorkOrderMutation {
+	return wou.mutation
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wou *WorkOrderUpdate) ClearType() *WorkOrderUpdate {
 	wou.mutation.ClearType()
@@ -563,7 +568,17 @@ func (wou *WorkOrderUpdate) Save(ctx context.Context) (int, error) {
 	}
 	if v, ok := wou.mutation.Name(); ok {
 		if err := workorder.NameValidator(v); err != nil {
-			return 0, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return 0, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+		}
+	}
+	if v, ok := wou.mutation.Status(); ok {
+		if err := workorder.StatusValidator(v); err != nil {
+			return 0, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
+	if v, ok := wou.mutation.Priority(); ok {
+		if err := workorder.PriorityValidator(v); err != nil {
+			return 0, &ValidationError{Name: "priority", err: fmt.Errorf("ent: validator failed for field \"priority\": %w", err)}
 		}
 	}
 
@@ -654,14 +669,14 @@ func (wou *WorkOrderUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := wou.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldStatus,
 		})
 	}
 	if value, ok := wou.mutation.Priority(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldPriority,
 		})
@@ -1271,29 +1286,29 @@ func (wouo *WorkOrderUpdateOne) SetName(s string) *WorkOrderUpdateOne {
 }
 
 // SetStatus sets the status field.
-func (wouo *WorkOrderUpdateOne) SetStatus(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetStatus(s)
+func (wouo *WorkOrderUpdateOne) SetStatus(w workorder.Status) *WorkOrderUpdateOne {
+	wouo.mutation.SetStatus(w)
 	return wouo
 }
 
 // SetNillableStatus sets the status field if the given value is not nil.
-func (wouo *WorkOrderUpdateOne) SetNillableStatus(s *string) *WorkOrderUpdateOne {
-	if s != nil {
-		wouo.SetStatus(*s)
+func (wouo *WorkOrderUpdateOne) SetNillableStatus(w *workorder.Status) *WorkOrderUpdateOne {
+	if w != nil {
+		wouo.SetStatus(*w)
 	}
 	return wouo
 }
 
 // SetPriority sets the priority field.
-func (wouo *WorkOrderUpdateOne) SetPriority(s string) *WorkOrderUpdateOne {
-	wouo.mutation.SetPriority(s)
+func (wouo *WorkOrderUpdateOne) SetPriority(w workorder.Priority) *WorkOrderUpdateOne {
+	wouo.mutation.SetPriority(w)
 	return wouo
 }
 
 // SetNillablePriority sets the priority field if the given value is not nil.
-func (wouo *WorkOrderUpdateOne) SetNillablePriority(s *string) *WorkOrderUpdateOne {
-	if s != nil {
-		wouo.SetPriority(*s)
+func (wouo *WorkOrderUpdateOne) SetNillablePriority(w *workorder.Priority) *WorkOrderUpdateOne {
+	if w != nil {
+		wouo.SetPriority(*w)
 	}
 	return wouo
 }
@@ -1617,6 +1632,11 @@ func (wouo *WorkOrderUpdateOne) SetAssignee(u *User) *WorkOrderUpdateOne {
 	return wouo.SetAssigneeID(u.ID)
 }
 
+// Mutation returns the WorkOrderMutation object of the builder.
+func (wouo *WorkOrderUpdateOne) Mutation() *WorkOrderMutation {
+	return wouo.mutation
+}
+
 // ClearType clears the type edge to WorkOrderType.
 func (wouo *WorkOrderUpdateOne) ClearType() *WorkOrderUpdateOne {
 	wouo.mutation.ClearType()
@@ -1781,7 +1801,17 @@ func (wouo *WorkOrderUpdateOne) Save(ctx context.Context) (*WorkOrder, error) {
 	}
 	if v, ok := wouo.mutation.Name(); ok {
 		if err := workorder.NameValidator(v); err != nil {
-			return nil, fmt.Errorf("ent: validator failed for field \"name\": %v", err)
+			return nil, &ValidationError{Name: "name", err: fmt.Errorf("ent: validator failed for field \"name\": %w", err)}
+		}
+	}
+	if v, ok := wouo.mutation.Status(); ok {
+		if err := workorder.StatusValidator(v); err != nil {
+			return nil, &ValidationError{Name: "status", err: fmt.Errorf("ent: validator failed for field \"status\": %w", err)}
+		}
+	}
+	if v, ok := wouo.mutation.Priority(); ok {
+		if err := workorder.PriorityValidator(v); err != nil {
+			return nil, &ValidationError{Name: "priority", err: fmt.Errorf("ent: validator failed for field \"priority\": %w", err)}
 		}
 	}
 
@@ -1851,7 +1881,7 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 	}
 	id, ok := wouo.mutation.ID()
 	if !ok {
-		return nil, fmt.Errorf("missing WorkOrder.ID for update")
+		return nil, &ValidationError{Name: "ID", err: fmt.Errorf("missing WorkOrder.ID for update")}
 	}
 	_spec.Node.ID.Value = id
 	if value, ok := wouo.mutation.UpdateTime(); ok {
@@ -1870,14 +1900,14 @@ func (wouo *WorkOrderUpdateOne) sqlSave(ctx context.Context) (wo *WorkOrder, err
 	}
 	if value, ok := wouo.mutation.Status(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldStatus,
 		})
 	}
 	if value, ok := wouo.mutation.Priority(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeString,
+			Type:   field.TypeEnum,
 			Value:  value,
 			Column: workorder.FieldPriority,
 		})

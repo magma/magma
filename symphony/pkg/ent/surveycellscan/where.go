@@ -274,7 +274,7 @@ func CreateTimeIn(vs ...time.Time) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -291,7 +291,7 @@ func CreateTimeNotIn(vs ...time.Time) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -350,7 +350,7 @@ func UpdateTimeIn(vs ...time.Time) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -367,7 +367,7 @@ func UpdateTimeNotIn(vs ...time.Time) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -426,7 +426,7 @@ func NetworkTypeIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -443,7 +443,7 @@ func NetworkTypeNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -537,7 +537,7 @@ func SignalStrengthIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -554,7 +554,7 @@ func SignalStrengthNotIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -613,7 +613,7 @@ func TimestampIn(vs ...time.Time) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -630,7 +630,7 @@ func TimestampNotIn(vs ...time.Time) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -703,7 +703,7 @@ func BaseStationIDIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -720,7 +720,7 @@ func BaseStationIDNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -828,7 +828,7 @@ func NetworkIDIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -845,7 +845,7 @@ func NetworkIDNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -953,7 +953,7 @@ func SystemIDIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -970,7 +970,7 @@ func SystemIDNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1078,7 +1078,7 @@ func CellIDIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1095,7 +1095,7 @@ func CellIDNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1203,7 +1203,7 @@ func LocationAreaCodeIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1220,7 +1220,7 @@ func LocationAreaCodeNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1328,7 +1328,7 @@ func MobileCountryCodeIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1345,7 +1345,7 @@ func MobileCountryCodeNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1453,7 +1453,7 @@ func MobileNetworkCodeIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1470,7 +1470,7 @@ func MobileNetworkCodeNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1578,7 +1578,7 @@ func PrimaryScramblingCodeIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1595,7 +1595,7 @@ func PrimaryScramblingCodeNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1703,7 +1703,7 @@ func OperatorIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1720,7 +1720,7 @@ func OperatorNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1828,7 +1828,7 @@ func ArfcnIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1845,7 +1845,7 @@ func ArfcnNotIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1918,7 +1918,7 @@ func PhysicalCellIDIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -1935,7 +1935,7 @@ func PhysicalCellIDNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2043,7 +2043,7 @@ func TrackingAreaCodeIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2060,7 +2060,7 @@ func TrackingAreaCodeNotIn(vs ...string) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2168,7 +2168,7 @@ func TimingAdvanceIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2185,7 +2185,7 @@ func TimingAdvanceNotIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2258,7 +2258,7 @@ func EarfcnIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2275,7 +2275,7 @@ func EarfcnNotIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2348,7 +2348,7 @@ func UarfcnIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2365,7 +2365,7 @@ func UarfcnNotIn(vs ...int) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2438,7 +2438,7 @@ func LatitudeIn(vs ...float64) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2455,7 +2455,7 @@ func LatitudeNotIn(vs ...float64) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2528,7 +2528,7 @@ func LongitudeIn(vs ...float64) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}
@@ -2545,7 +2545,7 @@ func LongitudeNotIn(vs ...float64) predicate.SurveyCellScan {
 	return predicate.SurveyCellScan(func(s *sql.Selector) {
 		// if not arguments were provided, append the FALSE constants,
 		// since we can't apply "IN ()". This will make this predicate falsy.
-		if len(vs) == 0 {
+		if len(v) == 0 {
 			s.Where(sql.False())
 			return
 		}

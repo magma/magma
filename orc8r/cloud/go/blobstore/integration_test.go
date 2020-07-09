@@ -258,10 +258,11 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 }
 
 type searchTestCase struct {
-	nid      *string
-	types    []string
-	keys     []string
-	criteria *blobstore.LoadCriteria
+	nid       *string
+	types     []string
+	keys      []string
+	keyPrefix *string
+	criteria  *blobstore.LoadCriteria
 
 	expected map[string][]blobstore.Blob
 }
@@ -349,6 +350,33 @@ func runSearchTestCases(t *testing.T, fact blobstore.BlobStorageFactory) {
 			expected: map[string][]blobstore.Blob{
 				"network1": {
 					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+				},
+			},
+		},
+		// with key prefix
+		{
+			keyPrefix: strPtr("k1"),
+			expected: map[string][]blobstore.Blob{
+				"network1": {
+					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+					{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+				},
+			},
+		},
+		// with keys and key prefix set, key prefix should take precedence
+		{
+			keys:      []string{"k1", "k2"},
+			keyPrefix: strPtr("k"),
+			expected: map[string][]blobstore.Blob{
+				"network1": {
+					{Type: "t1", Key: "k1", Value: []byte("v1"), Version: 0},
+					{Type: "t1", Key: "k2", Value: []byte("v2"), Version: 0},
+					{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+					{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 1},
+				},
+				"network2": {
+					{Type: "t3", Key: "k3", Value: []byte("v5"), Version: 0},
+					{Type: "t3", Key: "k4", Value: []byte("v6"), Version: 0},
 				},
 			},
 		},
@@ -447,7 +475,7 @@ func runSearchTestCase(t *testing.T, store blobstore.TransactionalBlobStorage, t
 		criteria = blobstore.GetDefaultLoadCriteria()
 	}
 
-	searchActual, err := store.Search(blobstore.CreateSearchFilter(tc.nid, tc.types, tc.keys), criteria)
+	searchActual, err := store.Search(blobstore.CreateSearchFilter(tc.nid, tc.types, tc.keys, tc.keyPrefix), criteria)
 	assert.NoError(t, err)
 	sortSearchOutput(searchActual)
 	assert.Equal(t, tc.expected, searchActual)

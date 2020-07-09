@@ -1,9 +1,9 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
 */
 
 // Package registry for Magma microservices
@@ -13,6 +13,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -28,6 +29,24 @@ var globalRegistry = New() // global registry instance
 // Get returns a reference to the instance of global platform registry
 func Get() *ServiceRegistry {
 	return globalRegistry
+}
+
+// PopulateServices populates the service registry based on the per-module
+// config files at /etc/magma/configs/MODULE_NAME/service_registry.yml.
+func PopulateServices() error {
+	serviceConfigs, err := LoadServiceRegistryConfigs()
+	if err != nil {
+		return err
+	}
+	AddServices(serviceConfigs...)
+	return nil
+}
+
+// MustPopulateServices is same as PopulateServices but fails on errors.
+func MustPopulateServices() {
+	if err := PopulateServices(); err != nil {
+		glog.Fatalf("Error populating services: %v", err)
+	}
 }
 
 // AddServices adds new services to the global registry.
@@ -63,6 +82,12 @@ func GetServiceProxyAliases(service string) (map[string]int, error) {
 // The service needs to be added to the registry before this.
 func GetServicePort(service string) (int, error) {
 	return globalRegistry.GetServicePort(service)
+}
+
+// GetEchoServerPort returns the listening port for the service's echo server.
+// The echo_port field needs to be added to the registry before this.
+func GetEchoServerPort(service string) (int, error) {
+	return globalRegistry.GetEchoServerPort(service)
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.

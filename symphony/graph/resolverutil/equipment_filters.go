@@ -59,7 +59,7 @@ func equipmentPropertyFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilt
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					pred,
 				),
@@ -67,13 +67,13 @@ func equipmentPropertyFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilt
 			equipment.And(
 				equipment.HasTypeWith(equipmenttype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					predType,
 				)),
 				equipment.Not(equipment.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 		return q, nil
@@ -87,7 +87,7 @@ func equipmentPropertyFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilt
 				property.And(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					),
 					propPred,
 				),
@@ -95,13 +95,13 @@ func equipmentPropertyFilter(q *ent.EquipmentQuery, filter *models.EquipmentFilt
 			equipment.And(
 				equipment.HasTypeWith(equipmenttype.HasPropertyTypesWith(
 					propertytype.Name(p.Name),
-					propertytype.Type(p.Type.String()),
+					propertytype.TypeEQ(p.Type),
 					propTypePred,
 				)),
 				equipment.Not(equipment.HasPropertiesWith(
 					property.HasTypeWith(
 						propertytype.Name(p.Name),
-						propertytype.Type(p.Type.String()),
+						propertytype.TypeEQ(p.Type),
 					)),
 				))))
 		return q, nil

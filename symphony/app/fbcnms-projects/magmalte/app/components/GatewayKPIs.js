@@ -50,7 +50,7 @@ function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
   Object.keys(gatewaySt)
     .map((k: string) => gatewaySt[k])
     .filter((g: lte_gateway) => g.cellular && g.id)
-    .map(function(gateway: lte_gateway) {
+    .map(function (gateway: lte_gateway) {
       isGatewayHealthy(gateway) ? upCount++ : downCount++;
     });
   return [upCount, downCount];

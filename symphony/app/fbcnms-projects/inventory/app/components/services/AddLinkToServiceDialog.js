@@ -89,20 +89,22 @@ const steps = ['Select Equipment', 'Select Link'];
 
 const addLinkToServiceDialogQuery = graphql`
   query AddLinkToServiceDialogQuery($filters: [LinkFilterInput!]!) {
-    linkSearch(filters: $filters, limit: 50) {
-      links {
-        id
-        ports {
-          parentEquipment {
-            id
-            name
+    links(filters: $filters, first: 50) {
+      edges {
+        node {
+          id
+          ports {
+            parentEquipment {
+              id
+              name
+            }
+            definition {
+              id
+              name
+            }
           }
-          definition {
-            id
-            name
-          }
+          ...AvailableLinksTable_links
         }
-        ...AvailableLinksTable_links
       }
     }
   }
@@ -173,11 +175,11 @@ class AddLinkToServiceDialog extends React.Component<Props, State> {
               ],
             }}
             render={props => {
-              const {linkSearch} = props;
+              const {links} = props;
               return (
                 <AvailableLinksTable
                   equipment={nullthrows(this.state.activeEquipement)}
-                  links={linkSearch.links}
+                  links={links.edges.map(edge => edge.node)}
                   selectedLink={this.state.activeLink}
                   onLinkSelected={this.handleLinkSelected}
                 />

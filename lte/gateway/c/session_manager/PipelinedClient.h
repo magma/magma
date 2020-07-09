@@ -81,7 +81,8 @@ class PipelinedClient {
     const std::string& imsi,
     const std::string& ip_addr,
     const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules) = 0;
+    const std::vector<PolicyRule>& dynamic_rules,
+    std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -190,7 +191,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& imsi,
     const std::string& ip_addr,
     const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules);
+    const std::vector<PolicyRule>& dynamic_rules,
+    std::function<void(Status status, ActivateFlowsResult)> callback);
 
   /**
    * Send the MAC address of UE and the subscriberID

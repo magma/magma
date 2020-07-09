@@ -37,10 +37,6 @@ PROCESS_STATS = 0x0
 IGNORE_STATS = 0x1
 
 
-class RelayDisabledException(Exception):
-    pass
-
-
 class EnforcementStatsController(PolicyMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
@@ -64,7 +60,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
     def __init__(self, *args, **kwargs):
         super(EnforcementStatsController, self).__init__(*args, **kwargs)
-        # No need to report usage if relay mode is not enabled.
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_next_table_num(self.APP_NAME)
@@ -151,8 +146,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
         """
-        # Do not install anything if relay is disabled
-
         def fail(err):
             self.logger.error(
                 "Failed to install rule %s for subscriber %s: %s",

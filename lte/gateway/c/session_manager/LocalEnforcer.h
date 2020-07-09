@@ -144,8 +144,6 @@ class LocalEnforcer {
    * Starts the termination process for the session. When termination completes,
    * the call back function is executed.
    * @param imsi - imsi of the subscirber
-   * @param on_termination_callback - callback function to be executed after
-   * termination
    */
   void terminate_subscriber(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
@@ -406,6 +404,13 @@ class LocalEnforcer {
     const std::string& ap_mac_addr,
     const std::string& ap_name,
     Status status, FlowResponse resp);
+
+  void handle_activate_ue_flows_callback(
+    const std::string& imsi,
+    const std::string& ip_addr,
+    const std::vector<std::string>& static_rules,
+    const std::vector<PolicyRule>& dynamic_rules,
+    Status status, ActivateFlowsResult resp);
 
   /**
    * Deactivate rules for certain IMSI.
