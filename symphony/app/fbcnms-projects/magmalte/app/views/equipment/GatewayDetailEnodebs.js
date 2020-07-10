@@ -33,13 +33,13 @@ export default function GatewayDetailEnodebs({
   const {history, match} = useRouter();
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
 
-  const enbRows: Array<EnodebRowType> = gwInfo.connected_enodeb_serials?.map(
+  const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];
       return {
-        name: enbInf?.enb.name,
+        health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
+        name: enbInf.enb.name,
         id: serialNum,
-        health: enbInf && isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
       };
     },
   );
