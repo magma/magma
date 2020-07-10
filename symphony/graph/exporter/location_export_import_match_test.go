@@ -15,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/log/logtest"
@@ -143,11 +144,12 @@ func TestExportAndEditLocations(t *testing.T) {
 						for _, prop := range props {
 							switch prop.QueryType().OnlyX(ctx).Name {
 							case propNameDate:
-								require.Equal(t, "1988-01-01", prop.StringVal)
+								require.Equal(t, "1988-01-01", pointer.GetString(prop.StringVal))
 							case propNameBool:
-								require.Equal(t, false, prop.BoolVal)
+								require.NotNil(t, prop.BoolVal)
+								require.Equal(t, false, *prop.BoolVal)
 							case propNameStr:
-								require.Equal(t, "new-str", prop.StringVal)
+								require.Equal(t, "new-str", pointer.GetString(prop.StringVal))
 							}
 						}
 					}
@@ -191,11 +193,11 @@ func TestExportAndAddLocations(t *testing.T) {
 					for _, prop := range props {
 						switch prop.QueryType().OnlyX(ctx).Name {
 						case propNameDate:
-							require.Equal(t, "1988-03-29", prop.StringVal)
+							require.Equal(t, "1988-03-29", pointer.GetString(prop.StringVal))
 						case propNameBool:
-							require.Equal(t, true, prop.BoolVal)
+							require.Equal(t, true, pointer.GetBool(prop.BoolVal))
 						case propNameStr:
-							require.Equal(t, "override", prop.StringVal)
+							require.Equal(t, "override", pointer.GetString(prop.StringVal))
 						}
 					}
 				}

@@ -3152,7 +3152,6 @@ type Mutation {
     surveyTemplateCategories: [SurveyTemplateCategoryInput!]!
   ): [SurveyTemplateCategory!]
   editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort!
-  markLocationPropertyAsExternalID(propertyName: String!): String!
   removeSiteSurvey(id: ID!): ID!
   addWiFiScans(
     """

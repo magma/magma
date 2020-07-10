@@ -614,7 +614,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldIntVal,
 		})
-		pt.IntVal = value
+		pt.IntVal = &value
 	}
 	if value, ok := ptc.mutation.BoolVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -622,7 +622,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldBoolVal,
 		})
-		pt.BoolVal = value
+		pt.BoolVal = &value
 	}
 	if value, ok := ptc.mutation.FloatVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -630,7 +630,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldFloatVal,
 		})
-		pt.FloatVal = value
+		pt.FloatVal = &value
 	}
 	if value, ok := ptc.mutation.LatitudeVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -638,7 +638,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldLatitudeVal,
 		})
-		pt.LatitudeVal = value
+		pt.LatitudeVal = &value
 	}
 	if value, ok := ptc.mutation.LongitudeVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -646,7 +646,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldLongitudeVal,
 		})
-		pt.LongitudeVal = value
+		pt.LongitudeVal = &value
 	}
 	if value, ok := ptc.mutation.StringVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -654,7 +654,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldStringVal,
 		})
-		pt.StringVal = value
+		pt.StringVal = &value
 	}
 	if value, ok := ptc.mutation.RangeFromVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -662,7 +662,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldRangeFromVal,
 		})
-		pt.RangeFromVal = value
+		pt.RangeFromVal = &value
 	}
 	if value, ok := ptc.mutation.RangeToVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -670,7 +670,7 @@ func (ptc *PropertyTypeCreate) sqlSave(ctx context.Context) (*PropertyType, erro
 			Value:  value,
 			Column: propertytype.FieldRangeToVal,
 		})
-		pt.RangeToVal = value
+		pt.RangeToVal = &value
 	}
 	if value, ok := ptc.mutation.IsInstanceProperty(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

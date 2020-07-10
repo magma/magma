@@ -42,21 +42,21 @@ type PropertyType struct {
 	// Category holds the value of the "category" field.
 	Category string `json:"category,omitempty"`
 	// IntVal holds the value of the "int_val" field.
-	IntVal int `json:"intValue" gqlgen:"intValue"`
+	IntVal *int `json:"intValue" gqlgen:"intValue"`
 	// BoolVal holds the value of the "bool_val" field.
-	BoolVal bool `json:"booleanValue" gqlgen:"booleanValue"`
+	BoolVal *bool `json:"booleanValue" gqlgen:"booleanValue"`
 	// FloatVal holds the value of the "float_val" field.
-	FloatVal float64 `json:"floatValue" gqlgen:"floatValue"`
+	FloatVal *float64 `json:"floatValue" gqlgen:"floatValue"`
 	// LatitudeVal holds the value of the "latitude_val" field.
-	LatitudeVal float64 `json:"latitudeValue" gqlgen:"latitudeValue"`
+	LatitudeVal *float64 `json:"latitudeValue" gqlgen:"latitudeValue"`
 	// LongitudeVal holds the value of the "longitude_val" field.
-	LongitudeVal float64 `json:"longitudeValue" gqlgen:"longitudeValue"`
+	LongitudeVal *float64 `json:"longitudeValue" gqlgen:"longitudeValue"`
 	// StringVal holds the value of the "string_val" field.
-	StringVal string `json:"stringValue" gqlgen:"stringValue"`
+	StringVal *string `json:"stringValue" gqlgen:"stringValue"`
 	// RangeFromVal holds the value of the "range_from_val" field.
-	RangeFromVal float64 `json:"rangeFromValue" gqlgen:"rangeFromValue"`
+	RangeFromVal *float64 `json:"rangeFromValue" gqlgen:"rangeFromValue"`
 	// RangeToVal holds the value of the "range_to_val" field.
-	RangeToVal float64 `json:"rangeToValue" gqlgen:"rangeToValue"`
+	RangeToVal *float64 `json:"rangeToValue" gqlgen:"rangeToValue"`
 	// IsInstanceProperty holds the value of the "is_instance_property" field.
 	IsInstanceProperty bool `json:"is_instance_property,omitempty" gqlgen:"isInstanceProperty"`
 	// Editable holds the value of the "editable" field.
@@ -317,42 +317,50 @@ func (pt *PropertyType) assignValues(values ...interface{}) error {
 	if value, ok := values[7].(*sql.NullInt64); !ok {
 		return fmt.Errorf("unexpected type %T for field int_val", values[7])
 	} else if value.Valid {
-		pt.IntVal = int(value.Int64)
+		pt.IntVal = new(int)
+		*pt.IntVal = int(value.Int64)
 	}
 	if value, ok := values[8].(*sql.NullBool); !ok {
 		return fmt.Errorf("unexpected type %T for field bool_val", values[8])
 	} else if value.Valid {
-		pt.BoolVal = value.Bool
+		pt.BoolVal = new(bool)
+		*pt.BoolVal = value.Bool
 	}
 	if value, ok := values[9].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field float_val", values[9])
 	} else if value.Valid {
-		pt.FloatVal = value.Float64
+		pt.FloatVal = new(float64)
+		*pt.FloatVal = value.Float64
 	}
 	if value, ok := values[10].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field latitude_val", values[10])
 	} else if value.Valid {
-		pt.LatitudeVal = value.Float64
+		pt.LatitudeVal = new(float64)
+		*pt.LatitudeVal = value.Float64
 	}
 	if value, ok := values[11].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field longitude_val", values[11])
 	} else if value.Valid {
-		pt.LongitudeVal = value.Float64
+		pt.LongitudeVal = new(float64)
+		*pt.LongitudeVal = value.Float64
 	}
 	if value, ok := values[12].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field string_val", values[12])
 	} else if value.Valid {
-		pt.StringVal = value.String
+		pt.StringVal = new(string)
+		*pt.StringVal = value.String
 	}
 	if value, ok := values[13].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field range_from_val", values[13])
 	} else if value.Valid {
-		pt.RangeFromVal = value.Float64
+		pt.RangeFromVal = new(float64)
+		*pt.RangeFromVal = value.Float64
 	}
 	if value, ok := values[14].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field range_to_val", values[14])
 	} else if value.Valid {
-		pt.RangeToVal = value.Float64
+		pt.RangeToVal = new(float64)
+		*pt.RangeToVal = value.Float64
 	}
 	if value, ok := values[15].(*sql.NullBool); !ok {
 		return fmt.Errorf("unexpected type %T for field is_instance_property", values[15])
@@ -515,22 +523,38 @@ func (pt *PropertyType) String() string {
 	builder.WriteString(fmt.Sprintf("%v", pt.Index))
 	builder.WriteString(", category=")
 	builder.WriteString(pt.Category)
-	builder.WriteString(", int_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.IntVal))
-	builder.WriteString(", bool_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.BoolVal))
-	builder.WriteString(", float_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.FloatVal))
-	builder.WriteString(", latitude_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.LatitudeVal))
-	builder.WriteString(", longitude_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.LongitudeVal))
-	builder.WriteString(", string_val=")
-	builder.WriteString(pt.StringVal)
-	builder.WriteString(", range_from_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.RangeFromVal))
-	builder.WriteString(", range_to_val=")
-	builder.WriteString(fmt.Sprintf("%v", pt.RangeToVal))
+	if v := pt.IntVal; v != nil {
+		builder.WriteString(", int_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pt.BoolVal; v != nil {
+		builder.WriteString(", bool_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pt.FloatVal; v != nil {
+		builder.WriteString(", float_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pt.LatitudeVal; v != nil {
+		builder.WriteString(", latitude_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pt.LongitudeVal; v != nil {
+		builder.WriteString(", longitude_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pt.StringVal; v != nil {
+		builder.WriteString(", string_val=")
+		builder.WriteString(*v)
+	}
+	if v := pt.RangeFromVal; v != nil {
+		builder.WriteString(", range_from_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pt.RangeToVal; v != nil {
+		builder.WriteString(", range_to_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", is_instance_property=")
 	builder.WriteString(fmt.Sprintf("%v", pt.IsInstanceProperty))
 	builder.WriteString(", editable=")

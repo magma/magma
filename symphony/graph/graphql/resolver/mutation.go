@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/AlekSi/pointer"
+
 	"github.com/facebookincubator/symphony/pkg/ent/file"
 	"github.com/facebookincubator/symphony/pkg/ent/privacy"
 
@@ -61,7 +63,9 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 	var (
 		typ                           propertytype.Type
 		strVal                        *string
+		intVal                        *int
 		boolVal                       *bool
+		floatVal                      *float64
 		lat, long, rangeTo, rangeFrom *float64
 	)
 	switch v := input.(type) {
@@ -69,12 +73,16 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		typ = ptype.Type
 		strVal = v.StringValue
 		boolVal = v.BooleanValue
+		intVal = v.IntValue
+		floatVal = v.FloatValue
 		lat, long = v.LatitudeValue, v.LongitudeValue
 		rangeTo, rangeFrom = v.RangeToValue, v.RangeFromValue
 	case *models.PropertyTypeInput:
 		typ = v.Type
 		strVal = v.StringValue
 		boolVal = v.BooleanValue
+		intVal = v.IntValue
+		floatVal = v.FloatValue
 		lat, long = v.LatitudeValue, v.LongitudeValue
 		rangeTo, rangeFrom = v.RangeToValue, v.RangeFromValue
 	default:
@@ -88,8 +96,7 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		propertytype.TypeDatetimeLocal:
 		return strVal == nil || *strVal == "", nil
 	case propertytype.TypeInt:
-		// TODO detect int no-value
-		return false, nil
+		return intVal == nil, nil
 	case propertytype.TypeGpsLocation:
 		if lat == nil || long == nil {
 			return false, errors.New("gps_location type, with no lat/long provided")
@@ -102,6 +109,8 @@ func (mutationResolver) isEmptyProp(ptype *ent.PropertyType, input interface{}) 
 		return *rangeTo == 0 && *rangeFrom == 0, nil
 	case propertytype.TypeBool:
 		return boolVal == nil, nil
+	case propertytype.TypeFloat:
+		return floatVal == nil, nil
 	default:
 		return false, nil
 	}
@@ -2363,7 +2372,7 @@ func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, inp
 	if err != nil {
 		return err
 	}
-	if isEmpty {
+	if isEmpty && pointer.GetBool(input.IsMandatory) {
 		return gqlerror.Errorf("The new property %v must have a default value", input.Name)
 	}
 	return r.AddPropertyTypes(ctx, entSetter, input)
@@ -2701,51 +2710,143 @@ func (r mutationResolver) DeleteLocationTypeEquipments(ctx context.Context, loca
 }
 
 func (r mutationResolver) updatePropValues(ctx context.Context, input *models.PropertyInput, pu *ent.PropertyUpdateOne) error {
-	pu = pu.SetNillableStringVal(input.StringValue).
-		SetNillableIntVal(input.IntValue).
-		SetNillableBoolVal(input.BooleanValue).
-		SetNillableFloatVal(input.FloatValue).
-		SetNillableLatitudeVal(input.LatitudeValue).
-		SetNillableLongitudeVal(input.LongitudeValue).
-		SetNillableRangeFromVal(input.RangeFromValue).
-		SetNillableRangeToVal(input.RangeToValue)
-
-	if input.NodeIDValue != nil {
-		if err := r.setNodePropertyUpdate(ctx, pu, *input.NodeIDValue); err != nil {
-			return err
-		}
-	} else {
-		pu = pu.ClearEquipmentValue()
-		pu = pu.ClearLocationValue()
-		pu = pu.ClearServiceValue()
-		pu = pu.ClearWorkOrderValue()
-		pu = pu.ClearUserValue()
+	client := ent.FromContext(ctx)
+	pType, err := client.PropertyType.Get(ctx, input.PropertyTypeID)
+	if err != nil {
+		return fmt.Errorf("failed to get property type: %w", err)
 	}
-
+	switch pType.Type {
+	case propertytype.TypeDate,
+		propertytype.TypeEmail,
+		propertytype.TypeString,
+		propertytype.TypeEnum,
+		propertytype.TypeDatetimeLocal:
+		if input.StringValue != nil {
+			pu.SetStringVal(*input.StringValue)
+		} else {
+			pu.ClearStringVal()
+		}
+	case propertytype.TypeInt:
+		if input.IntValue != nil {
+			pu.SetIntVal(*input.IntValue)
+		} else {
+			pu.ClearIntVal()
+		}
+	case propertytype.TypeBool:
+		if input.BooleanValue != nil {
+			pu.SetBoolVal(*input.BooleanValue)
+		} else {
+			pu.ClearBoolVal()
+		}
+	case propertytype.TypeFloat:
+		if input.FloatValue != nil {
+			pu.SetFloatVal(*input.FloatValue)
+		} else {
+			pu.ClearFloatVal()
+		}
+	case propertytype.TypeGpsLocation:
+		if input.LatitudeValue != nil {
+			pu.SetLatitudeVal(*input.LatitudeValue)
+		} else {
+			pu.ClearLatitudeVal()
+		}
+		if input.LongitudeValue != nil {
+			pu.SetLongitudeVal(*input.LongitudeValue)
+		} else {
+			pu.ClearLongitudeVal()
+		}
+	case propertytype.TypeRange:
+		if input.RangeFromValue != nil {
+			pu.SetRangeFromVal(*input.RangeFromValue)
+		} else {
+			pu.ClearRangeFromVal()
+		}
+		if input.RangeToValue != nil {
+			pu.SetRangeToVal(*input.RangeToValue)
+		} else {
+			pu.ClearRangeToVal()
+		}
+	case propertytype.TypeNode:
+		if input.NodeIDValue != nil {
+			if err := r.setNodePropertyUpdate(ctx, pu, *input.NodeIDValue); err != nil {
+				return err
+			}
+		} else {
+			pu = pu.ClearEquipmentValue()
+			pu = pu.ClearLocationValue()
+			pu = pu.ClearServiceValue()
+			pu = pu.ClearWorkOrderValue()
+			pu = pu.ClearUserValue()
+		}
+	}
 	return pu.Exec(ctx)
 }
 
 func (r mutationResolver) updatePropType(ctx context.Context, input *models.PropertyTypeInput) error {
-	if err := r.ClientFrom(ctx).PropertyType.
+	query := r.ClientFrom(ctx).PropertyType.
 		UpdateOneID(*input.ID).
 		SetName(input.Name).
 		SetType(input.Type).
 		SetNillableNodeType(input.NodeType).
 		SetNillableIndex(input.Index).
 		SetNillableExternalID(input.ExternalID).
-		SetNillableStringVal(input.StringValue).
-		SetNillableIntVal(input.IntValue).
-		SetNillableBoolVal(input.BooleanValue).
-		SetNillableFloatVal(input.FloatValue).
-		SetNillableLatitudeVal(input.LatitudeValue).
-		SetNillableLongitudeVal(input.LongitudeValue).
-		SetNillableRangeFromVal(input.RangeFromValue).
-		SetNillableRangeToVal(input.RangeToValue).
 		SetNillableIsInstanceProperty(input.IsInstanceProperty).
 		SetNillableEditable(input.IsEditable).
 		SetNillableMandatory(input.IsMandatory).
-		SetNillableDeleted(input.IsDeleted).
-		Exec(ctx); err != nil {
+		SetNillableDeleted(input.IsDeleted)
+	switch input.Type {
+	case propertytype.TypeDate,
+		propertytype.TypeEmail,
+		propertytype.TypeString,
+		propertytype.TypeEnum,
+		propertytype.TypeDatetimeLocal:
+		if input.StringValue != nil {
+			query.SetStringVal(*input.StringValue)
+		} else {
+			query.ClearStringVal()
+		}
+	case propertytype.TypeInt:
+		if input.IntValue != nil {
+			query.SetIntVal(*input.IntValue)
+		} else {
+			query.ClearIntVal()
+		}
+	case propertytype.TypeBool:
+		if input.BooleanValue != nil {
+			query.SetBoolVal(*input.BooleanValue)
+		} else {
+			query.ClearBoolVal()
+		}
+	case propertytype.TypeFloat:
+		if input.FloatValue != nil {
+			query.SetFloatVal(*input.FloatValue)
+		} else {
+			query.ClearFloatVal()
+		}
+	case propertytype.TypeGpsLocation:
+		if input.LatitudeValue != nil {
+			query.SetLatitudeVal(*input.LatitudeValue)
+		} else {
+			query.ClearLatitudeVal()
+		}
+		if input.LongitudeValue != nil {
+			query.SetLongitudeVal(*input.LongitudeValue)
+		} else {
+			query.ClearLongitudeVal()
+		}
+	case propertytype.TypeRange:
+		if input.RangeFromValue != nil {
+			query.SetRangeFromVal(*input.RangeFromValue)
+		} else {
+			query.ClearRangeFromVal()
+		}
+		if input.RangeToValue != nil {
+			query.SetRangeToVal(*input.RangeToValue)
+		} else {
+			query.ClearRangeToVal()
+		}
+	}
+	if err := query.Exec(ctx); err != nil {
 		return errors.Wrap(err, "updating property type")
 	}
 	return nil
@@ -2821,41 +2922,6 @@ func (r mutationResolver) updateSurveyTemplateQuestion(ctx context.Context, inpu
 		return fmt.Errorf("updating survey template question: %w", err)
 	}
 	return nil
-}
-
-func (r mutationResolver) MarkLocationPropertyAsExternalID(ctx context.Context, name string) (string, error) {
-	client := r.ClientFrom(ctx).Location
-	sites, err := client.Query().
-		Where(
-			location.HasPropertiesWith(
-				property.HasTypeWith(
-					propertytype.Name(name),
-				),
-			),
-		).
-		All(ctx)
-	if err != nil {
-		return "", errors.Wrap(err, "querying locations with property")
-	}
-
-	for _, site := range sites {
-		p, err := site.QueryProperties().
-			Where(
-				property.HasTypeWith(
-					propertytype.Name(name),
-				),
-			).
-			Only(ctx)
-		if err != nil {
-			return "", fmt.Errorf("querying property type: %w", err)
-		}
-		if err := client.UpdateOne(site).
-			SetExternalID(p.StringVal).
-			Exec(ctx); err != nil {
-			return "", fmt.Errorf("updating external id: %w", err)
-		}
-	}
-	return name, nil
 }
 
 func (r mutationResolver) MoveLocation(ctx context.Context, locationID int, parentLocationID *int) (*ent.Location, error) {

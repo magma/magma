@@ -39,7 +39,7 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
         category: 'Health',
         value: isGatewayHealthy(gwInfo) ? 'Good' : 'Bad',
         statusCircle: true,
-        status: isGatewayHealthy(gwInfo) ? 'Up' : 'Down',
+        status: isGatewayHealthy(gwInfo),
       },
       {
         category: 'Last Check in',
@@ -52,13 +52,13 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
         category: 'Event Aggregation',
         value: eventAggregation ? 'Enabled' : 'Disabled',
         statusCircle: true,
-        status: eventAggregation ? 'Up' : 'Disabled',
+        status: eventAggregation,
       },
       {
         category: 'Log Aggregation',
         value: logAggregation ? 'Enabled' : 'Disabled',
         statusCircle: true,
-        status: logAggregation ? 'Up' : 'Disabled',
+        status: logAggregation,
       },
       {
         category: 'CPU Usage',

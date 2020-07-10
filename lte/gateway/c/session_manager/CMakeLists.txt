@@ -11,6 +11,9 @@ PROJECT(SessionManager)
 
 add_compile_options(-std=c++14)
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/modules")
+include(FindClangFormat)
+
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 if (NOT BUILD_TESTS)
@@ -145,9 +148,10 @@ add_library(SESSION_MANAGER
     StoreClient.h
     MeteringReporter.cpp
     MeteringReporter.h
+    GrpcMagmaUtils.cpp
+    GrpcMagmaUtils.h
     ${PROTO_SRCS}
-    ${PROTO_HDRS}
-    )
+    ${PROTO_HDRS})
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
@@ -156,6 +160,15 @@ target_link_libraries(SESSION_MANAGER
   prometheus-cpp tacopie
   )
 
+if (CLANG_FORMAT)
+  add_custom_target(
+          clang-format
+          COMMAND ${CLANG_FORMAT}
+          -style=file
+          -i
+          ${ALL_CXX_SOURCE_FILES}
+  )
+endif ()
 
 add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
 

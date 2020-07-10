@@ -11,6 +11,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "SessionReporter.h"
 #include "magma_logging.h"
+#include "GrpcMagmaUtils.h"
 
 namespace magma {
 
@@ -62,6 +63,7 @@ void SessionReporterImpl::report_updates(
   const UpdateSessionRequest& request,
   ReporterCallbackFn<UpdateSessionResponse> callback)
 {
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   auto controller_response = new AsyncEvbResponse<UpdateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
   controller_response->set_response_reader(std::move(stub_->AsyncUpdateSession(
@@ -72,6 +74,7 @@ void SessionReporterImpl::report_create_session(
   const CreateSessionRequest& request,
   ReporterCallbackFn<CreateSessionResponse> callback)
 {
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   auto controller_response = new AsyncEvbResponse<CreateSessionResponse>(
     base_, callback, RESPONSE_TIMEOUT);
   controller_response->set_response_reader(std::move(stub_->AsyncCreateSession(
@@ -82,6 +85,7 @@ void SessionReporterImpl::report_terminate_session(
   const SessionTerminateRequest& request,
   ReporterCallbackFn<SessionTerminateResponse> callback)
 {
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   auto controller_response = new AsyncEvbResponse<SessionTerminateResponse>(
     base_, callback, RESPONSE_TIMEOUT);
   controller_response->set_response_reader(
