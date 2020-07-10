@@ -64,6 +64,31 @@ func (r *ServiceRegistry) AddServices(locations ...ServiceLocation) {
 	}
 }
 
+// RemoveService removes a service from the registry.
+// Has no effect if the service does not exist.
+func (r *ServiceRegistry) RemoveService(service string) {
+	r.Lock()
+	defer r.Unlock()
+	service = strings.ToLower(service)
+
+	delete(r.ServiceLocations, service)
+	delete(r.ServiceConnections, service)
+}
+
+// RemoveServicesWithLabel removes all services from the registry which have
+// the passed label.
+func (r *ServiceRegistry) RemoveServicesWithLabel(label string) {
+	r.Lock()
+	defer r.Unlock()
+
+	for service, location := range r.ServiceLocations {
+		if location.HasLabel(label) {
+			delete(r.ServiceLocations, service)
+			delete(r.ServiceConnections, service)
+		}
+	}
+}
+
 // ListAllServices lists the names of all registered services.
 func (r *ServiceRegistry) ListAllServices() []string {
 	r.RLock()
@@ -74,6 +99,21 @@ func (r *ServiceRegistry) ListAllServices() []string {
 		services = append(services, service)
 	}
 	return services
+}
+
+// FindServices returns the names of all registered services that have
+// the passed label.
+func (r *ServiceRegistry) FindServices(label string) []string {
+	r.RLock()
+	defer r.RUnlock()
+
+	var ret []string
+	for service, location := range r.ServiceLocations {
+		if location.HasLabel(label) {
+			ret = append(ret, service)
+		}
+	}
+	return ret
 }
 
 // GetServiceAddress returns the RPC address of the service.
@@ -142,6 +182,24 @@ func (r *ServiceRegistry) GetEchoServerPort(service string) (int, error) {
 	}
 
 	return location.EchoPort, nil
+}
+
+// GetAnnotation returns the annotation value for the passed annotation name.
+func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string, error) {
+	r.RLock()
+	defer r.RUnlock()
+	service = strings.ToLower(service)
+
+	location, ok := r.ServiceLocations[strings.ToLower(service)]
+	if !ok {
+		return "", fmt.Errorf("service %s not registered", service)
+	}
+	labelValue, ok := location.Annotations[annotationName]
+	if !ok {
+		return "", fmt.Errorf("service %s doesn't have annotation values for %s", service, annotationName)
+	}
+
+	return labelValue, nil
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.
@@ -222,6 +280,17 @@ type ServiceLocation struct {
 	EchoPort int
 	// ProxyAliases provides the list of host:port aliases for the service.
 	ProxyAliases map[string]int
+
+	// Labels provide a way to identify the service.
+	// Use cases include listing service mesh servicers the service implements.
+	Labels map[string]string
+	// Annotations provides a string-to-string map of per-service metadata.
+	Annotations map[string]string
+}
+
+func (s ServiceLocation) HasLabel(label string) bool {
+	_, ok := s.Labels[label]
+	return ok
 }
 
 // String implements ServiceLocation stringer interface

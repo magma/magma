@@ -62,9 +62,27 @@ func AddServices(locations ...ServiceLocation) {
 	globalRegistry.AddServices(locations...)
 }
 
+// RemoveService removes a service from the registry.
+// Has no effect if the service does not exist.
+func RemoveService(service string) {
+	globalRegistry.RemoveService(service)
+}
+
+// RemoveServicesWithLabel removes all services from the registry which have
+// the passed label.
+func RemoveServicesWithLabel(label string) {
+	globalRegistry.RemoveServicesWithLabel(label)
+}
+
 // ListAllServices lists all services' names from global registry
 func ListAllServices() []string {
 	return globalRegistry.ListAllServices()
+}
+
+// FindServices returns the names of all registered services that have
+// the passed label.
+func FindServices(label string) []string {
+	return globalRegistry.FindServices(label)
 }
 
 // GetServiceAddress returns the RPC address of the service from global registry
@@ -89,6 +107,12 @@ func GetServicePort(service string) (int, error) {
 // The service needs to be added to the registry before this.
 func GetEchoServerPort(service string) (int, error) {
 	return globalRegistry.GetEchoServerPort(service)
+}
+
+// GetAnnotation returns the annotation value for the passed annotation name.
+// The service needs to be added to the registry before this.
+func GetAnnotation(service, annotationName string) (string, error) {
+	return globalRegistry.GetAnnotation(service, annotationName)
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.
