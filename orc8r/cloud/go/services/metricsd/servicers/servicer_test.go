@@ -17,13 +17,14 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
-	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
 	"magma/orc8r/cloud/go/services/device"
-	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	tests "magma/orc8r/cloud/go/services/metricsd/test_common"
+	"magma/orc8r/cloud/go/services/metricsd/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
@@ -68,14 +69,15 @@ func (e *testMetricExporter) Submit(metrics []exporters.MetricAndContext) error 
 func (e *testMetricExporter) Start() {}
 
 func TestCollect(t *testing.T) {
-	deviceTestInit.StartTestService(t)
-	configuratorTestInit.StartTestService(t)
+	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
-	ctx := context.Background()
+	test_init.StartNewTestExporter(t, e)
 	srv := servicers.NewMetricsControllerServer()
-	srv.RegisterExporter(e)
+
+	ctx := context.Background()
 
 	// Create test network
 	networkID := "metricsd_servicer_test_network"
@@ -199,8 +201,8 @@ func TestConsume(t *testing.T) {
 	metricsChan := make(chan *dto.MetricFamily)
 	e := &testMetricExporter{}
 
+	test_init.StartNewTestExporter(t, e)
 	srv := servicers.NewMetricsControllerServer()
-	srv.RegisterExporter(e)
 
 	go srv.ConsumeCloudMetrics(metricsChan, "Host_name_place_holder")
 	fam1 := "test1"
@@ -214,14 +216,13 @@ func TestConsume(t *testing.T) {
 }
 
 func TestPush(t *testing.T) {
-	deviceTestInit.StartTestService(t)
-	configuratorTestInit.StartTestService(t)
+	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
-	ctx := context.Background()
+	test_init.StartNewTestExporter(t, e)
 	srv := servicers.NewMetricsControllerServer()
-	srv.RegisterExporter(e)
 
 	// Create test network
 	networkID := "metricsd_servicer_test_network"
@@ -243,7 +244,7 @@ func TestPush(t *testing.T) {
 		Metrics:   []*protos.PushedMetric{&protoMet},
 	}
 
-	_, err := srv.Push(ctx, &pushedMetrics)
+	_, err := srv.Push(context.Background(), &pushedMetrics)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(e.queue))
 	assert.Equal(t, metricName, e.queue[0].Name())

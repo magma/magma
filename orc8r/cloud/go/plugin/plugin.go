@@ -175,9 +175,6 @@ func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) er
 	if err := serde.RegisterSerdes(plug.GetSerdes()...); err != nil {
 		return err
 	}
-	if err := metricsd.RegisterMetricsProfiles(plug.GetMetricsProfiles(metricsConfig)...); err != nil {
-		return err
-	}
 	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}

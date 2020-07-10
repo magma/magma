@@ -19,6 +19,7 @@ import (
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
@@ -40,27 +41,34 @@ func main() {
 	exporterServicer := servicers.NewPushExporterServicer(srv.Config.MustGetStrings(metricsd.PrometheusPushAddresses))
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 
-	profileArg := srv.Config.MustGetString(metricsd.Profile)
-	selectedProfile, err := metricsd.GetMetricsProfile(profileArg)
-	if err != nil {
-		glog.Fatalf("Error loading metrics profile: %s", err)
-	}
-
-	// Initialize metrics gatherer
-	metricsChannel := make(chan *io_prometheus_client.MetricFamily)
-	gatherer, err := collection.NewMetricsGatherer(selectedProfile.Collectors, CloudMetricsCollectInterval, metricsChannel)
+	// Initialize gatherers
+	metricsCh := make(chan *io_prometheus_client.MetricFamily)
+	gatherer, err := collection.NewMetricsGatherer(getCollectors(), CloudMetricsCollectInterval, metricsCh)
 	if err != nil {
 		glog.Fatalf("Error initializing MetricsGatherer: %s", err)
 	}
-	go controllerServicer.ConsumeCloudMetrics(metricsChannel, os.Getenv("HOST_NAME"))
+	go controllerServicer.ConsumeCloudMetrics(metricsCh, os.Getenv("HOST_NAME"))
 	gatherer.Run()
-
-	for _, exporter := range selectedProfile.Exporters {
-		controllerServicer.RegisterExporter(exporter)
-	}
 
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error running metricsd service: %s", err)
 	}
+}
+
+// getCollectors returns the set of metrics collectors.
+// Returned collectors include disk usage, process statistics, and
+// per-service custom metrics.
+func getCollectors() []collection.MetricCollector {
+	services := registry.ListControllerServices()
+
+	collectors := []collection.MetricCollector{
+		&collection.DiskUsageMetricCollector{},
+		&collection.ProcMetricsCollector{},
+	}
+	for _, s := range services {
+		collectors = append(collectors, collection.NewCloudServiceMetricCollector(s))
+	}
+
+	return collectors
 }
