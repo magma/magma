@@ -24,7 +24,8 @@ const (
 	GrpcMaxTimeoutSec      = 60
 )
 
-var globalRegistry = New() // global registry instance
+// globalRegistry is the global service registry instance
+var globalRegistry = New()
 
 // Get returns a reference to the instance of global platform registry
 func Get() *ServiceRegistry {
@@ -49,27 +50,27 @@ func MustPopulateServices() {
 	}
 }
 
-// AddServices adds new services to the global registry.
-// If any services already exist, their locations will be overwritten
-func AddServices(locations ...ServiceLocation) {
-	globalRegistry.AddServices(locations...)
-}
-
 // AddService add a new service to global registry.
 // If the service already exists, overwrites the service config.
 func AddService(location ServiceLocation) {
 	globalRegistry.AddService(location)
 }
 
-// GetServiceAddress returns the RPC address of the service from global registry
-// The service needs to be added to the registry before this.
-func GetServiceAddress(service string) (string, error) {
-	return globalRegistry.GetServiceAddress(service)
+// AddServices adds new services to the global registry.
+// If any services already exist, their locations will be overwritten
+func AddServices(locations ...ServiceLocation) {
+	globalRegistry.AddServices(locations...)
 }
 
 // ListAllServices lists all services' names from global registry
 func ListAllServices() []string {
 	return globalRegistry.ListAllServices()
+}
+
+// GetServiceAddress returns the RPC address of the service from global registry
+// The service needs to be added to the registry before this.
+func GetServiceAddress(service string) (string, error) {
+	return globalRegistry.GetServiceAddress(service)
 }
 
 // GetServiceProxyAliases returns the proxy_aliases, if any, of the service from global registry
@@ -85,7 +86,7 @@ func GetServicePort(service string) (int, error) {
 }
 
 // GetEchoServerPort returns the listening port for the service's echo server.
-// The echo_port field needs to be added to the registry before this.
+// The service needs to be added to the registry before this.
 func GetEchoServerPort(service string) (int, error) {
 	return globalRegistry.GetEchoServerPort(service)
 }

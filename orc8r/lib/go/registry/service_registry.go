@@ -96,6 +96,8 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 		if !ok {
 			return nil, fmt.Errorf("the value associated with key:%v is not a map: %v", k, v)
 		}
+
+		// Get host
 		configMap := &config.ConfigMap{RawMap: rawMap}
 		host, err := configMap.GetString("host")
 		if err != nil {
@@ -105,18 +107,32 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 				return nil, err
 			}
 		}
+
+		// Get port
 		port, err := configMap.GetInt("port")
 		if err != nil {
 			return nil, err
 		}
-		// echoPort is an optional field used for services which run an echo
+
+		// Get echo port
+		// Echo port is an optional field used for services which run an echo
 		// server
 		echoPort, err := configMap.GetInt("echo_port")
 		if err != nil {
 			echoPort = 0
 		}
+
+		// Get proxy aliases
 		proxyAliases := getProxyAliases(rawMap)
-		serviceLocations = append(serviceLocations, ServiceLocation{Name: strings.ToUpper(name), Host: host, Port: port, EchoPort: echoPort, ProxyAliases: proxyAliases})
+
+		location := ServiceLocation{
+			Name:         strings.ToUpper(name),
+			Host:         host,
+			Port:         port,
+			EchoPort:     echoPort,
+			ProxyAliases: proxyAliases,
+		}
+		serviceLocations = append(serviceLocations, location)
 	}
 	return serviceLocations, nil
 }
