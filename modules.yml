@@ -3,6 +3,7 @@
 # MAGMA_MODULES_FILE
 
 # These are modules included in the magma repo which you want to include
+# asd;lfkjasdfl;kj
 native_modules:
   - orc8r
   - lte
