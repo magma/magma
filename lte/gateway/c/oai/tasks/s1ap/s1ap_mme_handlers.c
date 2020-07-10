@@ -554,25 +554,39 @@ static int s1ap_generate_s1_setup_response(
   s1ap_state_t *state,
   enb_description_t *enb_association)
 {
-#if S1AP_R1O_TO_R15_DONE
+
+  S1ap_S1AP_PDU_t pdu;
+  S1ap_S1SetupResponse_t *out;
+  S1ap_S1SetupResponseIEs_t *ie = NULL;
+  S1ap_ServedGUMMEIsItem_t *servedGUMMEI = NULL;
   int i, j;
   int enc_rval = 0;
-  S1ap_S1SetupResponseIEs_t *s1_setup_response_p = NULL;
-  S1ap_ServedGUMMEIsItem_t *servedGUMMEI = NULL;
-  s1ap_message message = {0};
   uint8_t *buffer = NULL;
   uint32_t length = 0;
   int rc = RETURNok;
 
+
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(enb_association != NULL);
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
+  pdu.choice.successfulOutcome.procedureCode = S1ap_ProcedureCode_id_S1Setup;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
+  pdu.choice.successfulOutcome.value.present =
+      S1ap_SuccessfulOutcome__value_PR_S1SetupResponse;
+  out = &pdu.choice.successfulOutcome.value.choice.S1SetupResponse;
+
+  // Generating response
+  ie =
+      (S1ap_S1SetupResponseIEs_t *)calloc(1, sizeof(S1ap_S1SetupResponseIEs_t));
+  ie->id = S1ap_ProtocolIE_ID_id_ServedGUMMEIs;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present = S1ap_S1SetupResponseIEs__value_PR_ServedGUMMEIs;
+
   // memset for gcc 4.8.4 instead of {0}, servedGUMMEI.servedPLMNs
   servedGUMMEI = calloc(1, sizeof *servedGUMMEI);
-  // Generating response
-  s1_setup_response_p = &message.msg.s1ap_S1SetupResponseIEs;
-  mme_config_read_lock(&mme_config);
-  s1_setup_response_p->relativeMMECapacity = mme_config.relative_capacity;
 
+  mme_config_read_lock(&mme_config);
   /*
    * Use the gummei parameters provided by configuration
    * that should be sorted
@@ -615,15 +629,23 @@ static int s1ap_generate_s1_setup_response(
     INT8_TO_OCTET_STRING(mme_config.gummei.gummei[i].mme_code, mmec);
     ASN_SEQUENCE_ADD(&servedGUMMEI->servedMMECs.list, mmec);
   }
+  ASN_SEQUENCE_ADD(&ie->value.choice.ServedGUMMEIs.list, servedGUMMEI);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+
+  ie =
+    (S1ap_S1SetupResponseIEs_t *)calloc(1, sizeof(S1ap_S1SetupResponseIEs_t));
+  ie->id = S1ap_ProtocolIE_ID_id_RelativeMMECapacity;
+  ie->criticality = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_S1SetupResponseIEs__value_PR_RelativeMMECapacity;
+  ie->value.choice.RelativeMMECapacity = mme_config.relative_capacity;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   mme_config_unlock(&mme_config);
-  /*
+  /* 
    * The MME is only serving E-UTRAN RAT, so the list contains only one element
    */
-  ASN_SEQUENCE_ADD(&s1_setup_response_p->servedGUMMEIs, servedGUMMEI);
-  message.procedureCode = S1ap_ProcedureCode_id_S1Setup;
-  message.direction = S1AP_PDU_PR_successfulOutcome;
-  enc_rval = s1ap_mme_encode_pdu(&message, &buffer, &length);
+  enc_rval = s1ap_mme_encode_pdu(&pdu, &buffer, &length);
 
   /*
    * Failed to encode s1 setup response...
@@ -631,7 +653,6 @@ static int s1ap_generate_s1_setup_response(
   if (enc_rval < 0) {
     OAILOG_DEBUG(LOG_S1AP, "Removed eNB %d\n", enb_association->sctp_assoc_id);
     s1ap_remove_enb(state, enb_association);
-    free_s1ap_s1setupresponse(s1_setup_response_p);
   } else {
     /*
      * Consider the response as sent. S1AP is ready to accept UE contexts
@@ -646,12 +667,7 @@ static int s1ap_generate_s1_setup_response(
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(
     &b, enb_association->sctp_assoc_id, 0, INVALID_MME_UE_S1AP_ID);
-
-  free_s1ap_s1setupresponse(s1_setup_response_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
