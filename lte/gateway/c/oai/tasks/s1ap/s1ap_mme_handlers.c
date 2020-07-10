@@ -318,16 +318,23 @@ int s1ap_mme_handle_s1_setup_request(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
+  S1ap_S1AP_PDU_t *pdu)
 {
-#if S1AP_R1O_TO_R15_DONE
   int rc = RETURNok;
-  S1ap_S1SetupRequestIEs_t *s1SetupRequest_p = NULL;
+
+  S1ap_S1SetupRequest_t *container = NULL;
+  S1ap_S1SetupRequestIEs_t *ie = NULL;
+  S1ap_S1SetupRequestIEs_t *ie_enb_name = NULL;
+  S1ap_S1SetupRequestIEs_t *ie_supported_tas = NULL;
+  S1ap_S1SetupRequestIEs_t *ie_default_paging_drx = NULL;
+
   enb_description_t *enb_association = NULL;
   uint32_t enb_id = 0;
   char *enb_name = NULL;
   int ta_ret = 0;
   uint8_t bplmn_list_count = 0; //Broadcast PLMN list count
+
+
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("s1_setup", 1, NO_LABELS);
@@ -346,8 +353,8 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
-  DevAssert(message != NULL);
-  s1SetupRequest_p = &message->msg.s1ap_S1SetupRequestIEs;
+  DevAssert(pdu != NULL);
+  container = &pdu->choice.initiatingMessage.value.choice.S1SetupRequest;
   /*
    * We received a new valid S1 Setup Request on a stream != 0.
    * This should not happen -> reject eNB s1 setup request.
@@ -418,24 +425,27 @@ int s1ap_mme_handle_s1_setup_request(
   //shared_log_queue_item_t *context = NULL;
   //OAILOG_MESSAGE_START_ASYNC (OAILOG_LEVEL_DEBUG, LOG_S1AP, (&context), "New s1 setup request incoming from ");
 
-  if (s1SetupRequest_p->presenceMask & S1AP_S1SETUPREQUESTIES_ENBNAME_PRESENT) {
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_enb_name, container,
+                              S1ap_ProtocolIE_ID_id_eNBname, false);
+  if (ie_enb_name) {
     OAILOG_MESSAGE_ADD_SYNC(
       context,
       "%*s ",
-      s1SetupRequest_p->eNBname.size,
-      s1SetupRequest_p->eNBname.buf);
-    //OAILOG_MESSAGE_ADD_ASYNC (context, "%*s ", s1SetupRequest_p->eNBname.size, s1SetupRequest_p->eNBname.buf);
-    enb_name = (char *) s1SetupRequest_p->eNBname.buf;
+      (int)ie_enb_name->value.choice.ENBname.size,
+      ie_enb_name->value.choice.ENBname.buf);
+    enb_name = (char *)ie_enb_name->value.choice.ENBname.buf;
   }
 
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie, container,
+                             S1ap_ProtocolIE_ID_id_Global_ENB_ID, true);
   if (
-    s1SetupRequest_p->global_ENB_ID.eNB_ID.present ==
+    ie->value.choice.Global_ENB_ID.eNB_ID.present ==
     S1ap_ENB_ID_PR_homeENB_ID) {
     // Home eNB ID = 28 bits
     uint8_t *enb_id_buf =
-      s1SetupRequest_p->global_ENB_ID.eNB_ID.choice.homeENB_ID.buf;
+      ie->value.choice.Global_ENB_ID.eNB_ID.choice.homeENB_ID.buf;
 
-    if (s1SetupRequest_p->global_ENB_ID.eNB_ID.choice.macroENB_ID.size != 28) {
+    if (ie->value.choice.Global_ENB_ID.eNB_ID.choice.homeENB_ID.size != 28) {
       //TODO: handle case were size != 28 -> notify ? reject ?
     }
 
@@ -445,9 +455,9 @@ int s1ap_mme_handle_s1_setup_request(
   } else {
     // Macro eNB = 20 bits
     uint8_t *enb_id_buf =
-      s1SetupRequest_p->global_ENB_ID.eNB_ID.choice.macroENB_ID.buf;
+      ie->value.choice.Global_ENB_ID.eNB_ID.choice.macroENB_ID.buf;
 
-    if (s1SetupRequest_p->global_ENB_ID.eNB_ID.choice.macroENB_ID.size != 20) {
+    if (ie->value.choice.Global_ENB_ID.eNB_ID.choice.macroENB_ID.size != 20) {
       //TODO: handle case were size != 20 -> notify ? reject ?
     }
 
@@ -463,7 +473,11 @@ int s1ap_mme_handle_s1_setup_request(
    * none of the PLMNs provided by the eNB is identified by the MME, then the MME shall reject the eNB S1 Setup
    * Request procedure with the appropriate cause value, e.g, Unknown PLMN.
    */
-  ta_ret = s1ap_mme_compare_ta_lists(&s1SetupRequest_p->supportedTAs);
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_supported_tas,
+                               container, S1ap_ProtocolIE_ID_id_SupportedTAs,
+                               true);
+
+  ta_ret = s1ap_mme_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAs);
 
   /*
    * eNB and MME have no common PLMN
@@ -482,7 +496,7 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
-  S1ap_SupportedTAs_t* ta_list = &s1SetupRequest_p->supportedTAs;
+  S1ap_SupportedTAs_t* ta_list = &ie_supported_tas->value.choice.SupportedTAs;
   supported_ta_list_t* supp_ta_list = &enb_association->supported_ta_list;
   supp_ta_list->list_count = ta_list->list.count;
 
@@ -511,14 +525,19 @@ int s1ap_mme_handle_s1_setup_request(
   OAILOG_DEBUG(LOG_S1AP, "Adding eNB to the list of served eNBs\n");
 
   enb_association->enb_id = enb_id;
-  enb_association->default_paging_drx = s1SetupRequest_p->defaultPagingDRX;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_default_paging_drx,
+                               container, S1ap_ProtocolIE_ID_id_DefaultPagingDRX,
+                               true);
+
+  enb_association->default_paging_drx = ie_default_paging_drx->value.choice.PagingDRX;
 
   if (enb_name != NULL) {
     memcpy(
       enb_association->enb_name,
-      s1SetupRequest_p->eNBname.buf,
-      s1SetupRequest_p->eNBname.size);
-    enb_association->enb_name[s1SetupRequest_p->eNBname.size] = '\0';
+      ie_enb_name->value.choice.ENBname.buf,
+      ie_enb_name->value.choice.ENBname.size);
+    enb_association->enb_name[ie_enb_name->value.choice.ENBname.size] = '\0';
   }
 
   s1ap_dump_enb(enb_association);
@@ -528,9 +547,6 @@ int s1ap_mme_handle_s1_setup_request(
     increment_counter("s1_setup", 1, 1, "result", "success");
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
