@@ -26,7 +26,7 @@ type Error string
 const (
 	// ErrDefault is the default error reported for index failure.
 	ErrDefault Error = "state index error"
-	// ErrIndexPerState indicates an Index error occured for specific keys.
+	// ErrIndexPerState indicates an Index error occurred for specific keys.
 	ErrIndexPerState Error = "state index error: per-state errors"
 
 	// ErrIndex indicates error source is indexer Index call.
@@ -37,23 +37,31 @@ const (
 	defaultIndexSleep = 10 * time.Second
 )
 
-// Index forwards states to all registered indexers, according to their subscriptions.
+// MustIndex forwards states to all registered indexers, according to their
+// subscriptions.
+// Per-state indexing errors are logged and reported as metrics.
+// Overarching indexing errors are retried, then eventually logged.
 // Returns after completing attempt at indexing states.
-func Index(networkID string, states state_types.StatesByID) {
-	errs := indexImpl(networkID, states)
+func MustIndex(networkID string, states state_types.StatesByID) {
+	errs, err := Index(networkID, states)
+	if err != nil {
+		// Since we don't have a good way of recovering from failed goroutines
+		// right now, fail immediately to restart the service to a good state
+		glog.Fatalf("Error getting indexers during Index goroutine: %v", err)
+	}
 	for _, e := range errs {
 		glog.Error(e)
 	}
-
 	glog.V(2).Infof("Completed state index for network %s with %d states", networkID, len(states))
 }
 
-// indexImpl makes Index calls via worker goroutines.
+// Index makes index calls via worker goroutines.
 //	- each indexer gets up to maxRetry attempts
 //	- returns after all goroutines have completed
-func indexImpl(networkID string, states state_types.StatesByID) []error {
-	index := func(in chan indexer.Indexer, out chan error) {
-		for x := range in {
+// Prefer MustIndex except where receiving the returned errors is relevant.
+func Index(networkID string, states state_types.StatesByID) ([]error, error) {
+	index := func(indexers chan indexer.Indexer, out chan error) {
+		for x := range indexers {
 			var indexErr error
 			for i := 0; i < maxRetry; i++ {
 				indexErr = indexOne(networkID, x, states)
@@ -71,7 +79,10 @@ func indexImpl(networkID string, states state_types.StatesByID) []error {
 		go index(in, out)
 	}
 
-	indexers := indexer.GetIndexers()
+	indexers, err := indexer.GetIndexers()
+	if err != nil {
+		return nil, err
+	}
 	go func() {
 		for _, x := range indexers {
 			in <- x
@@ -86,7 +97,7 @@ func indexImpl(networkID string, states state_types.StatesByID) []error {
 		}
 	}
 
-	return indexErrs
+	return indexErrs, nil
 }
 
 func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesByID) error {

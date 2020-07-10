@@ -29,12 +29,6 @@ var (
 	versionCols       = []string{"indexer_id", "version_actual", "version_desired"}
 	queueColsJoined   = strings.Join(queueCols, ", ")
 	versionColsJoined = strings.Join(versionCols, ", ")
-
-	sqlIndexer0 = mocks.NewMockIndexer(id0, version0, nil, nil, nil, nil)
-	sqlIndexer1 = mocks.NewMockIndexer(id1, version1a, nil, nil, nil, nil)
-	sqlIndexer2 = mocks.NewMockIndexer(id2, version2a, nil, nil, nil, nil)
-	sqlIndexer3 = mocks.NewMockIndexer(id3, version3, nil, nil, nil, nil)
-	sqlIndexer4 = mocks.NewMockIndexer(id4, version4, nil, nil, nil, nil)
 )
 
 func init() {
@@ -56,6 +50,14 @@ func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 	//	- id4 untracked, needs upgrade
 	happyPath := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
+			// Register indexers for test
+			indexer.DeregisterAllForTest(t)
+			mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+			mocks.NewMockIndexer(t, id1, version1a, nil, nil, nil, nil)
+			mocks.NewMockIndexer(t, id2, version2a, nil, nil, nil, nil)
+			mocks.NewMockIndexer(t, id3, version3, nil, nil, nil, nil)
+			mocks.NewMockIndexer(t, id4, version4, nil, nil, nil, nil)
+
 			// Get tracked versions
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", versionColsJoined, versionTableName)).
 				WillReturnRows(
@@ -99,13 +101,17 @@ func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 			m.ExpectCommit()
 		},
 
-		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2, sqlIndexer3, sqlIndexer4},
-		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.PopulateJobs() },
-		result:     true,
+		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.PopulateJobs() },
+		result: true,
 	}
 
 	noNewJobs := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
+			// Register indexers for test
+			indexer.DeregisterAllForTest(t)
+			mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+			mocks.NewMockIndexer(t, id1, version1, nil, nil, nil, nil)
+
 			// Get tracked versions
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", versionColsJoined, versionTableName)).
 				WillReturnRows(
@@ -125,6 +131,12 @@ func TestSqlJobQueue_PopulateJobs(t *testing.T) {
 }
 
 func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
+	indexer.DeregisterAllForTest(t)
+	// Register indexers for test
+	sqlIndexer0, _ := mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id1, version1a, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id2, version2a, nil, nil, nil, nil)
+
 	clock.SetAndFreezeClock(t, time.Unix(0, 0).Add(4*time.Hour))
 	defer clock.UnfreezeClock(t)
 	now := clock.Now()
@@ -142,9 +154,8 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 			m.ExpectCommit()
 		},
 
-		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
-		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
-		result:     &reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a},
+		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
+		result: &reindex.Job{Idx: sqlIndexer0, From: version0, To: version0a},
 	}
 
 	selectEmpty := &testCase{
@@ -153,9 +164,8 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 				WillReturnRows(sqlmock.NewRows(queueCols))
 			m.ExpectRollback()
 		},
-		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
-		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
-		result:     nil,
+		run:    func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
+		result: nil,
 	}
 
 	selectErr := &testCase{
@@ -164,9 +174,8 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 				WillReturnError(someErr)
 			m.ExpectRollback()
 		},
-		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
-		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
-		err:        someErr,
+		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
+		err: someErr,
 	}
 
 	updateErr := &testCase{
@@ -181,9 +190,8 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 				WillReturnError(someErr)
 			m.ExpectRollback()
 		},
-		registered: []indexer.Indexer{sqlIndexer0, sqlIndexer1, sqlIndexer2},
-		run:        func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
-		err:        someErr,
+		run: func(queue reindex.JobQueue) (interface{}, error) { return queue.ClaimAvailableJob() },
+		err: someErr,
 	}
 
 	runCase(t, oneAvailable)
@@ -193,6 +201,12 @@ func TestSqlJobQueue_ClaimAvailableJob(t *testing.T) {
 }
 
 func TestSqlJobQueue_CompleteJob(t *testing.T) {
+	indexer.DeregisterAllForTest(t)
+	// Register indexers for test
+	var (
+		sqlIndexer0, _ = mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+	)
+
 	clock.SetAndFreezeClock(t, time.Unix(0, 0).Add(4*time.Hour))
 	defer clock.UnfreezeClock(t)
 	now := clock.Now()
@@ -371,10 +385,8 @@ func TestSqlJobQueue_GetAllJobInfo(t *testing.T) {
 }
 
 type testCase struct {
-	setup      func(m sqlmock.Sqlmock)
-	registered []indexer.Indexer
-
-	run func(queue reindex.JobQueue) (interface{}, error)
+	setup func(m sqlmock.Sqlmock)
+	run   func(queue reindex.JobQueue) (interface{}, error)
 
 	result interface{}
 	err    error
@@ -388,14 +400,6 @@ func runCase(t *testing.T, test *testCase) {
 
 	mock.ExpectBegin()
 	test.setup(mock)
-
-	indexer.DeregisterAllForTest(t)
-	if test.registered != nil {
-		err = indexer.RegisterIndexers(test.registered...)
-		if err != nil {
-			t.Fatalf("Error registering indexers: %v", err)
-		}
-	}
 
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	actual, err := test.run(queue)

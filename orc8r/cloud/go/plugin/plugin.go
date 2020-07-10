@@ -187,9 +187,5 @@ func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) er
 
 	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
 
-	if err := indexer.RegisterIndexers(plug.GetStateIndexers()...); err != nil {
-		return err
-	}
-
 	return nil
 }
