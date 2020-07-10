@@ -47,6 +47,13 @@ func NewTestOrchestratorService(
 	labels map[string]string,
 	annotations map[string]string,
 ) (*cloud_service.OrchestratorService, net.Listener) {
+	if labels == nil {
+		labels = map[string]string{}
+	}
+	if annotations == nil {
+		annotations = map[string]string{}
+	}
+
 	srvPort, lis, err := getOpenPort()
 	if err != nil {
 		t.Fatal(err)

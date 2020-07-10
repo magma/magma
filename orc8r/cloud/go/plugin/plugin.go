@@ -181,9 +181,6 @@ func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) er
 	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
 		return err
 	}
-	if err := providers.RegisterStreamProviders(plug.GetStreamerProviders()...); err != nil {
-		return err
-	}
 
 	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
 

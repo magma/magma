@@ -18,7 +18,6 @@ import (
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/streamer/providers"
 
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
@@ -47,7 +46,7 @@ func TestLoadAllPlugins(t *testing.T) {
 	mockPlugin.On("GetSerdes").Return([]serde.Serde{})
 	//mockPlugin.On("GetServices").Return([]registry.ServiceLocation{})
 	//mockPlugin.On("GetStateIndexers").Return([]indexer.Indexer{})
-	mockPlugin.On("GetStreamerProviders").Return([]providers.StreamProvider{})
+	//mockPlugin.On("GetStreamerProviders").Return([]providers.StreamProvider{})
 	err := plugin.LoadAllPlugins(mockLoader{ret: mockPlugin})
 	assert.NoError(t, err)
 	mockPlugin.AssertNumberOfCalls(t, "GetMconfigBuilders", 1)
@@ -56,7 +55,7 @@ func TestLoadAllPlugins(t *testing.T) {
 	mockPlugin.AssertNumberOfCalls(t, "GetSerdes", 1)
 	//mockPlugin.AssertNumberOfCalls(t, "GetServices", 1)
 	//mockPlugin.AssertNumberOfCalls(t, "GetStateIndexers", 1)
-	mockPlugin.AssertNumberOfCalls(t, "GetStreamerProviders", 1)
+	//mockPlugin.AssertNumberOfCalls(t, "GetStreamerProviders", 1)
 	mockPlugin.AssertExpectations(t)
 
 	// Error in the middle of registration - duplicate metrics profile
