@@ -31,35 +31,31 @@ namespace session_events {
 #define MONITORING_TX MONITORING_ TX
 #define MONITORING_RX MONITORING_ RX
 
-
 void session_created(
-    AsyncEventdClient& client,
-    const std::string& imsi,
+    AsyncEventdClient& client, const std::string& imsi,
     const std::string& session_id) {
   auto event = Event();
   event.set_stream_name(SESSIOND_SERVICE);
   event.set_event_type(SESSION_CREATED);
   event.set_tag(imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
-  event_value[IMSI] = imsi;
-  event_value[SESSION_ID] = session_id;
+  folly::dynamic event_value     = folly::dynamic::object;
+  event_value[IMSI]              = imsi;
+  event_value[SESSION_ID]        = session_id;
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
 
-  client.log_event(
-      event, [=](Status status, Void v) {
-      if (!status.ok()) {
-      MLOG(MERROR)
-      << "Could not log " << SESSION_CREATED << " event " << event_value_string
-      << ", Error Message: " << status.error_message();
-      }
-      });
+  client.log_event(event, [=](Status status, Void v) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not log " << SESSION_CREATED << " event "
+                   << event_value_string
+                   << ", Error Message: " << status.error_message();
+    }
+  });
 }
 
 void session_terminated(
-    AsyncEventdClient& client,
-    const std::unique_ptr<SessionState>& session) {
+    AsyncEventdClient& client, const std::unique_ptr<SessionState>& session) {
   auto event = Event();
   SessionState::SessionInfo session_info;
   session->get_session_info(session_info);
@@ -68,26 +64,25 @@ void session_terminated(
   event.set_event_type(SESSION_TERMINATED);
   event.set_tag(session_info.imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
-  event_value[IMSI] = session_info.imsi;
-  event_value[IP_ADDR] = session_info.ip_addr;
-  event_value[SESSION_ID] = session->get_session_id();
+  folly::dynamic event_value           = folly::dynamic::object;
+  event_value[IMSI]                    = session_info.imsi;
+  event_value[IP_ADDR]                 = session_info.ip_addr;
+  event_value[SESSION_ID]              = session->get_session_id();
   SessionState::TotalCreditUsage usage = session->get_total_credit_usage();
-  event_value[CHARGING_TX] = usage.charging_tx;
-  event_value[CHARGING_RX] = usage.charging_rx;
-  event_value[MONITORING_TX] = usage.monitoring_tx;
-  event_value[MONITORING_RX] = usage.monitoring_rx;
-  std::string event_value_string = folly::toJson(event_value);
+  event_value[CHARGING_TX]             = usage.charging_tx;
+  event_value[CHARGING_RX]             = usage.charging_rx;
+  event_value[MONITORING_TX]           = usage.monitoring_tx;
+  event_value[MONITORING_RX]           = usage.monitoring_rx;
+  std::string event_value_string       = folly::toJson(event_value);
   event.set_value(event_value_string);
 
-  client.log_event(
-      event, [=](Status status, Void v) {
-      if (!status.ok()) {
-      MLOG(MERROR)
-      << "Could not log "<< SESSION_TERMINATED << " event " << event_value_string
-      << ", Error Message: " << status.error_message();
-      }
-      });
+  client.log_event(event, [=](Status status, Void v) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not log " << SESSION_TERMINATED << " event "
+                   << event_value_string
+                   << ", Error Message: " << status.error_message();
+    }
+  });
 }
 
 }  // namespace session_events

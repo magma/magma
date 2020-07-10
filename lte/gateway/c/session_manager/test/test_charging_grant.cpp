@@ -18,19 +18,19 @@ using ::testing::Test;
 namespace magma {
 
 class ChargingGrantTest : public ::testing::Test {
-protected:
+ protected:
   ChargingGrant get_default_grant() {
     ChargingGrant grant;
     grant.is_final_grant = false;
-    grant.expiry_time = time(NULL);
-    grant.service_state = SERVICE_ENABLED;
-    grant.reauth_state = REAUTH_NOT_NEEDED;
+    grant.expiry_time    = time(NULL);
+    grant.service_state  = SERVICE_ENABLED;
+    grant.reauth_state   = REAUTH_NOT_NEEDED;
     return grant;
   }
 
   ChargingGrant get_default_grant(ChargingCredit_FinalAction action) {
-    auto grant = get_default_grant();
-    grant.is_final_grant = true;
+    auto grant              = get_default_grant();
+    grant.is_final_grant    = true;
     grant.final_action_info = get_final_action_info(action);
     return grant;
   }
@@ -40,7 +40,8 @@ protected:
     fa.final_action = action;
     if (action == ChargingCredit_FinalAction_REDIRECT) {
       fa.redirect_server.set_redirect_address_type(
-        RedirectServer_RedirectAddressType::RedirectServer_RedirectAddressType_IPV6);
+          RedirectServer_RedirectAddressType::
+              RedirectServer_RedirectAddressType_IPV6);
       fa.redirect_server.set_redirect_server_address("addr");
     }
     return fa;
@@ -52,19 +53,22 @@ TEST_F(ChargingGrantTest, test_marshal) {
   ChargingGrant grant = get_default_grant(ChargingCredit_FinalAction_REDIRECT);
   // Set ReAuth state and service state to non-0 values
   grant.service_state = SERVICE_DISABLED;
-  grant.reauth_state = REAUTH_REQUIRED;
+  grant.reauth_state  = REAUTH_REQUIRED;
 
   StoredChargingGrant stored = grant.marshal();
   EXPECT_EQ(grant.is_final_grant, stored.is_final);
-  EXPECT_EQ(grant.final_action_info.final_action,
-            stored.final_action_info.final_action);
+  EXPECT_EQ(
+      grant.final_action_info.final_action,
+      stored.final_action_info.final_action);
 
-  auto redirect = grant.final_action_info.redirect_server;
+  auto redirect        = grant.final_action_info.redirect_server;
   auto stored_redirect = stored.final_action_info.redirect_server;
-  EXPECT_EQ(redirect.redirect_server_address(),
-            stored_redirect.redirect_server_address());
-  EXPECT_EQ(redirect.redirect_address_type(),
-            stored_redirect.redirect_address_type());
+  EXPECT_EQ(
+      redirect.redirect_server_address(),
+      stored_redirect.redirect_server_address());
+  EXPECT_EQ(
+      redirect.redirect_address_type(),
+      stored_redirect.redirect_address_type());
 
   EXPECT_EQ(grant.expiry_time, stored.expiry_time);
   EXPECT_EQ(grant.service_state, stored.service_state);
@@ -109,7 +113,7 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
 
   // Set reauth state to be REAUTH_REQUIRED && final_grant
   grant.is_final_grant = true;
-  grant.reauth_state = REAUTH_REQUIRED;
+  grant.reauth_state   = REAUTH_REQUIRED;
   EXPECT_TRUE(grant.get_update_type(&update_type));
   EXPECT_EQ(update_type, CreditUsage::REAUTH_REQUIRED);
 }
@@ -125,9 +129,9 @@ TEST_F(ChargingGrantTest, test_should_deactivate_service) {
   EXPECT_FALSE(grant.credit.is_quota_exhausted(0.8));
 
   // If quota is not exhausted, don't deactivate
-  grant.is_final_grant = true;
+  grant.is_final_grant                 = true;
   grant.final_action_info.final_action = ChargingCredit_FinalAction_TERMINATE;
-  grant.service_state = SERVICE_ENABLED;
+  grant.service_state                  = SERVICE_ENABLED;
   EXPECT_FALSE(grant.should_deactivate_service());
 
   // Exhaust quota
@@ -137,29 +141,29 @@ TEST_F(ChargingGrantTest, test_should_deactivate_service) {
 
   // Test TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED flag && is_final
   SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = false;
-  grant.is_final_grant = true;
+  grant.is_final_grant                                  = true;
   grant.final_action_info.final_action = ChargingCredit_FinalAction_TERMINATE;
-  grant.service_state = SERVICE_ENABLED;
+  grant.service_state                  = SERVICE_ENABLED;
   EXPECT_FALSE(grant.should_deactivate_service());
 
   // Test TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED is set && is_final
   SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
-  grant.is_final_grant = true;
+  grant.is_final_grant                                  = true;
   grant.final_action_info.final_action = ChargingCredit_FinalAction_TERMINATE;
-  grant.service_state = SERVICE_ENABLED;
+  grant.service_state                  = SERVICE_ENABLED;
   EXPECT_TRUE(grant.should_deactivate_service());
 
   // If service state is not ENABLED we should not deactivate service
   SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
-  grant.is_final_grant = true;
+  grant.is_final_grant                                  = true;
   grant.final_action_info.final_action = ChargingCredit_FinalAction_TERMINATE;
-  grant.service_state = SERVICE_DISABLED;
+  grant.service_state                  = SERVICE_DISABLED;
   EXPECT_FALSE(grant.should_deactivate_service());
 }
 
 TEST_F(ChargingGrantTest, test_get_action) {
   ChargingGrant grant = get_default_grant();
-  auto uc = grant.get_update_criteria();
+  auto uc             = grant.get_update_criteria();
   GrantedUnits gsu;
   uint64_t total_grant = 1024;
   create_granted_units(&total_grant, NULL, NULL, &gsu);
@@ -177,12 +181,12 @@ TEST_F(ChargingGrantTest, test_get_action) {
   // Final with TERMINATE final action
   grant.is_final_grant = true;
   grant.final_action_info =
-    get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
+      get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
   grant.credit.receive_credit(gsu, &uc);
   grant.credit.add_used_credit(2048, 0, uc);
   grant.credit.add_used_credit(30, 20, uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action = grant.get_action(uc);
+  auto term_action    = grant.get_action(uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, TERMINATE_SERVICE);
 
@@ -193,7 +197,7 @@ TEST_F(ChargingGrantTest, test_get_action) {
 
 TEST_F(ChargingGrantTest, test_get_action_redirect) {
   ChargingGrant grant = get_default_grant();
-  auto uc = grant.get_update_criteria();
+  auto uc             = grant.get_update_criteria();
   GrantedUnits gsu;
   uint64_t total_grant = 1024;
   create_granted_units(&total_grant, NULL, NULL, &gsu);
@@ -201,12 +205,12 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   // Final with REDIRECT final action
   grant.is_final_grant = true;
   grant.final_action_info =
-    get_final_action_info(ChargingCredit_FinalAction_REDIRECT);
+      get_final_action_info(ChargingCredit_FinalAction_REDIRECT);
   grant.credit.receive_credit(gsu, &uc);
   grant.credit.add_used_credit(2048, 0, uc);
   grant.credit.add_used_credit(30, 20, uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action = grant.get_action(uc);
+  auto term_action    = grant.get_action(uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, REDIRECT);
 
@@ -220,9 +224,9 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
 // That can happen if the quota reported by pipeline is too big and we go over
 // both the threshold (0.8) and the maximum allowed quota
 TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
-  auto grant = get_default_grant();
+  auto grant   = get_default_grant();
   auto& credit = grant.credit;
-  auto uc = grant.get_update_criteria();
+  auto uc      = grant.get_update_criteria();
   GrantedUnits gsu;
   uint64_t total_grant = 1000;
   create_granted_units(&total_grant, NULL, NULL, &gsu);
@@ -249,7 +253,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(credit.get_credit(REPORTING_TX), 1000);
 
   // Now receive new quota (not final unit)
-  uc = grant.get_update_criteria(); // reset UC
+  uc = grant.get_update_criteria();  // reset UC
   grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 2000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 1000);
@@ -257,7 +261,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
 
   // Trigger an update again, we expect the rest to be reported
-  uc = grant.get_update_criteria(); // reset UC
+  uc = grant.get_update_criteria();  // reset UC
   EXPECT_TRUE(grant.get_update_type(&update_type));
   c_usage = grant.get_credit_usage(update_type, uc, false);
   EXPECT_EQ(c_usage.bytes_tx(), 1000);
@@ -268,10 +272,10 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
 
   // receive some more FINAL grant that will go over part of the used and not
   // reported credit
-  uc = grant.get_update_criteria(); // reset UC
+  uc                   = grant.get_update_criteria();  // reset UC
   grant.is_final_grant = true;
   grant.final_action_info =
-    get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
+      get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
   grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
@@ -279,13 +283,13 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
 
   // Use enough credit to exceed the given quota
-  uc = grant.get_update_criteria(); // reset UC
+  uc = grant.get_update_criteria();  // reset UC
   credit.add_used_credit(1500, 0, uc);
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 1500);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 3500);
-  EXPECT_TRUE(credit.is_quota_exhausted(1)); // 100% exceeded
+  EXPECT_TRUE(credit.is_quota_exhausted(1));  // 100% exceeded
   EXPECT_TRUE(grant.should_deactivate_service());
   grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);
 
@@ -293,9 +297,9 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_FALSE(grant.get_update_type(&update_type));
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-} // namespace magma
+}  // namespace magma
