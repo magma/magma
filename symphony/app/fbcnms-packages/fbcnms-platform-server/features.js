@@ -191,12 +191,6 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'permission_policy_per_type',
-    title: 'Permission - Policies per type',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
     id: 'permissions_ui_enforcement',
     title: 'Permissions - UI enforcement',
     enabledByDefault: true,
@@ -211,11 +205,6 @@ const arrayConfigs = [
     title: 'V2 LTE Dashboard',
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
-    id: 'move_work_order_activities_to_async_service',
-    title: 'Move Work Order Activities To Async Service',
-    enabledByDefault: false,
   },
   {
     id: 'work_order_activities_display',
