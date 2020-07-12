@@ -156,10 +156,11 @@ func (r queryResolver) WorkOrders(
 	ctx context.Context,
 	after *ent.Cursor, first *int,
 	before *ent.Cursor, last *int,
-	filters []*models.WorkOrderFilterInput,
+	orderBy *models.WorkOrderOrder,
+	filterBy []*models.WorkOrderFilterInput,
 ) (*ent.WorkOrderConnection, error) {
 	query := r.ClientFrom(ctx).WorkOrder.Query()
-	query, err := resolverutil.WorkOrderFilter(query, filters)
+	query, err := resolverutil.WorkOrderFilter(query, filterBy)
 	if err != nil {
 		return nil, err
 	}

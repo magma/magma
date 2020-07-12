@@ -1139,6 +1139,21 @@ type PageInfo {
 }
 
 """
+Possible directions in which to order a list of items when provided an `orderBy` argument.
+"""
+enum OrderDirection {
+  """
+  Specifies an ascending order for a given `orderBy` argument.
+  """
+  ASC
+
+  """
+  Specifies a descending order for a given `orderBy` argument.
+  """
+  DESC
+}
+
+"""
 A connection to a list of service types.
 """
 type ServiceTypeConnection {
@@ -1729,6 +1744,36 @@ type WorkOrderEdge {
   A cursor for use in pagination.
   """
   cursor: Cursor!
+}
+
+"""
+Ordering options for work order connections.
+"""
+input WorkOrderOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection!
+
+  """
+  The field to order work orders by.
+  """
+  field: WorkOrderOrderField!
+}
+
+"""
+Properties by which work order connections can be ordered.
+"""
+enum WorkOrderOrderField {
+  """
+  Order work orders by creation time.
+  """
+  CREATED_AT
+
+  """
+  Order work orders by update time.
+  """
+  UPDATED_AT
 }
 
 """
@@ -2885,12 +2930,40 @@ type Query {
     before: Cursor
     last: Int @numberValue(min: 0)
   ): ServiceTypeConnection
+
+  """
+  A list of work orders.
+  """
   workOrders(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int @numberValue(min: 0)
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int @numberValue(min: 0)
-    filters: [WorkOrderFilterInput!]
+
+    """
+    Ordering options for the returned work orders.
+    """
+    orderBy: WorkOrderOrder
+
+    """
+    Filtering options for the returned work orders.
+    """
+    filterBy: [WorkOrderFilterInput!]
   ): WorkOrderConnection!
   workOrderTypes(
     after: Cursor
