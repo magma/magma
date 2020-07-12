@@ -6,5 +6,6 @@
     ],
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
-    }
+    },
+    "editor.definitionLinkOpensInPeek": true
 }

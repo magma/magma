@@ -3213,7 +3213,7 @@ func (r mutationResolver) AddReportFilter(ctx context.Context, input models.Repo
 		SetFilters(string(filters)).
 		Save(ctx)
 	if err != nil && ent.IsConstraintError(err) {
-		return nil, gqlerror.Errorf("a saved search with the name %s already exists", input.Name)
+		return nil, gqlerror.Errorf("There's already a saved search with that name. Please choose a different name.")
 	}
 	return rf, err
 }
@@ -3225,7 +3225,7 @@ func (r mutationResolver) EditReportFilter(ctx context.Context, input models.Edi
 		SetName(input.Name).
 		Save(ctx)
 	if err != nil && ent.IsConstraintError(err) {
-		return nil, gqlerror.Errorf("a saved search with the name %s already exists", input.Name)
+		return nil, gqlerror.Errorf("There's already a saved search with that name. Please choose a different name.")
 	}
 	return rf, err
 }
