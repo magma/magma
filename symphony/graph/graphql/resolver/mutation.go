@@ -2097,15 +2097,13 @@ func (r mutationResolver) EditServiceType(ctx context.Context, data models.Servi
 	}
 	for _, input := range data.Properties {
 		if input.ID == nil {
-			err = r.validateAndAddNewPropertyType(
-				ctx, input, func(b *ent.PropertyTypeCreate) {
-					b.SetServiceType(typ)
-				},
-			)
-		} else {
-			err = r.updatePropType(ctx, input)
-		}
-		if err != nil {
+			if err := r.validateAddedNewPropertyType(input); err != nil {
+				return nil, err
+			}
+			if err := r.AddPropertyTypes(ctx, func(b *ent.PropertyTypeCreate) { b.SetServiceType(typ) }, input); err != nil {
+				return nil, err
+			}
+		} else if err := r.updatePropType(ctx, input); err != nil {
 			return nil, err
 		}
 	}
@@ -2367,7 +2365,7 @@ func (r mutationResolver) validateEquipmentNameIsUnique(ctx context.Context, nam
 	return nil
 }
 
-func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, input *models.PropertyTypeInput, entSetter func(*ent.PropertyTypeCreate)) error {
+func (r mutationResolver) validateAddedNewPropertyType(input *models.PropertyTypeInput) error {
 	isEmpty, err := r.isEmptyProp(nil, input)
 	if err != nil {
 		return err
@@ -2375,7 +2373,7 @@ func (r mutationResolver) validateAndAddNewPropertyType(ctx context.Context, inp
 	if isEmpty && pointer.GetBool(input.IsMandatory) {
 		return gqlerror.Errorf("The new property %v must have a default value", input.Name)
 	}
-	return r.AddPropertyTypes(ctx, entSetter, input)
+	return nil
 }
 
 func (r mutationResolver) validateAndAddEndpointDefinition(ctx context.Context, input *models.ServiceEndpointDefinitionInput, serviceTypeID int) error {
@@ -2431,15 +2429,15 @@ func (r mutationResolver) EditLocationType(
 	}
 	for _, input := range input.Properties {
 		if input.ID == nil {
-			err = r.validateAndAddNewPropertyType(
-				ctx, input, func(b *ent.PropertyTypeCreate) {
-					b.SetLocationType(typ)
-				},
-			)
-		} else {
-			err = r.updatePropType(ctx, input)
-		}
-		if err != nil {
+			if err := r.validateAddedNewPropertyType(input); err != nil {
+				return nil, err
+			}
+			if err := r.AddPropertyTypes(ctx, func(b *ent.PropertyTypeCreate) {
+				b.SetLocationType(typ)
+			}, input); err != nil {
+				return nil, err
+			}
+		} else if err := r.updatePropType(ctx, input); err != nil {
 			return nil, err
 		}
 	}
@@ -2553,15 +2551,16 @@ func (r mutationResolver) EditEquipmentType(
 
 	for _, input := range input.Properties {
 		if input.ID == nil {
-			err = r.validateAndAddNewPropertyType(
-				ctx, input, func(b *ent.PropertyTypeCreate) {
+			if err := r.validateAddedNewPropertyType(input); err != nil {
+				return nil, err
+			}
+			if err := r.AddPropertyTypes(ctx,
+				func(b *ent.PropertyTypeCreate) {
 					b.SetEquipmentTypeID(et.ID)
-				},
-			)
-		} else {
-			err = r.updatePropType(ctx, input)
-		}
-		if err != nil {
+				}, input); err != nil {
+				return nil, err
+			}
+		} else if err := r.updatePropType(ctx, input); err != nil {
 			return nil, err
 		}
 	}
@@ -2640,10 +2639,13 @@ func (r mutationResolver) EditEquipmentPortType(
 
 	for _, input := range input.Properties {
 		if input.ID == nil {
-			if err := r.validateAndAddNewPropertyType(ctx, input,
+			if err := r.validateAddedNewPropertyType(input); err != nil {
+				return nil, err
+			}
+			if err := r.AddPropertyTypes(ctx,
 				func(b *ent.PropertyTypeCreate) {
 					b.SetEquipmentPortTypeID(pt.ID)
-				}); err != nil {
+				}, input); err != nil {
 				return nil, err
 			}
 		} else {
@@ -2661,10 +2663,13 @@ func (r mutationResolver) EditEquipmentPortType(
 	}
 	for _, input := range input.LinkProperties {
 		if input.ID == nil {
-			if err := r.validateAndAddNewPropertyType(ctx, input,
+			if err := r.validateAddedNewPropertyType(input); err != nil {
+				return nil, err
+			}
+			if err := r.AddPropertyTypes(ctx,
 				func(b *ent.PropertyTypeCreate) {
 					b.SetLinkEquipmentPortTypeID(pt.ID)
-				}); err != nil {
+				}, input); err != nil {
 				return nil, err
 			}
 		} else {
