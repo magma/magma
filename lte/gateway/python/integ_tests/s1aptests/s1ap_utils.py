@@ -478,7 +478,7 @@ class MagmadUtil(object):
         """
         self._magmad_client.restart_services(services)
 
-    def create_mme_config_backup(self):
+    def create_backup_or_restore_mme_config(self):
         """
         This function creates a backup of default MME configuration file,
         which can later be used to restore the original configuration

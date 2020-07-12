@@ -25,7 +25,7 @@ class TestUpdateMMEConfigForSanity(unittest.TestCase):
 
         # Create a backup of default MME configuration before modifying it,
         # which can be used later to restore the original configuration
-        self._magmad_util.create_mme_config_backup()
+        self._magmad_util.create_backup_or_restore_mme_config()
 
         # Clear the default PLMN & TAC configuration and update the new values
         self._magmad_util.remove_default_plmn_tac_configuration()
