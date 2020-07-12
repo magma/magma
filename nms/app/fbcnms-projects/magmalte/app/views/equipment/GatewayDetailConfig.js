@@ -18,6 +18,7 @@ import type {KPIRows} from '../../components/KPIGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
 import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
@@ -90,30 +91,21 @@ const useStyles = makeStyles(theme => ({
 export default function GatewayConfig({
   gwInfo,
   enbInfo,
+  onSave,
 }: {
   gwInfo: lte_gateway,
   enbInfo: {[string]: EnodebInfo},
+  onSave: lte_gateway => void,
 }) {
   const classes = useStyles();
 
+  const editProps = {
+    gateway: gwInfo,
+    onSave: onSave,
+  };
+
   function ConfigFilter() {
     return <Button variant="contained">Edit JSON</Button>;
-  }
-
-  function GatewayFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
-  function AggregationsFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
-  function EpcFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
-  function RanFilter() {
-    return <Button variant="text">Edit</Button>;
   }
 
   return (
@@ -131,13 +123,28 @@ export default function GatewayConfig({
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Gateway" filter={GatewayFilter} />
+                  <CardTitleFilterRow label="Gateway" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'info',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
+                  />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow
-                    label="Aggregations"
-                    filter={AggregationsFilter}
+                  <CardTitleFilterRow label="Aggregations" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'aggregation',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
                   />
                   <GatewayAggregation gwInfo={gwInfo} />
                 </Grid>
@@ -146,11 +153,29 @@ export default function GatewayConfig({
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="EPC" filter={EpcFilter} />
+                  <CardTitleFilterRow label="EPC" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'epc',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
+                  />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Ran" filter={RanFilter} />
+                  <CardTitleFilterRow label="Ran" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'ran',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
+                  />
                   <GatewayRAN gwInfo={gwInfo} enbInfo={enbInfo} />
                 </Grid>
               </Grid>
@@ -174,7 +199,7 @@ function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
     [
       {
         category: 'Gateway ID',
-        value: gwInfo.device.hardware_id,
+        value: gwInfo.id,
         statusCircle: false,
       },
     ],
