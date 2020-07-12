@@ -528,6 +528,32 @@ func (clidgb *CheckListItemDefinitionGroupBy) StringsX(ctx context.Context) []st
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (clidgb *CheckListItemDefinitionGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = clidgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (clidgb *CheckListItemDefinitionGroupBy) StringX(ctx context.Context) string {
+	v, err := clidgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (clidgb *CheckListItemDefinitionGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(clidgb.fields) > 1 {
@@ -543,6 +569,32 @@ func (clidgb *CheckListItemDefinitionGroupBy) Ints(ctx context.Context) ([]int, 
 // IntsX is like Ints, but panics if an error occurs.
 func (clidgb *CheckListItemDefinitionGroupBy) IntsX(ctx context.Context) []int {
 	v, err := clidgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (clidgb *CheckListItemDefinitionGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = clidgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (clidgb *CheckListItemDefinitionGroupBy) IntX(ctx context.Context) int {
+	v, err := clidgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -570,6 +622,32 @@ func (clidgb *CheckListItemDefinitionGroupBy) Float64sX(ctx context.Context) []f
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (clidgb *CheckListItemDefinitionGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = clidgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (clidgb *CheckListItemDefinitionGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := clidgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (clidgb *CheckListItemDefinitionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(clidgb.fields) > 1 {
@@ -585,6 +663,32 @@ func (clidgb *CheckListItemDefinitionGroupBy) Bools(ctx context.Context) ([]bool
 // BoolsX is like Bools, but panics if an error occurs.
 func (clidgb *CheckListItemDefinitionGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := clidgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (clidgb *CheckListItemDefinitionGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = clidgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (clidgb *CheckListItemDefinitionGroupBy) BoolX(ctx context.Context) bool {
+	v, err := clidgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -658,6 +762,32 @@ func (clids *CheckListItemDefinitionSelect) StringsX(ctx context.Context) []stri
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (clids *CheckListItemDefinitionSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = clids.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (clids *CheckListItemDefinitionSelect) StringX(ctx context.Context) string {
+	v, err := clids.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (clids *CheckListItemDefinitionSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(clids.fields) > 1 {
@@ -673,6 +803,32 @@ func (clids *CheckListItemDefinitionSelect) Ints(ctx context.Context) ([]int, er
 // IntsX is like Ints, but panics if an error occurs.
 func (clids *CheckListItemDefinitionSelect) IntsX(ctx context.Context) []int {
 	v, err := clids.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (clids *CheckListItemDefinitionSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = clids.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (clids *CheckListItemDefinitionSelect) IntX(ctx context.Context) int {
+	v, err := clids.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -700,6 +856,32 @@ func (clids *CheckListItemDefinitionSelect) Float64sX(ctx context.Context) []flo
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (clids *CheckListItemDefinitionSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = clids.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (clids *CheckListItemDefinitionSelect) Float64X(ctx context.Context) float64 {
+	v, err := clids.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (clids *CheckListItemDefinitionSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(clids.fields) > 1 {
@@ -715,6 +897,32 @@ func (clids *CheckListItemDefinitionSelect) Bools(ctx context.Context) ([]bool, 
 // BoolsX is like Bools, but panics if an error occurs.
 func (clids *CheckListItemDefinitionSelect) BoolsX(ctx context.Context) []bool {
 	v, err := clids.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (clids *CheckListItemDefinitionSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = clids.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitemdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemDefinitionSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (clids *CheckListItemDefinitionSelect) BoolX(ctx context.Context) bool {
+	v, err := clids.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

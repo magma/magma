@@ -15,7 +15,7 @@ require (
 	github.com/agnivade/levenshtein v1.1.0 // indirect
 	github.com/aws/aws-sdk-go v1.33.0
 	github.com/cenkalti/backoff/v4 v4.0.2
-	github.com/facebookincubator/ent v0.2.6-0.20200705192250-cedeef653a50
+	github.com/facebookincubator/ent v0.2.7-0.20200712105603-f7d4a52e681c
 	github.com/go-sql-driver/mysql v1.5.1-0.20200311113236-681ffa848bae
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.4.2

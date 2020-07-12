@@ -192,25 +192,31 @@ func (r mutationResolver) AddWorkOrder(
 
 func (r mutationResolver) convertToTemplatePropertyInputs(
 	ctx context.Context,
-	workOrderTemplate *ent.WorkOrderTemplate,
+	template *ent.WorkOrderTemplate,
 	properties []*models.PropertyInput,
 ) ([]*models.PropertyInput, error) {
-	client := r.ClientFrom(ctx)
-	var pInputs []*models.PropertyInput
+	client := r.ClientFrom(ctx).PropertyType
+	inputs := make([]*models.PropertyInput, 0, len(properties))
 	for _, p := range properties {
-		pt, err := client.PropertyType.Get(ctx, p.PropertyTypeID)
+		name, err := client.Query().
+			Where(propertytype.ID(p.PropertyTypeID)).
+			Select(propertytype.FieldName).
+			String(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "querying property type")
+			return nil, fmt.Errorf("cannot query property type name from id: %w", err)
 		}
-		tID, err := workOrderTemplate.QueryPropertyTypes().Where(propertytype.Name(pt.Name)).OnlyID(ctx)
+		id, err := template.
+			QueryPropertyTypes().
+			Where(propertytype.Name(name)).
+			OnlyID(ctx)
 		if err != nil {
 			return nil, err
 		}
-		pInput := *p
-		pInput.PropertyTypeID = tID
-		pInputs = append(pInputs, &pInput)
+		input := *p
+		input.PropertyTypeID = id
+		inputs = append(inputs, &input)
 	}
-	return pInputs, nil
+	return inputs, nil
 }
 
 func (r mutationResolver) internalAddWorkOrder(

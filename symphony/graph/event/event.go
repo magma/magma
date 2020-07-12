@@ -27,10 +27,7 @@ func (e *Eventer) HookTo(client *ent.Client) {
 }
 
 func (e *Eventer) emit(ctx context.Context, name string, value interface{}) {
-	emit := func(err error) {
-		if err != nil {
-			return
-		}
+	emit := func() {
 		logger := e.Logger.For(ctx).With(zap.String("name", name))
 		body, err := pubsub.Marshal(value)
 		if err != nil {
@@ -43,8 +40,15 @@ func (e *Eventer) emit(ctx context.Context, name string, value interface{}) {
 		logger.Debug("emitting event")
 	}
 	if tx := ent.TxFromContext(ctx); tx != nil {
-		tx.OnCommit(emit)
+		tx.OnCommit(func(next ent.Committer) ent.Committer {
+			return ent.CommitFunc(func(ctx context.Context, tx *ent.Tx) (err error) {
+				if err = next.Commit(ctx, tx); err == nil {
+					emit()
+				}
+				return err
+			})
+		})
 	} else {
-		emit(nil)
+		emit()
 	}
 }

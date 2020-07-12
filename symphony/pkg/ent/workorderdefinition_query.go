@@ -585,6 +585,32 @@ func (wodgb *WorkOrderDefinitionGroupBy) StringsX(ctx context.Context) []string 
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (wodgb *WorkOrderDefinitionGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = wodgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (wodgb *WorkOrderDefinitionGroupBy) StringX(ctx context.Context) string {
+	v, err := wodgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (wodgb *WorkOrderDefinitionGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(wodgb.fields) > 1 {
@@ -600,6 +626,32 @@ func (wodgb *WorkOrderDefinitionGroupBy) Ints(ctx context.Context) ([]int, error
 // IntsX is like Ints, but panics if an error occurs.
 func (wodgb *WorkOrderDefinitionGroupBy) IntsX(ctx context.Context) []int {
 	v, err := wodgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (wodgb *WorkOrderDefinitionGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = wodgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (wodgb *WorkOrderDefinitionGroupBy) IntX(ctx context.Context) int {
+	v, err := wodgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -627,6 +679,32 @@ func (wodgb *WorkOrderDefinitionGroupBy) Float64sX(ctx context.Context) []float6
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (wodgb *WorkOrderDefinitionGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = wodgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (wodgb *WorkOrderDefinitionGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := wodgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (wodgb *WorkOrderDefinitionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(wodgb.fields) > 1 {
@@ -642,6 +720,32 @@ func (wodgb *WorkOrderDefinitionGroupBy) Bools(ctx context.Context) ([]bool, err
 // BoolsX is like Bools, but panics if an error occurs.
 func (wodgb *WorkOrderDefinitionGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := wodgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (wodgb *WorkOrderDefinitionGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = wodgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (wodgb *WorkOrderDefinitionGroupBy) BoolX(ctx context.Context) bool {
+	v, err := wodgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -715,6 +819,32 @@ func (wods *WorkOrderDefinitionSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (wods *WorkOrderDefinitionSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = wods.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (wods *WorkOrderDefinitionSelect) StringX(ctx context.Context) string {
+	v, err := wods.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (wods *WorkOrderDefinitionSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(wods.fields) > 1 {
@@ -730,6 +860,32 @@ func (wods *WorkOrderDefinitionSelect) Ints(ctx context.Context) ([]int, error) 
 // IntsX is like Ints, but panics if an error occurs.
 func (wods *WorkOrderDefinitionSelect) IntsX(ctx context.Context) []int {
 	v, err := wods.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (wods *WorkOrderDefinitionSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = wods.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (wods *WorkOrderDefinitionSelect) IntX(ctx context.Context) int {
+	v, err := wods.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -757,6 +913,32 @@ func (wods *WorkOrderDefinitionSelect) Float64sX(ctx context.Context) []float64 
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (wods *WorkOrderDefinitionSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = wods.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (wods *WorkOrderDefinitionSelect) Float64X(ctx context.Context) float64 {
+	v, err := wods.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (wods *WorkOrderDefinitionSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(wods.fields) > 1 {
@@ -772,6 +954,32 @@ func (wods *WorkOrderDefinitionSelect) Bools(ctx context.Context) ([]bool, error
 // BoolsX is like Bools, but panics if an error occurs.
 func (wods *WorkOrderDefinitionSelect) BoolsX(ctx context.Context) []bool {
 	v, err := wods.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (wods *WorkOrderDefinitionSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = wods.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorderdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderDefinitionSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (wods *WorkOrderDefinitionSelect) BoolX(ctx context.Context) bool {
+	v, err := wods.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
