@@ -42,6 +42,7 @@ import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import Strings from '@fbcnms/strings/Strings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextInput from '@fbcnms/ui/components/design-system/Input/TextInput';
+import Tooltip from '@material-ui/core/Tooltip';
 import fbt from 'fbt';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {LogEvents, ServerLogger} from '../common/LoggingUtils';
@@ -75,6 +76,12 @@ const useStyles = makeStyles(() => ({
   },
   text: {
     margin: '8px 2px',
+  },
+  cancelButton: {
+    marginRight: '4px',
+  },
+  okButton: {
+    marginLeft: '4px',
   },
 }));
 type Props = WithSnackbarProps & {
@@ -323,43 +330,52 @@ const FilterBookmark = (props: Props) => {
                 <div>
                   <Text variant="subtitle2" color="gray">
                     <fbt desc="">
-                      You can find it under the
+                      Easily come back to this search by selecting
                       <fbt:param name="entity name">
                         {"'" + entityToLabel(entity) + "'"}
                       </fbt:param>{' '}
-                      filter search bar.
+                      and clicking the search bar.
                     </fbt>
                   </Text>
                 </div>
               </div>
               <TextInput
                 type="string"
-                placeholder={
-                  isBookmark ? name : `${fbt('Saved search name', '')}`
-                }
+                placeholder={isBookmark ? name : ``}
                 onChange={({target}) => setName(target.value)}
                 value={name}
               />
               <DialogActions classes={{root: classes.dialogActions}}>
                 {isBookmark ? (
                   <Button variant="text" skin="gray" onClick={removeBookmark}>
-                    <DeleteOutlineIcon />
+                    <Tooltip
+                      arrow
+                      interactive
+                      placement="right"
+                      title={Strings.common.deleteButton}>
+                      <DeleteOutlineIcon />
+                    </Tooltip>
                   </Button>
                 ) : (
                   <div />
                 )}
                 <div>
-                  <Button onClick={handleClose} skin="regular">
+                  <Button
+                    className={classes.cancelButton}
+                    onClick={handleClose}
+                    skin={isBookmark ? 'gray' : 'regular'}>
                     {Strings.common.cancelButton}
                   </Button>
                   {isBookmark ? (
                     <Button
+                      className={classes.okButton}
                       disabled={name.trim() == '' || filters.length === 0}
                       onClick={editBookmark}>
                       {Strings.common.saveButton}
                     </Button>
                   ) : (
                     <Button
+                      className={classes.okButton}
                       disabled={name.trim() == '' || filters.length === 0}
                       onClick={saveBookmark}>
                       {Strings.common.createButton}

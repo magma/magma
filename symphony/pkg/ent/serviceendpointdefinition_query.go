@@ -646,6 +646,32 @@ func (sedgb *ServiceEndpointDefinitionGroupBy) StringsX(ctx context.Context) []s
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (sedgb *ServiceEndpointDefinitionGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = sedgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (sedgb *ServiceEndpointDefinitionGroupBy) StringX(ctx context.Context) string {
+	v, err := sedgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (sedgb *ServiceEndpointDefinitionGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(sedgb.fields) > 1 {
@@ -661,6 +687,32 @@ func (sedgb *ServiceEndpointDefinitionGroupBy) Ints(ctx context.Context) ([]int,
 // IntsX is like Ints, but panics if an error occurs.
 func (sedgb *ServiceEndpointDefinitionGroupBy) IntsX(ctx context.Context) []int {
 	v, err := sedgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (sedgb *ServiceEndpointDefinitionGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = sedgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (sedgb *ServiceEndpointDefinitionGroupBy) IntX(ctx context.Context) int {
+	v, err := sedgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -688,6 +740,32 @@ func (sedgb *ServiceEndpointDefinitionGroupBy) Float64sX(ctx context.Context) []
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (sedgb *ServiceEndpointDefinitionGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = sedgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (sedgb *ServiceEndpointDefinitionGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := sedgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (sedgb *ServiceEndpointDefinitionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(sedgb.fields) > 1 {
@@ -703,6 +781,32 @@ func (sedgb *ServiceEndpointDefinitionGroupBy) Bools(ctx context.Context) ([]boo
 // BoolsX is like Bools, but panics if an error occurs.
 func (sedgb *ServiceEndpointDefinitionGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := sedgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (sedgb *ServiceEndpointDefinitionGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = sedgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (sedgb *ServiceEndpointDefinitionGroupBy) BoolX(ctx context.Context) bool {
+	v, err := sedgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -776,6 +880,32 @@ func (seds *ServiceEndpointDefinitionSelect) StringsX(ctx context.Context) []str
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (seds *ServiceEndpointDefinitionSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = seds.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (seds *ServiceEndpointDefinitionSelect) StringX(ctx context.Context) string {
+	v, err := seds.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (seds *ServiceEndpointDefinitionSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(seds.fields) > 1 {
@@ -791,6 +921,32 @@ func (seds *ServiceEndpointDefinitionSelect) Ints(ctx context.Context) ([]int, e
 // IntsX is like Ints, but panics if an error occurs.
 func (seds *ServiceEndpointDefinitionSelect) IntsX(ctx context.Context) []int {
 	v, err := seds.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (seds *ServiceEndpointDefinitionSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = seds.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (seds *ServiceEndpointDefinitionSelect) IntX(ctx context.Context) int {
+	v, err := seds.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -818,6 +974,32 @@ func (seds *ServiceEndpointDefinitionSelect) Float64sX(ctx context.Context) []fl
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (seds *ServiceEndpointDefinitionSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = seds.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (seds *ServiceEndpointDefinitionSelect) Float64X(ctx context.Context) float64 {
+	v, err := seds.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (seds *ServiceEndpointDefinitionSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(seds.fields) > 1 {
@@ -833,6 +1015,32 @@ func (seds *ServiceEndpointDefinitionSelect) Bools(ctx context.Context) ([]bool,
 // BoolsX is like Bools, but panics if an error occurs.
 func (seds *ServiceEndpointDefinitionSelect) BoolsX(ctx context.Context) []bool {
 	v, err := seds.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (seds *ServiceEndpointDefinitionSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = seds.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{serviceendpointdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceEndpointDefinitionSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (seds *ServiceEndpointDefinitionSelect) BoolX(ctx context.Context) bool {
+	v, err := seds.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

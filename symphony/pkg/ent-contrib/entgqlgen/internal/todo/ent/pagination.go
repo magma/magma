@@ -72,9 +72,9 @@ type TodoEdge struct {
 
 // TodoConnection is the connection containing edges to Todo.
 type TodoConnection struct {
-	TotalCount int
 	Edges      []*TodoEdge `json:"edges"`
 	PageInfo   PageInfo    `json:"pageInfo"`
+	TotalCount int         `json:"totalCount"`
 }
 
 // Paginate executes the query and returns a relay based cursor connection to Todo.
@@ -101,11 +101,15 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	totalCount, err := t.Clone().Count(ctx)
-	if err != nil {
-		return &TodoConnection{
-			Edges: []*TodoEdge{},
-		}, err
+	var totalCount int
+	if field := fieldForPath(ctx, "totalCount"); field != nil {
+		count, err := t.Clone().Count(ctx)
+		if err != nil {
+			return &TodoConnection{
+				Edges: []*TodoEdge{},
+			}, err
+		}
+		totalCount = count
 	}
 
 	if after != nil {
@@ -135,8 +139,7 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	var conn TodoConnection
-	conn.TotalCount = totalCount
+	conn := TodoConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 4720d266ffb0a2c43a7295b608a1f9d2
+ * @relayHash e7e0218b9ab1d962f71d0e79ffc34c4b
  */
 
 /* eslint-disable */
@@ -77,7 +77,7 @@ query WorkOrderComparisonViewQueryRendererSearchQuery(
   $limit: Int
   $filters: [WorkOrderFilterInput!]!
 ) {
-  workOrders(first: $limit, filters: $filters) {
+  workOrders(first: $limit, filterBy: $filters) {
     totalCount
     edges {
       node {
@@ -161,7 +161,7 @@ var v0 = [
 v1 = [
   {
     "kind": "Variable",
-    "name": "filters",
+    "name": "filterBy",
     "variableName": "filters"
   },
   {
@@ -416,11 +416,11 @@ return {
     "operationKind": "query",
     "name": "WorkOrderComparisonViewQueryRendererSearchQuery",
     "id": null,
-    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrders(first: $limit, filters: $filters) {\n    totalCount\n    edges {\n      node {\n        ...WorkOrdersView_workOrder\n        ...WorkOrdersMap_workOrders\n        id\n      }\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  status\n  priority\n  assignedTo {\n    id\n    email\n  }\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  assignedTo {\n    id\n    email\n  }\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
+    "text": "query WorkOrderComparisonViewQueryRendererSearchQuery(\n  $limit: Int\n  $filters: [WorkOrderFilterInput!]!\n) {\n  workOrders(first: $limit, filterBy: $filters) {\n    totalCount\n    edges {\n      node {\n        ...WorkOrdersView_workOrder\n        ...WorkOrdersMap_workOrders\n        id\n      }\n    }\n  }\n}\n\nfragment WorkOrdersMap_workOrders on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  status\n  priority\n  assignedTo {\n    id\n    email\n  }\n  installDate\n  location {\n    id\n    name\n    latitude\n    longitude\n  }\n}\n\nfragment WorkOrdersView_workOrder on WorkOrder {\n  id\n  name\n  description\n  owner {\n    id\n    email\n  }\n  creationDate\n  installDate\n  status\n  assignedTo {\n    id\n    email\n  }\n  location {\n    id\n    name\n  }\n  workOrderType {\n    id\n    name\n  }\n  project {\n    id\n    name\n  }\n  closeDate\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '44f277e8f3af4fabc5a627cb9ade6ab6';
+(node/*: any*/).hash = 'a2134c21f3a4ecdab7e0de3d8f8066e9';
 module.exports = node;

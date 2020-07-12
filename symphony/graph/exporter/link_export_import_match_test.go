@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/pkg/ent/equipment"
 	"github.com/stretchr/testify/require"
@@ -103,11 +104,11 @@ func TestExportAndEditLinks(t *testing.T) {
 				for _, prop := range props {
 					switch prop.QueryType().OnlyX(ctx).Name {
 					case propNameInt:
-						require.Equal(t, 10, prop.IntVal)
+						require.Equal(t, 10, pointer.GetInt(prop.IntVal))
 					case propNameBool:
-						require.Equal(t, true, prop.BoolVal)
+						require.Equal(t, true, pointer.GetBool(prop.BoolVal))
 					case propNameStr:
-						require.Equal(t, "new-prop-value", prop.StringVal)
+						require.Equal(t, "new-prop-value", pointer.GetString(prop.StringVal))
 					}
 				}
 			}
@@ -143,11 +144,11 @@ func TestExportAndAddLinks(t *testing.T) {
 					for _, prop := range props {
 						switch prop.QueryType().OnlyX(ctx).Name {
 						case propNameInt:
-							require.Equal(t, 100, prop.IntVal)
+							require.Equal(t, 100, pointer.GetInt(prop.IntVal))
 						case propNameBool:
-							require.Equal(t, false, prop.BoolVal)
+							require.Nil(t, prop.BoolVal)
 						case propNameStr:
-							require.Equal(t, "t1", prop.StringVal)
+							require.Equal(t, "t1", pointer.GetString(prop.StringVal))
 						}
 					}
 				}

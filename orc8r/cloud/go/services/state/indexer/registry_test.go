@@ -12,9 +12,10 @@ import (
 	"sort"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
-
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/mocks"
+
+	assert "github.com/stretchr/testify/require"
 )
 
 func TestRegisterRemote(t *testing.T) {
@@ -25,44 +26,55 @@ func TestRegisterRemote(t *testing.T) {
 	indexer.DeregisterAllForTest(t)
 
 	t.Run("empty initially", func(t *testing.T) {
-		got := indexer.GetIndexers()
+		got, err := indexer.GetIndexers()
+		assert.NoError(t, err)
 		assert.Empty(t, got)
 	})
 
 	t.Run("set and get one", func(t *testing.T) {
-		err := indexer.RegisterIndexers(want0)
-		assert.NoError(t, err)
+		register(t, want0)
 
-		got := indexer.GetIndexers()
+		got, err := indexer.GetIndexers()
+		assert.NoError(t, err)
 		assert.Equal(t, []indexer.Indexer{want0}, got)
-		gotOne := indexer.GetIndexer(want0.GetID())
+		gotOne, err := indexer.GetIndexer(want0.GetID())
+		assert.NoError(t, err)
 		assert.Equal(t, want0, gotOne)
 	})
 
 	t.Run("set and get two more", func(t *testing.T) {
-		err := indexer.RegisterIndexers(want1, want2)
-		assert.NoError(t, err)
+		register(t, want1, want2)
 
-		got := indexer.GetIndexers()
+		got, err := indexer.GetIndexers()
+		assert.NoError(t, err)
 		sort.Slice(got, func(i, j int) bool { return got[i].GetID() < got[j].GetID() })
 		assert.Equal(t, []indexer.Indexer{want0, want1, want2}, got)
-		got1 := indexer.GetIndexer(want1.GetID())
+		got1, err := indexer.GetIndexer(want1.GetID())
+		assert.NoError(t, err)
 		assert.Equal(t, want1, got1)
-		got2 := indexer.GetIndexer(want2.GetID())
+		got2, err := indexer.GetIndexer(want2.GetID())
+		assert.NoError(t, err)
 		assert.Equal(t, want2, got2)
 	})
 
 	t.Run("fail overwrite same name", func(t *testing.T) {
-		err := indexer.RegisterIndexers(want2)
-		assert.Error(t, err)
+		register(t, want2)
 
-		got := indexer.GetIndexers()
+		got, err := indexer.GetIndexers()
+		assert.NoError(t, err)
 		sort.Slice(got, func(i, j int) bool { return got[i].GetID() < got[j].GetID() })
 		assert.Equal(t, []indexer.Indexer{want0, want1, want2}, got)
 	})
 
 	t.Run("get indexers for state type", func(t *testing.T) {
-		got := indexer.GetIndexersForState("type2")
+		got, err := indexer.GetIndexersForState("type2")
+		assert.NoError(t, err)
 		assert.Equal(t, []indexer.Indexer{want2}, got)
 	})
+}
+
+func register(t *testing.T, indexers ...indexer.Indexer) {
+	for _, x := range indexers {
+		mocks.NewMockIndexer(t, x.GetID(), x.GetVersion(), x.GetTypes(), nil, nil, nil) // registers the indexer
+	}
 }

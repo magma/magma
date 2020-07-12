@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/facebookincubator/symphony/graph/graphql/generated"
 	"github.com/facebookincubator/symphony/graph/graphql/models"
 	"github.com/facebookincubator/symphony/pkg/ent"
 	"github.com/facebookincubator/symphony/pkg/ent/equipmentport"
@@ -101,13 +102,7 @@ func TestAddEquipment(t *testing.T) {
 	assert.ElementsMatch(t, []int{1, 2}, fetchedPositionIndices)
 }
 
-func TestAddEquipmentWithProperties(t *testing.T) {
-	r := newTestResolver(t)
-	defer r.Close()
-	ctx := viewertest.NewContext(context.Background(), r.client)
-
-	mr, er := r.Mutation(), r.Equipment()
-
+func prepareLocation(ctx context.Context, t *testing.T, mr generated.MutationResolver) *ent.Location {
 	locationType, err := mr.AddLocationType(ctx, models.AddLocationTypeInput{
 		Name: "location_type_name_1",
 	})
@@ -117,6 +112,16 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 		Type: locationType.ID,
 	})
 	require.NoError(t, err)
+	return location
+}
+
+func TestAddEquipmentWithProperties(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr, er := r.Mutation(), r.Equipment()
+	location := prepareLocation(ctx, t, mr)
 	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
 		Name: "example_type_name",
 		Properties: []*models.PropertyTypeInput{
@@ -144,7 +149,135 @@ func TestAddEquipmentWithProperties(t *testing.T) {
 	typ := fetchedProperties[0].QueryType().OnlyX(ctx)
 	assert.Equal(t, typ.Name, "bar_prop")
 	assert.Equal(t, typ.Type, propertytype.TypeString)
-	assert.Equal(t, fetchedProperties[0].StringVal, val)
+	assert.Equal(t, *fetchedProperties[0].StringVal, val)
+}
+
+func TestAddEditEquipmentWithNillableProperties(t *testing.T) {
+	r := newTestResolver(t)
+	defer r.Close()
+	ctx := viewertest.NewContext(context.Background(), r.client)
+
+	mr, er, pr, ptr := r.Mutation(), r.Equipment(), r.Property(), r.PropertyType()
+	location := prepareLocation(ctx, t, mr)
+	equipmentType, err := mr.AddEquipmentType(ctx, models.AddEquipmentTypeInput{
+		Name: "example_type_name",
+		Properties: []*models.PropertyTypeInput{
+			{Name: "str_prop", Type: propertytype.TypeString},
+			{Name: "int_prop", Type: propertytype.TypeInt},
+			{Name: "float_prop", Type: propertytype.TypeFloat},
+			{Name: "bool_prop", Type: propertytype.TypeBool},
+			{Name: "str_prop_with_default", Type: propertytype.TypeString, StringValue: pointer.ToString("Value")},
+			{Name: "int_prop_with_default", Type: propertytype.TypeInt, IntValue: pointer.ToInt(45)},
+			{Name: "float_prop_with_default", Type: propertytype.TypeFloat, FloatValue: pointer.ToFloat64(45.212)},
+			{Name: "bool_prop_with_default", Type: propertytype.TypeBool, BooleanValue: pointer.ToBool(true)},
+		},
+	})
+	require.NoError(t, err)
+
+	intPropID := equipmentType.QueryPropertyTypes().Where(propertytype.Name("int_prop")).OnlyXID(ctx)
+	intPropWithDefaultID := equipmentType.QueryPropertyTypes().Where(propertytype.Name("int_prop_with_default")).OnlyXID(ctx)
+	boolPropID := equipmentType.QueryPropertyTypes().Where(propertytype.Name("bool_prop")).OnlyXID(ctx)
+	strPropID := equipmentType.QueryPropertyTypes().Where(propertytype.Name("str_prop")).OnlyXID(ctx)
+
+	equipmentType, err = mr.EditEquipmentType(ctx, models.EditEquipmentTypeInput{
+		ID:   equipmentType.ID,
+		Name: "example_type_name",
+		Properties: []*models.PropertyTypeInput{
+			{ID: pointer.ToInt(intPropID), Name: "int_prop", Type: propertytype.TypeInt, IntValue: pointer.ToInt(12)},
+			{ID: pointer.ToInt(intPropWithDefaultID), Name: "int_prop_with_default", Type: propertytype.TypeInt},
+		},
+	})
+	require.NoError(t, err)
+
+	propTypes := equipmentType.QueryPropertyTypes().AllX(ctx)
+	require.Len(t, propTypes, 8)
+	for _, propType := range propTypes {
+		pRawVal, err := ptr.RawValue(ctx, propType)
+		require.NotNil(t, pRawVal)
+		rawVal := *pRawVal
+		require.NoError(t, err)
+		switch propType.Name {
+		case "str_prop":
+			require.Nil(t, propType.StringVal)
+			require.Equal(t, "", rawVal)
+		case "int_prop":
+			require.Equal(t, 12, pointer.GetInt(propType.IntVal))
+			require.Equal(t, "12", rawVal)
+		case "float_prop":
+			require.Nil(t, propType.FloatVal)
+			require.Equal(t, "", rawVal)
+		case "bool_prop":
+			require.Nil(t, propType.BoolVal)
+			require.Equal(t, "", rawVal)
+		case "str_prop_with_default":
+			require.Equal(t, "Value", pointer.GetString(propType.StringVal))
+			require.Equal(t, "Value", rawVal)
+		case "int_prop_with_default":
+			require.Nil(t, propType.IntVal)
+			require.Equal(t, "", rawVal)
+		case "float_prop_with_default":
+			require.Equal(t, 45.212, pointer.GetFloat64(propType.FloatVal))
+			require.Equal(t, "45.212", rawVal)
+		case "bool_prop_with_default":
+			require.Equal(t, true, pointer.GetBool(propType.BoolVal))
+			require.Equal(t, "true", rawVal)
+		default:
+			t.Fatalf("prop type %q not found", propType.Name)
+		}
+	}
+
+	equipment, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
+		Name:     "equipment_name_1",
+		Type:     equipmentType.ID,
+		Location: &location.ID,
+		Properties: []*models.PropertyInput{
+			{PropertyTypeID: intPropID, IntValue: pointer.ToInt(33)},
+			{PropertyTypeID: intPropWithDefaultID},
+			{PropertyTypeID: boolPropID},
+			{PropertyTypeID: strPropID, StringValue: pointer.ToString("NewValue")},
+		},
+	})
+	require.NoError(t, err)
+
+	intProp := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(intPropID))).OnlyX(ctx)
+	intPropWithDefault := equipment.QueryProperties().Where(property.HasTypeWith(propertytype.ID(intPropWithDefaultID))).OnlyX(ctx)
+
+	equipment, err = mr.EditEquipment(ctx, models.EditEquipmentInput{
+		ID:   equipment.ID,
+		Name: "equipment_name_1",
+		Properties: []*models.PropertyInput{
+			{ID: pointer.ToInt(intProp.ID), PropertyTypeID: intPropID},
+			{ID: pointer.ToInt(intPropWithDefault.ID), PropertyTypeID: intPropWithDefaultID, IntValue: pointer.ToInt(55)},
+		},
+	})
+	require.NoError(t, err)
+
+	fetchedProperties, err := er.Properties(ctx, equipment)
+	require.NoError(t, err)
+	require.Len(t, fetchedProperties, 4)
+	for _, prop := range fetchedProperties {
+		pRawVal, err := pr.RawValue(ctx, prop)
+		require.NoError(t, err)
+		require.NotNil(t, pRawVal)
+		rawVal := *pRawVal
+		propTypeID := prop.QueryType().OnlyXID(ctx)
+		switch propTypeID {
+		case intPropID:
+			require.Nil(t, prop.IntVal)
+			require.Equal(t, "", rawVal)
+		case intPropWithDefaultID:
+			require.Equal(t, 55, pointer.GetInt(prop.IntVal))
+			require.Equal(t, "55", rawVal)
+		case boolPropID:
+			require.Nil(t, prop.BoolVal)
+			require.Equal(t, "", rawVal)
+		case strPropID:
+			require.Equal(t, "NewValue", pointer.GetString(prop.StringVal))
+			require.Equal(t, "NewValue", rawVal)
+		default:
+			t.Fatalf("prop type %q not found", propTypeID)
+		}
+	}
 }
 
 func TestAddAndDeleteEquipmentHyperlink(t *testing.T) {
@@ -1005,8 +1138,8 @@ func TestEditEquipment(t *testing.T) {
 
 	require.Equal(t, fetchedEquipment.Name, newEquipment.Name)
 	require.Equal(t, fetchedEquipment.QueryLocation().OnlyXID(ctx), newEquipment.QueryLocation().OnlyXID(ctx))
-	require.Equal(t, val, propTypeA.StringVal)
-	require.Equal(t, valB, propTypeB.StringVal)
+	require.Equal(t, val, pointer.GetString(propTypeA.StringVal))
+	require.Equal(t, valB, pointer.GetString(propTypeB.StringVal))
 
 	equipmentB, err := mr.AddEquipment(ctx, models.AddEquipmentInput{
 		Name:       "equipment_name_1",
@@ -1087,7 +1220,7 @@ func TestEditEquipmentPort(t *testing.T) {
 	})
 	require.NoError(t, err)
 	editedProperty := editedEquipmentPort.QueryProperties().FirstX(ctx)
-	require.Equal(t, val, editedProperty.StringVal)
+	require.Equal(t, val, pointer.GetString(editedProperty.StringVal))
 }
 
 func TestAddLinkToNewlyAddedPortDefinition(t *testing.T) {

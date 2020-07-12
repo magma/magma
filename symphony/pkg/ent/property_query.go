@@ -1208,6 +1208,32 @@ func (pgb *PropertyGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (pgb *PropertyGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = pgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertyGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (pgb *PropertyGroupBy) StringX(ctx context.Context) string {
+	v, err := pgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (pgb *PropertyGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(pgb.fields) > 1 {
@@ -1223,6 +1249,32 @@ func (pgb *PropertyGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (pgb *PropertyGroupBy) IntsX(ctx context.Context) []int {
 	v, err := pgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (pgb *PropertyGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = pgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertyGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (pgb *PropertyGroupBy) IntX(ctx context.Context) int {
+	v, err := pgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1250,6 +1302,32 @@ func (pgb *PropertyGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (pgb *PropertyGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = pgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertyGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (pgb *PropertyGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := pgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (pgb *PropertyGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(pgb.fields) > 1 {
@@ -1265,6 +1343,32 @@ func (pgb *PropertyGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (pgb *PropertyGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := pgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (pgb *PropertyGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = pgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertyGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (pgb *PropertyGroupBy) BoolX(ctx context.Context) bool {
+	v, err := pgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1338,6 +1442,32 @@ func (ps *PropertySelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ps *PropertySelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ps.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertySelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ps *PropertySelect) StringX(ctx context.Context) string {
+	v, err := ps.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ps *PropertySelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ps.fields) > 1 {
@@ -1353,6 +1483,32 @@ func (ps *PropertySelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ps *PropertySelect) IntsX(ctx context.Context) []int {
 	v, err := ps.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ps *PropertySelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ps.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertySelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ps *PropertySelect) IntX(ctx context.Context) int {
+	v, err := ps.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1380,6 +1536,32 @@ func (ps *PropertySelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ps *PropertySelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ps.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertySelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ps *PropertySelect) Float64X(ctx context.Context) float64 {
+	v, err := ps.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ps *PropertySelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ps.fields) > 1 {
@@ -1395,6 +1577,32 @@ func (ps *PropertySelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ps *PropertySelect) BoolsX(ctx context.Context) []bool {
 	v, err := ps.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ps *PropertySelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ps.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{property.Label}
+	default:
+		err = fmt.Errorf("ent: PropertySelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ps *PropertySelect) BoolX(ctx context.Context) bool {
+	v, err := ps.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

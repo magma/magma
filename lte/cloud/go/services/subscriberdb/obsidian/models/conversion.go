@@ -56,16 +56,16 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 			reportedState.LastReportedTime = int64(stateVal.TimeMs / uint64(time.Second/time.Millisecond))
 			m.Monitoring.Icmp = reportedState
 		case lte.SPGWStateType:
-			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			reportedState := stateVal.ReportedState.(*state.ArbitraryJSON)
 			m.State.Spgw = reportedState
 		case lte.MMEStateType:
-			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			reportedState := stateVal.ReportedState.(*state.ArbitraryJSON)
 			m.State.Mme = reportedState
 		case lte.S1APStateType:
-			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			reportedState := stateVal.ReportedState.(*state.ArbitraryJSON)
 			m.State.S1ap = reportedState
 		case lte.MobilitydStateType:
-			reportedState := stateVal.ReportedState.(*state.ArbitaryJSON)
+			reportedState := stateVal.ReportedState.(*state.ArbitraryJSON)
 			if reportedState == nil {
 				break
 			}
@@ -99,7 +99,7 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 //   "ip": {"address": "wKiArg=="}
 //  }
 // The IP addresses are base64 encoded versions of the packed bytes
-func getAssignedIPAddress(mobilitydState state.ArbitaryJSON) (string, error) {
+func getAssignedIPAddress(mobilitydState state.ArbitraryJSON) (string, error) {
 	ipField, ipExists := mobilitydState["ip"]
 	if !ipExists {
 		return "", errors.New("no ip field found in mobilityd state")

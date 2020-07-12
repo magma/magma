@@ -121,6 +121,7 @@ OAI_DEPS=(
     "prometheus-cpp-dev >= 1.0.2"
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
+    "libczmq-dev >= 4.0.2-7"
     )
 
 # OVS runtime dependencies

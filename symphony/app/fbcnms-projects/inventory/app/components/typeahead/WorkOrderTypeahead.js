@@ -39,7 +39,7 @@ const workOrderSearchQuery = graphql`
     $filters: [WorkOrderFilterInput!]!
     $limit: Int
   ) {
-    workOrders(filters: $filters, first: $limit) {
+    workOrders(filterBy: $filters, first: $limit) {
       edges {
         node {
           id

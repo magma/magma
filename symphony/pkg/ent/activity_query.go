@@ -585,6 +585,32 @@ func (agb *ActivityGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (agb *ActivityGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = agb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivityGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (agb *ActivityGroupBy) StringX(ctx context.Context) string {
+	v, err := agb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (agb *ActivityGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(agb.fields) > 1 {
@@ -600,6 +626,32 @@ func (agb *ActivityGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (agb *ActivityGroupBy) IntsX(ctx context.Context) []int {
 	v, err := agb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (agb *ActivityGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = agb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivityGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (agb *ActivityGroupBy) IntX(ctx context.Context) int {
+	v, err := agb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -627,6 +679,32 @@ func (agb *ActivityGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (agb *ActivityGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = agb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivityGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (agb *ActivityGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := agb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (agb *ActivityGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(agb.fields) > 1 {
@@ -642,6 +720,32 @@ func (agb *ActivityGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (agb *ActivityGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := agb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (agb *ActivityGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = agb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivityGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (agb *ActivityGroupBy) BoolX(ctx context.Context) bool {
+	v, err := agb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -715,6 +819,32 @@ func (as *ActivitySelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (as *ActivitySelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = as.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivitySelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (as *ActivitySelect) StringX(ctx context.Context) string {
+	v, err := as.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (as *ActivitySelect) Ints(ctx context.Context) ([]int, error) {
 	if len(as.fields) > 1 {
@@ -730,6 +860,32 @@ func (as *ActivitySelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (as *ActivitySelect) IntsX(ctx context.Context) []int {
 	v, err := as.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (as *ActivitySelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = as.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivitySelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (as *ActivitySelect) IntX(ctx context.Context) int {
+	v, err := as.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -757,6 +913,32 @@ func (as *ActivitySelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (as *ActivitySelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = as.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivitySelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (as *ActivitySelect) Float64X(ctx context.Context) float64 {
+	v, err := as.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (as *ActivitySelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(as.fields) > 1 {
@@ -772,6 +954,32 @@ func (as *ActivitySelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (as *ActivitySelect) BoolsX(ctx context.Context) []bool {
 	v, err := as.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (as *ActivitySelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = as.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{activity.Label}
+	default:
+		err = fmt.Errorf("ent: ActivitySelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (as *ActivitySelect) BoolX(ctx context.Context) bool {
+	v, err := as.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

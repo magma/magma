@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
@@ -37,7 +38,7 @@ func (srv *MetricsControllerServer) Push(ctx context.Context, in *protos.PushedM
 		return new(protos.Void), nil
 	}
 
-	for _, e := range srv.exporters {
+	for _, e := range metricsd.GetMetricsExporters() {
 		metricsToSubmit := pushedMetricsToMetricsAndContext(in)
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
@@ -60,7 +61,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
 
 	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, gatewayID)
-	for _, e := range srv.exporters {
+	for _, e := range metricsd.GetMetricsExporters() {
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
 			glog.Error(err)
@@ -75,7 +76,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
 	for family := range inputChan {
 		metricsToSubmit := preprocessCloudMetrics(family, hostName)
-		for _, e := range srv.exporters {
+		for _, e := range metricsd.GetMetricsExporters() {
 			err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
 			if err != nil {
 				glog.Error(err)

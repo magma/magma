@@ -31,9 +31,9 @@ class MeteringReporterTest : public ::testing::Test {
 };
 
 TEST_F(MeteringReporterTest, test_reporting) {
-  auto IMSI_LABEL        = "IMSI";
-  auto SESSION_ID_LABEL  = "session_id";
-  auto DIRECTION_LABEL   = "direction";
+  auto IMSI_LABEL       = "IMSI";
+  auto SESSION_ID_LABEL = "session_id";
+  auto DIRECTION_LABEL  = "direction";
 
   auto IMSI           = "imsi";
   auto SESSION_ID     = "session_1";

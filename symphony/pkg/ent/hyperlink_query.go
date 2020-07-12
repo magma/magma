@@ -642,6 +642,32 @@ func (hgb *HyperlinkGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (hgb *HyperlinkGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = hgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (hgb *HyperlinkGroupBy) StringX(ctx context.Context) string {
+	v, err := hgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (hgb *HyperlinkGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(hgb.fields) > 1 {
@@ -657,6 +683,32 @@ func (hgb *HyperlinkGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (hgb *HyperlinkGroupBy) IntsX(ctx context.Context) []int {
 	v, err := hgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (hgb *HyperlinkGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = hgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (hgb *HyperlinkGroupBy) IntX(ctx context.Context) int {
+	v, err := hgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -684,6 +736,32 @@ func (hgb *HyperlinkGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (hgb *HyperlinkGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = hgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (hgb *HyperlinkGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := hgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (hgb *HyperlinkGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(hgb.fields) > 1 {
@@ -699,6 +777,32 @@ func (hgb *HyperlinkGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (hgb *HyperlinkGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := hgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (hgb *HyperlinkGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = hgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (hgb *HyperlinkGroupBy) BoolX(ctx context.Context) bool {
+	v, err := hgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -772,6 +876,32 @@ func (hs *HyperlinkSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (hs *HyperlinkSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = hs.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (hs *HyperlinkSelect) StringX(ctx context.Context) string {
+	v, err := hs.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (hs *HyperlinkSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(hs.fields) > 1 {
@@ -787,6 +917,32 @@ func (hs *HyperlinkSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (hs *HyperlinkSelect) IntsX(ctx context.Context) []int {
 	v, err := hs.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (hs *HyperlinkSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = hs.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (hs *HyperlinkSelect) IntX(ctx context.Context) int {
+	v, err := hs.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -814,6 +970,32 @@ func (hs *HyperlinkSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (hs *HyperlinkSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = hs.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (hs *HyperlinkSelect) Float64X(ctx context.Context) float64 {
+	v, err := hs.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (hs *HyperlinkSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(hs.fields) > 1 {
@@ -829,6 +1011,32 @@ func (hs *HyperlinkSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (hs *HyperlinkSelect) BoolsX(ctx context.Context) []bool {
 	v, err := hs.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (hs *HyperlinkSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = hs.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{hyperlink.Label}
+	default:
+		err = fmt.Errorf("ent: HyperlinkSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (hs *HyperlinkSelect) BoolX(ctx context.Context) bool {
+	v, err := hs.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

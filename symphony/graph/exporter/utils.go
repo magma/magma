@@ -488,7 +488,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		if idx == -1 {
 			continue
 		}
-		val, err := resolverutil.PropertyValue(ctx, typ.Type, typ)
+		val, err := resolverutil.PropertyValue(ctx, typ.Type, typ.NodeType, typ)
 		if err != nil {
 			return nil, err
 		}
@@ -505,8 +505,7 @@ func propertiesSlice(ctx context.Context, instance interface{}, propertyTypes []
 		if idx == -1 {
 			return nil, errors.Errorf("Property type does not exist in header: %s", propTypeName)
 		}
-		typ := propTyp.Type
-		val, err := resolverutil.PropertyValue(ctx, typ, p)
+		val, err := resolverutil.PropertyValue(ctx, propTyp.Type, propTyp.NodeType, p)
 		if err != nil {
 			return nil, err
 		}

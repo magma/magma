@@ -17,7 +17,7 @@ import (
 type propertyTypeResolver struct{}
 
 func (propertyTypeResolver) RawValue(ctx context.Context, propertyType *ent.PropertyType) (*string, error) {
-	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, propertyType)
+	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, propertyType.NodeType, propertyType)
 	return &raw, err
 }
 
@@ -28,7 +28,7 @@ func (propertyResolver) RawValue(ctx context.Context, property *ent.Property) (*
 	if err != nil {
 		return nil, fmt.Errorf("querying property type %w", err)
 	}
-	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, property)
+	raw, err := resolverutil.PropertyValue(ctx, propertyType.Type, propertyType.NodeType, property)
 	return &raw, err
 }
 
@@ -46,19 +46,19 @@ func (propertyResolver) NodeValue(ctx context.Context, property *ent.Property) (
 		return nil, fmt.Errorf("querying property type %w", err)
 	}
 	switch propertyType.NodeType {
-	case "location":
+	case resolverutil.NodeTypeLocation:
 		l, err := property.QueryLocationValue().Only(ctx)
 		return l, ent.MaskNotFound(err)
-	case "equipment":
+	case resolverutil.NodeTypeEquipment:
 		e, err := property.QueryEquipmentValue().Only(ctx)
 		return e, ent.MaskNotFound(err)
-	case "service":
+	case resolverutil.NodeTypeService:
 		s, err := property.QueryServiceValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
-	case "work_order":
+	case resolverutil.NodeTypeWorkOrder:
 		s, err := property.QueryWorkOrderValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
-	case "user":
+	case resolverutil.NodeTypeUser:
 		s, err := property.QueryUserValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
 	default:
