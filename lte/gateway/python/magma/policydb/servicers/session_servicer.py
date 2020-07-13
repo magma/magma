@@ -64,13 +64,16 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         """
         Handles create session request from MME by installing the necessary
         flows in pipelined's enforcement app.
+
+        NOTE: truncate the 'IMSI' prefix
         """
         imsi = request.subscriber.id
         logging.info('Creating a session for subscriber ID: %s', imsi)
+        imsi_number = imsi[4:]
         return CreateSessionResponse(
             credits=self._get_credits(imsi),
-            static_rules=self._get_rules_for_imsi(imsi),
-            dynamic_rules=self._get_default_dynamic_rules(imsi),
+            static_rules=self._get_rules_for_imsi(imsi_number),
+            dynamic_rules=self._get_default_dynamic_rules(imsi_number),
             session_id=request.session_id,
         )
 
@@ -112,7 +115,6 @@ class SessionRpcServicer(CentralSessionControllerServicer):
     ) -> List[DynamicRuleInstall]:
         """
         Get a list of dynamic rules to install for whitelisting.
-        These rules will whitelist traffic to/from the captive portal server.
         """
         dynamic_rules = []
         # Build the rule id to be globally unique
@@ -165,6 +167,10 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         ]
 
     def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
+        """
+        Get the list of static rules to be installed for a subscriber
+        NOTE: Remove "IMSI" prefix from imsi argument.
+        """
         try:
             info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
             return [StaticRuleInstall(rule_id=rule_id)
@@ -174,21 +180,19 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             return []
 
     def _get_credits(self, sid: str) -> List[CreditUpdateResponse]:
-        if len(self.infinite_credit_charging_keys) != 0:
-            return [CreditUpdateResponse(
+        credits = []
+        for charging_key in self.infinite_credit_charging_keys:
+            credits.append(CreditUpdateResponse(
                 success=True,
                 sid=sid,
-                charging_key=self.infinite_credit_charging_keys[0],
-                result_code=1,
+                charging_key=charging_key,
                 limit_type=CreditLimitType.Value("INFINITE_UNMETERED")
-            )]
-        return []
-
-    def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
-        try:
-            info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
-            return [StaticRuleInstall(rule_id=rule_id)
-                    for rule_id in info.lte.assigned_policies]
-        except grpc.RpcError:
-            logging.error('Unable to find data for subscriber %s', imsi)
-            return []
+            ))
+        for charging_key in self.postpay_charging_keys:
+            credits.append(CreditUpdateResponse(
+                success=True,
+                sid=sid,
+                charging_key=charging_key,
+                limit_type=CreditLimitType.Value("INFINITE_METERED")
+            ))
+        return credits
