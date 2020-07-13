@@ -237,12 +237,8 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi)
  **                                                                        **
  ***************************************************************************/
 int esm_ebr_start_timer(
-  emm_context_t* emm_context,
-  ebi_t ebi,
-  CLONE_REF const_bstring msg,
-  long sec,
-  nas_timer_callback_t cb)
-{
+    emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
+    uint32_t sec, nas_timer_callback_t cb) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_ebr_context_t* ebr_ctx = NULL;
   bearer_context_t* bearer_context = NULL;
@@ -320,11 +316,10 @@ int esm_ebr_start_timer(
 
   if ((esm_ebr_timer_data) && (ebr_ctx->timer.id != NAS_TIMER_INACTIVE_ID)) {
     OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-FSM   - Retransmission timer %ld expires in "
-      "%ld seconds\n",
-      ebr_ctx->timer.id,
-      ebr_ctx->timer.sec);
+        LOG_NAS_ESM,
+        "ESM-FSM   - Retransmission timer %ld expires in "
+        "%d seconds\n",
+        ebr_ctx->timer.id, ebr_ctx->timer.sec);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   } else {
     OAILOG_ERROR(

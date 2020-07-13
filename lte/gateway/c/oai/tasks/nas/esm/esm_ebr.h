@@ -75,11 +75,8 @@ int esm_ebr_assign(emm_context_t *emm_context);
 int esm_ebr_release(emm_context_t *emm_context, ebi_t ebi);
 
 int esm_ebr_start_timer(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  CLONE_REF const_bstring msg,
-  long sec,
-  nas_timer_callback_t cb);
+    emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
+    uint32_t sec, nas_timer_callback_t cb);
 int esm_ebr_stop_timer(emm_context_t *emm_context, ebi_t ebi);
 
 ebi_t esm_ebr_get_pending_ebi(emm_context_t *emm_context, esm_ebr_state status);

@@ -83,7 +83,8 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc);
 static int _emm_tracking_area_update_abort(
   struct emm_context_s* emm_context,
   struct nas_base_proc_s* base_proc);
-static void _emm_tracking_area_update_t3450_handler(void* args);
+static void _emm_tracking_area_update_t3450_handler(
+    void* args, imsi64_t* imsi64);
 
 static nas_emm_tau_proc_t* _emm_proc_create_procedure_tau(
   ue_mm_context_t* const ue_mm_context,
@@ -450,8 +451,8 @@ During this period the network acts as described for case a above.
 @param [in]args TAU accept data
 */
 //------------------------------------------------------------------------------
-static void _emm_tracking_area_update_t3450_handler(void *args)
-{
+static void _emm_tracking_area_update_t3450_handler(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t *emm_context = (emm_context_t *) (args);
 
@@ -459,9 +460,10 @@ static void _emm_tracking_area_update_t3450_handler(void *args)
     OAILOG_ERROR(LOG_NAS_EMM, "T3450 timer expired No EMM context\n");
     OAILOG_FUNC_OUT(LOG_NAS_EMM);
   }
-  nas_emm_tau_proc_t *tau_proc = get_nas_specific_procedure_tau(emm_context);
+  nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
 
   if (tau_proc) {
+    *imsi64 = emm_context->_imsi64;
     // Requirement MME24.301R10_5.5.3.2.7_c Abnormal cases on the network side - T3450 time-out
     /*
    * Increment the retransmission counter
@@ -846,11 +848,10 @@ static int _emm_tracking_area_update_accept(nas_emm_tau_proc_t *const tau_proc)
         }
 
         OAILOG_INFO(
-          LOG_NAS_EMM,
-          "EMM-PROC  - Timer T3450 (%ld) expires in %ld"
-          " seconds (TAU)",
-          tau_proc->T3450.id,
-          tau_proc->T3450.sec);
+            LOG_NAS_EMM,
+            "EMM-PROC  - Timer T3450 (%ld) expires in %d"
+            " seconds (TAU)",
+            tau_proc->T3450.id, tau_proc->T3450.sec);
       } else {
         nas_delete_tau_procedure(emm_context);
       }

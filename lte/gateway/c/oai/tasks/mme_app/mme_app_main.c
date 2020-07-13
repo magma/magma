@@ -247,8 +247,8 @@ void *mme_app_thread(void *args)
           mme_app_statistics_display();
         } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
           mme_app_nas_timer_handle_signal_expiry(
-            TIMER_HAS_EXPIRED(received_message_p).timer_id,
-            TIMER_HAS_EXPIRED(received_message_p).arg);
+              TIMER_HAS_EXPIRED(received_message_p).timer_id,
+              TIMER_HAS_EXPIRED(received_message_p).arg, &imsi64);
         }
         timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);

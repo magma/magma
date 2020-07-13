@@ -117,7 +117,7 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(mme_ue_s1ap_id_t*
 /* Timer structure */
 struct mme_app_timer_t {
   long id;  /* The timer identifier                 */
-  long sec; /* The timer interval value in seconds  */
+  uint32_t sec; /* The timer interval value in seconds  */
 };
 
 /** @struct bearer_context_t

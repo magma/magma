@@ -60,7 +60,8 @@
 /*
    Timer handlers
 */
-static void _dedicated_eps_bearer_activate_t3485_handler(void*);
+static void _dedicated_eps_bearer_activate_t3485_handler(
+    void*, imsi64_t* imsi64);
 
 /* Maximum value of the activate dedicated EPS bearer context request
    retransmission counter */
@@ -420,8 +421,8 @@ int esm_proc_dedicated_eps_bearer_context_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _dedicated_eps_bearer_activate_t3485_handler(void* args)
-{
+static void _dedicated_eps_bearer_activate_t3485_handler(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
 
@@ -443,7 +444,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(void* args)
       esm_ebr_timer_data->ue_id,
       esm_ebr_timer_data->ebi,
       esm_ebr_timer_data->count);
-
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX) {
       /*
        * Re-send activate dedicated EPS bearer context request message

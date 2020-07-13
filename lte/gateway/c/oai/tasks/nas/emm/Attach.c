@@ -125,7 +125,7 @@ static const char *_emm_attach_type_str[] = {"EPS",
 /*
    Timer handlers
 */
-static void _emm_attach_t3450_handler(void *);
+static void _emm_attach_t3450_handler(void*, imsi64_t* imsi64);
 
 /*
    Functions that may initiate EMM common procedures
@@ -907,11 +907,13 @@ static void _emm_proc_create_procedure_attach_request(
  *      Others:    None
  *
  */
-static void _emm_attach_t3450_handler(void *args)
-{
+static void _emm_attach_t3450_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t *emm_context = (emm_context_t *) (args);
 
+  if (emm_context) {
+    *imsi64 = emm_context->_imsi64;
+  }
   if (is_nas_specific_procedure_attach_running(emm_context)) {
     nas_emm_attach_proc_t *attach_proc =
       get_nas_specific_procedure_attach(emm_context);
@@ -2023,11 +2025,9 @@ static int _emm_attach_accept_retx(emm_context_t *emm_context)
         " restarted\n",
         attach_proc->ue_id);
       OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "UE " MME_UE_S1AP_ID_FMT " Timer T3450 (%ld) expires in %ld seconds\n",
-        attach_proc->ue_id,
-        attach_proc->T3450.id,
-        attach_proc->T3450.sec);
+          LOG_NAS_EMM,
+          "UE " MME_UE_S1AP_ID_FMT " Timer T3450 (%ld) expires in %d seconds\n",
+          attach_proc->ue_id, attach_proc->T3450.id, attach_proc->T3450.sec);
     } else {
       OAILOG_WARNING(
         LOG_NAS_EMM,
