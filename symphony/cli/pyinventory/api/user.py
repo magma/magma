@@ -10,7 +10,7 @@ from pysymphony import SymphonyClient
 from ..common.constant import SUPERUSER_ROLE, USER_ROLE
 from ..common.data_class import User
 from ..common.data_enum import Entity
-from ..exceptions import EntityNotFoundError
+from ..exceptions import EntityNotFoundError, assert_ok
 from ..graphql.enum.user_role import UserRole
 from ..graphql.enum.user_status import UserStatus
 from ..graphql.input.edit_user import EditUserInput
@@ -74,13 +74,7 @@ def add_user(client: SymphonyClient, email: str, password: str) -> User:
         "/user/async/",
         {"email": email, "password": password, "role": USER_ROLE, "networkIDs": []},
     )
-
-    if not resp.ok:
-        error_message = resp.json().get("error", None)
-        if error_message is not None:
-            raise AssertionError(error_message)
-        raise
-
+    assert_ok(resp)
     return get_user(client=client, email=email)
 
 
@@ -116,13 +110,7 @@ def edit_user(
             {"role": USER_ROLE if new_role == UserRole.USER else SUPERUSER_ROLE}
         )
     resp = client.put(f"/user/set/{user.email}", params)
-
-    if not resp.ok:
-        error_message = resp.json().get("error", None)
-        if error_message is not None:
-            raise AssertionError(error_message)
-        raise
-
+    assert_ok(resp)
     if new_role is not None:
         EditUserMutation.execute(client, input=EditUserInput(id=user.id, role=new_role))
 

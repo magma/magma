@@ -114,6 +114,14 @@ class SymphonyClient(GraphqlClient):
         response = self.session.delete(signed_url)
         response.raise_for_status()
 
+    def get(self, url: str) -> Response:
+        # TODO(T64504906): Remove after basic auth is enabled
+        if "x-csrf-token" not in self.session.headers:
+            self._login()
+        return self.session.get(
+            "".join([self.address, url]), headers={"User-Agent": self.app}
+        )
+
     def post(self, url: str, json: Optional[Dict[str, Any]] = None) -> Response:
         # TODO(T64504906): Remove after basic auth is enabled
         if "x-csrf-token" not in self.session.headers:
@@ -142,7 +150,10 @@ class SymphonyClient(GraphqlClient):
         response = self.session.post(
             login_endpoint,
             data=login_data,
-            headers={"Content-type": "application/x-www-form-urlencoded"},
+            headers={
+                "Content-type": "application/x-www-form-urlencoded",
+                "User-Agent": self.app,
+            },
         )
         response.raise_for_status()
         assert (
