@@ -31,6 +31,75 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+func TestRatingGroupStreamers(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	provider, err := providers.GetStreamProvider(lte.RatingGroupStreamName)
+	assert.NoError(t, err)
+
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	assert.NoError(t, err)
+
+	// create the rating groups
+	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		{
+			Type: lte.RatingGroupEntityType,
+			Key:  "111",
+			Config: &models.RatingGroup{
+				ID:        111,
+				LimitType: swag.String("FINITE"),
+			},
+		},
+		{
+			Type: lte.RatingGroupEntityType,
+			Key:  "222",
+			Config: &models.RatingGroup{
+				ID:        222,
+				LimitType: swag.String("INFINITE_METERED"),
+			},
+		},
+		{
+			Type: lte.RatingGroupEntityType,
+			Key:  "333",
+			Config: &models.RatingGroup{
+				ID:        333,
+				LimitType: swag.String("INFINITE_UNMETERED"),
+			},
+		},
+	})
+	assert.NoError(t, err)
+
+	expectedProtos := []*lte_protos.RatingGroup{
+		{
+			Id:        111,
+			LimitType: lte_protos.RatingGroup_FINITE,
+		},
+		{
+			Id:        222,
+			LimitType: lte_protos.RatingGroup_INFINITE_METERED,
+		},
+		{
+			Id:        333,
+			LimitType: lte_protos.RatingGroup_INFINITE_UNMETERED,
+		},
+	}
+	expected := funk.Map(
+		expectedProtos,
+		func(r *lte_protos.RatingGroup) *protos.DataUpdate {
+			data, err := proto.Marshal(r)
+			assert.NoError(t, err)
+			return &protos.DataUpdate{Key: swag.FormatUint32(r.Id), Value: data}
+		},
+	)
+	actual, err := provider.GetUpdates("hw1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
 func TestPolicyStreamers(t *testing.T) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
