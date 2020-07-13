@@ -35,7 +35,7 @@ const portSearchQuery = graphql`
     $limit: Int
     $filters: [PortFilterInput!]!
   ) {
-    equipmentPorts(first: $limit, filters: $filters) {
+    equipmentPorts(first: $limit, filterBy: $filters) {
       edges {
         node {
           ...PowerSearchPortsResultsTable_ports

@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash a335ca770ed563248a88cef5b9c717da
+ * @relayHash 02651cef4b097e16fc9d3b37b3071342
  */
 
 /* eslint-disable */
@@ -51,7 +51,7 @@ query ProjectTypeahead_ProjectsQuery(
   $limit: Int
   $filters: [ProjectFilterInput!]!
 ) {
-  projects(first: $limit, filters: $filters) {
+  projects(first: $limit, filterBy: $filters) {
     edges {
       node {
         id
@@ -84,7 +84,7 @@ var v0 = [
 v1 = [
   {
     "kind": "Variable",
-    "name": "filters",
+    "name": "filterBy",
     "variableName": "filters"
   },
   {
@@ -224,11 +224,11 @@ return {
     "operationKind": "query",
     "name": "ProjectTypeahead_ProjectsQuery",
     "id": null,
-    "text": "query ProjectTypeahead_ProjectsQuery(\n  $limit: Int\n  $filters: [ProjectFilterInput!]!\n) {\n  projects(first: $limit, filters: $filters) {\n    edges {\n      node {\n        id\n        name\n        type {\n          name\n          id\n        }\n      }\n    }\n  }\n}\n",
+    "text": "query ProjectTypeahead_ProjectsQuery(\n  $limit: Int\n  $filters: [ProjectFilterInput!]!\n) {\n  projects(first: $limit, filterBy: $filters) {\n    edges {\n      node {\n        id\n        name\n        type {\n          name\n          id\n        }\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '90f01e4ffb85771670d2cbdd7e799185';
+(node/*: any*/).hash = '4f9669091bda026ea27aab7f07fd1b0b';
 module.exports = node;

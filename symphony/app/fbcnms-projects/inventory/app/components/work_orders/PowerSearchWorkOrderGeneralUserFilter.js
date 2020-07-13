@@ -25,7 +25,7 @@ const usersQuery = graphql`
   query PowerSearchWorkOrderGeneralUserFilter_userQuery(
     $filters: [UserFilterInput!]!
   ) {
-    users(first: 10, filters: $filters) {
+    users(first: 10, filterBy: $filters) {
       edges {
         node {
           id

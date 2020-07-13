@@ -35,7 +35,7 @@ const locationSearchQuery = graphql`
     $limit: Int
     $filters: [LocationFilterInput!]!
   ) {
-    locations(first: $limit, filters: $filters) {
+    locations(first: $limit, filterBy: $filters) {
       edges {
         node {
           ...PowerSearchLocationsResultsTable_locations

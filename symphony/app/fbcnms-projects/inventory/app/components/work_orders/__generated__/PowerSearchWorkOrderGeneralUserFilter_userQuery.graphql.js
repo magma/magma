@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash b3bff98dbc1f7a81f6eb14cff20c5a0c
+ * @relayHash 20694d2e138114c652f15b438b8aace0
  */
 
 /* eslint-disable */
@@ -74,7 +74,7 @@ export type PowerSearchWorkOrderGeneralUserFilter_userQuery = {|
 query PowerSearchWorkOrderGeneralUserFilter_userQuery(
   $filters: [UserFilterInput!]!
 ) {
-  users(first: 10, filters: $filters) {
+  users(first: 10, filterBy: $filters) {
     edges {
       node {
         id
@@ -103,7 +103,7 @@ v1 = [
     "args": [
       {
         "kind": "Variable",
-        "name": "filters",
+        "name": "filterBy",
         "variableName": "filters"
       },
       {
@@ -174,11 +174,11 @@ return {
     "operationKind": "query",
     "name": "PowerSearchWorkOrderGeneralUserFilter_userQuery",
     "id": null,
-    "text": "query PowerSearchWorkOrderGeneralUserFilter_userQuery(\n  $filters: [UserFilterInput!]!\n) {\n  users(first: 10, filters: $filters) {\n    edges {\n      node {\n        id\n        email\n      }\n    }\n  }\n}\n",
+    "text": "query PowerSearchWorkOrderGeneralUserFilter_userQuery(\n  $filters: [UserFilterInput!]!\n) {\n  users(first: 10, filterBy: $filters) {\n    edges {\n      node {\n        id\n        email\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '3479b31ea0fe6189c3b2ae57e657fa14';
+(node/*: any*/).hash = '32481b562d44f21de3acd5b2b9325a8a';
 module.exports = node;

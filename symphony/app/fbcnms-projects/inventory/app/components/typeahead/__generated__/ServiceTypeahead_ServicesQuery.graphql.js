@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash 7ff680087aafd9a995411869e78554e4
+ * @relayHash 4275cd5876fcf908f1cdee2ff5181e99
  */
 
 /* eslint-disable */
@@ -74,7 +74,7 @@ query ServiceTypeahead_ServicesQuery(
   $filters: [ServiceFilterInput!]!
   $limit: Int
 ) {
-  services(filters: $filters, first: $limit) {
+  services(filterBy: $filters, first: $limit) {
     edges {
       node {
         id
@@ -109,7 +109,7 @@ v1 = [
     "args": [
       {
         "kind": "Variable",
-        "name": "filters",
+        "name": "filterBy",
         "variableName": "filters"
       },
       {
@@ -180,11 +180,11 @@ return {
     "operationKind": "query",
     "name": "ServiceTypeahead_ServicesQuery",
     "id": null,
-    "text": "query ServiceTypeahead_ServicesQuery(\n  $filters: [ServiceFilterInput!]!\n  $limit: Int\n) {\n  services(filters: $filters, first: $limit) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query ServiceTypeahead_ServicesQuery(\n  $filters: [ServiceFilterInput!]!\n  $limit: Int\n) {\n  services(filterBy: $filters, first: $limit) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = 'a4c43d130fe4ce77d6e4f875b9c16aa2';
+(node/*: any*/).hash = '76ab89e627f48adb6ac1601ad66f151f';
 module.exports = node;

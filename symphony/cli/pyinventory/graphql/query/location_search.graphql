@@ -1,5 +1,5 @@
 query LocationSearchQuery($filters: [LocationFilterInput!]!, $limit: Int) {
-  locations(filters: $filters, first: $limit) {
+  locations(filterBy: $filters, first: $limit) {
     edges {
       node {
         ...LocationFragment

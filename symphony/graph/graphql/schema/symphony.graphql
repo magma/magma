@@ -2890,7 +2890,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [LocationFilterInput!]
+    filterBy: [LocationFilterInput!]
   ): LocationConnection
   equipmentPortTypes(
     after: Cursor
@@ -2909,7 +2909,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [PortFilterInput!]
+    filterBy: [PortFilterInput!]
   ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
@@ -2922,7 +2922,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [EquipmentFilterInput!]
+    filterBy: [EquipmentFilterInput!]
   ): EquipmentConnection!
   serviceTypes(
     after: Cursor
@@ -2976,35 +2976,35 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [LinkFilterInput!]
+    filterBy: [LinkFilterInput!]
   ): LinkConnection!
   services(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [ServiceFilterInput!]
+    filterBy: [ServiceFilterInput!]
   ): ServiceConnection!
   users(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [UserFilterInput!]
+    filterBy: [UserFilterInput!]
   ): UserConnection
   usersGroups(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [UsersGroupFilterInput!]
+    filterBy: [UsersGroupFilterInput!]
   ): UsersGroupConnection
   permissionsPolicies(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [PermissionsPolicyFilterInput!]
+    filterBy: [PermissionsPolicyFilterInput!]
   ): PermissionsPolicyConnection
   searchForNode(
     name: String!
@@ -3100,7 +3100,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [ProjectFilterInput!]
+    filterBy: [ProjectFilterInput!]
   ): ProjectConnection
   customers(
     after: Cursor
