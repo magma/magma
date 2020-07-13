@@ -829,6 +829,32 @@ func (etgb *EquipmentTypeGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (etgb *EquipmentTypeGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = etgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (etgb *EquipmentTypeGroupBy) StringX(ctx context.Context) string {
+	v, err := etgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (etgb *EquipmentTypeGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(etgb.fields) > 1 {
@@ -844,6 +870,32 @@ func (etgb *EquipmentTypeGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (etgb *EquipmentTypeGroupBy) IntsX(ctx context.Context) []int {
 	v, err := etgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (etgb *EquipmentTypeGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = etgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (etgb *EquipmentTypeGroupBy) IntX(ctx context.Context) int {
+	v, err := etgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -871,6 +923,32 @@ func (etgb *EquipmentTypeGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (etgb *EquipmentTypeGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = etgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (etgb *EquipmentTypeGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := etgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (etgb *EquipmentTypeGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(etgb.fields) > 1 {
@@ -886,6 +964,32 @@ func (etgb *EquipmentTypeGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (etgb *EquipmentTypeGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := etgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (etgb *EquipmentTypeGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = etgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (etgb *EquipmentTypeGroupBy) BoolX(ctx context.Context) bool {
+	v, err := etgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -959,6 +1063,32 @@ func (ets *EquipmentTypeSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ets *EquipmentTypeSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ets.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ets *EquipmentTypeSelect) StringX(ctx context.Context) string {
+	v, err := ets.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ets *EquipmentTypeSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ets.fields) > 1 {
@@ -974,6 +1104,32 @@ func (ets *EquipmentTypeSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ets *EquipmentTypeSelect) IntsX(ctx context.Context) []int {
 	v, err := ets.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ets *EquipmentTypeSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ets.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ets *EquipmentTypeSelect) IntX(ctx context.Context) int {
+	v, err := ets.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1001,6 +1157,32 @@ func (ets *EquipmentTypeSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ets *EquipmentTypeSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ets.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ets *EquipmentTypeSelect) Float64X(ctx context.Context) float64 {
+	v, err := ets.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ets *EquipmentTypeSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ets.fields) > 1 {
@@ -1016,6 +1198,32 @@ func (ets *EquipmentTypeSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ets *EquipmentTypeSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ets.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ets *EquipmentTypeSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ets.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmenttype.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentTypeSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ets *EquipmentTypeSelect) BoolX(ctx context.Context) bool {
+	v, err := ets.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

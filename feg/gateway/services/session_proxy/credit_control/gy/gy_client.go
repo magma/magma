@@ -377,13 +377,15 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 			diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(credits.TotalOctets)),
 		}
 
+		// For documentation on where the reporting reason AVP is placed, see section 7.2.175 on
+		// https://www.etsi.org/deliver/etsi_ts/132200_132299/132299/12.06.00_60/ts_132299v120600p.pdf
 		switch credits.Type {
-		case FINAL, VALIDITY_TIMER_EXPIRED:
+		case FINAL, VALIDITY_TIMER_EXPIRED, FORCED_REAUTHORISATION, QHT, RATING_CONDITION_CHANGE:
 			avpGroup = append(
 				avpGroup,
 				diam.NewAVP(
 					avp.ReportingReason, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.Enumerated(credits.Type)))
-		case QUOTA_EXHAUSTED:
+		case QUOTA_EXHAUSTED, THRESHOLD, OTHER_QUOTA_TYPE, POOL_EXHAUSTED:
 			usuGrp = append(
 				usuGrp,
 				diam.NewAVP(

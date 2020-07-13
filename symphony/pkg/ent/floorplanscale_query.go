@@ -455,6 +455,32 @@ func (fpsgb *FloorPlanScaleGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (fpsgb *FloorPlanScaleGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = fpsgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (fpsgb *FloorPlanScaleGroupBy) StringX(ctx context.Context) string {
+	v, err := fpsgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (fpsgb *FloorPlanScaleGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(fpsgb.fields) > 1 {
@@ -470,6 +496,32 @@ func (fpsgb *FloorPlanScaleGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (fpsgb *FloorPlanScaleGroupBy) IntsX(ctx context.Context) []int {
 	v, err := fpsgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (fpsgb *FloorPlanScaleGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = fpsgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (fpsgb *FloorPlanScaleGroupBy) IntX(ctx context.Context) int {
+	v, err := fpsgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -497,6 +549,32 @@ func (fpsgb *FloorPlanScaleGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (fpsgb *FloorPlanScaleGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = fpsgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (fpsgb *FloorPlanScaleGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := fpsgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (fpsgb *FloorPlanScaleGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(fpsgb.fields) > 1 {
@@ -512,6 +590,32 @@ func (fpsgb *FloorPlanScaleGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (fpsgb *FloorPlanScaleGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := fpsgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (fpsgb *FloorPlanScaleGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = fpsgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (fpsgb *FloorPlanScaleGroupBy) BoolX(ctx context.Context) bool {
+	v, err := fpsgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -585,6 +689,32 @@ func (fpss *FloorPlanScaleSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (fpss *FloorPlanScaleSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = fpss.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (fpss *FloorPlanScaleSelect) StringX(ctx context.Context) string {
+	v, err := fpss.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (fpss *FloorPlanScaleSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(fpss.fields) > 1 {
@@ -600,6 +730,32 @@ func (fpss *FloorPlanScaleSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (fpss *FloorPlanScaleSelect) IntsX(ctx context.Context) []int {
 	v, err := fpss.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (fpss *FloorPlanScaleSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = fpss.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (fpss *FloorPlanScaleSelect) IntX(ctx context.Context) int {
+	v, err := fpss.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -627,6 +783,32 @@ func (fpss *FloorPlanScaleSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (fpss *FloorPlanScaleSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = fpss.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (fpss *FloorPlanScaleSelect) Float64X(ctx context.Context) float64 {
+	v, err := fpss.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (fpss *FloorPlanScaleSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(fpss.fields) > 1 {
@@ -642,6 +824,32 @@ func (fpss *FloorPlanScaleSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (fpss *FloorPlanScaleSelect) BoolsX(ctx context.Context) []bool {
 	v, err := fpss.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (fpss *FloorPlanScaleSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = fpss.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanscale.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanScaleSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (fpss *FloorPlanScaleSelect) BoolX(ctx context.Context) bool {
+	v, err := fpss.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

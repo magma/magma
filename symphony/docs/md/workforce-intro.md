@@ -1,8 +1,8 @@
 ---
 id: workforce-intro
-title: Intro
+title: Workforce Management
 ---
-
+## Introduction
 Workforce Management is a web application (included in Symphony platform) that allows Internet Service Providers (ISP) and Mobile Network Operators (MNO) to easily create, manage and track projects as well as to schedule tasks (work orders) and assign them to the field force. All this via a user-friendly web UI that enables the user to perform complex operations at the touch of a button. 
 The user can access to Workforce Management via clicking on the “hamburger” button on the bottom left corner and selecting “Workforce Management” as displayed in the figure 1 below:  
 <p align="center">
@@ -17,7 +17,7 @@ On the left side there is a black vertical bar with three main tabs, which are �
 Fig.2: Work Orders, Projects, and Templates tab <br><br><br>
 </p> 
 
-# WORK ORDERS <br>
+## Work Orders <br>
 **Definition:**
 "In Workforce Management, a “work order” (WO) is a task (or a set of tasks) that can be assigned to a worker (for example a field engineer or a technician) to perform a specific activity. Examples of WOs are “installing a router”, “verifying the correct alignment of a satellite antenna dish”, “replacing a faulty device”, etc."
 <br><br>
@@ -50,7 +50,7 @@ Looking at figure 3 below, Work Orders page includes:
 Fig. 3:  Work Orders page <br><br><br>
 </p> 
 
-# PROJECTS <br>
+## Projects <br>
 **Definition:**
 "In Workforce Management, a “Project” is defined as a set of activities (or WOs) that are related to the same project. Examples of Project are “3G to 4G Network Upgrade in Uganda” (that consists, for instance, of “eNodeB installation” WOs in 400 different locations + “acceptance tests” WOs in 10 different cities + other types of WOs)"
 <br><br>
@@ -69,7 +69,7 @@ As displayed in fig.4 , the Projects page consists of:
 Fig. 4:  Projects page <br><br><br>
 </p>
 
-# TEMPLATES <br>
+## Templates <br>
 **Definition:**
 "To create a new work order, the user must provide a set of data that depends on the nature of the task itself. The data structure (or schema) used by the user to define a WO is called “work order template”. In other words, a work order template consists of a set of data fields that can be re-used to create WOs of the same type. The user can create customized work order templates for a variety of different activities (or work orders)."
 
@@ -86,7 +86,7 @@ Fig.5 shows the Templates tab that allow the user to create new or edit existing
 Fig.5 Templates tab <br><br><br>
 </p> 
 
-#### Work order template
+### Work order template
 If “Work Orders” is selected (as in Fig.6), the list of all the existing work order templates (1) is presented. This list is formatted as a set of rows that can be sorted alphabetically by the fields indicated below:
 - Work order template’s name
 - Description
@@ -96,7 +96,7 @@ New work order templates can be created by clicking on “Create Work Order Temp
 Fig.6 Work Order Templates page <br><br><br>
 </p> 
 
-#### Project template
+### Project template
 If “Projects” is selected (as in Fig.7), all existing project templates are presented (1). Each Project template includes the following information:
 - Project template name
 - Project template description

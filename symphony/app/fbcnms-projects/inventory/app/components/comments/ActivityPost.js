@@ -51,9 +51,6 @@ const useStyles = makeStyles(() => ({
     fontWeight: 'bold',
     textTransform: 'capitalize',
   },
-  fieldName: {
-    textTransform: 'capitalize',
-  },
 }));
 
 const ActivityPost = (props: Props) => {
@@ -102,9 +99,7 @@ const ActivityPost = (props: Props) => {
           <fbt desc="">
             set the{' '}
             <fbt:param name="changed field">
-              <span className={classes.fieldName}>
-                {activity.changedField.toLowerCase()}
-              </span>
+              <span>{activity.changedField.toLowerCase()}</span>
             </fbt:param>
             to{' '}
             <fbt:param name="new value">
@@ -125,9 +120,7 @@ const ActivityPost = (props: Props) => {
               </fbt:param>
               as an
               <fbt:param name="changed field">
-                <span className={classes.fieldName}>
-                  {activity.changedField.toLowerCase()}
-                </span>
+                <span>{activity.changedField.toLowerCase()}</span>
               </fbt:param>
             </fbt>
           </span>
@@ -138,9 +131,7 @@ const ActivityPost = (props: Props) => {
           <fbt desc="">
             removed{' '}
             <fbt:param name="changed field">
-              <span className={classes.fieldName}>
-                {activity.changedField.toLowerCase()}
-              </span>
+              <span>{activity.changedField.toLowerCase()}</span>
             </fbt:param>
             value
           </fbt>
@@ -152,9 +143,7 @@ const ActivityPost = (props: Props) => {
         <fbt desc="">
           changed the{' '}
           <fbt:param name="changed field">
-            <span className={classes.fieldName}>
-              {activity.changedField.toLowerCase()}
-            </span>
+            <span>{activity.changedField.toLowerCase()}</span>
           </fbt:param>
           from{' '}
           <fbt:param name="old value">

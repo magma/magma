@@ -204,11 +204,11 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 
 	prop1, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeString))).Only(ctx)
 	require.NoError(t, err)
-	require.Equal(t, "root", prop1.StringVal)
+	require.Equal(t, "root", pointer.GetString(prop1.StringVal))
 
 	prop2, err := s1.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeInt))).Only(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 20, prop2.IntVal)
+	require.Equal(t, 20, pointer.GetInt(prop2.IntVal))
 
 	s2, err := r.client.Service.Query().Where(service.Name(service2Name)).Only(ctx)
 	require.NoError(t, err)
@@ -221,10 +221,10 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 
 	prop3, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeFloat))).Only(ctx)
 	require.NoError(t, err)
-	require.Equal(t, 22.4, prop3.FloatVal)
+	require.Equal(t, 22.4, pointer.GetFloat64(prop3.FloatVal))
 	prop4, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeBool))).Only(ctx)
 	require.NoError(t, err)
-	require.Equal(t, true, prop4.BoolVal)
+	require.Equal(t, true, pointer.GetBool(prop4.BoolVal))
 }
 
 func exportServiceData(ctx context.Context, t *testing.T, r *TestImporterResolver) bytes.Buffer {

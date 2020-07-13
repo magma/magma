@@ -499,7 +499,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldIntVal,
 		})
-		pr.IntVal = value
+		pr.IntVal = &value
 	}
 	if value, ok := pc.mutation.BoolVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -507,7 +507,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldBoolVal,
 		})
-		pr.BoolVal = value
+		pr.BoolVal = &value
 	}
 	if value, ok := pc.mutation.FloatVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -515,7 +515,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldFloatVal,
 		})
-		pr.FloatVal = value
+		pr.FloatVal = &value
 	}
 	if value, ok := pc.mutation.LatitudeVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -523,7 +523,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldLatitudeVal,
 		})
-		pr.LatitudeVal = value
+		pr.LatitudeVal = &value
 	}
 	if value, ok := pc.mutation.LongitudeVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -531,7 +531,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldLongitudeVal,
 		})
-		pr.LongitudeVal = value
+		pr.LongitudeVal = &value
 	}
 	if value, ok := pc.mutation.RangeFromVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -539,7 +539,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldRangeFromVal,
 		})
-		pr.RangeFromVal = value
+		pr.RangeFromVal = &value
 	}
 	if value, ok := pc.mutation.RangeToVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -547,7 +547,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldRangeToVal,
 		})
-		pr.RangeToVal = value
+		pr.RangeToVal = &value
 	}
 	if value, ok := pc.mutation.StringVal(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -555,7 +555,7 @@ func (pc *PropertyCreate) sqlSave(ctx context.Context) (*Property, error) {
 			Value:  value,
 			Column: property.FieldStringVal,
 		})
-		pr.StringVal = value
+		pr.StringVal = &value
 	}
 	if nodes := pc.mutation.TypeIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

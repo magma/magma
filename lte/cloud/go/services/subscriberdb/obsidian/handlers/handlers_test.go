@@ -300,19 +300,19 @@ func TestListSubscribers(t *testing.T) {
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
-	mmeState := state.ArbitaryJSON{"mme": "foo"}
+	mmeState := state.ArbitraryJSON{"mme": "foo"}
 	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
-	spgwState := state.ArbitaryJSON{"spgw": "foo"}
+	spgwState := state.ArbitraryJSON{"spgw": "foo"}
 	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
-	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
+	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
 	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
 	// Report 2 allocated IP addresses for the subscriber
-	mobilitydState1 := state.ArbitaryJSON{
+	mobilitydState1 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
 			"address": "wKiArg==",
 		},
 	}
-	mobilitydState2 := state.ArbitaryJSON{
+	mobilitydState2 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
 			"address": "wKiAhg==",
 		},
@@ -465,19 +465,19 @@ func TestGetSubscriber(t *testing.T) {
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
-	mmeState := state.ArbitaryJSON{"mme": "foo"}
+	mmeState := state.ArbitraryJSON{"mme": "foo"}
 	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
-	spgwState := state.ArbitaryJSON{"spgw": "foo"}
+	spgwState := state.ArbitraryJSON{"spgw": "foo"}
 	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
-	s1apState := state.ArbitaryJSON{"s1ap": "foo"}
+	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
 	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
 	// Report 2 allocated IP addresses for the subscriber
-	mobilitydState1 := state.ArbitaryJSON{
+	mobilitydState1 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
 			"address": "wKiArg==",
 		},
 	}
-	mobilitydState2 := state.ArbitaryJSON{
+	mobilitydState2 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
 			"address": "wKiAhg==",
 		},

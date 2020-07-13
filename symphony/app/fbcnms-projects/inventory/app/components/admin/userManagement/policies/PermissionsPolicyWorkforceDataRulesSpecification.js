@@ -19,7 +19,6 @@ import WorkOrderTemplatesTokenizer from '../../../../common/WorkOrderTemplatesTo
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
 import {PERMISSION_RULE_VALUES} from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {permissionRuleValue2Bool} from '../data/PermissionsPolicies';
@@ -156,11 +155,7 @@ export default function PermissionsPolicyWorkforceDataRulesSpecification(
         : '',
   });
 
-  const permissionPolicyPerTypeEnabled = useFeatureFlag(
-    'permission_policy_per_type',
-  );
-
-  if (policy == null || !permissionPolicyPerTypeEnabled) {
+  if (policy == null) {
     return null;
   }
 

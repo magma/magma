@@ -65,7 +65,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props<T> = {
-  content: {},
+  content: T,
   error: string,
   onSave: T => Promise<void>,
 };
@@ -73,9 +73,7 @@ type Props<T> = {
 export default function JsonEditor<T>(props: Props<T>) {
   const classes = useStyles();
   const [error, setError] = useState<string>(props.error);
-  const [content, setContent] = useState<string>(
-    JSON.stringify(props.content, null, ' '),
-  );
+  const [content, setContent] = useState<T>(props.content);
 
   useEffect(() => {
     setError(props.error);
@@ -94,9 +92,10 @@ export default function JsonEditor<T>(props: Props<T>) {
             <Grid item>
               <Button
                 className={classes.appBarBtnSecondary}
-                onClick={() =>
-                  setContent(JSON.stringify(props.content, null, ' '))
-                }>
+                onClick={() => {
+                  setContent(props.content);
+                  setError('');
+                }}>
                 Cancel
               </Button>
             </Grid>
@@ -105,7 +104,7 @@ export default function JsonEditor<T>(props: Props<T>) {
                 className={classes.appBarBtn}
                 onClick={() => {
                   try {
-                    props.onSave(JSON.parse(content));
+                    props.onSave(content);
                   } catch (e) {
                     setError(e.message);
                   }

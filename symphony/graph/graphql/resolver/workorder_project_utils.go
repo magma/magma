@@ -66,20 +66,20 @@ func (r mutationResolver) validatedPropertyInputsFromTemplate(
 			if !skipMandatoryPropertiesCheck && propTyp.Mandatory {
 				return nil, fmt.Errorf("property type %v is mandatory and must be specified", propTyp.Name)
 			}
-			stringValue := &propTyp.StringVal
+			stringValue := propTyp.StringVal
 			if propTyp.Type == propertytype.TypeEnum {
 				stringValue = nil
 			}
 			validInput = append(validInput, &models.PropertyInput{
 				PropertyTypeID:     propTyp.ID,
 				StringValue:        stringValue,
-				IntValue:           &propTyp.IntVal,
-				BooleanValue:       &propTyp.BoolVal,
-				FloatValue:         &propTyp.FloatVal,
-				LatitudeValue:      &propTyp.LatitudeVal,
-				LongitudeValue:     &propTyp.LongitudeVal,
-				RangeFromValue:     &propTyp.RangeFromVal,
-				RangeToValue:       &propTyp.RangeToVal,
+				IntValue:           propTyp.IntVal,
+				BooleanValue:       propTyp.BoolVal,
+				FloatValue:         propTyp.FloatVal,
+				LatitudeValue:      propTyp.LatitudeVal,
+				LongitudeValue:     propTyp.LongitudeVal,
+				RangeFromValue:     propTyp.RangeFromVal,
+				RangeToValue:       propTyp.RangeToVal,
 				IsInstanceProperty: &propTyp.IsInstanceProperty,
 				IsEditable:         &propTyp.Editable,
 			})

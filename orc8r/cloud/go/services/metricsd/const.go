@@ -10,7 +10,6 @@ package metricsd
 
 // Constants to represent the keys in the metricsd.yml config file
 const (
-	Profile                 = "profile"
 	PrometheusPushAddresses = "prometheusPushAddresses"
 	PrometheusQueryAddress  = "prometheusQueryAddress"
 

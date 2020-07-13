@@ -37,6 +37,7 @@
     "pug": "^2.0.3",
     "react-chartjs-2": "^2.7.4",
     "react-json-tree": "^0.11.2",
+    "react-json-view": "^1.19.1",
     "react-router-dom": "5.1.2",
     "rimraf": "^3.0.0",
     "url": "^0.11.0"
@@ -45,6 +46,7 @@
     "@testing-library/react": "^9.4.0",
     "@testing-library/react-hooks": "^3.2.1",
     "fbcnms-webpack-config": "^0.1.0",
+    "flow-bin": "0.128.0",
     "identity-obj-proxy": "^3.0.0",
     "json-server": "^0.16.1",
     "nodemon": "^1.18.10",

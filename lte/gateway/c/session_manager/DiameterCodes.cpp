@@ -10,14 +10,12 @@
 #include "DiameterCodes.h"
 
 namespace magma {
-bool DiameterCodeHandler::is_transient_failure(const uint32_t code)
-{
+bool DiameterCodeHandler::is_transient_failure(const uint32_t code) {
   return 4000 <= code && code < 5000;
 }
 
 // Diameter code of form 5xxx marks a permanent failure
-bool DiameterCodeHandler::is_permanent_failure(const uint32_t code)
-{
+bool DiameterCodeHandler::is_permanent_failure(const uint32_t code) {
   return 5000 <= code && code < 6000;
 }
-} // namespace magma
+}  // namespace magma

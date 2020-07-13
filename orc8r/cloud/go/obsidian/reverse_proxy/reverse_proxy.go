@@ -40,7 +40,7 @@ func ReverseProxy(next echo.HandlerFunc) echo.HandlerFunc {
 			return err
 		}
 		remoteIP, _, _ := net.SplitHostPort(c.Request().RemoteAddr)
-		if remoteIP == "127.0.0.1" {
+		if c.RealIP() == "127.0.0.1" || remoteIP == "127.0.0.1" {
 			glog.V(1).Infof("Request IP addr is localhost. Sending to next middleware.")
 			return next(c)
 		}

@@ -32,6 +32,8 @@ services:
       dockerfile: cwf/gateway/docker/python/Dockerfile
 
   sessiond:
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 0
     build:
       context: ${BUILD_CONTEXT}
       dockerfile: cwf/gateway/docker/c/Dockerfile

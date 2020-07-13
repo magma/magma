@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AlekSi/pointer"
 	"github.com/facebookincubator/symphony/graph/importer"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
@@ -101,8 +102,8 @@ func TestImportAndEditPorts(t *testing.T) {
 						p1 := typ.QueryPropertyTypes().Where(propertytype.Name(propStr)).OnlyX(ctx)
 						p2 := typ.QueryPropertyTypes().Where(propertytype.Name(propStr2)).OnlyX(ctx)
 
-						require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p1.ID))).OnlyX(ctx).StringVal, "new-prop-value")
-						require.Equal(t, port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p2.ID))).OnlyX(ctx).StringVal, "new-prop-value2")
+						require.Equal(t, pointer.GetString(port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p1.ID))).OnlyX(ctx).StringVal), "new-prop-value")
+						require.Equal(t, pointer.GetString(port.QueryProperties().Where(property.HasTypeWith(propertytype.ID(p2.ID))).OnlyX(ctx).StringVal), "new-prop-value2")
 					}
 				}
 			}

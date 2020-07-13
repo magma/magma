@@ -595,6 +595,12 @@ jobs:
           schema_directory: <<parameters.schema_directory>>
           package_name: <<parameters.pysymphony_package>>
       - run:
+          name: To fix this test
+          command: |
+            echo "Some python files does not match GraphQL compilation result. Please run './compile_graphql.sh' from cli directory"
+            exit 1
+          when: on_fail
+      - run:
           name: GraphQL Breaking Changes
           <<: *clidir
           command: python3 -m test_gql_breaking_changes <<parameters.schema_directory>>
@@ -608,16 +614,6 @@ jobs:
           name: mypy check
           <<: *clidir
           command: python3 -m mypy
-
-  pdoctest:
-    executor: python
-    steps:
-      - checkout
-      - pyinventory-setup
-      - run:
-          name: pdoc3 check
-          <<: *clidir
-          command: python3 -m export_doc
 
   blacktest:
     executor: python
@@ -714,7 +710,6 @@ workflows:
       - lint
       - validate-gql-test
       - mypytest
-      - pdoctest
       - blacktest
       - flake8test
       - test-relay-build

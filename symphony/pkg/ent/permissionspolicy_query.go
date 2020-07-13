@@ -556,6 +556,32 @@ func (ppgb *PermissionsPolicyGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (ppgb *PermissionsPolicyGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ppgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicyGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ppgb *PermissionsPolicyGroupBy) StringX(ctx context.Context) string {
+	v, err := ppgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (ppgb *PermissionsPolicyGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(ppgb.fields) > 1 {
@@ -571,6 +597,32 @@ func (ppgb *PermissionsPolicyGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ppgb *PermissionsPolicyGroupBy) IntsX(ctx context.Context) []int {
 	v, err := ppgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (ppgb *PermissionsPolicyGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ppgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicyGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ppgb *PermissionsPolicyGroupBy) IntX(ctx context.Context) int {
+	v, err := ppgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -598,6 +650,32 @@ func (ppgb *PermissionsPolicyGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (ppgb *PermissionsPolicyGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ppgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicyGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ppgb *PermissionsPolicyGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := ppgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (ppgb *PermissionsPolicyGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(ppgb.fields) > 1 {
@@ -613,6 +691,32 @@ func (ppgb *PermissionsPolicyGroupBy) Bools(ctx context.Context) ([]bool, error)
 // BoolsX is like Bools, but panics if an error occurs.
 func (ppgb *PermissionsPolicyGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := ppgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (ppgb *PermissionsPolicyGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ppgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicyGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ppgb *PermissionsPolicyGroupBy) BoolX(ctx context.Context) bool {
+	v, err := ppgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -686,6 +790,32 @@ func (pps *PermissionsPolicySelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (pps *PermissionsPolicySelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = pps.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicySelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (pps *PermissionsPolicySelect) StringX(ctx context.Context) string {
+	v, err := pps.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (pps *PermissionsPolicySelect) Ints(ctx context.Context) ([]int, error) {
 	if len(pps.fields) > 1 {
@@ -701,6 +831,32 @@ func (pps *PermissionsPolicySelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (pps *PermissionsPolicySelect) IntsX(ctx context.Context) []int {
 	v, err := pps.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (pps *PermissionsPolicySelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = pps.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicySelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (pps *PermissionsPolicySelect) IntX(ctx context.Context) int {
+	v, err := pps.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -728,6 +884,32 @@ func (pps *PermissionsPolicySelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (pps *PermissionsPolicySelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = pps.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicySelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (pps *PermissionsPolicySelect) Float64X(ctx context.Context) float64 {
+	v, err := pps.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (pps *PermissionsPolicySelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(pps.fields) > 1 {
@@ -743,6 +925,32 @@ func (pps *PermissionsPolicySelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (pps *PermissionsPolicySelect) BoolsX(ctx context.Context) []bool {
 	v, err := pps.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (pps *PermissionsPolicySelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = pps.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{permissionspolicy.Label}
+	default:
+		err = fmt.Errorf("ent: PermissionsPolicySelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (pps *PermissionsPolicySelect) BoolX(ctx context.Context) bool {
+	v, err := pps.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

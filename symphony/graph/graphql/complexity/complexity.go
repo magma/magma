@@ -91,7 +91,7 @@ func New() (complexity generated.ComplexityRoot) {
 		return SearchComplexity(childComplexity, limit)
 	}
 	complexity.Query.WorkOrderTypes = PaginationComplexity
-	complexity.Query.WorkOrders = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.WorkOrderFilterInput) int {
+	complexity.Query.WorkOrders = func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, _ *models.WorkOrderOrder, _ []*models.WorkOrderFilterInput) int {
 		return PaginationComplexity(childComplexity, after, first, before, last)
 	}
 

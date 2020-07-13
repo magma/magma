@@ -1027,6 +1027,32 @@ func (sgb *ServiceGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (sgb *ServiceGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = sgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (sgb *ServiceGroupBy) StringX(ctx context.Context) string {
+	v, err := sgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (sgb *ServiceGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(sgb.fields) > 1 {
@@ -1042,6 +1068,32 @@ func (sgb *ServiceGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (sgb *ServiceGroupBy) IntsX(ctx context.Context) []int {
 	v, err := sgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (sgb *ServiceGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = sgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (sgb *ServiceGroupBy) IntX(ctx context.Context) int {
+	v, err := sgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1069,6 +1121,32 @@ func (sgb *ServiceGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (sgb *ServiceGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = sgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (sgb *ServiceGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := sgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (sgb *ServiceGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(sgb.fields) > 1 {
@@ -1084,6 +1162,32 @@ func (sgb *ServiceGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (sgb *ServiceGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := sgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (sgb *ServiceGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = sgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (sgb *ServiceGroupBy) BoolX(ctx context.Context) bool {
+	v, err := sgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1157,6 +1261,32 @@ func (ss *ServiceSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ss *ServiceSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ss.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ss *ServiceSelect) StringX(ctx context.Context) string {
+	v, err := ss.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ss *ServiceSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ss.fields) > 1 {
@@ -1172,6 +1302,32 @@ func (ss *ServiceSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ss *ServiceSelect) IntsX(ctx context.Context) []int {
 	v, err := ss.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ss *ServiceSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ss.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ss *ServiceSelect) IntX(ctx context.Context) int {
+	v, err := ss.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1199,6 +1355,32 @@ func (ss *ServiceSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ss *ServiceSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ss.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ss *ServiceSelect) Float64X(ctx context.Context) float64 {
+	v, err := ss.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ss *ServiceSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ss.fields) > 1 {
@@ -1214,6 +1396,32 @@ func (ss *ServiceSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ss *ServiceSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ss.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ss *ServiceSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ss.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{service.Label}
+	default:
+		err = fmt.Errorf("ent: ServiceSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ss *ServiceSelect) BoolX(ctx context.Context) bool {
+	v, err := ss.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

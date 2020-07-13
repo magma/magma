@@ -556,6 +556,32 @@ func (cgb *CustomerGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (cgb *CustomerGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = cgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (cgb *CustomerGroupBy) StringX(ctx context.Context) string {
+	v, err := cgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (cgb *CustomerGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(cgb.fields) > 1 {
@@ -571,6 +597,32 @@ func (cgb *CustomerGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (cgb *CustomerGroupBy) IntsX(ctx context.Context) []int {
 	v, err := cgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (cgb *CustomerGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = cgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (cgb *CustomerGroupBy) IntX(ctx context.Context) int {
+	v, err := cgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -598,6 +650,32 @@ func (cgb *CustomerGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (cgb *CustomerGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = cgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (cgb *CustomerGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := cgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (cgb *CustomerGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(cgb.fields) > 1 {
@@ -613,6 +691,32 @@ func (cgb *CustomerGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (cgb *CustomerGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := cgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (cgb *CustomerGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = cgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (cgb *CustomerGroupBy) BoolX(ctx context.Context) bool {
+	v, err := cgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -686,6 +790,32 @@ func (cs *CustomerSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (cs *CustomerSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = cs.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (cs *CustomerSelect) StringX(ctx context.Context) string {
+	v, err := cs.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (cs *CustomerSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(cs.fields) > 1 {
@@ -701,6 +831,32 @@ func (cs *CustomerSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (cs *CustomerSelect) IntsX(ctx context.Context) []int {
 	v, err := cs.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (cs *CustomerSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = cs.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (cs *CustomerSelect) IntX(ctx context.Context) int {
+	v, err := cs.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -728,6 +884,32 @@ func (cs *CustomerSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (cs *CustomerSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = cs.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (cs *CustomerSelect) Float64X(ctx context.Context) float64 {
+	v, err := cs.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (cs *CustomerSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(cs.fields) > 1 {
@@ -743,6 +925,32 @@ func (cs *CustomerSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (cs *CustomerSelect) BoolsX(ctx context.Context) []bool {
 	v, err := cs.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (cs *CustomerSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = cs.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{customer.Label}
+	default:
+		err = fmt.Errorf("ent: CustomerSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (cs *CustomerSelect) BoolX(ctx context.Context) bool {
+	v, err := cs.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

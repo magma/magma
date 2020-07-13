@@ -35,7 +35,7 @@ func TestServiceRun(t *testing.T) {
 	serviceName := state.ServiceName
 
 	// Create the service
-	srv, lis := test_utils.NewOrchestratorTestService(t, orc8r.ModuleName, serviceName)
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, serviceName, nil, nil)
 	assert.Equal(t, protos.ServiceInfo_STARTING, srv.State)
 	assert.Equal(t, protos.ServiceInfo_APP_UNHEALTHY, srv.Health)
 	assert.NotNil(t, srv.EchoServer)

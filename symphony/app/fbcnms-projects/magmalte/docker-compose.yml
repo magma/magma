@@ -12,7 +12,7 @@ services:
       MYSQL_DATABASE: nms
       MYSQL_USER: nms
       MYSQL_PASSWORD: password
-    restart: on-failure
+    #restart: on-failure
     healthcheck:
       test: mysqladmin ping -p12345
 

@@ -95,6 +95,11 @@ func equal(a, b []string) bool {
 
 func getPropInput(propertyType ent.PropertyType, value string) (*models.PropertyInput, error) {
 	typ := propertyType.Type
+	if value == "" {
+		return &models.PropertyInput{
+			PropertyTypeID: propertyType.ID,
+		}, nil
+	}
 	switch typ {
 	case "date", "email", "string", "enum", "datetime_local":
 		return &models.PropertyInput{
@@ -102,22 +107,22 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			StringValue:    &value,
 		}, nil
 	case "int":
-		intVal, err := strconv.Atoi(value)
+		val, err := strconv.Atoi(value)
 		if err != nil {
 			return nil, err
 		}
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
-			IntValue:       &intVal,
+			IntValue:       &val,
 		}, nil
 	case "float":
-		floatVal, err := strconv.ParseFloat(value, 64)
+		val, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return nil, err
 		}
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
-			FloatValue:     &floatVal,
+			FloatValue:     &val,
 		}, nil
 	case "gps_location": // 45.6 , 67.89
 		split := strings.Split(value, ",")
@@ -142,7 +147,6 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 		if len(split) != 2 {
 			return nil, fmt.Errorf("range data isn't of form '<FROM>-<TO>' %s", value)
 		}
-
 		from, err := strconv.ParseFloat(strings.TrimSpace(split[0]), 64)
 		if err != nil {
 			return nil, err
@@ -166,18 +170,13 @@ func getPropInput(propertyType ent.PropertyType, value string) (*models.Property
 			BooleanValue:   &b,
 		}, nil
 	case "node":
-		if value != "" {
-			id, err := strconv.Atoi(value)
-			if err != nil {
-				return nil, err
-			}
-			return &models.PropertyInput{
-				PropertyTypeID: propertyType.ID,
-				NodeIDValue:    &id,
-			}, nil
+		id, err := strconv.Atoi(value)
+		if err != nil {
+			return nil, err
 		}
 		return &models.PropertyInput{
 			PropertyTypeID: propertyType.ID,
+			NodeIDValue:    &id,
 		}, nil
 	default:
 		return &models.PropertyInput{
