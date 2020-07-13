@@ -37,6 +37,7 @@
 #include <sys/types.h>
 
 #include "intertask_interface_types.h"
+#include "intertask_interface.h"
 
 #define SIGTIMER SIGRTMIN
 

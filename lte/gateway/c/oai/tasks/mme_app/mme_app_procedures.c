@@ -31,6 +31,7 @@
 #include "dynamic_memory_check.h"
 #include "common_types.h"
 #include "intertask_interface.h"
+#include "mme_app_defs.h"
 #include "mme_app_ue_context.h"
 #include "sgw_ie_defs.h"
 #include "common_defs.h"
@@ -209,5 +210,5 @@ void mme_app_s11_procedure_create_bearer_send_response(
   } else {
     s11_create_bearer_response->cause.cause_value = REQUEST_ACCEPTED;
   }
-  itti_send_msg_to_task(TASK_S11, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S11, message_p);
 }

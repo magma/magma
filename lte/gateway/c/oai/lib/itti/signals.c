@@ -87,6 +87,8 @@ void __gcov_flush(void);
 static const char THREADS_STR[] = "Threads:";
 static const char PROC_PATH[] = "/proc/%d/status";
 
+extern task_zmq_ctx_t main_zmq_ctx;
+
 static int get_thread_count(pid_t pid)
 {
   char path[40], line[100], *p;
@@ -182,7 +184,7 @@ int signal_handle(int *end)
       case SIGINT:
       case SIGTERM:
         printf("Received SIGINT or SIGTERM\n");
-        itti_send_terminate_message(TASK_UNKNOWN);
+        send_terminate_message(&main_zmq_ctx);
         *end = 1;
         break;
 

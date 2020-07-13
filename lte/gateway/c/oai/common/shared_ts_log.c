@@ -89,6 +89,11 @@ typedef struct oai_shared_log_s {
 static oai_shared_log_t g_shared_log = {
   0}; /*!< \brief  logging utility internal variables global var definition*/
 
+static void shared_log_exit(void);
+
+task_zmq_ctx_t shared_log_task_zmq_ctx;
+static long timer_id = -1;
+
 //------------------------------------------------------------------------------
 int shared_log_get_start_time_sec(void)
 {
@@ -158,13 +163,53 @@ shared_log_queue_item_t *get_new_log_queue_item(sh_ts_log_app_id_t app_id)
   return item_p;
 }
 //------------------------------------------------------------------------------
-void *shared_log_task(__attribute__((unused)) void *args_p)
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
 {
-  MessageDef *received_message_p = NULL;
-  long timer_id = -1;
-  int exit_count = 1;
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case TIMER_HAS_EXPIRED: {
+      shared_log_flush_messages();
+      timer_setup(
+        LOG_FLUSH_PERIOD_SEC,
+        LOG_FLUSH_PERIOD_MICRO_SEC,
+        TASK_SHARED_TS_LOG,
+        INSTANCE_DEFAULT,
+        TIMER_ONE_SHOT,
+        NULL,
+        0,
+        &timer_id);
+    }
+      timer_handle_expired(
+        received_message_p->ittiMsg.timer_has_expired.timer_id);
+      break;
+
+    case TERMINATE_MESSAGE: {
+      zframe_destroy(&msg_frame);
+      shared_log_exit();
+    } break;
+
+    default: {
+    } break;
+  }
+
+  zframe_destroy(&msg_frame);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static void* shared_log_thread(__attribute__((unused)) void* args_p)
+{
   itti_mark_task_ready(TASK_SHARED_TS_LOG);
+  init_task_context(
+      TASK_SHARED_TS_LOG,
+      (task_id_t []) {},
+      0,
+      handle_message,
+      &shared_log_task_zmq_ctx);
+
   shared_log_start_use();
   timer_setup(
     LOG_FLUSH_PERIOD_SEC,
@@ -176,51 +221,8 @@ void *shared_log_task(__attribute__((unused)) void *args_p)
     0,
     &timer_id);
 
-  while (1) {
-    itti_receive_msg(TASK_SHARED_TS_LOG, &received_message_p);
-
-    if (received_message_p != NULL) {
-      switch (ITTI_MSG_ID(received_message_p)) {
-        case TIMER_HAS_EXPIRED: {
-          shared_log_flush_messages();
-          timer_setup(
-            LOG_FLUSH_PERIOD_SEC,
-            LOG_FLUSH_PERIOD_MICRO_SEC,
-            TASK_SHARED_TS_LOG,
-            INSTANCE_DEFAULT,
-            TIMER_ONE_SHOT,
-            NULL,
-            0,
-            &timer_id);
-        }
-          timer_handle_expired(
-            received_message_p->ittiMsg.timer_has_expired.timer_id);
-          break;
-
-        case TERMINATE_MESSAGE: {
-          exit_count--;
-          if (!exit_count) {
-            g_shared_log.running = false;
-            if (-1 != timer_id) {
-              timer_remove(timer_id, NULL);
-              timer_id = -1;
-            }
-            shared_log_exit();
-            itti_exit_task();
-          }
-        } break;
-
-        default: {
-        } break;
-      }
-      // Freeing the memory allocated from the memory pool
-        itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-
-      received_message_p = NULL;
-    }
-  }
-
-  OAI_FPRINTF_ERR("Task Log exiting\n");
+  zloop_start(shared_log_task_zmq_ctx.event_loop);
+  shared_log_exit();
   return NULL;
 }
 
@@ -296,7 +298,7 @@ int shared_log_init(const int max_threadsP)
 void shared_log_itti_connect(void)
 {
   int rv = 0;
-  rv = itti_create_task(TASK_SHARED_TS_LOG, shared_log_task, NULL);
+  rv = itti_create_task(TASK_SHARED_TS_LOG, &shared_log_thread, NULL);
   AssertFatal(rv == 0, "Create task for OAI logging failed!\n");
 }
 
@@ -373,9 +375,14 @@ static void shared_log_element_pop_cleanup_callback(
   }
 }
 //------------------------------------------------------------------------------
-void shared_log_exit(void)
+static void shared_log_exit(void)
 {
   OAI_FPRINTF_INFO("[TRACE] Entering %s\n", __FUNCTION__);
+  if (timer_id != -1) {
+    timer_remove(timer_id, NULL);
+    timer_id = -1;
+  }
+  destroy_task_context(&shared_log_task_zmq_ctx);
   shared_log_flush_messages();
   hashtable_ts_destroy(g_shared_log.thread_context_htbl);
   lfds710_queue_bmm_cleanup(
@@ -386,6 +393,9 @@ void shared_log_exit(void)
     shared_log_element_pop_cleanup_callback);
   free_wrapper((void **) &g_shared_log.qbmme);
   OAI_FPRINTF_INFO("[TRACE] Leaving %s\n", __FUNCTION__);
+
+  OAI_FPRINTF_INFO("TASK_SHARED_TS_LOG terminated\n");
+  pthread_exit(NULL);
 }
 
 //------------------------------------------------------------------------------

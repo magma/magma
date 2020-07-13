@@ -29,6 +29,8 @@
 #include "log.h"
 #include "gx_messages_types.h"
 
+extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
+
 int send_activate_bearer_request_itti(
   itti_gx_nw_init_actv_bearer_request_t* itti_msg)
 {
@@ -39,7 +41,7 @@ int send_activate_bearer_request_itti(
 
   IMSI_STRING_TO_IMSI64((char*) itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
 
-  return itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
 int send_deactivate_bearer_request_itti(
@@ -52,5 +54,5 @@ int send_deactivate_bearer_request_itti(
 
   IMSI_STRING_TO_IMSI64((char*) itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
 
-  return itti_send_msg_to_task(TASK_SPGW_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }

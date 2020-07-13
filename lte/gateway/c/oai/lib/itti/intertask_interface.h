@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <czmq.h>
 
 #include "intertask_interface_conf.h"
 #include "intertask_interface_types.h"
@@ -73,6 +74,13 @@ typedef enum message_priorities_e {
   MESSAGE_PRIORITY_MIN = 10,
 } message_priorities_t;
 
+typedef struct task_zmq_ctx_s {
+  task_id_t task_id;
+  zloop_t* event_loop;
+  zsock_t* pull_sock;
+  zsock_t* push_socks[TASK_MAX];
+} task_zmq_ctx_t;
+
 typedef struct message_info_s {
   task_id_t id;
   message_priorities_t priority;
@@ -98,26 +106,46 @@ typedef struct task_info_s {
   task_priorities_t priority;
   unsigned int queue_size;
   /* Printable name */
-  const char *const name;
+  const char* const name;
+  /* Socket endpoint */
+  const char* const uri;
 } task_info_t;
 
-/** \brief Send a message to a task (could be itself)
- \param task_id Task ID
- \param instance Instance of the task used for virtualization
+/** \brief Send a message to a task
+ \param task_zmq_ctx_p Pointer to task ZMQ context
+ \param destination_task_id Destination task ID
  \param message Pointer to the message to send
  @returns -1 on failure, 0 otherwise
  **/
-int itti_send_msg_to_task(
-  task_id_t task_id,
-  instance_t instance,
-  MessageDef *message);
+int send_msg_to_task(
+  task_zmq_ctx_t* task_zmq_ctx_p,
+  task_id_t destination_task_id,
+  MessageDef* message);
 
-/** \brief Retrieves a message in the queue associated to task_id.
- * If the queue is empty, the thread is blocked till a new message arrives.
- \param task_id Task ID of the receiving task
- \param received_msg Pointer to the allocated message
+/** \brief Initialize task ZMQ context
+ \param task_id Task ID
+ \param remote_task_ids Array of destination task IDs
+ \param remote_tasks_count Size of remote_task_ids
+ \param msg_handler message handler for pull socket
+ \param task_zmq_ctx_p Pointer to task ZMQ context
  **/
-void itti_receive_msg(task_id_t task_id, MessageDef **received_msg);
+void init_task_context(
+    task_id_t task_id,
+    const task_id_t* remote_task_ids,
+    uint8_t remote_tasks_count,
+    zloop_reader_fn msg_handler,
+    task_zmq_ctx_t* task_zmq_ctx_p);
+
+/** \brief Destroy task ZMQ context
+ \param task_zmq_ctx_p Pointer to task ZMQ context
+ **/
+void destroy_task_context(task_zmq_ctx_t* task_zmq_ctx_p);
+
+/** \brief Send broadcast message to all push sockets part of context
+ * \param task_zmq_ctx_p Pointer to task ZMQ context
+ * \param message Pointer to message
+ **/
+void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message);
 
 /** \brief Start thread associated to the task
  * \param task_id task to start
@@ -173,14 +201,7 @@ void itti_wait_tasks_end(void);
 /** \brief Send a termination message to all tasks.
  * \param task_id task that is broadcasting the message.
  **/
-void itti_send_terminate_message(task_id_t task_id);
-
-void *itti_malloc(
-  task_id_t origin_task_id,
-  task_id_t destination_task_id,
-  ssize_t size);
-
-void itti_free(task_id_t task_id, void *ptr);
+void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx);
 
 int itti_send_broadcast_message(MessageDef* message_p);
 #endif /* INTERTASK_INTERFACE_H_ */

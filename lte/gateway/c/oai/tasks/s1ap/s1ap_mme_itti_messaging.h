@@ -32,6 +32,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <czmq.h>
 
 #include "common_defs.h"
 #include "3gpp_23.003.h"
@@ -40,8 +41,11 @@
 #include "TrackingAreaIdentity.h"
 #include "bstrlib.h"
 #include "common_types.h"
+#include "intertask_interface.h"
 
 #include "s1ap_state.h"
+
+extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 int s1ap_mme_itti_send_sctp_request(
   STOLEN_REF bstring *payload,

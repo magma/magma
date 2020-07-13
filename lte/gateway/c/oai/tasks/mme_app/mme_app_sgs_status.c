@@ -206,8 +206,8 @@ static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
        SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
       (ue_context_p->sgs_detach_type ==
        SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
-      itti_send_msg_to_task(
-        TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
+      send_msg_to_task(&mme_app_task_zmq_ctx,
+        TASK_S1AP, ue_context_p->sgs_context->message_p);
       ue_context_p->sgs_context->message_p = NULL;
       /*
        Notify S1AP to send UE Context Release Command to eNB or

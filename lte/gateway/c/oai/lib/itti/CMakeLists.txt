@@ -7,13 +7,12 @@ include_directories("${S1AP_C_DIR}")
 
 set(ITTI_FILES
     intertask_interface.c
-    memory_pools.c
     signals.c
     timer.c
 )
 add_library(LIB_ITTI ${ITTI_FILES})
 target_link_libraries(LIB_ITTI
-    rt pthread
+    rt pthread czmq
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_MESSAGE_UTILS
 )

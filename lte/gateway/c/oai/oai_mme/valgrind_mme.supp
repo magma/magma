@@ -74,24 +74,6 @@
    ...
 }
 
-# itti uses memory pools which are not understood by valgrind
-# This may suppress real leaks
-{
-   ittiCustomAllocator
-   Memcheck:Leak
-   ...
-   fun:memory_pools_add_pool
-   ...
-}
-
-{
-   ittiCustomAllocator
-   Memcheck:Leak
-   ...
-   fun:memory_pools_create
-   ...
-}
-
 # t17496753
 {
    logLeak

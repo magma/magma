@@ -27,7 +27,7 @@
  * either expressed or implied, of the FreeBSD Project.
  */
 // This task is mandatory and must always be placed in first position
-TASK_DEF(TASK_TIMER, TASK_PRIORITY_MED, 16)
+TASK_DEF(TASK_MAIN, TASK_PRIORITY_MED, 16)
 
 // Other possible tasks in the process
 

@@ -100,7 +100,7 @@ int s6a_rsr_cb(
   // Send it to MME module for further processing
   message_p = itti_alloc_new_message(TASK_S6A, S6A_RESET_REQ);
   //s6a_reset_req_p->msg_rsa_p = msg_p;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_RESET_REQ to task MME_APP\n");
   result_code = DIAMETER_SUCCESS;
   return 0;

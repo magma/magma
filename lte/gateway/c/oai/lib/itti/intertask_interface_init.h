@@ -51,9 +51,10 @@
 
 /* Map task id to printable name. */
 const task_info_t tasks_info[] = {
-  {0, TASK_UNKNOWN, 0, 0, "TASK_UNKNOWN"},
+    {0, TASK_UNKNOWN, 0, 0, "TASK_UNKNOWN", "ipc://TASK_UNKNOWN"},
 #define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE)                                    \
-  {tHREADiD##_THREAD, TASK_UNKNOWN, pRIO, qUEUEsIZE, #tHREADiD},
+  {tHREADiD##_THREAD, TASK_UNKNOWN, pRIO,                                      \
+   qUEUEsIZE,         #tHREADiD,    "ipc://" #tHREADiD},
 #define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE)                           \
   {sUBtASKiD##_THREAD, tHREADiD##_THREAD, 0, qUEUEsIZE, #sUBtASKiD},
 #include <tasks_def.h>
