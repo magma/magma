@@ -142,7 +142,7 @@ func (s *LteMconfigBuilderServicer) Build(
 			SubProfiles:  getSubProfiles(nwEpc),
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
-		"policydb": getPolicydbMconfig(graph),
+		"policydb": getPolicydbMconfig(request.NetworkId),
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
@@ -385,8 +385,8 @@ func getSubProfiles(epc *models2.NetworkEpcConfigs) map[string]*mconfig.Subscrib
 	return ret
 }
 
-func getPolicydbMconfig(graph configurator.EntityGraph) *mconfig.PolicyDB {
-	ratingGroups := getRatingGroups(graph)
+func getPolicydbMconfig(networkID string) *mconfig.PolicyDB {
+	ratingGroups := getRatingGroups(networkID)
 	infiniteUnmetered := []uint32{}
 	infiniteMetered := []uint32{}
 
@@ -407,9 +407,15 @@ func getPolicydbMconfig(graph configurator.EntityGraph) *mconfig.PolicyDB {
 	}
 }
 
-func getRatingGroups(graph configurator.EntityGraph) map[uint32]*policyModels.RatingGroup {
-	ratingGroupEnts := graph.GetEntitiesOfType(lte.RatingGroupEntityType)
-	ratingGroups := map[uint32]*policyModels.RatingGroup{}
+func getRatingGroups(networkID string) map[uint32]*models2.RatingGroup {
+	ratingGroupEnts, err := configurator.LoadAllEntitiesInNetwork(
+		networkID, lte.RatingGroupEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		glog.Errorf("Could not get rating groups of network")
+	}
+	ratingGroups := map[uint32]*models2.RatingGroup{}
 	for _, ent := range ratingGroupEnts {
 		ratingGroup := (ent.Config).(*policyModels.RatingGroup)
 		id := uint32(ratingGroup.ID)
