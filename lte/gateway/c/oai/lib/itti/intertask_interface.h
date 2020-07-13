@@ -111,6 +111,11 @@ typedef struct task_info_s {
   const char* const uri;
 } task_info_t;
 
+typedef enum timer_repeat_s {
+  TIMER_REPEAT_FOREVER = 0,
+  TIMER_REPEAT_ONCE,
+} timer_repeat_t;
+
 /** \brief Send a message to a task
  \param task_zmq_ctx_p Pointer to task ZMQ context
  \param destination_task_id Destination task ID
@@ -121,6 +126,24 @@ int send_msg_to_task(
   task_zmq_ctx_t* task_zmq_ctx_p,
   task_id_t destination_task_id,
   MessageDef* message);
+
+/** \brief Start timer on the ZMQ loop
+ \param task_zmq_ctx_p Pointer to task ZMQ context
+ \param msec Timer duration in millisecond
+ \param repeat Timer type
+ \param handler Callback function on timer expiry
+ \param arg Data to pass to handler
+ @returns -1 on failure, timer ID otherwise
+ **/
+int start_timer(
+    task_zmq_ctx_t* task_zmq_ctx_p, size_t msec, timer_repeat_t repeat,
+    zloop_timer_fn handler, void* arg);
+
+/** \brief Stop timer on the ZMQ loop
+ \param task_zmq_ctx_p Pointer to task ZMQ context
+ \param timer_id Timer ID
+ **/
+void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id);
 
 /** \brief Initialize task ZMQ context
  \param task_id Task ID

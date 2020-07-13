@@ -168,6 +168,27 @@ void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message)
   free(message);
 }
 
+int start_timer(
+    task_zmq_ctx_t* task_zmq_ctx_p, size_t msec, timer_repeat_t repeat,
+    zloop_timer_fn handler, void* arg)
+{
+  int timer_id = zloop_timer(
+      task_zmq_ctx_p->event_loop, msec, repeat == TIMER_REPEAT_FOREVER ? 0 : 1,
+      handler, arg);
+
+  AssertFatal(
+      timer_id != -1,
+      "Error starting timer for Task: %s\n",
+      itti_get_task_name(task_zmq_ctx_p->task_id));
+
+  return timer_id;
+}
+
+void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id)
+{
+  zloop_timer_end(task_zmq_ctx_p->event_loop, timer_id);
+}
+
 void init_task_context(
     task_id_t task_id,
     const task_id_t* remote_task_ids,

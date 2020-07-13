@@ -42,21 +42,18 @@
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "log.h"
 #include "shared_ts_log.h"
 #include "assertions.h"
 #include "dynamic_memory_check.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "timer_messages_types.h"
 
 //-------------------------------
 #define LOG_MAX_QUEUE_ELEMENTS 2048
 #define LOG_MESSAGE_MIN_ALLOC_SIZE 256
 
-#define LOG_FLUSH_PERIOD_SEC 0
-#define LOG_FLUSH_PERIOD_MICRO_SEC 50000
+#define LOG_FLUSH_PERIOD_MSEC 50
 //-------------------------------
 
 typedef unsigned long log_message_number_t;
@@ -92,7 +89,7 @@ static oai_shared_log_t g_shared_log = {
 static void shared_log_exit(void);
 
 task_zmq_ctx_t shared_log_task_zmq_ctx;
-static long timer_id = -1;
+static int timer_id = -1;
 
 //------------------------------------------------------------------------------
 int shared_log_get_start_time_sec(void)
@@ -162,7 +159,14 @@ shared_log_queue_item_t *get_new_log_queue_item(sh_ts_log_app_id_t app_id)
   }
   return item_p;
 }
+
 //------------------------------------------------------------------------------
+static int handle_timer(zloop_t* loop, int id, void* arg)
+{
+  shared_log_flush_messages();
+  return 0;
+}
+
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
 {
   zframe_t* msg_frame = zframe_recv(reader);
@@ -170,22 +174,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TIMER_HAS_EXPIRED: {
-      shared_log_flush_messages();
-      timer_setup(
-        LOG_FLUSH_PERIOD_SEC,
-        LOG_FLUSH_PERIOD_MICRO_SEC,
-        TASK_SHARED_TS_LOG,
-        INSTANCE_DEFAULT,
-        TIMER_ONE_SHOT,
-        NULL,
-        0,
-        &timer_id);
-    }
-      timer_handle_expired(
-        received_message_p->ittiMsg.timer_has_expired.timer_id);
-      break;
-
     case TERMINATE_MESSAGE: {
       zframe_destroy(&msg_frame);
       shared_log_exit();
@@ -210,16 +198,10 @@ static void* shared_log_thread(__attribute__((unused)) void* args_p)
       handle_message,
       &shared_log_task_zmq_ctx);
 
+  timer_id = start_timer(
+      &shared_log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC, TIMER_REPEAT_FOREVER,
+      handle_timer, NULL);
   shared_log_start_use();
-  timer_setup(
-    LOG_FLUSH_PERIOD_SEC,
-    LOG_FLUSH_PERIOD_MICRO_SEC,
-    TASK_SHARED_TS_LOG,
-    INSTANCE_DEFAULT,
-    TIMER_ONE_SHOT,
-    NULL,
-    0,
-    &timer_id);
 
   zloop_start(shared_log_task_zmq_ctx.event_loop);
   shared_log_exit();
@@ -378,10 +360,7 @@ static void shared_log_element_pop_cleanup_callback(
 static void shared_log_exit(void)
 {
   OAI_FPRINTF_INFO("[TRACE] Entering %s\n", __FUNCTION__);
-  if (timer_id != -1) {
-    timer_remove(timer_id, NULL);
-    timer_id = -1;
-  }
+  stop_timer(&shared_log_task_zmq_ctx, timer_id);
   destroy_task_context(&shared_log_task_zmq_ctx);
   shared_log_flush_messages();
   hashtable_ts_destroy(g_shared_log.thread_context_htbl);
