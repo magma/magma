@@ -153,5 +153,4 @@ COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 RUN mkdir -p /var/opt/magma/configs

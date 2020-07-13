@@ -83,9 +83,6 @@ RUN go mod download; exit 0
 # Install protoc-gen-go
 RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
 
-# Copy the configs.
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
-
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
 RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
