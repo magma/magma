@@ -99,6 +99,7 @@ export default function KPIGrid(props: Props) {
           zeroMinWidth
           className={classes.kpiBlock}>
           <CardHeader
+            data-testid={kpi.category}
             className={classes.kpiBox}
             title={kpi.category}
             titleTypographyProps={{

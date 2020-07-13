@@ -9,6 +9,8 @@
  */
 import type {Dataset} from '../../components/CustomHistogram';
 
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
 import CustomHistogram from '../../components/CustomHistogram';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -16,11 +18,10 @@ import React from 'react';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {colors} from '../../theme/default';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-
-const BLUE = '#3984FF';
 
 type Props = {
   start: moment,
@@ -41,10 +42,10 @@ export default function LogChart(props: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [dataset, setDataset] = useState<Dataset>({
     label: 'Log Counts',
-    backgroundColor: BLUE,
-    borderColor: BLUE,
+    backgroundColor: colors.secondary.dodgerBlue,
+    borderColor: colors.secondary.dodgerBlue,
     borderWidth: 1,
-    hoverBackgroundColor: BLUE,
+    hoverBackgroundColor: colors.secondary.dodgerBlue,
     hoverBorderColor: 'black',
     data: [],
   });
@@ -91,10 +92,10 @@ export default function LogChart(props: Props) {
 
         const ds: Dataset = {
           label: 'Log Counts',
-          backgroundColor: BLUE,
-          borderColor: BLUE,
+          backgroundColor: colors.secondary.dodgerBlue,
+          borderColor: colors.secondary.dodgerBlue,
           borderWidth: 1,
-          hoverBackgroundColor: BLUE,
+          hoverBackgroundColor: colors.secondary.dodgerBlue,
           hoverBorderColor: 'black',
           data: logData,
         };
@@ -128,5 +129,11 @@ export default function LogChart(props: Props) {
     return <LoadingFiller />;
   }
 
-  return <CustomHistogram dataset={[dataset]} labels={labels} />;
+  return (
+    <Card elevation={0}>
+      <CardHeader
+        subheader={<CustomHistogram dataset={[dataset]} labels={labels} />}
+      />
+    </Card>
+  );
 }
