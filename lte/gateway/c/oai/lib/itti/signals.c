@@ -87,8 +87,6 @@ void __gcov_flush(void);
 static const char THREADS_STR[] = "Threads:";
 static const char PROC_PATH[] = "/proc/%d/status";
 
-extern task_zmq_ctx_t main_zmq_ctx;
-
 static int get_thread_count(pid_t pid)
 {
   char path[40], line[100], *p;
@@ -136,7 +134,7 @@ int signal_mask(void)
   return 0;
 }
 
-int signal_handle(int *end)
+int signal_handle(int* end, task_zmq_ctx_t* task_ctx)
 {
   int ret;
   siginfo_t info;
@@ -169,7 +167,7 @@ int signal_handle(int *end)
    * * * use in switch.
    */
   if (info.si_signo == SIGTIMER) {
-    timer_handle_signal(&info);
+    timer_handle_signal(&info, task_ctx);
   } else {
     /*
      * Dispatch the signal to sub-handlers
@@ -184,7 +182,7 @@ int signal_handle(int *end)
       case SIGINT:
       case SIGTERM:
         printf("Received SIGINT or SIGTERM\n");
-        send_terminate_message(&main_zmq_ctx);
+        send_terminate_message(task_ctx);
         *end = 1;
         break;
 

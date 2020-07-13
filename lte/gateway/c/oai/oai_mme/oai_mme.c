@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
   /*
    * Handle signals here
    */
-  itti_wait_tasks_end();
+  itti_wait_tasks_end(&main_zmq_ctx);
 #if EMBEDDED_SGW
   free_spgw_config(&spgw_config);
 #endif

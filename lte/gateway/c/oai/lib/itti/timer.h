@@ -53,7 +53,7 @@ typedef enum {
   TIMER_ERR = -2,
 } timer_result_t;
 
-int timer_handle_signal(siginfo_t *info);
+int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx);
 
 /** \brief Request a new timer
  *  \param interval_sec timer interval in seconds

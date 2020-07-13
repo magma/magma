@@ -462,7 +462,7 @@ imsi64_t itti_get_associated_imsi(MessageDef* msg)
   return msg != NULL ? msg->ittiMsgHeader.imsi : 0;
 }
 
-void itti_wait_tasks_end(void)
+void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx)
 {
   int end = 0;
   int thread_id;
@@ -478,7 +478,7 @@ void itti_wait_tasks_end(void)
    * Handle signals here
    */
   while (end == 0) {
-    signal_handle(&end);
+    signal_handle(&end, task_ctx);
   }
 
   OAILOG_INFO(LOG_ITTI, "Closing all tasks");

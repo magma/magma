@@ -46,7 +46,7 @@
 #include "assertions.h"
 #include "timer_messages_types.h"
 
-int timer_handle_signal(siginfo_t *info);
+int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx);
 
 struct timer_elm_s {
   task_id_t task_id; ///< Task ID which has requested the timer
@@ -64,7 +64,6 @@ typedef struct timer_desc_s {
 } timer_desc_t;
 
 static timer_desc_t timer_desc;
-extern task_zmq_ctx_t main_zmq_ctx;
 
 static int _timer_delete_helper(struct timer_elm_s *timer_p);
 static struct timer_elm_s *_find_timer(long timer_id);
@@ -77,7 +76,7 @@ static struct timer_elm_s *_find_timer(long timer_id);
     }                                                                          \
   } while (0)
 
-int timer_handle_signal(siginfo_t *info)
+int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx)
 {
   struct timer_elm_s *timer_p;
   MessageDef *message_p;
@@ -99,7 +98,7 @@ int timer_handle_signal(siginfo_t *info)
   /*
    * Notify task of timer expiry
    */
-  if (send_msg_to_task(&main_zmq_ctx, task_id, message_p) < 0) {
+  if (send_msg_to_task(task_ctx, task_id, message_p) < 0) {
     OAILOG_DEBUG(
       LOG_ITTI, "Failed to send msg TIMER_HAS_EXPIRED to task %u\n", task_id);
     return -1;

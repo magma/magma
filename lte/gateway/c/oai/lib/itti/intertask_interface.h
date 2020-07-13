@@ -195,7 +195,7 @@ imsi64_t itti_get_associated_imsi(MessageDef* msg);
 /** \brief handle signals and wait for all threads to join when the process complete.
  * This function should be called from the main thread after having created all ITTI tasks.
  **/
-void itti_wait_tasks_end(void);
+void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 
 /** \brief Send a termination message to all tasks.
  * \param task_id task that is broadcasting the message.
