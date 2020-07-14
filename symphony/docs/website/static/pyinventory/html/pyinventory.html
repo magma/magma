@@ -1062,28 +1062,36 @@ is_fixed=False,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment</strong> (<cite>pyinventory.common.data_class.Equipment</cite>) – could be retrieved from</p></li>
-<li><p><strong>pyinventory.api.equipment.get_equipment</strong> (<em>-</em>) – </p></li>
-<li><p><strong>pyinventory.api.equipment.get_equipment_in_position</strong> (<em>-</em>) – </p></li>
-<li><p><strong>pyinventory.api.equipment.add_equipment</strong> (<em>-</em>) – </p></li>
-<li><p><strong>pyinventory.api.equipment.add_equipment_to_position</strong> (<em>-</em>) – </p></li>
-<li><p><strong>dest_location</strong> (<cite>pyinventory.common.data_class.Location</cite>) – could be retrieved from</p></li>
-<li><p><strong>pyinventory.api.location.get_location</strong> (<em>-</em>) – </p></li>
-<li><p><strong>pyinventory.api.location.add_location</strong> (<em>-</em>) – </p></li>
+<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object to be copied, could be retrieved from</p>
+<ul>
+<li><p><a class="reference internal" href="pyinventory.api.html#pyinventory.api.equipment.get_equipment" title="pyinventory.api.equipment.get_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pyinventory.api.html#pyinventory.api.equipment.get_equipment_in_position" title="pyinventory.api.equipment.get_equipment_in_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment_in_position()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pyinventory.api.html#pyinventory.api.equipment.add_equipment" title="pyinventory.api.equipment.add_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pyinventory.api.html#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
+</ul>
+</p></li>
+<li><p><strong>dest_location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – <p>Equipment object to be copied, could be retrieved from</p>
+<ul>
+<li><p><a class="reference internal" href="pyinventory.api.html#pyinventory.api.location.get_location" title="pyinventory.api.location.get_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_location()</span></code></a></p></li>
+<li><p><a class="reference internal" href="pyinventory.api.html#pyinventory.api.location.add_location" title="pyinventory.api.location.add_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_location()</span></code></a></p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
 </dd>
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><p>Dict[ <cite>pyinventory.common.data_class.Equipment</cite> , <cite>pyinventory.common.data_class.Equipment</cite> ]
-- <cite>pyinventory.common.data_class.Equipment</cite> - source equipment
-- <cite>pyinventory.common.data_class.Equipment</cite> - new equipment</p>
-<dl class="simple">
-<dt>The dict includes the equipment given as parameter and also all the equipments</dt><dd><p>attached to it</p>
-</dd>
-</dl>
+<dd class="field-odd"><p><p>Dictionary of source equipment to new equipment,
+includes the equipment given as parameter and also all the equipments attached to it</p>
+<ul class="simple">
+<li><p>source equipment - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a></p></li>
+<li><p>source equipment - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a></p></li>
+</ul>
 </p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Iterator[ Tuple[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>, str ] ]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1738,13 +1746,13 @@ for user in users:</p>
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><p>Iterator of Tuple[Link, str]</p>
 <ul class="simple">
-<li><p>Link - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a></p></li>
+<li><p>Link - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Link" title="pyinventory.common.data_class.Link"><code class="xref py py-class docutils literal notranslate"><span class="pre">Link</span></code></a></p></li>
 <li><p>str - port name</p></li>
 </ul>
 </p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p>Iterator[ Tuple[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>, str ] ]</p>
+<dd class="field-even"><p>Iterator[ Tuple[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Link" title="pyinventory.common.data_class.Link"><code class="xref py py-class docutils literal notranslate"><span class="pre">Link</span></code></a>, str ] ]</p>
 </dd>
 </dl>
 <p><strong>Example</strong></p>

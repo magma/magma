@@ -43,10 +43,10 @@ def get_all_links_and_port_names_of_equipment(
 
         :return: Iterator of Tuple[Link, str]
 
-            * Link - :class:`~pyinventory.common.data_class.Equipment`
+            * Link - :class:`~pyinventory.common.data_class.Link`
             * str - port name
 
-        :rtype: Iterator[ Tuple[ :class:`~pyinventory.common.data_class.Equipment`, str ] ]
+        :rtype: Iterator[ Tuple[ :class:`~pyinventory.common.data_class.Link`, str ] ]
 
         **Example**
 
