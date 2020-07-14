@@ -361,50 +361,45 @@ same name or property value in <cite>properties_dict</cite> does not match the p
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – equipment port type name</p></li>
-<li><p><strong>properties</strong> (List[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]) – list of property definitions</p></li>
-<li><p><strong>link_properties</strong> (List[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]) – list of property definitions</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Equipment port type name</p></li>
+<li><p><strong>properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ])) – List of property definitions</p></li>
+<li><p><strong>link_properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ])) – List of property definitions</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentPortType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentPortType object</p>
 </dd>
-</dl>
-<p class="rubric">Example</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-from pyinventory.common.data_class import PropertyDefinition
-from pyinventory.graphql.enum.property_kind import PropertyKind
-port_type1 = client.add_equipment_port_type(</p>
-<blockquote>
-<div><p>name=”port type 1”,
-properties=[</p>
-<blockquote>
-<div><dl class="simple">
-<dt>PropertyDefinition(</dt><dd><p>property_name=”port property”,
-property_kind=PropertyKind.string,
-default_raw_value=None,
-is_fixed=True</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortType" title="pyinventory.common.data_class.EquipmentPortType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentPortType</span></code></a></p>
 </dd>
 </dl>
-<p>)</p>
-</div></blockquote>
-<p>],
-link_properties=[</p>
-<blockquote>
-<div><dl class="simple">
-<dt>PropertyDefinition(</dt><dd><p>property_name=”link port property”,
-property_kind=PropertyKind.string,
-default_raw_value=None,
-is_fixed=True</p>
-</dd>
-</dl>
-<p>)</p>
-</div></blockquote>
-<p>],</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyinventory.common.data_class</span> <span class="kn">import</span> <span class="n">PropertyDefinition</span>
+<span class="kn">from</span> <span class="nn">pyinventory.graphql.enum.property_kind</span> <span class="kn">import</span> <span class="n">PropertyKind</span>
+<span class="n">port_type1</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">add_equipment_port_type</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;port type 1&quot;</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">PropertyDefinition</span><span class="p">(</span>
+            <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;port property&quot;</span><span class="p">,</span>
+            <span class="n">property_kind</span><span class="o">=</span><span class="n">PropertyKind</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
+            <span class="n">default_raw_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">is_fixed</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">link_properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">PropertyDefinition</span><span class="p">(</span>
+            <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;link port property&quot;</span><span class="p">,</span>
+            <span class="n">property_kind</span><span class="o">=</span><span class="n">PropertyKind</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
+            <span class="n">default_raw_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">is_fixed</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -797,7 +792,7 @@ in the chain and it is not clear where to create or what to return</p></li>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
 service = client.add_service(</p>
 <blockquote>
 <div><p>name=”Room 202 Internet Access”,
@@ -825,7 +820,7 @@ properties_dict={“Address Family”: “v4”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a>`
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
 service = client.get_service(id=”service_id”)
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
@@ -878,7 +873,7 @@ endpoint_definition_id=”endpoint_definition_id,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a>`
 service_type = client.add_service_type(</p>
 <blockquote>
 <div><p>client=self.client,
@@ -905,7 +900,7 @@ is_fixed=False,</p>
 </div></blockquote>
 <p>)</p>
 </div></blockquote>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
+<p><a href="#id7"><span class="problematic" id="id8">``</span></a><a href="#id9"><span class="problematic" id="id10">`</span></a></p>
 </dd></dl>
 
 <dl class="py method">
@@ -1199,13 +1194,16 @@ Users in symphony are never deleted. Only de-activated.</p>
 It can get only the requested equipment port type ID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>equipment_port_type_id</strong> (<em>str</em>) – equipment port type ID</p>
+<dd class="field-odd"><p><strong>equipment_port_type_id</strong> (<em>str</em>) – Equipment port type ID</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">client.delete_equipment_port_type(equipment_port_type_id=port_type1.id)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">delete_equipment_port_type</span><span class="p">(</span><span class="n">equipment_port_type_id</span><span class="o">=</span><span class="n">port_type1</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1398,32 +1396,41 @@ It can get only the requested service type ID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>port_type</strong> (<cite>pyinventory.common.data_class.EquipmentPortType</cite>) – existing eqipment port type object</p></li>
-<li><p><strong>new_name</strong> (<em>Optional</em><em>[ </em><em>str</em><em> ]</em>) – new name</p></li>
-<li><p><strong>new_properties</strong> – (Optional[ Dict[ str, PropertyValue ] ]): dictionary</p></li>
-<li><p><strong>str - property type name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>PropertyValue - new value of the same type for this property</strong> (<em>-</em>) – </p></li>
-<li><p><strong>new_link_properties</strong> – (Optional[ Dict[ str, PropertyValue ] ]): dictionary</p></li>
-<li><p><strong>str - link property type name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>PropertyValue - new value of the same type for this link property</strong> (<em>-</em>) – </p></li>
+<li><p><strong>port_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortType" title="pyinventory.common.data_class.EquipmentPortType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentPortType</span></code></a>) – Existing eqipment port type object</p></li>
+<li><p><strong>new_name</strong> (<em>str</em>) – New name</p></li>
+<li><p><strong>properties_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
+<ul>
+<li><p>str - property name</p></li>
+<li><p>PropertyValue - new value of the same type for this property</p></li>
+</ul>
+</p></li>
+<li><p><strong>new_link_properties</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
+<ul>
+<li><p>str - property name</p></li>
+<li><p>PropertyValue - new value of the same type for this property</p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentPortType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentPortType object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortType" title="pyinventory.common.data_class.EquipmentPortType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentPortType</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
-port_type1 = client.edit_equipment_port_type(</p>
-<blockquote>
-<div><p>port_type=equipment_port_type,
-new_name=”new port type name”,
-new_properties={“existing property name”: “new value”},
-new_link_properties={“existing link property name”: “new value”},</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">port_type1</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">edit_equipment_port_type</span><span class="p">(</span>
+    <span class="n">port_type</span><span class="o">=</span><span class="n">equipment_port_type</span><span class="p">,</span>
+    <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;new port type name&quot;</span><span class="p">,</span>
+    <span class="n">new_properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;existing property name&quot;</span><span class="p">:</span> <span class="s2">&quot;new value&quot;</span><span class="p">},</span>
+    <span class="n">new_link_properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;existing link property name&quot;</span><span class="p">:</span> <span class="s2">&quot;new value&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -1529,7 +1536,7 @@ new_link_properties={“existing link property name”: “new value”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id15"><span class="problematic" id="id16">``</span></a>`
+<p><a href="#id11"><span class="problematic" id="id12">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_link_properties(</p>
@@ -1611,7 +1618,7 @@ new_link_properties={“Link Property 1”: 98765},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id17"><span class="problematic" id="id18">``</span></a>`
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_port_properties(</p>
@@ -1646,7 +1653,7 @@ new_properties={“Port Property 2”: “test_it”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
+<p><a href="#id15"><span class="problematic" id="id16">``</span></a>`
 service_type = client.edit_service_type(</p>
 <blockquote>
 <div><p>service_type=service_type,
@@ -1707,13 +1714,13 @@ index=1,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id21"><span class="problematic" id="id22">``</span></a>`
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a>`
 users = client.get_active_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id23"><span class="problematic" id="id24">``</span></a><a href="#id25"><span class="problematic" id="id26">`</span></a></p>
+<p><a href="#id19"><span class="problematic" id="id20">``</span></a><a href="#id21"><span class="problematic" id="id22">`</span></a></p>
 </dd></dl>
 
 <dl class="py method">
@@ -1908,19 +1915,22 @@ or none with this name or the position is not occupied.</p></li>
 It can get only the requested equipment port type ID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>equipment_port_type_id</strong> (<em>str</em>) – equipment port type ID</p>
+<dd class="field-odd"><p><strong>equipment_port_type_id</strong> (<em>str</em>) – Equipment port type ID</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentPortType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Equipment port type does not found</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – equipment port type does not found</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentPortType object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortType" title="pyinventory.common.data_class.EquipmentPortType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentPortType</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">port_type</span> <span class="pre">=</span> <span class="pre">client.get_equipment_port_type(equipment_port_type_id=port_type1.id)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">port_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_equipment_port_type</span><span class="p">(</span><span class="n">equipment_port_type_id</span><span class="o">=</span><span class="n">port_type1</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2575,7 +2585,7 @@ in case it is not found, creates one.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id27"><span class="problematic" id="id28">``</span></a>`
+<p><a href="#id23"><span class="problematic" id="id24">``</span></a>`
 property_type = client.get_property_type_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2624,7 +2634,7 @@ property_type_name=”IP”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id29"><span class="problematic" id="id30">``</span></a>`
+<p><a href="#id25"><span class="problematic" id="id26">``</span></a>`
 service_type = client.get_service_type(</p>
 <blockquote>
 <div><p>service_type_id=”12345”,</p>
@@ -2668,13 +2678,13 @@ service_type = client.get_service_type(</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
+<p><a href="#id27"><span class="problematic" id="id28">``</span></a>`
 users = client.get_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id33"><span class="problematic" id="id34">``</span></a><a href="#id35"><span class="problematic" id="id36">`</span></a></p>
+<p><a href="#id29"><span class="problematic" id="id30">``</span></a><a href="#id31"><span class="problematic" id="id32">`</span></a></p>
 </dd></dl>
 
 <dl class="py method">
