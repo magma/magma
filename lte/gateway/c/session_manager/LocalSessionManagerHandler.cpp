@@ -25,12 +25,13 @@ const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::shared_ptr<EventsReporter> events_reporter,
     SessionStore& session_store)
     : session_store_(session_store),
       enforcer_(enforcer),
       reporter_(reporter),
       directoryd_client_(directoryd_client),
-
+      events_reporter_(events_reporter),
       current_epoch_(0),
       reported_epoch_(0),
       retry_timeout_(1) {}
@@ -100,10 +101,13 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
         if (!status.ok()) {
           MLOG(MERROR) << "Update of size " << request.updates_size()
                        << " to OCS failed entirely: " << status.error_message();
+          report_session_update_event_failure(
+              *session_map_ptr, session_update, status.error_message());
         } else {
           enforcer_->update_session_credits_and_rules(
               *session_map_ptr, response, session_update);
           session_store_.update_sessions(session_update);
+          report_session_update_event(*session_map_ptr, session_update);
         }
       });
 }
@@ -374,8 +378,14 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             }
           }
         } else {
-          MLOG(MERROR) << "Failed to initialize session in SessionProxy "
-                       << "for IMSI " << imsi << ": " << status.error_message();
+          std::ostringstream failure_stream;
+          failure_stream << "Failed to initialize session in SessionProxy "
+                         << "for IMSI " << imsi << ": "
+                         << status.error_message();
+          std::string failure_msg = failure_stream.str();
+          MLOG(MERROR) << failure_msg;
+          events_reporter_->session_create_failure(
+              imsi, cfg.apn, cfg.mac_addr, failure_msg);
         }
         LocalCreateSessionResponse resp;
         resp.set_session_id(response.session_id());
@@ -489,6 +499,46 @@ SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(
   // callback when reporting is done.
   SessionRead req = {request.sid().id()};
   return session_store_.read_sessions(req);
+}
+
+void LocalSessionManagerHandlerImpl::report_session_update_event(
+    SessionMap& session_map, SessionUpdate& session_update) {
+  for (auto& it : session_map) {
+    auto imsi = it.first;
+    auto session = it.second.begin();
+    while (session != it.second.end()) {
+      auto updates = session_update.find(it.first)->second;
+      auto session_id = (*session)->get_session_id();
+      if (updates.find(session_id) != updates.end()) {
+        events_reporter_->session_updated(*session);
+      }
+      ++session;
+    }
+  }
+
+}
+
+void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
+    SessionMap& session_map, SessionUpdate& session_update,
+    const std::string& failure_reason) {
+  for (auto& it : session_map) {
+    auto imsi = it.first;
+    auto session = it.second.begin();
+    while (session != it.second.end()) {
+      auto updates = session_update.find(it.first)->second;
+      auto session_id = (*session)->get_session_id();
+      if (updates.find(session_id) != updates.end()) {
+
+        std::ostringstream failure_stream;
+        failure_stream << "Update Session failed due to response from OCS: "
+                       << failure_reason;
+        std::string failure_msg = failure_stream.str();
+        MLOG(MERROR) << failure_msg;
+        events_reporter_->session_update_failure(failure_msg, *session);
+      }
+      ++session;
+    }
+  }
 }
 
 }  // namespace magma

@@ -48,18 +48,27 @@ class SessiondTest : public ::testing::Test {
     pipelined_client  = std::make_shared<AsyncPipelinedClient>(test_channel);
     directoryd_client = std::make_shared<AsyncDirectorydClient>(test_channel);
     spgw_client       = std::make_shared<AsyncSpgwServiceClient>(test_channel);
+    events_reporter   = std::make_shared<MockEventsReporter>();
     auto rule_store   = std::make_shared<StaticRuleStore>();
-    session_store     = std::make_shared<SessionStore>(rule_store);
+    session_store = std::make_shared<SessionStore>(rule_store);
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
     reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
-    monitor              = std::make_shared<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, MockEventdClient::getInstance(), spgw_client,
-        nullptr, SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
+    monitor = std::make_shared<LocalEnforcer>(
+      reporter,
+      rule_store,
+      *session_store,
+      pipelined_client,
+      directoryd_client,
+      events_reporter,
+      spgw_client,
+      nullptr,
+      SESSION_TERMINATION_TIMEOUT_MS,
+      0,
+      default_mconfig);
     session_map = SessionMap{};
 
     local_service =
@@ -67,7 +76,8 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
         local_service->GetNewCompletionQueue(),
         std::make_unique<LocalSessionManagerHandlerImpl>(
-            monitor, reporter.get(), directoryd_client, *session_store));
+          monitor, reporter.get(), directoryd_client,
+          events_reporter, *session_store));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
         local_service->GetNewCompletionQueue(),
@@ -176,6 +186,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<AsyncPipelinedClient> pipelined_client;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client;
   std::shared_ptr<AsyncSpgwServiceClient> spgw_client;
+  std::shared_ptr<MockEventsReporter> events_reporter;
   std::shared_ptr<SessionStore> session_store;
   SessionMap session_map;
 };
@@ -242,8 +253,6 @@ ACTION_P2(SetEndPromise, promise_p, status) {
 TEST_F(SessiondTest, end_to_end_success) {
   std::promise<void> end_promise;
   {
-    InSequence dummy;
-
     CreateSessionResponse create_response;
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule1");
@@ -261,8 +270,9 @@ TEST_F(SessiondTest, end_to_end_success) {
         CreateSession(testing::_, CheckCreateSession("IMSI1"), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-            testing::SetArgPointee<2>(create_response),
-            testing::Return(grpc::Status::OK)));
+          testing::SetArgPointee<2>(create_response),
+          testing::Return(grpc::Status::OK)));
+    EXPECT_CALL(*events_reporter, session_created(testing::_)).Times(1);
 
     // Temporary fix for pipelined client in sessiond introduces separate calls
     // for static and dynamic rules. So here is the call for static rules.
@@ -276,6 +286,7 @@ TEST_F(SessiondTest, end_to_end_success) {
         ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 0), testing::_))
         .Times(1);
 
+    EXPECT_CALL(*events_reporter, session_updated(testing::_)).Times(1);
     CreditUsageUpdate expected_update;
     create_usage_update(
         "IMSI1", 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
@@ -306,8 +317,9 @@ TEST_F(SessiondTest, end_to_end_success) {
         TerminateSession(testing::_, CheckTerminate("IMSI1"), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-            testing::SetArgPointee<2>(terminate_response),
-            SetEndPromise(&end_promise, Status::OK)));
+          testing::SetArgPointee<2>(terminate_response),
+          SetEndPromise(&end_promise, Status::OK)));
+    EXPECT_CALL(*events_reporter, session_terminated(testing::_)).Times(1);
   }
 
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(

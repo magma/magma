@@ -68,7 +68,7 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    AsyncEventdClient& eventd_client,
+    std::shared_ptr<EventsReporter> events_reporter,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
@@ -78,7 +78,7 @@ LocalEnforcer::LocalEnforcer(
       rule_store_(rule_store),
       pipelined_client_(pipelined_client),
       directoryd_client_(directoryd_client),
-      eventd_client_(eventd_client),
+      events_reporter_(events_reporter),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
       session_store_(session_store),
@@ -829,7 +829,7 @@ bool LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
-  auto session_state = new SessionState(
+  auto session_state = std::make_unique<SessionState>(
       imsi, session_id, response.session_id(), cfg, *rule_store_,
       response.tgpp_ctx());
 
@@ -872,12 +872,10 @@ bool LocalEnforcer::init_session_credit(
                  << session_id;
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   }
-  session_map[imsi].push_back(
-      std::move(std::unique_ptr<SessionState>(session_state)));
-
   if (session_state->is_radius_cwf_session() == false) {
-    session_events::session_created(eventd_client_, imsi, session_id);
+    events_reporter_->session_created(session_state);
   }
+  session_map[imsi].push_back(std::move(session_state));
 
   return rule_update_success;
 }
@@ -993,7 +991,7 @@ void LocalEnforcer::complete_termination(
       (*session_it)->complete_termination(*reporter_, update_criteria);
       // Send to eventd
       if ((*session_it)->is_radius_cwf_session() == false) {
-        session_events::session_terminated(eventd_client_, *session_it);
+        events_reporter_->session_terminated(*session_it);
       }
       // We break the loop below, but for extra code safety in case
       // someone removes the break in the future, adjust the iterator
