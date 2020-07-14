@@ -227,10 +227,10 @@ add_library(TASK_NAS
 target_link_libraries(TASK_NAS
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_SECU LIB_3GPP
-    TASK_S1AP TASK_MME_APP TASK_SERVICE303  TASK_S6A 
+    TASK_S1AP TASK_MME_APP TASK_SERVICE303  TASK_S6A
 )
 if (EMBEDDED_SGW)
-target_link_libraries(TASK_SGW)
+  target_link_libraries(TASK_NAS TASK_SGW)
 endif(EMBEDDED_SGW)
 
 # TODO leak baby leak

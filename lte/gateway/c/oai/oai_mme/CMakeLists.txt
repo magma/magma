@@ -56,11 +56,11 @@ target_link_libraries(mme
 )
 
 if ( NOT EMBEDDED_SGW )
-    target_link_libraries(LIB_GTPV2C)
+    target_link_libraries(mme LIB_GTPV2C)
 Message(EMBEDDED_SGW  should be unset is actually ${EMBEDDED_SGW})
 else ( EMBEDDED_SGW )
 Message(EMBEDDED_SGW  should be set is actually ${EMBEDDED_SGW})
-    target_link_libraries( TASK_SGW)
+    target_link_libraries(mme TASK_SGW)
 endif ( NOT EMBEDDED_SGW )
 
 if ( NOT S6A_OVER_GRPC )
