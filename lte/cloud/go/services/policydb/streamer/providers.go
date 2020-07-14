@@ -24,6 +24,58 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO: need to stream down the infinite credit charging keys from here
+type RatingGroupsProvider struct{}
+
+func (p *RatingGroupsProvider) GetStreamName() string {
+	return lte.RatingGroupStreamName
+}
+
+// GetUpdates implements GetUpdates for the policies stream provider
+func (provider *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
+	}
+
+	ratingGroupEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.RatingGroupEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return nil, err
+	}
+
+	rgProtos := make([]*lte_protos.RatingGroup, 0, len(ratingGroupEnts))
+	var rgProto *lte_protos.RatingGroup
+	for _, ratingGroup := range ratingGroupEnts {
+		rgProto, err = createRatingGroupProtoFromEnt(ratingGroup)
+		if err != nil {
+			return nil, err
+		}
+		rgProtos = append(rgProtos, rgProto)
+	}
+	return ratingGroupsToUpdates(rgProtos)
+}
+
+func createRatingGroupProtoFromEnt(ratingGroupEnt configurator.NetworkEntity) (*lte_protos.RatingGroup, error) {
+	if ratingGroupEnt.Config == nil {
+		return nil, fmt.Errorf("Failed to convert to RatingGroup proto")
+	}
+	cfg := ratingGroupEnt.Config.(*models.RatingGroup)
+	return cfg.ToProto(), nil
+}
+
+func ratingGroupsToUpdates(ratingGroups []*lte_protos.RatingGroup) ([]*protos.DataUpdate, error) {
+	ret := make([]*protos.DataUpdate, 0, len(ratingGroups))
+	for _, rg := range ratingGroups {
+		marshaledRatingGroup, err := proto.Marshal(rg)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, &protos.DataUpdate{Key: fmt.Sprint(rg.Id), Value: marshaledRatingGroup})
+	}
+	sortUpdates(ret)
+	return ret, nil
+}
+
 type PoliciesProvider struct{}
 
 func (p *PoliciesProvider) GetStreamName() string {
