@@ -10,6 +10,7 @@ of patent rights can be found in the PATENTS file in the same directory.
 import unittest
 from typing import List
 from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.policydb_pb2 import RatingGroup
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest, \
     CreditUpdateResponse, CreditLimitType
@@ -26,8 +27,13 @@ USR = '''
     success: true
     sid: "abc"
     charging_key: 1
-    result_code: 1
     limit_type: INFINITE_UNMETERED
+  }
+  responses {
+    success: true
+    sid: "abc"
+    charging_key: 2
+    limit_type: INFINITE_METERED
   }'''
 
 
@@ -48,14 +54,23 @@ class MockSubscriberDBStub:
 
 class SessionRpcServicerTest(unittest.TestCase):
     def setUp(self):
+        rating_groups_by_id= {
+            1: RatingGroup(
+                id=1,
+                limit_type=RatingGroup.INFINITE_UNMETERED,
+            ),
+            2: RatingGroup(
+                id=2,
+                limit_type=RatingGroup.INFINITE_METERED,
+            ),
+        }
         self.servicer = SessionRpcServicer(self._get_mconfig(),
+                                           rating_groups_by_id,
                                            MockSubscriberDBStub())
 
     def _get_mconfig(self) -> mconfigs_pb2.PolicyDB:
         return mconfigs_pb2.PolicyDB(
             log_level=1,
-            infinite_unmetered_charging_keys=[1],
-            infinite_metered_charging_keys=[2],
         )
 
     def tearDown(self):
@@ -105,7 +120,8 @@ class SessionRpcServicerTest(unittest.TestCase):
         session_response = self._rm_whitespace(str(resp))
         expected = self._rm_whitespace(USR)
         self.assertEqual(session_response, expected, 'There should be an '
-                         'infinite, unmetered credit grant')
+                         'infinite, unmetered credit grant and an infinite, '
+                         'metered credit grant')
 
     def test_TerminateSession(self):
         """
