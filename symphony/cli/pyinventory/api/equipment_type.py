@@ -505,9 +505,8 @@ def edit_equipment_type_property_type(
         :type new_property_definition: :class:`~pyinventory.common.data_class.PropertyDefinition`
 
         :raises:
-            :class:`~pyinventory.exceptions.EntityNotFoundError`: if property type name is not found
-        :raises:
-            FailedOperationException: internal inventory error
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: if property type name is not found
+            * FailedOperationException: internal inventory error
 
         :return: EquipmentType object
         :rtype: :class:`~pyinventory.common.data_class.EquipmentType`
