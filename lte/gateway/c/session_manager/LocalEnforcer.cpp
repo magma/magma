@@ -1562,6 +1562,11 @@ void LocalEnforcer::process_rules_to_install(
   std::string ip_addr      = session.get_config().ue_ipv4;
   for (const auto& rule_install : static_rule_installs) {
     const auto& id = rule_install.rule_id();
+    if (session.is_static_rule_installed(id)) {
+      // Session proxy may ask for duplicate rule installs.
+      // Ignore them here.
+      continue;
+    }
     auto activation_time =
         TimeUtil::TimestampToSeconds(rule_install.activation_time());
     auto deactivation_time =
