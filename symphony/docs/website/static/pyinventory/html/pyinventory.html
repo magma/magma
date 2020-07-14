@@ -775,32 +775,38 @@ in the chain and it is not clear where to create or what to return</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – service name</p></li>
-<li><p><strong>external_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – service external ID</p></li>
-<li><p><strong>service_type</strong> (<em>str</em>) – existing service type name</p></li>
-<li><p><strong>customer</strong> (Optional[ <cite>pyinventory.common.data_class.Customer</cite> ]) – existing customer object</p></li>
-<li><p><strong>properties_dict</strong> (<em>Optional</em><em>[ </em><em>Mapping</em><em>[ </em><em>str</em><em>, </em><em>PropertyValue</em><em> ] </em><em>]</em>) – dictionary of property name to property value</p></li>
-<li><p><strong>str - property name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>PropertyValue - new value of the same type for this property</strong> (<em>-</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Service name</p></li>
+<li><p><strong>external_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Service external ID</p></li>
+<li><p><strong>service_type</strong> (<em>str</em>) – Service type name</p></li>
+<li><p><strong>customer</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Customer" title="pyinventory.common.data_class.Customer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Customer</span></code></a>, optional) – Customer object</p></li>
+<li><p><strong>properties_dict</strong> – <p>Mapping of property name to property value</p>
+<ul>
+<li><p>str - property name</p></li>
+<li><p>PropertyValue - new value of the same type for this property</p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Service</cite></p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Service object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Service" title="pyinventory.common.data_class.Service"><code class="xref py py-class docutils literal notranslate"><span class="pre">Service</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-service = client.add_service(</p>
-<blockquote>
-<div><p>name=”Room 202 Internet Access”,
-external_id=”S32325”,
-service_type=self.service_type.name,
-customer=None,
-properties_dict={“Address Family”: “v4”},</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">service</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">add_service</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Room 202 Internet Access&quot;</span><span class="p">,</span>
+    <span class="n">external_id</span><span class="o">=</span><span class="s2">&quot;S32325&quot;</span><span class="p">,</span>
+    <span class="n">service_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">service_type</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="n">customer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">properties_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Address Family&quot;</span><span class="p">:</span> <span class="s2">&quot;v4&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -810,26 +816,29 @@ properties_dict={“Address Family”: “v4”},</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>service</strong> (<em>str</em>) – existing service object</p></li>
-<li><p><strong>equipment_id</strong> (<em>str</em>) – existing equipment ID</p></li>
-<li><p><strong>endpoint_definition_id</strong> (<em>str</em>) – existing endpoint definition ID</p></li>
+<li><p><strong>service</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Service" title="pyinventory.common.data_class.Service"><code class="xref py py-class docutils literal notranslate"><span class="pre">Service</span></code></a>) – Existing service object</p></li>
+<li><p><strong>equipment_id</strong> (<em>str</em>) – Existing equipment ID</p></li>
+<li><p><strong>endpoint_definition_id</strong> (<em>str</em>) – Existing endpoint definition ID</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
-service = client.get_service(id=”service_id”)
-location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
-equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
-client.add_service_endpoint(</p>
-<blockquote>
-<div><p>service=service,
-equipment_id=equipment.id,
-endpoint_definition_id=”endpoint_definition_id,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">service</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;service_id&quot;</span><span class="p">)</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span><span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;LS_IND_Prod_Copy&quot;</span><span class="p">)])</span>
+<span class="n">equipment</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_equipment</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;indProdCpy1_AIO&quot;</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">add_service_endpoint</span><span class="p">(</span>
+    <span class="n">service</span><span class="o">=</span><span class="n">service</span><span class="p">,</span>
+    <span class="n">equipment_id</span><span class="o">=</span><span class="n">equipment</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="n">endpoint_definition_id</span><span class="o">=</span><span class="s2">&quot;endpoint_definition_id,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -839,18 +848,21 @@ endpoint_definition_id=”endpoint_definition_id,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>service_id</strong> (<em>str</em>) – existing service ID</p></li>
-<li><p><strong>link_id</strong> (<em>str</em>) – existing link ID</p></li>
+<li><p><strong>service_id</strong> (<em>str</em>) – Existing service ID</p></li>
+<li><p><strong>link_id</strong> (<em>str</em>) – Existing link ID</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">client.add_service_link(service_id=service.id,</span> <span class="pre">link_id=link.id)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">add_service_link</span><span class="p">(</span><span class="n">service_id</span><span class="o">=</span><span class="n">service</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">link_id</span><span class="o">=</span><span class="n">link</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -861,7 +873,7 @@ endpoint_definition_id=”endpoint_definition_id,</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Service type name</p></li>
-<li><p><strong>has_customer</strong> (<em>bool</em>) – Flag for customenr existance</p></li>
+<li><p><strong>has_customer</strong> (<em>bool</em>) – Flag for customer existance</p></li>
 <li><p><strong>properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ], optional) – Property definitions list</p></li>
 <li><p><strong>endpoint_definitions</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceEndpointDefinition" title="pyinventory.common.data_class.ServiceEndpointDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceEndpointDefinition</span></code></a> ], optional) – Service endpont definitions list</p></li>
 </ul>
@@ -1654,7 +1666,7 @@ there are no properties or there any unknown property name in <cite>new_properti
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – Service object</p></li>
 <li><p><strong>new_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Service type name</p></li>
-<li><p><strong>new_has_customer</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for customenr existance</p></li>
+<li><p><strong>new_has_customer</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for customer existance</p></li>
 <li><p><strong>new_properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ], optional) – Property definitions list</p></li>
 <li><p><strong>new_endpoints</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceEndpointDefinition" title="pyinventory.common.data_class.ServiceEndpointDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceEndpointDefinition</span></code></a> ], optional) – Service endpont definitions list</p></li>
 </ul>
@@ -1727,13 +1739,13 @@ there are no properties or there any unknown property name in <cite>new_properti
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a>`
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
 users = client.get_active_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a><a href="#id9"><span class="problematic" id="id10">`</span></a></p>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
 </dd></dl>
 
 <dl class="py method">
@@ -2619,22 +2631,25 @@ in case it is not found, creates one.</p>
 <dd><p>This function returns service by ID.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – existing service ID</p>
+<dd class="field-odd"><p><strong>id</strong> (<em>str</em>) – Service ID</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Service</cite></p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – service does not exist</p></li>
-<li><p><strong>FailedOperationException</strong> – internal inventory error</p></li>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Service does not exist</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
 </ul>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Service object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Service" title="pyinventory.common.data_class.Service"><code class="xref py py-class docutils literal notranslate"><span class="pre">Service</span></code></a></p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">service</span> <span class="pre">=</span> <span class="pre">client.get_service(id=&quot;12345&quot;)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">service</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_service</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2700,13 +2715,13 @@ in case it is not found, creates one.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id11"><span class="problematic" id="id12">``</span></a>`
+<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
 users = client.get_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
 </dd></dl>
 
 <dl class="py method">
