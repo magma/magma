@@ -52,7 +52,6 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #if EMBEDDED_SGW
-#include "pgw_defs.h"
 #include "spgw_config.h"
 #include "sgw_defs.h"
 #endif
