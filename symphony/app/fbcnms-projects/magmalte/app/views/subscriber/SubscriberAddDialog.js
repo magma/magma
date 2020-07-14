@@ -13,6 +13,7 @@ import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import CloudUploadIcon from '@material-ui/icons/CloudUpload';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
@@ -39,8 +40,10 @@ import {AltFormField, PasswordInput} from '../../components/FormField';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {colors, typography} from '../../theme/default';
+import {forwardRef} from 'react';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useRef, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -95,6 +98,74 @@ const useStyles = makeStyles(theme => ({
     fullWidth: true,
   },
 }));
+
+const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
+
+type SubscriberInfo = {
+  name: string,
+  imsi: string,
+  authKey: string,
+  authOpc: string,
+  state: 'INACTIVE' | 'ACTIVE',
+  dataPlan: string,
+  apns: Array<string>,
+};
+
+function parseSubscriberFile(fileObj: File) {
+  const reader = new FileReader();
+  const subscribers = [];
+  return new Promise((resolve, reject) => {
+    if (fileObj.size > MAX_UPLOAD_FILE_SZ_BYTES) {
+      reject(
+        'file size exceeds max upload size of 10MB, please upload smaller file',
+      );
+      return;
+    }
+
+    reader.onload = async e => {
+      try {
+        if (!(e.target instanceof FileReader)) {
+          reject('invalid target type');
+          return;
+        }
+
+        const text = e.target.result;
+        if (typeof text !== 'string') {
+          reject('invalid file content');
+          return;
+        }
+
+        for (const line of text
+          .split('\n')
+          .map(item => item.trim())
+          .filter(Boolean)) {
+          const items = line.split(',').map(item => item.trim());
+          if (items.length != 7) {
+            reject('failed parsing ' + line);
+            return;
+          }
+          subscribers.push({
+            name: items[0],
+            imsi: items[1],
+            authKey: items[2],
+            authOpc: items[3],
+            dataPlan: items[4],
+            state: items[5] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+            apns: items[6]
+              .split('|')
+              .map(item => item.trim())
+              .filter(Boolean),
+          });
+        }
+      } catch (e) {
+        reject('Failed parsing the file ' + fileObj.name + '. ' + e?.message);
+        return;
+      }
+      resolve(subscribers);
+    };
+    reader.readAsText(fileObj);
+  });
+}
 
 export default function AddSubscriberButton() {
   const classes = useStyles();
@@ -166,22 +237,14 @@ function EditSubscriberDialog(props: DialogProps) {
   );
 }
 
-type SubscriberInfo = {
-  name: string,
-  imsi: string,
-  authKey: string,
-  authOpc: string,
-  state: 'INACTIVE' | 'ACTIVE',
-  dataPlan: string,
-  apns: Array<string>,
-};
-
 function AddSubscriberDetails(props: DialogProps) {
   const ctx = useContext(SubscriberContext);
   const {match} = useRouter();
 
   const [error, setError] = useState('');
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
+  const fileInput = useRef(null);
+  const enqueueSnackbar = useEnqueueSnackbar();
 
   const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularEpc,
@@ -209,6 +272,10 @@ function AddSubscriberDetails(props: DialogProps) {
   const saveSubscribers = async () => {
     for (const subscriber of subscribers) {
       try {
+        const err = validateSubscriberInfo(subscriber, ctx.state);
+        if (err.length > 0) {
+          throw err;
+        }
         const authKey =
           subscriber.authKey && isValidHex(subscriber.authKey)
             ? hexToBase64(subscriber.authKey)
@@ -231,7 +298,7 @@ function AddSubscriberDetails(props: DialogProps) {
           },
         });
       } catch (e) {
-        const errMsg = e.response.data?.message ?? e.message;
+        const errMsg = e.response?.data?.message ?? e.message ?? e;
         setError('error saving ' + subscriber.imsi + ' : ' + errMsg);
         return;
       }
@@ -243,7 +310,26 @@ function AddSubscriberDetails(props: DialogProps) {
     <>
       <DialogContent>
         {error !== '' && <FormLabel error>{error}</FormLabel>}
-
+        <input
+          type="file"
+          ref={fileInput}
+          accept={'.csv'}
+          style={{display: 'none'}}
+          onChange={async () => {
+            if (fileInput.current) {
+              try {
+                const newSubscribers = await parseSubscriberFile(
+                  fileInput.current.files[0],
+                );
+                setSubscribers([...subscribers, ...newSubscribers]);
+              } catch (e) {
+                enqueueSnackbar(e, {
+                  variant: 'error',
+                });
+              }
+            }
+          }}
+        />
         <ActionTable
           data={subscribers}
           columns={[
@@ -380,6 +466,20 @@ function AddSubscriberDetails(props: DialogProps) {
                 resolve();
               }),
           }}
+          actions={[
+            {
+              icon: forwardRef((props, ref) => (
+                <CloudUploadIcon {...props} ref={ref} />
+              )),
+              tooltip: 'Upload',
+              isFreeAction: true,
+              onClick: () => {
+                if (fileInput.current) {
+                  fileInput.current.click();
+                }
+              },
+            },
+          ]}
         />
       </DialogContent>
       <DialogActions>

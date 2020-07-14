@@ -107,6 +107,7 @@ export type ActionTableProps<T> = {
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
   menuItems?: Array<ActionMenuItems>,
+  actions?: Array<{}>,
   data: Array<T> | (ActionQuery => {}),
   options: ActionTableOptions,
 };
@@ -209,13 +210,14 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
         actions={
           props.menuItems
             ? [
+                ...(props.actions ? props.actions : []),
                 {
                   icon: () => <MoreVertIcon />,
                   tooltip: 'Actions',
                   onClick: handleClick,
                 },
               ]
-            : null
+            : props.actions
         }
         options={props.options}
       />
