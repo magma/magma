@@ -16,6 +16,8 @@ import threading
 import unittest
 
 from ipaddress import ip_network
+from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+
 from magma.mobilityd.ip_address_man import IPAddressManager, MappingNotFoundError
 from unittest import mock
 from magma.common.redis.mocks.mock_redis import MockRedis
@@ -66,6 +68,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
             'persist_to_redis': False,
         }
         self._dhcp_allocator = IPAddressManager(recycling_interval=2,
+                                                allocator_type=MobilityD.DHCP,
                                                 config=config)
         print("dhcp allocator created")
 

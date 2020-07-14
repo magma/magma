@@ -17,6 +17,7 @@ from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, ReleaseIPRequest, \
     RemoveIPBlockRequest, RemoveIPBlockResponse, SubscriberIPTableEntry, \
     IPLookupRequest
+from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.mobilityd.rpc_servicer import IPVersionNotSupportedError, \
     MobilityServiceRpcServicer
@@ -38,6 +39,7 @@ class RpcTests(unittest.TestCase):
         # Create a mock "mconfig" for the servicer to use
         mconfig = unittest.mock.Mock()
         mconfig.ip_block = None
+        mconfig.ip_allocator_type = MobilityD.IP_POOL
 
         # Add the servicer
         config = {'persist_to_redis': False,

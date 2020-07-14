@@ -43,6 +43,7 @@ import threading
 from collections import defaultdict
 from ipaddress import ip_address, ip_network
 from typing import List, Optional, Tuple
+from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 
 from magma.mobilityd import mobility_store as store
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
@@ -52,7 +53,6 @@ from magma.common.redis.client import get_default_client
 from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_static import IpAllocatorStatic
 from .ip_descriptor_map import IpDescriptorMap
-from .ip_allocator_base import IPAllocatorType
 from .uplink_gw import UplinkGatewayInfo
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
@@ -109,6 +109,7 @@ class IPAddressManager:
     def __init__(self,
                  *,
                  config,
+                 allocator_type,
                  recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL):
         """ Initializes a new IP allocator
 
@@ -122,17 +123,8 @@ class IPAddressManager:
 
         persist_to_redis = config.get('persist_to_redis', True)
         redis_port = config.get('redis_port', 6379)
-        if 'allocator_type' in config:
-            if config['allocator_type'] == 'ip_pool':
-                self.allocator_type = IPAllocatorType.IP_POOL
-            elif config['allocator_type'] == 'dhcp':
-                self.allocator_type = IPAllocatorType.DHCP
-            else:
-                raise ArgumentError("unknown allocator config {}"
-                                    .format(config['allocator_type']))
-        else:
-            self.allocator_type = IPAllocatorType.IP_POOL
 
+        self.allocator_type = allocator_type
         logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
 
@@ -151,11 +143,12 @@ class IPAddressManager:
             self.sid_ips_map = store.IPDescDict(client)
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
-        if self.allocator_type == IPAllocatorType.IP_POOL:
+        logging.info("Using allocator: %s", self.allocator_type)
+        if self.allocator_type == MobilityD.IP_POOL:
             self.ip_allocator = IpAllocatorStatic(self._assigned_ip_blocks,
                                                   self.ip_state_map,
                                                   self.sid_ips_map)
-        elif self.allocator_type == IPAllocatorType.DHCP:
+        elif self.allocator_type == MobilityD.DHCP:
             dhcp_store = store.MacToIP()  # mac => DHCP_State
             dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
             iface = config.get('dhcp_iface', 'dhcp0')
