@@ -187,10 +187,16 @@ func (WorkOrder) Edges() []ent.Edge {
 
 // Indexes returns work order indexes.
 func (WorkOrder) Indexes() []ent.Index {
-	return []ent.Index{
+	indexes := []ent.Index{
 		index.Fields("creation_date"),
 		index.Fields("close_date"),
 	}
+	for _, f := range (mixin.Time{}).Fields() {
+		indexes = append(indexes,
+			index.Fields(f.Descriptor().Name),
+		)
+	}
+	return indexes
 }
 
 // Hooks returns work order hooks.
