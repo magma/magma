@@ -5,7 +5,6 @@ set (  SCTP_DUMP_LIST                  False )
 set (  TRACE_HASHTABLE                 False )
 set (  TRACE_3GPP_SPEC                 False )
 
-
 # Dependencies
 pkg_search_module(LIBXML2 libxml-2.0 REQUIRED)
 include_directories(${LIBXML2_INCLUDE_DIRS})
@@ -28,8 +27,6 @@ find_library(LFDS lfds710 PATHS /usr/local/lib /usr/lib )
 if ("${LFDS}" STREQUAL "LFDS-NOTFOUND")
   message(FATAL_ERROR "LIB LFDS not found, please install it" )
 endif()
-
-
 
 
 add_executable(mme

@@ -40,7 +40,6 @@
 #include "dynamic_memory_check.h"
 #include "spgw_config.h"
 
-
 void spgw_config_display(spgw_config_t *config_p);
 
 //------------------------------------------------------------------------------
