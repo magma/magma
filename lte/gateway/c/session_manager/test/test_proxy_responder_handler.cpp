@@ -138,7 +138,13 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
 
     auto static_rule = new StaticRuleInstall();
     static_rule->set_rule_id("static_1");
+
+    // This should be a duplicate rule
+    auto static_rule_2 = new StaticRuleInstall();
+    static_rule_2->set_rule_id(rule_id_3);
+
     request->mutable_rules_to_install()->AddAllocated(static_rule);
+    request->mutable_rules_to_install()->AddAllocated(static_rule_2);
     return request;
   }
 
@@ -210,6 +216,12 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
       session_map[imsi].front()->is_static_rule_installed("static_1"), false);
 
   // 4) Now call PolicyReAuth
+  //    This is done with a duplicate install of rule_id_3. This checks that
+  //    duplicate rule installs are ignored, as they are occasionally
+  //    requested by the session proxy. If the duplicate rule install causes
+  //    a failure, then the entire PolicyReAuth will not save to the
+  //    SessionStore properly
+  std::cout << "Andrei: Calling PolicyReAuth" << std::endl;
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
   EXPECT_CALL(*pipelined_client, activate_flows_for_rules(_, _, _, _, _))
@@ -224,6 +236,8 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
 
   // 5) Read the session back from SessionStore and verify that the update
   //    was done correctly to what's stored.
+  //    If the PolicyReAuth failed, then rule static_1 will not have been
+  //    installed.
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
   EXPECT_EQ(session_map[imsi].size(), 1);
