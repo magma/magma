@@ -258,6 +258,21 @@ func (m *RatingGroup) ToEntity() configurator.NetworkEntity {
 	return ret
 }
 
+func (m *RatingGroup) ToProto() *protos.RatingGroup {
+	limit_type := protos.RatingGroup_FINITE
+	switch limit := *m.LimitType; limit {
+	case "INFINITE_METERED":
+		limit_type = protos.RatingGroup_INFINITE_METERED
+	case "INFINITE_UNMETERED":
+		limit_type = protos.RatingGroup_INFINITE_UNMETERED
+	}
+	rule := &protos.RatingGroup{
+		Id:        uint32(m.ID),
+		LimitType: limit_type,
+	}
+	return rule
+}
+
 func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) (*RatingGroup, error) {
 	ratingGroupID, err := swag.ConvertUint32(ent.Key)
 	if err != nil {

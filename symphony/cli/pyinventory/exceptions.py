@@ -5,7 +5,17 @@
 
 from typing import Optional
 
+from requests.models import Response
+
 from .common.data_enum import Entity
+
+
+def assert_ok(resp: Response) -> None:
+    if not resp.ok:
+        error_message = resp.json().get("error", None)
+        if error_message is not None:
+            raise AssertionError(error_message)
+        raise AssertionError()
 
 
 class CustomException(Exception):

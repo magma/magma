@@ -19,7 +19,7 @@ import {fetchQuery, graphql} from 'relay-runtime';
 
 const userSearchQuery = graphql`
   query UserSearchContextQuery($filters: [UserFilterInput!]!) {
-    users(first: 500, filters: $filters) {
+    users(first: 500, filterBy: $filters) {
       edges {
         node {
           ...UserManagementUtils_user @relay(mask: false)

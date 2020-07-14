@@ -117,6 +117,18 @@ def _get_identity():
     return "{}.{}".format(socket.gethostname(), realm)
 
 
+def _get_enable_nat():
+    nat_enabled = get_service_config_value("mme", "enable_nat", None)
+
+    if nat_enabled is None:
+        nat_enabled = load_service_mconfig("mme", MME()).nat_enabled
+
+    if nat_enabled is not None:
+        return nat_enabled
+
+    return True
+
+
 def _get_attached_enodeb_tacs():
     mme_config = load_service_mconfig("mme", MME())
     # attachedEnodebTacs overrides 'tac', which is being deprecated, but for
@@ -147,6 +159,7 @@ def _get_context():
     context["lac"] = _get_lac()
     context["use_stateless"] = get_service_config_value("mme", "use_stateless", "")
     context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
+    context["enable_nat"] = _get_enable_nat()
     # set ovs params
     for key in (
         "ovs_bridge_name",

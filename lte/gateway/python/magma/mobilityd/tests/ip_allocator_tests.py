@@ -16,6 +16,8 @@ import ipaddress
 import unittest
 import time
 
+from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
 from magma.mobilityd.ip_allocator_static import IPBlockNotFoundError, \
@@ -44,6 +46,7 @@ class IPAllocatorTests(unittest.TestCase):
         }
         self._allocator = IPAddressManager(
             recycling_interval=recycling_interval,
+            allocator_type=MobilityD.IP_POOL,
             config=config)
         self._allocator.add_ip_block(self._block)
 

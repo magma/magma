@@ -1605,7 +1605,7 @@ static void _nas_itti_auth_info_req(
       auts_pP->data,
       sizeof auth_info_req->resync_param);
   }
-  itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_OUT(LOG_NAS);
 }
 

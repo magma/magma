@@ -45,7 +45,7 @@ location = client.add_location(-1.22,2.66, ('City', 'Lima'))
 equipment = client.add_equipment('HW1569', 'Antenna HW', location, {'altitude': 53.5})
 ```
 
-* The main APIs can all be found in [Python API Reference](../pyinventory/index.html)
+* The main APIs can all be found in [Python API Reference](../pyinventory/html/index.html)
 
 ## Upload Site Survey Data
 

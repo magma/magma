@@ -60,7 +60,7 @@ class InOutNonNatTest(unittest.TestCase):
     def setUp(self):
         self._dhcp_gw_info_mock = store.GatewayInfoMap()
 
-        self._dhcp_gw_info_mock[DHCP_Router_key] = '192.168.128.100'
+        self._dhcp_gw_info_mock[DHCP_Router_key] = '192.168.128.211'
         logging.info("set router key [{}]".format(self._dhcp_gw_info_mock[DHCP_Router_key]))
 
         """

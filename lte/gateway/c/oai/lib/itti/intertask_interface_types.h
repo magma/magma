@@ -63,8 +63,6 @@
 
 /* Defines to extract task ID fields */
 #define TASK_GET_THREAD_ID(tASKiD) (itti_desc.tasks_info[tASKiD].thread)
-#define TASK_GET_PARENT_TASK_ID(tASKiD)                                        \
-  (itti_desc.tasks_info[tASKiD].parent_task)
 /* Extract the instance from a message */
 #define ITTI_MESSAGE_GET_INSTANCE(mESSAGE) ((mESSAGE)->ittiMsgHeader.instance)
 
@@ -72,7 +70,7 @@
 
 /* This enum defines messages ids. Each one is unique. */
 typedef enum {
-#define MESSAGE_DEF(iD, pRIO, sTRUCT, fIELDnAME) iD,
+#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) iD,
 #include <messages_def.h>
 #undef MESSAGE_DEF
 
@@ -83,10 +81,8 @@ typedef enum {
 typedef enum {
   THREAD_NULL = 0,
 
-#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE) THREAD_##tHREADiD,
-#define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE)
+#define TASK_DEF(tHREADiD) THREAD_##tHREADiD,
 #include <tasks_def.h>
-#undef SUB_TASK_DEF
 #undef TASK_DEF
 
   THREAD_MAX,
@@ -95,12 +91,9 @@ typedef enum {
 
 //! Sub-tasks id, to defined offset form thread id
 typedef enum {
-#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE)                                    \
+#define TASK_DEF(tHREADiD)                                    \
   tHREADiD##_THREAD = THREAD_##tHREADiD,
-#define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE)                           \
-  sUBtASKiD##_THREAD = THREAD_##tHREADiD,
 #include <tasks_def.h>
-#undef SUB_TASK_DEF
 #undef TASK_DEF
 } task_thread_id_t;
 
@@ -108,10 +101,8 @@ typedef enum {
 typedef enum {
   TASK_UNKNOWN = 0,
 
-#define TASK_DEF(tHREADiD, pRIO, qUEUEsIZE) tHREADiD,
-#define SUB_TASK_DEF(tHREADiD, sUBtASKiD, qUEUEsIZE) sUBtASKiD,
+#define TASK_DEF(tHREADiD) tHREADiD,
 #include <tasks_def.h>
-#undef SUB_TASK_DEF
 #undef TASK_DEF
 
   TASK_MAX,
@@ -119,7 +110,7 @@ typedef enum {
 } task_id_t;
 
 typedef union msg_s {
-#define MESSAGE_DEF(iD, pRIO, sTRUCT, fIELDnAME) sTRUCT fIELDnAME;
+#define MESSAGE_DEF(iD, sTRUCT, fIELDnAME) sTRUCT fIELDnAME;
 #include <messages_def.h>
 #undef MESSAGE_DEF
 } msg_t;

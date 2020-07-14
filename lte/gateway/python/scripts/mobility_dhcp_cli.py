@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Copyright (c) 2020-present, Facebook, Inc.
 All rights reserved.

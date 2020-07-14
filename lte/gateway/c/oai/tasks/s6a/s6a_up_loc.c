@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -38,6 +38,7 @@
 #include "intertask_interface.h"
 #include "common_defs.h"
 #include "s6a_defs.h"
+#include "s6a_messages.h"
 #include "s6a_messages_types.h"
 #include "mme_config.h"
 #include "3gpp_23.003.h"
@@ -185,7 +186,7 @@ int s6a_ula_cb(
 
 err:
   ans_p = NULL;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_UPDATE_LOCATION_ANS to task MME_APP\n");
   return RETURNok;
 }

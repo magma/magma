@@ -24,6 +24,7 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 
+import {EditSubscriberButton} from './SubscriberAddDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -52,7 +53,7 @@ export default function SubscriberDetailConfig({
                 </Text>
               </Grid>
               <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
+                <EditSubscriberButton />
               </Grid>
             </Grid>
             <SubscriberInfoConfig
@@ -62,16 +63,11 @@ export default function SubscriberDetailConfig({
           </Grid>
 
           <Grid item xs={6}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>
-                  <GraphicEqIcon />
-                  Traffic Policy
-                </Text>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
-              </Grid>
+            <Grid container item xs={12}>
+              <Text>
+                <GraphicEqIcon />
+                Traffic Policy
+              </Text>
             </Grid>
             <SubscriberConfigTrafficPolicy
               readOnly={true}

@@ -30,25 +30,27 @@ from ..graphql.input.property_type import PropertyTypeInput
 def get_property_types(
     client: SymphonyClient, entity_type: Entity, entity_name: str
 ) -> Sequence[PropertyDefinition]:
-    """Get property types on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property types on specific entity.
 
-        Args:
-            entity_type ( `pyinventory.common.data_enum.Entity` ): existing entity type
-            entity_name (str): existing entity name
+        :param entity_type: Existing entity type
+        :type entity_type: :class:`~pyinventory.common.data_enum.Entity`
+        :param entity_name: Existing entity name
+        :type entity_name: str
 
-        Returns:
-            Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: `entity_type` does not found or does not have property types
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if entity type does not found or does not have property types
+        :return: Sequence[PropertyDefinition]
+        :rtype: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_type = client.get_property_types(
                 entity_type=Entity.EquipmentType,
                 entity_name="Card",
             )
-            ```
     """
 
     caches: Dict[
@@ -91,27 +93,30 @@ def get_property_types(
 def get_property_type(
     client: SymphonyClient, entity_type: Entity, entity_name: str, property_type_id: str
 ) -> PropertyDefinition:
-    """Get property type on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property type on specific entity.
 
-        Args:
-            entity_type ( `pyinventory.common.data_enum.Entity` ): existing entity type
-            entity_name (str): existing entity name
-            property_type_id (str): property type ID
+        :param entity_type: Existing entity type
+        :type entity_type: :class:`~pyinventory.common.data_enum.Entity`
+        :param entity_name: Existing entity name
+        :type entity_name: str
+        :param property_type_id: Existing property type ID
+        :type property_type_id: str
 
-        Returns:
-            `pyinventory.common.data_class.PropertyDefinition` object
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Property type with id=`property_type_id` does not found
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if property type with id=`property_type_id` does not found
+        :return: PropertyDefinition object
+        :rtype: :class:`~pyinventory.common.data_class.PropertyDefinition`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_type = client.get_property_type(
                 entity_type=Entity.EquipmentType,
                 entity_name="Card",
                 property_type_id="12345",
             )
-            ```
     """
     property_types = get_property_types(
         client=client, entity_type=entity_type, entity_name=entity_name
@@ -129,27 +134,30 @@ def get_property_type_id(
     entity_name: str,
     property_type_name: str,
 ) -> str:
-    """Get property type ID on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property type ID on specific entity.
 
-        Args:
-            entity_type ( `pyinventory.common.data_enum.Entity` ): existing entity type
-            entity_name (str): existing entity name
-            property_type_name (str): property type ID
+        :param entity_type: Existing entity type
+        :type entity_type: :class:`~pyinventory.common.data_enum.Entity`
+        :param entity_name: Existing entity name
+        :type entity_name: str
+        :param property_type_name: Existing property type name
+        :type property_type_name: str
 
-        Returns:
-            property type ID (str): property type ID
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Property type with name=`property_type_name` does not found
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if property type with id=`property_type_id` does not found
+        :return: property type ID
+        :rtype: str
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_type = client.get_property_type_id(
                 entity_type=Entity.EquipmentType,
                 entity_name="Card",
                 property_type_name="IP",
             )
-            ```
     """
     property_types = get_property_types(
         client=client, entity_type=entity_type, entity_name=entity_name
@@ -172,27 +180,30 @@ def get_property_type_by_external_id(
     entity_name: str,
     property_type_external_id: str,
 ) -> PropertyDefinition:
-    """Get property type by external ID on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
+    """Get property type by external ID on specific entity.
 
-        Args:
-            entity_type ( `pyinventory.common.data_enum.Entity` ): existing entity type
-            entity_name (str): existing entity name
-            property_type_external_id (str): property type external ID
+        :param entity_type: Existing entity type
+        :type entity_type: :class:`~pyinventory.common.data_enum.Entity`
+        :param entity_name: Existing entity name
+        :type entity_name: str
+        :param property_type_external_id: Existing property type external ID
+        :type property_type_external_id: str
 
-        Returns:
-            `pyinventory.common.data_class.PropertyDefinition` object
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Property type with external_id=`property_type_external_id` does not found
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
+        :return: PropertyDefinition object
+        :rtype: :class:`~pyinventory.common.data_class.PropertyDefinition`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_type = client.get_property_type_by_external_id(
                 entity_type=Entity.EquipmentType,
                 entity_name="Card",
                 property_type_external_id="12345",
             )
-            ```
     """
     property_types = get_property_types(
         client=client, entity_type=entity_type, entity_name=entity_name
@@ -215,20 +226,24 @@ def edit_property_type(
 ) -> List[PropertyTypeInput]:
     """Edit specific property type on specific entity. `entity_type` - ["LocationType", "EquipmentType", "ServiceType", "EquipmentPortType"]
 
-        Args:
-            entity_type ( `pyinventory.common.data_enum.Entity` ): existing entity type
-            entity_name (str): existing entity name
-            property_type_id (str): existing property type ID
-            new_property_definition ( `pyinventory.common.data_class.PropertyDefinition` ): new property definition
+        :param entity_type: Existing entity type
+        :type entity_type: :class:`~pyinventory.common.data_enum.Entity`
+        :param entity_name: Existing entity name
+        :type entity_name: str
+        :param property_type_id: Existing property type ID
+        :type property_type_id: str
+        :param new_property_definition: New property definition
+        :type new_property_definition: :class:`~pyinventory.common.data_class.PropertyDefinition`
 
-        Returns:
-            List[ `pyinventory.graphql.input.property_type.PropertyTypeInput` ]
+        :class:`~pyinventory.exceptions.EntityNotFoundError`: Property type with id=`property_type_id` does not found
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: property type with external_id=`property_type_external_id` is not found
+        :return: PropertyTypeInputs List
+        :rtype: List[ :class:`~pyinventory.graphql.input.property_type.PropertyTypeInput` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_types = client.edit_property_type(
                 entity_type=Entity.EquipmentType,
                 entity_name="Card",
@@ -241,7 +256,6 @@ def edit_property_type(
                     external_id="ex_12345",
                 ),
             )
-            ```
     """
     property_types = get_property_types(
         client=client, entity_type=entity_type, entity_name=entity_name

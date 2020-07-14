@@ -36,6 +36,7 @@
 #include "log.h"
 #include "mme_config.h"
 #include "shared_ts_log.h"
+#include "common_defs.h"
 
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
@@ -57,7 +58,30 @@
 #include "spgw_config.h"
 #include "grpc_service.h"
 
-static void itti_send_timer_recovery_message(void);
+static void send_timer_recovery_message(void);
+
+task_zmq_ctx_t main_zmq_ctx;
+
+static int main_init(void)
+{
+  // Initialize main thread ZMQ context
+  // We dont use the PULL socket nor the ZMQ loop
+  init_task_context(
+      TASK_MAIN,
+      (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
+                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
+      10,
+      NULL,
+      &main_zmq_ctx);
+
+  return RETURNok;
+}
+
+static void main_exit(void)
+{
+  destroy_task_context(&main_zmq_ctx);
+}
 
 int main(int argc, char *argv[])
 {
@@ -74,6 +98,7 @@ int main(int argc, char *argv[])
     messages_info,
     NULL,
     NULL));
+  CHECK_INIT_RETURN(main_init());
 
   /*
    * Parse the command line for options and set the mme_config accordingly.
@@ -99,14 +124,12 @@ int main(int argc, char *argv[])
   OAILOG_LOG_CONFIGURE(&mme_config.log_config);
   CHECK_INIT_RETURN(service303_init(&(mme_config.service303_config)));
 
-  // Service started, but not healthy yet
-  send_app_health_to_service303(TASK_MME_APP, false);
   event_client_init();
 
   CHECK_INIT_RETURN(mme_app_init(&mme_config));
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
-  CHECK_INIT_RETURN(sgw_init(&spgw_config, mme_config.use_stateless));
+  CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
 #else
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
@@ -132,24 +155,26 @@ int main(int argc, char *argv[])
   spgw_config_display(&spgw_config);
 #endif
   if (mme_config.use_stateless) {
-    itti_send_timer_recovery_message();
+    send_timer_recovery_message();
   }
   /*
    * Handle signals here
    */
-  itti_wait_tasks_end();
+  itti_wait_tasks_end(&main_zmq_ctx);
 #if EMBEDDED_SGW
   free_spgw_config(&spgw_config);
 #endif
+
+  main_exit();
   pid_file_unlock();
 
   return 0;
 }
 
-static void itti_send_timer_recovery_message(void) {
+static void send_timer_recovery_message(void) {
   MessageDef* recovery_message_p;
 
   recovery_message_p = itti_alloc_new_message(TASK_UNKNOWN, RECOVERY_MESSAGE);
-  itti_send_broadcast_message(recovery_message_p);
+  send_broadcast_msg(&main_zmq_ctx, recovery_message_p);
   return;
 }

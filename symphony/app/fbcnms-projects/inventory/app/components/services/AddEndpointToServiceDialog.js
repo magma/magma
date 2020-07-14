@@ -90,7 +90,7 @@ const steps = [
 
 const addEndpointToServiceDialogQuery = graphql`
   query AddEndpointToServiceDialogQuery($filters: [PortFilterInput!]!) {
-    equipmentPorts(filters: $filters, first: 50) {
+    equipmentPorts(filterBy: $filters, first: 50) {
       edges {
         node {
           id

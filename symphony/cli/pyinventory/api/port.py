@@ -32,23 +32,25 @@ def get_port(
 ) -> EquipmentPort:
     """This function returns port in equipment based on its name.
 
-        Args:
-            equipment ( `pyinventory.common.data_class.Equipment` ): existing equipment object
-            port_name (str): existing port name
+        :param equipment: Existing equipment object
+        :type equipment: :class:`~pyinventory.common.data_class.Equipment`
+        :param port_name: Existing port name
+        :type port_name: str
 
-        Returns:
-            `pyinventory.common.data_class.EquipmentPort` object
+        :raises:
+            * EquipmentPortIsNotUniqueException: There is more than one port with this name
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Equipment does not exist or port was not found
 
-        Raises:
-            EquipmentPortIsNotUniqueException: there is more than one port with this name
-            `pyinventory.exceptions.EntityNotFoundError`: equipment does not exist or port was not found
+        :return: EquipmentPort object
+        :rtype: :class:`~pyinventory.common.data_class.EquipmentPort`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
             port = client.get_port(equipment=equipment, port_name="Z AIO - Port 1")
-            ```
     """
     equipment_with_ports = EquipmentPortsQuery.execute(client, id=equipment.id)
 
@@ -91,13 +93,14 @@ def get_port(
 def get_ports(client: SymphonyClient) -> Iterator[EquipmentPort]:
     """This function returns all existing ports
 
-        Returns:
-            Iterator[ `pyinventory.common.data_class.EquipmentPort` ]
+        :return: EquipmentPorts Iterator
+        :rtype: Iterator[ :class:`~pyinventory.common.data_class.EquipmentPort` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             all_ports = client.get_ports()
-            ```
     """
 
     def generate_pages(
@@ -149,23 +152,29 @@ def edit_port_properties(
 ) -> EquipmentPort:
     """This function returns edited port in equipment based on its name.
 
-        Args:
-            equipment ( `pyinventory.common.data_class.Equipment` ): existing equipment object
-            port_name (str): existing port name
-            new_properties (Dict[str, PropertyValue]): Dict, where
-            - str - property name
-            - PropertyValue - new value of the same type for this property
+        :param equipment: Existing equipment object
+        :type equipment: :class:`~pyinventory.common.data_class.Equipment`
+        :param port_name: Equipment type name
+        :type port_name: str
+        :param new_properties: Dictionary of property name to property value
 
-        Returns:
-            `pyinventory.common.data_class.EquipmentPort` object
+            * str - property name
+            * PropertyValue - new value of the same type for this property
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.common.data_class.EquipmentPortDefinition.port_type_name` is None, there are no properties
-                or if there any unknown property name in properties_dict keys
-            FailedOperationException: on operation failure
+        :type new_properties: Dict[str, PropertyValue]
 
-        Example:
-            ```
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: :attr:`~pyinventory.common.data_class.EquipmentPortDefinition.port_type_name` is None,
+              there are no properties or there any unknown property name in `new_properties` keys
+            * FailedOperationException: internal inventory error
+
+        :return: EquipmentPort object
+        :rtype: :class:`~pyinventory.common.data_class.EquipmentPort`
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
             edited_port = client.edit_port_properties(
@@ -173,7 +182,6 @@ def edit_port_properties(
                 port_name="Z AIO - Port 1",
                 new_properties={"Port Property 2": "test_it"},
             )
-            ```
     """
     port = get_port(client, equipment, port_name)
 
@@ -225,22 +233,29 @@ def edit_link_properties(
 ) -> EquipmentPort:
     """This function returns edited port in equipment based on its name.
 
-        Args:
-            equipment ( `pyinventory.common.data_class.Equipment` ): existing equipment object
-            port_name (str): existing port name
-            new_link_properties (Dict[str, PropertyValue])
-            - str - link property name
-            - PropertyValue - new value of the same type for this property
+        :param equipment: List of property definitions
+        :type equipment: :class:`~pyinventory.common.data_class.Equipment`
+        :param port_name: Equipment type name
+        :type port_name: str
+        :param new_link_properties: Dictionary of property name to property value
 
-        Returns:
-            `pyinventory.common.data_class.EquipmentPort` object
+            * str - property name
+            * PropertyValue - new value of the same type for this property
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: when `pyinventory.common.data_class.EquipmentPortDefinition.port_type_name` is None, there are no properties
-            FailedOperationException: on operation failure
+        :type new_link_properties: Dict[str, PropertyValue], optional
 
-        Example:
-            ```
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: :attr:`~pyinventory.common.data_class.EquipmentPortDefinition.port_type_name` is None,
+              there are no properties or there any unknown property name in `new_link_properties` keys
+            * FailedOperationException: internal inventory error
+
+        :return: EquipmentPort object
+        :rtype: :class:`~pyinventory.common.data_class.EquipmentPort`
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
             edited_port = client.edit_link_properties(
@@ -248,7 +263,6 @@ def edit_link_properties(
                 port_name="Z AIO - Port 1",
                 new_link_properties={"Link Property 1": 98765},
             )
-            ```
     """
     port = get_port(client, equipment, port_name)
     link = port.link

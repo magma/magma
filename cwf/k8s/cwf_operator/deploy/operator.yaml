@@ -39,6 +39,7 @@ spec:
         # - name: orc8r-secrets-registry
       containers:
         - name: cwf-operator
+          # Replace this with the built image name
           image: ""
           imagePullPolicy: Always
           env:

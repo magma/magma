@@ -23,6 +23,5 @@
 #define FILE_MME_APP_EXTERN_SEEN
 
 int mme_app_init(const mme_config_t *mme_config);
-void mme_app_exit(void);
 
 #endif /* FILE_MME_APP_EXTERN_SEEN */

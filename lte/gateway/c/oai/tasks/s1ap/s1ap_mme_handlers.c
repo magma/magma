@@ -706,7 +706,7 @@ int s1ap_mme_handle_ue_cap_indication(
       ue_cap_ind_p->radio_capabilities_length);
 
     message_p->ittiMsgHeader.imsi = imsi64;
-    rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+    rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
@@ -805,7 +805,7 @@ int s1ap_mme_handle_initial_context_setup_response(
   }
   // TODO num items
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -956,7 +956,7 @@ int s1ap_mme_handle_ue_context_release_request(
         ueContextReleaseRequest_p->cause;
 
       message_p->ittiMsgHeader.imsi = imsi64;
-      rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+      rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1404,7 +1404,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
     ue_ref_p->mme_ue_s1ap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -1467,7 +1467,7 @@ int s1ap_mme_handle_ue_context_modification_response(
         ue_ref_p->enb_ue_s1ap_id;
 
       message_p->ittiMsgHeader.imsi = imsi64;
-      rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+      rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1605,7 +1605,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).cause = cause_value;
 
       message_p->ittiMsgHeader.imsi = imsi64;
-      rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+      rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -1886,7 +1886,7 @@ static bool s1ap_send_enb_deregistered_ind(
       if (arg->current_ue_index == S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE) {
         arg->current_ue_index = 0;
       }
-      itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, arg->message_p);
+      send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, arg->message_p);
       arg->message_p = NULL;
     }
 
@@ -2113,7 +2113,7 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
     ue_ref_p->mme_ue_s1ap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
 
   OAILOG_DEBUG_UE(
@@ -2158,7 +2158,7 @@ void s1ap_mme_release_ue_context(
     ue_ref_p->mme_ue_s1ap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
   OAILOG_DEBUG_UE(
     LOG_S1AP,
@@ -2279,7 +2279,7 @@ int s1ap_mme_handle_erab_setup_response(
   }
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   free_s1ap_e_rabsetupresponse(s1ap_E_RABSetupResponseIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
@@ -2514,7 +2514,7 @@ int s1ap_mme_handle_enb_reset(
   }
 
   msg->ittiMsgHeader.imsi = imsi64;
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, msg);
+  rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, msg);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 //------------------------------------------------------------------------------
@@ -2908,13 +2908,13 @@ int s1ap_handle_path_switch_req_ack(
   s1ap_PathSwitchRequestAcknowledgeIEs_p->eNB_UE_S1AP_ID =
       path_switch_req_ack_p->enb_ue_s1ap_id;
   s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopChainingCount =
-      path_switch_req_ack_p->NCC;
+      path_switch_req_ack_p->ncc;
   s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopParameter.buf =
       calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t));
   memcpy(
       s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopParameter
           .buf,
-      path_switch_req_ack_p->NH, AUTH_NEXT_HOP_SIZE);
+      path_switch_req_ack_p->nh, AUTH_NEXT_HOP_SIZE);
   s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopParameter
       .size = AUTH_NEXT_HOP_SIZE;
 
@@ -3113,7 +3113,7 @@ int s1ap_mme_handle_erab_rel_response(
     }
   }
   message_p->ittiMsgHeader.imsi = imsi64;
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   free_s1ap_e_rabreleaseresponse(s1ap_E_RABReleaseResponseIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }

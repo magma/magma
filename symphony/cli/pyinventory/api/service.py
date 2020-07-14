@@ -33,24 +33,31 @@ def add_service(
 ) -> Service:
     """This function creates service.
 
-        Args:
-            name (str): service name
-            external_id (Optional[str]): service external ID
-            service_type (str): existing service type name
-            customer (Optional[ `pyinventory.common.data_class.Customer` ]): existing customer object
+        :param name: Service name
+        :type name: str
+        :param external_id: Service external ID
+        :type external_id: str, optional
+        :param service_type: Service type name
+        :type service_type: str
+        :param customer: Customer object
+        :type customer: :class:`~pyinventory.common.data_class.Customer`, optional
+        :param properties_dict: Mapping of property name to property value
 
-            properties_dict (Optional[ Mapping[ str, PropertyValue ] ]): dictionary of property name to property value
-            - str - property name
-            - PropertyValue - new value of the same type for this property
+            * str - property name
+            * PropertyValue - new value of the same type for this property
 
-        Returns:
-            `pyinventory.common.data_class.Service`
+        :type properties_dict: Mapping[str, PropertyValue], optional
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Example:
-            ```
+        :return: Service object
+        :rtype: :class:`~pyinventory.common.data_class.Service`
+
+        **Example**
+
+        .. code-block:: python
+
             service = client.add_service(
                 name="Room 202 Internet Access",
                 external_id="S32325",
@@ -58,7 +65,6 @@ def add_service(
                 customer=None,
                 properties_dict={"Address Family": "v4"},
             )
-            ```
     """
     properties = []
     if properties_dict is not None:
@@ -91,20 +97,21 @@ def add_service(
 def get_service(client: SymphonyClient, id: str) -> Service:
     """This function returns service by ID.
 
-        Args:
-            id (str): existing service ID
+        :param id: Service ID
+        :type id: str
 
-        Returns:
-            `pyinventory.common.data_class.Service`
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Service does not exist
+            * FailedOperationException: Internal inventory error
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
-            FailedOperationException: internal inventory error
+        :return: Service object
+        :rtype: :class:`~pyinventory.common.data_class.Service`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             service = client.get_service(id="12345")
-            ```
     """
     result = ServiceDetailsQuery.execute(client, id=id)
     if result is None:
@@ -132,20 +139,21 @@ def get_service_endpoints(
 ) -> List[ServiceEndpoint]:
     """This function returns service endpoints list.
 
-        Args:
-            service_id (str): existing service ID
+        :param service_id: Service ID
+        :type service_id: str
 
-        Returns:
-            List[ `pyinventory.common.data_class.ServiceEndpoint` ]
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Service does not exist
+            * FailedOperationException: Internal inventory error
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
-            FailedOperationException: internal inventory error
+        :return: ServiceEndpoints List
+        :rtype: List[ :class:`~pyinventory.common.data_class.ServiceEndpoints` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             endpoints = client.get_service_endpoint_definitions(id="service_id")
-            ```
     """
     service_data = ServiceEndpointsQuery.execute(client, id=service_id)
 
@@ -171,16 +179,22 @@ def add_service_endpoint(
 ) -> None:
     """This function adds existing endpoint to existing service.
 
-        Args:
-            service (str): existing service object
-            equipment_id (str): existing equipment ID
-            endpoint_definition_id (str): existing endpoint definition ID
+        :param service: Existing service object
+        :type service: :class:`~pyinventory.common.data_class.Service`
+        :param equipment_id: Existing equipment ID
+        :type equipment_id: str
+        :param endpoint_definition_id: Existing endpoint definition ID
+        :type endpoint_definition_id: str
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             service = client.get_service(id="service_id")
             location = client.get_location(location_hirerchy=[("Country", "LS_IND_Prod_Copy")])
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
@@ -189,7 +203,6 @@ def add_service_endpoint(
                 equipment_id=equipment.id,
                 endpoint_definition_id="endpoint_definition_id,
             )
-            ```
     """
     endpoint_definition_ids = [
         ed.id for ed in SERVICE_TYPES[service.service_type_name].endpoint_definitions
@@ -211,20 +224,21 @@ def add_service_endpoint(
 def get_service_links(client: SymphonyClient, service_id: str) -> List[Link]:
     """This function returns list of Links.
 
-        Args:
-            service_id (str): existing service ID
+        :param service_id: Service ID
+        :type service_id: str
 
-        Returns:
-            List[ `pyinventory.common.data_class.Link` ]
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Service does not exist
+            * FailedOperationException: Internal inventory error
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: service does not exist
-            FailedOperationException: internal inventory error
+        :return: Links List
+        :rtype: List[ :class:`~pyinventory.common.data_class.Link` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             links = client.get_service_links(id="service_id")
-            ```
     """
     service_data = ServiceLinksQuery.execute(client, id=service_id)
 
@@ -244,16 +258,20 @@ def get_service_links(client: SymphonyClient, service_id: str) -> List[Link]:
 def add_service_link(client: SymphonyClient, service_id: str, link_id: str) -> None:
     """This function adds existing link to existing service.
 
-        Args:
-            service_id (str): existing service ID
-            link_id (str): existing link ID
+        :param service_id: Existing service ID
+        :type service_id: str
+        :param link_id: Existing link ID
+        :type link_id: str
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             client.add_service_link(service_id=service.id, link_id=link.id)
-            ```
     """
     AddServiceLinkMutation.execute(client, id=service_id, linkId=link_id)

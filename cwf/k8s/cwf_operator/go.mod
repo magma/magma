@@ -38,6 +38,7 @@ require (
 
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0 // indirect
+	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
 	sigs.k8s.io/controller-runtime v0.5.1
 )

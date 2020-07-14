@@ -31,8 +31,8 @@ func init() {
 }
 
 const (
-	defaultMemUtilPct       = 0.75
-	defaultCpuUtilPct       = 0.75
+	defaultMemUtilPct       = 0.9
+	defaultCpuUtilPct       = 0.9
 	defaultGREProbeInterval = 10
 	defaultICMPPktCount     = 3
 	defaultICMPInterface    = "eth1"

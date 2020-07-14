@@ -54,6 +54,7 @@
 #include "intertask_interface_types.h"
 #include "ip_forward_messages_types.h"
 #include "itti_types.h"
+#include "sgw_defs.h"
 #include "pgw_config.h"
 #include "s11_messages_types.h"
 #include "service303.h"
@@ -555,7 +556,7 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
     "Sending nw_initiated_deactv_bearer_req to mme_app "
     "with delete_default_bearer flag set to %d\n",
     s11_bearer_deactv_request->delete_default_bearer);
-  int rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  int rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
@@ -660,7 +661,7 @@ static int _spgw_build_and_send_s11_create_bearer_request(
     "Sending S11 Create Bearer Request to MME_APP for LBI %d IMSI " IMSI_64_FMT,
     bearer_req_p->lbi,
     message_p->ittiMsgHeader.imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
