@@ -1508,56 +1508,54 @@ If a location with its name in this place already exists, then existing location
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>location_hirerchy</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – hirerchy of locations.</p></li>
-<li><p><strong>str - location type name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>str - location name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>properties_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em>) – dict of property name to property value. The property value should match
-the property type, otherwise exception is raised</p></li>
-<li><p><strong>str - property name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>PropertyValue - new value of the same type for this property</strong> (<em>-</em>) – </p></li>
-<li><p><strong>lat</strong> (<em>float</em>) – latitude</p></li>
-<li><p><strong>long</strong> (<em>float</em>) – longitude</p></li>
-<li><p><strong>external_id</strong> (<em>str</em>) – location external ID</p></li>
+<li><p><strong>location_hirerchy</strong> – Locations hierarchy</p></li>
+<li><p><strong>properties_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em>) – <p>Dictionary of property name to property value</p>
+<ul>
+<li><p>str - property name</p></li>
+<li><p>PropertyValue - new value of the same type for this property</p></li>
+</ul>
+</p></li>
+<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – Latitude</p></li>
+<li><p><strong>long</strong> (<em>float</em><em>, </em><em>optional</em>) – Longitude</p></li>
+<li><p><strong>external_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Location external ID</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Location</cite> object</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.LocationIsNotUniqueException" title="pyinventory.exceptions.LocationIsNotUniqueException"><strong>LocationIsNotUniqueException</strong></a> – if there is two possible locations
-    inside the chain and it is not clear where to create or what to return</p></li>
-<li><p><strong>FailedOperationException</strong> – for internal inventory error</p></li>
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – parent location in the chain does not exist</p></li>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>LocationIsNotUniqueException: There is more than one location to return
+in the chain and it is not clear where to create or what to return</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Parent location in the chain does not exist</p></li>
 </ul>
 </dd>
-</dl>
-<p class="rubric">Example</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-location = client.add_location(</p>
-<blockquote>
-<div><dl class="simple">
-<dt>location_hirerchy=[</dt><dd><p>(“Country”, “England”),
-(“City”, “Milton Keynes”),
-(“Site”, “Bletchley Park”)</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Location object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a></p>
 </dd>
 </dl>
-<p>],
-properties_dict={</p>
-<blockquote>
-<div><p>“Date Property”: date.today(),
-“Lat/Lng Property”: (-1.23,9.232),
-“E-mail Property”: “<a class="reference external" href="mailto:user&#37;&#52;&#48;fb&#46;com">user<span>&#64;</span>fb<span>&#46;</span>com</a>”,
-“Number Property”: 11,
-“String Property”: “aa”,
-“Float Property”: 1.23</p>
-</div></blockquote>
-<p>},
-lat=-11.32,
-long=98.32,
-external_id=None)</p>
-</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">add_location</span><span class="p">(</span>
+    <span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;England&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;City&quot;</span><span class="p">,</span> <span class="s2">&quot;Milton Keynes&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Bletchley Park&quot;</span><span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">properties_dict</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;Date Property&quot;</span><span class="p">:</span> <span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">(),</span>
+        <span class="s2">&quot;Lat/Lng Property&quot;</span><span class="p">:</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.23</span><span class="p">,</span><span class="mf">9.232</span><span class="p">),</span>
+        <span class="s2">&quot;E-mail Property&quot;</span><span class="p">:</span> <span class="s2">&quot;user@fb.com&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Number Property&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+        <span class="s2">&quot;String Property&quot;</span><span class="p">:</span> <span class="s2">&quot;aa&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Float Property&quot;</span><span class="p">:</span> <span class="mf">1.23</span>
+    <span class="p">},</span>
+    <span class="n">lat</span><span class="o">=-</span><span class="mf">11.32</span><span class="p">,</span>
+    <span class="n">long</span><span class="o">=</span><span class="mf">98.32</span><span class="p">,</span>
+    <span class="n">external_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1566,22 +1564,25 @@ external_id=None)</p>
 <dd><p>This delete existing location.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>location</strong> (<cite>pyinventory.common.data_class.Location</cite>) – location object</p>
+<dd class="field-odd"><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – Location object</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – if location does not exist</p></li>
-<li><p><strong>FailedOperationException</strong> – for internal inventory error</p></li>
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.LocationCannotBeDeletedWithDependency" title="pyinventory.exceptions.LocationCannotBeDeletedWithDependency"><strong>LocationCannotBeDeletedWithDependency</strong></a> – if there are dependencies in this location</p></li>
-<li><p><strong>[</strong><strong>&quot;files&quot;</strong><strong>, </strong><strong>&quot;images&quot;</strong><strong>, </strong><strong>&quot;children&quot;</strong><strong>, </strong><strong>&quot;surveys&quot;</strong><strong>, </strong><strong>&quot;equipment&quot;</strong><strong>]</strong> – </p></li>
+<li><p>LocationCannotBeDeletedWithDependency: Location has dependencies in one or more
+[“files”, “images”, “children”, “surveys”, “equipment”]</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Location does not exist</p></li>
 </ul>
 </dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">location</span> <span class="pre">=</span> <span class="pre">client.get_location(location_hirerchy=[('Site',</span> <span class="pre">'Bletchley</span> <span class="pre">Park')])</span>
-<span class="pre">client.delete_location(location=location)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span><span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[(</span><span class="s1">&#39;Site&#39;</span><span class="p">,</span> <span class="s1">&#39;Bletchley Park&#39;</span><span class="p">)])</span>
+<span class="n">client</span><span class="o">.</span><span class="n">delete_location</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1591,36 +1592,42 @@ external_id=None)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>location</strong> (<cite>pyinventory.common.data_class.Location</cite>) – location object</p></li>
-<li><p><strong>new_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – location new name</p></li>
-<li><p><strong>new_lat</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – location new latitude</p></li>
-<li><p><strong>new_long</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – location new longitude</p></li>
-<li><p><strong>new_external_id</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>) – location new external ID</p></li>
-<li><p><strong>new_properties</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>]</em>) – dictionary of property name to property value</p></li>
-<li><p><strong>str - property name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>PropertyValue - new value of the same type for this property</strong> (<em>-</em>) – </p></li>
+<li><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – Location object</p></li>
+<li><p><strong>new_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Location new name</p></li>
+<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – Location new latitude</p></li>
+<li><p><strong>long</strong> (<em>float</em><em>, </em><em>optional</em>) – Location new longitude</p></li>
+<li><p><strong>external_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Location new external ID</p></li>
+<li><p><strong>new_properties</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
+<ul>
+<li><p>str - property name</p></li>
+<li><p>PropertyValue - new value of the same type for this property</p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Location</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – for internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Location object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
-# this call will fail if there is Bletchley Park in two cities
-location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
-edited_location = client.edit_location(</p>
-<blockquote>
-<div><p>location=location,
-new_name=”New Bletchley Park”,
-new_lat=10,
-new_long=20,
-new_external_id=None,
-new_properties={“Contact”: “<a class="reference external" href="mailto:new_contact&#37;&#52;&#48;info&#46;com">new_contact<span>&#64;</span>info<span>&#46;</span>com</a>”},</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># this call will fail incase the &#39;Bletchley Park&#39; in two cities</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span><span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Bletchley Park&quot;</span><span class="p">)])</span>
+<span class="n">edited_location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">edit_location</span><span class="p">(</span>
+    <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span>
+    <span class="n">new_name</span><span class="o">=</span><span class="s2">&quot;New Bletchley Park&quot;</span><span class="p">,</span>
+    <span class="n">new_lat</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">new_long</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">new_external_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">new_properties</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Contact&quot;</span><span class="p">:</span> <span class="s2">&quot;new_contact@info.com&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1630,43 +1637,37 @@ new_properties={“Contact”: “<a class="reference external" href="mailto:new
 It can get only the requested location specifiers or the hirerchy leading to it</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>location_hirerchy</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>) – hirerchy of locations</p></li>
-<li><p><strong>str - location type name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>str - location name</strong> (<em>-</em>) – </p></li>
+<dd class="field-odd"><p><strong>location_hirerchy</strong> – Locations hierarchy</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>LocationIsNotUniqueException: There is more than one location to return
+in the chain and it is not clear where to create or what to return</p></li>
+<li><p>LocationNotFoundException: Location was not found</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Location in the chain does not exist</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Location</cite> object</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Location object</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.LocationIsNotUniqueException" title="pyinventory.exceptions.LocationIsNotUniqueException"><strong>LocationIsNotUniqueException</strong></a> – if there is more than one correct
-    location to return</p></li>
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.LocationNotFoundException" title="pyinventory.exceptions.LocationNotFoundException"><strong>LocationNotFoundException</strong></a> – if no location was found</p></li>
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – location in the chain does not exist</p></li>
-<li><p><strong>FailedOperationException</strong> – for internal inventory error</p></li>
-</ul>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a>`
-location = client.get_location(</p>
-<blockquote>
-<div><dl class="simple">
-<dt>location_hirerchy=[</dt><dd><p>(“Country”, “England”),
-(“City”, “Milton Keynes”),
-(“Site”, “Bletchley Park”)</p>
-</dd>
-</dl>
-<p>])</p>
-</div></blockquote>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">or</span>
-<span class="pre">`</span></code>
-# this call will fail if there is Bletchley Park in two cities
-location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
-<a href="#id11"><span class="problematic" id="id12">``</span></a><a href="#id13"><span class="problematic" id="id14">`</span></a></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span>
+    <span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;England&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;City&quot;</span><span class="p">,</span> <span class="s2">&quot;Milton Keynes&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Bletchley Park&quot;</span><span class="p">)</span>
+    <span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># this call will fail if there is Bletchley Park in two cities</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span><span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Bletchley Park&quot;</span><span class="p">)])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1675,23 +1676,26 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 <dd><p>This function returns location by external ID.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>external_id</strong> (<em>str</em>) – location external ID</p>
+<dd class="field-odd"><p><strong>external_id</strong> (<em>str</em>) – Location external ID</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Location</cite> object</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.LocationNotFoundException" title="pyinventory.exceptions.LocationNotFoundException"><strong>LocationNotFoundException</strong></a> – location with this external ID does not exists</p></li>
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – location does not found</p></li>
-<li><p><strong>FailedOperationException</strong> – for internal inventory error</p></li>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>LocationNotFoundException: Location with this external ID does not exists</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Location does not exist</p></li>
 </ul>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Location object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a></p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">location</span> <span class="pre">=</span> <span class="pre">client.get_location_by_external_id(external_id=&quot;12345&quot;)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location_by_external_id</span><span class="p">(</span><span class="n">external_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1700,23 +1704,42 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 <dd><p>This function returns all children locations of the given location</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>location_id</strong> (<em>str</em>) – parent location ID</p>
+<dd class="field-odd"><p><strong>location_id</strong> (<em>str</em>) – Parent location ID</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Iterator[ <cite>pyinventory.common.data_class.Location</cite> ]</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Location does not exist</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – location does not exist</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Locations Iterator</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Iterator[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a> ]</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">client.add_location([(&quot;Country&quot;,</span> <span class="pre">&quot;England&quot;),</span> <span class="pre">(&quot;City&quot;,</span> <span class="pre">&quot;Milton</span> <span class="pre">Keynes&quot;)],</span> <span class="pre">{})</span>
-<span class="pre">client.add_location([(&quot;Country&quot;,</span> <span class="pre">&quot;England&quot;),</span> <span class="pre">(&quot;City&quot;,</span> <span class="pre">&quot;London&quot;)],</span> <span class="pre">{})</span>
-<span class="pre">parent_location</span> <span class="pre">=</span> <span class="pre">client.get_location(location_hirerchy=[(&quot;Country&quot;,</span> <span class="pre">&quot;England&quot;)])</span>
-<span class="pre">children_locations</span> <span class="pre">=</span> <span class="pre">client.get_location_children(location_id=parent_location.id)</span>
-<span class="pre">#</span> <span class="pre">This</span> <span class="pre">call</span> <span class="pre">will</span> <span class="pre">return</span> <span class="pre">a</span> <span class="pre">list</span> <span class="pre">with</span> <span class="pre">2</span> <span class="pre">locations:</span> <span class="pre">&quot;Milton</span> <span class="pre">Keynes&quot;</span> <span class="pre">and</span> <span class="pre">&quot;London&quot;</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">add_location</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;England&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;City&quot;</span><span class="p">,</span> <span class="s2">&quot;Milton Keynes&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="p">{},</span>
+<span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">add_location</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;England&quot;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;City&quot;</span><span class="p">,</span> <span class="s2">&quot;London&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="p">{},</span>
+<span class="p">)</span>
+<span class="n">parent_location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span>
+    <span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;England&quot;</span><span class="p">),</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+<span class="n">children_locations</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location_children</span><span class="p">(</span><span class="n">location_id</span><span class="o">=</span><span class="n">parent_location</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+<span class="c1"># This call will return a list with 2 locations: &quot;Milton Keynes&quot; and &quot;London&quot;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1725,24 +1748,27 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 <dd><p>This function returns locations documents.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>location</strong> (<cite>pyinventory.common.data_class.Location</cite>) – location object</p>
+<dd class="field-odd"><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – Location object</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List[ <cite>pyinventory.common.data_class.Document</cite> ]</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – location does not exists</p></li>
-<li><p><strong>FailedOperationException</strong> – for internal inventory error</p></li>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Location does not exist</p></li>
 </ul>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Documents List</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Document" title="pyinventory.common.data_class.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a> ]</p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">#</span> <span class="pre">this</span> <span class="pre">call</span> <span class="pre">will</span> <span class="pre">fail</span> <span class="pre">if</span> <span class="pre">there</span> <span class="pre">is</span> <span class="pre">Bletchley</span> <span class="pre">Park</span> <span class="pre">in</span> <span class="pre">two</span> <span class="pre">cities</span>
-<span class="pre">location</span> <span class="pre">=</span> <span class="pre">client.get_location(location_hirerchy=[(&quot;Site&quot;,</span> <span class="pre">&quot;Bletchley</span> <span class="pre">Park&quot;)])</span>
-<span class="pre">location</span> <span class="pre">=</span> <span class="pre">client.get_location_documents(location=location)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># this call will fail if there is Bletchley Park in two cities</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span><span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Bletchley Park&quot;</span><span class="p">)])</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location_documents</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1751,13 +1777,16 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 <dd><p>This function returns all existing locations</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Iterator[ <cite>pyinventory.common.data_class.Location</cite> ]</p>
+<dd class="field-odd"><p>Locations Iterator</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>Iterator[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a> ]</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">all_locations</span> <span class="pre">=</span> <span class="pre">client.get_locations()</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">all_locations</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_locations</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1767,26 +1796,29 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>location_id</strong> (<em>str</em>) – existing location ID to be moved</p></li>
-<li><p><strong>new_parent_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – new existing parent location ID</p></li>
+<li><p><strong>location_id</strong> (<em>str</em>) – Existing location ID to be moved</p></li>
+<li><p><strong>new_parent_id</strong> (<em>str</em><em>, </em><em>optional</em>) – New existing parent location ID</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.Location</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – for internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Location object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id15"><span class="problematic" id="id16">``</span></a>`
-# this call will fail if there is Bletchley Park in two cities
-location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
-moved_location = client.move_locatoin(</p>
-<blockquote>
-<div><p>location_id=location.id,
-new_parent_id=”12345”</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># this call will fail if there is Bletchley Park in two cities</span>
+<span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">(</span><span class="n">location_hirerchy</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Site&quot;</span><span class="p">,</span> <span class="s2">&quot;Bletchley Park&quot;</span><span class="p">)])</span>
+<span class="n">moved_location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">move_locatoin</span><span class="p">(</span>
+    <span class="n">location_id</span><span class="o">=</span><span class="n">location</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="n">new_parent_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -1950,7 +1982,7 @@ includes the equipment given as parameter and also all the equipments attached t
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id17"><span class="problematic" id="id18">``</span></a>`
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_link_properties(</p>
@@ -1987,7 +2019,7 @@ new_link_properties={“Link Property 1”: 98765},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_port_properties(</p>
@@ -2065,7 +2097,7 @@ new_properties={“Port Property 2”: “test_it”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id21"><span class="problematic" id="id22">``</span></a>`
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a>`
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.enum.property_kind import PropertyKind
 port_type1 = client.add_equipment_port_type(</p>
@@ -2139,7 +2171,7 @@ It can get only the requested equipment port type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id23"><span class="problematic" id="id24">``</span></a>`
+<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
 port_type1 = client.edit_equipment_port_type(</p>
 <blockquote>
 <div><p>port_type=equipment_port_type,
@@ -2195,7 +2227,7 @@ It can get only the requested equipment port type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id25"><span class="problematic" id="id26">``</span></a>`
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a>`
 property_types = client.edit_property_type(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2233,7 +2265,7 @@ external_id=”ex_12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id27"><span class="problematic" id="id28">``</span></a>`
+<p><a href="#id11"><span class="problematic" id="id12">``</span></a>`
 property_type = client.get_property_type(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2262,7 +2294,7 @@ property_type_id=”12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id29"><span class="problematic" id="id30">``</span></a>`
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
 property_type = client.get_property_type_by_external_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2294,7 +2326,7 @@ property_type_external_id=”12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
+<p><a href="#id15"><span class="problematic" id="id16">``</span></a>`
 property_type = client.get_property_type_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2322,7 +2354,7 @@ property_type_name=”IP”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a>`
 property_type = client.get_property_types(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2357,7 +2389,7 @@ entity_name=”Card”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id35"><span class="problematic" id="id36">``</span></a>`
+<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
 service = client.add_service(</p>
 <blockquote>
 <div><p>name=”Room 202 Internet Access”,
@@ -2385,7 +2417,7 @@ properties_dict={“Address Family”: “v4”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id37"><span class="problematic" id="id38">``</span></a>`
+<p><a href="#id21"><span class="problematic" id="id22">``</span></a>`
 service = client.get_service(id=”service_id”)
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
@@ -2513,7 +2545,7 @@ endpoint_definition_id=”endpoint_definition_id,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id39"><span class="problematic" id="id40">``</span></a>`
+<p><a href="#id23"><span class="problematic" id="id24">``</span></a>`
 service_type = client.add_service_type(</p>
 <blockquote>
 <div><p>client=self.client,
@@ -2540,7 +2572,7 @@ is_fixed=False,</p>
 </div></blockquote>
 <p>)</p>
 </div></blockquote>
-<p><a href="#id41"><span class="problematic" id="id42">``</span></a><a href="#id43"><span class="problematic" id="id44">`</span></a></p>
+<p><a href="#id25"><span class="problematic" id="id26">``</span></a><a href="#id27"><span class="problematic" id="id28">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -2601,7 +2633,7 @@ It can get only the requested service type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id45"><span class="problematic" id="id46">``</span></a>`
+<p><a href="#id29"><span class="problematic" id="id30">``</span></a>`
 service_type = client.edit_service_type(</p>
 <blockquote>
 <div><p>service_type=service_type,
@@ -2638,7 +2670,7 @@ index=1,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id47"><span class="problematic" id="id48">``</span></a>`
+<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
 service_type = client.get_service_type(</p>
 <blockquote>
 <div><p>service_type_id=”12345”,</p>
@@ -2756,13 +2788,13 @@ Users in symphony are never deleted. Only de-activated.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id49"><span class="problematic" id="id50">``</span></a>`
+<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
 users = client.get_active_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id51"><span class="problematic" id="id52">``</span></a><a href="#id53"><span class="problematic" id="id54">`</span></a></p>
+<p><a href="#id35"><span class="problematic" id="id36">``</span></a><a href="#id37"><span class="problematic" id="id38">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -2802,13 +2834,13 @@ for user in users:</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id55"><span class="problematic" id="id56">``</span></a>`
+<p><a href="#id39"><span class="problematic" id="id40">``</span></a>`
 users = client.get_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id57"><span class="problematic" id="id58">``</span></a><a href="#id59"><span class="problematic" id="id60">`</span></a></p>
+<p><a href="#id41"><span class="problematic" id="id42">``</span></a><a href="#id43"><span class="problematic" id="id44">`</span></a></p>
 </dd></dl>
 
 </div>
