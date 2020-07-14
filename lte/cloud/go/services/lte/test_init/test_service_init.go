@@ -27,6 +27,7 @@ func StartTestService(t *testing.T) {
 		lte.BaseNameStreamName,
 		lte.MappingsStreamName,
 		lte.NetworkWideRulesStreamName,
+		lte.RatingGroupStreamName,
 	}
 	labels := map[string]string{
 		orc8r.StreamProviderLabel: "true",
