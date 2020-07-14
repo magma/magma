@@ -381,9 +381,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   nil,
-			InfiniteUnmeteredChargingKeys: nil,
+			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
