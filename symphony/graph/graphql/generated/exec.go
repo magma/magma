@@ -9237,6 +9237,11 @@ enum WorkOrderOrderField {
   Order work orders by update time.
   """
   UPDATED_AT
+
+  """
+  Order work orders by closure time.
+  """
+  CLOSED_AT
 }
 
 """

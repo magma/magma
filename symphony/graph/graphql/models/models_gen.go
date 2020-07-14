@@ -2031,16 +2031,19 @@ const (
 	WorkOrderOrderFieldCreatedAt WorkOrderOrderField = "CREATED_AT"
 	// Order work orders by update time.
 	WorkOrderOrderFieldUpdatedAt WorkOrderOrderField = "UPDATED_AT"
+	// Order work orders by closure time.
+	WorkOrderOrderFieldClosedAt WorkOrderOrderField = "CLOSED_AT"
 )
 
 var AllWorkOrderOrderField = []WorkOrderOrderField{
 	WorkOrderOrderFieldCreatedAt,
 	WorkOrderOrderFieldUpdatedAt,
+	WorkOrderOrderFieldClosedAt,
 }
 
 func (e WorkOrderOrderField) IsValid() bool {
 	switch e {
-	case WorkOrderOrderFieldCreatedAt, WorkOrderOrderFieldUpdatedAt:
+	case WorkOrderOrderFieldCreatedAt, WorkOrderOrderFieldUpdatedAt, WorkOrderOrderFieldClosedAt:
 		return true
 	}
 	return false
