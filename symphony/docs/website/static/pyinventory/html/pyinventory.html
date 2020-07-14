@@ -2584,33 +2584,33 @@ in case it is not found, creates one.</p>
 <dl class="py method">
 <dt id="pyinventory.InventoryClient.get_property_type_id">
 <code class="sig-name descname">get_property_type_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">entity_type</span><span class="p">:</span> <span class="n"><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_enum.Entity" title="pyinventory.common.data_enum.Entity">pyinventory.common.data_enum.Entity</a></span></em>, <em class="sig-param"><span class="n">entity_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">property_type_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#pyinventory.InventoryClient.get_property_type_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get property type ID on specific entity. <cite>entity_type</cite> - [“LocationType”, “EquipmentType”, “ServiceType”, “EquipmentPortType”]</p>
+<dd><p>Get property type ID on specific entity.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>entity_type</strong> (<cite>pyinventory.common.data_enum.Entity</cite>) – existing entity type</p></li>
-<li><p><strong>entity_name</strong> (<em>str</em>) – existing entity name</p></li>
-<li><p><strong>property_type_name</strong> (<em>str</em>) – property type ID</p></li>
+<li><p><strong>entity_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_enum.Entity" title="pyinventory.common.data_enum.Entity"><code class="xref py py-class docutils literal notranslate"><span class="pre">Entity</span></code></a>) – Existing entity type</p></li>
+<li><p><strong>entity_name</strong> (<em>str</em>) – Existing entity name</p></li>
+<li><p><strong>property_type_name</strong> (<em>str</em>) – Existing property type name</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>property type ID</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>property type ID (str)</p>
-</dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – if property type with id=`property_type_id` does not found</p>
+<dd class="field-even"><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Property type with name=`property_type_name` does not found</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>property type ID</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
-property_type = client.get_property_type_id(</p>
-<blockquote>
-<div><p>entity_type=Entity.EquipmentType,
-entity_name=”Card”,
-property_type_name=”IP”,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">property_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_property_type_id</span><span class="p">(</span>
+    <span class="n">entity_type</span><span class="o">=</span><span class="n">Entity</span><span class="o">.</span><span class="n">EquipmentType</span><span class="p">,</span>
+    <span class="n">entity_name</span><span class="o">=</span><span class="s2">&quot;Card&quot;</span><span class="p">,</span>
+    <span class="n">property_type_name</span><span class="o">=</span><span class="s2">&quot;IP&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2653,7 +2653,7 @@ property_type_name=”IP”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id21"><span class="problematic" id="id22">``</span></a>`
+<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
 service_type = client.get_service_type(</p>
 <blockquote>
 <div><p>service_type_id=”12345”,</p>
@@ -2697,13 +2697,13 @@ service_type = client.get_service_type(</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id23"><span class="problematic" id="id24">``</span></a>`
+<p><a href="#id21"><span class="problematic" id="id22">``</span></a>`
 users = client.get_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id25"><span class="problematic" id="id26">``</span></a><a href="#id27"><span class="problematic" id="id28">`</span></a></p>
+<p><a href="#id23"><span class="problematic" id="id24">``</span></a><a href="#id25"><span class="problematic" id="id26">`</span></a></p>
 </dd></dl>
 
 <dl class="py method">
