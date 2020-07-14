@@ -27,6 +27,18 @@ void create_charging_credit(
   credit->set_is_final(is_final);
 }
 
+void create_credit_update_response(
+  const std::string& imsi,
+  uint32_t charging_key,
+  CreditLimitType limit_type,
+  CreditUpdateResponse* response)
+{
+  response->set_success(true);
+  response->set_sid(imsi);
+  response->set_charging_key(charging_key);
+  response->set_limit_type(limit_type);
+}
+
 // defaults to not final credit
 void create_credit_update_response(
     const std::string& imsi, uint32_t charging_key, uint64_t volume,

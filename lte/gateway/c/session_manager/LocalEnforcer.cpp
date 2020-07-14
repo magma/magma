@@ -778,13 +778,6 @@ void LocalEnforcer::filter_rule_installs(
   dynamic_installs.erase(end_of_valid_dy_rules, dynamic_installs.end());
 }
 
-// return true if any credit unit is valid and has non-zero volume
-static bool contains_credit(const GrantedUnits& gsu) {
-  return (gsu.total().is_valid() && gsu.total().volume() > 0) ||
-         (gsu.tx().is_valid() && gsu.tx().volume() > 0) ||
-         (gsu.rx().is_valid() && gsu.rx().volume() > 0);
-}
-
 bool LocalEnforcer::handle_session_init_rule_updates(
     SessionMap& session_map, const std::string& imsi,
     SessionState& session_state, const CreateSessionResponse& response,
@@ -843,8 +836,7 @@ bool LocalEnforcer::init_session_credit(
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {
     auto uc = get_default_update_criteria();
-    session_state->receive_charging_credit(credit, uc);
-    if (credit.success() && contains_credit(credit.credit().granted_units())) {
+    if (session_state->receive_charging_credit(credit, uc)) {
       charging_credits_received.insert(credit.charging_key());
     }
   }
