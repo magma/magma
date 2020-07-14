@@ -767,43 +767,48 @@ properties_dict={</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – equipment type name</p></li>
-<li><p><strong>category</strong> (<em>str</em>) – category name</p></li>
-<li><p><strong>properties</strong> (List[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]) – list of property definitions</p></li>
-<li><p><strong>ports_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – dictionary of port name to port type name</p></li>
-<li><p><strong>str - port name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>str - port type name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>position_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – list of positions names</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Equipment type name</p></li>
+<li><p><strong>category</strong> (<em>str</em>) – Category name</p></li>
+<li><p><strong>properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ]) – List of property definitions</p></li>
+<li><p><strong>ports_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – <p>Dictionary of port name to port type name</p>
+<ul>
+<li><p>str - port name</p></li>
+<li><p>str - port type name</p></li>
+</ul>
+</p></li>
+<li><p><strong>position_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of positions names</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentType object</p>
 </dd>
-</dl>
-<p class="rubric">Example</p>
-<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
-e_type = client.add_equipment_type(</p>
-<blockquote>
-<div><p>name=”Tp-Link T1600G”,
-category=”Router”,
-properties=[</p>
-<blockquote>
-<div><dl class="simple">
-<dt>PropertyDefinition(</dt><dd><p>property_name=”IP”,
-property_kind=PropertyKind.string,
-default_raw_value=None,
-is_fixed=True</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentType" title="pyinventory.common.data_class.EquipmentType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentType</span></code></a></p>
 </dd>
 </dl>
-<p>)</p>
-</div></blockquote>
-<p>],
-ports_dict={“Port 1”: “eth port”, “port 2”: “eth port”},
-position_list=[],</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">e_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">add_equipment_type</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Tp-Link T1600G&quot;</span><span class="p">,</span>
+    <span class="n">category</span><span class="o">=</span><span class="s2">&quot;Router&quot;</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">PropertyDefinition</span><span class="p">(</span>
+            <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;IP&quot;</span><span class="p">,</span>
+            <span class="n">property_kind</span><span class="o">=</span><span class="n">PropertyKind</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
+            <span class="n">default_raw_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">is_fixed</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">ports_dict</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;Port 1&quot;</span><span class="p">:</span> <span class="s2">&quot;eth port&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;port 2&quot;</span><span class="p">:</span> <span class="s2">&quot;eth port&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">position_list</span><span class="o">=</span><span class="p">[],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -813,24 +818,27 @@ position_list=[],</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>curr_equipment_type_name</strong> (<em>str</em>) – existing equipment type name</p></li>
-<li><p><strong>new_equipment_type_name</strong> (<em>str</em>) – new equipment type name</p></li>
+<li><p><strong>curr_equipment_type_name</strong> (<em>str</em>) – Existing equipment type name</p></li>
+<li><p><strong>new_equipment_type_name</strong> (<em>str</em>) – New equipment type name</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentType object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentType" title="pyinventory.common.data_class.EquipmentType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentType</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
-e_type = client.copy_equipment_type(</p>
-<blockquote>
-<div><p>curr_equipment_type_name=”Card”,
-new_equipment_type_name=”External_Card”,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">e_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">copy_equipment_type</span><span class="p">(</span>
+    <span class="n">curr_equipment_type_name</span><span class="o">=</span><span class="s2">&quot;Card&quot;</span><span class="p">,</span>
+    <span class="n">new_equipment_type_name</span><span class="o">=</span><span class="s2">&quot;External_Card&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -839,25 +847,31 @@ new_equipment_type_name=”External_Card”,</p>
 <dd><p>Delete equipment type with existing equipments.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>equipment_type</strong> (<cite>pyinventory.common.data_class.EquipmentType</cite>) – equipment type object</p>
+<dd class="field-odd"><p><strong>equipment_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentType" title="pyinventory.common.data_class.EquipmentType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentType</span></code></a>) – Existing equipment type name</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – if equipment_type does not exist</p>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: if equipment_type does not exist</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id35"><span class="problematic" id="id36">``</span></a>`
-equipment_type = client.get_or_create_equipment_type(</p>
-<blockquote>
-<div><p>name=”Tp-Link T1600G”,
-category=”Router”,
-properties=[(“IP”, “string”, None, True)],
-ports_dict={“Port 1”: “eth port”, “port 2”: “eth port”},
-position_list=[],</p>
-</div></blockquote>
-<p>)
-client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
-<a href="#id37"><span class="problematic" id="id38">``</span></a><a href="#id39"><span class="problematic" id="id40">`</span></a></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">equipment_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_or_create_equipment_type</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Tp-Link T1600G&quot;</span><span class="p">,</span>
+    <span class="n">category</span><span class="o">=</span><span class="s2">&quot;Router&quot;</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">(</span><span class="s2">&quot;IP&quot;</span><span class="p">,</span> <span class="s2">&quot;string&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">ports_dict</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;Port 1&quot;</span><span class="p">:</span> <span class="s2">&quot;eth port&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;port 2&quot;</span><span class="p">:</span> <span class="s2">&quot;eth port&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">position_list</span><span class="o">=</span><span class="p">[],</span>
+<span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">delete_equipment_type_with_equipments</span><span class="p">(</span><span class="n">equipment_type</span><span class="o">=</span><span class="n">equipment_type</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -867,28 +881,34 @@ client.delete_equipment_type_with_equipments(equipment_type=equipment_type)
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – equipment type name</p></li>
-<li><p><strong>new_positions_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – new position list</p></li>
-<li><p><strong>new_ports_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – dictionary of port name to port type name</p></li>
-<li><p><strong>str - port name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>str - port type name</strong> (<em>-</em>) – </p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Equipment type name</p></li>
+<li><p><strong>new_positions_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of new positions</p></li>
+<li><p><strong>new_ports_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – <p>Dictionary of port name to port type name</p>
+<ul>
+<li><p>str - port name</p></li>
+<li><p>str - port type name</p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentType object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentType" title="pyinventory.common.data_class.EquipmentType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentType</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id41"><span class="problematic" id="id42">``</span></a>`
-edited_equipment = client.edit_equipment_type(</p>
-<blockquote>
-<div><p>name=”Card”,
-new_positions_list=[],
-new_ports_dict={“Port 5”: “Z Cards Only (LS - DND)”}</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">edited_equipment</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">edit_equipment_type</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Card&quot;</span><span class="p">,</span>
+    <span class="n">new_positions_list</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">new_ports_dict</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Port 5&quot;</span><span class="p">:</span> <span class="s2">&quot;Z Cards Only (LS - DND)&quot;</span><span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -898,37 +918,38 @@ new_ports_dict={“Port 5”: “Z Cards Only (LS - DND)”}</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment_type_name</strong> (<em>str</em>) – existing equipment type name</p></li>
-<li><p><strong>property_type_id</strong> (<em>str</em>) – existing property type id</p></li>
-<li><p><strong>new_property_definition</strong> (<cite>pyinventory.common.data_class.PropertyDefinition</cite>) – new property definition</p></li>
+<li><p><strong>equipment_type_name</strong> (<em>str</em>) – Existing equipment type name</p></li>
+<li><p><strong>property_type_id</strong> (<em>str</em>) – Existing property type ID</p></li>
+<li><p><strong>new_property_definition</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a>) – New property definition</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentType</cite></p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: if property type name is not found</p>
 </dd>
 <dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – if property type name is not found</p></li>
-<li><p><strong>FailedOperationException</strong> – internal inventory error</p></li>
-</ul>
+<dd class="field-odd"><p>FailedOperationException: internal inventory error</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>EquipmentType object</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentType" title="pyinventory.common.data_class.EquipmentType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentType</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id43"><span class="problematic" id="id44">``</span></a>`
-e_type = client.edit_equipment_type_property_type(</p>
-<blockquote>
-<div><p>equipment_type_name=”Card”,
-property_type_id=”111669149698”,
-new_property_definition=PropertyDefinition(</p>
-<blockquote>
-<div><p>property_name=property_type_name,
-property_kind=PropertyKind.string,
-default_raw_value=None,
-is_fixed=False,
-external_id=”12345”,</p>
-</div></blockquote>
-<p>),</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">e_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">edit_equipment_type_property_type</span><span class="p">(</span>
+    <span class="n">equipment_type_name</span><span class="o">=</span><span class="s2">&quot;Card&quot;</span><span class="p">,</span>
+    <span class="n">property_type_id</span><span class="o">=</span><span class="s2">&quot;111669149698&quot;</span><span class="p">,</span>
+    <span class="n">new_property_definition</span><span class="o">=</span><span class="n">PropertyDefinition</span><span class="p">(</span>
+        <span class="n">property_name</span><span class="o">=</span><span class="n">property_type_name</span><span class="p">,</span>
+        <span class="n">property_kind</span><span class="o">=</span><span class="n">PropertyKind</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
+        <span class="n">default_raw_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">is_fixed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">external_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -938,24 +959,27 @@ external_id=”12345”,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment_type_name</strong> (<em>str</em>) – existing equipment type name</p></li>
-<li><p><strong>property_type_id</strong> (<em>str</em>) – property type ID</p></li>
+<li><p><strong>equipment_type_name</strong> (<em>str</em>) – Existing equipment type name</p></li>
+<li><p><strong>property_type_id</strong> (<em>str</em>) – Property type ID</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.PropertyDefinition</cite>  object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: property type with id=`property_type_id` is not found</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – property type with id=`property_type_id` is not found</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>PropertyDefinition object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id45"><span class="problematic" id="id46">``</span></a>`
-property_type = client.get_equipment_type_property_type(</p>
-<blockquote>
-<div><p>equipment_type_name=”Card”,
-property_type_id=”12345”,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">property_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_equipment_type_property_type</span><span class="p">(</span>
+    <span class="n">equipment_type_name</span><span class="o">=</span><span class="s2">&quot;Card&quot;</span><span class="p">,</span>
+    <span class="n">property_type_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -965,24 +989,27 @@ property_type_id=”12345”,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment_type_name</strong> (<em>str</em>) – existing equipment type name</p></li>
-<li><p><strong>property_type_external_id</strong> (<em>str</em>) – property type external ID</p></li>
+<li><p><strong>equipment_type_name</strong> (<em>str</em>) – Existing equipment type name</p></li>
+<li><p><strong>property_type_external_id</strong> (<em>str</em>) – Property type external ID</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.PropertyDefinition</cite>  object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: property type with external_id=`property_type_external_id` is not found</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – property type with external_id=`property_type_external_id` is not found</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>PropertyDefinition object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id47"><span class="problematic" id="id48">``</span></a>`
-property_type = client.get_equipment_type_property_type_by_external_id(</p>
-<blockquote>
-<div><p>equipment_type_name=”Card”,
-property_type_external_id=”12345”,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">property_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_equipment_type_property_type_by_external_id</span><span class="p">(</span>
+    <span class="n">equipment_type_name</span><span class="o">=</span><span class="s2">&quot;Card&quot;</span><span class="p">,</span>
+    <span class="n">property_type_external_id</span><span class="o">=</span><span class="s2">&quot;12345&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -993,43 +1020,48 @@ in case it is not found, creates one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – equipment name</p></li>
-<li><p><strong>category</strong> (<em>str</em>) – category name</p></li>
-<li><p><strong>properties</strong> (List[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]) – list of property definitions</p></li>
-<li><p><strong>ports_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – dict of property name to property value</p></li>
-<li><p><strong>str - port name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>str - port type name</strong> (<em>-</em>) – </p></li>
-<li><p><strong>position_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – list of positions names</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – Equipment type name</p></li>
+<li><p><strong>category</strong> (<em>str</em>) – Category name</p></li>
+<li><p><strong>properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ]) – List of property definitions</p></li>
+<li><p><strong>ports_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em>) – <p>Dictionary of port name to port type name</p>
+<ul>
+<li><p>str - port name</p></li>
+<li><p>str - port type name</p></li>
+</ul>
+</p></li>
+<li><p><strong>position_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em>) – List of positions names</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.EquipmentType</cite> object</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: internal inventory error</p>
 </dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>EquipmentType object</p>
 </dd>
-</dl>
-<p class="rubric">Example</p>
-<p><a href="#id49"><span class="problematic" id="id50">``</span></a>`
-e_type = client.get_or_create_equipment_type(</p>
-<blockquote>
-<div><p>name=”Tp-Link T1600G”,
-category=”Router”,
-properties=[</p>
-<blockquote>
-<div><dl class="simple">
-<dt>PropertyDefinition(</dt><dd><p>property_name=”IP”,
-property_kind=PropertyKind.string,
-default_raw_value=None,
-is_fixed=True</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentType" title="pyinventory.common.data_class.EquipmentType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentType</span></code></a></p>
 </dd>
 </dl>
-<p>)</p>
-</div></blockquote>
-<p>],
-ports_dict={“Port 1”: “eth port”, “port 2”: “eth port”},
-position_list=[],</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">e_type</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_or_create_equipment_type</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Tp-Link T1600G&quot;</span><span class="p">,</span>
+    <span class="n">category</span><span class="o">=</span><span class="s2">&quot;Router&quot;</span><span class="p">,</span>
+    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">PropertyDefinition</span><span class="p">(</span>
+            <span class="n">property_name</span><span class="o">=</span><span class="s2">&quot;IP&quot;</span><span class="p">,</span>
+            <span class="n">property_kind</span><span class="o">=</span><span class="n">PropertyKind</span><span class="o">.</span><span class="n">string</span><span class="p">,</span>
+            <span class="n">default_raw_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">is_fixed</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+    <span class="p">],</span>
+    <span class="n">ports_dict</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;Port 1&quot;</span><span class="p">:</span> <span class="s2">&quot;eth port&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;port 2&quot;</span><span class="p">:</span> <span class="s2">&quot;eth port&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">position_list</span><span class="o">=</span><span class="p">[],</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -1093,7 +1125,7 @@ position_list=[],</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id51"><span class="problematic" id="id52">``</span></a>`
+<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
 location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 client.add_file(</p>
 <blockquote>
@@ -1119,7 +1151,7 @@ category=”category_name”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id53"><span class="problematic" id="id54">``</span></a>`
+<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
 location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 client.add_files(</p>
 <blockquote>
@@ -1146,7 +1178,7 @@ category=”category_name”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id55"><span class="problematic" id="id56">``</span></a>`
+<p><a href="#id35"><span class="problematic" id="id36">``</span></a>`
 location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 client.add_location_image(</p>
 <blockquote>
@@ -1214,7 +1246,7 @@ location=location,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id57"><span class="problematic" id="id58">``</span></a>`
+<p><a href="#id37"><span class="problematic" id="id38">``</span></a>`
 location1 = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 equipment1 = client.get_equipment(name=”indProdCpy1_AIO”, location=location1)
 location2 = client.get_location({(“Country”, “LS_IND_Prod”)})
@@ -1293,7 +1325,7 @@ port_name_b=”Port B”</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id59"><span class="problematic" id="id60">``</span></a>`
+<p><a href="#id39"><span class="problematic" id="id40">``</span></a>`
 location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 client.get_link_in_port_of_equipment(</p>
@@ -1357,7 +1389,7 @@ the property type, otherwise exception is raised</p></li>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id61"><span class="problematic" id="id62">``</span></a>`
+<p><a href="#id41"><span class="problematic" id="id42">``</span></a>`
 location = client.add_location(</p>
 <blockquote>
 <div><dl class="simple">
@@ -1381,7 +1413,7 @@ lat=-11.32,
 long=98.32,
 external_id=None)</p>
 </div></blockquote>
-<p><a href="#id63"><span class="problematic" id="id64">``</span></a><a href="#id65"><span class="problematic" id="id66">`</span></a></p>
+<p><a href="#id43"><span class="problematic" id="id44">``</span></a><a href="#id45"><span class="problematic" id="id46">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -1433,7 +1465,7 @@ external_id=None)</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id67"><span class="problematic" id="id68">``</span></a>`
+<p><a href="#id47"><span class="problematic" id="id48">``</span></a>`
 # this call will fail if there is Bletchley Park in two cities
 location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
 edited_location = client.edit_location(</p>
@@ -1474,7 +1506,7 @@ It can get only the requested location specifiers or the hirerchy leading to it<
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id69"><span class="problematic" id="id70">``</span></a>`
+<p><a href="#id49"><span class="problematic" id="id50">``</span></a>`
 location = client.get_location(</p>
 <blockquote>
 <div><dl class="simple">
@@ -1490,7 +1522,7 @@ location = client.get_location(</p>
 <span class="pre">`</span></code>
 # this call will fail if there is Bletchley Park in two cities
 location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
-<a href="#id71"><span class="problematic" id="id72">``</span></a><a href="#id73"><span class="problematic" id="id74">`</span></a></p>
+<a href="#id51"><span class="problematic" id="id52">``</span></a><a href="#id53"><span class="problematic" id="id54">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -1603,7 +1635,7 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id75"><span class="problematic" id="id76">``</span></a>`
+<p><a href="#id55"><span class="problematic" id="id56">``</span></a>`
 # this call will fail if there is Bletchley Park in two cities
 location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
 moved_location = client.move_locatoin(</p>
@@ -1677,7 +1709,7 @@ new_parent_id=”12345”</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id77"><span class="problematic" id="id78">``</span></a>`
+<p><a href="#id57"><span class="problematic" id="id58">``</span></a>`
 location_type = client.add_location_type(</p>
 <blockquote>
 <div><p>name=”city”,
@@ -1761,7 +1793,7 @@ map_zoom_level=5,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id79"><span class="problematic" id="id80">``</span></a>`
+<p><a href="#id59"><span class="problematic" id="id60">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_link_properties(</p>
@@ -1798,7 +1830,7 @@ new_link_properties={“Link Property 1”: 98765},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id81"><span class="problematic" id="id82">``</span></a>`
+<p><a href="#id61"><span class="problematic" id="id62">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_port_properties(</p>
@@ -1876,7 +1908,7 @@ new_properties={“Port Property 2”: “test_it”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id83"><span class="problematic" id="id84">``</span></a>`
+<p><a href="#id63"><span class="problematic" id="id64">``</span></a>`
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.enum.property_kind import PropertyKind
 port_type1 = client.add_equipment_port_type(</p>
@@ -1950,7 +1982,7 @@ It can get only the requested equipment port type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id85"><span class="problematic" id="id86">``</span></a>`
+<p><a href="#id65"><span class="problematic" id="id66">``</span></a>`
 port_type1 = client.edit_equipment_port_type(</p>
 <blockquote>
 <div><p>port_type=equipment_port_type,
@@ -2006,7 +2038,7 @@ It can get only the requested equipment port type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id87"><span class="problematic" id="id88">``</span></a>`
+<p><a href="#id67"><span class="problematic" id="id68">``</span></a>`
 property_types = client.edit_property_type(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2044,7 +2076,7 @@ external_id=”ex_12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id89"><span class="problematic" id="id90">``</span></a>`
+<p><a href="#id69"><span class="problematic" id="id70">``</span></a>`
 property_type = client.get_property_type(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2073,7 +2105,7 @@ property_type_id=”12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id91"><span class="problematic" id="id92">``</span></a>`
+<p><a href="#id71"><span class="problematic" id="id72">``</span></a>`
 property_type = client.get_property_type_by_external_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2105,7 +2137,7 @@ property_type_external_id=”12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id93"><span class="problematic" id="id94">``</span></a>`
+<p><a href="#id73"><span class="problematic" id="id74">``</span></a>`
 property_type = client.get_property_type_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2133,7 +2165,7 @@ property_type_name=”IP”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id95"><span class="problematic" id="id96">``</span></a>`
+<p><a href="#id75"><span class="problematic" id="id76">``</span></a>`
 property_type = client.get_property_types(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2168,7 +2200,7 @@ entity_name=”Card”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id97"><span class="problematic" id="id98">``</span></a>`
+<p><a href="#id77"><span class="problematic" id="id78">``</span></a>`
 service = client.add_service(</p>
 <blockquote>
 <div><p>name=”Room 202 Internet Access”,
@@ -2196,7 +2228,7 @@ properties_dict={“Address Family”: “v4”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id99"><span class="problematic" id="id100">``</span></a>`
+<p><a href="#id79"><span class="problematic" id="id80">``</span></a>`
 service = client.get_service(id=”service_id”)
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
@@ -2324,7 +2356,7 @@ endpoint_definition_id=”endpoint_definition_id,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id101"><span class="problematic" id="id102">``</span></a>`
+<p><a href="#id81"><span class="problematic" id="id82">``</span></a>`
 service_type = client.add_service_type(</p>
 <blockquote>
 <div><p>client=self.client,
@@ -2351,7 +2383,7 @@ is_fixed=False,</p>
 </div></blockquote>
 <p>)</p>
 </div></blockquote>
-<p><a href="#id103"><span class="problematic" id="id104">``</span></a><a href="#id105"><span class="problematic" id="id106">`</span></a></p>
+<p><a href="#id83"><span class="problematic" id="id84">``</span></a><a href="#id85"><span class="problematic" id="id86">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -2412,7 +2444,7 @@ It can get only the requested service type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id107"><span class="problematic" id="id108">``</span></a>`
+<p><a href="#id87"><span class="problematic" id="id88">``</span></a>`
 service_type = client.edit_service_type(</p>
 <blockquote>
 <div><p>service_type=service_type,
@@ -2449,7 +2481,7 @@ index=1,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id109"><span class="problematic" id="id110">``</span></a>`
+<p><a href="#id89"><span class="problematic" id="id90">``</span></a>`
 service_type = client.get_service_type(</p>
 <blockquote>
 <div><p>service_type_id=”12345”,</p>
@@ -2567,13 +2599,13 @@ Users in symphony are never deleted. Only de-activated.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id111"><span class="problematic" id="id112">``</span></a>`
+<p><a href="#id91"><span class="problematic" id="id92">``</span></a>`
 users = client.get_active_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id113"><span class="problematic" id="id114">``</span></a><a href="#id115"><span class="problematic" id="id116">`</span></a></p>
+<p><a href="#id93"><span class="problematic" id="id94">``</span></a><a href="#id95"><span class="problematic" id="id96">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -2613,13 +2645,13 @@ for user in users:</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id117"><span class="problematic" id="id118">``</span></a>`
+<p><a href="#id97"><span class="problematic" id="id98">``</span></a>`
 users = client.get_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id119"><span class="problematic" id="id120">``</span></a><a href="#id121"><span class="problematic" id="id122">`</span></a></p>
+<p><a href="#id99"><span class="problematic" id="id100">``</span></a><a href="#id101"><span class="problematic" id="id102">`</span></a></p>
 </dd></dl>
 
 </div>
