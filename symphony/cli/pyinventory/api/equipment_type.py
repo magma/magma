@@ -120,7 +120,7 @@ def get_or_create_equipment_type(
         :type position_list: List[str]
 
         :raises:
-            FailedOperationException: internal inventory error
+            FailedOperationException: Internal inventory error
 
         :return: EquipmentType object
         :rtype: :class:`~pyinventory.common.data_class.EquipmentType`

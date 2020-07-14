@@ -72,19 +72,25 @@ def add_service_type(
 ) -> ServiceType:
     """This function creates new service type.
 
-        Args:
-            name (str): service type name
-            has_customer (bool): flag for customenr existance
-            properties: (Optional[ List[ `pyinventory.common.data_class.PropertyDefinition` ] ]): list of property definitions
+        :param name: Service type name
+        :type name: str
+        :param has_customer: Flag for customer existance
+        :type has_customer: bool
+        :param properties: Property definitions list
+        :type properties: List[ :class:`~pyinventory.common.data_class.PropertyDefinition` ], optional
+        :param endpoint_definitions: Service endpoint definitions list
+        :type endpoint_definitions: List[ :class:`~pyinventory.common.data_class.ServiceEndpointDefinition` ], optional
 
-        Returns:
-            `pyinventory.common.data_class.ServiceType`
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :return: ServiceType object
+        :rtype: :class:`~pyinventory.common.data_class.ServiceType`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             service_type = client.add_service_type(
                 client=self.client,
                 name="Internet Access",
@@ -102,8 +108,8 @@ def add_service_type(
                         default_raw_value=None,
                         is_fixed=False,
                     ),
-                )
-            ```
+                ],
+            )
     """
 
     formated_property_types = None
@@ -155,21 +161,22 @@ def add_service_type(
 def get_service_type(client: SymphonyClient, service_type_id: str) -> ServiceType:
     """Get service type by ID.
 
-        Args:
-            service_type_id (str): service type ID
+        :param service_type_id: Service type ID
+        :type service_type_id: str
 
-        Returns:
-            `pyinventory.common.data_class.ServiceType`
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Service type with id=`service_type_id` does not found
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if service type with id=`service_type_id` does not found
+        :return: ServiceType object
+        :rtype: :class:`~pyinventory.common.data_class.ServiceType`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             service_type = client.get_service_type(
                 service_type_id="12345",
             )
-            ```
     """
     for _, service_type in SERVICE_TYPES.items():
         if service_type.id == service_type_id:
@@ -188,24 +195,27 @@ def edit_service_type(
 ) -> ServiceType:
     """Edit existing service type by ID.
 
-        Args:
-            service_type ( `pyinventory.common.data_class.ServiceType` ): existing service type object
-            new_name (Optional[ str ]): new name
-            new_has_customer (Optional[ bool ]): flag customer existance
-            new_properties: (Optional[ Dict[ str, PropertyValue ] ]): dictionary
-            - str - property type name
-            - PropertyValue - new value of the same type for this property
+        :param service_type: ServiceType object
+        :type service_type: :class:`~pyinventory.common.data_class.ServiceType`
+        :param new_name: Service type name
+        :type new_name: str, optional
+        :param new_has_customer: Flag for customer existance
+        :type new_has_customer: bool, optional
+        :param new_properties: Property definitions list
+        :type new_properties: List[ :class:`~pyinventory.common.data_class.PropertyDefinition` ], optional
+        :param new_endpoints: Service endpont definitions list
+        :type new_endpoints: List[ :class:`~pyinventory.common.data_class.ServiceEndpointDefinition` ], optional
 
-            new_endpoints (Optional[ List[ `pyinventory.common.data_class.ServiceEndpointDefinition` ] ]): endpoint definitions list
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Service type with id=`service_type_id` does not found
 
-        Returns:
-            `pyinventory.common.data_class.ServiceType`
+        :return: ServiceType object
+        :rtype: :class:`~pyinventory.common.data_class.ServiceType`
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if service type with id=`service_type_id` does not found
+        **Example**
 
-        Example:
-            ```
+        .. code-block:: python
+
             service_type = client.edit_service_type(
                 service_type=service_type,
                 new_name="new service type name",
@@ -219,7 +229,6 @@ def edit_service_type(
                     ),
                 ],
             )
-            ```
     """
     new_name = service_type.name if new_name is None else new_name
     new_has_customer = (
@@ -282,13 +291,16 @@ def delete_service_type(client: SymphonyClient, service_type: ServiceType) -> No
     """This function deletes an service type.
         It can get only the requested service type ID
 
-        Args:
-            service_type ( `pyinventory.common.data_class.ServiceType` ): service type object
+        :param service_type: ServiceType object
+        :type service_type: :class:`~pyinventory.common.data_class.ServiceType`
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             client.delete_service_type(service_type_id=service_type.id)
-            ```
     """
     RemoveServiceTypeMutation.execute(client, id=service_type.id)
     del SERVICE_TYPES[service_type.name]
@@ -299,16 +311,19 @@ def delete_service_type_with_services(
 ) -> None:
     """Delete service type with existing services.
 
-        Args:
-            service_type ( `pyinventory.common.data_class.ServiceType` ): service type object
+        :param service_type: ServiceType object
+        :type service_type: :class:`~pyinventory.common.data_class.ServiceType`
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if service_type does not exist
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Service type does not exist
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             client.delete_service_type_with_services(service_type=service_type)
-            ```
     """
     service_type_with_services = ServiceTypeServicesQuery.execute(
         client, id=service_type.id
