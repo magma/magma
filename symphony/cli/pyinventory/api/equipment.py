@@ -905,7 +905,7 @@ def get_or_create_equipment(
         :type name: str
         :param equipment_type: Equipment type name
         :type equipment_type: str
-        :param location: Location object could be retrieved from
+        :param location: Location object, could be retrieved from
 
             * :meth:`~pyinventory.api.location.get_location`
             * :meth:`~pyinventory.api.location.add_location`

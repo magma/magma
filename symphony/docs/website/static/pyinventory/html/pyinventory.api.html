@@ -724,7 +724,7 @@ in case it is not found by name, creates one.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>name</strong> (<em>str</em>) – Equipment name</p></li>
 <li><p><strong>equipment_type</strong> (<em>str</em>) – Equipment type name</p></li>
-<li><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – <p>Location object could be retrieved from</p>
+<li><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – <p>Location object, could be retrieved from</p>
 <ul>
 <li><p><a class="reference internal" href="#pyinventory.api.location.get_location" title="pyinventory.api.location.get_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_location()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.location.add_location" title="pyinventory.api.location.add_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_location()</span></code></a></p></li>
@@ -1220,26 +1220,28 @@ in case it is not found, creates one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>local_file_path</strong> (<em>str</em>) – local system path to the file</p></li>
-<li><p><strong>entity_type</strong> (<em>str</em>) – one of existing options [“LOCATION”, “WORK_ORDER”, “SITE_SURVEY”, “EQUIPMENT”]</p></li>
-<li><p><strong>entity_id</strong> (<em>string</em>) – valid entity ID</p></li>
-<li><p><strong>category</strong> (<em>Optional</em><em>[</em><em>string</em><em>]</em>) – file category name</p></li>
+<li><p><strong>local_file_path</strong> (<em>str</em>) – Local system path to the file</p></li>
+<li><p><strong>entity_type</strong> (<em>str</em>) – One of existing options [“LOCATION”, “WORK_ORDER”, “SITE_SURVEY”, “EQUIPMENT”]</p></li>
+<li><p><strong>category</strong> (<em>str</em><em>, </em><em>optional</em>) – File category name</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – on operation failure</p>
+<dd class="field-even"><p>FailedOperationException: on operation failure</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
-client.add_file(</p>
-<blockquote>
-<div><p>local_file_path=”./document.pdf”,
-entity_type=”LOCATION”,
-entity_id=location.id,
-category=”category_name”,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">({(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;LS_IND_Prod_Copy&quot;</span><span class="p">)})</span>
+<span class="n">client</span><span class="o">.</span><span class="n">add_file</span><span class="p">(</span>
+    <span class="n">local_file_path</span><span class="o">=</span><span class="s2">&quot;./document.pdf&quot;</span><span class="p">,</span>
+    <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;LOCATION&quot;</span><span class="p">,</span>
+    <span class="n">entity_id</span><span class="o">=</span><span class="n">location</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="n">category</span><span class="o">=</span><span class="s2">&quot;category_name&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1249,23 +1251,28 @@ category=”category_name”,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>local_directory_path</strong> (<em>str</em>) – local system path to the directory</p></li>
-<li><p><strong>entity_type</strong> (<em>str</em>) – one of existing options [“LOCATION”, “WORK_ORDER”, “SITE_SURVEY”, “EQUIPMENT”]</p></li>
-<li><p><strong>entity_id</strong> (<em>string</em>) – valid entity ID</p></li>
-<li><p><strong>category</strong> (<em>Optional</em><em>[</em><em>string</em><em>]</em>) – file category name</p></li>
+<li><p><strong>local_directory_path</strong> (<em>str</em>) – Local system path to the directory</p></li>
+<li><p><strong>entity_type</strong> (<em>str</em>) – One of existing options [“LOCATION”, “WORK_ORDER”, “SITE_SURVEY”, “EQUIPMENT”]</p></li>
+<li><p><strong>category</strong> (<em>str</em><em>, </em><em>optional</em>) – File category name</p></li>
 </ul>
 </dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>FailedOperationException: on operation failure</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
-location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
-client.add_files(</p>
-<blockquote>
-<div><p>local_directory_path=”./documents_folder/”,
-entity_type=”LOCATION”,
-entity_id=location.id,
-category=”category_name”,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">({(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;LS_IND_Prod_Copy&quot;</span><span class="p">)})</span>
+<span class="n">client</span><span class="o">.</span><span class="n">add_files</span><span class="p">(</span>
+    <span class="n">local_directory_path</span><span class="o">=</span><span class="s2">&quot;./documents_folder/&quot;</span><span class="p">,</span>
+    <span class="n">entity_type</span><span class="o">=</span><span class="s2">&quot;LOCATION&quot;</span><span class="p">,</span>
+    <span class="n">entity_id</span><span class="o">=</span><span class="n">location</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+    <span class="n">category</span><span class="o">=</span><span class="s2">&quot;category_name&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1275,22 +1282,30 @@ category=”category_name”,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>local_file_path</strong> (<em>str</em>) – local system path to the file</p></li>
-<li><p><strong>location</strong> (<cite>pyinventory.common.data_class.Location</cite>) – existing location object</p></li>
+<li><p><strong>local_file_path</strong> (<em>str</em>) – Local system path to the file</p></li>
+<li><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – <p>Existing location object, could be retrieved from</p>
+<ul>
+<li><p><a class="reference internal" href="#pyinventory.api.location.get_location" title="pyinventory.api.location.get_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_location()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#pyinventory.api.location.add_location" title="pyinventory.api.location.add_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_location()</span></code></a></p></li>
+</ul>
+</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – on operation failure</p>
+<dd class="field-even"><p>FailedOperationException: on operation failure</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id5"><span class="problematic" id="id6">``</span></a>`
-location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
-client.add_location_image(</p>
-<blockquote>
-<div><p>local_file_path=”./document.pdf”,
-location=location,</p>
-</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">location</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_location</span><span class="p">({(</span><span class="s2">&quot;Country&quot;</span><span class="p">,</span> <span class="s2">&quot;LS_IND_Prod_Copy&quot;</span><span class="p">)})</span>
+<span class="n">client</span><span class="o">.</span><span class="n">add_location_image</span><span class="p">(</span>
+    <span class="n">local_file_path</span><span class="o">=</span><span class="s2">&quot;./document.pdf&quot;</span><span class="p">,</span>
+    <span class="n">location</span><span class="o">=</span><span class="n">location</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1299,16 +1314,19 @@ location=location,</p>
 <dd><p>This function deletes existing document.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>document</strong> (<cite>pyinventory.common.data_class.Document</cite>) – document object</p>
+<dd class="field-odd"><p><strong>document</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Document" title="pyinventory.common.data_class.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a>) – Document object</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – on operation failure</p>
+<dd class="field-even"><p>FailedOperationException: on operation failure</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">client.delete_document(document=document)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">client</span><span class="o">.</span><span class="n">delete_document</span><span class="p">(</span><span class="n">document</span><span class="o">=</span><span class="n">document</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -1352,7 +1370,7 @@ location=location,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
 location1 = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 equipment1 = client.get_equipment(name=”indProdCpy1_AIO”, location=location1)
 location2 = client.get_location({(“Country”, “LS_IND_Prod”)})
@@ -1431,7 +1449,7 @@ port_name_b=”Port B”</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a>`
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a>`
 location = client.get_location({(“Country”, “LS_IND_Prod_Copy”)})
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 client.get_link_in_port_of_equipment(</p>
@@ -1495,7 +1513,7 @@ the property type, otherwise exception is raised</p></li>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id11"><span class="problematic" id="id12">``</span></a>`
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a>`
 location = client.add_location(</p>
 <blockquote>
 <div><dl class="simple">
@@ -1519,7 +1537,7 @@ lat=-11.32,
 long=98.32,
 external_id=None)</p>
 </div></blockquote>
-<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p><a href="#id7"><span class="problematic" id="id8">``</span></a><a href="#id9"><span class="problematic" id="id10">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -1571,7 +1589,7 @@ external_id=None)</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id17"><span class="problematic" id="id18">``</span></a>`
+<p><a href="#id11"><span class="problematic" id="id12">``</span></a>`
 # this call will fail if there is Bletchley Park in two cities
 location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
 edited_location = client.edit_location(</p>
@@ -1612,7 +1630,7 @@ It can get only the requested location specifiers or the hirerchy leading to it<
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a>`
 location = client.get_location(</p>
 <blockquote>
 <div><dl class="simple">
@@ -1628,7 +1646,7 @@ location = client.get_location(</p>
 <span class="pre">`</span></code>
 # this call will fail if there is Bletchley Park in two cities
 location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
-<a href="#id21"><span class="problematic" id="id22">``</span></a><a href="#id23"><span class="problematic" id="id24">`</span></a></p>
+<a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -1741,7 +1759,7 @@ location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id25"><span class="problematic" id="id26">``</span></a>`
+<p><a href="#id19"><span class="problematic" id="id20">``</span></a>`
 # this call will fail if there is Bletchley Park in two cities
 location = client.get_location(location_hirerchy=[(“Site”, “Bletchley Park”)])
 moved_location = client.move_locatoin(</p>
@@ -1815,7 +1833,7 @@ new_parent_id=”12345”</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id27"><span class="problematic" id="id28">``</span></a>`
+<p><a href="#id21"><span class="problematic" id="id22">``</span></a>`
 location_type = client.add_location_type(</p>
 <blockquote>
 <div><p>name=”city”,
@@ -1899,7 +1917,7 @@ map_zoom_level=5,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id29"><span class="problematic" id="id30">``</span></a>`
+<p><a href="#id23"><span class="problematic" id="id24">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_link_properties(</p>
@@ -1936,7 +1954,7 @@ new_link_properties={“Link Property 1”: 98765},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
+<p><a href="#id25"><span class="problematic" id="id26">``</span></a>`
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
 edited_port = client.edit_port_properties(</p>
@@ -2014,7 +2032,7 @@ new_properties={“Port Property 2”: “test_it”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
+<p><a href="#id27"><span class="problematic" id="id28">``</span></a>`
 from pyinventory.common.data_class import PropertyDefinition
 from pyinventory.graphql.enum.property_kind import PropertyKind
 port_type1 = client.add_equipment_port_type(</p>
@@ -2088,7 +2106,7 @@ It can get only the requested equipment port type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id35"><span class="problematic" id="id36">``</span></a>`
+<p><a href="#id29"><span class="problematic" id="id30">``</span></a>`
 port_type1 = client.edit_equipment_port_type(</p>
 <blockquote>
 <div><p>port_type=equipment_port_type,
@@ -2144,7 +2162,7 @@ It can get only the requested equipment port type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id37"><span class="problematic" id="id38">``</span></a>`
+<p><a href="#id31"><span class="problematic" id="id32">``</span></a>`
 property_types = client.edit_property_type(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2182,7 +2200,7 @@ external_id=”ex_12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id39"><span class="problematic" id="id40">``</span></a>`
+<p><a href="#id33"><span class="problematic" id="id34">``</span></a>`
 property_type = client.get_property_type(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2211,7 +2229,7 @@ property_type_id=”12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id41"><span class="problematic" id="id42">``</span></a>`
+<p><a href="#id35"><span class="problematic" id="id36">``</span></a>`
 property_type = client.get_property_type_by_external_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2243,7 +2261,7 @@ property_type_external_id=”12345”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id43"><span class="problematic" id="id44">``</span></a>`
+<p><a href="#id37"><span class="problematic" id="id38">``</span></a>`
 property_type = client.get_property_type_id(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2271,7 +2289,7 @@ property_type_name=”IP”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id45"><span class="problematic" id="id46">``</span></a>`
+<p><a href="#id39"><span class="problematic" id="id40">``</span></a>`
 property_type = client.get_property_types(</p>
 <blockquote>
 <div><p>entity_type=Entity.EquipmentType,
@@ -2306,7 +2324,7 @@ entity_name=”Card”,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id47"><span class="problematic" id="id48">``</span></a>`
+<p><a href="#id41"><span class="problematic" id="id42">``</span></a>`
 service = client.add_service(</p>
 <blockquote>
 <div><p>name=”Room 202 Internet Access”,
@@ -2334,7 +2352,7 @@ properties_dict={“Address Family”: “v4”},</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id49"><span class="problematic" id="id50">``</span></a>`
+<p><a href="#id43"><span class="problematic" id="id44">``</span></a>`
 service = client.get_service(id=”service_id”)
 location = client.get_location(location_hirerchy=[(“Country”, “LS_IND_Prod_Copy”)])
 equipment = client.get_equipment(name=”indProdCpy1_AIO”, location=location)
@@ -2462,7 +2480,7 @@ endpoint_definition_id=”endpoint_definition_id,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id51"><span class="problematic" id="id52">``</span></a>`
+<p><a href="#id45"><span class="problematic" id="id46">``</span></a>`
 service_type = client.add_service_type(</p>
 <blockquote>
 <div><p>client=self.client,
@@ -2489,7 +2507,7 @@ is_fixed=False,</p>
 </div></blockquote>
 <p>)</p>
 </div></blockquote>
-<p><a href="#id53"><span class="problematic" id="id54">``</span></a><a href="#id55"><span class="problematic" id="id56">`</span></a></p>
+<p><a href="#id47"><span class="problematic" id="id48">``</span></a><a href="#id49"><span class="problematic" id="id50">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -2550,7 +2568,7 @@ It can get only the requested service type ID</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id57"><span class="problematic" id="id58">``</span></a>`
+<p><a href="#id51"><span class="problematic" id="id52">``</span></a>`
 service_type = client.edit_service_type(</p>
 <blockquote>
 <div><p>service_type=service_type,
@@ -2587,7 +2605,7 @@ index=1,</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id59"><span class="problematic" id="id60">``</span></a>`
+<p><a href="#id53"><span class="problematic" id="id54">``</span></a>`
 service_type = client.get_service_type(</p>
 <blockquote>
 <div><p>service_type_id=”12345”,</p>
@@ -2705,13 +2723,13 @@ Users in symphony are never deleted. Only de-activated.</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id61"><span class="problematic" id="id62">``</span></a>`
+<p><a href="#id55"><span class="problematic" id="id56">``</span></a>`
 users = client.get_active_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id63"><span class="problematic" id="id64">``</span></a><a href="#id65"><span class="problematic" id="id66">`</span></a></p>
+<p><a href="#id57"><span class="problematic" id="id58">``</span></a><a href="#id59"><span class="problematic" id="id60">`</span></a></p>
 </dd></dl>
 
 <dl class="py function">
@@ -2751,13 +2769,13 @@ for user in users:</p>
 </dd>
 </dl>
 <p class="rubric">Example</p>
-<p><a href="#id67"><span class="problematic" id="id68">``</span></a>`
+<p><a href="#id61"><span class="problematic" id="id62">``</span></a>`
 users = client.get_users()
 for user in users:</p>
 <blockquote>
 <div><p>print(user.email)</p>
 </div></blockquote>
-<p><a href="#id69"><span class="problematic" id="id70">``</span></a><a href="#id71"><span class="problematic" id="id72">`</span></a></p>
+<p><a href="#id63"><span class="problematic" id="id64">``</span></a><a href="#id65"><span class="problematic" id="id66">`</span></a></p>
 </dd></dl>
 
 </div>
