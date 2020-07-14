@@ -269,7 +269,7 @@ export default createMuiTheme({
       root: {
         marginBottom: '0px',
         marginTop: '0px',
-        ...typography.body3
+        ...typography.body3,
       },
     },
     MuiSelect: {

@@ -134,9 +134,7 @@ function SubscriberConfigTrafficPolicy({
     return (
       <>
         <ListItem>
-          <ListItemText
-            primary={props.data}
-          />
+          <ListItemText primary={props.data} />
         </ListItem>
         <Divider />
       </>
@@ -147,9 +145,7 @@ function SubscriberConfigTrafficPolicy({
     return (
       <>
         <ListItem>
-          <ListItemText
-            primary="-"
-          />
+          <ListItemText primary="-" />
         </ListItem>
         <Divider />
       </>
