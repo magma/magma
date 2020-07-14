@@ -215,6 +215,8 @@ message MME {
     string dns_primary = 20;
     // Secondary DNS server
     string dns_secondary = 21;
+    // Whether NAT is enabled
+    bool nat_enabled = 22;
 }
 
 
