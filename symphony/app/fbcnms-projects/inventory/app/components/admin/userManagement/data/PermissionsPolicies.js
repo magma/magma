@@ -379,9 +379,9 @@ export const EMPTY_POLICY = {
 export const WORKORDER_SYSTEM_POLICY_ID = 'system_workorder';
 export const WORKORDER_SYSTEM_POLICY = {
   id: WORKORDER_SYSTEM_POLICY_ID,
-  name: `${fbt('Work Order Editing', '')}`,
+  name: `${fbt('Work Orders Editing', '')}`,
   description: `${fbt(
-    'All active users in your organization can view, edit and reassign work orders and projects that they own or are assigned to. When a work order is part of a project, that project is visible to all of the work order assignees and owners.',
+    'All active users in your organization can view, edit and reassign work orders and projects that they own or are assigned to. Work order owners can transfer ownership. When a work order is part of a project, that project is visible to all of the work order assignees and owners.',
     '',
   )}`,
   type: POLICY_TYPES.WorkforcePolicy.key,
