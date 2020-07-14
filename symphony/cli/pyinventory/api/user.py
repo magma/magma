@@ -22,20 +22,21 @@ from ..graphql.query.users import UsersQuery
 def get_user(client: SymphonyClient, email: str) -> User:
     """Returns `pyinventory.common.data_class.User` object by its email
 
-        Args:
-            email (str): the email address the user registered with
+        :param email: Email address the user registered with
+        :type email: str
 
-        Returns:
-            `pyinventory.common.data_class.User` object
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: the user was not found
+            * FailedOperationException: Internal inventory error
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: the user was not found
-            FailedOperationException: internal inventory error
+        :return: User object
+        :rtype: :class:`~pyinventory.common.data_class.User`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             user = client.get_user(email="user@test.com")
-            ```
     """
     user = UserQuery.execute(client, email)
     if user is None:
@@ -52,23 +53,25 @@ def get_user(client: SymphonyClient, email: str) -> User:
 def add_user(client: SymphonyClient, email: str, password: str) -> User:
     """Adds new user to inventory with its email and password
 
-        Args:
-            email (str): the email address of the user
-            password (str): password the user would connect with
+        :param email: Email address of the user
+        :type email: str
+        :param password: Password the user would connect with
+        :type password: str
 
-        Returns:
-            `pyinventory.common.data_class.User` object
+        :raises:
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: the user was not created
+            * FailedOperationException: Internal inventory error
+            * AssertionError: The user was not created
+            * HTTPError: Connection error
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: the user was not created properly
-            FailedOperationException: internal inventory error
-            AssertionError: The user was not created for some known reason
-            HTTPError: Error with connection
+        :return: User object
+        :rtype: :class:`~pyinventory.common.data_class.User`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             user = client.add_user(email="user@test.com", password="P0ssW!rd0f43")
-            ```
     """
     resp = client.post(
         "/user/async/",
@@ -86,21 +89,30 @@ def edit_user(
 ) -> None:
     """Edit user password and role
 
-        Args:
-            user ( `pyinventory.common.data_class.User` ): user to edit
-            new_password (Optional[str]): new password the user would connect with
-            new_role ( `pyinventory.graphql.enum.user_role.UserRole` ): user new role
+        :param user: User object
+        :type user: :class:`~pyinventory.common.data_class.User`
+        :param new_password: New password the user would connect with
+        :type new_password: str, optional
+        :param new_role: New user role
+        :type new_role: str
 
-        Raises:
-            FailedOperationException: internal inventory error
-            AssertionError: The user was not edited for some known reason
-            HTTPError: Error with connection
+        :raises:
+            * FailedOperationException: Internal inventory error
+            * AssertionError: The user was not edited
+            * HTTPError: Connection error
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             user = client.add_user(email="user@test.com", password="P0ssW!rd0f43")
-            client.edit_user(user=user, new_password="New_Password4Ever", new_role=UserRole.ADMIN)
-            ```
+            client.edit_user(
+                user=user,
+                new_password="New_Password4Ever",
+                new_role=UserRole.ADMIN,
+            )
     """
     params: Dict[str, Any] = {}
     if new_password is not None:
@@ -119,19 +131,20 @@ def deactivate_user(client: SymphonyClient, user: User) -> None:
     """Deactivate the user which would prevent the user from login in to symphony
        Users in symphony are never deleted. Only de-activated.
 
+        :param user: User object
+        :type user: :class:`~pyinventory.common.data_class.User`
 
-        Args:
-            user ( `pyinventory.common.data_class.User` ): user to deactivate
+        :raises:
+            FailedOperationException: Internal inventory error
 
+        :rtype: None
 
-        Raises:
-            FailedOperationException: internal inventory error
+        **Example**
 
-        Example:
-            ```
+        .. code-block:: python
+
             user = client.get_user(email="user@test.com")
             client.deactivate_user(user=user)
-            ```
     """
     EditUserMutation.execute(
         client, input=EditUserInput(id=user.id, status=UserStatus.DEACTIVATED)
@@ -141,17 +154,20 @@ def deactivate_user(client: SymphonyClient, user: User) -> None:
 def activate_user(client: SymphonyClient, user: User) -> None:
     """Activate the user which would allow the user to login again to symphony
 
-        Args:
-            user ( `pyinventory.common.data_class.User` ): user to activate
+        :param user: User object
+        :type user: :class:`~pyinventory.common.data_class.User`
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             user = client.get_user(email="user@test.com")
             client.activate_user(user=user)
-            ```
     """
     EditUserMutation.execute(
         client, input=EditUserInput(id=user.id, status=UserStatus.ACTIVE)
@@ -161,18 +177,19 @@ def activate_user(client: SymphonyClient, user: User) -> None:
 def get_users(client: SymphonyClient) -> Iterator[User]:
     """Get the list of users in the system (both active and deactivate)
 
-        Returns:
-            Iterator[ `pyinventory.common.data_class.User` ]
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :return: Users Iterator
+        :rtype: Iterator[ :class:`~pyinventory.common.data_class.User` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             users = client.get_users()
             for user in users:
                 print(user.email)
-            ```
     """
     result = UsersQuery.execute(client)
     if result is None:
@@ -192,18 +209,19 @@ def get_users(client: SymphonyClient) -> Iterator[User]:
 def get_active_users(client: SymphonyClient) -> List[User]:
     """Get the list of the active users in the system
 
-        Returns:
-            List[ `pyinventory.common.data_class.User` ]
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Raises:
-            FailedOperationException: internal inventory error
+        :return: Users List
+        :rtype: List[ :class:`~pyinventory.common.data_class.User` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             users = client.get_active_users()
             for user in users:
                 print(user.email)
-            ```
     """
     users = get_users(client=client)
     return [user for user in users if user.status == UserStatus.ACTIVE]

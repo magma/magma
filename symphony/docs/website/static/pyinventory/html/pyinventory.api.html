@@ -260,6 +260,7 @@ If equipment with this name already exists in this position, then existing equip
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment" title="pyinventory.api.equipment.get_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment_in_position" title="pyinventory.api.equipment.get_equipment_in_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment_in_position()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment" title="pyinventory.api.equipment.add_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
 </ul>
 </p></li>
 <li><p><strong>position_name</strong> (<em>str</em>) – Position name in the equipment type</p></li>
@@ -552,6 +553,7 @@ or property value in <cite>properties_dict</cite> does not match the property ty
 <li><p><strong>parent_equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Parent equipment, could be retrieved from</p>
 <ul>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment" title="pyinventory.api.equipment.get_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment_in_position" title="pyinventory.api.equipment.get_equipment_in_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment_in_position()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment" title="pyinventory.api.equipment.add_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
 </ul>
@@ -1344,7 +1346,7 @@ in case it is not found, creates one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment_a</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object to be copied, could be retrieved from</p>
+<li><p><strong>equipment_a</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object to connect, could be retrieved from</p>
 <ul>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment" title="pyinventory.api.equipment.get_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment_in_position" title="pyinventory.api.equipment.get_equipment_in_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment_in_position()</span></code></a></p></li>
@@ -1352,8 +1354,8 @@ in case it is not found, creates one.</p>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
 </ul>
 </p></li>
-<li><p><strong>port_name_a</strong> (<em>str</em>) – Name of the port in equipment type</p></li>
-<li><p><strong>equipment_b</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object to be copied, could be retrieved from</p>
+<li><p><strong>port_name_a</strong> (<em>str</em>) – Name of the port in equipment A</p></li>
+<li><p><strong>equipment_b</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object to connect, could be retrieved from</p>
 <ul>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment" title="pyinventory.api.equipment.get_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment_in_position" title="pyinventory.api.equipment.get_equipment_in_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment_in_position()</span></code></a></p></li>
@@ -1361,7 +1363,7 @@ in case it is not found, creates one.</p>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
 </ul>
 </p></li>
-<li><p><strong>port_name_b</strong> (<em>str</em>) – Name of the port in equipment type</p></li>
+<li><p><strong>port_name_b</strong> (<em>str</em>) – Name of the port in equipment B</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -1441,7 +1443,7 @@ or match more than one port, or is already occupied by link</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object to be copied, could be retrieved from</p>
+<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – <p>Equipment object that has link, could be retrieved from</p>
 <ul>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment" title="pyinventory.api.equipment.get_equipment"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.get_equipment_in_position" title="pyinventory.api.equipment.get_equipment_in_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_equipment_in_position()</span></code></a></p></li>
@@ -1449,7 +1451,7 @@ or match more than one port, or is already occupied by link</p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
 </ul>
 </p></li>
-<li><p><strong>port_name</strong> (<em>str</em>) – Name of the port in equipment type</p></li>
+<li><p><strong>port_name</strong> (<em>str</em>) – Name of the port in equipment</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -1594,9 +1596,9 @@ in the chain and it is not clear where to create or what to return</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – Location object</p></li>
 <li><p><strong>new_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Location new name</p></li>
-<li><p><strong>lat</strong> (<em>float</em><em>, </em><em>optional</em>) – Location new latitude</p></li>
-<li><p><strong>long</strong> (<em>float</em><em>, </em><em>optional</em>) – Location new longitude</p></li>
-<li><p><strong>external_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Location new external ID</p></li>
+<li><p><strong>new_lat</strong> (<em>float</em><em>, </em><em>optional</em>) – Location new latitude</p></li>
+<li><p><strong>new_long</strong> (<em>float</em><em>, </em><em>optional</em>) – Location new longitude</p></li>
+<li><p><strong>new_external_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Location new external ID</p></li>
 <li><p><strong>new_properties</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
 <ul>
 <li><p>str - property name</p></li>
@@ -1844,7 +1846,7 @@ in the chain and it is not clear where to create or what to return</p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.equipment.add_equipment_to_position" title="pyinventory.api.equipment.add_equipment_to_position"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_equipment_to_position()</span></code></a></p></li>
 </ul>
 </p></li>
-<li><p><strong>dest_location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – <p>Equipment object to be copied, could be retrieved from</p>
+<li><p><strong>dest_location</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Location" title="pyinventory.common.data_class.Location"><code class="xref py py-class docutils literal notranslate"><span class="pre">Location</span></code></a>) – <p>Location to copy equipment to, could be retrieved from</p>
 <ul>
 <li><p><a class="reference internal" href="#pyinventory.api.location.get_location" title="pyinventory.api.location.get_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_location()</span></code></a></p></li>
 <li><p><a class="reference internal" href="#pyinventory.api.location.add_location" title="pyinventory.api.location.add_location"><code class="xref py py-meth docutils literal notranslate"><span class="pre">add_location()</span></code></a></p></li>
@@ -1860,7 +1862,7 @@ in the chain and it is not clear where to create or what to return</p></li>
 includes the equipment given as parameter and also all the equipments attached to it</p>
 <ul class="simple">
 <li><p>source equipment - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a></p></li>
-<li><p>source equipment - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a></p></li>
+<li><p>new equipment - <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a></p></li>
 </ul>
 </p>
 </dd>
@@ -2007,9 +2009,9 @@ there are no properties or there any unknown property name in <cite>new_link_pro
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – List of property definitions</p></li>
+<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – Existing equipment object</p></li>
 <li><p><strong>port_name</strong> (<em>str</em>) – Equipment type name</p></li>
-<li><p><strong>new_properties</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
+<li><p><strong>new_properties</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em>) – <p>Dictionary of property name to property value</p>
 <ul>
 <li><p>str - property name</p></li>
 <li><p>PropertyValue - new value of the same type for this property</p></li>
@@ -2050,7 +2052,7 @@ there are no properties or there any unknown property name in <cite>new_properti
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a> ]) – Existing equipment object</p></li>
+<li><p><strong>equipment</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Equipment" title="pyinventory.common.data_class.Equipment"><code class="xref py py-class docutils literal notranslate"><span class="pre">Equipment</span></code></a>) – Existing equipment object</p></li>
 <li><p><strong>port_name</strong> (<em>str</em>) – Existing port name</p></li>
 </ul>
 </dd>
@@ -2172,7 +2174,7 @@ It can get only the requested equipment port type ID</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>port_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortType" title="pyinventory.common.data_class.EquipmentPortType"><code class="xref py py-class docutils literal notranslate"><span class="pre">EquipmentPortType</span></code></a>) – Existing eqipment port type object</p></li>
 <li><p><strong>new_name</strong> (<em>str</em>) – New name</p></li>
-<li><p><strong>properties_dict</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
+<li><p><strong>new_properties</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Dictionary of property name to property value</p>
 <ul>
 <li><p>str - property name</p></li>
 <li><p>PropertyValue - new value of the same type for this property</p></li>
@@ -2415,7 +2417,7 @@ It can get only the requested equipment port type ID</p>
 <li><p><strong>external_id</strong> (<em>str</em><em>, </em><em>optional</em>) – Service external ID</p></li>
 <li><p><strong>service_type</strong> (<em>str</em>) – Service type name</p></li>
 <li><p><strong>customer</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.Customer" title="pyinventory.common.data_class.Customer"><code class="xref py py-class docutils literal notranslate"><span class="pre">Customer</span></code></a>, optional) – Customer object</p></li>
-<li><p><strong>properties_dict</strong> – <p>Mapping of property name to property value</p>
+<li><p><strong>properties_dict</strong> (<em>Mapping</em><em>[</em><em>str</em><em>, </em><em>PropertyValue</em><em>]</em><em>, </em><em>optional</em>) – <p>Mapping of property name to property value</p>
 <ul>
 <li><p>str - property name</p></li>
 <li><p>PropertyValue - new value of the same type for this property</p></li>
@@ -2595,7 +2597,7 @@ It can get only the requested equipment port type ID</p>
 <li><p><strong>name</strong> (<em>str</em>) – Service type name</p></li>
 <li><p><strong>has_customer</strong> (<em>bool</em>) – Flag for customer existance</p></li>
 <li><p><strong>properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ], optional) – Property definitions list</p></li>
-<li><p><strong>endpoint_definitions</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceEndpointDefinition" title="pyinventory.common.data_class.ServiceEndpointDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceEndpointDefinition</span></code></a> ], optional) – Service endpont definitions list</p></li>
+<li><p><strong>endpoint_definitions</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceEndpointDefinition" title="pyinventory.common.data_class.ServiceEndpointDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceEndpointDefinition</span></code></a> ], optional) – Service endpoint definitions list</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
@@ -2639,7 +2641,7 @@ It can get only the requested equipment port type ID</p>
 It can get only the requested service type ID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – Service object</p>
+<dd class="field-odd"><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – ServiceType object</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>None</p>
@@ -2657,7 +2659,7 @@ It can get only the requested service type ID</p>
 <dd><p>Delete service type with existing services.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – Service object</p>
+<dd class="field-odd"><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – ServiceType object</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: Service type does not exist</p>
@@ -2679,7 +2681,7 @@ It can get only the requested service type ID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – Service object</p></li>
+<li><p><strong>service_type</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.ServiceType" title="pyinventory.common.data_class.ServiceType"><code class="xref py py-class docutils literal notranslate"><span class="pre">ServiceType</span></code></a>) – ServiceType object</p></li>
 <li><p><strong>new_name</strong> (<em>str</em><em>, </em><em>optional</em>) – Service type name</p></li>
 <li><p><strong>new_has_customer</strong> (<em>bool</em><em>, </em><em>optional</em>) – Flag for customer existance</p></li>
 <li><p><strong>new_properties</strong> (List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition"><code class="xref py py-class docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a> ], optional) – Property definitions list</p></li>
@@ -2749,17 +2751,20 @@ It can get only the requested service type ID</p>
 <dd><p>Activate the user which would allow the user to login again to symphony</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>user</strong> (<cite>pyinventory.common.data_class.User</cite>) – user to activate</p>
+<dd class="field-odd"><p><strong>user</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a>) – User object</p>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dd class="field-even"><p>FailedOperationException: Internal inventory error</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">user</span> <span class="pre">=</span> <span class="pre">client.get_user(email=&quot;user&#64;test.com&quot;)</span>
-<span class="pre">client.activate_user(user=user)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">user</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@test.com&quot;</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">activate_user</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -2769,26 +2774,29 @@ It can get only the requested service type ID</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>email</strong> (<em>str</em>) – the email address of the user</p></li>
-<li><p><strong>password</strong> (<em>str</em>) – password the user would connect with</p></li>
+<li><p><strong>email</strong> (<em>str</em>) – Email address of the user</p></li>
+<li><p><strong>password</strong> (<em>str</em>) – Password the user would connect with</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.User</cite> object</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – the user was not created properly</p></li>
-<li><p><strong>FailedOperationException</strong> – internal inventory error</p></li>
-<li><p><strong>AssertionError</strong> – The user was not created for some known reason</p></li>
-<li><p><strong>HTTPError</strong> – Error with connection</p></li>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: the user was not created</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p>AssertionError: The user was not created</p></li>
+<li><p>HTTPError: Connection error</p></li>
 </ul>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>User object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a></p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">user</span> <span class="pre">=</span> <span class="pre">client.add_user(email=&quot;user&#64;test.com&quot;,</span> <span class="pre">password=&quot;P0ssW!rd0f43&quot;)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">user</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">add_user</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@test.com&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;P0ssW!rd0f43&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -2797,17 +2805,25 @@ It can get only the requested service type ID</p>
 <dd><p>Deactivate the user which would prevent the user from login in to symphony
 Users in symphony are never deleted. Only de-activated.</p>
 <blockquote>
-<div><dl class="simple">
-<dt>Args:</dt><dd><p>user ( <cite>pyinventory.common.data_class.User</cite> ): user to deactivate</p>
+<div><dl class="field-list simple">
+<dt class="field-odd">param user</dt>
+<dd class="field-odd"><p>User object</p>
 </dd>
-<dt>Raises:</dt><dd><p>FailedOperationException: internal inventory error</p>
+<dt class="field-even">type user</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a></p>
 </dd>
-<dt>Example:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">user</span> <span class="pre">=</span> <span class="pre">client.get_user(email=&quot;user&#64;test.com&quot;)</span>
-<span class="pre">client.deactivate_user(user=user)</span>
-<span class="pre">`</span></code></p>
+<dt class="field-odd">raises</dt>
+<dd class="field-odd"><p>FailedOperationException: Internal inventory error</p>
+</dd>
+<dt class="field-even">rtype</dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">user</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@test.com&quot;</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">deactivate_user</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">)</span>
+</pre></div>
+</div>
 </div></blockquote>
 </dd></dl>
 
@@ -2818,24 +2834,31 @@ Users in symphony are never deleted. Only de-activated.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>user</strong> (<cite>pyinventory.common.data_class.User</cite>) – user to edit</p></li>
-<li><p><strong>new_password</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – new password the user would connect with</p></li>
-<li><p><strong>new_role</strong> (<cite>pyinventory.graphql.enum.user_role.UserRole</cite>) – user new role</p></li>
+<li><p><strong>user</strong> (<a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a>) – User object</p></li>
+<li><p><strong>new_password</strong> (<em>str</em><em>, </em><em>optional</em>) – New password the user would connect with</p></li>
+<li><p><strong>new_role</strong> (<em>str</em>) – New user role</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>FailedOperationException</strong> – internal inventory error</p></li>
-<li><p><strong>AssertionError</strong> – The user was not edited for some known reason</p></li>
-<li><p><strong>HTTPError</strong> – Error with connection</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
+<li><p>AssertionError: The user was not edited</p></li>
+<li><p>HTTPError: Connection error</p></li>
 </ul>
 </dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">user</span> <span class="pre">=</span> <span class="pre">client.add_user(email=&quot;user&#64;test.com&quot;,</span> <span class="pre">password=&quot;P0ssW!rd0f43&quot;)</span>
-<span class="pre">client.edit_user(user=user,</span> <span class="pre">new_password=&quot;New_Password4Ever&quot;,</span> <span class="pre">new_role=UserRole.ADMIN)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">user</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">add_user</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@test.com&quot;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s2">&quot;P0ssW!rd0f43&quot;</span><span class="p">)</span>
+<span class="n">client</span><span class="o">.</span><span class="n">edit_user</span><span class="p">(</span>
+    <span class="n">user</span><span class="o">=</span><span class="n">user</span><span class="p">,</span>
+    <span class="n">new_password</span><span class="o">=</span><span class="s2">&quot;New_Password4Ever&quot;</span><span class="p">,</span>
+    <span class="n">new_role</span><span class="o">=</span><span class="n">UserRole</span><span class="o">.</span><span class="n">ADMIN</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -2843,21 +2866,22 @@ Users in symphony are never deleted. Only de-activated.</p>
 <code class="sig-prename descclassname">pyinventory.api.user.</code><code class="sig-name descname">get_active_users</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">client</span><span class="p">:</span> <span class="n">pysymphony.SymphonyClient</span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User">pyinventory.common.data_class.User</a><span class="p">]</span><a class="headerlink" href="#pyinventory.api.user.get_active_users" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the list of the active users in the system</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>List[ <cite>pyinventory.common.data_class.User</cite> ]</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Users List</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a> ]</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
-users = client.get_active_users()
-for user in users:</p>
-<blockquote>
-<div><p>print(user.email)</p>
-</div></blockquote>
-<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">users</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_active_users</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -2866,22 +2890,25 @@ for user in users:</p>
 <dd><p>Returns <cite>pyinventory.common.data_class.User</cite> object by its email</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>email</strong> (<em>str</em>) – the email address the user registered with</p>
+<dd class="field-odd"><p><strong>email</strong> (<em>str</em>) – Email address the user registered with</p>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><cite>pyinventory.common.data_class.User</cite> object</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><strong>pyinventory.exceptions.EntityNotFoundError</strong></a> – the user was not found</p></li>
-<li><p><strong>FailedOperationException</strong> – internal inventory error</p></li>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="pyinventory.html#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: the user was not found</p></li>
+<li><p>FailedOperationException: Internal inventory error</p></li>
 </ul>
 </dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>User object</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a></p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">user</span> <span class="pre">=</span> <span class="pre">client.get_user(email=&quot;user&#64;test.com&quot;)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">user</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_user</span><span class="p">(</span><span class="n">email</span><span class="o">=</span><span class="s2">&quot;user@test.com&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py function">
@@ -2889,21 +2916,22 @@ for user in users:</p>
 <code class="sig-prename descclassname">pyinventory.api.user.</code><code class="sig-name descname">get_users</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">client</span><span class="p">:</span> <span class="n">pysymphony.SymphonyClient</span></em><span class="sig-paren">)</span> &#x2192; Iterator<span class="p">[</span><a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User">pyinventory.common.data_class.User</a><span class="p">]</span><a class="headerlink" href="#pyinventory.api.user.get_users" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the list of users in the system (both active and deactivate)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>Iterator[ <cite>pyinventory.common.data_class.User</cite> ]</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>FailedOperationException: Internal inventory error</p>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>FailedOperationException</strong> – internal inventory error</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Users Iterator</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Iterator[ <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.User" title="pyinventory.common.data_class.User"><code class="xref py py-class docutils literal notranslate"><span class="pre">User</span></code></a> ]</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><a href="#id7"><span class="problematic" id="id8">``</span></a>`
-users = client.get_users()
-for user in users:</p>
-<blockquote>
-<div><p>print(user.email)</p>
-</div></blockquote>
-<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">users</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_users</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">user</span> <span class="ow">in</span> <span class="n">users</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">user</span><span class="o">.</span><span class="n">email</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
