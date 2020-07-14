@@ -15,7 +15,6 @@ import (
 	"magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/protos/mconfig"
 	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
-	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	orc8rplugin "magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
@@ -62,24 +61,8 @@ func TestBuilder_Build(t *testing.T) {
 		Config:             newDefaultEnodebConfig(),
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
-	rating1 := configurator.NetworkEntity{
-		Type: lte.RatingGroupEntityType,
-		Key:  "1",
-		Config: &policyModels.RatingGroup{
-			ID:        policyModels.RatingGroupID(uint32(1)),
-			LimitType: swag.String("INFINITE_UNMETERED"),
-		},
-	}
-	rating2 := configurator.NetworkEntity{
-		Type: lte.RatingGroupEntityType,
-		Key:  "2",
-		Config: &policyModels.RatingGroup{
-			ID:        policyModels.RatingGroupID(uint32(2)),
-			LimitType: swag.String("INFINITE_METERED"),
-		},
-	}
 	graph := configurator.EntityGraph{
-		Entities: []configurator.NetworkEntity{enb, lteGW, gw, rating1, rating2},
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
 		Edges: []configurator.GraphEdge{
 			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
 			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
@@ -153,9 +136,7 @@ func TestBuilder_Build(t *testing.T) {
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   []uint32{uint32(2)},
-			InfiniteUnmeteredChargingKeys: []uint32{uint32(1)},
+			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
@@ -274,9 +255,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			RelayEnabled: false,
 		},
 		"policydb": &mconfig.PolicyDB{
-			LogLevel:                      protos.LogLevel_INFO,
-			InfiniteMeteredChargingKeys:   nil,
-			InfiniteUnmeteredChargingKeys: nil,
+			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
