@@ -157,7 +157,7 @@ typedef struct itti_s11_create_session_request_s {
   ///< MME/SGSN, but not used as an identifier
   ///<     - if UE is emergency attached but IMSI is not authenticated.
   ///< The IMSI shall be included in the message on the S2b interface.
-  
+
 
   Msisdn_t msisdn; ///< For an E-UTRAN Initial Attach the IE shall be included
   ///< when used on the S11 interface, if provided in the
@@ -324,7 +324,7 @@ typedef struct itti_s11_create_session_request_s {
   ///< restrictive type.
 
   ebi_t default_ebi;
-  
+
   ambr_t ambr; ///< Aggregate Maximum Bit Rate (APN-AMBR)
   ///< This IE represents the APN-AMBR. It shall be included on
   ///< the S4/S11, S5/S8 and S2b interfaces for an E-UTRAN
@@ -429,11 +429,7 @@ union {
         addr_v6;  ///< MME ipv6 address for S-GW or S-GW ipv6 address for MME
   } edns_peer_ip;
 
-   //struct {
-   //struct sockaddr_in  edns_peer_ip;
-   //struct sockaddr_in6    addr_v6;
-   //}  edns_peer_ip;
-  uint16_t peer_port; ///< MME port for S-GW or S-GW port for MME
+ uint16_t peer_port; ///< MME port for S-GW or S-GW port for MME
 } itti_s11_create_session_request_t;
 
 //-----------------------------------------------------------------------------
@@ -1206,7 +1202,7 @@ typedef struct itti_s11_release_access_bearers_request_s {
     struct sockaddr_in6
         addr_v6;  ///<  S-GW ipv4 address for MME
   } edns_peer_ip;
-  
+
 } itti_s11_release_access_bearers_request_t;
 
 //-----------------------------------------------------------------------------
