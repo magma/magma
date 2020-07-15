@@ -13,25 +13,25 @@ from integ_tests.common.magmad_client import MagmadServiceGrpc
 from integ_tests.s1aptests.s1ap_utils import MagmadUtil
 
 
-class TestRestoreMMEConfigAfterSanity(unittest.TestCase):
-    def test_restore_mme_config_after_sanity(self):
+class TestModifyMMEConfigForSanity(unittest.TestCase):
+    def test_modify_mme_config_for_sanity(self):
         """
-        This test script restores the MME configuration to default values, if
-        the config file mme.conf.template has been modified using the test
-        script s1aptests/test_modify_mme_config_for_sanity.py
+        Some test cases need changes in default mme configuration. This test
+        script modifies MME configuration with generic values so that all the
+        test cases of sanity suite can be verified
         """
         magmad_client = MagmadServiceGrpc()
         self._magmad_util = MagmadUtil(magmad_client)
 
-        # Replace mme.conf.template with backup of this config file. Backup of
-        # this config file with default values is created when running the
-        # test script s1aptests/test_modify_mme_config_for_sanity.py
         print(
-            "Restoring MME configuration to default values using backup configuration file"
+            "Modifying MME configuration for all sanity test cases to pass"
         )
         self._magmad_util.update_mme_config_for_sanity(
-            MagmadUtil.config_update_cmds.RESTORE
+            MagmadUtil.config_update_cmds.MODIFY
         )
+
+        print("Restarting services to apply configuration change")
+        self._magmad_util.restart_all_services()
 
 
 if __name__ == "__main__":

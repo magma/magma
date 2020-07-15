@@ -18,8 +18,6 @@ from enum import Enum
 from queue import Queue
 import grpc
 import subprocess
-import json
-import re
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -384,7 +382,9 @@ class SubscriberUtil(object):
 
 
 class MagmadUtil(object):
-    stateless_cmds = Enum('stateless_cmds', 'CHECK DISABLE ENABLE')
+    stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
+    config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
+
     def __init__(self, magmad_client):
         """
         Init magmad util.
@@ -408,14 +408,6 @@ class MagmadUtil(object):
             "{user}@{host} {command}"
         )
 
-        # MME config file and its backup file. A copy of original config file
-        # will be created as backup, original config file will be modified
-        # as per the requirement of all the test cases in sanity and after
-        # execution of sanity it will be restored using the backup file
-        self.config_path = "/home/vagrant/magma/lte/gateway/configs/"
-        self.mme_config_file = self.config_path + "templates/mme.conf.template"
-        self.mme_config_backup_file = self.mme_config_file + ".bak"
-
     def exec_command(self, command):
         """
         Run a command remotly on magma_dev VM.
@@ -428,8 +420,12 @@ class MagmadUtil(object):
         data = self._data
         data["command"] = '"' + command + '"'
         param_list = shlex.split(self._command.format(**data))
-        return subprocess.call(param_list, shell=False,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return subprocess.call(
+            param_list,
+            shell=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
     def config_stateless(self, cmd):
         """
@@ -444,11 +440,14 @@ class MagmadUtil(object):
 
         """
 
-        config_stateless_script = ("/home/vagrant/magma/lte/gateway/deploy/"
-            "roles/magma/files/config_stateless_agw.sh")
+        config_stateless_script = (
+            "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
+            "config_stateless_agw.sh"
+        )
 
-        ret_code = self.exec_command("sudo -E " + config_stateless_script + " "
-            + cmd.name.lower())
+        ret_code = self.exec_command(
+            "sudo -E " + config_stateless_script + " " + cmd.name.lower()
+        )
 
         if ret_code == 0:
             print("AGW is stateless")
@@ -478,140 +477,45 @@ class MagmadUtil(object):
         """
         self._magmad_client.restart_services(services)
 
-    def create_backup_or_restore_mme_config(self):
-        """
-        This function creates a backup of default MME configuration file,
-        which can later be used to restore the original configuration
-        In case the backup file is already present, it means there was failure
-        in last sanity run and current configuration file is already modified.
-        Hence, this function will restore the same backup file before modifying
-        it again, otherwise MME will crash in reading configuration from file
-        """
-
-        print("Creating a backup of MME configuration file")
-        self.exec_command(
-            "if [ -f "
-            + self.mme_config_backup_file
-            + " ]; then cp "
-            + self.mme_config_backup_file
-            + " "
-            + self.mme_config_file
-            + "; else cp -n "
-            + self.mme_config_file
-            + " "
-            + self.mme_config_backup_file
-            + "; fi;"
+    def update_mme_config_for_sanity(self, cmd):
+        mme_config_update_script = (
+            "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
+            "update_mme_config_for_sanity.sh"
         )
 
-    def restore_mme_config(self):
-        """
-        Restore the MME configuration from the backup configuration file and
-        delete the backup configuration file so that MME will use latest
-        configuration file in next sanity runs
-        """
-
-        print("Restoring MME configuration from backup configuration file")
-        self.exec_command(
-            "if [ -f "
-            + self.mme_config_backup_file
-            + " ]; then cp "
-            + self.mme_config_backup_file
-            + " "
-            + self.mme_config_file
-            + "; rm -f "
-            + self.mme_config_backup_file
-            + "; else echo "
-            + '"Backup file not present for restoring MME configuration"; fi;'
+        action = cmd.name.lower()
+        ret_code = self.exec_command(
+            "sudo -E " + mme_config_update_script + " " + action
         )
 
-    def remove_default_plmn_tac_configuration(self):
-        """
-        Remove default PLMN and TAC from MME configuration file
-        """
-
-        print(
-            "Removing default values of GUMMEI_LIST, TAI_LIST and TAC_LIST "
-            "from MME configuration"
-        )
-        self.exec_command(
-            "sed -i -e '/GUMMEI_LIST/{n;d}' -e '/TAI_LIST/{n;N;N;N;N;N;N;d}' "
-            "-e '/TAC_LIST/{n;N;N;d}' "
-            + self.mme_config_file
-        )
-
-    def configure_multiple_plmn_tac(self):
-        """
-        Configure multiple PLMNs and TACs in MME configuration file
-        """
-
-        print("Updating multiple PLMNs and TACs in MME configuration")
-
-        gummei_config = [
-            {"MCC": "001", "MNC": "01", "MME_GID": "1", "MME_CODE": "1"},
-            {"MCC": "001", "MNC": "02", "MME_GID": "1", "MME_CODE": "1"},
-            {"MCC": "001", "MNC": "03", "MME_GID": "1", "MME_CODE": "1"},
-            {"MCC": "001", "MNC": "04", "MME_GID": "1", "MME_CODE": "1"},
-            {"MCC": "001", "MNC": "05", "MME_GID": "1", "MME_CODE": "1"},
-        ]
-        gummei_cmd_str = ""
-        for each_entry in gummei_config:
-            gummei_cmd_str += (
-                "         { "
-                + "; ".join(
-                    [
-                        "=".join([key, json.dumps(val)])
-                        for key, val in each_entry.items()
-                    ]
-                )
-                + " },\\n"
+        if ret_code == 0:
+            print("MME configuration is updated successfully")
+        elif ret_code == 1:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: Invalid command"
             )
-        gummei_cmd_str = re.escape(gummei_cmd_str[:-3])
-
-        tac_config = [
-            {"MCC": "001", "MNC": "01", "TAC": "1"},
-            {"MCC": "001", "MNC": "02", "TAC": "2"},
-            {"MCC": "001", "MNC": "03", "TAC": "3"},
-            {"MCC": "001", "MNC": "04", "TAC": "4"},
-            {"MCC": "001", "MNC": "05", "TAC": "5"},
-        ]
-        tac_cmd_str = ""
-        for each_entry in tac_config:
-            tac_cmd_str += (
-                "         { "
-                + "; ".join(
-                    [
-                        "=".join([key, json.dumps(val)])
-                        for key, val in each_entry.items()
-                    ]
-                )
-                + " },\\n"
+        elif ret_code == 2:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration file is "
+                + "missing"
             )
-        tac_cmd_str = re.escape(tac_cmd_str[:-3])
-
-        self.exec_command(
-            "sed -i -e '/GUMMEI_LIST/a "
-            + gummei_cmd_str
-            + "' -e '/TAI_LIST/a "
-            + tac_cmd_str
-            + "' -e '/TAC_LIST/a "
-            + tac_cmd_str
-            + "' "
-            + self.mme_config_file
-        )
-
-    def reduce_mobile_reachability_timer_value(self):
-        """
-        Reduce the mobile reachability timer to 1 minute, so that it can
-        quickly be tested as part of Sanity. The current default value of
-        Mobile Reachability Timer is 54 minutes
-        """
-        print(
-            "Configuring mobile reachability timer value = 1 minute "
-            "(Default value is 54 minutes)"
-        )
-        self.exec_command(
-            "sed -i '/^        T3412/s/54/1/' " + self.mme_config_file
-        )
+        elif ret_code == 3:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration's backup file "
+                + "is missing"
+            )
+        else:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: Unknown error"
+            )
 
 
 class MobilityUtil(object):
