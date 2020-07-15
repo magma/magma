@@ -96,7 +96,7 @@ class InOutNonNatTest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
-                'non_nat': True,
+                'enable_nat': False,
                 'non_mat_gw_probe_frequency': .2,
                 'non_nat_arp_egress_port': 't_dhcp0',
                 'ovs_uplink_port_name': 'patch-up'

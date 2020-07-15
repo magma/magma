@@ -205,7 +205,7 @@ func (m *importer) processExportedService(w http.ResponseWriter, r *http.Request
 							propertiesValid = true
 						}
 					}
-					if !propertiesValid {
+					if len(propInputs) != 0 && !propertiesValid {
 						continue
 					}
 					if commit {

@@ -355,12 +355,12 @@ func recvCh(t *testing.T, ch chan interface{}) {
 }
 
 func assertComplete(t *testing.T, q reindex.JobQueue, id string) {
-	st, err := reindex.GetStatus(q, id)
-	assert.NoError(t, err)
-	assert.Equal(t, reindex.StatusComplete, st)
 	e, err := reindex.GetError(q, id)
 	assert.NoError(t, err)
 	assert.Empty(t, e)
+	st, err := reindex.GetStatus(q, id)
+	assert.NoError(t, err)
+	assert.Equal(t, reindex.StatusComplete, st)
 }
 
 func assertErrored(t *testing.T, q reindex.JobQueue, indexerID string, sentinel reindex.Error, rootErr error) {
