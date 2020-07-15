@@ -10,6 +10,7 @@ package handlers
 
 import (
 	"fmt"
+	"net/http"
 
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -152,6 +153,16 @@ func GetObsidianHandlers() []obsidian.Handler {
 		}
 	}
 
+	ret = append(ret, obsidian.Handler{
+		Path:    "/",
+		Methods: obsidian.GET,
+		HandlerFunc: func(c echo.Context) error {
+			return c.JSON(
+				http.StatusOK,
+				"hello",
+			)
+		},
+	})
 	return ret
 }
 

@@ -9,9 +9,11 @@
 package main
 
 import (
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/orchestrator"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 
 	"github.com/golang/glog"
 )
@@ -21,6 +23,8 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating orchestrator service %s", err)
 	}
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running service and echo server: %s", err)
