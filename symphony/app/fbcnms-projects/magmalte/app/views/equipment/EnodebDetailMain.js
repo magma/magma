@@ -87,22 +87,6 @@ const useStyles = makeStyles(theme => ({
     textAlign: 'center',
     padding: theme.spacing(10),
   },
-  appBarBtn: {
-    color: colors.primary.white,
-    background: colors.primary.comet,
-    fontFamily: typography.button.fontFamily,
-    fontWeight: typography.button.fontWeight,
-    fontSize: typography.button.fontSize,
-    lineHeight: typography.button.lineHeight,
-    letterSpacing: typography.button.letterSpacing,
-
-    '&:hover': {
-      background: colors.primary.mirage,
-    },
-  },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
