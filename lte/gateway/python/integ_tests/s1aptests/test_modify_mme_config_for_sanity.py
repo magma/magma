@@ -24,13 +24,13 @@ class TestModifyMMEConfigForSanity(unittest.TestCase):
         self._magmad_util = MagmadUtil(magmad_client)
 
         print(
-            "Modifying MME configuration so that all sanity test cases can pass"
+            "Modifying MME configuration for all sanity test cases to pass"
         )
         self._magmad_util.update_mme_config_for_sanity(
             MagmadUtil.config_update_cmds.MODIFY
         )
 
-        print("Restarting services to apply modified configurations")
+        print("Restarting services to apply configuration change")
         self._magmad_util.restart_all_services()
 
 

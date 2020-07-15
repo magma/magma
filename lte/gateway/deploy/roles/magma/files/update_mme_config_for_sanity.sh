@@ -67,7 +67,6 @@ function reduce_mobile_reachability_timer_value {
   sed -i '/^        T3412/s/54/1/' $mme_config_file
 }
 
-
 function restore_mme_config {
   # Restore the MME configuration from the backup configuration file and
   # delete the backup configuration file, so that MME will use latest
@@ -87,7 +86,8 @@ if [[ $1 == "modify" ]]; then
   fi
   create_backup_or_restore_mme_config
   configure_multiple_plmn_tac
-  reduce_mobile_reachability_timer_value
+  # Commented for now because of crash in MME due to this change
+  # reduce_mobile_reachability_timer_value
 elif [[ $1 == "restore" ]]; then
   # Restore the MME configuration file from the backup config file
   restore_mme_config

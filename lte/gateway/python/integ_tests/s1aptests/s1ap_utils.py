@@ -18,8 +18,6 @@ from enum import Enum
 from queue import Queue
 import grpc
 import subprocess
-import json
-import re
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -502,7 +500,8 @@ class MagmadUtil(object):
             assert False, (
                 "Failed to "
                 + action
-                + " MME configuration. Error: MME config file is missing"
+                + " MME configuration. Error: MME configuration file is "
+                + "missing"
             )
         elif ret_code == 3:
             assert False, (
