@@ -9,82 +9,144 @@
 package reverse_proxy
 
 import (
+	"flag"
+	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"strconv"
 	"testing"
 
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access/tests"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	RegisterNetworkV1 = "/magma/v1/networks"
-)
+func init() {
+	flag.Set(service.RunEchoServerFlag, "true")
+}
 
-func TestReverseProxyMiddleware(t *testing.T) {
-	e := startTestServer(t)
+func TestReverseProxy(t *testing.T) {
+	pathPrefix1 := "/magma/v1/foo"
+	pathPrefix2 := "/magma/v1/bar"
+	pathPrefix3 := "/magma/v1/foo/:foo_id/baz"
+
+	labels := map[string]string{
+		orc8r.ObsidianHandlersLabel: "true",
+	}
+	annotations1 := map[string]string{
+		orc8r.ObsidianHandlersPathPrefixesAnnotation: fmt.Sprintf("%s,%s", pathPrefix1, pathPrefix2),
+	}
+	annotations2 := map[string]string{
+		orc8r.ObsidianHandlersPathPrefixesAnnotation: pathPrefix3,
+	}
+	srv1, lis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service1", labels, annotations1)
+	srv1.EchoServer.GET(pathPrefix1, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+	srv1.EchoServer.GET(pathPrefix1+"/:foo_id/rue", func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+	srv1.EchoServer.GET(pathPrefix2, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+	srv2, lis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service2", labels, annotations2)
+	srv2.EchoServer.GET(pathPrefix3, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+	go srv1.RunTest(lis1)
+	go srv2.RunTest(lis2)
+
+	e, err := startTestServer()
+	assert.NoError(t, err)
+
 	listener := tests.WaitForTestServer(t, e)
 	if listener == nil {
 		return // WaitForTestServer should have 'logged' error already
 	}
-	_, port, err := net.SplitHostPort(listener.Addr().String())
-	assert.NoError(t, err)
-
-	obsidian.Port, err = strconv.Atoi(port)
-	assert.NoError(t, err)
-
 	urlPrefix := "http://" + listener.Addr().String()
 
-	// Explicitly set request IP to non-localhost to ensure reverse proxy
-	// middleware is tested
-	s, err := sendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1,
-		"10.10.10.10",
-	)
+	// Ensure both prefixes of service1 work
+	s, err := sendRequest("GET", urlPrefix+pathPrefix1)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
 
-	// Test localhost request IP
-	s, err = sendRequest(
-		"GET", // READ
-		urlPrefix+RegisterNetworkV1,
-		"127.0.0.1",
-	)
+	s, err = sendRequest("GET", urlPrefix+pathPrefix2)
 	assert.NoError(t, err)
 	assert.Equal(t, 200, s)
+
+	// Ensure the most specific path gets used for proxying
+	s, err = sendRequest("GET", urlPrefix+"/magma/v1/foo/foo1/baz")
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	s, err = sendRequest("GET", urlPrefix+"/magma/v1/foo/foo1/rue")
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	// Ensure unregistered path is not found
+	s, err = sendRequest("GET", urlPrefix+"/magma/v1/nue")
+	assert.NoError(t, err)
+	assert.Equal(t, 404, s)
+
 }
 
-func startTestServer(t *testing.T) *echo.Echo {
-	e := echo.New()
-	assert.NotNil(t, e)
-
-	e.GET(RegisterNetworkV1, func(c echo.Context) error {
+func TestReverseProxyPathCollision(t *testing.T) {
+	pathPrefix := "/magma/v1/foo"
+	labels := map[string]string{
+		orc8r.ObsidianHandlersLabel: "true",
+	}
+	annotations := map[string]string{
+		orc8r.ObsidianHandlersPathPrefixesAnnotation: pathPrefix,
+	}
+	srv1, lis1 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "mock_server1", labels, annotations)
+	srv1.EchoServer.GET(pathPrefix, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	e.Use(ReverseProxy) // inject obsidian reverse proxy middleware
+	srv2, lis2 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "mock_server2", labels, annotations)
+	srv2.EchoServer.GET(pathPrefix, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+	go srv1.RunTest(lis1)
+	go srv2.RunTest(lis2)
 
-	go func(t *testing.T) {
-		assert.NoError(t, e.Start(""))
-	}(t)
+	e, err := startTestServer()
+	assert.NoError(t, err)
 
-	return e
+	listener := tests.WaitForTestServer(t, e)
+	if listener == nil {
+		return // WaitForTestServer should have 'logged' error already
+	}
+	urlPrefix := "http://" + listener.Addr().String()
+	// Ensure the path still works properly as the server that the shared prefix
+	// was registered with will be proxied to
+	s, err := sendRequest("GET", urlPrefix+pathPrefix)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
 }
 
-func sendRequest(method string, url string, addr string) (int, error) {
+func startTestServer() (*echo.Echo, error) {
+	e := echo.New()
+	e, err := AddReverseProxyPaths(e)
+	if err != nil {
+		return nil, err
+	}
+	go func() {
+		e.Start("")
+	}()
+	return e, nil
+}
+
+func sendRequest(method string, url string) (int, error) {
 	var body io.Reader = nil
 	request, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return 0, err
 	}
 	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set(echo.HeaderXRealIP, addr)
 	var client = &http.Client{}
 
 	response, err := client.Do(request)

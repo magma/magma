@@ -11,7 +11,9 @@ package main
 import (
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
+	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	"magma/lte/cloud/go/services/lte/servicers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/streamer/protos"
 
@@ -25,7 +27,7 @@ func main() {
 	}
 
 	protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewLTEStreamProviderServicer())
-
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running LTE service and echo server: %s", err)

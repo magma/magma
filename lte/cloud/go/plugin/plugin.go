@@ -11,15 +11,11 @@ package plugin
 import (
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
-	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	policydb_handlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberdb_handlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -84,11 +80,7 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 }
 
 func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
-	return plugin.FlattenHandlerLists(
-		lte_handlers.GetHandlers(),
-		policydb_handlers.GetHandlers(),
-		subscriberdb_handlers.GetHandlers(),
-	)
+	return []obsidian.Handler{}
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {

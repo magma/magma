@@ -28,6 +28,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -177,7 +178,7 @@ function SubscriberDashboardInternal({
         </Text>
       </div>
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
+        <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
               value={0}
@@ -195,39 +196,40 @@ function SubscriberDashboardInternal({
             </Tabs>
           </Grid>
           <Grid
-            container
             item
             xs={6}
+            direction="row"
             justify="flex-end"
-            alignItems="center"
-            spacing={2}>
-            <Grid item>
-              <Button className={classes.appBarBtn}>Secondary Action</Button>
-            </Grid>
-            <Grid item>
-              <Button className={classes.appBarBtnSecondary}>
-                Primary Action
-              </Button>
+            alignItems="center">
+            <Grid container justify="flex-end" alignItems="center" spacing={2}>
+              <Grid item>
+                {/* TODO: these button styles need to be localized */}
+                <Button variant="text" className={classes.appBarBtnSecondary}>
+                  Secondary Action
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" className={classes.appBarBtn}>
+                  Primary Action
+                </Button>
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
       </AppBar>
+
       <div className={classes.dashboardRoot}>
-        <Grid container spacing={3}>
+        <Grid container spacing={4}>
           <Grid item xs={12}>
             <Grid container>
               <Grid item xs={6}>
-                <Text key="title">
-                  <PeopleIcon /> {TITLE}
-                </Text>
+                <CardTitleRow icon={PeopleIcon} label={TITLE} />
               </Grid>
               <Grid container item xs={6} justify="flex-end">
                 <AddSubscriberButton />
               </Grid>
             </Grid>
-          </Grid>
 
-          <Grid item xs={12}>
             {subscriberMap ? (
               <ActionTable
                 data={Object.keys(subscriberMap).map((imsi: string) => {

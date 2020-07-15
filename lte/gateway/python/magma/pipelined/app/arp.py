@@ -68,17 +68,19 @@ class ArpController(MagmaController):
             virt_ifaddresses = netifaces.ifaddresses(iface)
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
 
+        enable_nat = config_dict.get('enable_nat', True)
+
         virtual_iface = config_dict.get('virtual_interface', None)
 
-        # override virtual mac from config file.
-        if 'virtual_mac' in config_dict:
-            virtual_mac = config_dict['virtual_mac']
-        elif virtual_iface:
-            virtual_mac = get_virtual_iface_mac(virtual_iface)
+        if enable_nat is True:
+            if virtual_iface is not None:
+                virtual_mac = get_virtual_iface_mac(virtual_iface)
+            else:
+                virtual_mac = None
         else:
-            virtual_mac = None
+            # override virtual mac from config file.
+            virtual_mac = config_dict.get('virtual_mac', None)
 
-        enable_nat = config_dict.get('enable_nat', True)
         mtr_ip = None
         if 'mtr_ip' in config_dict:
             mtr_ip = config_dict['mtr_ip']

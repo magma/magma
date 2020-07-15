@@ -10,9 +10,11 @@ package main
 
 import (
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
+	"magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/tenants/servicers"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/sqorc"
@@ -43,6 +45,7 @@ func main() {
 		glog.Fatalf("Error creating tenants server: %s", err)
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
 	err = srv.Run()
 	if err != nil {

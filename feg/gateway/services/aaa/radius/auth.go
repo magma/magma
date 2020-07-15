@@ -10,6 +10,7 @@ LICENSE file in the root directory of this source tree.
 package radius
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/golang/glog"
@@ -24,12 +25,32 @@ import (
 	"magma/feg/gateway/services/eap"
 )
 
+type clientAuthenticator struct{}
+
+// HandleIdentity passes Identity EAP payload to corresponding method provider & returns corresponding EAP result
+func (clientAuthenticator) HandleIdentity(_ context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
+	return client.HandleIdentity(in)
+}
+
+// Handle handles passed EAP payload & returns corresponding EAP result
+func (clientAuthenticator) Handle(_ context.Context, in *protos.Eap) (*protos.Eap, error) {
+	return client.Handle(in)
+}
+
+// SupportedMethods returns sorted list (ascending, by type) of registered EAP Provider Methods
+func (clientAuthenticator) SupportedMethods(context.Context, *protos.Void) (*protos.EapMethodList, error) {
+	return client.SupportedMethods()
+}
+
 // StartAuth starts Auth Radius server, it'll block on success & needs to be executed in its own thread/routine
 func (s *Server) StartAuth() error {
 	if s == nil {
 		return fmt.Errorf("nil radius auth server")
 	}
-	methods, err := client.SupportedMethods()
+	if s.authenticator == nil { // authenticator is not provided, use AAA RPC client
+		s.authenticator = clientAuthenticator{}
+	}
+	methods, err := s.authenticator.SupportedMethods(context.Background(), &protos.Void{})
 	if err != nil {
 		glog.Errorf("radius EAP server failed to get supported EAP methods: %v", err)
 		return err
@@ -39,7 +60,7 @@ func (s *Server) StartAuth() error {
 		Addr:         s.GetConfig().AuthAddr,
 		Network:      s.GetConfig().Network,
 		SecretSource: radius.StaticSecretSource(s.GetConfig().Secret),
-		Handler:      s,
+		Handler:      &s.AuthServer,
 		// InsecureSkipVerify: false,
 	}
 	glog.Infof("Starting Radius EAP server on %s::%s", server.Network, server.Addr)
@@ -51,7 +72,7 @@ func (s *Server) StartAuth() error {
 }
 
 // ServeRADIUS - radius handler interface implementation for EAP server
-func (s *Server) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
+func (s *AuthServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 	if w == nil || r == nil || r.Packet == nil {
 		glog.Errorf("invalid request: %v", r)
 		return
@@ -66,15 +87,18 @@ func (s *Server) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 		}
 		return
 	}
-	ip := rfc2865.FramedIPAddress_Get(p)
 	sessionCtx := &protos.Context{
 		SessionId: rfc2866.AcctSessionID_GetString(p),
 		Apn:       rfc2865.CalledStationID_GetString(p),
 		MacAddr:   rfc2865.CallingStationID_GetString(p),
 	}
-	if len(sessionCtx.AcctSessionId) == 0 {
-		sessionCtx.AcctSessionId = GenSessionID(sessionCtx.MacAddr, sessionCtx.Apn)
+	if len(sessionCtx.SessionId) == 0 {
+		sessionCtx.SessionId = GenSessionID(sessionCtx.MacAddr, sessionCtx.Apn)
+		glog.Warningf(
+			"missing radius Session Id in message from %s; using generated ID: %s",
+			r.RemoteAddr.String(), sessionCtx.AcctSessionId)
 	}
+	ip := rfc2865.FramedIPAddress_Get(p)
 	if ip == nil {
 		ip = rfc6911.FramedIPv6Address_Get(p)
 	}
@@ -88,7 +112,7 @@ func (s *Server) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 	)
 	if eapp.Code() == eap.ResponseCode && eapp.Type() == eap.MethodIdentity {
 		for _, method := range s.authMethods {
-			eapRes, err = client.HandleIdentity(&protos.EapIdentity{
+			eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
 				Payload: eapp,
 				Ctx:     sessionCtx,
 				Method:  uint32(method),
@@ -98,7 +122,7 @@ func (s *Server) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 			}
 		}
 	} else {
-		eapRes, err = client.Handle(&protos.Eap{Payload: eapp, Ctx: sessionCtx})
+		eapRes, err = s.authenticator.Handle(r.Context(), &protos.Eap{Payload: eapp, Ctx: sessionCtx})
 	}
 	if err != nil {
 		glog.Errorf("EAP Handle error: %s", err)
