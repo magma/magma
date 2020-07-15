@@ -138,7 +138,7 @@ monitored_ifaces: ['cwag_br0',
 # Whether pipelined should cleanup flows on restarts
 clean_restart: true
 
-redis_enabled: true
+redis_enabled: false
 
 # Information for cwf check quota servers
 quota_check_ip: '192.0.0.1'
