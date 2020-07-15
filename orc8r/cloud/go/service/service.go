@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	runEchoServerFlag = "run_echo_server"
+	RunEchoServerFlag = "run_echo_server"
 )
 
 var (
@@ -37,7 +37,7 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&runEchoServer, runEchoServerFlag, false, "Run echo HTTP server with service")
+	flag.BoolVar(&runEchoServer, RunEchoServerFlag, false, "Run echo HTTP server with service")
 }
 
 // OrchestratorService defines a service which extends the generic platform
