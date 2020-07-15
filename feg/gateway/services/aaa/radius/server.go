@@ -9,12 +9,27 @@ LICENSE file in the root directory of this source tree.
 // package radius implements AAA server's radius interface for accounting & authentication
 package radius
 
-import "magma/feg/cloud/go/protos/mconfig"
+import (
+	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/services/aaa/protos"
+)
+
+// AuthServer - radius EAP server implementation
+type AuthServer struct {
+	authenticator protos.AuthenticatorServer
+	authMethods   []byte
+}
+
+// AcctServer - radius accounting server implementation
+type AcctServer struct {
+	accounting protos.AccountingServer
+}
 
 // Server - radius server implementation
 type Server struct {
-	config      *mconfig.RadiusConfig
-	authMethods []byte
+	AuthServer
+	AcctServer
+	config *mconfig.RadiusConfig
 }
 
 // GetConfig returns server configs
@@ -26,6 +41,10 @@ func (s *Server) GetConfig() *mconfig.RadiusConfig {
 }
 
 // New returns new radius server
-func New(cfg *mconfig.RadiusConfig) *Server {
-	return &Server{config: validateConfigs(cfg)}
+func New(cfg *mconfig.RadiusConfig, authRPC protos.AuthenticatorServer, acctRpc protos.AccountingServer) *Server {
+	return &Server{
+		config:     validateConfigs(cfg),
+		AuthServer: AuthServer{authenticator: authRPC},
+		AcctServer: AcctServer{accounting: acctRpc},
+	}
 }
