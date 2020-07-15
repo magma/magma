@@ -23,7 +23,8 @@
       "lac": 1,
       "attachedEnodebTacs": [],
       "dns_primary": "8.8.8.8",
-      "dns_secondary": "8.8.4.4"
+      "dns_secondary": "8.8.4.4",
+      "natEnabled": true
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
