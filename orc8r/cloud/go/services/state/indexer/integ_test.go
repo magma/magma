@@ -12,8 +12,6 @@
 //	- TEST_DATABASE_HOST=localhost
 //	- TEST_DATABASE_PORT_POSTGRES=5433
 
-// integ_test.go tests indexing and reindexing using remote indexers.
-
 package indexer_test
 
 import (
@@ -81,17 +79,10 @@ func TestStateIndexing(t *testing.T) {
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
-	idx0 := mocks.NewMockIndexer("some_id", version0, types, prepare0, complete0, index0)
-	remoteIdx0 := indexer.NewRemoteIndexer(serviceName, version0, types...)
-	state_test_init.StartNewTestIndexer(t, serviceName, idx0)
-
 	dbName := "state___integ_test"
 	r, q := initTestServices(t, dbName)
 
-	// Register remote, to be called by this test code (which forwards over the network to the locally-registered idx)
-	indexer.DeregisterAllForTest(t)
-	err := indexer.RegisterIndexers(remoteIdx0)
-	assert.NoError(t, err)
+	mocks.NewMockIndexer(t, serviceName, version0, types, prepare0, complete0, index0)
 
 	t.Run("index", func(t *testing.T) {
 		reportGatewayStatusForID(t, sid0)
@@ -102,7 +93,7 @@ func TestStateIndexing(t *testing.T) {
 		assertEqualStatus(t, recv[1], sid0)
 	})
 
-	_, err = q.PopulateJobs()
+	_, err := q.PopulateJobs()
 	assert.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
 	go r.Run(ctx)

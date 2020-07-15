@@ -65,7 +65,7 @@ func TestAddServiceWithProperties(t *testing.T) {
 	fetchedProperty, err := service.QueryProperties().Only(ctx)
 	require.NoError(t, err)
 
-	assert.Equal(t, fetchedProperty.StringVal, serviceStrValue)
+	assert.Equal(t, pointer.GetString(fetchedProperty.StringVal), serviceStrValue)
 }
 
 func TestAddServiceWithExternalIdUnique(t *testing.T) {
@@ -562,7 +562,8 @@ func TestEditServiceWithProperties(t *testing.T) {
 	// Property[] -> PropertyInput[]
 	var propInputClone []*models.PropertyInput
 	for _, v := range fetchedProps {
-		var strValue = v.StringVal + "-2"
+		require.NotNil(t, v.StringVal)
+		var strValue = *v.StringVal + "-2"
 		propInput := &models.PropertyInput{
 			ID:             &v.ID,
 			PropertyTypeID: v.QueryType().OnlyXID(ctx),

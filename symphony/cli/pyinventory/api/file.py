@@ -28,17 +28,22 @@ def add_file(
 ) -> None:
     """This function adds file to an entity of a given type.
 
-        Args:
-            local_file_path (str): local system path to the file
-            entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
-            entity_id (string): valid entity ID
-            category (Optional[string]): file category name
+        :param local_file_path: Local system path to the file
+        :type local_file_path: str
+        :param entity_type: One of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+        :type entity_type: str
+        :param category: File category name
+        :type category: str, optional
 
-        Raises:
+        :raises:
             FailedOperationException: on operation failure
 
-        Example:
-            ```
+        :return: None
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             client.add_file(
                 local_file_path="./document.pdf",
@@ -46,7 +51,6 @@ def add_file(
                 entity_id=location.id,
                 category="category_name",
             )
-            ```
     """
     entity = {
         "LOCATION": ImageEntity.LOCATION,
@@ -66,14 +70,22 @@ def add_files(
 ) -> None:
     """This function adds all files located in folder to an entity of a given type.
 
-        Args:
-            local_directory_path (str): local system path to the directory
-            entity_type (str): one of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
-            entity_id (string): valid entity ID
-            category (Optional[string]): file category name
+        :param local_directory_path: Local system path to the directory
+        :type local_directory_path: str
+        :param entity_type: One of existing options ["LOCATION", "WORK_ORDER", "SITE_SURVEY", "EQUIPMENT"]
+        :type entity_type: str
+        :param category: File category name
+        :type category: str, optional
 
-        Example:
-            ```
+        :raises:
+            FailedOperationException: on operation failure
+
+        :return: None
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             client.add_files(
                 local_directory_path="./documents_folder/",
@@ -81,7 +93,6 @@ def add_files(
                 entity_id=location.id,
                 category="category_name",
             )
-            ```
     """
     for file in list_dir(local_directory_path):
         add_file(client, file, entity_type, entity_id, category)
@@ -92,21 +103,29 @@ def add_location_image(
 ) -> None:
     """This function adds image to existing location.
 
-        Args:
-            local_file_path (str): local system path to the file
-            location ( `pyinventory.common.data_class.Location` ): existing location object
+        :param local_file_path: Local system path to the file
+        :type local_file_path: str
+        :param location: Existing location object, could be retrieved from
 
-        Raises:
+            * :meth:`~pyinventory.api.location.get_location`
+            * :meth:`~pyinventory.api.location.add_location`
+
+        :type location: :class:`~pyinventory.common.data_class.Location`
+
+        :raises:
             FailedOperationException: on operation failure
 
-        Example:
-            ```
+        :return: None
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             client.add_location_image(
                 local_file_path="./document.pdf",
                 location=location,
             )
-            ```
     """
     add_image(client, local_file_path, ImageEntity.LOCATION, location.id)
 
@@ -114,15 +133,18 @@ def add_location_image(
 def delete_document(client: SymphonyClient, document: Document) -> None:
     """This function deletes existing document.
 
-        Args:
-            document ( `pyinventory.common.data_class.Document` ): document object
+        :param document: Document object
+        :type document: :class:`~pyinventory.common.data_class.Document`
 
-        Raises:
+        :raises:
             FailedOperationException: on operation failure
 
-        Example:
-            ```
+        :return: None
+
+        **Example**
+
+        .. code-block:: python
+
             client.delete_document(document=document)
-            ```
     """
     delete_image(client, document.parent_entity, document.parent_id, document.id)

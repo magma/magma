@@ -19,7 +19,6 @@ import WorkOrderTemplatesTokenizer from '../../../../common/WorkOrderTemplatesTo
 import classNames from 'classnames';
 import fbt from 'fbt';
 import symphony from '@fbcnms/ui/theme/symphony';
-import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
 import {PERMISSION_RULE_VALUES} from '../data/PermissionsPolicies';
 import {makeStyles} from '@material-ui/styles';
 import {permissionRuleValue2Bool} from '../data/PermissionsPolicies';
@@ -83,12 +82,12 @@ export default function PermissionsPolicyWorkforceDataRulesSpecification(
   const policyMethods = useMemo(() => {
     const methods = [];
     methods[METHOD_ALL_TYPES_VALUE] = {
-      label: <fbt desc="">All work order and project types</fbt>,
+      label: <fbt desc="">All</fbt>,
       value: METHOD_ALL_TYPES_VALUE,
       key: METHOD_ALL_TYPES_VALUE,
     };
     methods[METHOD_SELECTED_TYPES_VALUE] = {
-      label: <fbt desc="">Selected work order and project templates</fbt>,
+      label: <fbt desc="">Created from selected templates</fbt>,
       value: METHOD_SELECTED_TYPES_VALUE,
       key: METHOD_SELECTED_TYPES_VALUE,
     };
@@ -156,11 +155,7 @@ export default function PermissionsPolicyWorkforceDataRulesSpecification(
         : '',
   });
 
-  const permissionPolicyPerTypeEnabled = useFeatureFlag(
-    'permission_policy_per_type',
-  );
-
-  if (policy == null || !permissionPolicyPerTypeEnabled) {
+  if (policy == null) {
     return null;
   }
 
@@ -171,11 +166,13 @@ export default function PermissionsPolicyWorkforceDataRulesSpecification(
         <Text>
           {disabled == true ? (
             <fbt desc="">
-              This policy applies to the following work order and project types
+              These permissions apply to the following work order and project
+              types.
             </fbt>
           ) : (
             <fbt desc="">
-              Apply this policy to the following work order and project types
+              Choose which work order and project types these permissions apply
+              to.
             </fbt>
           )}
         </Text>

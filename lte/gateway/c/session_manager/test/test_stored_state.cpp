@@ -20,30 +20,30 @@ using ::testing::Test;
 namespace magma {
 
 class StoredStateTest : public ::testing::Test {
-protected:
+ protected:
   QoSInfo get_stored_qos_info() {
     QoSInfo stored;
     stored.enabled = true;
-    stored.qci = 123;
+    stored.qci     = 123;
     return stored;
   }
 
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
-    stored.ue_ipv4 = "192.168.0.1";
-    stored.spgw_ipv4 = "192.168.0.2";
-    stored.msisdn = "a";
-    stored.apn = "b";
-    stored.imei = "c";
-    stored.plmn_id = "d";
-    stored.imsi_plmn_id = "e";
-    stored.user_location = "f";
-    stored.rat_type = RATType::TGPP_WLAN;
-    stored.mac_addr = "g";      // MAC Address for WLAN
-    stored.hardware_addr = "h"; // MAC Address for WLAN (binary)
+    stored.ue_ipv4           = "192.168.0.1";
+    stored.spgw_ipv4         = "192.168.0.2";
+    stored.msisdn            = "a";
+    stored.apn               = "b";
+    stored.imei              = "c";
+    stored.plmn_id           = "d";
+    stored.imsi_plmn_id      = "e";
+    stored.user_location     = "f";
+    stored.rat_type          = RATType::TGPP_WLAN;
+    stored.mac_addr          = "g";  // MAC Address for WLAN
+    stored.hardware_addr     = "h";  // MAC Address for WLAN (binary)
     stored.radius_session_id = "i";
-    stored.bearer_id = 321;
-    stored.qos_info = get_stored_qos_info();
+    stored.bearer_id         = 321;
+    stored.qos_info          = get_stored_qos_info();
     return stored;
   }
 
@@ -62,10 +62,10 @@ protected:
   StoredSessionCredit get_stored_session_credit() {
     StoredSessionCredit stored;
 
-    stored.reporting = true;
+    stored.reporting         = true;
     stored.credit_limit_type = INFINITE_METERED;
 
-    stored.buckets[USED_TX] = 12345;
+    stored.buckets[USED_TX]       = 12345;
     stored.buckets[ALLOWED_TOTAL] = 54321;
 
     stored.grant_tracking_type = TX_ONLY;
@@ -86,17 +86,17 @@ protected:
         "redirect_server_address");
 
     stored.service_state = SERVICE_NEEDS_ACTIVATION;
-    stored.reauth_state = REAUTH_REQUIRED;
+    stored.reauth_state  = REAUTH_REQUIRED;
 
     stored.expiry_time = 32;
-    stored.credit = get_stored_session_credit();
+    stored.credit      = get_stored_session_credit();
     return stored;
   };
 
   StoredMonitor get_stored_monitor() {
     StoredMonitor stored;
     stored.credit = get_stored_session_credit();
-    stored.level = MonitoringLevel::PCC_RULE_LEVEL;
+    stored.level  = MonitoringLevel::PCC_RULE_LEVEL;
     return stored;
   }
 
@@ -115,15 +115,15 @@ protected:
   StoredSessionState get_stored_session() {
     StoredSessionState stored;
 
-    stored.config = get_stored_session_config();
-    stored.credit_map = get_stored_charging_credit_map();
-    stored.monitor_map = get_stored_monitor_map();
-    stored.session_level_key = "session_level_key";
-    stored.imsi = "IMSI1";
-    stored.session_id = "session_id";
-    stored.core_session_id = "core_session_id";
+    stored.config                 = get_stored_session_config();
+    stored.credit_map             = get_stored_charging_credit_map();
+    stored.monitor_map            = get_stored_monitor_map();
+    stored.session_level_key      = "session_level_key";
+    stored.imsi                   = "IMSI1";
+    stored.session_id             = "session_id";
+    stored.core_session_id        = "core_session_id";
     stored.subscriber_quota_state = SubscriberQuotaUpdate_Type_VALID_QUOTA;
-    stored.fsm_state = SESSION_TERMINATING_FLOW_DELETED;
+    stored.fsm_state              = SESSION_TERMINATING_FLOW_DELETED;
 
     magma::lte::TgppContext tgpp_context;
     tgpp_context.set_gx_dest_host("gx");
@@ -142,7 +142,7 @@ protected:
 TEST_F(StoredStateTest, test_stored_qos_info) {
   auto stored = get_stored_qos_info();
 
-  auto serialized = serialize_stored_qos_info(stored);
+  auto serialized   = serialize_stored_qos_info(stored);
   auto deserialized = deserialize_stored_qos_info(serialized);
 
   EXPECT_EQ(deserialized.enabled, true);
@@ -152,7 +152,7 @@ TEST_F(StoredStateTest, test_stored_qos_info) {
 TEST_F(StoredStateTest, test_stored_session_config) {
   auto stored = get_stored_session_config();
 
-  std::string serialized = serialize_stored_session_config(stored);
+  std::string serialized     = serialize_stored_session_config(stored);
   SessionConfig deserialized = deserialize_stored_session_config(serialized);
 
   EXPECT_EQ(deserialized.ue_ipv4, "192.168.0.1");
@@ -175,22 +175,25 @@ TEST_F(StoredStateTest, test_stored_session_config) {
 TEST_F(StoredStateTest, test_stored_final_action_info) {
   auto stored = get_stored_final_action_info();
 
-  auto serialized = serialize_stored_final_action_info(stored);
+  auto serialized   = serialize_stored_final_action_info(stored);
   auto deserialized = deserialize_stored_final_action_info(serialized);
 
-  EXPECT_EQ(deserialized.final_action,
-            ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
-  EXPECT_EQ(deserialized.redirect_server.redirect_address_type(),
-            RedirectServer_RedirectAddressType::
-                RedirectServer_RedirectAddressType_IPV6);
-  EXPECT_EQ(deserialized.redirect_server.redirect_server_address(),
-            "redirect_server_address");
+  EXPECT_EQ(
+      deserialized.final_action,
+      ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
+  EXPECT_EQ(
+      deserialized.redirect_server.redirect_address_type(),
+      RedirectServer_RedirectAddressType::
+          RedirectServer_RedirectAddressType_IPV6);
+  EXPECT_EQ(
+      deserialized.redirect_server.redirect_server_address(),
+      "redirect_server_address");
 }
 
 TEST_F(StoredStateTest, test_stored_session_credit) {
   auto stored = get_stored_session_credit();
 
-  auto serialized = serialize_stored_session_credit(stored);
+  auto serialized   = serialize_stored_session_credit(stored);
   auto deserialized = deserialize_stored_session_credit(serialized);
 
   EXPECT_EQ(deserialized.reporting, true);
@@ -205,7 +208,7 @@ TEST_F(StoredStateTest, test_stored_session_credit) {
 TEST_F(StoredStateTest, test_stored_monitor) {
   auto stored = get_stored_monitor();
 
-  auto serialized = serialize_stored_monitor(stored);
+  auto serialized   = serialize_stored_monitor(stored);
   auto deserialized = deserialize_stored_monitor(serialized);
 
   EXPECT_EQ(deserialized.credit.reporting, true);
@@ -218,20 +221,23 @@ TEST_F(StoredStateTest, test_stored_monitor) {
 TEST_F(StoredStateTest, test_stored_charging_credit_map) {
   auto stored = get_stored_charging_credit_map();
 
-  auto serialized = serialize_stored_charging_credit_map(stored);
+  auto serialized   = serialize_stored_charging_credit_map(stored);
   auto deserialized = deserialize_stored_charging_credit_map(serialized);
 
   auto stored_charging_credit = deserialized[CreditKey(1, 2)];
   // test charging grant fields
   EXPECT_EQ(stored_charging_credit.is_final, true);
-  EXPECT_EQ(stored_charging_credit.final_action_info.final_action,
-          ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
-        stored_charging_credit.final_action_info.redirect_server.redirect_address_type(),
-        RedirectServer_RedirectAddressType::
-            RedirectServer_RedirectAddressType_IPV6);
+      stored_charging_credit.final_action_info.final_action,
+      ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
-      stored_charging_credit.final_action_info.redirect_server.redirect_server_address(),
+      stored_charging_credit.final_action_info.redirect_server
+          .redirect_address_type(),
+      RedirectServer_RedirectAddressType::
+          RedirectServer_RedirectAddressType_IPV6);
+  EXPECT_EQ(
+      stored_charging_credit.final_action_info.redirect_server
+          .redirect_server_address(),
       "redirect_server_address");
   EXPECT_EQ(stored_charging_credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(stored_charging_credit.service_state, SERVICE_NEEDS_ACTIVATION);
@@ -248,7 +254,7 @@ TEST_F(StoredStateTest, test_stored_charging_credit_map) {
 TEST_F(StoredStateTest, test_stored_monitor_map) {
   auto stored = get_stored_monitor_map();
 
-  auto serialized = serialize_stored_usage_monitor_map(stored);
+  auto serialized   = serialize_stored_usage_monitor_map(stored);
   auto deserialized = deserialize_stored_usage_monitor_map(serialized);
 
   auto stored_monitor = deserialized["mk1"];
@@ -262,7 +268,7 @@ TEST_F(StoredStateTest, test_stored_monitor_map) {
 TEST_F(StoredStateTest, test_stored_session) {
   auto stored = get_stored_session();
 
-  auto serialized = serialize_stored_session(stored);
+  auto serialized   = serialize_stored_session(stored);
   auto deserialized = deserialize_stored_session(serialized);
 
   auto config = deserialized.config;
@@ -285,14 +291,17 @@ TEST_F(StoredStateTest, test_stored_session) {
   auto stored_charging_credit = deserialized.credit_map[CreditKey(1, 2)];
   // test charging grant fields
   EXPECT_EQ(stored_charging_credit.is_final, true);
-  EXPECT_EQ(stored_charging_credit.final_action_info.final_action,
-            ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
   EXPECT_EQ(
-      stored_charging_credit.final_action_info.redirect_server.redirect_address_type(),
+      stored_charging_credit.final_action_info.final_action,
+      ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT);
+  EXPECT_EQ(
+      stored_charging_credit.final_action_info.redirect_server
+          .redirect_address_type(),
       RedirectServer_RedirectAddressType::
           RedirectServer_RedirectAddressType_IPV6);
   EXPECT_EQ(
-      stored_charging_credit.final_action_info.redirect_server.redirect_server_address(),
+      stored_charging_credit.final_action_info.redirect_server
+          .redirect_server_address(),
       "redirect_server_address");
   EXPECT_EQ(stored_charging_credit.reauth_state, REAUTH_REQUIRED);
   EXPECT_EQ(stored_charging_credit.service_state, SERVICE_NEEDS_ACTIVATION);
@@ -317,10 +326,9 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored.imsi, "IMSI1");
   EXPECT_EQ(stored.session_id, "session_id");
   EXPECT_EQ(stored.core_session_id, "core_session_id");
-  EXPECT_EQ(stored.subscriber_quota_state,
-            SubscriberQuotaUpdate_Type_VALID_QUOTA);
-  EXPECT_EQ(stored.fsm_state,
-            SESSION_TERMINATING_FLOW_DELETED);
+  EXPECT_EQ(
+      stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+  EXPECT_EQ(stored.fsm_state, SESSION_TERMINATING_FLOW_DELETED);
 
   EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
   EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");
@@ -332,9 +340,9 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored.request_number, 1);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-} // namespace magma
+}  // namespace magma

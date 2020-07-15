@@ -52,7 +52,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
 
-        self._ipv4_allocator = IPAddressManager(config=config)
+        self._ipv4_allocator = IPAddressManager(config=config,
+                                                allocator_type=mconfig.ip_allocator_type)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates

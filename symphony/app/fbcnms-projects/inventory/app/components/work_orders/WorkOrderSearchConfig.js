@@ -89,4 +89,13 @@ const WorkOrderSearchConfig: Array<EntityConfig> = [
   },
 ];
 
-export {WorkOrderSearchConfig};
+const WORK_ORDER_FILTERS = Object.freeze({
+  NAME: 'work_order_name',
+  STATUS: 'work_order_status',
+  OWNER: 'work_order_owner',
+  TYPE: 'work_order_type',
+  PRIORITY: 'work_order_priority',
+  ASSIGNEE: 'work_order_assignee',
+});
+
+export {WorkOrderSearchConfig, WORK_ORDER_FILTERS};

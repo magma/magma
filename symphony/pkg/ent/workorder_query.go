@@ -1293,6 +1293,32 @@ func (wogb *WorkOrderGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (wogb *WorkOrderGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = wogb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (wogb *WorkOrderGroupBy) StringX(ctx context.Context) string {
+	v, err := wogb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (wogb *WorkOrderGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(wogb.fields) > 1 {
@@ -1308,6 +1334,32 @@ func (wogb *WorkOrderGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (wogb *WorkOrderGroupBy) IntsX(ctx context.Context) []int {
 	v, err := wogb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (wogb *WorkOrderGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = wogb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (wogb *WorkOrderGroupBy) IntX(ctx context.Context) int {
+	v, err := wogb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1335,6 +1387,32 @@ func (wogb *WorkOrderGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (wogb *WorkOrderGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = wogb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (wogb *WorkOrderGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := wogb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (wogb *WorkOrderGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(wogb.fields) > 1 {
@@ -1350,6 +1428,32 @@ func (wogb *WorkOrderGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (wogb *WorkOrderGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := wogb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (wogb *WorkOrderGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = wogb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (wogb *WorkOrderGroupBy) BoolX(ctx context.Context) bool {
+	v, err := wogb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1423,6 +1527,32 @@ func (wos *WorkOrderSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (wos *WorkOrderSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = wos.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (wos *WorkOrderSelect) StringX(ctx context.Context) string {
+	v, err := wos.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (wos *WorkOrderSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(wos.fields) > 1 {
@@ -1438,6 +1568,32 @@ func (wos *WorkOrderSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (wos *WorkOrderSelect) IntsX(ctx context.Context) []int {
 	v, err := wos.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (wos *WorkOrderSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = wos.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (wos *WorkOrderSelect) IntX(ctx context.Context) int {
+	v, err := wos.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -1465,6 +1621,32 @@ func (wos *WorkOrderSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (wos *WorkOrderSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = wos.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (wos *WorkOrderSelect) Float64X(ctx context.Context) float64 {
+	v, err := wos.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (wos *WorkOrderSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(wos.fields) > 1 {
@@ -1480,6 +1662,32 @@ func (wos *WorkOrderSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (wos *WorkOrderSelect) BoolsX(ctx context.Context) []bool {
 	v, err := wos.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (wos *WorkOrderSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = wos.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{workorder.Label}
+	default:
+		err = fmt.Errorf("ent: WorkOrderSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (wos *WorkOrderSelect) BoolX(ctx context.Context) bool {
+	v, err := wos.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

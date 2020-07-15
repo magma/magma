@@ -120,7 +120,6 @@ COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
 COPY feg/gateway/configs /etc/magma
 
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 
 RUN mkdir -p /var/opt/magma/configs
 RUN mkdir -p /var/opt/magma/fluent-bit

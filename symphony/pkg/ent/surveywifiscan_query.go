@@ -642,6 +642,32 @@ func (swfsgb *SurveyWiFiScanGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (swfsgb *SurveyWiFiScanGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = swfsgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (swfsgb *SurveyWiFiScanGroupBy) StringX(ctx context.Context) string {
+	v, err := swfsgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (swfsgb *SurveyWiFiScanGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(swfsgb.fields) > 1 {
@@ -657,6 +683,32 @@ func (swfsgb *SurveyWiFiScanGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (swfsgb *SurveyWiFiScanGroupBy) IntsX(ctx context.Context) []int {
 	v, err := swfsgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (swfsgb *SurveyWiFiScanGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = swfsgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (swfsgb *SurveyWiFiScanGroupBy) IntX(ctx context.Context) int {
+	v, err := swfsgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -684,6 +736,32 @@ func (swfsgb *SurveyWiFiScanGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (swfsgb *SurveyWiFiScanGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = swfsgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (swfsgb *SurveyWiFiScanGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := swfsgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (swfsgb *SurveyWiFiScanGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(swfsgb.fields) > 1 {
@@ -699,6 +777,32 @@ func (swfsgb *SurveyWiFiScanGroupBy) Bools(ctx context.Context) ([]bool, error) 
 // BoolsX is like Bools, but panics if an error occurs.
 func (swfsgb *SurveyWiFiScanGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := swfsgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (swfsgb *SurveyWiFiScanGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = swfsgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (swfsgb *SurveyWiFiScanGroupBy) BoolX(ctx context.Context) bool {
+	v, err := swfsgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -772,6 +876,32 @@ func (swfss *SurveyWiFiScanSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (swfss *SurveyWiFiScanSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = swfss.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (swfss *SurveyWiFiScanSelect) StringX(ctx context.Context) string {
+	v, err := swfss.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (swfss *SurveyWiFiScanSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(swfss.fields) > 1 {
@@ -787,6 +917,32 @@ func (swfss *SurveyWiFiScanSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (swfss *SurveyWiFiScanSelect) IntsX(ctx context.Context) []int {
 	v, err := swfss.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (swfss *SurveyWiFiScanSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = swfss.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (swfss *SurveyWiFiScanSelect) IntX(ctx context.Context) int {
+	v, err := swfss.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -814,6 +970,32 @@ func (swfss *SurveyWiFiScanSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (swfss *SurveyWiFiScanSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = swfss.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (swfss *SurveyWiFiScanSelect) Float64X(ctx context.Context) float64 {
+	v, err := swfss.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (swfss *SurveyWiFiScanSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(swfss.fields) > 1 {
@@ -829,6 +1011,32 @@ func (swfss *SurveyWiFiScanSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (swfss *SurveyWiFiScanSelect) BoolsX(ctx context.Context) []bool {
 	v, err := swfss.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (swfss *SurveyWiFiScanSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = swfss.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveywifiscan.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyWiFiScanSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (swfss *SurveyWiFiScanSelect) BoolX(ctx context.Context) bool {
+	v, err := swfss.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

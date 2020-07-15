@@ -60,7 +60,7 @@ class InOutNonNatTest(unittest.TestCase):
     def setUp(self):
         self._dhcp_gw_info_mock = store.GatewayInfoMap()
 
-        self._dhcp_gw_info_mock[DHCP_Router_key] = '192.168.128.100'
+        self._dhcp_gw_info_mock[DHCP_Router_key] = '192.168.128.211'
         logging.info("set router key [{}]".format(self._dhcp_gw_info_mock[DHCP_Router_key]))
 
         """
@@ -96,7 +96,7 @@ class InOutNonNatTest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
-                'non_nat': True,
+                'enable_nat': False,
                 'non_mat_gw_probe_frequency': .2,
                 'non_nat_arp_egress_port': 't_dhcp0',
                 'ovs_uplink_port_name': 'patch-up'

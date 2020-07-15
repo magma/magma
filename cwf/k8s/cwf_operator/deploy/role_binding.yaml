@@ -27,7 +27,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: cwf-operator
-  namespace: test
+  namespace: magma
 roleRef:
   kind: ClusterRole
   name: cwf-operator

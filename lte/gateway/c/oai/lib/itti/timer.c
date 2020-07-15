@@ -46,7 +46,7 @@
 #include "assertions.h"
 #include "timer_messages_types.h"
 
-int timer_handle_signal(siginfo_t *info);
+int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx);
 
 struct timer_elm_s {
   task_id_t task_id; ///< Task ID which has requested the timer
@@ -76,13 +76,12 @@ static struct timer_elm_s *_find_timer(long timer_id);
     }                                                                          \
   } while (0)
 
-int timer_handle_signal(siginfo_t *info)
+int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx)
 {
   struct timer_elm_s *timer_p;
   MessageDef *message_p;
   timer_has_expired_t *timer_expired_p;
   task_id_t task_id;
-  int32_t instance;
 
   /*
    * Get back pointer to timer list element
@@ -91,8 +90,7 @@ int timer_handle_signal(siginfo_t *info)
   // LG: To many traces for msc timer:
   // TMR_DEBUG("Timer with id 0x%lx has expired", (long)timer_p->timer);
   task_id = timer_p->task_id;
-  instance = timer_p->instance;
-  message_p = itti_alloc_new_message(TASK_TIMER, TIMER_HAS_EXPIRED);
+  message_p = itti_alloc_new_message(TASK_MAIN, TIMER_HAS_EXPIRED);
   timer_expired_p = &message_p->ittiMsg.timer_has_expired;
   timer_expired_p->timer_id = (long) timer_p->timer;
   timer_expired_p->arg = timer_p->timer_arg;
@@ -100,10 +98,9 @@ int timer_handle_signal(siginfo_t *info)
   /*
    * Notify task of timer expiry
    */
-  if (itti_send_msg_to_task(task_id, instance, message_p) < 0) {
+  if (send_msg_to_task(task_ctx, task_id, message_p) < 0) {
     OAILOG_DEBUG(
       LOG_ITTI, "Failed to send msg TIMER_HAS_EXPIRED to task %u\n", task_id);
-    itti_free(TASK_TIMER, message_p);
     return -1;
   }
 
@@ -328,10 +325,10 @@ int timer_remove(long timer_id, void **arg)
 
 int timer_init(void)
 {
-  OAILOG_DEBUG(LOG_ITTI, "Initializing TIMER task interface\n");
+  OAI_FPRINTF_INFO("Initializing TIMER module\n");
   memset(&timer_desc, 0, sizeof(timer_desc_t));
   STAILQ_INIT(&timer_desc.timer_queue);
   pthread_mutex_init(&timer_desc.timer_list_mutex, NULL);
-  OAILOG_DEBUG(LOG_ITTI, "Initializing TIMER task interface: DONE\n");
+  OAI_FPRINTF_INFO("Initializing TIMER module: DONE\n");
   return 0;
 }

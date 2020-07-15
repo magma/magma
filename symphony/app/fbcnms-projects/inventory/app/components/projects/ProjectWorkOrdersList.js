@@ -59,7 +59,7 @@ const ProjectWorkOrdersList = (props: Props) => {
           <TableCell>Type</TableCell>
           <TableCell>Status</TableCell>
           <TableCell>Owner</TableCell>
-          <TableCell>Prioriry</TableCell>
+          <TableCell>Priority</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>

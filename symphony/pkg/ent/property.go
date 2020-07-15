@@ -34,21 +34,21 @@ type Property struct {
 	// UpdateTime holds the value of the "update_time" field.
 	UpdateTime time.Time `json:"update_time,omitempty"`
 	// IntVal holds the value of the "int_val" field.
-	IntVal int `json:"intValue" gqlgen:"intValue"`
+	IntVal *int `json:"intValue" gqlgen:"intValue"`
 	// BoolVal holds the value of the "bool_val" field.
-	BoolVal bool `json:"booleanValue" gqlgen:"booleanValue"`
+	BoolVal *bool `json:"booleanValue" gqlgen:"booleanValue"`
 	// FloatVal holds the value of the "float_val" field.
-	FloatVal float64 `json:"floatValue" gqlgen:"floatValue"`
+	FloatVal *float64 `json:"floatValue" gqlgen:"floatValue"`
 	// LatitudeVal holds the value of the "latitude_val" field.
-	LatitudeVal float64 `json:"latitudeValue" gqlgen:"latitudeValue"`
+	LatitudeVal *float64 `json:"latitudeValue" gqlgen:"latitudeValue"`
 	// LongitudeVal holds the value of the "longitude_val" field.
-	LongitudeVal float64 `json:"longitudeValue" gqlgen:"longitudeValue"`
+	LongitudeVal *float64 `json:"longitudeValue" gqlgen:"longitudeValue"`
 	// RangeFromVal holds the value of the "range_from_val" field.
-	RangeFromVal float64 `json:"rangeFromValue" gqlgen:"rangeFromValue"`
+	RangeFromVal *float64 `json:"rangeFromValue" gqlgen:"rangeFromValue"`
 	// RangeToVal holds the value of the "range_to_val" field.
-	RangeToVal float64 `json:"rangeToValue" gqlgen:"rangeToValue"`
+	RangeToVal *float64 `json:"rangeToValue" gqlgen:"rangeToValue"`
 	// StringVal holds the value of the "string_val" field.
-	StringVal string `json:"stringValue" gqlgen:"stringValue"`
+	StringVal *string `json:"stringValue" gqlgen:"stringValue"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the PropertyQuery when eager-loading is set.
 	Edges                     PropertyEdges `json:"edges"`
@@ -343,42 +343,50 @@ func (pr *Property) assignValues(values ...interface{}) error {
 	if value, ok := values[2].(*sql.NullInt64); !ok {
 		return fmt.Errorf("unexpected type %T for field int_val", values[2])
 	} else if value.Valid {
-		pr.IntVal = int(value.Int64)
+		pr.IntVal = new(int)
+		*pr.IntVal = int(value.Int64)
 	}
 	if value, ok := values[3].(*sql.NullBool); !ok {
 		return fmt.Errorf("unexpected type %T for field bool_val", values[3])
 	} else if value.Valid {
-		pr.BoolVal = value.Bool
+		pr.BoolVal = new(bool)
+		*pr.BoolVal = value.Bool
 	}
 	if value, ok := values[4].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field float_val", values[4])
 	} else if value.Valid {
-		pr.FloatVal = value.Float64
+		pr.FloatVal = new(float64)
+		*pr.FloatVal = value.Float64
 	}
 	if value, ok := values[5].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field latitude_val", values[5])
 	} else if value.Valid {
-		pr.LatitudeVal = value.Float64
+		pr.LatitudeVal = new(float64)
+		*pr.LatitudeVal = value.Float64
 	}
 	if value, ok := values[6].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field longitude_val", values[6])
 	} else if value.Valid {
-		pr.LongitudeVal = value.Float64
+		pr.LongitudeVal = new(float64)
+		*pr.LongitudeVal = value.Float64
 	}
 	if value, ok := values[7].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field range_from_val", values[7])
 	} else if value.Valid {
-		pr.RangeFromVal = value.Float64
+		pr.RangeFromVal = new(float64)
+		*pr.RangeFromVal = value.Float64
 	}
 	if value, ok := values[8].(*sql.NullFloat64); !ok {
 		return fmt.Errorf("unexpected type %T for field range_to_val", values[8])
 	} else if value.Valid {
-		pr.RangeToVal = value.Float64
+		pr.RangeToVal = new(float64)
+		*pr.RangeToVal = value.Float64
 	}
 	if value, ok := values[9].(*sql.NullString); !ok {
 		return fmt.Errorf("unexpected type %T for field string_val", values[9])
 	} else if value.Valid {
-		pr.StringVal = value.String
+		pr.StringVal = new(string)
+		*pr.StringVal = value.String
 	}
 	values = values[10:]
 	if len(values) == len(property.ForeignKeys) {
@@ -556,22 +564,38 @@ func (pr *Property) String() string {
 	builder.WriteString(pr.CreateTime.Format(time.ANSIC))
 	builder.WriteString(", update_time=")
 	builder.WriteString(pr.UpdateTime.Format(time.ANSIC))
-	builder.WriteString(", int_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.IntVal))
-	builder.WriteString(", bool_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.BoolVal))
-	builder.WriteString(", float_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.FloatVal))
-	builder.WriteString(", latitude_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.LatitudeVal))
-	builder.WriteString(", longitude_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.LongitudeVal))
-	builder.WriteString(", range_from_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.RangeFromVal))
-	builder.WriteString(", range_to_val=")
-	builder.WriteString(fmt.Sprintf("%v", pr.RangeToVal))
-	builder.WriteString(", string_val=")
-	builder.WriteString(pr.StringVal)
+	if v := pr.IntVal; v != nil {
+		builder.WriteString(", int_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.BoolVal; v != nil {
+		builder.WriteString(", bool_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.FloatVal; v != nil {
+		builder.WriteString(", float_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.LatitudeVal; v != nil {
+		builder.WriteString(", latitude_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.LongitudeVal; v != nil {
+		builder.WriteString(", longitude_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.RangeFromVal; v != nil {
+		builder.WriteString(", range_from_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.RangeToVal; v != nil {
+		builder.WriteString(", range_to_val=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
+	if v := pr.StringVal; v != nil {
+		builder.WriteString(", string_val=")
+		builder.WriteString(*v)
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

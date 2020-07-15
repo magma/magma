@@ -97,11 +97,11 @@ func TestEditServiceTypeWithProperties(t *testing.T) {
 
 	strProp = serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeString)).OnlyX(ctx)
 	require.Equal(t, "str_prop_new", strProp.Name, "successfully edited prop type name")
-	require.Equal(t, strValue, strProp.StringVal, "successfully edited prop type string value")
+	require.Equal(t, strValue, pointer.GetString(strProp.StringVal), "successfully edited prop type string value")
 
 	intProp := serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
-	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
+	require.Equal(t, intValue, pointer.GetInt(intProp.IntVal), "successfully edited prop type int value")
 
 	intValue = 6
 	intPropType = models.PropertyTypeInput{
@@ -120,7 +120,7 @@ func TestEditServiceTypeWithProperties(t *testing.T) {
 	require.NoError(t, err)
 	intProp = serviceType.QueryPropertyTypes().Where(propertytype.TypeEQ(propertytype.TypeInt)).OnlyX(ctx)
 	require.Equal(t, "int_prop", intProp.Name, "successfully edited prop type name")
-	require.Equal(t, intValue, intProp.IntVal, "successfully edited prop type int value")
+	require.Equal(t, intValue, pointer.GetInt(intProp.IntVal), "successfully edited prop type int value")
 }
 
 func TestRemoveServiceType(t *testing.T) {

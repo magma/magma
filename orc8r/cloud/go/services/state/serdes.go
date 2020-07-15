@@ -37,21 +37,21 @@ func (m *StringToStringMap) ValidateModel() error {
 	return nil
 }
 
-// ArbitaryJSON is a generic map[string]interface{} destination to unmarshal
+// ArbitraryJSON is a generic map[string]interface{} destination to unmarshal
 // any JSON payload into which implements ValidateableBinaryConvertible.
 // This is used for replicated gateway states which are serialized as
 // protos on the gateway side to avoid double-defining structs in proto and
 // swagger for the time being.
-type ArbitaryJSON map[string]interface{}
+type ArbitraryJSON map[string]interface{}
 
-func (j *ArbitaryJSON) MarshalBinary() ([]byte, error) {
+func (j *ArbitraryJSON) MarshalBinary() ([]byte, error) {
 	return json.Marshal(j)
 }
 
-func (j *ArbitaryJSON) UnmarshalBinary(data []byte) error {
+func (j *ArbitraryJSON) UnmarshalBinary(data []byte) error {
 	return json.Unmarshal(data, j)
 }
 
-func (j *ArbitaryJSON) ValidateModel() error {
+func (j *ArbitraryJSON) ValidateModel() error {
 	return nil
 }

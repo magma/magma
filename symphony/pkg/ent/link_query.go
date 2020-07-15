@@ -744,6 +744,32 @@ func (lgb *LinkGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (lgb *LinkGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = lgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (lgb *LinkGroupBy) StringX(ctx context.Context) string {
+	v, err := lgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (lgb *LinkGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(lgb.fields) > 1 {
@@ -759,6 +785,32 @@ func (lgb *LinkGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (lgb *LinkGroupBy) IntsX(ctx context.Context) []int {
 	v, err := lgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (lgb *LinkGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = lgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (lgb *LinkGroupBy) IntX(ctx context.Context) int {
+	v, err := lgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -786,6 +838,32 @@ func (lgb *LinkGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (lgb *LinkGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = lgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (lgb *LinkGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := lgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (lgb *LinkGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(lgb.fields) > 1 {
@@ -801,6 +879,32 @@ func (lgb *LinkGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (lgb *LinkGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := lgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (lgb *LinkGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = lgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (lgb *LinkGroupBy) BoolX(ctx context.Context) bool {
+	v, err := lgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -874,6 +978,32 @@ func (ls *LinkSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ls *LinkSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ls.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ls *LinkSelect) StringX(ctx context.Context) string {
+	v, err := ls.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ls *LinkSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ls.fields) > 1 {
@@ -889,6 +1019,32 @@ func (ls *LinkSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ls *LinkSelect) IntsX(ctx context.Context) []int {
 	v, err := ls.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ls *LinkSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ls.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ls *LinkSelect) IntX(ctx context.Context) int {
+	v, err := ls.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -916,6 +1072,32 @@ func (ls *LinkSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ls *LinkSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ls.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ls *LinkSelect) Float64X(ctx context.Context) float64 {
+	v, err := ls.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ls *LinkSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ls.fields) > 1 {
@@ -931,6 +1113,32 @@ func (ls *LinkSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ls *LinkSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ls.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ls *LinkSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ls.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{link.Label}
+	default:
+		err = fmt.Errorf("ent: LinkSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ls *LinkSelect) BoolX(ctx context.Context) bool {
+	v, err := ls.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

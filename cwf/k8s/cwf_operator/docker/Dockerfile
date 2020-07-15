@@ -41,7 +41,7 @@ RUN go mod download; exit 0
 # Copy and build the go code.
 COPY feg/cloud/go/protos $MAGMA_ROOT/feg/cloud/go/protos
 COPY lte/cloud/go/protos $MAGMA_ROOT/lte/cloud/go/protos
-COPY orc8r/lib/go/protos $MAGMA_ROOT/orc8r/lib/go/protos
+COPY orc8r/lib/go $MAGMA_ROOT/orc8r/lib/go
 COPY cwf/k8s/cwf_operator/cmd $MAGMA_ROOT/cwf/k8s/cwf_operator/cmd
 COPY cwf/k8s/cwf_operator/pkg $MAGMA_ROOT/cwf/k8s/cwf_operator/pkg
 COPY cwf/k8s/cwf_operator/version $MAGMA_ROOT/cwf/k8s/cwf_operator/version

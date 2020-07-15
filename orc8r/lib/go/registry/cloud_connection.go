@@ -45,7 +45,7 @@ var controlProxyConfig atomic.Value
 //
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
-func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
+func (r *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	cpc, ok := controlProxyConfig.Load().(*config.ConfigMap)
 	if (!ok) || cpc == nil {
 		var err error
@@ -56,7 +56,7 @@ func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 		}
 		controlProxyConfig.Store(cpc)
 	}
-	return reg.GetCloudConnectionFromServiceConfig(cpc, service)
+	return r.GetCloudConnectionFromServiceConfig(cpc, service)
 }
 
 // GetCloudConnectionFromServiceConfig returns a connection to the cloud
@@ -69,7 +69,7 @@ func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 //
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
-func (reg *ServiceRegistry) GetCloudConnectionFromServiceConfig(
+func (r *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
 
 	authority, err := getAuthority(controlProxyConfig, service)
@@ -79,7 +79,7 @@ func (reg *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	useProxy := getUseProxyCloudConnection(controlProxyConfig)
 	var addr string
 	if useProxy {
-		addr, err = reg.getProxyAddress(controlProxyConfig)
+		addr, err = r.getProxyAddress(controlProxyConfig)
 	} else {
 		addr, err = getCloudServiceAddress(controlProxyConfig)
 	}
@@ -113,12 +113,12 @@ func getAuthority(
 	return fmt.Sprintf("%s-%s", strings.ToLower(service), cloudAddr), nil
 }
 
-func (reg *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
+func (r *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
 	localPort, err := serviceConfig.GetInt("local_port")
 	if err != nil {
 		return "", err
 	}
-	localAddress, err := reg.GetServiceAddress(ControlProxyServiceName)
+	localAddress, err := r.GetServiceAddress(ControlProxyServiceName)
 	if err != nil {
 		return "", err
 	}

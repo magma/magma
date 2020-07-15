@@ -584,6 +584,32 @@ func (tgb *TodoGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (tgb *TodoGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = tgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (tgb *TodoGroupBy) StringX(ctx context.Context) string {
+	v, err := tgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (tgb *TodoGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(tgb.fields) > 1 {
@@ -599,6 +625,32 @@ func (tgb *TodoGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (tgb *TodoGroupBy) IntsX(ctx context.Context) []int {
 	v, err := tgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (tgb *TodoGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = tgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (tgb *TodoGroupBy) IntX(ctx context.Context) int {
+	v, err := tgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -626,6 +678,32 @@ func (tgb *TodoGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (tgb *TodoGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = tgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (tgb *TodoGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := tgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (tgb *TodoGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(tgb.fields) > 1 {
@@ -641,6 +719,32 @@ func (tgb *TodoGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (tgb *TodoGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := tgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (tgb *TodoGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = tgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (tgb *TodoGroupBy) BoolX(ctx context.Context) bool {
+	v, err := tgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -714,6 +818,32 @@ func (ts *TodoSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ts *TodoSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ts.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ts *TodoSelect) StringX(ctx context.Context) string {
+	v, err := ts.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ts.fields) > 1 {
@@ -729,6 +859,32 @@ func (ts *TodoSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ts *TodoSelect) IntsX(ctx context.Context) []int {
 	v, err := ts.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ts *TodoSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ts.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ts *TodoSelect) IntX(ctx context.Context) int {
+	v, err := ts.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -756,6 +912,32 @@ func (ts *TodoSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ts *TodoSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ts.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ts *TodoSelect) Float64X(ctx context.Context) float64 {
+	v, err := ts.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ts *TodoSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ts.fields) > 1 {
@@ -771,6 +953,32 @@ func (ts *TodoSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ts *TodoSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ts.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ts *TodoSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ts.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{todo.Label}
+	default:
+		err = fmt.Errorf("ent: TodoSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ts *TodoSelect) BoolX(ctx context.Context) bool {
+	v, err := ts.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

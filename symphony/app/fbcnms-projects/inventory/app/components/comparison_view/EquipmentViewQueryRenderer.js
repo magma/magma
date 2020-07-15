@@ -39,7 +39,7 @@ const equipmentSearchQuery = graphql`
     $limit: Int
     $filters: [EquipmentFilterInput!]!
   ) {
-    equipments(first: $limit, filters: $filters) {
+    equipments(first: $limit, filterBy: $filters) {
       edges {
         node {
           ...PowerSearchEquipmentResultsTable_equipment

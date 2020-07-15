@@ -646,7 +646,6 @@ type ComplexityRoot struct {
 		EditWorkOrder                            func(childComplexity int, input models.EditWorkOrderInput) int
 		EditWorkOrderType                        func(childComplexity int, input models.EditWorkOrderTypeInput) int
 		ExecuteWorkOrder                         func(childComplexity int, id int) int
-		MarkLocationPropertyAsExternalID         func(childComplexity int, propertyName string) int
 		MarkSiteSurveyNeeded                     func(childComplexity int, locationID int, needed bool) int
 		MoveEquipmentToPosition                  func(childComplexity int, parentEquipmentID *int, positionDefinitionID *int, equipmentID int) int
 		MoveLocation                             func(childComplexity int, locationID int, parentLocationID *int) int
@@ -817,42 +816,42 @@ type ComplexityRoot struct {
 		Customers                func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortDefinitions func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		EquipmentPortTypes       func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		EquipmentPorts           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PortFilterInput) int
+		EquipmentPorts           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.PortFilterInput) int
 		EquipmentSearch          func(childComplexity int, filters []*models.EquipmentFilterInput, limit *int) int
 		EquipmentTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Equipments               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.EquipmentFilterInput) int
+		Equipments               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.EquipmentFilterInput) int
 		LatestPythonPackage      func(childComplexity int) int
 		LinkSearch               func(childComplexity int, filters []*models.LinkFilterInput, limit *int) int
-		Links                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LinkFilterInput) int
+		Links                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.LinkFilterInput) int
 		LocationSearch           func(childComplexity int, filters []*models.LocationFilterInput, limit *int) int
 		LocationTypes            func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Locations                func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LocationFilterInput) int
+		Locations                func(childComplexity int, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.LocationFilterInput) int
 		Me                       func(childComplexity int) int
 		NearestSites             func(childComplexity int, latitude float64, longitude float64, first int) int
 		Node                     func(childComplexity int, id int) int
-		PermissionsPolicies      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PermissionsPolicyFilterInput) int
+		PermissionsPolicies      func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.PermissionsPolicyFilterInput) int
 		PermissionsPolicySearch  func(childComplexity int, filters []*models.PermissionsPolicyFilterInput, limit *int) int
 		PortSearch               func(childComplexity int, filters []*models.PortFilterInput, limit *int) int
 		PossibleProperties       func(childComplexity int, entityType models.PropertyEntity) int
 		ProjectSearch            func(childComplexity int, filters []*models.ProjectFilterInput, limit *int) int
 		ProjectTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Projects                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ProjectFilterInput) int
+		Projects                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.ProjectFilterInput) int
 		PythonPackages           func(childComplexity int) int
 		ReportFilters            func(childComplexity int, entity models.FilterEntity) int
 		SearchForNode            func(childComplexity int, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
 		ServiceSearch            func(childComplexity int, filters []*models.ServiceFilterInput, limit *int) int
 		ServiceTypes             func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		Services                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ServiceFilterInput) int
+		Services                 func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.ServiceFilterInput) int
 		Surveys                  func(childComplexity int) int
 		User                     func(childComplexity int, authID string) int
 		UserSearch               func(childComplexity int, filters []*models.UserFilterInput, limit *int) int
-		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UserFilterInput) int
+		Users                    func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.UserFilterInput) int
 		UsersGroupSearch         func(childComplexity int, filters []*models.UsersGroupFilterInput, limit *int) int
-		UsersGroups              func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UsersGroupFilterInput) int
+		UsersGroups              func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.UsersGroupFilterInput) int
 		Vertex                   func(childComplexity int, id int) int
 		WorkOrderSearch          func(childComplexity int, filters []*models.WorkOrderFilterInput, limit *int) int
 		WorkOrderTypes           func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int) int
-		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.WorkOrderFilterInput) int
+		WorkOrders               func(childComplexity int, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *models.WorkOrderOrder, filterBy []*models.WorkOrderFilterInput) int
 	}
 
 	ReportFilter struct {
@@ -1410,7 +1409,6 @@ type MutationResolver interface {
 	RemoveServiceType(ctx context.Context, id int) (int, error)
 	EditLocationTypeSurveyTemplateCategories(ctx context.Context, id int, surveyTemplateCategories []*models.SurveyTemplateCategoryInput) ([]*ent.SurveyTemplateCategory, error)
 	EditEquipmentPort(ctx context.Context, input models.EditEquipmentPortInput) (*ent.EquipmentPort, error)
-	MarkLocationPropertyAsExternalID(ctx context.Context, propertyName string) (string, error)
 	RemoveSiteSurvey(ctx context.Context, id int) (int, error)
 	AddWiFiScans(ctx context.Context, data []*models.SurveyWiFiScanData, locationID int) ([]*ent.SurveyWiFiScan, error)
 	AddCellScans(ctx context.Context, data []*models.SurveyCellScanData, locationID int) ([]*ent.SurveyCellScan, error)
@@ -1475,20 +1473,20 @@ type QueryResolver interface {
 	Node(ctx context.Context, id int) (ent.Noder, error)
 	User(ctx context.Context, authID string) (*ent.User, error)
 	LocationTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.LocationTypeConnection, error)
-	Locations(ctx context.Context, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LocationFilterInput) (*ent.LocationConnection, error)
+	Locations(ctx context.Context, onlyTopLevel *bool, types []int, name *string, needsSiteSurvey *bool, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.LocationFilterInput) (*ent.LocationConnection, error)
 	EquipmentPortTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortTypeConnection, error)
 	EquipmentPortDefinitions(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentPortDefinitionConnection, error)
-	EquipmentPorts(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PortFilterInput) (*ent.EquipmentPortConnection, error)
+	EquipmentPorts(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.PortFilterInput) (*ent.EquipmentPortConnection, error)
 	EquipmentTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.EquipmentTypeConnection, error)
-	Equipments(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.EquipmentFilterInput) (*ent.EquipmentConnection, error)
+	Equipments(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.EquipmentFilterInput) (*ent.EquipmentConnection, error)
 	ServiceTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ServiceTypeConnection, error)
-	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.WorkOrderFilterInput) (*ent.WorkOrderConnection, error)
+	WorkOrders(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *models.WorkOrderOrder, filterBy []*models.WorkOrderFilterInput) (*ent.WorkOrderConnection, error)
 	WorkOrderTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.WorkOrderTypeConnection, error)
-	Links(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.LinkFilterInput) (*ent.LinkConnection, error)
-	Services(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ServiceFilterInput) (*ent.ServiceConnection, error)
-	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UserFilterInput) (*ent.UserConnection, error)
-	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.UsersGroupFilterInput) (*ent.UsersGroupConnection, error)
-	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.PermissionsPolicyFilterInput) (*ent.PermissionsPolicyConnection, error)
+	Links(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.LinkFilterInput) (*ent.LinkConnection, error)
+	Services(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.ServiceFilterInput) (*ent.ServiceConnection, error)
+	Users(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.UserFilterInput) (*ent.UserConnection, error)
+	UsersGroups(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.UsersGroupFilterInput) (*ent.UsersGroupConnection, error)
+	PermissionsPolicies(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.PermissionsPolicyFilterInput) (*ent.PermissionsPolicyConnection, error)
 	SearchForNode(ctx context.Context, name string, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*models.SearchNodesConnection, error)
 	EquipmentSearch(ctx context.Context, filters []*models.EquipmentFilterInput, limit *int) (*models.EquipmentSearchResult, error)
 	WorkOrderSearch(ctx context.Context, filters []*models.WorkOrderFilterInput, limit *int) (*models.WorkOrderSearchResult, error)
@@ -1508,7 +1506,7 @@ type QueryResolver interface {
 	NearestSites(ctx context.Context, latitude float64, longitude float64, first int) ([]*ent.Location, error)
 	Vertex(ctx context.Context, id int) (*ent.Node, error)
 	ProjectTypes(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.ProjectTypeConnection, error)
-	Projects(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filters []*models.ProjectFilterInput) (*ent.ProjectConnection, error)
+	Projects(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, filterBy []*models.ProjectFilterInput) (*ent.ProjectConnection, error)
 	Customers(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int) (*ent.CustomerConnection, error)
 	ActionsRules(ctx context.Context) (*models.ActionsRulesSearchResult, error)
 	ActionsTriggers(ctx context.Context) (*models.ActionsTriggersSearchResult, error)
@@ -4341,18 +4339,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ExecuteWorkOrder(childComplexity, args["id"].(int)), true
 
-	case "Mutation.markLocationPropertyAsExternalID":
-		if e.complexity.Mutation.MarkLocationPropertyAsExternalID == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_markLocationPropertyAsExternalID_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.MarkLocationPropertyAsExternalID(childComplexity, args["propertyName"].(string)), true
-
 	case "Mutation.markSiteSurveyNeeded":
 		if e.complexity.Mutation.MarkSiteSurveyNeeded == nil {
 			break
@@ -5305,7 +5291,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.EquipmentPorts(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PortFilterInput)), true
+		return e.complexity.Query.EquipmentPorts(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.PortFilterInput)), true
 
 	case "Query.equipmentSearch":
 		if e.complexity.Query.EquipmentSearch == nil {
@@ -5341,7 +5327,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Equipments(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.EquipmentFilterInput)), true
+		return e.complexity.Query.Equipments(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.EquipmentFilterInput)), true
 
 	case "Query.latestPythonPackage":
 		if e.complexity.Query.LatestPythonPackage == nil {
@@ -5372,7 +5358,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Links(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LinkFilterInput)), true
+		return e.complexity.Query.Links(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.LinkFilterInput)), true
 
 	case "Query.locationSearch":
 		if e.complexity.Query.LocationSearch == nil {
@@ -5408,7 +5394,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LocationFilterInput)), true
+		return e.complexity.Query.Locations(childComplexity, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.LocationFilterInput)), true
 
 	case "Query.me":
 		if e.complexity.Query.Me == nil {
@@ -5451,7 +5437,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.PermissionsPolicies(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PermissionsPolicyFilterInput)), true
+		return e.complexity.Query.PermissionsPolicies(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.PermissionsPolicyFilterInput)), true
 
 	case "Query.permissionsPolicySearch":
 		if e.complexity.Query.PermissionsPolicySearch == nil {
@@ -5523,7 +5509,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Projects(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ProjectFilterInput)), true
+		return e.complexity.Query.Projects(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.ProjectFilterInput)), true
 
 	case "Query.pythonPackages":
 		if e.complexity.Query.PythonPackages == nil {
@@ -5590,7 +5576,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Services(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ServiceFilterInput)), true
+		return e.complexity.Query.Services(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.ServiceFilterInput)), true
 
 	case "Query.surveys":
 		if e.complexity.Query.Surveys == nil {
@@ -5633,7 +5619,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UserFilterInput)), true
+		return e.complexity.Query.Users(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.UserFilterInput)), true
 
 	case "Query.usersGroupSearch":
 		if e.complexity.Query.UsersGroupSearch == nil {
@@ -5657,7 +5643,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.UsersGroups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UsersGroupFilterInput)), true
+		return e.complexity.Query.UsersGroups(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.UsersGroupFilterInput)), true
 
 	case "Query.vertex":
 		if e.complexity.Query.Vertex == nil {
@@ -5705,7 +5691,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.WorkOrderFilterInput)), true
+		return e.complexity.Query.WorkOrders(childComplexity, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*models.WorkOrderOrder), args["filterBy"].([]*models.WorkOrderFilterInput)), true
 
 	case "ReportFilter.entity":
 		if e.complexity.ReportFilter.Entity == nil {
@@ -7475,7 +7461,11 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	&ast.Source{Name: "schema/symphony.graphql", Input: `#  After making changes to this schema file, be sure to regenerate
+	&ast.Source{Name: "schema/symphony.graphql", Input: `# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+#  After making changes to this schema file, be sure to regenerate
 #  any code that relies on this schema.
 #  Inventory Front-End:
 #    %> cd ~/fbsource/xplat/fbc/fbcnms-projects/inventory
@@ -8612,6 +8602,21 @@ type PageInfo {
 }
 
 """
+Possible directions in which to order a list of items when provided an ` + "`" + `orderBy` + "`" + ` argument.
+"""
+enum OrderDirection {
+  """
+  Specifies an ascending order for a given ` + "`" + `orderBy` + "`" + ` argument.
+  """
+  ASC
+
+  """
+  Specifies a descending order for a given ` + "`" + `orderBy` + "`" + ` argument.
+  """
+  DESC
+}
+
+"""
 A connection to a list of service types.
 """
 type ServiceTypeConnection {
@@ -9202,6 +9207,41 @@ type WorkOrderEdge {
   A cursor for use in pagination.
   """
   cursor: Cursor!
+}
+
+"""
+Ordering options for work order connections.
+"""
+input WorkOrderOrder {
+  """
+  The ordering direction.
+  """
+  direction: OrderDirection!
+
+  """
+  The field to order work orders by.
+  """
+  field: WorkOrderOrderField!
+}
+
+"""
+Properties by which work order connections can be ordered.
+"""
+enum WorkOrderOrderField {
+  """
+  Order work orders by creation time.
+  """
+  CREATED_AT
+
+  """
+  Order work orders by update time.
+  """
+  UPDATED_AT
+
+  """
+  Order work orders by closure time.
+  """
+  CLOSED_AT
 }
 
 """
@@ -10318,7 +10358,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [LocationFilterInput!]
+    filterBy: [LocationFilterInput!]
   ): LocationConnection
   equipmentPortTypes(
     after: Cursor
@@ -10337,7 +10377,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [PortFilterInput!]
+    filterBy: [PortFilterInput!]
   ): EquipmentPortConnection!
   equipmentTypes(
     after: Cursor
@@ -10350,7 +10390,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [EquipmentFilterInput!]
+    filterBy: [EquipmentFilterInput!]
   ): EquipmentConnection!
   serviceTypes(
     after: Cursor
@@ -10358,12 +10398,40 @@ type Query {
     before: Cursor
     last: Int @numberValue(min: 0)
   ): ServiceTypeConnection
+
+  """
+  A list of work orders.
+  """
   workOrders(
+    """
+    Returns the elements in the list that come after the specified cursor.
+    """
     after: Cursor
+
+    """
+    Returns the first _n_ elements from the list.
+    """
     first: Int @numberValue(min: 0)
+
+    """
+    Returns the elements in the list that come before the specified cursor.
+    """
     before: Cursor
+
+    """
+    Returns the last _n_ elements from the list.
+    """
     last: Int @numberValue(min: 0)
-    filters: [WorkOrderFilterInput!]
+
+    """
+    Ordering options for the returned work orders.
+    """
+    orderBy: WorkOrderOrder
+
+    """
+    Filtering options for the returned work orders.
+    """
+    filterBy: [WorkOrderFilterInput!]
   ): WorkOrderConnection!
   workOrderTypes(
     after: Cursor
@@ -10376,35 +10444,35 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [LinkFilterInput!]
+    filterBy: [LinkFilterInput!]
   ): LinkConnection!
   services(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [ServiceFilterInput!]
+    filterBy: [ServiceFilterInput!]
   ): ServiceConnection!
   users(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [UserFilterInput!]
+    filterBy: [UserFilterInput!]
   ): UserConnection
   usersGroups(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [UsersGroupFilterInput!]
+    filterBy: [UsersGroupFilterInput!]
   ): UsersGroupConnection
   permissionsPolicies(
     after: Cursor
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [PermissionsPolicyFilterInput!]
+    filterBy: [PermissionsPolicyFilterInput!]
   ): PermissionsPolicyConnection
   searchForNode(
     name: String!
@@ -10500,7 +10568,7 @@ type Query {
     first: Int @numberValue(min: 0)
     before: Cursor
     last: Int @numberValue(min: 0)
-    filters: [ProjectFilterInput!]
+    filterBy: [ProjectFilterInput!]
   ): ProjectConnection
   customers(
     after: Cursor
@@ -10629,7 +10697,6 @@ type Mutation {
     surveyTemplateCategories: [SurveyTemplateCategoryInput!]!
   ): [SurveyTemplateCategory!]
   editEquipmentPort(input: EditEquipmentPortInput!): EquipmentPort!
-  markLocationPropertyAsExternalID(propertyName: String!): String!
   removeSiteSurvey(id: ID!): ID!
   addWiFiScans(
     """
@@ -11845,20 +11912,6 @@ func (ec *executionContext) field_Mutation_executeWorkOrder_args(ctx context.Con
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_markLocationPropertyAsExternalID_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["propertyName"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["propertyName"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_markSiteSurveyNeeded_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -12580,13 +12633,13 @@ func (ec *executionContext) field_Query_equipmentPorts_args(ctx context.Context,
 	}
 	args["last"] = arg3
 	var arg4 []*models.PortFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOPortFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPortFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -12781,13 +12834,13 @@ func (ec *executionContext) field_Query_equipments_args(ctx context.Context, raw
 	}
 	args["last"] = arg3
 	var arg4 []*models.EquipmentFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOEquipmentFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐEquipmentFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -12906,13 +12959,13 @@ func (ec *executionContext) field_Query_links_args(ctx context.Context, rawArgs 
 	}
 	args["last"] = arg3
 	var arg4 []*models.LinkFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOLinkFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLinkFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -13139,13 +13192,13 @@ func (ec *executionContext) field_Query_locations_args(ctx context.Context, rawA
 	}
 	args["last"] = arg7
 	var arg8 []*models.LocationFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg8, err = ec.unmarshalOLocationFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐLocationFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg8
+	args["filterBy"] = arg8
 	return args, nil
 }
 
@@ -13326,13 +13379,13 @@ func (ec *executionContext) field_Query_permissionsPolicies_args(ctx context.Con
 	}
 	args["last"] = arg3
 	var arg4 []*models.PermissionsPolicyFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOPermissionsPolicyFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐPermissionsPolicyFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -13623,13 +13676,13 @@ func (ec *executionContext) field_Query_projects_args(ctx context.Context, rawAr
 	}
 	args["last"] = arg3
 	var arg4 []*models.ProjectFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOProjectFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐProjectFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -13922,13 +13975,13 @@ func (ec *executionContext) field_Query_services_args(ctx context.Context, rawAr
 	}
 	args["last"] = arg3
 	var arg4 []*models.ServiceFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOServiceFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐServiceFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -14102,13 +14155,13 @@ func (ec *executionContext) field_Query_usersGroups_args(ctx context.Context, ra
 	}
 	args["last"] = arg3
 	var arg4 []*models.UsersGroupFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOUsersGroupFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUsersGroupFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -14186,13 +14239,13 @@ func (ec *executionContext) field_Query_users_args(ctx context.Context, rawArgs 
 	}
 	args["last"] = arg3
 	var arg4 []*models.UserFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
+	if tmp, ok := rawArgs["filterBy"]; ok {
 		arg4, err = ec.unmarshalOUserFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐUserFilterInputᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["filterBy"] = arg4
 	return args, nil
 }
 
@@ -14400,14 +14453,22 @@ func (ec *executionContext) field_Query_workOrders_args(ctx context.Context, raw
 		}
 	}
 	args["last"] = arg3
-	var arg4 []*models.WorkOrderFilterInput
-	if tmp, ok := rawArgs["filters"]; ok {
-		arg4, err = ec.unmarshalOWorkOrderFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInputᚄ(ctx, tmp)
+	var arg4 *models.WorkOrderOrder
+	if tmp, ok := rawArgs["orderBy"]; ok {
+		arg4, err = ec.unmarshalOWorkOrderOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrder(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["filters"] = arg4
+	args["orderBy"] = arg4
+	var arg5 []*models.WorkOrderFilterInput
+	if tmp, ok := rawArgs["filterBy"]; ok {
+		arg5, err = ec.unmarshalOWorkOrderFilterInput2ᚕᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterInputᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["filterBy"] = arg5
 	return args, nil
 }
 
@@ -25957,47 +26018,6 @@ func (ec *executionContext) _Mutation_editEquipmentPort(ctx context.Context, fie
 	return ec.marshalNEquipmentPort2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐEquipmentPort(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_markLocationPropertyAsExternalID(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_markLocationPropertyAsExternalID_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MarkLocationPropertyAsExternalID(rctx, args["propertyName"].(string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_removeSiteSurvey(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -29099,9 +29119,9 @@ func (ec *executionContext) _Property_stringValue(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_intValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29130,9 +29150,9 @@ func (ec *executionContext) _Property_intValue(ctx context.Context, field graphq
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_booleanValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29161,9 +29181,9 @@ func (ec *executionContext) _Property_booleanValue(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_floatValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29192,9 +29212,9 @@ func (ec *executionContext) _Property_floatValue(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_latitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29223,9 +29243,9 @@ func (ec *executionContext) _Property_latitudeValue(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_longitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29254,9 +29274,9 @@ func (ec *executionContext) _Property_longitudeValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_rangeFromValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29285,9 +29305,9 @@ func (ec *executionContext) _Property_rangeFromValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_rangeToValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29316,9 +29336,9 @@ func (ec *executionContext) _Property_rangeToValue(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Property_nodeValue(ctx context.Context, field graphql.CollectedField, obj *ent.Property) (ret graphql.Marshaler) {
@@ -29666,9 +29686,9 @@ func (ec *executionContext) _PropertyType_stringValue(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_intValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29697,9 +29717,9 @@ func (ec *executionContext) _PropertyType_intValue(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	fc.Result = res
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_booleanValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29728,9 +29748,9 @@ func (ec *executionContext) _PropertyType_booleanValue(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(bool)
+	res := resTmp.(*bool)
 	fc.Result = res
-	return ec.marshalOBoolean2bool(ctx, field.Selections, res)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_floatValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29759,9 +29779,9 @@ func (ec *executionContext) _PropertyType_floatValue(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_latitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29790,9 +29810,9 @@ func (ec *executionContext) _PropertyType_latitudeValue(ctx context.Context, fie
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_longitudeValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29821,9 +29841,9 @@ func (ec *executionContext) _PropertyType_longitudeValue(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_rangeFromValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29852,9 +29872,9 @@ func (ec *executionContext) _PropertyType_rangeFromValue(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_rangeToValue(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -29883,9 +29903,9 @@ func (ec *executionContext) _PropertyType_rangeToValue(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(*float64)
 	fc.Result = res
-	return ec.marshalOFloat2float64(ctx, field.Selections, res)
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PropertyType_isEditable(ctx context.Context, field graphql.CollectedField, obj *ent.PropertyType) (ret graphql.Marshaler) {
@@ -30317,7 +30337,7 @@ func (ec *executionContext) _Query_locations(ctx context.Context, field graphql.
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LocationFilterInput))
+		return ec.resolvers.Query().Locations(rctx, args["onlyTopLevel"].(*bool), args["types"].([]int), args["name"].(*string), args["needsSiteSurvey"].(*bool), args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.LocationFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30437,7 +30457,7 @@ func (ec *executionContext) _Query_equipmentPorts(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().EquipmentPorts(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PortFilterInput))
+		return ec.resolvers.Query().EquipmentPorts(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.PortFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30519,7 +30539,7 @@ func (ec *executionContext) _Query_equipments(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Equipments(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.EquipmentFilterInput))
+		return ec.resolvers.Query().Equipments(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.EquipmentFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30598,7 +30618,7 @@ func (ec *executionContext) _Query_workOrders(ctx context.Context, field graphql
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().WorkOrders(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.WorkOrderFilterInput))
+		return ec.resolvers.Query().WorkOrders(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["orderBy"].(*models.WorkOrderOrder), args["filterBy"].([]*models.WorkOrderFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30677,7 +30697,7 @@ func (ec *executionContext) _Query_links(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Links(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.LinkFilterInput))
+		return ec.resolvers.Query().Links(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.LinkFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30718,7 +30738,7 @@ func (ec *executionContext) _Query_services(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Services(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ServiceFilterInput))
+		return ec.resolvers.Query().Services(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.ServiceFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30759,7 +30779,7 @@ func (ec *executionContext) _Query_users(ctx context.Context, field graphql.Coll
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Users(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UserFilterInput))
+		return ec.resolvers.Query().Users(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.UserFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30797,7 +30817,7 @@ func (ec *executionContext) _Query_usersGroups(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().UsersGroups(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.UsersGroupFilterInput))
+		return ec.resolvers.Query().UsersGroups(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.UsersGroupFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -30835,7 +30855,7 @@ func (ec *executionContext) _Query_permissionsPolicies(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().PermissionsPolicies(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.PermissionsPolicyFilterInput))
+		return ec.resolvers.Query().PermissionsPolicies(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.PermissionsPolicyFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -31622,7 +31642,7 @@ func (ec *executionContext) _Query_projects(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Projects(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filters"].([]*models.ProjectFilterInput))
+		return ec.resolvers.Query().Projects(rctx, args["after"].(*ent.Cursor), args["first"].(*int), args["before"].(*ent.Cursor), args["last"].(*int), args["filterBy"].([]*models.ProjectFilterInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -45203,6 +45223,30 @@ func (ec *executionContext) unmarshalInputWorkOrderFilterInput(ctx context.Conte
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputWorkOrderOrder(ctx context.Context, obj interface{}) (models.WorkOrderOrder, error) {
+	var it models.WorkOrderOrder
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "direction":
+			var err error
+			it.Direction, err = ec.unmarshalNOrderDirection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐOrderDirection(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "field":
+			var err error
+			it.Field, err = ec.unmarshalNWorkOrderOrderField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrderField(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputWorkforceCUDInput(ctx context.Context, obj interface{}) (models1.WorkforceCUDInput, error) {
 	var it models1.WorkforceCUDInput
 	var asMap = obj.(map[string]interface{})
@@ -49211,11 +49255,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_editLocationTypeSurveyTemplateCategories(ctx, field)
 		case "editEquipmentPort":
 			out.Values[i] = ec._Mutation_editEquipmentPort(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "markLocationPropertyAsExternalID":
-			out.Values[i] = ec._Mutation_markLocationPropertyAsExternalID(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -56531,6 +56570,15 @@ func (ec *executionContext) marshalNNode2ᚕgithubᚗcomᚋfacebookincubatorᚋs
 	return ret
 }
 
+func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐOrderDirection(ctx context.Context, v interface{}) (models.OrderDirection, error) {
+	var res models.OrderDirection
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNOrderDirection2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v models.OrderDirection) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNPageInfo2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v ent.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
@@ -59018,6 +59066,15 @@ func (ec *executionContext) unmarshalNWorkOrderFilterType2githubᚗcomᚋfaceboo
 }
 
 func (ec *executionContext) marshalNWorkOrderFilterType2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderFilterType(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderFilterType) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNWorkOrderOrderField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrderField(ctx context.Context, v interface{}) (models.WorkOrderOrderField, error) {
+	var res models.WorkOrderOrderField
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNWorkOrderOrderField2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrderField(ctx context.Context, sel ast.SelectionSet, v models.WorkOrderOrderField) graphql.Marshaler {
 	return v
 }
 
@@ -61654,6 +61711,18 @@ func (ec *executionContext) unmarshalOWorkOrderFilterInput2ᚕᚖgithubᚗcomᚋ
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOWorkOrderOrder2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrder(ctx context.Context, v interface{}) (models.WorkOrderOrder, error) {
+	return ec.unmarshalInputWorkOrderOrder(ctx, v)
+}
+
+func (ec *executionContext) unmarshalOWorkOrderOrder2ᚖgithubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrder(ctx context.Context, v interface{}) (*models.WorkOrderOrder, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOWorkOrderOrder2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋgraphᚋgraphqlᚋmodelsᚐWorkOrderOrder(ctx, v)
+	return &res, err
 }
 
 func (ec *executionContext) unmarshalOWorkOrderPriority2githubᚗcomᚋfacebookincubatorᚋsymphonyᚋpkgᚋentᚋworkorderᚐPriority(ctx context.Context, v interface{}) (workorder.Priority, error) {

@@ -11,6 +11,10 @@ services:
     port: 9113
     echo_port: 10113
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/stream_provider: "true"
+    annotations:
+      orc8r.io/stream_provider_streams: "base_names,network_wide_rules,policydb,rule_mappings,subscriberdb"
 
   subscriberdb:
     host: "localhost"

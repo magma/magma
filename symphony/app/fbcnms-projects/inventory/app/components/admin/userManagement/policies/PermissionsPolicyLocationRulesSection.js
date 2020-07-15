@@ -18,7 +18,6 @@ import * as React from 'react';
 import PermissionsPolicyLocationRulesSpecification from './PermissionsPolicyLocationRulesSpecification';
 import PermissionsPolicyRulesSection from './PermissionsPolicyRulesSection';
 import symphony from '@fbcnms/ui/theme/symphony';
-import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useMemo} from 'react';
 
@@ -87,17 +86,11 @@ export default function PermissionsPolicyLocationRulesSection(props: Props) {
     [locationRule, callOnChange],
   );
 
-  const isPermissionPolicyPerTypeEnabled = useFeatureFlag(
-    'permission_policy_per_type',
-  );
-
   return (
     <PermissionsPolicyRulesSection
       rule={rule}
       onChange={callOnChangeWithCUDPermissions}
-      secondLevelRulesClassName={
-        isPermissionPolicyPerTypeEnabled ? classes.secondLevelBox : null
-      }
+      secondLevelRulesClassName={classes.secondLevelBox}
       policySpecifications={
         <PermissionsPolicyLocationRulesSpecification
           locationRule={locationRule}

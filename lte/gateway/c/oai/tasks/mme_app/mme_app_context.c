@@ -77,6 +77,8 @@
 
 /* Obtain a backtrace and print it to stdout. */
 
+extern task_zmq_ctx_t mme_app_task_zmq_ctx;
+
 void print_trace(void)
 {
   void *array[10];
@@ -2173,7 +2175,7 @@ void mme_app_handle_enb_reset_req(
   reset_ack->sctp_stream_id = enb_reset_req->sctp_stream_id;
   reset_ack->num_ue = enb_reset_req->num_ue;
 
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, msg);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, msg);
 
   OAILOG_DEBUG(
     LOG_MME_APP,

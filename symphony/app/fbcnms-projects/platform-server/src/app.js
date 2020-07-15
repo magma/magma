@@ -158,6 +158,13 @@ app.use(
   require('./webhooks/routes').default,
 );
 
+app.use(
+  '/features',
+  passport.authenticate(['basic_local', 'session'], {session: false}),
+  access(SUPERUSER),
+  require('./features/routes').default,
+);
+
 // Grafana uses its own CSRF, so we don't need to handle it on our side.
 // Grafana can access all metrics of an org, so it must be restricted
 // to superusers

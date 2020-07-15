@@ -455,6 +455,32 @@ func (fprpgb *FloorPlanReferencePointGroupBy) StringsX(ctx context.Context) []st
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (fprpgb *FloorPlanReferencePointGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = fprpgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (fprpgb *FloorPlanReferencePointGroupBy) StringX(ctx context.Context) string {
+	v, err := fprpgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (fprpgb *FloorPlanReferencePointGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(fprpgb.fields) > 1 {
@@ -470,6 +496,32 @@ func (fprpgb *FloorPlanReferencePointGroupBy) Ints(ctx context.Context) ([]int, 
 // IntsX is like Ints, but panics if an error occurs.
 func (fprpgb *FloorPlanReferencePointGroupBy) IntsX(ctx context.Context) []int {
 	v, err := fprpgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (fprpgb *FloorPlanReferencePointGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = fprpgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (fprpgb *FloorPlanReferencePointGroupBy) IntX(ctx context.Context) int {
+	v, err := fprpgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -497,6 +549,32 @@ func (fprpgb *FloorPlanReferencePointGroupBy) Float64sX(ctx context.Context) []f
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (fprpgb *FloorPlanReferencePointGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = fprpgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (fprpgb *FloorPlanReferencePointGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := fprpgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (fprpgb *FloorPlanReferencePointGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(fprpgb.fields) > 1 {
@@ -512,6 +590,32 @@ func (fprpgb *FloorPlanReferencePointGroupBy) Bools(ctx context.Context) ([]bool
 // BoolsX is like Bools, but panics if an error occurs.
 func (fprpgb *FloorPlanReferencePointGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := fprpgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (fprpgb *FloorPlanReferencePointGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = fprpgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (fprpgb *FloorPlanReferencePointGroupBy) BoolX(ctx context.Context) bool {
+	v, err := fprpgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -585,6 +689,32 @@ func (fprps *FloorPlanReferencePointSelect) StringsX(ctx context.Context) []stri
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (fprps *FloorPlanReferencePointSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = fprps.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (fprps *FloorPlanReferencePointSelect) StringX(ctx context.Context) string {
+	v, err := fprps.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (fprps *FloorPlanReferencePointSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(fprps.fields) > 1 {
@@ -600,6 +730,32 @@ func (fprps *FloorPlanReferencePointSelect) Ints(ctx context.Context) ([]int, er
 // IntsX is like Ints, but panics if an error occurs.
 func (fprps *FloorPlanReferencePointSelect) IntsX(ctx context.Context) []int {
 	v, err := fprps.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (fprps *FloorPlanReferencePointSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = fprps.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (fprps *FloorPlanReferencePointSelect) IntX(ctx context.Context) int {
+	v, err := fprps.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -627,6 +783,32 @@ func (fprps *FloorPlanReferencePointSelect) Float64sX(ctx context.Context) []flo
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (fprps *FloorPlanReferencePointSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = fprps.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (fprps *FloorPlanReferencePointSelect) Float64X(ctx context.Context) float64 {
+	v, err := fprps.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (fprps *FloorPlanReferencePointSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(fprps.fields) > 1 {
@@ -642,6 +824,32 @@ func (fprps *FloorPlanReferencePointSelect) Bools(ctx context.Context) ([]bool, 
 // BoolsX is like Bools, but panics if an error occurs.
 func (fprps *FloorPlanReferencePointSelect) BoolsX(ctx context.Context) []bool {
 	v, err := fprps.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (fprps *FloorPlanReferencePointSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = fprps.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{floorplanreferencepoint.Label}
+	default:
+		err = fmt.Errorf("ent: FloorPlanReferencePointSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (fprps *FloorPlanReferencePointSelect) BoolX(ctx context.Context) bool {
+	v, err := fprps.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

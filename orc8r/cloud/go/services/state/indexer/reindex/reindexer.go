@@ -197,7 +197,10 @@ func (r *reindexerImpl) reportStatusMetrics() {
 		if info.Status != StatusComplete {
 			continue
 		}
-		idx := indexer.GetIndexer(id)
+		idx, err := indexer.GetIndexer(id)
+		if err != nil {
+			glog.Errorf("Report reindex metrics failed to get indexer %s from registry with error: %v", id, err)
+		}
 		if idx == nil {
 			glog.Errorf("Report reindex metrics failed to get indexer %s from registry", id)
 			continue
@@ -290,7 +293,10 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 }
 
 func getIndexers(indexerID string) ([]indexer.Indexer, error) {
-	idxs := indexer.GetIndexers()
+	idxs, err := indexer.GetIndexers()
+	if err != nil {
+		return nil, err
+	}
 	if indexerID == "" {
 		return idxs, nil
 	}

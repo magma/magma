@@ -52,10 +52,10 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		// AGW state messages which use arbitrary untyped JSON serdes because
 		// they're defined/used as protos in the AGW codebase
-		state.NewStateSerde(lte.MMEStateType, &state.ArbitaryJSON{}),
-		state.NewStateSerde(lte.SPGWStateType, &state.ArbitaryJSON{}),
-		state.NewStateSerde(lte.S1APStateType, &state.ArbitaryJSON{}),
-		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitaryJSON{}),
+		state.NewStateSerde(lte.MMEStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lte_models.NetworkCellularConfigs{}),
@@ -98,6 +98,7 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.BaseNameStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.MappingsStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.NetworkWideRulesStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.RatingGroupStreamName),
 	}
 }
 

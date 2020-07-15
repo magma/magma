@@ -872,6 +872,14 @@ type WorkOrderFilterInput struct {
 	MaxDepth      *int                `json:"maxDepth"`
 }
 
+// Ordering options for work order connections.
+type WorkOrderOrder struct {
+	// The ordering direction.
+	Direction OrderDirection `json:"direction"`
+	// The field to order work orders by.
+	Field WorkOrderOrderField `json:"field"`
+}
+
 type WorkOrderSearchResult struct {
 	WorkOrders []*ent.WorkOrder `json:"workOrders"`
 	Count      int              `json:"count"`
@@ -1398,6 +1406,50 @@ func (e *LocationFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e LocationFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// Possible directions in which to order a list of items when provided an `orderBy` argument.
+type OrderDirection string
+
+const (
+	// Specifies an ascending order for a given `orderBy` argument.
+	OrderDirectionAsc OrderDirection = "ASC"
+	// Specifies a descending order for a given `orderBy` argument.
+	OrderDirectionDesc OrderDirection = "DESC"
+)
+
+var AllOrderDirection = []OrderDirection{
+	OrderDirectionAsc,
+	OrderDirectionDesc,
+}
+
+func (e OrderDirection) IsValid() bool {
+	switch e {
+	case OrderDirectionAsc, OrderDirectionDesc:
+		return true
+	}
+	return false
+}
+
+func (e OrderDirection) String() string {
+	return string(e)
+}
+
+func (e *OrderDirection) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = OrderDirection(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid OrderDirection", str)
+	}
+	return nil
+}
+
+func (e OrderDirection) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
@@ -1968,6 +2020,53 @@ func (e *WorkOrderFilterType) UnmarshalGQL(v interface{}) error {
 }
 
 func (e WorkOrderFilterType) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// Properties by which work order connections can be ordered.
+type WorkOrderOrderField string
+
+const (
+	// Order work orders by creation time.
+	WorkOrderOrderFieldCreatedAt WorkOrderOrderField = "CREATED_AT"
+	// Order work orders by update time.
+	WorkOrderOrderFieldUpdatedAt WorkOrderOrderField = "UPDATED_AT"
+	// Order work orders by closure time.
+	WorkOrderOrderFieldClosedAt WorkOrderOrderField = "CLOSED_AT"
+)
+
+var AllWorkOrderOrderField = []WorkOrderOrderField{
+	WorkOrderOrderFieldCreatedAt,
+	WorkOrderOrderFieldUpdatedAt,
+	WorkOrderOrderFieldClosedAt,
+}
+
+func (e WorkOrderOrderField) IsValid() bool {
+	switch e {
+	case WorkOrderOrderFieldCreatedAt, WorkOrderOrderFieldUpdatedAt, WorkOrderOrderFieldClosedAt:
+		return true
+	}
+	return false
+}
+
+func (e WorkOrderOrderField) String() string {
+	return string(e)
+}
+
+func (e *WorkOrderOrderField) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = WorkOrderOrderField(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid WorkOrderOrderField", str)
+	}
+	return nil
+}
+
+func (e WorkOrderOrderField) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

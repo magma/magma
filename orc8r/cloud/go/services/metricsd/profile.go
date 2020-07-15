@@ -18,6 +18,7 @@ import (
 //
 // Collectors intake metrics, metricsd augments each set of metrics,
 // and Exporters output metrics.
+// Deprecated: collectors are now static, exporters via service mesh
 type MetricsProfile struct {
 	// Name is a unique name to assign to this profile. This is how you
 	// will tell metricsd which profile to run with.

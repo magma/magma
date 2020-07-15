@@ -32,6 +32,7 @@ export type FeatureConfig = {
   title: string,
   enabledByDefault: boolean,
   rules?: FeatureFlagRule[],
+  publicAccess?: boolean,
 };
 
 const {FeatureFlag} = require('@fbcnms/sequelize-models');
@@ -191,12 +192,6 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'permission_policy_per_type',
-    title: 'Permission - Policies per type',
-    enabledByDefault: false,
-    rules: [AlwaysEnabledInTestEnvRule],
-  },
-  {
     id: 'permissions_ui_enforcement',
     title: 'Permissions - UI enforcement',
     enabledByDefault: true,
@@ -213,11 +208,6 @@ const arrayConfigs = [
     rules: [AlwaysEnabledInTestEnvRule],
   },
   {
-    id: 'move_work_order_activities_to_async_service',
-    title: 'Move Work Order Activities To Async Service',
-    enabledByDefault: false,
-  },
-  {
     id: 'work_order_activities_display',
     title: 'Work Order Activities Display',
     enabledByDefault: false,
@@ -225,7 +215,7 @@ const arrayConfigs = [
   },
 ];
 
-const featureConfigs: {[FeatureID]: FeatureConfig} = {};
+export const featureConfigs: {[FeatureID]: FeatureConfig} = {};
 arrayConfigs.map(config => (featureConfigs[config.id] = config));
 
 export async function isFeatureEnabled(
@@ -257,9 +247,13 @@ export async function isFeatureEnabled(
 export async function getEnabledFeatures(
   req: ExpressRequest,
   organization: ?string,
+  publicAccess: ?boolean,
 ): Promise<FeatureID[]> {
   const results = await Promise.all(
     arrayConfigs.map(async (config): Promise<?FeatureID> => {
+      if (publicAccess && !config.publicAccess) {
+        return null;
+      }
       const enabled = await isFeatureEnabled(req, config.id, organization);
       return enabled ? config.id : null;
     }),

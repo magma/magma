@@ -17,12 +17,18 @@ services:
     host: "localhost"
     port: 9082
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/stream_provider: "true"
+    annotations:
+      orc8r.io/stream_provider_streams: "configs"
 
   metricsd:
     host: "localhost"
     port: 9084
     echo_port: 10084
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/metrics_exporter: "true"
 
   certifier:
     host: "localhost"
@@ -53,6 +59,11 @@ services:
     host: "localhost"
     port: 9100
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/state_indexer: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
 
   state:
     host: "localhost"

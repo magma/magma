@@ -709,6 +709,32 @@ func (cligb *CheckListItemGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (cligb *CheckListItemGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = cligb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (cligb *CheckListItemGroupBy) StringX(ctx context.Context) string {
+	v, err := cligb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (cligb *CheckListItemGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(cligb.fields) > 1 {
@@ -724,6 +750,32 @@ func (cligb *CheckListItemGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (cligb *CheckListItemGroupBy) IntsX(ctx context.Context) []int {
 	v, err := cligb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (cligb *CheckListItemGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = cligb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (cligb *CheckListItemGroupBy) IntX(ctx context.Context) int {
+	v, err := cligb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -751,6 +803,32 @@ func (cligb *CheckListItemGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (cligb *CheckListItemGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = cligb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (cligb *CheckListItemGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := cligb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (cligb *CheckListItemGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(cligb.fields) > 1 {
@@ -766,6 +844,32 @@ func (cligb *CheckListItemGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (cligb *CheckListItemGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := cligb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (cligb *CheckListItemGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = cligb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (cligb *CheckListItemGroupBy) BoolX(ctx context.Context) bool {
+	v, err := cligb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -839,6 +943,32 @@ func (clis *CheckListItemSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (clis *CheckListItemSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = clis.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (clis *CheckListItemSelect) StringX(ctx context.Context) string {
+	v, err := clis.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (clis *CheckListItemSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(clis.fields) > 1 {
@@ -854,6 +984,32 @@ func (clis *CheckListItemSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (clis *CheckListItemSelect) IntsX(ctx context.Context) []int {
 	v, err := clis.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (clis *CheckListItemSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = clis.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (clis *CheckListItemSelect) IntX(ctx context.Context) int {
+	v, err := clis.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -881,6 +1037,32 @@ func (clis *CheckListItemSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (clis *CheckListItemSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = clis.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (clis *CheckListItemSelect) Float64X(ctx context.Context) float64 {
+	v, err := clis.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (clis *CheckListItemSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(clis.fields) > 1 {
@@ -896,6 +1078,32 @@ func (clis *CheckListItemSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (clis *CheckListItemSelect) BoolsX(ctx context.Context) []bool {
 	v, err := clis.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (clis *CheckListItemSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = clis.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{checklistitem.Label}
+	default:
+		err = fmt.Errorf("ent: CheckListItemSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (clis *CheckListItemSelect) BoolX(ctx context.Context) bool {
+	v, err := clis.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

@@ -15,7 +15,6 @@ import (
 
 	streamer_client "magma/gateway/streamer"
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
@@ -113,9 +112,7 @@ func TestStreamerClient(t *testing.T) {
 
 	streamerClient := streamer_client.NewStreamerClient(mockedCloudRegistry{})
 	mockProvider := &mockStreamProvider{name: testStreamName, retVal: expected}
-
-	err := providers.RegisterStreamProvider(mockProvider)
-	assert.NoError(t, err)
+	streamer_test_init.StartNewTestProvider(t, mockProvider)
 
 	l := testListener{}
 	l.err = make(chan error)

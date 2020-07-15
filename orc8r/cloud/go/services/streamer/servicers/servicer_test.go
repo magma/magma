@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/services/streamer"
-	"magma/orc8r/cloud/go/services/streamer/providers"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
@@ -48,7 +47,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 		{Key: "a", Value: []byte("123")},
 		{Key: "b", Value: []byte("456")},
 	}
-	providers.RegisterStreamProvider(&mockStreamProvider{name: "mock1", retVal: expected})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "mock1", retVal: expected})
 
 	streamerClient, err := grpcClient.GetUpdates(
 		context.Background(),
@@ -57,6 +56,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 	assert.NoError(t, err)
 
 	actual, err := streamerClient.Recv()
+	assert.NoError(t, err)
 	updates := actual.GetUpdates()
 	assert.Equal(t, len(expected), len(updates))
 
@@ -65,7 +65,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 	}
 
 	// Error in provider
-	providers.RegisterStreamProvider(&mockStreamProvider{name: "mock2", retVal: nil, retErr: errors.New("MOCK")})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "mock2", retVal: nil, retErr: errors.New("MOCK")})
 	streamerClient, err = grpcClient.GetUpdates(
 		context.Background(),
 		&protos.StreamRequest{GatewayId: "hwId", StreamName: "mock2"},
@@ -73,7 +73,7 @@ func TestStreamingServer_GetUpdates(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = streamerClient.Recv()
 	assert.Error(t, err)
-	assert.Equal(t, "rpc error: code = Aborted desc = error while streaming updates: MOCK", err.Error())
+	assert.Contains(t, err.Error(), "MOCK")
 
 	// Provider does not exist
 	streamerClient, err = grpcClient.GetUpdates(

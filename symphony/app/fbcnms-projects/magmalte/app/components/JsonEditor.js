@@ -13,6 +13,7 @@ import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
+import ReactJson from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
@@ -65,7 +66,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type Props<T> = {
-  content: {},
+  content: T,
   error: string,
   onSave: T => Promise<void>,
 };
@@ -73,13 +74,15 @@ type Props<T> = {
 export default function JsonEditor<T>(props: Props<T>) {
   const classes = useStyles();
   const [error, setError] = useState<string>(props.error);
-  const [content, setContent] = useState<string>(
-    JSON.stringify(props.content, null, ' '),
-  );
+  const [content, setContent] = useState<T>(props.content);
 
   useEffect(() => {
     setError(props.error);
   }, [props.error]);
+
+  const handleChange = data => {
+    setContent(data.updated_src);
+  };
 
   return (
     <div className={classes.dashboardRoot}>
@@ -94,9 +97,10 @@ export default function JsonEditor<T>(props: Props<T>) {
             <Grid item>
               <Button
                 className={classes.appBarBtnSecondary}
-                onClick={() =>
-                  setContent(JSON.stringify(props.content, null, ' '))
-                }>
+                onClick={() => {
+                  setContent(props.content);
+                  setError('');
+                }}>
                 Cancel
               </Button>
             </Grid>
@@ -105,7 +109,7 @@ export default function JsonEditor<T>(props: Props<T>) {
                 className={classes.appBarBtn}
                 onClick={() => {
                   try {
-                    props.onSave(JSON.parse(content));
+                    props.onSave(content);
                   } catch (e) {
                     setError(e.message);
                   }
@@ -123,16 +127,13 @@ export default function JsonEditor<T>(props: Props<T>) {
           item
           xs={12}>
           {error !== '' && <FormLabel error>{error}</FormLabel>}
-          <textarea
-            className={classes.jsonTextarea}
-            autoCapitalize="none"
-            autoComplete="none"
-            autoCorrect="none"
-            spellCheck={false}
-            value={content}
-            onChange={e => {
-              setContent(e.currentTarget.value);
-            }}
+          <ReactJson
+            src={content}
+            enableClipboard={false}
+            displayDataTypes={false}
+            onAdd={handleChange}
+            onEdit={handleChange}
+            onDelete={handleChange}
           />
         </Grid>
       </Grid>

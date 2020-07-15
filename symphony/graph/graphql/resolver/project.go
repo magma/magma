@@ -113,11 +113,13 @@ func (r mutationResolver) EditProjectType(
 	}
 	for _, p := range input.Properties {
 		if p.ID == nil {
-			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeCreate) { b.SetProjectTypeID(pt.ID) })
-		} else {
-			err = r.updatePropType(ctx, p)
-		}
-		if err != nil {
+			if err := r.validateAddedNewPropertyType(p); err != nil {
+				return nil, err
+			}
+			if err := r.AddPropertyTypes(ctx, func(b *ent.PropertyTypeCreate) { b.SetProjectTypeID(pt.ID) }, p); err != nil {
+				return nil, err
+			}
+		} else if err := r.updatePropType(ctx, p); err != nil {
 			return nil, err
 		}
 	}

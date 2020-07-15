@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright (c) 2004-present Facebook All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
 
 from typing import Iterator, Optional
 
@@ -16,21 +19,28 @@ def add_customer(
 ) -> Customer:
     """This function adds Customer.
 
-        Args:
-            name (str): name for the Customer
-            external_id (Optional[str]): external ID for the Customer
+        :param name: Customer name
+        :type name: str
+        :param external_id: Customer external ID
+        :type external_id: str, optional
 
-        Returns:
-            `pyinventory.common.data_class.Customer` object
+        :return: Customer object
+        :rtype: :class:`~pyinventory.common.data_class.Customer`
 
-        Example:
-            ```
+        **Example 1**
+
+        .. code-block:: python
+
             new_customers = client.add_customer(name="new_customer")
-            ```
-            or
-            ```
-            new_customers = client.add_customer(name="new_customer", external_id="12345678")
-            ```
+
+        **Example 2**
+
+        .. code-block:: python
+
+            new_customers = client.add_customer(
+                name="new_customer",
+                external_id="12345678"
+            )
     """
     customer_input = AddCustomerInput(name=name, externalId=external_id)
     result = AddCustomerMutation.execute(client, input=customer_input)
@@ -41,13 +51,14 @@ def get_all_customers(client: SymphonyClient) -> Iterator[Customer]:
 
     """This function returns all Customers.
 
-        Returns:
-            Iterator[ `pyinventory.common.data_class.Customer` ]
+        :return: Customers Iterator
+        :rtype: Iterator[ :class:`~pyinventory.common.data_class.Customer` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             customers = client.get_all_customers()
-            ```
     """
     customers = CustomersQuery.execute(client)
     if not customers:
@@ -61,12 +72,14 @@ def get_all_customers(client: SymphonyClient) -> Iterator[Customer]:
 def delete_customer(client: SymphonyClient, customer: Customer) -> None:
     """This function delete Customer.
 
-        Args:
-            customer ( `pyinventory.common.data_class.Customer` ): customer object
+        :param name: Customer name
+        :type name: :class:`~pyinventory.common.data_class.Customer`
+        :rtype: None
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             client.delete_customer(customer)
-            ```
     """
     RemoveCustomerMutation.execute(client, id=customer.id)

@@ -47,7 +47,7 @@ class ArpController(MagmaController):
     ArpdConfig = namedtuple(
         'ArpdConfig',
         ['virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
-         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac', 'non_nat'],
+         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac', 'enable_nat'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -78,11 +78,7 @@ class ArpController(MagmaController):
         else:
             virtual_mac = None
 
-        if 'non_nat' in config_dict:
-            non_nat = config_dict['non_nat']
-        else:
-            non_nat = False
-
+        enable_nat = config_dict.get('enable_nat', True)
         mtr_ip = None
         if 'mtr_ip' in config_dict:
             mtr_ip = config_dict['mtr_ip']
@@ -102,7 +98,7 @@ class ArpController(MagmaController):
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
             mtr_ip=mtr_ip,
             mtr_mac=mtr_mac,
-            non_nat=non_nat,
+            enable_nat=enable_nat,
         )
 
     def initialize_on_connect(self, datapath):
@@ -116,14 +112,20 @@ class ArpController(MagmaController):
                                         self.config.mtr_mac)
             self._install_local_eth_dst_flow(datapath)
 
-        if self.config.non_nat is False:
+        if self.setup_type == 'CWF':
+            self.set_incoming_arp_flows(datapath,
+                                        self.config.cwf_check_quota_ip,
+                                        self.config.cwf_bridge_mac)
+            if self.allow_unknown_uplink_arps:
+                self._install_allow_incoming_arp_flow(datapath)
+
+        elif self.config.enable_nat is True:
             if self.local_eth_addr:
                 for ip_block in self.config.ue_ip_blocks:
                     self.add_ue_arp_flows(datapath, ip_block,
                                           self.config.virtual_mac)
                 self._install_default_eth_dst_flow(datapath)
         else:
-
             # Nan Nat flows, from high priority to lower:
             # UE_FLOW_PRIORITY    : MTR IP arp flow
             # UE_FLOW_PRIORITY -1 : drop flow for untagged arp requests
@@ -137,13 +139,6 @@ class ArpController(MagmaController):
             self.set_incoming_arp_flows(datapath, "0.0.0.0/0",
                                         self.config.virtual_mac,
                                         flow_priority=flows.DEFAULT_PRIORITY)
-
-        if self.setup_type == 'CWF':
-            self.set_incoming_arp_flows(datapath,
-                                        self.config.cwf_check_quota_ip,
-                                        self.config.cwf_bridge_mac)
-            if self.allow_unknown_uplink_arps:
-                self._install_allow_incoming_arp_flow(datapath)
 
         self._install_default_forward_flow(datapath)
         self._install_default_arp_drop_flow(datapath)

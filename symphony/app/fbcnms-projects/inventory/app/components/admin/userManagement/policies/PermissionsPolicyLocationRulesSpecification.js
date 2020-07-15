@@ -17,7 +17,6 @@ import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import classNames from 'classnames';
 import fbt from 'fbt';
-import useFeatureFlag from '@fbcnms/ui/context/useFeatureFlag';
 import {
   PERMISSION_RULE_VALUES,
   permissionRuleValue2Bool,
@@ -144,14 +143,6 @@ export default function PermissionsPolicyLocationRulesSpecification(
         ? `${fbt('At least one location type must be selected.', '')}`
         : '',
   });
-
-  const isPermissionPolicyPerTypeEnabled = useFeatureFlag(
-    'permission_policy_per_type',
-  );
-
-  if (!isPermissionPolicyPerTypeEnabled) {
-    return null;
-  }
 
   return (
     <div

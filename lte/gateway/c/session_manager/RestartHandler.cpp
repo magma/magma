@@ -60,7 +60,7 @@ bool RestartHandler::launch_threads_to_terminate_with_retries() {
   if (sessions_to_terminate_.empty()) {
     return true;
   }
-  
+
   uint termination_try = 0;
   while (!sessions_to_terminate_.empty() &&
          termination_try < max_cleanup_retries_) {

@@ -646,6 +646,32 @@ func (epdgb *EquipmentPortDefinitionGroupBy) StringsX(ctx context.Context) []str
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (epdgb *EquipmentPortDefinitionGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = epdgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (epdgb *EquipmentPortDefinitionGroupBy) StringX(ctx context.Context) string {
+	v, err := epdgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (epdgb *EquipmentPortDefinitionGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(epdgb.fields) > 1 {
@@ -661,6 +687,32 @@ func (epdgb *EquipmentPortDefinitionGroupBy) Ints(ctx context.Context) ([]int, e
 // IntsX is like Ints, but panics if an error occurs.
 func (epdgb *EquipmentPortDefinitionGroupBy) IntsX(ctx context.Context) []int {
 	v, err := epdgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (epdgb *EquipmentPortDefinitionGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = epdgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (epdgb *EquipmentPortDefinitionGroupBy) IntX(ctx context.Context) int {
+	v, err := epdgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -688,6 +740,32 @@ func (epdgb *EquipmentPortDefinitionGroupBy) Float64sX(ctx context.Context) []fl
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (epdgb *EquipmentPortDefinitionGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = epdgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (epdgb *EquipmentPortDefinitionGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := epdgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (epdgb *EquipmentPortDefinitionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(epdgb.fields) > 1 {
@@ -703,6 +781,32 @@ func (epdgb *EquipmentPortDefinitionGroupBy) Bools(ctx context.Context) ([]bool,
 // BoolsX is like Bools, but panics if an error occurs.
 func (epdgb *EquipmentPortDefinitionGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := epdgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (epdgb *EquipmentPortDefinitionGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = epdgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (epdgb *EquipmentPortDefinitionGroupBy) BoolX(ctx context.Context) bool {
+	v, err := epdgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -776,6 +880,32 @@ func (epds *EquipmentPortDefinitionSelect) StringsX(ctx context.Context) []strin
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (epds *EquipmentPortDefinitionSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = epds.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (epds *EquipmentPortDefinitionSelect) StringX(ctx context.Context) string {
+	v, err := epds.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (epds *EquipmentPortDefinitionSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(epds.fields) > 1 {
@@ -791,6 +921,32 @@ func (epds *EquipmentPortDefinitionSelect) Ints(ctx context.Context) ([]int, err
 // IntsX is like Ints, but panics if an error occurs.
 func (epds *EquipmentPortDefinitionSelect) IntsX(ctx context.Context) []int {
 	v, err := epds.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (epds *EquipmentPortDefinitionSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = epds.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (epds *EquipmentPortDefinitionSelect) IntX(ctx context.Context) int {
+	v, err := epds.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -818,6 +974,32 @@ func (epds *EquipmentPortDefinitionSelect) Float64sX(ctx context.Context) []floa
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (epds *EquipmentPortDefinitionSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = epds.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (epds *EquipmentPortDefinitionSelect) Float64X(ctx context.Context) float64 {
+	v, err := epds.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (epds *EquipmentPortDefinitionSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(epds.fields) > 1 {
@@ -833,6 +1015,32 @@ func (epds *EquipmentPortDefinitionSelect) Bools(ctx context.Context) ([]bool, e
 // BoolsX is like Bools, but panics if an error occurs.
 func (epds *EquipmentPortDefinitionSelect) BoolsX(ctx context.Context) []bool {
 	v, err := epds.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (epds *EquipmentPortDefinitionSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = epds.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentportdefinition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPortDefinitionSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (epds *EquipmentPortDefinitionSelect) BoolX(ctx context.Context) bool {
+	v, err := epds.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

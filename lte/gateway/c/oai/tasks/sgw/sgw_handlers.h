@@ -34,6 +34,9 @@
 #include "ip_forward_messages_types.h"
 #include "s11_messages_types.h"
 #include "spgw_state.h"
+#include "intertask_interface.h"
+
+extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
 int sgw_handle_s11_create_session_request(
   spgw_state_t* state,

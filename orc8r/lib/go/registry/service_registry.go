@@ -96,6 +96,8 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 		if !ok {
 			return nil, fmt.Errorf("the value associated with key:%v is not a map: %v", k, v)
 		}
+
+		// Get host
 		configMap := &config.ConfigMap{RawMap: rawMap}
 		host, err := configMap.GetString("host")
 		if err != nil {
@@ -105,23 +107,66 @@ func convertToServiceLocations(rawMap rawMapType) ([]ServiceLocation, error) {
 				return nil, err
 			}
 		}
+
+		// Get port
 		port, err := configMap.GetInt("port")
 		if err != nil {
 			return nil, err
 		}
-		// echoPort is an optional field used for services which run an echo
+
+		// Get echo port
+		// Echo port is an optional field used for services which run an echo
 		// server
 		echoPort, err := configMap.GetInt("echo_port")
 		if err != nil {
 			echoPort = 0
 		}
+
+		// Get labels and annotations
+		labels, err := getStringMap(rawMap, "labels")
+		if err != nil {
+			return nil, err
+		}
+
+		// Get annotations
+		annotations, err := getStringMap(rawMap, "annotations")
+		if err != nil {
+			return nil, err
+		}
+
+		// Get proxy aliases
 		proxyAliases := getProxyAliases(rawMap)
-		serviceLocations = append(serviceLocations, ServiceLocation{Name: strings.ToUpper(name), Host: host, Port: port, EchoPort: echoPort, ProxyAliases: proxyAliases})
+
+		location := ServiceLocation{
+			Name:         strings.ToUpper(name),
+			Host:         host,
+			Port:         port,
+			EchoPort:     echoPort,
+			Labels:       labels,
+			Annotations:  annotations,
+			ProxyAliases: proxyAliases,
+		}
+		serviceLocations = append(serviceLocations, location)
 	}
 	return serviceLocations, nil
 }
 
-func getProxyAliases(rawMap map[interface{}]interface{}) map[string]int {
+// getStringMap returns the string-to-string map under the passed field name.
+func getStringMap(rawMap rawMapType, fieldName string) (map[string]string, error) {
+	ret := map[string]string{}
+	if val, ok := rawMap[fieldName]; ok {
+		rawMap, ok := val.(rawMapType)
+		if !ok {
+			return nil, fmt.Errorf("convert %v to raw map type from field name %s", val, fieldName)
+		}
+		for k, v := range rawMap {
+			ret[k.(string)] = v.(string)
+		}
+	}
+	return ret, nil
+}
+
+func getProxyAliases(rawMap rawMapType) map[string]int {
 	proxyAliases := map[string]int{}
 	if val, ok := rawMap["proxy_aliases"]; ok {
 		rawMap, _ := val.(rawMapType)

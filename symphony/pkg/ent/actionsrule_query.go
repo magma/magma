@@ -455,6 +455,32 @@ func (argb *ActionsRuleGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (argb *ActionsRuleGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = argb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (argb *ActionsRuleGroupBy) StringX(ctx context.Context) string {
+	v, err := argb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (argb *ActionsRuleGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(argb.fields) > 1 {
@@ -470,6 +496,32 @@ func (argb *ActionsRuleGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (argb *ActionsRuleGroupBy) IntsX(ctx context.Context) []int {
 	v, err := argb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (argb *ActionsRuleGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = argb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (argb *ActionsRuleGroupBy) IntX(ctx context.Context) int {
+	v, err := argb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -497,6 +549,32 @@ func (argb *ActionsRuleGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (argb *ActionsRuleGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = argb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (argb *ActionsRuleGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := argb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (argb *ActionsRuleGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(argb.fields) > 1 {
@@ -512,6 +590,32 @@ func (argb *ActionsRuleGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (argb *ActionsRuleGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := argb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (argb *ActionsRuleGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = argb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (argb *ActionsRuleGroupBy) BoolX(ctx context.Context) bool {
+	v, err := argb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -585,6 +689,32 @@ func (ars *ActionsRuleSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ars *ActionsRuleSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ars.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ars *ActionsRuleSelect) StringX(ctx context.Context) string {
+	v, err := ars.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ars *ActionsRuleSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ars.fields) > 1 {
@@ -600,6 +730,32 @@ func (ars *ActionsRuleSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ars *ActionsRuleSelect) IntsX(ctx context.Context) []int {
 	v, err := ars.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ars *ActionsRuleSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ars.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ars *ActionsRuleSelect) IntX(ctx context.Context) int {
+	v, err := ars.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -627,6 +783,32 @@ func (ars *ActionsRuleSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ars *ActionsRuleSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ars.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ars *ActionsRuleSelect) Float64X(ctx context.Context) float64 {
+	v, err := ars.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ars *ActionsRuleSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ars.fields) > 1 {
@@ -642,6 +824,32 @@ func (ars *ActionsRuleSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ars *ActionsRuleSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ars.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ars *ActionsRuleSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ars.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{actionsrule.Label}
+	default:
+		err = fmt.Errorf("ent: ActionsRuleSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ars *ActionsRuleSelect) BoolX(ctx context.Context) bool {
+	v, err := ars.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

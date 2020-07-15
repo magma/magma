@@ -103,16 +103,6 @@ func (workOrderResolver) Project(ctx context.Context, obj *ent.WorkOrder) (*ent.
 	return prj, ent.MaskNotFound(err)
 }
 
-func (workOrderResolver) CreationDate(_ context.Context, obj *ent.WorkOrder) (int, error) {
-	secs := int(obj.CreationDate.Unix())
-	return secs, nil
-}
-
-func (workOrderResolver) InstallDate(_ context.Context, obj *ent.WorkOrder) (*int, error) {
-	secs := int(obj.InstallDate.Unix())
-	return &secs, nil
-}
-
 func (workOrderResolver) EquipmentToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error) {
 	return obj.QueryEquipment().Where(equipment.FutureState(models.FutureStateInstall.String())).All(ctx)
 }
@@ -192,36 +182,31 @@ func (r mutationResolver) AddWorkOrder(
 
 func (r mutationResolver) convertToTemplatePropertyInputs(
 	ctx context.Context,
-	workOrderTemplate *ent.WorkOrderTemplate,
+	template *ent.WorkOrderTemplate,
 	properties []*models.PropertyInput,
 ) ([]*models.PropertyInput, error) {
-	client := r.ClientFrom(ctx)
-	var pInputs []*models.PropertyInput
+	client := r.ClientFrom(ctx).PropertyType
+	inputs := make([]*models.PropertyInput, 0, len(properties))
 	for _, p := range properties {
-		pt, err := client.PropertyType.Get(ctx, p.PropertyTypeID)
+		name, err := client.Query().
+			Where(propertytype.ID(p.PropertyTypeID)).
+			Select(propertytype.FieldName).
+			String(ctx)
 		if err != nil {
-			return nil, errors.Wrap(err, "querying property type")
+			return nil, fmt.Errorf("cannot query property type name from id: %w", err)
 		}
-		tID, err := workOrderTemplate.QueryPropertyTypes().Where(propertytype.Name(pt.Name)).OnlyID(ctx)
+		id, err := template.
+			QueryPropertyTypes().
+			Where(propertytype.Name(name)).
+			OnlyID(ctx)
 		if err != nil {
 			return nil, err
 		}
-		pInputs = append(pInputs, &models.PropertyInput{
-			ID:                 p.ID,
-			PropertyTypeID:     tID,
-			StringValue:        p.StringValue,
-			IntValue:           p.IntValue,
-			BooleanValue:       p.BooleanValue,
-			FloatValue:         p.FloatValue,
-			LatitudeValue:      p.LatitudeValue,
-			LongitudeValue:     p.LongitudeValue,
-			RangeFromValue:     p.RangeFromValue,
-			RangeToValue:       p.RangeToValue,
-			IsInstanceProperty: p.IsInstanceProperty,
-			IsEditable:         p.IsEditable,
-		})
+		input := *p
+		input.PropertyTypeID = id
+		inputs = append(inputs, &input)
 	}
-	return pInputs, nil
+	return inputs, nil
 }
 
 func (r mutationResolver) internalAddWorkOrder(
@@ -655,15 +640,15 @@ func (r mutationResolver) addWorkOrderTemplate(
 			SetNodeType(pt.NodeType).
 			SetIndex(pt.Index).
 			SetCategory(pt.Category).
-			SetStringVal(pt.StringVal).
-			SetIntVal(pt.IntVal).
-			SetBoolVal(pt.BoolVal).
-			SetFloatVal(pt.FloatVal).
-			SetLatitudeVal(pt.LatitudeVal).
-			SetLongitudeVal(pt.LongitudeVal).
+			SetNillableStringVal(pt.StringVal).
+			SetNillableIntVal(pt.IntVal).
+			SetNillableBoolVal(pt.BoolVal).
+			SetNillableFloatVal(pt.FloatVal).
+			SetNillableLatitudeVal(pt.LatitudeVal).
+			SetNillableLongitudeVal(pt.LongitudeVal).
 			SetIsInstanceProperty(pt.IsInstanceProperty).
-			SetRangeFromVal(pt.RangeFromVal).
-			SetRangeToVal(pt.RangeToVal).
+			SetNillableRangeFromVal(pt.RangeFromVal).
+			SetNillableRangeToVal(pt.RangeToVal).
 			SetEditable(pt.Editable).
 			SetMandatory(pt.Mandatory).
 			SetDeleted(pt.Deleted).
@@ -780,11 +765,10 @@ func (r mutationResolver) EditWorkOrderType(
 	}
 	for _, p := range input.Properties {
 		if p.ID == nil {
-			err = r.validateAndAddNewPropertyType(ctx, p, func(b *ent.PropertyTypeCreate) { b.SetWorkOrderTypeID(input.ID) })
-		} else {
-			err = r.updatePropType(ctx, p)
-		}
-		if err != nil {
+			if err := r.AddPropertyTypes(ctx, func(b *ent.PropertyTypeCreate) { b.SetWorkOrderTypeID(input.ID) }, p); err != nil {
+				return nil, err
+			}
+		} else if err := r.updatePropType(ctx, p); err != nil {
 			return nil, err
 		}
 	}
