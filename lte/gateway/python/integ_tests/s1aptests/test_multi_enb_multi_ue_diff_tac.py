@@ -23,7 +23,7 @@ class TestMultiEnbWithDifferentTac(unittest.TestCase):
         """ Multi Enb attach with different TAC values """
 
         """ Note: Before execution of this test case,
-        Run the test script s1aptests/test_update_mme_config_for_sanity.py
+        Run the test script s1aptests/test_modify_mme_config_for_sanity.py
         to update multiple PLMN/TAC configuration in MME and
         after test case execution again reset the MME configuration by running
         the test script s1aptests/test_restore_mme_config_after_sanity.py
