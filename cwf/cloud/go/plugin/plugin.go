@@ -10,10 +10,8 @@ package plugin
 
 import (
 	"magma/cwf/cloud/go/cwf"
-	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -58,9 +56,7 @@ func (*CwfOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 }
 
 func (*CwfOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
-	return plugin.FlattenHandlerLists(
-		handlers.GetHandlers(),
-	)
+	return []obsidian.Handler{}
 }
 
 func (*CwfOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {

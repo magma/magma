@@ -32,6 +32,7 @@ import (
 const (
 	serviceName  = "service"
 	service2Name = "service2"
+	service3Name = "service3"
 )
 
 type method string
@@ -42,23 +43,29 @@ const (
 )
 
 // "Service ID", "Service Name", "Service Type",  "Discovery Method", "Service External ID", "Customer Name", "Customer External ID", "prop1", "prop2", "prop3", "prop4"
-func editLine(line []string, index int) {
-	if index == 1 {
+func editLine(t *testing.T, line []string, index int) {
+	switch index {
+	case 1:
 		line[1] = "newName"
 		line[4] = "D243"
 		line[23] = "root"
 		line[24] = "20"
-	} else {
+	case 2:
 		line[5] = "Donald"
 		line[6] = "U333"
 		line[25] = "22.4"
 		line[26] = "true"
+	case 3:
+		line[1] = "newServiceName"
+		line[4] = "D24345"
+	default:
+		t.Fatal("unexpected index")
 	}
 }
 
 func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify bool) (*bytes.Buffer, string) {
 	var newLine []string
-	var lines = make([][]string, 3)
+	var lines = make([][]string, 4)
 	var buf bytes.Buffer
 	bw := multipart.NewWriter(&buf)
 
@@ -87,7 +94,7 @@ func writeModifiedCSV(t *testing.T, r *csv.Reader, method method, withVerify boo
 			default:
 				require.Fail(t, "method should be add or edit")
 			}
-			editLine(newLine, i)
+			editLine(t, newLine, i)
 			lines[i] = newLine
 		}
 	}
@@ -178,6 +185,19 @@ func prepareServiceData(ctx context.Context, t *testing.T, r *TestImporterResolv
 		Status:        pointerToServiceStatus(models.ServiceStatusInService),
 	})
 	require.NoError(t, err)
+
+	// no props case
+	serviceType3, err := mr.AddServiceType(ctx, models.ServiceTypeCreateData{
+		Name: service3Name,
+	})
+	require.NoError(t, err)
+
+	_, err = mr.AddService(ctx, models.ServiceCreateData{
+		Name:          service3Name,
+		ServiceTypeID: serviceType3.ID,
+		Status:        pointerToServiceStatus(models.ServiceStatusPending),
+	})
+	require.NoError(t, err)
 }
 
 func deleteServiceData(ctx context.Context, t *testing.T, r *TestImporterResolver) {
@@ -222,9 +242,15 @@ func verifyServiceData(ctx context.Context, t *testing.T, r *TestImporterResolve
 	prop3, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeFloat))).Only(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 22.4, pointer.GetFloat64(prop3.FloatVal))
+
 	prop4, err := s2.QueryProperties().Where(property.HasTypeWith(propertytype.TypeEQ(propertytype.TypeBool))).Only(ctx)
 	require.NoError(t, err)
 	require.Equal(t, true, pointer.GetBool(prop4.BoolVal))
+
+	s3, err := r.client.Service.Query().Where(service.Name("newServiceName")).Only(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "D24345", *s3.ExternalID)
+	require.Equal(t, models.ServiceStatusPending.String(), s3.Status)
 }
 
 func exportServiceData(ctx context.Context, t *testing.T, r *TestImporterResolver) bytes.Buffer {

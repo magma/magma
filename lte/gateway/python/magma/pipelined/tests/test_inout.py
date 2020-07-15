@@ -62,6 +62,7 @@ class InOutTest(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
+                'enable_nat': True,
             },
             mconfig=None,
             loop=None,

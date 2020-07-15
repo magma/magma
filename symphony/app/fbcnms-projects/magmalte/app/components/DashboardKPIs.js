@@ -23,6 +23,8 @@ import {makeStyles} from '@material-ui/styles';
 const useStyles = makeStyles(theme => ({
   eventsTable: {
     marginTop: theme.spacing(4),
+    textAlign: 'center',
+    padding: theme.spacing(10),
   },
 }));
 
@@ -45,7 +47,7 @@ export default function () {
         </Grid>
       </Grid>
       <Card elevation={0} className={classes.eventsTable}>
-        <Text variant="h4">Events Table Goes Here</Text>
+        <Text variant="body2">Events Table Goes Here</Text>
       </Card>
     </>
   );

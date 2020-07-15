@@ -13,9 +13,12 @@ package main
 
 import (
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/radius"
 )
 
-func startBuiltInRadius(cfg *mconfig.AAAConfig) {
-	go radius.New(cfg.GetRadiusConfig()).StartAuth()
+func startBuiltInRadius(cfg *mconfig.AAAConfig, auth protos.AuthenticatorServer, acct protos.AccountingServer) {
+	srv := radius.New(cfg.GetRadiusConfig(), auth, acct)
+	go srv.StartAuth()
+	go srv.StartAcct()
 }

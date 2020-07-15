@@ -89,7 +89,7 @@ func Start(aaaCtx *protos.Context) (*protos.AcctResp, error) {
 	return cli.Start(context.Background(), aaaCtx)
 }
 
-// InterimUpdate implements Radius Acct-Status-Type: Interim-Update endpoint
+// Acct-Status-Type Stop
 func InterimUpdate(ur *protos.UpdateRequest) (*protos.AcctResp, error) {
 	if ur == nil {
 		return nil, errors.New("Nil Interim Update Request")

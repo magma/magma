@@ -156,6 +156,16 @@ func AttachAll(e *echo.Echo, m ...echo.MiddlewareFunc) {
 	}
 }
 
+// AttachHandlers attaches the provided obsidian handlers to the echo server
+func AttachHandlers(e *echo.Echo, handlers []Handler, m ...echo.MiddlewareFunc) {
+	for _, handler := range handlers {
+		ei := echoHandlerInitializers[handler.Methods]
+		if ei != nil {
+			ei(e, handler.Path, handler.HandlerFunc, m...)
+		}
+	}
+}
+
 func HttpError(err error, code ...int) *echo.HTTPError {
 	var status = http.StatusInternalServerError
 	if len(code) > 0 && code[0] >= http.StatusContinue &&
