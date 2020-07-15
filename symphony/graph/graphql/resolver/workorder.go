@@ -103,16 +103,6 @@ func (workOrderResolver) Project(ctx context.Context, obj *ent.WorkOrder) (*ent.
 	return prj, ent.MaskNotFound(err)
 }
 
-func (workOrderResolver) CreationDate(_ context.Context, obj *ent.WorkOrder) (int, error) {
-	secs := int(obj.CreationDate.Unix())
-	return secs, nil
-}
-
-func (workOrderResolver) InstallDate(_ context.Context, obj *ent.WorkOrder) (*int, error) {
-	secs := int(obj.InstallDate.Unix())
-	return &secs, nil
-}
-
 func (workOrderResolver) EquipmentToAdd(ctx context.Context, obj *ent.WorkOrder) ([]*ent.Equipment, error) {
 	return obj.QueryEquipment().Where(equipment.FutureState(models.FutureStateInstall.String())).All(ctx)
 }

@@ -17,7 +17,7 @@ import type {UsersGroup} from '../../data/UsersGroups';
 
 const groupSearchQuery = graphql`
   query GroupSearchContextQuery($filters: [UsersGroupFilterInput!]!) {
-    usersGroups(first: 500, filters: $filters) {
+    usersGroups(first: 500, filterBy: $filters) {
       edges {
         node {
           ...UserManagementUtils_group @relay(mask: false)

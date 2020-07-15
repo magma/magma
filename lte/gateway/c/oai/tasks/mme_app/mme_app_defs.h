@@ -43,6 +43,8 @@
 
 #define INVALID_BEARER_INDEX -1
 
+extern task_zmq_ctx_t mme_app_task_zmq_ctx;
+
 int mme_app_handle_s1ap_ue_capabilities_ind(
   const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP);
 

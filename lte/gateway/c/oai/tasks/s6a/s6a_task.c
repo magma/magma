@@ -59,15 +59,14 @@
 #define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
 #define S6A_PEER_CONNECT_TIMEOUT_SEC (1)
 
+static void fd_gnutls_debug(int level, const char *str);
+static void s6a_exit(void);
+
 static int gnutls_log_level = 9;
 static long timer_id = 0;
 struct session_handler *ts_sess_hdl;
-
 s6a_fd_cnf_t s6a_fd_cnf;
-
-void *s6a_thread(void *args);
-static void fd_gnutls_debug(int level, const char *str);
-static void s6a_exit(void);
+task_zmq_ctx_t s6a_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
 static void fd_gnutls_debug(int loglevel, const char *str)
@@ -90,152 +89,160 @@ static void oai_fd_logger(int loglevel, const char *format, va_list args)
   OAILOG_EXTERNAL(OAILOG_LEVEL_TRACE - loglevel, LOG_S6A, "%s\n", buffer);
 }
 
-//------------------------------------------------------------------------------
-void *s6a_thread(void *args)
+static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 {
-  itti_mark_task_ready(TASK_S6A);
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  int rc = RETURNerror;
 
-  while (1) {
-    MessageDef *received_message_p = NULL;
-    int rc = RETURNerror;
-
-    /*
-     * Trying to fetch a message from the message queue.
-     * * If the queue is empty, this function will block till a
-     * * message is sent to the task.
-     */
-    itti_receive_msg(TASK_S6A, &received_message_p);
-    DevAssert(received_message_p);
-
-    switch (ITTI_MSG_ID(received_message_p)) {
-      case MESSAGE_TEST: {
-        OAI_FPRINTF_INFO("TASK_S6A received MESSAGE_TEST\n");
-      } break;
-      case S6A_UPDATE_LOCATION_REQ: {
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case MESSAGE_TEST: {
+      OAI_FPRINTF_INFO("TASK_S6A received MESSAGE_TEST\n");
+    } break;
+    case S6A_UPDATE_LOCATION_REQ: {
 #if S6A_OVER_GRPC
-        rc = s6a_update_location_req(
-          &received_message_p->ittiMsg.s6a_update_location_req);
+      rc = s6a_update_location_req(
+        &received_message_p->ittiMsg.s6a_update_location_req);
 #else
-        rc = s6a_generate_update_location(
-          &received_message_p->ittiMsg.s6a_update_location_req);
+      rc = s6a_generate_update_location(
+        &received_message_p->ittiMsg.s6a_update_location_req);
 #endif
-        if (rc) {
-          OAILOG_DEBUG(
-            LOG_S6A,
-            "Sending s6a ULR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_update_location_req.imsi);
-        } else {
-          OAILOG_ERROR(
-            LOG_S6A,
-            "Failure in sending s6a ULR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_update_location_req.imsi);
-        }
-      } break;
-      case S6A_AUTH_INFO_REQ: {
-#if S6A_OVER_GRPC
-        rc = s6a_authentication_info_req(
-          &received_message_p->ittiMsg.s6a_auth_info_req);
-#else
-        rc = s6a_generate_authentication_info_req(
-          &received_message_p->ittiMsg.s6a_auth_info_req);
-#endif
-        if (rc) {
-          OAILOG_DEBUG(
-            LOG_S6A,
-            "Sending s6a AIR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_auth_info_req.imsi);
-        } else {
-          OAILOG_ERROR(
-            LOG_S6A,
-            "Failure in sending s6a AIR for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_auth_info_req.imsi);
-        }
-      } break;
-      case TIMER_HAS_EXPIRED: {
-        if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-          break;
-        }
-        /*
-         * Trying to connect to peers
-         */
-        timer_id = 0;
-        if (s6a_fd_new_peer() != RETURNok) {
-          /*
-           * On failure, reschedule timer.
-           * * Preferred over TIMER_PERIODIC because if s6a_fd_new_peer takes
-           * * longer to return than the period, the timer will schedule while
-           * * the previous one is active, causing a seg fault.
-           */
-          increment_counter(
-            "s6a_subscriberdb_connection_failure", 1, NO_LABELS);
-          OAILOG_ERROR(
-            LOG_S6A,
-            "s6a_fd_new_peer has failed (%s:%d)\n",
-            __FILE__,
-            __LINE__);
-          timer_setup(
-            S6A_PEER_CONNECT_TIMEOUT_SEC,
-            S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
-            TASK_S6A,
-            INSTANCE_DEFAULT,
-            TIMER_ONE_SHOT,
-            NULL,
-            0,
-            &timer_id);
-        }
-        timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-      } break;
-      case TERMINATE_MESSAGE: {
-        s6a_exit();
-        itti_free_msg_content(received_message_p);
-        itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-        OAI_FPRINTF_INFO("TASK_S6A terminated\n");
-        itti_exit_task();
-      } break;
-      case S6A_CANCEL_LOCATION_ANS: {
-        s6a_send_cancel_location_ans(
-          &received_message_p->ittiMsg.s6a_cancel_location_ans);
-      } break;
-      case S6A_PURGE_UE_REQ: {
-#if S6A_OVER_GRPC
-        uint8_t imsi_length;
-        imsi_length = received_message_p->ittiMsg.s6a_purge_ue_req.imsi_length;
-        if (imsi_length > IMSI_BCD_DIGITS_MAX) {
-          OAILOG_ERROR(
-            LOG_S6A, "imsi length exceeds IMSI_BCD_DIGITS_MAX length \n");
-        }
-        received_message_p->ittiMsg.s6a_purge_ue_req.imsi[imsi_length] = '\0';
-        rc = s6a_purge_ue(received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
-#else
-        rc = s6a_generate_purge_ue_req(
-          &received_message_p->ittiMsg.s6a_purge_ue_req);
-#endif
-        if (rc) {
-          OAILOG_DEBUG(
-            LOG_S6A,
-            "Sending s6a pur for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
-        } else {
-          OAILOG_ERROR(
-            LOG_S6A,
-            "Failure in sending s6a pur for imsi=%s\n",
-            received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
-        }
-      } break;
-      default: {
+      if (rc) {
         OAILOG_DEBUG(
           LOG_S6A,
-          "Unkwnon message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
-      } break;
-    }
-    itti_free_msg_content(received_message_p);
-    itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-    received_message_p = NULL;
+          "Sending s6a ULR for imsi=%s\n",
+          received_message_p->ittiMsg.s6a_update_location_req.imsi);
+      } else {
+        OAILOG_ERROR(
+          LOG_S6A,
+          "Failure in sending s6a ULR for imsi=%s\n",
+          received_message_p->ittiMsg.s6a_update_location_req.imsi);
+      }
+    } break;
+    case S6A_AUTH_INFO_REQ: {
+#if S6A_OVER_GRPC
+      rc = s6a_authentication_info_req(
+        &received_message_p->ittiMsg.s6a_auth_info_req);
+#else
+      rc = s6a_generate_authentication_info_req(
+        &received_message_p->ittiMsg.s6a_auth_info_req);
+#endif
+      if (rc) {
+        OAILOG_DEBUG(
+          LOG_S6A,
+          "Sending s6a AIR for imsi=%s\n",
+          received_message_p->ittiMsg.s6a_auth_info_req.imsi);
+      } else {
+        OAILOG_ERROR(
+          LOG_S6A,
+          "Failure in sending s6a AIR for imsi=%s\n",
+          received_message_p->ittiMsg.s6a_auth_info_req.imsi);
+      }
+    } break;
+    case TIMER_HAS_EXPIRED: {
+      if (!timer_exists(
+            received_message_p->ittiMsg.timer_has_expired.timer_id)) {
+        break;
+      }
+      /*
+        * Trying to connect to peers
+        */
+      timer_id = 0;
+      if (s6a_fd_new_peer() != RETURNok) {
+        /*
+          * On failure, reschedule timer.
+          * * Preferred over TIMER_PERIODIC because if s6a_fd_new_peer takes
+          * * longer to return than the period, the timer will schedule while
+          * * the previous one is active, causing a seg fault.
+          */
+        increment_counter(
+          "s6a_subscriberdb_connection_failure", 1, NO_LABELS);
+        OAILOG_ERROR(
+          LOG_S6A,
+          "s6a_fd_new_peer has failed (%s:%d)\n",
+          __FILE__,
+          __LINE__);
+        timer_setup(
+          S6A_PEER_CONNECT_TIMEOUT_SEC,
+          S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
+          TASK_S6A,
+          INSTANCE_DEFAULT,
+          TIMER_ONE_SHOT,
+          NULL,
+          0,
+          &timer_id);
+      }
+      timer_handle_expired(
+        received_message_p->ittiMsg.timer_has_expired.timer_id);
+    } break;
+    case S6A_CANCEL_LOCATION_ANS: {
+      s6a_send_cancel_location_ans(
+        &received_message_p->ittiMsg.s6a_cancel_location_ans);
+    } break;
+    case S6A_PURGE_UE_REQ: {
+#if S6A_OVER_GRPC
+      uint8_t imsi_length;
+      imsi_length = received_message_p->ittiMsg.s6a_purge_ue_req.imsi_length;
+      if (imsi_length > IMSI_BCD_DIGITS_MAX) {
+        OAILOG_ERROR(
+          LOG_S6A, "imsi length exceeds IMSI_BCD_DIGITS_MAX length \n");
+      }
+      received_message_p->ittiMsg.s6a_purge_ue_req.imsi[imsi_length] = '\0';
+      rc = s6a_purge_ue(received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
+#else
+      rc = s6a_generate_purge_ue_req(
+        &received_message_p->ittiMsg.s6a_purge_ue_req);
+#endif
+      if (rc) {
+        OAILOG_DEBUG(
+          LOG_S6A,
+          "Sending s6a pur for imsi=%s\n",
+          received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
+      } else {
+        OAILOG_ERROR(
+          LOG_S6A,
+          "Failure in sending s6a pur for imsi=%s\n",
+          received_message_p->ittiMsg.s6a_purge_ue_req.imsi);
+      }
+    } break;
+    case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      s6a_exit();
+    } break;
+    default: {
+      OAILOG_DEBUG(
+        LOG_S6A,
+        "Unkwnon message ID %d: %s\n",
+        ITTI_MSG_ID(received_message_p),
+        ITTI_MSG_NAME(received_message_p));
+    } break;
   }
+
+  itti_free_msg_content(received_message_p);
+  zframe_destroy(&msg_frame);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static void* s6a_thread(__attribute__((unused)) void* args)
+{
+  itti_mark_task_ready(TASK_S6A);
+  init_task_context(
+      TASK_S6A,
+      (task_id_t []) {TASK_MME_APP, TASK_S1AP},
+      2,
+      handle_message,
+      &s6a_task_zmq_ctx);
+
+#if S6A_OVER_GRPC
+  send_activate_messages();
+  OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface over gRPC: DONE\n");
+#endif
+
+  zloop_start(s6a_task_zmq_ctx.event_loop);
+  s6a_exit();
   return NULL;
 }
 
@@ -252,8 +259,6 @@ int s6a_init(const mme_config_t *mme_config_p)
   }
 
 #if S6A_OVER_GRPC
-  send_activate_messages();
-  OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface over gRPC: DONE\n");
   return RETURNok;
 #endif
   memset(&s6a_fd_cnf, 0, sizeof(s6a_fd_cnf_t));
@@ -371,6 +376,8 @@ int s6a_init(const mme_config_t *mme_config_p)
 //------------------------------------------------------------------------------
 static void s6a_exit(void)
 {
+  destroy_task_context(&s6a_task_zmq_ctx);
+
   if (timer_id) {
     timer_remove(timer_id, NULL);
   }
@@ -392,4 +399,7 @@ static void s6a_exit(void)
       "An error occurred during fd_core_wait_shutdown_complete().\n");
   }
 #endif
+
+  OAI_FPRINTF_INFO("TASK_S6A terminated\n");
+  pthread_exit(NULL);
 }

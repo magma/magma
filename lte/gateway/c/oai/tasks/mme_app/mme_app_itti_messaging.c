@@ -59,6 +59,8 @@
 #define TASK_SPGW TASK_S11
 #endif
 
+extern task_zmq_ctx_t mme_app_task_zmq_ctx;
+
 /****************************************************************************
  **                                                                        **
  ** name:    mme_app_itti_ue_context_release()                             **
@@ -102,7 +104,7 @@ void mme_app_itti_ue_context_release(
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).cause = cause;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -158,7 +160,7 @@ int mme_app_send_s11_release_access_bearers_req(
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
 
-  rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -385,7 +387,7 @@ int mme_app_send_s11_create_session_req(
     "Sending S11 CREATE SESSION REQ message to SPGW for ue_id "
     MME_UE_S1AP_ID_FMT "\n",
     ue_mm_context->mme_ue_s1ap_id);
-  if ((itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p)) !=
+  if ((send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p)) !=
     RETURNok) {
     OAILOG_ERROR_UE(
       LOG_MME_APP,
@@ -494,16 +496,17 @@ void nas_itti_sgsap_uplink_unitdata(
   }
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
-  if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
+  imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
+  if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)
     != RETURNok) {
     OAILOG_ERROR_UE(
       LOG_MME_APP,
-      message_p->ittiMsgHeader.imsi,
+      imsi64,
       "Failed to send SGSAP Uplink Unitdata to SGS task\n");
   } else {
     OAILOG_DEBUG_UE(
       LOG_MME_APP,
-      message_p->ittiMsgHeader.imsi,
+      imsi64,
       "Sent SGSAP Uplink Unitdata to SGS task\n");
   }
 
@@ -543,16 +546,17 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
   SGSAP_TMSI_REALLOC_COMP(message_p).imsi_length = imsi_len;
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
-  if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
+  imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
+  if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)
     != RETURNok) {
     OAILOG_ERROR_UE(
       LOG_MME_APP,
-      message_p->ittiMsgHeader.imsi,
+      imsi64,
       "Failed to send SGSAP Tmsi Reallocation Complete to SGS task\n");
   } else {
     OAILOG_DEBUG_UE(
       LOG_MME_APP,
-      message_p->ittiMsgHeader.imsi,
+      imsi64,
       "Sent SGSAP Tmsi Reallocation Complete to SGS task\n");
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -591,17 +595,18 @@ void mme_app_itti_sgsap_ue_activity_ind(
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
-  if (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)
+  imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
+  if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)
     != RETURNok) {
     OAILOG_ERROR_UE(
       LOG_MME_APP,
-      message_p->ittiMsgHeader.imsi,
+      imsi64,
       "Failed to send SGSAP UE ACTIVITY IND to SGS task for Imsi : %s \n",
       imsi);
   } else {
     OAILOG_DEBUG_UE(
       LOG_MME_APP,
-      message_p->ittiMsgHeader.imsi,
+      imsi64,
       "Sent SGSAP UE ACTIVITY IND to SGS task for Imsi :%s \n",
       imsi);
   }

@@ -68,7 +68,7 @@ LocalEnforcer::LocalEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-    AsyncEventdClient& eventd_client,
+    std::shared_ptr<EventsReporter> events_reporter,
     std::shared_ptr<SpgwServiceClient> spgw_client,
     std::shared_ptr<aaa::AAAClient> aaa_client,
     long session_force_termination_timeout_ms,
@@ -78,7 +78,7 @@ LocalEnforcer::LocalEnforcer(
       rule_store_(rule_store),
       pipelined_client_(pipelined_client),
       directoryd_client_(directoryd_client),
-      eventd_client_(eventd_client),
+      events_reporter_(events_reporter),
       spgw_client_(spgw_client),
       aaa_client_(aaa_client),
       session_store_(session_store),
@@ -778,13 +778,6 @@ void LocalEnforcer::filter_rule_installs(
   dynamic_installs.erase(end_of_valid_dy_rules, dynamic_installs.end());
 }
 
-// return true if any credit unit is valid and has non-zero volume
-static bool contains_credit(const GrantedUnits& gsu) {
-  return (gsu.total().is_valid() && gsu.total().volume() > 0) ||
-         (gsu.tx().is_valid() && gsu.tx().volume() > 0) ||
-         (gsu.rx().is_valid() && gsu.rx().volume() > 0);
-}
-
 bool LocalEnforcer::handle_session_init_rule_updates(
     SessionMap& session_map, const std::string& imsi,
     SessionState& session_state, const CreateSessionResponse& response,
@@ -836,15 +829,14 @@ bool LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
-  auto session_state = new SessionState(
+  auto session_state = std::make_unique<SessionState>(
       imsi, session_id, response.session_id(), cfg, *rule_store_,
       response.tgpp_ctx());
 
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {
     auto uc = get_default_update_criteria();
-    session_state->receive_charging_credit(credit, uc);
-    if (credit.success() && contains_credit(credit.credit().granted_units())) {
+    if (session_state->receive_charging_credit(credit, uc)) {
       charging_credits_received.insert(credit.charging_key());
     }
   }
@@ -880,12 +872,10 @@ bool LocalEnforcer::init_session_credit(
                  << session_id;
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   }
-  session_map[imsi].push_back(
-      std::move(std::unique_ptr<SessionState>(session_state)));
-
   if (session_state->is_radius_cwf_session() == false) {
-    session_events::session_created(eventd_client_, imsi, session_id);
+    events_reporter_->session_created(session_state);
   }
+  session_map[imsi].push_back(std::move(session_state));
 
   return rule_update_success;
 }
@@ -1001,7 +991,7 @@ void LocalEnforcer::complete_termination(
       (*session_it)->complete_termination(*reporter_, update_criteria);
       // Send to eventd
       if ((*session_it)->is_radius_cwf_session() == false) {
-        session_events::session_terminated(eventd_client_, *session_it);
+        events_reporter_->session_terminated(*session_it);
       }
       // We break the loop below, but for extra code safety in case
       // someone removes the break in the future, adjust the iterator
@@ -1562,6 +1552,11 @@ void LocalEnforcer::process_rules_to_install(
   std::string ip_addr      = session.get_config().ue_ipv4;
   for (const auto& rule_install : static_rule_installs) {
     const auto& id = rule_install.rule_id();
+    if (session.is_static_rule_installed(id)) {
+      // Session proxy may ask for duplicate rule installs.
+      // Ignore them here.
+      continue;
+    }
     auto activation_time =
         TimeUtil::TimestampToSeconds(rule_install.activation_time());
     auto deactivation_time =

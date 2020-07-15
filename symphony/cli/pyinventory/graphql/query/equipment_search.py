@@ -19,7 +19,7 @@ from ..input.equipment_filter import EquipmentFilterInput
 
 QUERY: List[str] = EquipmentFragmentQuery + ["""
 query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
-  equipments(filters: $filters, first: $limit) {
+  equipments(filterBy: $filters, first: $limit) {
     edges {
       node {
         ...EquipmentFragment

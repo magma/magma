@@ -1,0 +1,1761 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pyinventory.common package &#8212; Symphony 3.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="pyinventory.api package" href="pyinventory.api.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  <div class="document">
+    
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Symphony</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">pyinventory</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pyinventory.html">pyinventory package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pyinventory.html#subpackages">Subpackages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyinventory.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyinventory.html#module-pyinventory.exceptions">pyinventory.exceptions module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pyinventory.html#module-pyinventory">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">pyinventory</a><ul>
+  <li><a href="pyinventory.html">pyinventory package</a><ul>
+      <li>Previous: <a href="pyinventory.api.html" title="previous chapter">pyinventory.api package</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+              <div class="related top">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+        <li>
+          &larr;
+          <a href="pyinventory.api.html" title="Previous document">pyinventory.api package</a>
+        </li>
+    </ul>
+  </nav>
+              </div>
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pyinventory-common-package">
+<h1>pyinventory.common package<a class="headerlink" href="#pyinventory-common-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyinventory.common.cache">
+<span id="pyinventory-common-cache-module"></span><h2>pyinventory.common.cache module<a class="headerlink" href="#module-pyinventory.common.cache" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pyinventory.common.cache.Cache">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.cache.</code><code class="sig-name descname">Cache</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwds</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.cache.Cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">collections.abc.MutableMapping</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">typing.Generic</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyinventory.common.cache.clear_types">
+<code class="sig-prename descclassname">pyinventory.common.cache.</code><code class="sig-name descname">clear_types</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#pyinventory.common.cache.clear_types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pyinventory.common.constant">
+<span id="pyinventory-common-constant-module"></span><h2>pyinventory.common.constant module<a class="headerlink" href="#module-pyinventory.common.constant" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pyinventory.common.data_class">
+<span id="pyinventory-common-data-class-module"></span><h2>pyinventory.common.data_class module<a class="headerlink" href="#module-pyinventory.common.data_class" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pyinventory.common.data_class.Customer">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">Customer</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">external_id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.Customer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Customer.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.Customer.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Customer.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.Customer.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Customer.external_id">
+<code class="sig-name descname">external_id</code><a class="headerlink" href="#pyinventory.common.data_class.Customer.external_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>external ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id0">
+<em class="property">property </em><code class="sig-name descname">external_id</code><a class="headerlink" href="#id0" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id1">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id2">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.DataTypeName">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">DataTypeName</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_type</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Type<span class="p">[</span>datetime.date<span class="p">]</span><span class="p">, </span>Type<span class="p">[</span>float<span class="p">]</span><span class="p">, </span>Type<span class="p">[</span>int<span class="p">]</span><span class="p">, </span>Type<span class="p">[</span>str<span class="p">]</span><span class="p">, </span>Type<span class="p">[</span>bool<span class="p">]</span><span class="p">, </span>Type<span class="p">[</span>Tuple<span class="p">[</span>float<span class="p">, </span>float<span class="p">]</span><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">graphql_field_name</span><span class="p">:</span> <span class="n">Tuple[str, …]</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.DataTypeName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.DataTypeName.data_type">
+<code class="sig-name descname">data_type</code><a class="headerlink" href="#pyinventory.common.data_class.DataTypeName.data_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>data type</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>PropertyValueType</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.DataTypeName.graphql_field_name">
+<code class="sig-name descname">graphql_field_name</code><a class="headerlink" href="#pyinventory.common.data_class.DataTypeName.graphql_field_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>graphql field name, in case of <cite>gps_location</cite> it is Tuple[<cite>latitudeValue</cite>, <cite>longitudeValue</cite>]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Tuple[str, ..]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id3">
+<em class="property">property </em><code class="sig-name descname">data_type</code><a class="headerlink" href="#id3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id4">
+<em class="property">property </em><code class="sig-name descname">graphql_field_name</code><a class="headerlink" href="#id4" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.Document">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">Document</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">parent_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">parent_entity</span><span class="p">:</span> <span class="n">pysymphony.graphql.enum.image_entity.ImageEntity</span></em>, <em class="sig-param"><span class="n">category</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.Document" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Document.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.Document.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Document.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.Document.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Document.parent_id">
+<code class="sig-name descname">parent_id</code><a class="headerlink" href="#pyinventory.common.data_class.Document.parent_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>parent ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Document.parent_entity">
+<code class="sig-name descname">parent_entity</code><a class="headerlink" href="#pyinventory.common.data_class.Document.parent_entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>parent entity</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>ImageEntity</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Document.category">
+<code class="sig-name descname">category</code><a class="headerlink" href="#pyinventory.common.data_class.Document.category" title="Permalink to this definition">¶</a></dt>
+<dd><p>category</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id5">
+<em class="property">property </em><code class="sig-name descname">category</code><a class="headerlink" href="#id5" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id6">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id6" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id7">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id7" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id8">
+<em class="property">property </em><code class="sig-name descname">parent_entity</code><a class="headerlink" href="#id8" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id9">
+<em class="property">property </em><code class="sig-name descname">parent_id</code><a class="headerlink" href="#id9" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.Equipment">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">Equipment</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">external_id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">equipment_type_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.Equipment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Equipment.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.Equipment.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Equipment.external_id">
+<code class="sig-name descname">external_id</code><a class="headerlink" href="#pyinventory.common.data_class.Equipment.external_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>external ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Equipment.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.Equipment.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Equipment.equipment_type_name">
+<code class="sig-name descname">equipment_type_name</code><a class="headerlink" href="#pyinventory.common.data_class.Equipment.equipment_type_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>equipment type name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id10">
+<em class="property">property </em><code class="sig-name descname">equipment_type_name</code><a class="headerlink" href="#id10" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id11">
+<em class="property">property </em><code class="sig-name descname">external_id</code><a class="headerlink" href="#id11" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id12">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id12" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id13">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id13" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.EquipmentPort">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">EquipmentPort</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">properties</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.property.PropertyFragment<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">definition</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#pyinventory.common.data_class.EquipmentPortDefinition" title="pyinventory.common.data_class.EquipmentPortDefinition">pyinventory.common.data_class.EquipmentPortDefinition</a></span></em>, <em class="sig-param"><span class="n">link</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.Link" title="pyinventory.common.data_class.Link">pyinventory.common.data_class.Link</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPort.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPort.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>equipment port ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPort.properties">
+<code class="sig-name descname">properties</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPort.properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>properties sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[PropertyFragment]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPort.definition">
+<code class="sig-name descname">definition</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPort.definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>port definition</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><cite>pyinventory.common.data_class.EquipmentPortDefinition</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPort.link">
+<code class="sig-name descname">link</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPort.link" title="Permalink to this definition">¶</a></dt>
+<dd><p>link</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[ <cite>pyinventory.common.data_class.Link</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id14">
+<em class="property">property </em><code class="sig-name descname">definition</code><a class="headerlink" href="#id14" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id15">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id15" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id16">
+<em class="property">property </em><code class="sig-name descname">link</code><a class="headerlink" href="#id16" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id17">
+<em class="property">property </em><code class="sig-name descname">properties</code><a class="headerlink" href="#id17" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.EquipmentPortDefinition">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">EquipmentPortDefinition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">port_type_name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortDefinition.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortDefinition.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortDefinition.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortDefinition.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortDefinition.port_type_name">
+<code class="sig-name descname">port_type_name</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortDefinition.port_type_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>port type name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id18">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id18" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id19">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id19" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id20">
+<em class="property">property </em><code class="sig-name descname">port_type_name</code><a class="headerlink" href="#id20" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.EquipmentPortType">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">EquipmentPortType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">property_types</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">link_property_types</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortType.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortType.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortType.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortType.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortType.property_types">
+<code class="sig-name descname">property_types</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortType.property_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>property types sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentPortType.link_property_types">
+<code class="sig-name descname">link_property_types</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentPortType.link_property_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>link property types sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id21">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id21" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id22">
+<em class="property">property </em><code class="sig-name descname">link_property_types</code><a class="headerlink" href="#id22" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id23">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id23" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id24">
+<em class="property">property </em><code class="sig-name descname">property_types</code><a class="headerlink" href="#id24" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.EquipmentType">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">EquipmentType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">category</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">property_types</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">position_definitions</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">port_definitions</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentType.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentType.category">
+<code class="sig-name descname">category</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType.category" title="Permalink to this definition">¶</a></dt>
+<dd><p>category</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentType.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentType.property_types">
+<code class="sig-name descname">property_types</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType.property_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>property types sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentType.position_definitions">
+<code class="sig-name descname">position_definitions</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType.position_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>position definitions sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.EquipmentType.port_definitions">
+<code class="sig-name descname">port_definitions</code><a class="headerlink" href="#pyinventory.common.data_class.EquipmentType.port_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>port definition sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id25">
+<em class="property">property </em><code class="sig-name descname">category</code><a class="headerlink" href="#id25" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id26">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id26" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id27">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id27" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id28">
+<em class="property">property </em><code class="sig-name descname">port_definitions</code><a class="headerlink" href="#id28" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id29">
+<em class="property">property </em><code class="sig-name descname">position_definitions</code><a class="headerlink" href="#id29" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id30">
+<em class="property">property </em><code class="sig-name descname">property_types</code><a class="headerlink" href="#id30" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.Link">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">Link</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">properties</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.property.PropertyFragment<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">service_ids</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.Link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Link.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.Link.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>link ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Link.properties">
+<code class="sig-name descname">properties</code><a class="headerlink" href="#pyinventory.common.data_class.Link.properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>properties sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.graphql.fragment.property.PropertyFragment</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Link.service_ids">
+<code class="sig-name descname">service_ids</code><a class="headerlink" href="#pyinventory.common.data_class.Link.service_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>service IDs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id31">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id31" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id32">
+<em class="property">property </em><code class="sig-name descname">properties</code><a class="headerlink" href="#id32" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id33">
+<em class="property">property </em><code class="sig-name descname">service_ids</code><a class="headerlink" href="#id33" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.Location">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">Location</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">latitude</span><span class="p">:</span> <span class="n">numbers.Number</span></em>, <em class="sig-param"><span class="n">longitude</span><span class="p">:</span> <span class="n">numbers.Number</span></em>, <em class="sig-param"><span class="n">external_id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">location_type_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">properties</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.property.PropertyFragment<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.Location" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.Location.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.Location.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.latitude">
+<code class="sig-name descname">latitude</code><a class="headerlink" href="#pyinventory.common.data_class.Location.latitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>latitude</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.longitude">
+<code class="sig-name descname">longitude</code><a class="headerlink" href="#pyinventory.common.data_class.Location.longitude" title="Permalink to this definition">¶</a></dt>
+<dd><p>longitude</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Number</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.external_id">
+<code class="sig-name descname">external_id</code><a class="headerlink" href="#pyinventory.common.data_class.Location.external_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>external ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.location_type_name">
+<code class="sig-name descname">location_type_name</code><a class="headerlink" href="#pyinventory.common.data_class.Location.location_type_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>location type name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Location.properties">
+<code class="sig-name descname">properties</code><a class="headerlink" href="#pyinventory.common.data_class.Location.properties" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.graphql.fragment.property.PropertyFragment</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id34">
+<em class="property">property </em><code class="sig-name descname">external_id</code><a class="headerlink" href="#id34" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id35">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id35" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id36">
+<em class="property">property </em><code class="sig-name descname">latitude</code><a class="headerlink" href="#id36" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id37">
+<em class="property">property </em><code class="sig-name descname">location_type_name</code><a class="headerlink" href="#id37" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id38">
+<em class="property">property </em><code class="sig-name descname">longitude</code><a class="headerlink" href="#id38" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id39">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id39" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id40">
+<em class="property">property </em><code class="sig-name descname">properties</code><a class="headerlink" href="#id40" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.LocationType">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">LocationType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">property_types</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.LocationType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.LocationType.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.LocationType.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.LocationType.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.LocationType.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.LocationType.property_types">
+<code class="sig-name descname">property_types</code><a class="headerlink" href="#pyinventory.common.data_class.LocationType.property_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>property types sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id41">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id41" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id42">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id42" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id43">
+<em class="property">property </em><code class="sig-name descname">property_types</code><a class="headerlink" href="#id43" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.PropertyDefinition">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">PropertyDefinition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">property_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">property_kind</span><span class="p">:</span> <span class="n">pyinventory.graphql.enum.property_kind.PropertyKind</span></em>, <em class="sig-param"><span class="n">default_raw_value</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_fixed</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>bool<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">external_id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">is_mandatory</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>bool<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">is_deleted</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>bool<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.property_name">
+<code class="sig-name descname">property_name</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.property_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>type name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.property_kind">
+<code class="sig-name descname">property_kind</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.property_kind" title="Permalink to this definition">¶</a></dt>
+<dd><p>property kind</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><cite>pyinventory.graphql.enum.property_kind.PropertyKind</cite></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.default_raw_value">
+<code class="sig-name descname">default_raw_value</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.default_raw_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>default property value as a string
+<code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">string</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;string&quot;</span>
+<span class="pre">int</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;123&quot;</span>
+<span class="pre">bool</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;true&quot;</span> <span class="pre">/</span> <span class="pre">&quot;True&quot;</span> <span class="pre">/</span> <span class="pre">&quot;TRUE&quot;</span>
+<span class="pre">float</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;0.123456&quot;</span>
+<span class="pre">date</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;24/10/2020&quot;</span>
+<span class="pre">range</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;0.123456</span> <span class="pre">-</span> <span class="pre">0.2345&quot;</span> <span class="pre">/</span> <span class="pre">&quot;1</span> <span class="pre">-</span> <span class="pre">2&quot;</span>
+<span class="pre">email</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;email&#64;some.domain&quot;</span>
+<span class="pre">gps_location</span>&#160;&#160; <span class="pre">-</span> <span class="pre">&quot;0.1234,</span> <span class="pre">0.2345&quot;</span>
+<span class="pre">`</span></code></p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.is_fixed">
+<code class="sig-name descname">is_fixed</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.is_fixed" title="Permalink to this definition">¶</a></dt>
+<dd><p>fixed value flag</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.external_id">
+<code class="sig-name descname">external_id</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.external_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>property type external ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.is_mandatory">
+<code class="sig-name descname">is_mandatory</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.is_mandatory" title="Permalink to this definition">¶</a></dt>
+<dd><p>mandatory value flag</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.PropertyDefinition.is_deleted">
+<code class="sig-name descname">is_deleted</code><a class="headerlink" href="#pyinventory.common.data_class.PropertyDefinition.is_deleted" title="Permalink to this definition">¶</a></dt>
+<dd><p>is delete flag</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id44">
+<em class="property">property </em><code class="sig-name descname">default_raw_value</code><a class="headerlink" href="#id44" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id45">
+<em class="property">property </em><code class="sig-name descname">external_id</code><a class="headerlink" href="#id45" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id46">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id46" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id47">
+<em class="property">property </em><code class="sig-name descname">is_deleted</code><a class="headerlink" href="#id47" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id48">
+<em class="property">property </em><code class="sig-name descname">is_fixed</code><a class="headerlink" href="#id48" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id49">
+<em class="property">property </em><code class="sig-name descname">is_mandatory</code><a class="headerlink" href="#id49" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id50">
+<em class="property">property </em><code class="sig-name descname">property_kind</code><a class="headerlink" href="#id50" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id51">
+<em class="property">property </em><code class="sig-name descname">property_name</code><a class="headerlink" href="#id51" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.Service">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">Service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">external_id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">service_type_name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">customer</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.Customer" title="pyinventory.common.data_class.Customer">pyinventory.common.data_class.Customer</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">properties</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.property.PropertyFragment<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.Service" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Service.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.Service.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Service.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.Service.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Service.external_id">
+<code class="sig-name descname">external_id</code><a class="headerlink" href="#pyinventory.common.data_class.Service.external_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>external ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Service.service_type_name">
+<code class="sig-name descname">service_type_name</code><a class="headerlink" href="#pyinventory.common.data_class.Service.service_type_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>existing service tyoe name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Service.customer">
+<code class="sig-name descname">customer</code><a class="headerlink" href="#pyinventory.common.data_class.Service.customer" title="Permalink to this definition">¶</a></dt>
+<dd><p>customer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Optional[ <cite>pyinventory.common.data_class.Customer</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.Service.properties">
+<code class="sig-name descname">properties</code><a class="headerlink" href="#pyinventory.common.data_class.Service.properties" title="Permalink to this definition">¶</a></dt>
+<dd><p>properties sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.graphql.fragment.property..PropertyFragment</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id52">
+<em class="property">property </em><code class="sig-name descname">customer</code><a class="headerlink" href="#id52" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id53">
+<em class="property">property </em><code class="sig-name descname">external_id</code><a class="headerlink" href="#id53" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id54">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id54" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id55">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id55" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id56">
+<em class="property">property </em><code class="sig-name descname">properties</code><a class="headerlink" href="#id56" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id57">
+<em class="property">property </em><code class="sig-name descname">service_type_name</code><a class="headerlink" href="#id57" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.ServiceEndpoint">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">ServiceEndpoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">equipment_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">service_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">definition_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpoint.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpoint.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpoint.equipment_id">
+<code class="sig-name descname">equipment_id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpoint.equipment_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>existing equipment ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpoint.service_id">
+<code class="sig-name descname">service_id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpoint.service_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>existing service ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpoint.definition_id">
+<code class="sig-name descname">definition_id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpoint.definition_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>existing service endpoint definition ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id58">
+<em class="property">property </em><code class="sig-name descname">definition_id</code><a class="headerlink" href="#id58" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id59">
+<em class="property">property </em><code class="sig-name descname">equipment_id</code><a class="headerlink" href="#id59" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id60">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id60" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id61">
+<em class="property">property </em><code class="sig-name descname">service_id</code><a class="headerlink" href="#id61" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">ServiceEndpointDefinition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">endpoint_definition_index</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">equipment_type_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpointDefinition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpointDefinition.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpointDefinition.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.endpoint_definition_index">
+<code class="sig-name descname">endpoint_definition_index</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpointDefinition.endpoint_definition_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>index</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.role">
+<code class="sig-name descname">role</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpointDefinition.role" title="Permalink to this definition">¶</a></dt>
+<dd><p>role</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceEndpointDefinition.equipment_type_id">
+<code class="sig-name descname">equipment_type_id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceEndpointDefinition.equipment_type_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>equipment type ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id62">
+<em class="property">property </em><code class="sig-name descname">endpoint_definition_index</code><a class="headerlink" href="#id62" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id63">
+<em class="property">property </em><code class="sig-name descname">equipment_type_id</code><a class="headerlink" href="#id63" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id64">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id64" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id65">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id65" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id66">
+<em class="property">property </em><code class="sig-name descname">role</code><a class="headerlink" href="#id66" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.ServiceType">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">ServiceType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">has_customer</span><span class="p">:</span> <span class="n">bool</span></em>, <em class="sig-param"><span class="n">property_types</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">endpoint_definitions</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.ServiceEndpointDefinition" title="pyinventory.common.data_class.ServiceEndpointDefinition">pyinventory.common.data_class.ServiceEndpointDefinition</a><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.ServiceType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceType.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceType.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>name</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceType.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceType.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceType.has_customer">
+<code class="sig-name descname">has_customer</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceType.has_customer" title="Permalink to this definition">¶</a></dt>
+<dd><p>customer existence flag</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceType.property_types">
+<code class="sig-name descname">property_types</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceType.property_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>property types sequence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.ServiceType.endpoint_definitions">
+<code class="sig-name descname">endpoint_definitions</code><a class="headerlink" href="#pyinventory.common.data_class.ServiceType.endpoint_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>service endpoint definitions list</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>List[ <cite>pyinventory.common.data_class.ServiceEndpointDefinition</cite> ]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id67">
+<em class="property">property </em><code class="sig-name descname">endpoint_definitions</code><a class="headerlink" href="#id67" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id68">
+<em class="property">property </em><code class="sig-name descname">has_customer</code><a class="headerlink" href="#id68" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id69">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id69" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id70">
+<em class="property">property </em><code class="sig-name descname">name</code><a class="headerlink" href="#id70" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id71">
+<em class="property">property </em><code class="sig-name descname">property_types</code><a class="headerlink" href="#id71" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="pyinventory.common.data_class.User">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_class.</code><code class="sig-name descname">User</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">auth_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">email</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">status</span><span class="p">:</span> <span class="n">pyinventory.graphql.enum.user_status.UserStatus</span></em>, <em class="sig-param"><span class="n">role</span><span class="p">:</span> <span class="n">pyinventory.graphql.enum.user_role.UserRole</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_class.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.User.id">
+<code class="sig-name descname">id</code><a class="headerlink" href="#pyinventory.common.data_class.User.id" title="Permalink to this definition">¶</a></dt>
+<dd><p>ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.User.auth_id">
+<code class="sig-name descname">auth_id</code><a class="headerlink" href="#pyinventory.common.data_class.User.auth_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>auth ID</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.User.email">
+<code class="sig-name descname">email</code><a class="headerlink" href="#pyinventory.common.data_class.User.email" title="Permalink to this definition">¶</a></dt>
+<dd><p>email</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.User.status">
+<code class="sig-name descname">status</code><a class="headerlink" href="#pyinventory.common.data_class.User.status" title="Permalink to this definition">¶</a></dt>
+<dd><p>status</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>UserStatus</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_class.User.role">
+<code class="sig-name descname">role</code><a class="headerlink" href="#pyinventory.common.data_class.User.role" title="Permalink to this definition">¶</a></dt>
+<dd><p>role</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>UserRole</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id72">
+<em class="property">property </em><code class="sig-name descname">auth_id</code><a class="headerlink" href="#id72" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id73">
+<em class="property">property </em><code class="sig-name descname">email</code><a class="headerlink" href="#id73" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id74">
+<em class="property">property </em><code class="sig-name descname">id</code><a class="headerlink" href="#id74" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id75">
+<em class="property">property </em><code class="sig-name descname">role</code><a class="headerlink" href="#id75" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="id76">
+<em class="property">property </em><code class="sig-name descname">status</code><a class="headerlink" href="#id76" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyinventory.common.data_enum">
+<span id="pyinventory-common-data-enum-module"></span><h2>pyinventory.common.data_enum module<a class="headerlink" href="#module-pyinventory.common.data_enum" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="pyinventory.common.data_enum.Entity">
+<em class="property">class </em><code class="sig-prename descclassname">pyinventory.common.data_enum.</code><code class="sig-name descname">Entity</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyinventory.common.data_enum.Entity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Customer">
+<code class="sig-name descname">Customer</code><em class="property"> = 'Customer'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Customer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Document">
+<code class="sig-name descname">Document</code><em class="property"> = 'Document'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Document" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Equipment">
+<code class="sig-name descname">Equipment</code><em class="property"> = 'Equipment'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Equipment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.EquipmentPort">
+<code class="sig-name descname">EquipmentPort</code><em class="property"> = 'EquipmentPort'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.EquipmentPort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.EquipmentPortType">
+<code class="sig-name descname">EquipmentPortType</code><em class="property"> = 'EquipmentPortType'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.EquipmentPortType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.EquipmentType">
+<code class="sig-name descname">EquipmentType</code><em class="property"> = 'EquipmentType'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.EquipmentType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Link">
+<code class="sig-name descname">Link</code><em class="property"> = 'Link'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Link" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Location">
+<code class="sig-name descname">Location</code><em class="property"> = 'Location'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Location" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.LocationType">
+<code class="sig-name descname">LocationType</code><em class="property"> = 'LocationType'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.LocationType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Property">
+<code class="sig-name descname">Property</code><em class="property"> = 'Property'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.PropertyType">
+<code class="sig-name descname">PropertyType</code><em class="property"> = 'PropertyType'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.PropertyType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.Service">
+<code class="sig-name descname">Service</code><em class="property"> = 'Service'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.Service" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.ServiceEndpoint">
+<code class="sig-name descname">ServiceEndpoint</code><em class="property"> = 'ServiceEndpoint'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.ServiceEndpoint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.ServiceEndpointDefinition">
+<code class="sig-name descname">ServiceEndpointDefinition</code><em class="property"> = 'ServiceEndpointDefinition'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.ServiceEndpointDefinition" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.ServiceType">
+<code class="sig-name descname">ServiceType</code><em class="property"> = 'ServiceType'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.ServiceType" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.SiteSurvey">
+<code class="sig-name descname">SiteSurvey</code><em class="property"> = 'SiteSurvey'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.SiteSurvey" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="pyinventory.common.data_enum.Entity.User">
+<code class="sig-name descname">User</code><em class="property"> = 'User'</em><a class="headerlink" href="#pyinventory.common.data_enum.Entity.User" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyinventory.common.data_format">
+<span id="pyinventory-common-data-format-module"></span><h2>pyinventory.common.data_format module<a class="headerlink" href="#module-pyinventory.common.data_format" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="pyinventory.common.data_format.format_to_property_definition">
+<code class="sig-prename descclassname">pyinventory.common.data_format.</code><code class="sig-name descname">format_to_property_definition</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">property_type_fragment</span><span class="p">:</span> <span class="n">pyinventory.graphql.fragment.property_type.PropertyTypeFragment</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><a class="headerlink" href="#pyinventory.common.data_format.format_to_property_definition" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets <cite>pyinventory.graphql.fragment.property_type.PropertyTypeFragment</cite> object as argument and formats it to <cite>pyinventory.common.data_class.PropertyDefinition</cite> object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>property_type_fragment</strong> (<cite>pyinventory.graphql.fragment.property_type.PropertyTypeFragment</cite>) – existing property type fragment object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><cite>pyinventory.common.data_class.PropertyDefinition</cite> object</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><a href="#id77"><span class="problematic" id="id78">``</span></a>`
+property_definition = format_to_property_definition(</p>
+<blockquote>
+<div><p>property_type_fragment=property_type_fragment,</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyinventory.common.data_format.format_to_property_definitions">
+<code class="sig-prename descclassname">pyinventory.common.data_format.</code><code class="sig-name descname">format_to_property_definitions</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span>pyinventory.graphql.fragment.property_type.PropertyTypeFragment<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span><a class="headerlink" href="#pyinventory.common.data_format.format_to_property_definitions" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets Sequence[ <cite>pyinventory.graphql.fragment.property_type.PropertyTypeFragment</cite> ] as argument and formats it to Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (Sequence[ <cite>pyinventory.graphql.fragment.property_type.PropertyTypeFragment</cite> ]) – existing property type fragments sequence</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><a href="#id79"><span class="problematic" id="id80">``</span></a>`
+property_definitions = format_to_property_definitions(</p>
+<blockquote>
+<div><p>data=property_type_fragments,</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyinventory.common.data_format.format_to_property_type_input">
+<code class="sig-prename descclassname">pyinventory.common.data_format.</code><code class="sig-name descname">format_to_property_type_input</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">property_definition</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a></span></em>, <em class="sig-param"><span class="n">is_new</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; pyinventory.graphql.input.property_type.PropertyTypeInput<a class="headerlink" href="#pyinventory.common.data_format.format_to_property_type_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets <cite>pyinventory.common.data_class.PropertyDefinition</cite> object as argument and formats it to <cite>pyinventory.graphql.input.property_type.PropertyTypeInput</cite> object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>property_definition</strong> (<cite>pyinventory.graphql.input.property_type.PropertyTypeInput</cite>) – existing property definition object</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><cite>pyinventory.graphql.input.property_type.PropertyTypeInput</cite> object</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><a href="#id81"><span class="problematic" id="id82">``</span></a>`
+property_type_input = format_to_property_type_input(</p>
+<blockquote>
+<div><p>property_definition=property_definition,</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyinventory.common.data_format.format_to_property_type_inputs">
+<code class="sig-prename descclassname">pyinventory.common.data_format.</code><code class="sig-name descname">format_to_property_type_inputs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">Sequence<span class="p">[</span><a class="reference internal" href="#pyinventory.common.data_class.PropertyDefinition" title="pyinventory.common.data_class.PropertyDefinition">pyinventory.common.data_class.PropertyDefinition</a><span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>pyinventory.graphql.input.property_type.PropertyTypeInput<span class="p">]</span><a class="headerlink" href="#pyinventory.common.data_format.format_to_property_type_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function gets Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ] as argument and formats it to Sequence[ <cite>pyinventory.graphql.input.property_type.PropertyTypeInput</cite> ]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (Sequence[ <cite>pyinventory.common.data_class.PropertyDefinition</cite> ]) – existing property definitions sequence</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sequence[ <cite>pyinventory.graphql.input.property_type.PropertyTypeInput</cite> ]</p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<p><a href="#id83"><span class="problematic" id="id84">``</span></a>`
+property_type_inputs = format_to_property_type_inputs(</p>
+<blockquote>
+<div><p>data=property_type_definitions,</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pyinventory.common">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pyinventory.common" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+              <div class="related bottom">
+                &nbsp;
+  <nav id="rellinks">
+    <ul>
+        <li>
+          &larr;
+          <a href="pyinventory.api.html" title="Previous document">pyinventory.api package</a>
+        </li>
+    </ul>
+  </nav>
+              </div>
+          
+        </div>
+      </div>
+    <div class="clearer"></div>
+  </div>
+    <div class="footer">
+      &copy;2020, Symphony.
+      
+      |
+      <a href="_sources/pyinventory.common.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

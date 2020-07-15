@@ -17,6 +17,15 @@ event_registry:
   session_created:
     module: lte
     filename: session_manager_events.v1.yml
+  session_create_failure:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_updated:
+    module: lte
+    filename: session_manager_events.v1.yml
+  session_update_failure:
+    module: lte
+    filename: session_manager_events.v1.yml
   session_terminated:
     module: lte
     filename: session_manager_events.v1.yml

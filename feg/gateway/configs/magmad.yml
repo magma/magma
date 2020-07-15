@@ -49,7 +49,7 @@ upgrader_factory:
   module: magma.magmad.upgrade.docker_upgrader
   class: DockerUpgraderFactory
   gateway_module: feg
-  use_proxy: True
+  use_proxy: False
 
 mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2

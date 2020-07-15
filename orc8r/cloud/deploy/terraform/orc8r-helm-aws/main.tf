@@ -45,8 +45,6 @@ resource "helm_release" "orc8r" {
     nms_certs_secret = var.deploy_nms ? kubernetes_secret.nms_certs.0.metadata.0.name : kubernetes_secret.orc8r_certs.metadata.0.name
 
     controller_replicas = var.orc8r_controller_replicas
-    proxy_replicas      = var.orc8r_proxy_replicas
-    create_nginx        = var.use_nginx_proxy
     nginx_replicas      = var.orc8r_proxy_replicas
 
     controller_hostname = format("controller.%s", var.orc8r_domain_name)

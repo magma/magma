@@ -26,9 +26,16 @@ import useFilterBookmarks from '../comparison_view/hooks/filterBookmarksHook';
 import useLocationTypes from '../comparison_view/hooks/locationTypesHook';
 import useRouter from '@fbcnms/ui/hooks/useRouter';
 import {InventoryAPIUrls} from '../../common/InventoryAPI';
-import {WorkOrderSearchConfig} from './WorkOrderSearchConfig';
+import {
+  WORK_ORDER_FILTERS,
+  WorkOrderSearchConfig,
+} from './WorkOrderSearchConfig';
+import {doneStatus, statusValues} from '../../common/WorkOrder';
 import {extractEntityIdFromUrl} from '../../common/RouterUtils';
-import {getInitialFilterValue} from '../comparison_view/FilterUtils';
+import {
+  getInitialFilterValue,
+  getPredefinedFilterSetWithValues,
+} from '../comparison_view/FilterUtils';
 import {makeStyles} from '@material-ui/styles';
 
 const useStyles = makeStyles(() => ({
@@ -54,8 +61,20 @@ const useStyles = makeStyles(() => ({
 
 const QUERY_LIMIT = 100;
 
+const selectedStatusValues = statusValues
+  .filter(status => status.key !== doneStatus.key)
+  .map(status => status.value);
+
+// For additional default filters, just create another variable
+// and add it to the initial state array
+const defaultStatusFilter = getPredefinedFilterSetWithValues(
+  WORK_ORDER_FILTERS.STATUS,
+  WorkOrderSearchConfig,
+  selectedStatusValues,
+);
+
 const WorkOrderComparisonView = () => {
-  const [filters, setFilters] = useState([]);
+  const [filters, setFilters] = useState([defaultStatusFilter]);
   const [dialogKey, setDialogKey] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [resultsDisplayMode, setResultsDisplayMode] = useState(

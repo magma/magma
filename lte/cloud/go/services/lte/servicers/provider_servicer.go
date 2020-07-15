@@ -39,6 +39,8 @@ func (s *lteStreamProviderServicer) GetUpdates(ctx context.Context, req *protos.
 		streamer = &policydb_streamer.RuleMappingsProvider{}
 	case lte.NetworkWideRulesStreamName:
 		streamer = &policydb_streamer.NetworkWideRulesProvider{}
+	case lte.RatingGroupStreamName:
+		streamer = &policydb_streamer.RatingGroupsProvider{}
 	default:
 		return nil, fmt.Errorf("GetUpdates failed: unknown stream name provided: %s", req.GetStreamName())
 	}

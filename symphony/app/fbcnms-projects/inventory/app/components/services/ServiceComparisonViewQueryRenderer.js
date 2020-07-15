@@ -49,7 +49,7 @@ const serviceSearchQuery = graphql`
     $limit: Int
     $filters: [ServiceFilterInput!]!
   ) {
-    services(first: $limit, filters: $filters) {
+    services(first: $limit, filterBy: $filters) {
       edges {
         node {
           ...ServicesView_service

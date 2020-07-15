@@ -46,81 +46,10 @@ secret:
     orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
-proxy:
-  # Configure pod disruption budgets for proxy
-  # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
-  podDisruptionBudget:
-    enabled: false
-    minAvailable: 1
-    maxUnavailable: ""
-
-  # Service configuration.
-  service:
-    enabled: true
-    legacyEnabled: true
-    name: bootstrapper-orc8r-proxy
-    annotations: {}
-    extraAnnotations:
-      bootstrapLagacy: {}
-      clientcertLegacy: {}
-      proxy: {}
-    labels: {}
-    type: ClusterIP
-    port:
-      clientcert:
-        port: 9443
-        targetPort: 9443
-        nodePort: ""
-      open:
-        port: 9444
-        targetPort: 9444
-        nodePort: ""
-    loadBalancerIP: ""
-    loadBalancerSourceRanges: []
-
-  # proxy image
-  image:
-    repository:
-    tag: latest
-    pullPolicy: IfNotPresent
-
-  # Settings affecting proxy application
-  spec:
-    # magma controller domain name
-    hostname: ""
-    http_proxy_hostname: ""
-    http_proxy_backend: ""
-    http_proxy_docker_hostname: ""
-    http_proxy_github_hostname: ""
-
-  # Number of proxy replicas desired
-  replicas: 1
-
-  # Resource limits & requests
-  resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  tolerations: []
-
-  # Assign proxy to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
-
 nginx:
-  create: false
+  create: true
 
-  # Configure pod disruption budgets for proxy
+  # Configure pod disruption budgets for nginx
   # ref: https://kubernetes.io/docs/tasks/run-application/configure-pdb/#specifying-a-poddisruptionbudget
   podDisruptionBudget:
     enabled: false
@@ -159,13 +88,13 @@ nginx:
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
 
-  # proxy image
+  # nginx image
   image:
     repository:
     tag: latest
     pullPolicy: IfNotPresent
 
-  # Settings affecting proxy application
+  # Settings affecting nginx application
   spec:
     # magma controller domain name
     hostname: ""
@@ -173,7 +102,7 @@ nginx:
     # by default we'll use kube-dns
     resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
 
-  # Number of proxy replicas desired
+  # Number of nginx replicas desired
   replicas: 1
 
   # Resource limits & requests
@@ -193,7 +122,7 @@ nginx:
   # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
 
-  # Assign proxy to run on specific nodes
+  # Assign nginx to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 

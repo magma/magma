@@ -27,9 +27,10 @@ import (
 )
 
 const (
-	Events         = "events"
-	EventsRootPath = obsidian.V1Root + Events + obsidian.UrlSep + ":" + pathParamNetworkID
-	EventsPath     = EventsRootPath + obsidian.UrlSep + ":" + pathParamStreamName
+	Events          = "events"
+	EventsRootPath  = obsidian.V1Root + Events + obsidian.UrlSep + ":" + pathParamNetworkID
+	EventsPath      = EventsRootPath + obsidian.UrlSep + ":" + pathParamStreamName
+	EventsCountPath = EventsRootPath + obsidian.UrlSep + "about" + obsidian.UrlSep + "count"
 
 	pathParamStreamName  = "stream_name"
 	pathParamNetworkID   = "network_id"
@@ -64,6 +65,12 @@ func GetMultiStreamEventsHandler(client *elastic.Client) func(c echo.Context) er
 	}
 }
 
+func GetEventCountHandler(client *elastic.Client) func(c echo.Context) error {
+	return func(c echo.Context) error {
+		return EventCountHandler(c, client)
+	}
+}
+
 // MultiStreamEventsHandler exposes more query options than EventsHandler,
 // primarily the ability to query across multiple streams and tags.
 // This handler will also accept an optional query size limit and offset for
@@ -82,6 +89,23 @@ func MultiStreamEventsHandler(c echo.Context, client *elastic.Client) error {
 		Sort(elasticFilterTimestamp, false).
 		Query(query)
 	return doSearch(c, search)
+}
+
+func EventCountHandler(c echo.Context, client *elastic.Client) error {
+	params, err := getMultiStreamQueryParameters(c)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	query := params.toElasticBoolQuery()
+	result, err := client.Count().
+		Index("eventd*").
+		Query(query).
+		Do(c.Request().Context())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, result)
 }
 
 // EventsHandler handles event querying using ES

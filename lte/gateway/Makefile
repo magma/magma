@@ -5,7 +5,6 @@ GRPC_CPP_PLUGIN_PATH ?= `which grpc_cpp_plugin`
 BUILD_TYPE ?= Debug
 
 OAI_FLAGS = -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True
-FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
 TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
@@ -13,12 +12,6 @@ all: build
 build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
 
 test: test_python test_oai test_session_manager ## Run all tests
-
-# Requires install of afl from http://lcamtuf.coredump.cx/afl/
-fuzz: build_fuzz ## Fuzz test
-	mkdir -p ~/fuzz/input ~/fuzz/output && \
-	echo "testtest" > ~/fuzz/input/sample1 && \
-	afl-fuzz -i ~/fuzz/input/ -o ~/fuzz/output/ -m 300M ~/build/c/oai_fuzz/oai_fuzz/oai_fuzz nas
 
 clean: clean_python  ## Clean all builds
 	rm -rf $(C_BUILD)
@@ -85,10 +78,6 @@ build_oai: build_common ## Build OAI
 
 build_sctpd: build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
-
-# Requires install of afl from http://lcamtuf.coredump.cx/afl/
-build_fuzz: ## Build fuzz tool
-	$(call run_cmake, $(C_BUILD)/oai_fuzz, $(GATEWAY_C_DIR)/oai, $(FUZZ_FLAGS), CC=afl-gcc CXX=afl-g++ AFL_USE_ASAN=1)
 
 build_session_manager: build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )

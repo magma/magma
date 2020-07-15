@@ -85,12 +85,9 @@ const useStyles = makeStyles(theme => ({
   appBarBtnSecondary: {
     color: colors.primary.white,
   },
-  // TODO: remove this when we actually fill out the grid sections
-  contentPlaceholder: {
-    padding: '50px 0',
-  },
   paper: {
     textAlign: 'center',
+    padding: theme.spacing(10),
   },
 }));
 

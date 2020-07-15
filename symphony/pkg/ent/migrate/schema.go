@@ -1633,6 +1633,16 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{WorkOrdersColumns[10]},
 			},
+			{
+				Name:    "workorder_create_time",
+				Unique:  false,
+				Columns: []*schema.Column{WorkOrdersColumns[1]},
+			},
+			{
+				Name:    "workorder_update_time",
+				Unique:  false,
+				Columns: []*schema.Column{WorkOrdersColumns[2]},
+			},
 		},
 	}
 	// WorkOrderDefinitionsColumns holds the columns for the "work_order_definitions" table.

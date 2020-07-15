@@ -40,11 +40,12 @@ class SessionManagerHandlerTest : public ::testing::Test {
     auto directoryd_client = std::make_shared<MockDirectorydClient>();
     auto spgw_client       = std::make_shared<MockSpgwServiceClient>();
     auto aaa_client        = std::make_shared<MockAAAClient>();
+    events_reporter        = std::make_shared<MockEventsReporter>();
     auto default_mconfig   = get_default_mconfig();
     local_enforcer         = std::make_shared<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, MockEventdClient::getInstance(), spgw_client,
-        aaa_client, 0, 0, default_mconfig);
+        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
+        default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
@@ -56,7 +57,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map_ = SessionMap{};
 
     session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-        local_enforcer, reporter.get(), directoryd_client, *session_store);
+        local_enforcer, reporter.get(), directoryd_client,
+        events_reporter, *session_store);
   }
 
   void insert_static_rule(
@@ -79,6 +81,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<LocalEnforcer> local_enforcer;
+  std::shared_ptr<MockEventsReporter> events_reporter;
   SessionIDGenerator id_gen_;
   folly::EventBase* evb;
   SessionMap session_map_;
@@ -242,6 +245,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
 
   SessionRead req  = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
+  EXPECT_CALL(*events_reporter, session_created(testing::_)).Times(1);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
   bool write_success =
       session_store->create_sessions(imsi, std::move(session_map[imsi]));

@@ -1,5 +1,5 @@
 query EquipmentSearchQuery($filters: [EquipmentFilterInput!]!, $limit: Int) {
-  equipments(filters: $filters, first: $limit) {
+  equipments(filterBy: $filters, first: $limit) {
     edges {
       node {
         ...EquipmentFragment

@@ -19,7 +19,7 @@ from ..input.location_filter import LocationFilterInput
 
 QUERY: List[str] = LocationFragmentQuery + ["""
 query LocationSearchQuery($filters: [LocationFilterInput!]!, $limit: Int) {
-  locations(filters: $filters, first: $limit) {
+  locations(filterBy: $filters, first: $limit) {
     edges {
       node {
         ...LocationFragment

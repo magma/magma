@@ -103,7 +103,7 @@ void mme_app_send_delete_session_request(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

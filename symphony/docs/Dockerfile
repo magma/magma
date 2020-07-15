@@ -20,5 +20,9 @@ RUN apk add --no-cache curl
 # copy build artifacts
 COPY --from=builder /src/website/build/docs /www/data
 
+RUN rm -rf www/data/pyinventory/*
+
+COPY website/static/pyinventory www/data/pyinventory/
+
 # copy nginx config
 COPY nginx/default.nginx /etc/nginx/conf.d/default.conf

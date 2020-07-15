@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash d5dd56bd591d1e07063af19b13aa901b
+ * @relayHash 2d4b82c7420e4e1ff0c8789e8a4c5691
  */
 
 /* eslint-disable */
@@ -72,7 +72,7 @@ export type EquipmentTypeahead_equipmentQuery = {|
 query EquipmentTypeahead_equipmentQuery(
   $filters: [EquipmentFilterInput!]!
 ) {
-  equipments(first: 10, filters: $filters) {
+  equipments(first: 10, filterBy: $filters) {
     edges {
       node {
         id
@@ -101,7 +101,7 @@ v1 = [
     "args": [
       {
         "kind": "Variable",
-        "name": "filters",
+        "name": "filterBy",
         "variableName": "filters"
       },
       {
@@ -172,11 +172,11 @@ return {
     "operationKind": "query",
     "name": "EquipmentTypeahead_equipmentQuery",
     "id": null,
-    "text": "query EquipmentTypeahead_equipmentQuery(\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipments(first: 10, filters: $filters) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query EquipmentTypeahead_equipmentQuery(\n  $filters: [EquipmentFilterInput!]!\n) {\n  equipments(first: 10, filterBy: $filters) {\n    edges {\n      node {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '2cdeaea36c041326380f7dfcdde45112';
+(node/*: any*/).hash = 'ae7478b94317b7281e0a0a3b7d9be648';
 module.exports = node;

@@ -162,7 +162,7 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
   SGSAP_UE_ACTIVITY_IND(message_p).imsi[imsi_len] = '\0';
   SGSAP_UE_ACTIVITY_IND(message_p).imsi_length = imsi_len;
   if (
-    (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)) ==
+    (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)) ==
     RETURNok) {
     OAILOG_DEBUG(
       LOG_MME_APP,
@@ -274,7 +274,7 @@ static int _build_sgs_status(
       MOBILE_IDENTITY;
   }
   //Send STATUS message to SGS task
-  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -529,7 +529,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p)
 
   // Send SGSAP Location Update Request to SGS task
   if (
-    (itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p)) !=
+    (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p)) !=
     RETURNok) {
     OAILOG_ERROR(
       LOG_MME_APP,

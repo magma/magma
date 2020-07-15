@@ -57,79 +57,88 @@
 static void sctp_exit(void);
 
 sctp_config_t sctp_conf;
+task_zmq_ctx_t sctp_task_zmq_ctx;
 
-//------------------------------------------------------------------------------
-static void* sctp_intertask_interface(__attribute__((unused)) void* args_p)
+static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 {
-  itti_mark_task_ready(TASK_SCTP);
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
-  while (1) {
-    MessageDef* recv_msg;
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case SCTP_INIT_MSG: {
+      OAILOG_DEBUG(LOG_SCTP, "Received SCTP_INIT_MSG\n");
 
-    itti_receive_msg(TASK_SCTP, &recv_msg);
+      if (start_sctpd_uplink_server() < 0) {
+        Fatal("Failed to start sctpd uplink server\n");
+      }
 
-    switch (ITTI_MSG_ID(recv_msg)) {
-      case SCTP_INIT_MSG: {
-        OAILOG_DEBUG(LOG_SCTP, "Received SCTP_INIT_MSG\n");
+      if (sctpd_init(&received_message_p->ittiMsg.sctpInit) < 0) {
+        Fatal("Failed to init sctpd\n");
+      }
 
-        if (start_sctpd_uplink_server() < 0) {
-          Fatal("Failed to start sctpd uplink server\n");
-        }
+      MessageDef* msg;
 
-        if (sctpd_init(&recv_msg->ittiMsg.sctpInit) < 0) {
-          Fatal("Failed to init sctpd\n");
-        }
+      msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
+      SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
 
-        MessageDef* msg;
+      send_msg_to_task(&sctp_task_zmq_ctx, TASK_MME_APP, msg);
+    } break;
 
-        msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
-        SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
+    case SCTP_CLOSE_ASSOCIATION: {
+    } break;
 
-        itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, msg);
-      } break;
+    case SCTP_DATA_REQ: {
+      uint32_t assoc_id = SCTP_DATA_REQ(received_message_p).assoc_id;
+      uint16_t stream = SCTP_DATA_REQ(received_message_p).stream;
+      bstring payload = SCTP_DATA_REQ(received_message_p).payload;
 
-      case SCTP_CLOSE_ASSOCIATION: {
-      } break;
+      if (sctpd_send_dl(assoc_id, stream, payload) < 0) {
+        sctp_itti_send_lower_layer_conf(
+          received_message_p->ittiMsgHeader.originTaskId,
+          assoc_id,
+          stream,
+          SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id,
+          false);
+      }
+    } break;
 
-      case SCTP_DATA_REQ: {
-        uint32_t assoc_id = SCTP_DATA_REQ(recv_msg).assoc_id;
-        uint16_t stream = SCTP_DATA_REQ(recv_msg).stream;
-        bstring payload = SCTP_DATA_REQ(recv_msg).payload;
+    case MESSAGE_TEST: {
+      OAI_FPRINTF_INFO("TASK_SCTP received MESSAGE_TEST\n");
+    } break;
+    case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      sctp_exit();
+    } break;
 
-        if (sctpd_send_dl(assoc_id, stream, payload) < 0) {
-          sctp_itti_send_lower_layer_conf(
-            recv_msg->ittiMsgHeader.originTaskId,
-            assoc_id,
-            stream,
-            SCTP_DATA_REQ(recv_msg).mme_ue_s1ap_id,
-            false);
-        }
-      } break;
-
-      case MESSAGE_TEST: {
-        OAI_FPRINTF_INFO("TASK_SCTP received MESSAGE_TEST\n");
-      } break;
-
-      case TERMINATE_MESSAGE: {
-        sctp_exit();
-        itti_free_msg_content(recv_msg);
-        itti_free(ITTI_MSG_ORIGIN_ID(recv_msg), recv_msg);
-        itti_exit_task();
-      } break;
-
-      default: {
-        OAILOG_DEBUG(
-          LOG_SCTP,
-          "Unkwnon message ID %d:%s\n",
-          ITTI_MSG_ID(recv_msg),
-          ITTI_MSG_NAME(recv_msg));
-      } break;
-    }
-
-    itti_free_msg_content(recv_msg);
-    itti_free(ITTI_MSG_ORIGIN_ID(recv_msg), recv_msg);
+    default: {
+      OAILOG_DEBUG(
+        LOG_SCTP,
+        "Unkwnon message ID %d:%s\n",
+        ITTI_MSG_ID(received_message_p),
+        ITTI_MSG_NAME(received_message_p));
+    } break;
   }
 
+  itti_free_msg_content(received_message_p);
+  zframe_destroy(&msg_frame);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static void* sctp_thread(__attribute__((unused)) void* args_p)
+{
+  itti_mark_task_ready(TASK_SCTP);
+  init_task_context(
+      TASK_SCTP,
+      (task_id_t []) {TASK_MME_APP, TASK_S1AP},
+      2,
+      handle_message,
+      &sctp_task_zmq_ctx);
+
+  zloop_start(sctp_task_zmq_ctx.event_loop);
+  sctp_exit();
   return NULL;
 }
 
@@ -141,7 +150,7 @@ int sctp_init(const mme_config_t* mme_config_p)
     OAILOG_ERROR(LOG_SCTP, "failed to init sctpd downlink client\n");
   }
 
-  if (itti_create_task(TASK_SCTP, &sctp_intertask_interface, NULL) < 0) {
+  if (itti_create_task(TASK_SCTP, &sctp_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_SCTP, "create task failed\n");
     OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: FAILED\n");
     return -1;
@@ -153,6 +162,8 @@ int sctp_init(const mme_config_t* mme_config_p)
 
 static void sctp_exit(void)
 {
+  destroy_task_context(&sctp_task_zmq_ctx);
   stop_sctpd_uplink_server();
   OAI_FPRINTF_INFO("TASK_SCTP terminated\n");
+  pthread_exit(NULL);
 }
