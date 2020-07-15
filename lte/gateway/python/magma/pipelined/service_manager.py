@@ -412,8 +412,8 @@ class ServiceManager:
         for each static service.
         """
         static_services = self._magma_service.config['static_services']
-        non_nat_enabled = self._magma_service.config.get('non_nat', False)
-        if non_nat_enabled is True:
+        nat_enabled = self._magma_service.config.get('nat_enabled', False)
+        if nat_enabled is False:
             static_services.append(self.__class__.UPLINK_BRIDGE_NAME)
             logging.info("added uplink bridge controller")
 
