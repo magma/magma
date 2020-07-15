@@ -645,6 +645,32 @@ func (epgb *EquipmentPositionGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (epgb *EquipmentPositionGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = epgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (epgb *EquipmentPositionGroupBy) StringX(ctx context.Context) string {
+	v, err := epgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (epgb *EquipmentPositionGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(epgb.fields) > 1 {
@@ -660,6 +686,32 @@ func (epgb *EquipmentPositionGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (epgb *EquipmentPositionGroupBy) IntsX(ctx context.Context) []int {
 	v, err := epgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (epgb *EquipmentPositionGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = epgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (epgb *EquipmentPositionGroupBy) IntX(ctx context.Context) int {
+	v, err := epgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -687,6 +739,32 @@ func (epgb *EquipmentPositionGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (epgb *EquipmentPositionGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = epgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (epgb *EquipmentPositionGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := epgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (epgb *EquipmentPositionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(epgb.fields) > 1 {
@@ -702,6 +780,32 @@ func (epgb *EquipmentPositionGroupBy) Bools(ctx context.Context) ([]bool, error)
 // BoolsX is like Bools, but panics if an error occurs.
 func (epgb *EquipmentPositionGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := epgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (epgb *EquipmentPositionGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = epgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (epgb *EquipmentPositionGroupBy) BoolX(ctx context.Context) bool {
+	v, err := epgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -775,6 +879,32 @@ func (eps *EquipmentPositionSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (eps *EquipmentPositionSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = eps.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (eps *EquipmentPositionSelect) StringX(ctx context.Context) string {
+	v, err := eps.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (eps *EquipmentPositionSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(eps.fields) > 1 {
@@ -790,6 +920,32 @@ func (eps *EquipmentPositionSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (eps *EquipmentPositionSelect) IntsX(ctx context.Context) []int {
 	v, err := eps.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (eps *EquipmentPositionSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = eps.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (eps *EquipmentPositionSelect) IntX(ctx context.Context) int {
+	v, err := eps.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -817,6 +973,32 @@ func (eps *EquipmentPositionSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (eps *EquipmentPositionSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = eps.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (eps *EquipmentPositionSelect) Float64X(ctx context.Context) float64 {
+	v, err := eps.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (eps *EquipmentPositionSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(eps.fields) > 1 {
@@ -832,6 +1014,32 @@ func (eps *EquipmentPositionSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (eps *EquipmentPositionSelect) BoolsX(ctx context.Context) []bool {
 	v, err := eps.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (eps *EquipmentPositionSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = eps.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{equipmentposition.Label}
+	default:
+		err = fmt.Errorf("ent: EquipmentPositionSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (eps *EquipmentPositionSelect) BoolX(ctx context.Context) bool {
+	v, err := eps.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

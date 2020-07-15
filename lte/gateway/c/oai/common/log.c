@@ -56,7 +56,6 @@
 
 #include "intertask_interface.h"
 #include "log.h"
-#include "timer.h"
 #include "shared_ts_log.h"
 #include "assertions.h"
 #include "dynamic_memory_check.h"
@@ -64,7 +63,6 @@
 #include "hashtable.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "timer_messages_types.h"
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -75,11 +73,8 @@
 #define LOG_MAX_PROTO_NAME_LENGTH 16
 #define LOG_MESSAGE_MIN_ALLOC_SIZE 256
 
-#define LOG_CONNECT_PERIOD_SEC 2
-#define LOG_CONNECT_PERIOD_MICRO_SEC 0
-
-#define LOG_FLUSH_PERIOD_SEC 0
-#define LOG_FLUSH_PERIOD_MICRO_SEC 50000
+#define LOG_CONNECT_PERIOD_MSEC 2000
+#define LOG_FLUSH_PERIOD_MSEC 50
 
 #define LOG_DISPLAYED_FILENAME_MAX_LENGTH 32
 #define LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH 5
@@ -176,8 +171,11 @@ static oai_log_t g_oai_log = {
 
 static void log_connect_to_server(void);
 static void log_message_finish_sync(log_queue_item_t *messageP);
-
+static void log_exit(void);
 void log_message_finish_async(struct shared_log_queue_item_s *messageP);
+
+task_zmq_ctx_t log_task_zmq_ctx;
+static int timer_id = -1;
 
 //------------------------------------------------------------------------------
 static log_queue_item_t *new_queue_item(void)
@@ -305,83 +303,63 @@ static void get_thread_context(log_thread_ctxt_t **thread_ctxt)
   }
 }
 
-//------------------------------------------------------------------------------
-static void *log_task(__attribute__((unused)) void *args_p)
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
 {
-  MessageDef *received_message_p = NULL;
-  long timer_id = 0;
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
-  itti_mark_task_ready(TASK_LOG);
-  _LOG_START_USE();
-  timer_setup(
-    LOG_FLUSH_PERIOD_SEC,
-    LOG_FLUSH_PERIOD_MICRO_SEC,
-    TASK_LOG,
-    INSTANCE_DEFAULT,
-    TIMER_ONE_SHOT,
-    NULL,
-    0,
-    &timer_id);
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case TERMINATE_MESSAGE: {
+      zframe_destroy(&msg_frame);
+      log_exit();
+    } break;
 
-  while (1) {
-    itti_receive_msg(TASK_LOG, &received_message_p);
-
-    if (received_message_p != NULL) {
-      switch (ITTI_MSG_ID(received_message_p)) {
-        case TIMER_HAS_EXPIRED: {
-          if (!timer_exists(
-                received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-            break;
-          }
-          // if tcp logging is enabled
-          if (LOG_TCP_STATE_NOT_CONNECTED == g_oai_log.tcp_state) {
-            log_connect_to_server();
-            timer_setup(
-              LOG_CONNECT_PERIOD_SEC,
-              LOG_CONNECT_PERIOD_MICRO_SEC,
-              TASK_LOG,
-              INSTANCE_DEFAULT,
-              TIMER_ONE_SHOT,
-              NULL,
-              0,
-              &timer_id);
-          } else {
-            //log_flush_messages ();
-            timer_setup(
-              LOG_FLUSH_PERIOD_SEC,
-              LOG_FLUSH_PERIOD_MICRO_SEC,
-              TASK_LOG,
-              INSTANCE_DEFAULT,
-              TIMER_ONE_SHOT,
-              NULL,
-              0,
-              &timer_id);
-          }
-          timer_handle_expired(
-            received_message_p->ittiMsg.timer_has_expired.timer_id);
-        } break;
-
-        case TERMINATE_MESSAGE: {
-          timer_remove(timer_id, NULL);
-          log_exit();
-          MessageDef *terminate_message_p =
-            itti_alloc_new_message(TASK_LOG, TERMINATE_MESSAGE);
-          itti_send_msg_to_task(
-            TASK_SHARED_TS_LOG, INSTANCE_DEFAULT, terminate_message_p);
-          itti_exit_task();
-        } break;
-
-        default: {
-        } break;
-      }
-      // Freeing the memory allocated from the memory pool
-      itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-
-      received_message_p = NULL;
-    }
+    default: {
+    } break;
   }
 
-  OAI_FPRINTF_ERR("Task Log exiting\n");
+  zframe_destroy(&msg_frame);
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static int handle_timer(zloop_t* loop, int id, void* arg)
+{
+  timer_id = -1;
+  if (LOG_TCP_STATE_NOT_CONNECTED == g_oai_log.tcp_state) {
+    log_connect_to_server();
+    timer_id = start_timer(
+        &log_task_zmq_ctx, LOG_CONNECT_PERIOD_MSEC, TIMER_REPEAT_ONCE,
+        handle_timer, NULL);
+  } else {
+    //log_flush_messages ();
+    timer_id = start_timer(
+        &log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC, TIMER_REPEAT_ONCE,
+        handle_timer, NULL);
+  }
+  return 0;
+}
+
+//------------------------------------------------------------------------------
+static void* log_thread(__attribute__((unused)) void* args_p)
+{
+  itti_mark_task_ready(TASK_LOG);
+  init_task_context(
+      TASK_LOG,
+      (task_id_t []) {},
+      0,
+      handle_message,
+      &log_task_zmq_ctx);
+
+  timer_id = start_timer(
+      &log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC, TIMER_REPEAT_ONCE, handle_timer,
+      NULL);
+
+  _LOG_START_USE();
+
+  zloop_start(log_task_zmq_ctx.event_loop);
+  log_exit();
   return NULL;
 }
 
@@ -865,7 +843,7 @@ void log_itti_connect(void)
 {
   if (g_oai_log.is_async) {
     int rv = 0;
-    rv = itti_create_task(TASK_LOG, log_task, NULL);
+    rv = itti_create_task(TASK_LOG, &log_thread, NULL);
     AssertFatal(rv == 0, "Create task for OAI logging failed!\n");
   }
 }
@@ -903,15 +881,15 @@ void log_flush_message(struct shared_log_queue_item_s *item_p)
 }
 
 //------------------------------------------------------------------------------
-void log_exit(void)
+static void log_exit(void)
 {
-  int rv = 0;
-
   assert(g_oai_log.is_async);
 
   OAI_FPRINTF_INFO("[TRACE] Entering %s\n", __FUNCTION__);
+  stop_timer(&log_task_zmq_ctx, timer_id);
+  destroy_task_context(&log_task_zmq_ctx);
   if (g_oai_log.log_fd) {
-    rv = fflush(g_oai_log.log_fd);
+    int rv = fflush(g_oai_log.log_fd);
 
     if (rv != 0) {
       OAI_FPRINTF_ERR(
@@ -931,6 +909,9 @@ void log_exit(void)
   bdestroy_wrapper(&g_oai_log.bserver_address);
   bdestroy_wrapper(&g_oai_log.bserver_port);
   OAI_FPRINTF_INFO("[TRACE] Leaving %s\n", __FUNCTION__);
+
+  OAI_FPRINTF_INFO("TASK_LOG terminated\n");
+  pthread_exit(NULL);
 }
 //------------------------------------------------------------------------------
 static void log_stream_hex_sync(

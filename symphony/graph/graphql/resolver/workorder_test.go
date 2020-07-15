@@ -568,7 +568,7 @@ func TestFetchWorkOrders(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	types, err := qr.WorkOrders(ctx, nil, nil, nil, nil, nil)
+	types, err := qr.WorkOrders(ctx, nil, nil, nil, nil, nil, nil)
 	require.NoError(t, err)
 	assert.Len(t, types.Edges, 2)
 }
@@ -1536,14 +1536,18 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 			},
 		},
 	})
-	require.Error(t, err, "Editing  work order type instance with missing default values for mandatory properties")
+	require.NoError(t, err)
 
 	latlongProp := models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
 		LatitudeValue:  pointer.ToFloat64(32.6),
 		LongitudeValue: pointer.ToFloat64(34.7),
 	}
-	propInputs := []*models.PropertyInput{&latlongProp}
+	textProp := models.PropertyInput{
+		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("textMandatory")).OnlyXID(ctx),
+		StringValue:    pointer.ToString("Value"),
+	}
+	propInputs := []*models.PropertyInput{&latlongProp, &textProp}
 	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            "location_name_3",
 		WorkOrderTypeID: woType.ID,

@@ -122,4 +122,4 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
-{{ toYaml .Values.proxy.resources | indent 12 }}
+{{ toYaml .Values.controller.resources | indent 12 }}

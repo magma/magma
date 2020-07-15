@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -146,10 +146,10 @@ int s6a_pua_cb(
 
     /*
      * 0th bit, when set, shall indicate to the MME that the M-TMSI
-     * * * * needs to be frozen 
+     * * * * needs to be frozen
      * 1st bit, when set, shall indicate to the SGSN that the P-TMSI
      * * * * needs to be frozen
-     * * * * Currently ULA flags are not used 
+     * * * * Currently ULA flags are not used
      */
     if (FLAG_IS_SET(hdr_p->avp_value->u32, PUA_FREEZE_M_TMSI)) {
       s6a_purge_ue_ans_p->freeze_m_tmsi = true;
@@ -172,7 +172,7 @@ int s6a_pua_cb(
 
 err:
   ans_p = NULL;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_PURGE_UE_ANS to task MME_APP\n");
   return RETURNok;
 }

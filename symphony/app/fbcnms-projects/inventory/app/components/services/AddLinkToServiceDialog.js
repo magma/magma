@@ -89,7 +89,7 @@ const steps = ['Select Equipment', 'Select Link'];
 
 const addLinkToServiceDialogQuery = graphql`
   query AddLinkToServiceDialogQuery($filters: [LinkFilterInput!]!) {
-    links(filters: $filters, first: 50) {
+    links(filterBy: $filters, first: 50) {
       edges {
         node {
           id

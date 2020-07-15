@@ -142,10 +142,12 @@ func GetObsidianHandlers() []obsidian.Handler {
 			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 			ret = append(ret, obsidian.Handler{Path: eventdh.EventsRootPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 			ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
+			ret = append(ret, obsidian.Handler{Path: eventdh.EventsCountPath, Methods: obsidian.GET, HandlerFunc: getInitErrorHandler(err)})
 		} else {
 			ret = append(ret, obsidian.Handler{Path: LogSearchQueryPath, Methods: obsidian.GET, HandlerFunc: GetQueryLogHandler(client)})
 			ret = append(ret, obsidian.Handler{Path: LogCountQueryPath, Methods: obsidian.GET, HandlerFunc: GetCountLogHandler(client)})
 			ret = append(ret, obsidian.Handler{Path: eventdh.EventsRootPath, Methods: obsidian.GET, HandlerFunc: eventdh.GetMultiStreamEventsHandler(client)})
+			ret = append(ret, obsidian.Handler{Path: eventdh.EventsCountPath, Methods: obsidian.GET, HandlerFunc: eventdh.GetEventCountHandler(client)})
 			ret = append(ret, obsidian.Handler{Path: eventdh.EventsPath, Methods: obsidian.GET, HandlerFunc: eventdh.GetEventsHandler(client)})
 		}
 	}

@@ -641,6 +641,32 @@ func (ptgb *ProjectTypeGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (ptgb *ProjectTypeGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ptgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ptgb *ProjectTypeGroupBy) StringX(ctx context.Context) string {
+	v, err := ptgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (ptgb *ProjectTypeGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(ptgb.fields) > 1 {
@@ -656,6 +682,32 @@ func (ptgb *ProjectTypeGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ptgb *ProjectTypeGroupBy) IntsX(ctx context.Context) []int {
 	v, err := ptgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (ptgb *ProjectTypeGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ptgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ptgb *ProjectTypeGroupBy) IntX(ctx context.Context) int {
+	v, err := ptgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -683,6 +735,32 @@ func (ptgb *ProjectTypeGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (ptgb *ProjectTypeGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ptgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ptgb *ProjectTypeGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := ptgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (ptgb *ProjectTypeGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(ptgb.fields) > 1 {
@@ -698,6 +776,32 @@ func (ptgb *ProjectTypeGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ptgb *ProjectTypeGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := ptgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (ptgb *ProjectTypeGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ptgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ptgb *ProjectTypeGroupBy) BoolX(ctx context.Context) bool {
+	v, err := ptgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -771,6 +875,32 @@ func (pts *ProjectTypeSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (pts *ProjectTypeSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = pts.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (pts *ProjectTypeSelect) StringX(ctx context.Context) string {
+	v, err := pts.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (pts *ProjectTypeSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(pts.fields) > 1 {
@@ -786,6 +916,32 @@ func (pts *ProjectTypeSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (pts *ProjectTypeSelect) IntsX(ctx context.Context) []int {
 	v, err := pts.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (pts *ProjectTypeSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = pts.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (pts *ProjectTypeSelect) IntX(ctx context.Context) int {
+	v, err := pts.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -813,6 +969,32 @@ func (pts *ProjectTypeSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (pts *ProjectTypeSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = pts.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (pts *ProjectTypeSelect) Float64X(ctx context.Context) float64 {
+	v, err := pts.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (pts *ProjectTypeSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(pts.fields) > 1 {
@@ -828,6 +1010,32 @@ func (pts *ProjectTypeSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (pts *ProjectTypeSelect) BoolsX(ctx context.Context) []bool {
 	v, err := pts.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (pts *ProjectTypeSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = pts.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{projecttype.Label}
+	default:
+		err = fmt.Errorf("ent: ProjectTypeSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (pts *ProjectTypeSelect) BoolX(ctx context.Context) bool {
+	v, err := pts.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

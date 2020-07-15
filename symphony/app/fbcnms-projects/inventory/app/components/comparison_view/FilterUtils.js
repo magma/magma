@@ -9,6 +9,7 @@
  */
 
 import type {
+  EntityConfig,
   EntityLocationFilter,
   FilterConfig,
   FilterValue,
@@ -254,4 +255,40 @@ export const stringToOperator = (op: string): FilterOperator => {
       return 'IS_ONE_OF';
   }
   throw new Error(`Operator ${op} is not supported`);
+};
+
+export const getFilterConfigByKey = (
+  filterKey: string,
+  filterConfigs: Array<EntityConfig>,
+): FilterConfig => {
+  const filter = filterConfigs
+    .map(ent => ent.filters)
+    .flat()
+    .find((filter: FilterConfig) => filter.key === filterKey);
+
+  if (!filter) {
+    throw new Error(`${filterKey} filter doesn't exists!`);
+  }
+
+  return filter;
+};
+
+export const getPredefinedFilterSetWithValues = (
+  filterKey: string,
+  searchFilterConfigs: EntityConfig[],
+  values: string[],
+) => {
+  const filter = getFilterConfigByKey(filterKey, searchFilterConfigs);
+
+  const filterConfig = getInitialFilterValue(
+    filter.key,
+    filter.name,
+    filter.defaultOperator,
+    null,
+  );
+
+  return {
+    ...filterConfig,
+    stringSet: values,
+  };
 };

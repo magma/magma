@@ -28,29 +28,33 @@ def get_all_links_and_port_names_of_equipment(
 ) -> Iterator[Tuple[Link, str]]:
     """Returns all links and port names in equipment.
 
-        Args:
-            equipment ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
-            - `pyinventory.api.equipment.get_equipment`
-            - `pyinventory.api.equipment.get_equipment_in_position`
-            - `pyinventory.api.equipment.add_equipment`
-            - `pyinventory.api.equipment.add_equipment_to_position`
+        :param equipment: Equipment object to be copied, could be retrieved from
 
-        Returns:
-            Iterator[Tuple[ `pyinventory.common.data_class.Link` , str]]:
+            * :meth:`~pyinventory.api.equipment.get_equipment`
+            * :meth:`~pyinventory.api.equipment.get_equipment_in_position`
+            * :meth:`~pyinventory.api.equipment.add_equipment`
+            * :meth:`~pyinventory.api.equipment.add_equipment_to_position`
 
-            - `pyinventory.common.data_class.Link` - link object
-            - str - port definition name
+        :type equipment: :class:`~pyinventory.common.data_class.Equipment`
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if link not found
-            FailedOperationException: for internal inventory error
+        :raises:
+            * `pyinventory.exceptions.EntityNotFoundError`: Link not found
+            * FailedOperationException: Internal inventory error
 
-        Example:
-            ```
+        :return: Iterator of Tuple[Link, str]
+
+            * Link - :class:`~pyinventory.common.data_class.Link`
+            * str - port name
+
+        :rtype: Iterator[ Tuple[ :class:`~pyinventory.common.data_class.Link`, str ] ]
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location1)
             client.get_all_links_and_port_names_of_equipment(equipment=equipment)
-            ```
     """
 
     equipment_data = EquipmentPortsQuery.execute(client, id=equipment.id)
@@ -81,32 +85,39 @@ def add_link(
 ) -> Link:
     """Connects a link between two ports of two equipments.
 
-        Args:
-            equipment_a ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
-            - `pyinventory.api.equipment.get_equipment`
-            - `pyinventory.api.equipment.get_equipment_in_position`
-            - `pyinventory.api.equipment.add_equipment`
-            - `pyinventory.api.equipment.add_equipment_to_position`
+        :param equipment_a: Equipment object to connect, could be retrieved from
 
-            port_name_a (str): The name of port in equipment type
-            equipment_b ( `pyinventory.common.data_class.Equipment` ): could be retrieved from the following apis:
-            - `pyinventory.api.equipment.get_equipment`
-            - `pyinventory.api.equipment.get_equipment_in_position`
-            - `pyinventory.api.equipment.add_equipment`
-            - `pyinventory.api.equipment.add_equipment_to_position`
+            * :meth:`~pyinventory.api.equipment.get_equipment`
+            * :meth:`~pyinventory.api.equipment.get_equipment_in_position`
+            * :meth:`~pyinventory.api.equipment.add_equipment`
+            * :meth:`~pyinventory.api.equipment.add_equipment_to_position`
 
-            port_name_b (str): The name of port in equipment type
+        :type equipment_a: :class:`~pyinventory.common.data_class.Equipment`
+        :param port_name_a: Name of the port in equipment A
+        :type port_name_a: str
+        :param equipment_b: Equipment object to connect, could be retrieved from
 
-        Returns:
-            `pyinventory.common.data_class.Link` object
+            * :meth:`~pyinventory.api.equipment.get_equipment`
+            * :meth:`~pyinventory.api.equipment.get_equipment_in_position`
+            * :meth:`~pyinventory.api.equipment.add_equipment`
+            * :meth:`~pyinventory.api.equipment.add_equipment_to_position`
 
-        Raises:
-            AssertionError: if port_name in any of the equipment does not exist, or match more than one port
-                                    or is already occupied by link
-            FailedOperationException: for internal inventory error
+        :type equipment_b: :class:`~pyinventory.common.data_class.Equipment`
+        :param port_name_b: Name of the port in equipment B
+        :type port_name_b: str
 
-        Example:
-            ```
+        :raises:
+            * AssertionError: `port_name` in any of the equipments does not exist,
+              or match more than one port, or is already occupied by link
+            * FailedOperationException: Internal inventory error
+
+        :return: Link object
+        :rtype: :class:`~pyinventory.common.data_class.Link`
+
+        **Example**
+
+        .. code-block:: python
+
             location1 = client.get_location({("Country", "LS_IND_Prod_Copy")})
             equipment1 = client.get_equipment(name="indProdCpy1_AIO", location=location1)
             location2 = client.get_location({("Country", "LS_IND_Prod")})
@@ -117,7 +128,6 @@ def add_link(
                 equipment_b=equipment2,
                 port_name_b="Port B"
             )
-            ```
     """
 
     port_a = get_port(client, equipment_a, port_name_a)
@@ -147,13 +157,14 @@ def add_link(
 def get_links(client: SymphonyClient) -> Iterator[Link]:
     """This function returns all existing links
 
-        Returns:
-            Iterator[ `pyinventory.common.data_class.Link` ]
+        :return: Links Iterator
+        :rtype: Iterator[ :class:`~pyinventory.common.data_class.Link` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             all_links = client.get_links()
-            ```
     """
     links = LinksQuery.execute(client, first=PAGINATION_STEP)
     edges = links.edges if links else []
@@ -179,31 +190,34 @@ def get_link_in_port_of_equipment(
 ) -> Link:
     """Returns link in specific port by name in equipment.
 
-        Args:
-            equipment ( `pyinventory.common.data_class.Equipment` ): could be retrieved from
-            - `pyinventory.api.equipment.get_equipment`
-            - `pyinventory.api.equipment.get_equipment_in_position`
-            - `pyinventory.api.equipment.add_equipment`
-            - `pyinventory.api.equipment.add_equipment_to_position`
+        :param equipment: Equipment object that has link, could be retrieved from
 
-            port_name (str): The name of port in equipment type
+            * :meth:`~pyinventory.api.equipment.get_equipment`
+            * :meth:`~pyinventory.api.equipment.get_equipment_in_position`
+            * :meth:`~pyinventory.api.equipment.add_equipment`
+            * :meth:`~pyinventory.api.equipment.add_equipment_to_position`
 
-        Returns:
-            `pyinventory.common.data_class.Link` object
+        :type equipment: :class:`~pyinventory.common.data_class.Equipment`
+        :param port_name: Name of the port in equipment
+        :type port_name: str
 
-        Raises:
-            LinkNotFoundException: if link not found
-            FailedOperationException: for internal inventory error
+        :raises:
+            * LinkNotFoundException: Link not found
+            * FailedOperationException: Internal inventory error
 
-        Example:
-            ```
+        :return: Link object
+        :rtype: :class:`~pyinventory.common.data_class.Link`
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location({("Country", "LS_IND_Prod_Copy")})
             equipment = client.get_equipment(name="indProdCpy1_AIO", location=location)
             client.get_link_in_port_of_equipment(
                 equipment=equipment,
                 port_name="Port A"
             )
-            ```
     """
     port = get_port(client, equipment, port_name)
     link = port.link

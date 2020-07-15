@@ -651,6 +651,32 @@ func (uggb *UsersGroupGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (uggb *UsersGroupGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = uggb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (uggb *UsersGroupGroupBy) StringX(ctx context.Context) string {
+	v, err := uggb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (uggb *UsersGroupGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(uggb.fields) > 1 {
@@ -666,6 +692,32 @@ func (uggb *UsersGroupGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (uggb *UsersGroupGroupBy) IntsX(ctx context.Context) []int {
 	v, err := uggb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (uggb *UsersGroupGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = uggb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (uggb *UsersGroupGroupBy) IntX(ctx context.Context) int {
+	v, err := uggb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -693,6 +745,32 @@ func (uggb *UsersGroupGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (uggb *UsersGroupGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = uggb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (uggb *UsersGroupGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := uggb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (uggb *UsersGroupGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(uggb.fields) > 1 {
@@ -708,6 +786,32 @@ func (uggb *UsersGroupGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (uggb *UsersGroupGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := uggb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (uggb *UsersGroupGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = uggb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (uggb *UsersGroupGroupBy) BoolX(ctx context.Context) bool {
+	v, err := uggb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -781,6 +885,32 @@ func (ugs *UsersGroupSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (ugs *UsersGroupSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = ugs.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (ugs *UsersGroupSelect) StringX(ctx context.Context) string {
+	v, err := ugs.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (ugs *UsersGroupSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(ugs.fields) > 1 {
@@ -796,6 +926,32 @@ func (ugs *UsersGroupSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (ugs *UsersGroupSelect) IntsX(ctx context.Context) []int {
 	v, err := ugs.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (ugs *UsersGroupSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = ugs.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (ugs *UsersGroupSelect) IntX(ctx context.Context) int {
+	v, err := ugs.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -823,6 +979,32 @@ func (ugs *UsersGroupSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (ugs *UsersGroupSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = ugs.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (ugs *UsersGroupSelect) Float64X(ctx context.Context) float64 {
+	v, err := ugs.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (ugs *UsersGroupSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(ugs.fields) > 1 {
@@ -838,6 +1020,32 @@ func (ugs *UsersGroupSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (ugs *UsersGroupSelect) BoolsX(ctx context.Context) []bool {
 	v, err := ugs.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (ugs *UsersGroupSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = ugs.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{usersgroup.Label}
+	default:
+		err = fmt.Errorf("ent: UsersGroupSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (ugs *UsersGroupSelect) BoolX(ctx context.Context) bool {
+	v, err := ugs.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

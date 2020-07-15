@@ -106,31 +106,38 @@ def add_location(
         However the `lat`,`long` and `properties_dict` would only apply for the last location in the chain.
         If a location with its name in this place already exists, then existing location is returned
 
-        Args:
-            location_hirerchy (List[Tuple[str, str]]): hirerchy of locations.
-            - str - location type name
-            - str - location name
+        :param location_hirerchy: Locations hierarchy
+        :type location_hirerchy: List[Tuple[str, str]]
 
-            properties_dict (Dict[str, PropertyValue]): dict of property name to property value. The property value should match
-                            the property type, otherwise exception is raised
-            - str - property name
-            - PropertyValue - new value of the same type for this property
+            * str - location type name
+            * str - location name
 
-            lat (float): latitude
-            long (float): longitude
-            external_id (str): location external ID
+        :param properties_dict: Dictionary of property name to property value
 
-        Returns:
-            `pyinventory.common.data_class.Location` object
+            * str - property name
+            * PropertyValue - new value of the same type for this property
 
-        Raises:
-            LocationIsNotUniqueException: if there is two possible locations
-                inside the chain and it is not clear where to create or what to return
-            FailedOperationException: for internal inventory error
-            `pyinventory.exceptions.EntityNotFoundError`: parent location in the chain does not exist
+        :type properties_dict: Dict[str, PropertyValue]
+        :param lat: Latitude
+        :type lat: float, optional
+        :param long: Longitude
+        :type long: float, optional
+        :param external_id: Location external ID
+        :type external_id: str, optional
 
-        Example:
-            ```
+        :raises:
+            * LocationIsNotUniqueException: There is more than one location to return
+              in the chain and it is not clear where to create or what to return
+            * FailedOperationException: Internal inventory error
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Parent location in the chain does not exist
+
+        :return: Location object
+        :rtype: :class:`~pyinventory.common.data_class.Location`
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.add_location(
                 location_hirerchy=[
                     ("Country", "England"),
@@ -147,8 +154,8 @@ def add_location(
                 },
                 lat=-11.32,
                 long=98.32,
-                external_id=None)
-            ```
+                external_id=None,
+            )
     """
 
     last_location: Optional[LocationFragment] = None
@@ -216,35 +223,37 @@ def get_location(
     """This function returns a location of a specific type with a specific name.
         It can get only the requested location specifiers or the hirerchy leading to it
 
-        Args:
-            location_hirerchy (List[Tuple[str, str]]): hirerchy of locations
-            - str - location type name
-            - str - location name
+        :param location_hirerchy: Locations hierarchy
+        :type location_hirerchy: List[Tuple[str, str]]
 
-        Returns:
-            `pyinventory.common.data_class.Location` object
+            * str - location type name
+            * str - location name
 
-        Raises:
-            LocationIsNotUniqueException: if there is more than one correct
-                location to return
-            LocationNotFoundException: if no location was found
-            `pyinventory.exceptions.EntityNotFoundError`: location in the chain does not exist
-            FailedOperationException: for internal inventory error
+        :raises:
+            * LocationIsNotUniqueException: There is more than one location to return
+              in the chain and it is not clear where to create or what to return
+            * LocationNotFoundException: Location was not found
+            * FailedOperationException: Internal inventory error
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Location in the chain does not exist
 
-        Example:
-            ```
+        :return: Location object
+        :rtype: :class:`~pyinventory.common.data_class.Location`
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location(
                 location_hirerchy=[
                     ("Country", "England"),
                     ("City", "Milton Keynes"),
                     ("Site", "Bletchley Park")
                 ])
-            ```
-            or
-            ```
+
+        .. code-block:: python
+
             # this call will fail if there is Bletchley Park in two cities
             location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
-            ```
     """
 
     last_location = None
@@ -288,13 +297,14 @@ def get_location(
 def get_locations(client: SymphonyClient) -> Iterator[Location]:
     """This function returns all existing locations
 
-        Returns:
-            Iterator[ `pyinventory.common.data_class.Location` ]
+        :return: Locations Iterator
+        :rtype: Iterator[ :class:`~pyinventory.common.data_class.Location` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             all_locations = client.get_locations()
-            ```
     """
 
     def generate_pages(
@@ -330,23 +340,40 @@ def get_location_children(
 ) -> Iterator[Location]:
     """This function returns all children locations of the given location
 
-        Args:
-            location_id (str): parent location ID
+        :param location_id: Parent location ID
+        :type location_id: str
 
-        Returns:
-            Iterator[ `pyinventory.common.data_class.Location` ]
+        :raises:
+            :class:`~pyinventory.exceptions.EntityNotFoundError`: Location does not exist
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: location does not exist
+        :return: Locations Iterator
+        :rtype: Iterator[ :class:`~pyinventory.common.data_class.Location` ]
 
-        Example:
-            ```
-            client.add_location([("Country", "England"), ("City", "Milton Keynes")], {})
-            client.add_location([("Country", "England"), ("City", "London")], {})
-            parent_location = client.get_location(location_hirerchy=[("Country", "England")])
+        **Example**
+
+        .. code-block:: python
+
+            client.add_location(
+                [
+                    ("Country", "England"),
+                    ("City", "Milton Keynes"),
+                ],
+                {},
+            )
+            client.add_location(
+                [
+                    ("Country", "England"),
+                    ("City", "London"),
+                ],
+                {},
+            )
+            parent_location = client.get_location(
+                location_hirerchy=[
+                    ("Country", "England"),
+                ],
+            )
             children_locations = client.get_location_children(location_id=parent_location.id)
             # This call will return a list with 2 locations: "Milton Keynes" and "London"
-            ```
     """
     location_with_children = LocationChildrenQuery.execute(client, id=location_id)
     if not location_with_children:
@@ -375,25 +402,34 @@ def edit_location(
 ) -> Location:
     """This function returns edited location.
 
-        Args:
-            location ( `pyinventory.common.data_class.Location` ): location object
-            new_name (Optional[str]): location new name
-            new_lat (Optional[float]): location new latitude
-            new_long (Optional[float]): location new longitude
-            new_external_id (Optional[float]): location new external ID
-            new_properties (Optional[Dict[str, PropertyValue]]): dictionary of property name to property value
-            - str - property name
-            - PropertyValue - new value of the same type for this property
+        :param location: Location object
+        :type location: :class:`~pyinventory.common.data_class.Location`
+        :param new_name: Location new name
+        :type new_name: str, optional
+        :param new_lat: Location new latitude
+        :type new_lat: float, optional
+        :param new_long: Location new longitude
+        :type new_long: float, optional
+        :param new_external_id: Location new external ID
+        :type new_external_id: str, optional
+        :param new_properties: Dictionary of property name to property value
 
-        Returns:
-            `pyinventory.common.data_class.Location` object
+            * str - property name
+            * PropertyValue - new value of the same type for this property
 
-        Raises:
-            FailedOperationException: for internal inventory error
+        :type new_properties: Dict[str, PropertyValue], optional
 
-        Example:
-            ```
-            # this call will fail if there is Bletchley Park in two cities
+        :raises:
+            FailedOperationException: Internal inventory error
+
+        :return: Location object
+        :rtype: :class:`~pyinventory.common.data_class.Location`
+
+        **Example**
+
+        .. code-block:: python
+
+            # this call will fail incase the 'Bletchley Park' in two cities
             location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             edited_location = client.edit_location(
                 location=location,
@@ -403,7 +439,6 @@ def edit_location(
                 new_external_id=None,
                 new_properties={"Contact": "new_contact@info.com"},
             )
-            ```
     """
     properties = []
     location_type = location.location_type_name
@@ -437,20 +472,23 @@ def edit_location(
 def delete_location(client: SymphonyClient, location: Location) -> None:
     """This delete existing location.
 
-        Args:
-            location ( `pyinventory.common.data_class.Location` ): location object
+        :param location: Location object
+        :type location: :class:`~pyinventory.common.data_class.Location`
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: if location does not exist
-            FailedOperationException: for internal inventory error
-            LocationCannotBeDeletedWithDependency: if there are dependencies in this location
-            ["files", "images", "children", "surveys", "equipment"]
+        :raises:
+            * LocationCannotBeDeletedWithDependency: Location has dependencies in one or more
+              ["files", "images", "children", "surveys", "equipment"]
+            * FailedOperationException: Internal inventory error
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Location does not exist
 
-        Example:
-            ```
+        :rtype: None
+
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location(location_hirerchy=[('Site', 'Bletchley Park')])
             client.delete_location(location=location)
-            ```
     """
     location_with_deps = LocationDepsQuery.execute(client, id=location.id)
     if location_with_deps is None:
@@ -473,25 +511,27 @@ def move_location(
 ) -> Location:
     """This function moves existing location to another existing parent location.
 
-        Args:
-            location_id (str): existing location ID to be moved
-            new_parent_id (Optional[str]): new existing parent location ID
+        :param location_id: Existing location ID to be moved
+        :type location_id: str
+        :param new_parent_id: New existing parent location ID
+        :type new_parent_id: str, optional
 
-        Returns:
-            `pyinventory.common.data_class.Location` object
+        :raises:
+            FailedOperationException: Internal inventory error
 
-        Raises:
-            FailedOperationException: for internal inventory error
+        :return: Location object
+        :rtype: :class:`~pyinventory.common.data_class.Location`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             # this call will fail if there is Bletchley Park in two cities
             location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             moved_location = client.move_locatoin(
                 location_id=location.id,
                 new_parent_id="12345"
             )
-            ```
     """
     result = MoveLocationMutation.execute(
         client, locationID=location_id, parentLocationID=new_parent_id
@@ -510,21 +550,22 @@ def move_location(
 def get_location_by_external_id(client: SymphonyClient, external_id: str) -> Location:
     """This function returns location by external ID.
 
-        Args:
-            external_id (str): location external ID
+        :param external_id: Location external ID
+        :type external_id: str
 
-        Returns:
-            `pyinventory.common.data_class.Location` object
+        :raises:
+            * LocationNotFoundException: Location with this external ID does not exists
+            * FailedOperationException: Internal inventory error
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Location does not exist
 
-        Raises:
-            LocationNotFoundException: location with this external ID does not exists
-            `pyinventory.exceptions.EntityNotFoundError`: location does not found
-            FailedOperationException: for internal inventory error
+        :return: Location object
+        :rtype: :class:`~pyinventory.common.data_class.Location`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             location = client.get_location_by_external_id(external_id="12345")
-            ```
     """
     location_filter = LocationFilterInput(
         filterType=LocationFilterType.LOCATION_INST_EXTERNAL_ID,
@@ -567,22 +608,23 @@ def get_location_documents(
 ) -> List[Document]:
     """This function returns locations documents.
 
-        Args:
-            location ( `pyinventory.common.data_class.Location` ): location object
+        :param location: Location object
+        :type location: :class:`~pyinventory.common.data_class.Location`
 
-        Returns:
-            List[ `pyinventory.common.data_class.Document` ]
+        :raises:
+            * FailedOperationException: Internal inventory error
+            * :class:`~pyinventory.exceptions.EntityNotFoundError`: Location does not exist
 
-        Raises:
-            `pyinventory.exceptions.EntityNotFoundError`: location does not exists
-            FailedOperationException: for internal inventory error
+        :return: Documents List
+        :rtype: List[ :class:`~pyinventory.common.data_class.Document` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             # this call will fail if there is Bletchley Park in two cities
             location = client.get_location(location_hirerchy=[("Site", "Bletchley Park")])
             location = client.get_location_documents(location=location)
-            ```
     """
     location_with_documents = LocationDocumentsQuery.execute(client, id=location.id)
     if not location_with_documents:

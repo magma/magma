@@ -6,7 +6,7 @@
 version: "3.7"
 
 services:
-  cwf_operator:
+  operator:
     build:
       context: ../../../../
       dockerfile: cwf/k8s/cwf_operator/docker/Dockerfile

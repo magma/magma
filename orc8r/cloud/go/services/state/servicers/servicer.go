@@ -97,7 +97,7 @@ func (srv *stateServicer) ReportStates(ctx context.Context, req *protos.ReportSt
 	if err != nil {
 		return res, internalErr(err, "ReportStates make states by ID")
 	}
-	go index.Index(networkID, byID)
+	go index.MustIndex(networkID, byID)
 
 	return res, nil
 }

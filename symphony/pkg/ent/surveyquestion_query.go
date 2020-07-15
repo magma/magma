@@ -768,6 +768,32 @@ func (sqgb *SurveyQuestionGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (sqgb *SurveyQuestionGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = sqgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (sqgb *SurveyQuestionGroupBy) StringX(ctx context.Context) string {
+	v, err := sqgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (sqgb *SurveyQuestionGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(sqgb.fields) > 1 {
@@ -783,6 +809,32 @@ func (sqgb *SurveyQuestionGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (sqgb *SurveyQuestionGroupBy) IntsX(ctx context.Context) []int {
 	v, err := sqgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (sqgb *SurveyQuestionGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = sqgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (sqgb *SurveyQuestionGroupBy) IntX(ctx context.Context) int {
+	v, err := sqgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -810,6 +862,32 @@ func (sqgb *SurveyQuestionGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (sqgb *SurveyQuestionGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = sqgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (sqgb *SurveyQuestionGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := sqgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (sqgb *SurveyQuestionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(sqgb.fields) > 1 {
@@ -825,6 +903,32 @@ func (sqgb *SurveyQuestionGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (sqgb *SurveyQuestionGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := sqgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (sqgb *SurveyQuestionGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = sqgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (sqgb *SurveyQuestionGroupBy) BoolX(ctx context.Context) bool {
+	v, err := sqgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -898,6 +1002,32 @@ func (sqs *SurveyQuestionSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (sqs *SurveyQuestionSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = sqs.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (sqs *SurveyQuestionSelect) StringX(ctx context.Context) string {
+	v, err := sqs.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (sqs *SurveyQuestionSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(sqs.fields) > 1 {
@@ -913,6 +1043,32 @@ func (sqs *SurveyQuestionSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (sqs *SurveyQuestionSelect) IntsX(ctx context.Context) []int {
 	v, err := sqs.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (sqs *SurveyQuestionSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = sqs.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (sqs *SurveyQuestionSelect) IntX(ctx context.Context) int {
+	v, err := sqs.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -940,6 +1096,32 @@ func (sqs *SurveyQuestionSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (sqs *SurveyQuestionSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = sqs.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (sqs *SurveyQuestionSelect) Float64X(ctx context.Context) float64 {
+	v, err := sqs.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (sqs *SurveyQuestionSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(sqs.fields) > 1 {
@@ -955,6 +1137,32 @@ func (sqs *SurveyQuestionSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (sqs *SurveyQuestionSelect) BoolsX(ctx context.Context) []bool {
 	v, err := sqs.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (sqs *SurveyQuestionSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = sqs.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{surveyquestion.Label}
+	default:
+		err = fmt.Errorf("ent: SurveyQuestionSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (sqs *SurveyQuestionSelect) BoolX(ctx context.Context) bool {
+	v, err := sqs.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

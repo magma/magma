@@ -19,7 +19,7 @@ import {fetchQuery, graphql} from 'relay-runtime';
 
 const equipmentTypeaheadQuery = graphql`
   query EquipmentTypeahead_equipmentQuery($filters: [EquipmentFilterInput!]!) {
-    equipments(first: 10, filters: $filters) {
+    equipments(first: 10, filterBy: $filters) {
       edges {
         node {
           id

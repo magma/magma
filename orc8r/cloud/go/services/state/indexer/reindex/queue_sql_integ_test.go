@@ -28,15 +28,6 @@ import (
 	assert "github.com/stretchr/testify/require"
 )
 
-var (
-	indexer0  = mocks.NewMockIndexer(id0, version0, nil, nil, nil, nil)
-	indexer0a = mocks.NewMockIndexer(id0, version0a, nil, nil, nil, nil)
-	indexer1  = mocks.NewMockIndexer(id1, version1, nil, nil, nil, nil)
-	indexer1a = mocks.NewMockIndexer(id1, version1a, nil, nil, nil, nil)
-	indexer2  = mocks.NewMockIndexer(id2, version2, nil, nil, nil, nil)
-	indexer2a = mocks.NewMockIndexer(id2, version2a, nil, nil, nil, nil)
-)
-
 func init() {
 	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
@@ -44,6 +35,11 @@ func init() {
 func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {
 	dbName := "state___reindex_queue___populate_jobs"
 	queue := initSQLTest(t, dbName)
+
+	// Start and register indexer servicers
+	mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id1, version1, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id2, version2, nil, nil, nil, nil)
 
 	ch := make(chan interface{})
 	defer close(ch)
@@ -91,6 +87,11 @@ func TestSQLReindexJobQueue_Integration_PopulateJobs(t *testing.T) {
 func TestSQLJobQueue_Integration_ClaimAvailableReindexJob(t *testing.T) {
 	dbName := "state___reindex_queue___claim_jobs"
 	queue := initSQLTest(t, dbName)
+
+	// Start and register indexer servicers
+	mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id1, version1, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id2, version2, nil, nil, nil, nil)
 
 	populated, err := queue.PopulateJobs()
 	assert.NoError(t, err)
@@ -214,6 +215,11 @@ func TestSQLJobQueue_Integration_RepopulateNewJobs(t *testing.T) {
 	dbName := "state___reindex_queue___repopulate_jobs"
 	queue := initSQLTest(t, dbName)
 
+	// Start and register indexer servicers
+	mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id1, version1, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id2, version2, nil, nil, nil, nil)
+
 	// Empty to start
 	j, err := queue.ClaimAvailableJob()
 	assertNoJob(t, j, err)
@@ -262,17 +268,17 @@ func TestSQLJobQueue_Integration_RepopulateNewJobs(t *testing.T) {
 	assert.Nil(t, j)
 
 	// Update version of indexer 0 -- previously succeeded
-	indexer.RegisterForTest(t, indexer0a)
+	indexer0a, _ := mocks.NewMockIndexer(t, id0, version0a, nil, nil, nil, nil)
 	updated, err := queue.PopulateJobs()
 	assert.NoError(t, err)
 	assert.True(t, updated)
 	// Update version of indexer 1 -- previously failed
-	indexer.RegisterForTest(t, indexer1a)
+	indexer1a, _ := mocks.NewMockIndexer(t, id1, version1a, nil, nil, nil, nil)
 	updated, err = queue.PopulateJobs()
 	assert.NoError(t, err)
 	assert.True(t, updated)
 
-	// Claim jobs -- idx0 and idx1 should both be present, across repopulations
+	// Claim jobs -- idx0 and idx1 should both be present, across re-populations
 	jobZ, err = queue.ClaimAvailableJob()
 	assertJob(t, jobZ, err)
 	jobY, err = queue.ClaimAvailableJob()
@@ -319,7 +325,6 @@ func TestSQLJobQueue_Integration_RepopulateNewJobs(t *testing.T) {
 func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 	dbName := "state___reindex_queue___indexer_versions"
 	q := initSQLTest(t, dbName)
-	indexer.DeregisterAllForTest(t)
 
 	// Empty initially
 	v, err := q.GetIndexerVersions()
@@ -332,7 +337,12 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 		{IndexerID: id1, Actual: zero, Desired: version1},
 		{IndexerID: id2, Actual: zero, Desired: version2},
 	}
-	err = indexer.RegisterIndexers(indexer0, indexer1, indexer2)
+
+	// Start and register indexer servicers
+	mocks.NewMockIndexer(t, id0, version0, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id1, version1, nil, nil, nil, nil)
+	mocks.NewMockIndexer(t, id2, version2, nil, nil, nil, nil)
+
 	assert.NoError(t, err)
 	got, err := q.GetIndexerVersions()
 	assert.NoError(t, err)
@@ -345,8 +355,8 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, version2, gotv.Actual)
 
-	// Bump indexer version
-	indexer.RegisterForTest(t, indexer2a)
+	// Bump desired version for same indexer
+	mocks.NewMockIndexer(t, id2, version2a, nil, nil, nil, nil)
 	assert.NoError(t, err)
 	got, err = q.GetIndexerVersions()
 	assert.NoError(t, err)
@@ -360,13 +370,10 @@ func TestSQLJobQueue_Integration_IndexerVersions(t *testing.T) {
 
 func initSQLTest(t *testing.T, dbName string) reindex.JobQueue {
 	indexer.DeregisterAllForTest(t)
-	err := indexer.RegisterIndexers(indexer0, indexer1, indexer2)
-	assert.NoError(t, err)
-
 	db := sqorc.OpenCleanForTest(t, dbName, sqorc.PostgresDriver)
 
 	q := reindex.NewSQLJobQueue(twoAttempts, db, sqorc.GetSqlBuilder())
-	err = q.Initialize()
+	err := q.Initialize()
 	assert.NoError(t, err)
 	return q
 }

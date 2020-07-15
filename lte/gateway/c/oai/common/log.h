@@ -273,7 +273,6 @@ struct shared_log_queue_item_s;
 
 void log_flush_message(struct shared_log_queue_item_s *item_p)
   __attribute__((hot));
-void log_exit(void);
 
 void log_stream_hex(
   const log_level_t log_levelP,
@@ -385,7 +384,6 @@ const char *const get_short_file_name(
 #define OAILOG_LEVEL_INT2STR log_level_int2str
 #define OAILOG_INIT log_init
 #define OAILOG_ITTI_CONNECT log_itti_connect
-#define OAILOG_EXIT() log_exit()
 #define OAILOG_SPEC(pRoTo, ...)                                                \
   do {                                                                         \
     log_message(                                                               \

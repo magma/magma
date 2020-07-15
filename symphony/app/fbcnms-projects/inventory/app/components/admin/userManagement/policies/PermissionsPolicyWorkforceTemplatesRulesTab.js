@@ -114,7 +114,7 @@ export default function PermissionsPolicyWorkforceTemplatesRulesTab(
       <WorkforceTemplatesRulesSection
         title={fbt('Workforce Templates', '')}
         subtitle={fbt(
-          'Choose the permissions this policy should include for modifying work orders and projects templates.',
+          'Choose permissions for modifying work orders and project templates.',
           '',
         )}
         rule={policy.templates}

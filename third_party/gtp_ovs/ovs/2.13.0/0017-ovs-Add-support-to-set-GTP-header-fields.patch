@@ -1,7 +1,7 @@
-From 60eb501a351f11b05d8de93c4156bf03c4e6f603 Mon Sep 17 00:00:00 2001
+From ce4597cf236b2b04031c9bb126fa86e6832d93fa Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sun, 28 Jun 2020 23:05:54 +0000
-Subject: [PATCH 17/19] ovs: Add support to set GTP header fields.
+Subject: [PATCH 17/20] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
@@ -131,7 +131,7 @@ index d3fd77106..f7e54cfc1 100644
  	}
  
 diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
-index f9e20a8b2..72d5c2560 100644
+index f9e20a8b2..2c6ca83fc 100644
 --- a/datapath/linux/compat/gtp.c
 +++ b/datapath/linux/compat/gtp.c
 @@ -192,12 +192,12 @@ static bool gtp_check_ms(struct sk_buff *skb, struct pdp_ctx *pctx,
@@ -157,7 +157,7 @@ index f9e20a8b2..72d5c2560 100644
 +#endif
 +    
 +                int opts_len = 0;
-+                if (unlikely(flags != 0x30)) {
++                if (unlikely(flags & 0x07)) {
 +                        opts_len = sizeof (struct gtpu_metadata);
 +                } 
 +#ifndef USE_UPSTREAM_TUNNEL
@@ -543,7 +543,7 @@ index 0acc87953..40fef4e10 100644
      }
      ovs_mutex_unlock(&dev->mutex);
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index b66d266cc..80cd01f1a 100644
+index ac532fe65..1daa83e52 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
 @@ -763,7 +763,7 @@ format_odp_tnl_push_header(struct ds *ds, struct ovs_action_push_tnl *data)

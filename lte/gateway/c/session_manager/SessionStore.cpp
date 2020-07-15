@@ -47,9 +47,9 @@ void SessionStore::sync_request_numbers(const SessionUpdate& update_criteria) {
   MLOG(MDEBUG) << "Syncing request numbers into existing sessions";
   for (auto& it : session_map) {
     auto imsi = it.first;
-    auto it2 = it.second.begin();
+    auto it2  = it.second.begin();
     while (it2 != it.second.end()) {
-      auto updates = update_criteria.find(it.first)->second;
+      auto updates    = update_criteria.find(it.first)->second;
       auto session_id = (*it2)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         (*it2)->increment_request_number(
@@ -95,9 +95,9 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
   // Now attempt to modify the state
   for (auto& it : session_map) {
     auto imsi = it.first;
-    auto it2 = it.second.begin();
+    auto it2  = it.second.begin();
     while (it2 != it.second.end()) {
-      auto updates = update_criteria.find(it.first)->second;
+      auto updates    = update_criteria.find(it.first)->second;
       auto session_id = (*it2)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         auto update = updates[session_id];
@@ -150,17 +150,17 @@ bool SessionStore::merge_into_session(
                    << std::endl;
       return false;
     }
-    if (update_criteria.new_rule_lifetimes.find(rule_id) != update_criteria.new_rule_lifetimes.end()) {
+    if (update_criteria.new_rule_lifetimes.find(rule_id) !=
+        update_criteria.new_rule_lifetimes.end()) {
       auto lifetime = update_criteria.new_rule_lifetimes[rule_id];
       session->activate_static_rule(rule_id, lifetime, _);
     } else if (session->is_static_rule_scheduled(rule_id)) {
       session->install_scheduled_static_rule(rule_id, _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                << " because rule lifetime is unspecified: " << rule_id
-                << std::endl;
+                   << " because rule lifetime is unspecified: " << rule_id
+                   << std::endl;
       return false;
-
     }
   }
   for (const auto& rule_id : update_criteria.static_rules_to_uninstall) {
@@ -171,8 +171,8 @@ bool SessionStore::merge_into_session(
       session->deactivate_static_rule(rule_id, _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                << " because static rule already uninstalled: " << rule_id
-                << std::endl;
+                   << " because static rule already uninstalled: " << rule_id
+                   << std::endl;
       return false;
     }
   }
@@ -195,17 +195,17 @@ bool SessionStore::merge_into_session(
                    << std::endl;
       return false;
     }
-    if (update_criteria.new_rule_lifetimes.find(rule.id()) != update_criteria.new_rule_lifetimes.end()) {
+    if (update_criteria.new_rule_lifetimes.find(rule.id()) !=
+        update_criteria.new_rule_lifetimes.end()) {
       auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
       session->insert_dynamic_rule(rule, lifetime, _);
     } else if (session->is_dynamic_rule_scheduled(rule.id())) {
       session->install_scheduled_dynamic_rule(rule.id(), _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                << " because rule lifetime is unspecified: " << rule.id()
-                << std::endl;
+                   << " because rule lifetime is unspecified: " << rule.id()
+                   << std::endl;
       return false;
-
     }
   }
   for (const auto& rule_id : update_criteria.dynamic_rules_to_uninstall) {
@@ -216,14 +216,14 @@ bool SessionStore::merge_into_session(
       session->remove_dynamic_rule(rule_id, NULL, _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                << " because dynamic rule already uninstalled: " << rule_id
-                << std::endl;
+                   << " because dynamic rule already uninstalled: " << rule_id
+                   << std::endl;
       return false;
     }
   }
   for (const auto& rule : update_criteria.new_scheduled_dynamic_rules) {
     if (session->is_dynamic_rule_scheduled(rule.id())) {
-       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
+      MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
                    << " because dynamic rule already scheduled: " << rule.id()
                    << std::endl;
       return false;
@@ -236,17 +236,17 @@ bool SessionStore::merge_into_session(
   for (const auto& rule : update_criteria.gy_dynamic_rules_to_install) {
     if (session->is_gy_dynamic_rule_installed(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                   << " because gy dynamic rule already installed: " << rule.id()
-                   << std::endl;
+                   << " because gy dynamic rule already installed: "
+                   << rule.id() << std::endl;
       return false;
     }
-    if (update_criteria.new_rule_lifetimes.find(rule.id()) != update_criteria.new_rule_lifetimes.end()) {
+    if (update_criteria.new_rule_lifetimes.find(rule.id()) !=
+        update_criteria.new_rule_lifetimes.end()) {
       auto lifetime = update_criteria.new_rule_lifetimes[rule.id()];
       session->insert_gy_dynamic_rule(rule, lifetime, _);
       MLOG(MERROR) << "Merge: " << session->get_session_id()
                    << " gy dynamic rule " << rule.id() << std::endl;
-    }
-    else{
+    } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
                    << " because gy dynamic rule lifetime is not found"
                    << std::endl;
@@ -258,8 +258,8 @@ bool SessionStore::merge_into_session(
       session->remove_gy_dynamic_rule(rule_id, NULL, _);
     } else {
       MLOG(MERROR) << "Failed to merge: " << session->get_session_id()
-                << " because gy dynamic rule already uninstalled: " << rule_id
-                << std::endl;
+                   << " because gy dynamic rule already uninstalled: "
+                   << rule_id << std::endl;
       return false;
     }
   }
@@ -286,8 +286,7 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.monitor_credit_to_install) {
     auto key            = it.first;
     auto stored_monitor = it.second;
-    session->set_monitor(
-        key, Monitor::unmarshal(stored_monitor), _);
+    session->set_monitor(key, Monitor::unmarshal(stored_monitor), _);
   }
   return true;
 }

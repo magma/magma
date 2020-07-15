@@ -3,6 +3,8 @@
  *
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * @format
  */
 
 // See https://docusaurus.io/docs/site-config for all the possible
@@ -40,7 +42,7 @@ const siteConfig = {
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
     {doc: 'csv-upload', label: 'Docs'},
-    {href: '../pyinventory/index.html', label: 'Python API'},
+    {href: '../pyinventory/html/index.html', label: 'Python API'},
   ],
 
   // If you have users set above, you add it here:
@@ -81,15 +83,23 @@ const siteConfig = {
 
   // Add custom scripts here that would be placed in <script> tags.
   scripts: [
-      'https://buttons.github.io/buttons.js',
+    'https://buttons.github.io/buttons.js',
     'https://cdnjs.cloudflare.com/ajax/libs/mermaid/8.4.4/mermaid.min.js',
     '/init.js',
   ],
-  markdownPlugins: [ (md) => {
-    md.renderer.rules.fence_custom.mermaid = (tokens, idx, options, env, instance) => {
-      return `<div class="mermaid">${tokens[idx].content}</div>`;
-    };
-  }],
+  markdownPlugins: [
+    md => {
+      md.renderer.rules.fence_custom.mermaid = (
+        tokens,
+        idx,
+        options,
+        env,
+        instance,
+      ) => {
+        return `<div class="mermaid">${tokens[idx].content}</div>`;
+      };
+    },
+  ],
 
   // On page navigation for the current documentation page.
   onPageNav: 'separate',

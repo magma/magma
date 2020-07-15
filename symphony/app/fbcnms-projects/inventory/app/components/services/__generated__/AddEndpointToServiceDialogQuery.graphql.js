@@ -6,7 +6,7 @@
 
  /**
  * @flow
- * @relayHash c559ee0e1e4d58ca9d85b1c766c0e03c
+ * @relayHash 9457ba7299679aee8cf0521bbd36693b
  */
 
 /* eslint-disable */
@@ -78,7 +78,7 @@ export type AddEndpointToServiceDialogQuery = {|
 query AddEndpointToServiceDialogQuery(
   $filters: [PortFilterInput!]!
 ) {
-  equipmentPorts(filters: $filters, first: 50) {
+  equipmentPorts(filterBy: $filters, first: 50) {
     edges {
       node {
         id
@@ -156,7 +156,7 @@ var v0 = [
 v1 = [
   {
     "kind": "Variable",
-    "name": "filters",
+    "name": "filterBy",
     "variableName": "filters"
   },
   {
@@ -410,11 +410,11 @@ return {
     "operationKind": "query",
     "name": "AddEndpointToServiceDialogQuery",
     "id": null,
-    "text": "query AddEndpointToServiceDialogQuery(\n  $filters: [PortFilterInput!]!\n) {\n  equipmentPorts(filters: $filters, first: 50) {\n    edges {\n      node {\n        id\n        definition {\n          id\n          name\n        }\n        ...AvailablePortsTable_ports\n      }\n    }\n  }\n}\n\nfragment AvailablePortsTable_ports on EquipmentPort {\n  id\n  parentEquipment {\n    id\n    name\n    ...EquipmentBreadcrumbs_equipment\n  }\n  definition {\n    id\n    name\n    portType {\n      name\n      id\n    }\n    visibleLabel\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
+    "text": "query AddEndpointToServiceDialogQuery(\n  $filters: [PortFilterInput!]!\n) {\n  equipmentPorts(filterBy: $filters, first: 50) {\n    edges {\n      node {\n        id\n        definition {\n          id\n          name\n        }\n        ...AvailablePortsTable_ports\n      }\n    }\n  }\n}\n\nfragment AvailablePortsTable_ports on EquipmentPort {\n  id\n  parentEquipment {\n    id\n    name\n    ...EquipmentBreadcrumbs_equipment\n  }\n  definition {\n    id\n    name\n    portType {\n      name\n      id\n    }\n    visibleLabel\n  }\n}\n\nfragment EquipmentBreadcrumbs_equipment on Equipment {\n  id\n  name\n  equipmentType {\n    id\n    name\n  }\n  locationHierarchy {\n    id\n    name\n    locationType {\n      name\n      id\n    }\n  }\n  positionHierarchy {\n    id\n    definition {\n      id\n      name\n      visibleLabel\n    }\n    parentEquipment {\n      id\n      name\n      equipmentType {\n        id\n        name\n      }\n    }\n  }\n}\n",
     "metadata": {}
   }
 };
 })();
 // prettier-ignore
-(node/*: any*/).hash = '2f7b2062fec6a1371d76385835b84b32';
+(node/*: any*/).hash = 'eacafc370d24cc7d5fef93f4c2aa8f6b';
 module.exports = node;

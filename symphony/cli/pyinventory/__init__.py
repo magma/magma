@@ -163,6 +163,8 @@ class InventoryClient(SymphonyClient):
     )
     from .api.property_type import get_property_type_id
 
+    from .api.features import get_enabled_features, set_feature
+
     def __init__(
         self,
         email: str,

@@ -79,7 +79,7 @@ const LocationMoveDialog = (props: Props) => {
       <DialogTitle className={classes.dialogTitle}>
         <Text variant="h6" weight="medium">
           <fbt desc="Select location to move to dialog title">
-            Choose Location
+            Move Location
           </fbt>
         </Text>
         <IconButton

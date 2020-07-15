@@ -35,7 +35,7 @@ const linkSearchQuery = graphql`
     $limit: Int
     $filters: [LinkFilterInput!]!
   ) {
-    links(first: $limit, filters: $filters) {
+    links(first: $limit, filterBy: $filters) {
       edges {
         node {
           ...PowerSearchLinksResultsTable_links

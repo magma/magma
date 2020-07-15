@@ -11,6 +11,7 @@
 import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import AddSubscriberButton from './SubscriberAddDialog';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
@@ -19,6 +20,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
+import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -29,8 +31,8 @@ import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const TITLE = 'Subscribers';
 
@@ -84,13 +86,30 @@ const useStyles = makeStyles(theme => ({
 export default function SubscriberDashboard() {
   const {match, relativePath, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
-
-  const {response: subscriberMap, isLoading} = useMagmaAPI(
+  const [subscriberMap, setSubscriberMap] = useState({});
+  const {isLoading} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdSubscribers,
     {
       networkId: networkId,
     },
+    useCallback(response => setSubscriberMap(response), []),
   );
+
+  const updateSubscriberMap = async (key: string, val: subscriber) => {
+    if (key in subscriberMap) {
+      await MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
+        networkId: networkId,
+        subscriber: val,
+        subscriberId: key,
+      });
+    } else {
+      await MagmaV1API.postLteByNetworkIdSubscribers({
+        networkId: networkId,
+        subscriber: val,
+      });
+    }
+    setSubscriberMap({...subscriberMap, [key]: val});
+  };
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -100,14 +119,32 @@ export default function SubscriberDashboard() {
     <Switch>
       <Route
         path={relativePath('/overview/:subscriberId')}
-        render={() => <SubscriberDetail subscriberMap={subscriberMap} />}
+        render={() => {
+          return (
+            <SubscriberContext.Provider
+              value={{
+                state: subscriberMap ?? {},
+                setState: updateSubscriberMap,
+              }}>
+              <SubscriberDetail subscriberMap={subscriberMap} />
+            </SubscriberContext.Provider>
+          );
+        }}
       />
 
       <Route
         path={relativePath('/overview')}
-        render={() => (
-          <SubscriberDashboardInternal subscriberMap={subscriberMap} />
-        )}
+        render={() => {
+          return (
+            <SubscriberContext.Provider
+              value={{
+                state: subscriberMap ?? {},
+                setState: updateSubscriberMap,
+              }}>
+              <SubscriberDashboardInternal subscriberMap={subscriberMap} />
+            </SubscriberContext.Provider>
+          );
+        }}
       />
       <Redirect to={relativeUrl('/overview')} />
     </Switch>
@@ -178,9 +215,16 @@ function SubscriberDashboardInternal({
       <div className={classes.dashboardRoot}>
         <Grid container spacing={3}>
           <Grid item xs={12}>
-            <Text key="title">
-              <PeopleIcon /> {TITLE}
-            </Text>
+            <Grid container>
+              <Grid item xs={6}>
+                <Text key="title">
+                  <PeopleIcon /> {TITLE}
+                </Text>
+              </Grid>
+              <Grid container item xs={6} justify="flex-end">
+                <AddSubscriberButton />
+              </Grid>
+            </Grid>
           </Grid>
 
           <Grid item xs={12}>
@@ -189,7 +233,7 @@ function SubscriberDashboardInternal({
                 data={Object.keys(subscriberMap).map((imsi: string) => {
                   const subscriberInfo = subscriberMap[imsi];
                   return {
-                    name: subscriberInfo.id,
+                    name: subscriberInfo.name ?? imsi,
                     imsi: imsi,
                     service: subscriberInfo.lte.state,
                     currentUsage: '0',

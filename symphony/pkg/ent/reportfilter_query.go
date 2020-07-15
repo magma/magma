@@ -455,6 +455,32 @@ func (rfgb *ReportFilterGroupBy) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from group-by. It is only allowed when querying group-by with one field.
+func (rfgb *ReportFilterGroupBy) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = rfgb.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterGroupBy.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (rfgb *ReportFilterGroupBy) StringX(ctx context.Context) string {
+	v, err := rfgb.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from group-by. It is only allowed when querying group-by with one field.
 func (rfgb *ReportFilterGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(rfgb.fields) > 1 {
@@ -470,6 +496,32 @@ func (rfgb *ReportFilterGroupBy) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (rfgb *ReportFilterGroupBy) IntsX(ctx context.Context) []int {
 	v, err := rfgb.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from group-by. It is only allowed when querying group-by with one field.
+func (rfgb *ReportFilterGroupBy) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = rfgb.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterGroupBy.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (rfgb *ReportFilterGroupBy) IntX(ctx context.Context) int {
+	v, err := rfgb.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -497,6 +549,32 @@ func (rfgb *ReportFilterGroupBy) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from group-by. It is only allowed when querying group-by with one field.
+func (rfgb *ReportFilterGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = rfgb.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterGroupBy.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (rfgb *ReportFilterGroupBy) Float64X(ctx context.Context) float64 {
+	v, err := rfgb.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from group-by. It is only allowed when querying group-by with one field.
 func (rfgb *ReportFilterGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(rfgb.fields) > 1 {
@@ -512,6 +590,32 @@ func (rfgb *ReportFilterGroupBy) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (rfgb *ReportFilterGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := rfgb.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from group-by. It is only allowed when querying group-by with one field.
+func (rfgb *ReportFilterGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = rfgb.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterGroupBy.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (rfgb *ReportFilterGroupBy) BoolX(ctx context.Context) bool {
+	v, err := rfgb.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -585,6 +689,32 @@ func (rfs *ReportFilterSelect) StringsX(ctx context.Context) []string {
 	return v
 }
 
+// String returns a single string from selector. It is only allowed when selecting one field.
+func (rfs *ReportFilterSelect) String(ctx context.Context) (_ string, err error) {
+	var v []string
+	if v, err = rfs.Strings(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterSelect.Strings returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// StringX is like String, but panics if an error occurs.
+func (rfs *ReportFilterSelect) StringX(ctx context.Context) string {
+	v, err := rfs.String(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Ints returns list of ints from selector. It is only allowed when selecting one field.
 func (rfs *ReportFilterSelect) Ints(ctx context.Context) ([]int, error) {
 	if len(rfs.fields) > 1 {
@@ -600,6 +730,32 @@ func (rfs *ReportFilterSelect) Ints(ctx context.Context) ([]int, error) {
 // IntsX is like Ints, but panics if an error occurs.
 func (rfs *ReportFilterSelect) IntsX(ctx context.Context) []int {
 	v, err := rfs.Ints(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Int returns a single int from selector. It is only allowed when selecting one field.
+func (rfs *ReportFilterSelect) Int(ctx context.Context) (_ int, err error) {
+	var v []int
+	if v, err = rfs.Ints(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterSelect.Ints returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// IntX is like Int, but panics if an error occurs.
+func (rfs *ReportFilterSelect) IntX(ctx context.Context) int {
+	v, err := rfs.Int(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -627,6 +783,32 @@ func (rfs *ReportFilterSelect) Float64sX(ctx context.Context) []float64 {
 	return v
 }
 
+// Float64 returns a single float64 from selector. It is only allowed when selecting one field.
+func (rfs *ReportFilterSelect) Float64(ctx context.Context) (_ float64, err error) {
+	var v []float64
+	if v, err = rfs.Float64s(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterSelect.Float64s returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// Float64X is like Float64, but panics if an error occurs.
+func (rfs *ReportFilterSelect) Float64X(ctx context.Context) float64 {
+	v, err := rfs.Float64(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
 // Bools returns list of bools from selector. It is only allowed when selecting one field.
 func (rfs *ReportFilterSelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(rfs.fields) > 1 {
@@ -642,6 +824,32 @@ func (rfs *ReportFilterSelect) Bools(ctx context.Context) ([]bool, error) {
 // BoolsX is like Bools, but panics if an error occurs.
 func (rfs *ReportFilterSelect) BoolsX(ctx context.Context) []bool {
 	v, err := rfs.Bools(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return v
+}
+
+// Bool returns a single bool from selector. It is only allowed when selecting one field.
+func (rfs *ReportFilterSelect) Bool(ctx context.Context) (_ bool, err error) {
+	var v []bool
+	if v, err = rfs.Bools(ctx); err != nil {
+		return
+	}
+	switch len(v) {
+	case 1:
+		return v[0], nil
+	case 0:
+		err = &NotFoundError{reportfilter.Label}
+	default:
+		err = fmt.Errorf("ent: ReportFilterSelect.Bools returned %d results when one was expected", len(v))
+	}
+	return
+}
+
+// BoolX is like Bool, but panics if an error occurs.
+func (rfs *ReportFilterSelect) BoolX(ctx context.Context) bool {
+	v, err := rfs.Bool(ctx)
 	if err != nil {
 		panic(err)
 	}

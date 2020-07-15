@@ -145,7 +145,6 @@ RUN python3.5 -m pip install /tmp/lte
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 RUN mkdir -p /var/opt/magma/configs
 
 WORKDIR /

@@ -119,6 +119,7 @@
       - build-essential
       - ccache
       - clang-3.8
+      - clang-format-7
       - ninja-build
       - git
       - libtool
@@ -233,4 +234,9 @@
   environment:
     M2_HOME: "{{ mvn_dir }}"
     CODEGEN_ROOT: "{{ codegen_root }}"
+  when: preburn
+
+- name: Create links for clang-format
+  become: yes
+  command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
   when: preburn
