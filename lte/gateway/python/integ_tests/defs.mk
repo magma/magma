@@ -8,7 +8,7 @@
 PROTO_LIST:=orc8r_protos lte_protos feg_protos
 
 # Add the s1aptester integration tests
-MANDATORY_TESTS = s1aptests/test_update_mme_config_for_sanity.py \
+MANDATORY_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
 s1aptests/test_attach_detach.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
 s1aptests/test_attach_detach_multi_ue.py \
