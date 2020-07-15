@@ -14,6 +14,7 @@ import (
 const (
 	defaultNetwork  = "udp"
 	defaultAuthAddr = ":1812"
+	defaultAcctAddr = ":1813"
 	defaultSecret   = "123456"
 )
 
@@ -21,6 +22,7 @@ var defaultConfigs = &mconfig.RadiusConfig{
 	Secret:   []byte(defaultSecret),
 	Network:  defaultNetwork,
 	AuthAddr: defaultAuthAddr,
+	AcctAddr: defaultAcctAddr,
 }
 
 func validateConfigs(cfg *mconfig.RadiusConfig) *mconfig.RadiusConfig {
@@ -36,6 +38,9 @@ func validateConfigs(cfg *mconfig.RadiusConfig) *mconfig.RadiusConfig {
 	}
 	if len(res.AuthAddr) == 0 {
 		res.AuthAddr = defaultAuthAddr
+	}
+	if len(res.AcctAddr) == 0 {
+		res.AcctAddr = defaultAcctAddr
 	}
 	return res
 }
