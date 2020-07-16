@@ -15,8 +15,7 @@ import (
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/client/silence"
 	"github.com/prometheus/alertmanager/api/v2/models"
-	"github.com/prometheus/alertmanager/pkg/parse"
-	"github.com/prometheus/prometheus/pkg/labels"
+	"github.com/prometheus/alertmanager/pkg/labels"
 )
 
 const (
@@ -97,7 +96,7 @@ func postSilencer(networkID, silencerURL string, c echo.Context) error {
 }
 
 func getSilencers(networkID, silencerURL string, c echo.Context) error {
-	filters, err := parse.Matchers(c.QueryParam(filterParam))
+	filters, err := labels.ParseMatchers(c.QueryParam(filterParam))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
