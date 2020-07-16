@@ -248,31 +248,28 @@ int s1ap_mme_set_cause(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_generate_s1_setup_failure(
-  const sctp_assoc_id_t assoc_id,
-  const S1ap_Cause_PR cause_type,
-  const long cause_value,
-  const long time_to_wait)
-{
-  uint8_t *buffer_p = 0;
-  uint32_t length = 0;
+    const sctp_assoc_id_t assoc_id, const S1ap_Cause_PR cause_type,
+    const long cause_value, const long time_to_wait) {
+  uint8_t* buffer_p = 0;
+  uint32_t length   = 0;
   S1ap_S1AP_PDU_t pdu;
-  S1ap_S1SetupFailure_t *out;
-  S1ap_S1SetupFailureIEs_t *ie = NULL;
-  int rc = RETURNok;
+  S1ap_S1SetupFailure_t* out;
+  S1ap_S1SetupFailureIEs_t* ie = NULL;
+  int rc                       = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
   pdu.choice.unsuccessfulOutcome.procedureCode = S1ap_ProcedureCode_id_S1Setup;
-  pdu.choice.unsuccessfulOutcome.criticality = S1ap_Criticality_reject;
+  pdu.choice.unsuccessfulOutcome.criticality   = S1ap_Criticality_reject;
   pdu.choice.unsuccessfulOutcome.value.present =
       S1ap_UnsuccessfulOutcome__value_PR_S1SetupFailure;
   out = &pdu.choice.unsuccessfulOutcome.value.choice.S1SetupFailure;
 
-  ie = (S1ap_S1SetupFailureIEs_t *)calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
-  ie->id = S1ap_ProtocolIE_ID_id_Cause;
-  ie->criticality = S1ap_Criticality_ignore;
+  ie = (S1ap_S1SetupFailureIEs_t*) calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_Cause;
+  ie->criticality   = S1ap_Criticality_ignore;
   ie->value.present = S1ap_S1SetupFailureIEs__value_PR_Cause;
   s1ap_mme_set_cause(&ie->value.choice.Cause, cause_type, cause_value);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
@@ -282,10 +279,10 @@ int s1ap_mme_generate_s1_setup_failure(
    */
   if (time_to_wait > -1) {
     ie =
-        (S1ap_S1SetupFailureIEs_t *)calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
-    ie->id = S1ap_ProtocolIE_ID_id_TimeToWait;
-    ie->criticality = S1ap_Criticality_ignore;
-    ie->value.present = S1ap_S1SetupFailureIEs__value_PR_TimeToWait;
+        (S1ap_S1SetupFailureIEs_t*) calloc(1, sizeof(S1ap_S1SetupFailureIEs_t));
+    ie->id                      = S1ap_ProtocolIE_ID_id_TimeToWait;
+    ie->criticality             = S1ap_Criticality_ignore;
+    ie->value.present           = S1ap_S1SetupFailureIEs__value_PR_TimeToWait;
     ie->value.choice.TimeToWait = time_to_wait;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
