@@ -52,12 +52,12 @@ def _get_ip_block(ip_block_str):
 class MobilityServiceRpcServicer(MobilityServiceServicer):
     """ gRPC based server for the IPAllocator. """
 
-    def __init__(self, mconfig, config):
+    def __init__(self, mconfig, config, ip_allocator_factory):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
 
         self._ipv4_allocator = IPAddressManager(config=config,
-                                                allocator_type=mconfig.ip_allocator_type)
+                                                ip_allocator_factory=ip_allocator_factory)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates

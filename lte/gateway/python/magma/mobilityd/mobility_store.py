@@ -76,6 +76,8 @@ class MacToIP(RedisFlatDict):
     Used for managing DHCP state of a Mac address.
     """
     def __init__(self):
+        #TODO this should be removed in the future when all instances of
+        #this class are able to inject its own client
         client = get_default_client()
         serde = RedisSerde(MAC_TO_IP_REDIS_TYPE,
                            get_json_serializer(), get_json_deserializer())
@@ -91,6 +93,8 @@ class GatewayInfoMap(RedisFlatDict):
     Used for mainatining uplink GW info
     """
     def __init__(self):
+        #TODO this should be removed in the future when all instances of
+        #this class are able to inject its own client
         client = get_default_client()
         serde = RedisSerde(DHCP_GW_INFO_REDIS_TYPE,
                            get_json_serializer(), get_json_deserializer())

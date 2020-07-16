@@ -13,6 +13,9 @@ limitations under the License.
 
 from magma.common.service import MagmaService
 from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
+from magma.mobilityd.ip_allocator_factory import IPAllocatorFactory
+from magma.configuration.exceptions import LoadConfigError
+from magma.configuration.service_configs import load_service_config
 from lte.protos.mconfig import mconfigs_pb2
 
 
@@ -20,9 +23,20 @@ def main():
     """ main() for MobilityD """
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
 
+    # Load redis_config
+    try:
+        redis_config = load_service_config('redis')
+    except LoadConfigError:
+        logging.warning('Warning: failed to retrieve redis config ',
+            'service will fallback to default configuration')
+        redis_config = {}
+
+    ip_allocator_factory = IPAllocatorFactory(
+        service.mconfig.ip_allocator_type, service.config, redis_config)
+
     # Add all servicers to the server
     mobility_service_servicer = MobilityServiceRpcServicer(
-        service.mconfig, service.config)
+        service.mconfig, service.config, ip_allocator_factory)
     mobility_service_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

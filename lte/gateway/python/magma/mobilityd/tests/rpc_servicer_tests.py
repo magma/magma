@@ -27,6 +27,7 @@ from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.mobilityd.rpc_servicer import IPVersionNotSupportedError, \
     MobilityServiceRpcServicer
+from magma.mobilityd.ip_allocator_factory import IPAllocatorFactory
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
 
@@ -51,7 +52,12 @@ class RpcTests(unittest.TestCase):
         config = {'persist_to_redis': False,
                   'redis_port': None,
                   'allocator_type': "ip_pool"}
-        self._servicer = MobilityServiceRpcServicer(mconfig, config)
+        redis_config = {'port': 6380,
+                        'bind': 'localhost'}
+        ip_allocator_factory = IPAllocatorFactory(
+            MobilityD.IP_POOL, config, redis_config)
+        self._servicer = MobilityServiceRpcServicer(
+            mconfig, config, ip_allocator_factory)
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 

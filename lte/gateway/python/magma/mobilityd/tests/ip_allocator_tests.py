@@ -24,6 +24,7 @@ from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
+from magma.mobilityd.ip_allocator_factory import IPAllocatorFactory
 from magma.mobilityd.ip_allocator_static import IPBlockNotFoundError, \
     NoAvailableIPError
 
@@ -46,12 +47,15 @@ class IPAllocatorTests(unittest.TestCase):
         config = {
             'recycling_interval': recycling_interval,
             'persist_to_redis': False,
-            'redis_port': 6379,
         }
+        redis_config = {'port': 6380,
+                        'bind': 'localhost'}
+        ip_allocator_factory = IPAllocatorFactory(
+            MobilityD.IP_POOL, config, redis_config)
         self._allocator = IPAddressManager(
             recycling_interval=recycling_interval,
-            allocator_type=MobilityD.IP_POOL,
-            config=config)
+            config=config,
+            ip_allocator_factory=ip_allocator_factory)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):

@@ -37,7 +37,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from collections import defaultdict
 from ipaddress import ip_address, ip_network
-from typing import List, Set
+from typing import List, Set, MutableMapping
 
 import redis
 from magma.mobilityd import mobility_store as store
@@ -50,24 +50,14 @@ DEFAULT_IP_RECYCLE_INTERVAL = 15
 class IpDescriptorMap:
 
     def __init__(self,
-                 persist_to_redis: bool = True,
-                 redis_port: int = 6379):
+                 ip_states: MutableMapping[str, MutableMapping[str, IPDesc]]):
         """
-
         Args:
-            persist_to_redis (bool): store all state in local process if falsy,
-                else write state to Redis service
-            redis_port (int): redis server port number.
+            ip_states (MutableMapping[MutableMapping[str, IPDesc]]): dependency
+                injected backing map, this can be a in-memory mapping
+                `defaultdict(dict)` or a redis-backed map.
         """
-        if not persist_to_redis:
-            self.ip_states = defaultdict(dict)  # {state=>{ip=>ip_desc}}
-        else:
-            if not redis_port:
-                raise ValueError(
-                    'Must specify a redis_port in mobilityd config.')
-            client = redis.Redis(host='localhost', port=redis_port)
-            self.ip_states = store.defaultdict_key(
-                lambda key: store.ip_states(client, key))
+        self.ip_states = ip_states
 
     def add_ip_to_state(self, ip: ip_address, ip_desc: IPDesc,
                         state: IPState):

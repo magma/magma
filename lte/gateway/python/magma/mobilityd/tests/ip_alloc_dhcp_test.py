@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 import logging
 import os
 import subprocess
@@ -22,13 +21,12 @@ import unittest
 from ipaddress import ip_network
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 
-from magma.mobilityd.ip_address_man import IPAddressManager, MappingNotFoundError
+from magma.mobilityd.ip_address_man import IPAddressManager, \
+    MappingNotFoundError
+from magma.mobilityd.ip_allocator_factory import IPAllocatorFactory
 from unittest import mock
 from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.pipelined.bridge_util import BridgeTools
-from magma.mobilityd import mobility_store as store
-
-from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
 from magma.mobilityd.mac import create_mac_from_sid
 from magma.mobilityd.dhcp_desc import DHCPState
@@ -71,9 +69,16 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
             'allocator_type': 'dhcp',
             'persist_to_redis': False,
         }
-        self._dhcp_allocator = IPAddressManager(recycling_interval=2,
-                                                allocator_type=MobilityD.DHCP,
-                                                config=config)
+        redis_config = {'port': 6380,
+                        'bind': 'localhost'}
+
+        ip_allocator_factory = IPAllocatorFactory(
+            MobilityD.DHCP, config, redis_config)
+        self._dhcp_allocator = IPAddressManager(
+            config=config,
+            ip_allocator_factory=ip_allocator_factory,
+            recycling_interval=2)
+        self.ip_allocator_factory = ip_allocator_factory
         print("dhcp allocator created")
 
     def tearDown(self):
@@ -86,8 +91,9 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         sid1 = "IMSI02917"
         ip1 = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
-        dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
-        dhcp_store = store.MacToIP()  # mac => DHCP_State
+
+        dhcp_gw_info = self.ip_allocator_factory._dhcp_gw_info
+        dhcp_store = self.ip_allocator_factory.dhcp_store
 
         self.assertEqual(str(dhcp_gw_info.getIP()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)

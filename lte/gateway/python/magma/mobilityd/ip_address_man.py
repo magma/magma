@@ -51,8 +51,8 @@ from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from magma.mobilityd import mobility_store as store
 from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-from magma.common.redis.client import get_default_client
 
+from .ip_allocator_factory import IPAllocatorFactory
 from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_static import IpAllocatorStatic
 from .ip_descriptor_map import IpDescriptorMap
@@ -94,8 +94,9 @@ class IPAddressManager:
 
     Persistence to Redis:
         The IP allocator now by default persists its state to a redis-server
-        process denoted in mobilityd.yml. The allocator's persisted properties
-        and associated structure:
+        process denoted in redis.yml. This behaviour can be enabled/disabled in
+        mobilityd.yml. The allocator's persisted properties and associated
+        structure:
             - self._assigned_ip_blocks: {ip_block}
             - self.ip_state_map: {state=>{ip=>ip_desc}}
             - self.sid_ips_map: {SID=>[IPDesc]}
@@ -112,7 +113,7 @@ class IPAddressManager:
     def __init__(self,
                  *,
                  config,
-                 allocator_type,
+                 ip_allocator_factory: IPAllocatorFactory,
                  recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL):
         """ Initializes a new IP allocator
 
@@ -123,49 +124,15 @@ class IPAddressManager:
 
                 Default: None, no recycling will occur automatically.
         """
-
-        persist_to_redis = config.get('persist_to_redis', True)
-        redis_port = config.get('redis_port', 6379)
-
-        self.allocator_type = allocator_type
-        logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
 
         self._recycle_timer = None  # reference to recycle timer
         self._recycling_interval_seconds = recycling_interval
 
-        if not persist_to_redis:
-            self._assigned_ip_blocks = set()  # {ip_block}
-            self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
-            self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
-
-        else:
-            if not redis_port:
-                raise ValueError(
-                    'Must specify a redis_port in mobilityd config.')
-            client = get_default_client()
-            self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
-            self.sid_ips_map = store.IPDescDict(client)
-            self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
-
-        self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
-        logging.info("Using allocator: %s", self.allocator_type)
-
-        if self.allocator_type == MobilityD.IP_POOL:
-            self._dhcp_gw_info.read_default_gw()
-            self.ip_allocator = IpAllocatorStatic(self._assigned_ip_blocks,
-                                                  self.ip_state_map,
-                                                  self.sid_ips_map)
-        elif self.allocator_type == MobilityD.DHCP:
-            dhcp_store = store.MacToIP()  # mac => DHCP_State
-            iface = config.get('dhcp_iface', 'dhcp0')
-            retry_limit = config.get('retry_limit', 300)
-            self.ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
-                                                self.ip_state_map,
-                                                iface=iface,
-                                                retry_limit=retry_limit,
-                                                dhcp_store=dhcp_store,
-                                                gw_info=self._dhcp_gw_info)
+        self.ip_allocator = ip_allocator_factory.get_allocator()
+        self.sid_ips_map = ip_allocator_factory.get_sid_ips_map()
+        self.ip_state_map = ip_allocator_factory.get_ip_states_map()
+        self._dhcp_gw_info = ip_allocator_factory.get_dhcp_gw_info()
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
