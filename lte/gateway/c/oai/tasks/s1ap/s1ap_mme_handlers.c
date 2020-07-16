@@ -527,36 +527,32 @@ int s1ap_mme_handle_s1_setup_request(
 
 //------------------------------------------------------------------------------
 static int s1ap_generate_s1_setup_response(
-  s1ap_state_t *state,
-  enb_description_t *enb_association)
-{
-
+    s1ap_state_t* state, enb_description_t* enb_association) {
   S1ap_S1AP_PDU_t pdu;
-  S1ap_S1SetupResponse_t *out;
-  S1ap_S1SetupResponseIEs_t *ie = NULL;
-  S1ap_ServedGUMMEIsItem_t *servedGUMMEI = NULL;
+  S1ap_S1SetupResponse_t* out;
+  S1ap_S1SetupResponseIEs_t* ie          = NULL;
+  S1ap_ServedGUMMEIsItem_t* servedGUMMEI = NULL;
   int i, j;
-  int enc_rval = 0;
-  uint8_t *buffer = NULL;
+  int enc_rval    = 0;
+  uint8_t* buffer = NULL;
   uint32_t length = 0;
-  int rc = RETURNok;
-
+  int rc          = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(enb_association != NULL);
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.successfulOutcome.procedureCode = S1ap_ProcedureCode_id_S1Setup;
-  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_reject;
+  pdu.choice.successfulOutcome.criticality   = S1ap_Criticality_reject;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_S1SetupResponse;
   out = &pdu.choice.successfulOutcome.value.choice.S1SetupResponse;
 
   // Generating response
   ie =
-      (S1ap_S1SetupResponseIEs_t *)calloc(1, sizeof(S1ap_S1SetupResponseIEs_t));
-  ie->id = S1ap_ProtocolIE_ID_id_ServedGUMMEIs;
-  ie->criticality = S1ap_Criticality_reject;
+      (S1ap_S1SetupResponseIEs_t*) calloc(1, sizeof(S1ap_S1SetupResponseIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_ServedGUMMEIs;
+  ie->criticality   = S1ap_Criticality_reject;
   ie->value.present = S1ap_S1SetupResponseIEs__value_PR_ServedGUMMEIs;
 
   // memset for gcc 4.8.4 instead of {0}, servedGUMMEI.servedPLMNs
@@ -570,32 +566,29 @@ static int s1ap_generate_s1_setup_response(
   for (i = 0; i < mme_config.served_tai.nb_tai; i++) {
     bool plmn_added = false;
     for (j = 0; j < i; j++) {
-      if (
-        (mme_config.served_tai.plmn_mcc[j] ==
-         mme_config.served_tai.plmn_mcc[i]) &&
-        (mme_config.served_tai.plmn_mnc[j] ==
-         mme_config.served_tai.plmn_mnc[i]) &&
-        (mme_config.served_tai.plmn_mnc_len[j] ==
-         mme_config.served_tai.plmn_mnc_len[i])) {
+      if ((mme_config.served_tai.plmn_mcc[j] ==
+           mme_config.served_tai.plmn_mcc[i]) &&
+          (mme_config.served_tai.plmn_mnc[j] ==
+           mme_config.served_tai.plmn_mnc[i]) &&
+          (mme_config.served_tai.plmn_mnc_len[j] ==
+           mme_config.served_tai.plmn_mnc_len[i])) {
         plmn_added = true;
         break;
       }
     }
     if (false == plmn_added) {
-      S1ap_PLMNidentity_t *plmn = NULL;
-      plmn = calloc(1, sizeof(*plmn));
+      S1ap_PLMNidentity_t* plmn = NULL;
+      plmn                      = calloc(1, sizeof(*plmn));
       MCC_MNC_TO_PLMNID(
-        mme_config.served_tai.plmn_mcc[i],
-        mme_config.served_tai.plmn_mnc[i],
-        mme_config.served_tai.plmn_mnc_len[i],
-        plmn);
+          mme_config.served_tai.plmn_mcc[i], mme_config.served_tai.plmn_mnc[i],
+          mme_config.served_tai.plmn_mnc_len[i], plmn);
       ASN_SEQUENCE_ADD(&servedGUMMEI->servedPLMNs.list, plmn);
     }
   }
 
   for (i = 0; i < mme_config.gummei.nb; i++) {
-    S1ap_MME_Group_ID_t *mme_gid = NULL;
-    S1ap_MME_Code_t *mmec = NULL;
+    S1ap_MME_Group_ID_t* mme_gid = NULL;
+    S1ap_MME_Code_t* mmec        = NULL;
 
     mme_gid = calloc(1, sizeof(*mme_gid));
     INT16_TO_OCTET_STRING(mme_config.gummei.gummei[i].mme_gid, mme_gid);
@@ -608,17 +601,16 @@ static int s1ap_generate_s1_setup_response(
   ASN_SEQUENCE_ADD(&ie->value.choice.ServedGUMMEIs.list, servedGUMMEI);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-
   ie =
-    (S1ap_S1SetupResponseIEs_t *)calloc(1, sizeof(S1ap_S1SetupResponseIEs_t));
-  ie->id = S1ap_ProtocolIE_ID_id_RelativeMMECapacity;
-  ie->criticality = S1ap_Criticality_ignore;
+      (S1ap_S1SetupResponseIEs_t*) calloc(1, sizeof(S1ap_S1SetupResponseIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_RelativeMMECapacity;
+  ie->criticality   = S1ap_Criticality_ignore;
   ie->value.present = S1ap_S1SetupResponseIEs__value_PR_RelativeMMECapacity;
   ie->value.choice.RelativeMMECapacity = mme_config.relative_capacity;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   mme_config_unlock(&mme_config);
-  /* 
+  /*
    * The MME is only serving E-UTRAN RAT, so the list contains only one element
    */
   enc_rval = s1ap_mme_encode_pdu(&pdu, &buffer, &length);
@@ -642,7 +634,7 @@ static int s1ap_generate_s1_setup_response(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(
-    &b, enb_association->sctp_assoc_id, 0, INVALID_MME_UE_S1AP_ID);
+      &b, enb_association->sctp_assoc_id, 0, INVALID_MME_UE_S1AP_ID);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
