@@ -1,5 +1,0 @@
-mutation AddWorkOrderTypeMutation($input: AddWorkOrderTypeInput!) {
-  addWorkOrderType(input: $input) {
-    id
-  }
-}
