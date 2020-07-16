@@ -1303,47 +1303,51 @@ int s1ap_handle_ue_context_mod_req(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_ue_context_release_complete(
-  s1ap_state_t *state,
-  __attribute__((unused)) const sctp_assoc_id_t assoc_id,
-  __attribute__((unused)) const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
-{
-#if S1AP_R1O_TO_R15_DONE
-  S1ap_UEContextReleaseCompleteIEs_t *ueContextReleaseComplete_p = NULL;
-  ue_description_t *ue_ref_p = NULL;
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) const sctp_stream_id_t stream,
+    S1ap_S1AP_PDU_t* pdu) {
+  S1ap_UEContextReleaseComplete_t* container;
+  S1ap_UEContextReleaseComplete_IEs_t* ie = NULL;
+  ue_description_t* ue_ref_p              = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id         = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  ueContextReleaseComplete_p = &message->msg.s1ap_UEContextReleaseCompleteIEs;
+  container =
+      &pdu->choice.successfulOutcome.value.choice.UEContextReleaseComplete;
 
-  if (
-    (ue_ref_p = s1ap_state_get_ue_mmeid(
-       state, ueContextReleaseComplete_p->mme_ue_s1ap_id)) == NULL) {
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_UEContextReleaseComplete_IEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) == NULL) {
     /*
      * The UE context has already been deleted when the UE context release
      * command was sent
      * Ignore this message.
      */
     OAILOG_DEBUG(
-      LOG_S1AP,
-      " UE Context Release commplete: S1 context cleared. Ignore message for "
-      "ueid " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
+        LOG_S1AP,
+        " UE Context Release commplete: S1 context cleared. Ignore message for "
+        "ueid " MME_UE_S1AP_ID_FMT "\n",
+        (uint32_t) mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-  }
-  else{
+  } else {
     /* This is an error scenario, the S1 UE context should have been deleted
      * when UE context release command was sent
      */
     OAILOG_ERROR(
-      LOG_S1AP,
-      " UE Context Release commplete: S1 context should have been cleared for "
-      "ueid " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) ueContextReleaseComplete_p->mme_ue_s1ap_id);
+        LOG_S1AP,
+        " UE Context Release commplete: S1 context should have been cleared "
+        "for "
+        "ueid " MME_UE_S1AP_ID_FMT "\n",
+        (uint32_t) mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
