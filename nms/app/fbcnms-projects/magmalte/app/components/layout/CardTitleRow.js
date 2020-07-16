@@ -28,8 +28,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export type CardTitleRowProps = {
-  icon: ComponentType<SvgIconExports>,
+type CardTitleRowProps = {
+  icon?: ComponentType<SvgIconExports>,
   label: string,
 };
 
@@ -39,27 +39,27 @@ export const CardTitleRow = (props: CardTitleRowProps) => {
 
   return (
     <Grid container alignItems="center" className={classes.cardTitleRow}>
-      {props.icon ? <Icon className={classes.cardTitleIcon} /> : null}
+      {Icon ? <Icon className={classes.cardTitleIcon} /> : null}
       <Text variant="body1">{props.label}</Text>
     </Grid>
   );
 };
 
-export type CardTitleFilterRowProps = {
-  icon: ComponentType<SvgIconExports>,
+type CardTitleFilterRowProps = {
+  icon?: ComponentType<SvgIconExports>,
   label: string,
   filter: () => React$Node,
 };
 
 export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
   const classes = useStyles();
-  const Icon = props.icon;
   const Filters = props.filter;
+  const Icon = props.icon;
 
   return (
     <Grid container alignItems="center" className={classes.cardTitleRow}>
       <Grid container xs>
-        {props.icon ? <Icon className={classes.cardTitleIcon} /> : null}
+        {Icon ? <Icon className={classes.cardTitleIcon} /> : null}
         <Text variant="body1">{props.label}</Text>
       </Grid>
       <Grid item>
