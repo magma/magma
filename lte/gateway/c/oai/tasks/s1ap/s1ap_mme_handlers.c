@@ -2117,10 +2117,8 @@ int s1ap_handle_sctp_disconnection(
 
 //------------------------------------------------------------------------------
 int s1ap_handle_new_association(
-  s1ap_state_t *state,
-  sctp_new_peer_t *sctp_new_peer_p)
-{
-  enb_description_t *enb_association = NULL;
+    s1ap_state_t* state, sctp_new_peer_t* sctp_new_peer_p) {
+  enb_description_t* enb_association = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(sctp_new_peer_p != NULL);
@@ -2131,9 +2129,8 @@ int s1ap_handle_new_association(
   enb_association = s1ap_state_get_enb(state, sctp_new_peer_p->assoc_id);
   if (enb_association == NULL) {
     OAILOG_DEBUG(
-      LOG_S1AP,
-      "Create eNB context for assoc_id: %d\n",
-      sctp_new_peer_p->assoc_id);
+        LOG_S1AP, "Create eNB context for assoc_id: %d\n",
+        sctp_new_peer_p->assoc_id);
     /*
      * Create new context
      */
@@ -2147,47 +2144,44 @@ int s1ap_handle_new_association(
        * TODO: send reject there
        */
       OAILOG_ERROR(
-        LOG_S1AP,
-        "Failed to allocate eNB context for assoc_id: %d\n",
-        sctp_new_peer_p->assoc_id);
+          LOG_S1AP, "Failed to allocate eNB context for assoc_id: %d\n",
+          sctp_new_peer_p->assoc_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
-    hashtable_rc_t hash_rc = hashtable_ts_insert(
-      &state->enbs,
-      (const hash_key_t) enb_association->sctp_assoc_id,
-      (void *) enb_association);
+    hashtable_rc_t hash_rc         = hashtable_ts_insert(
+        &state->enbs, (const hash_key_t) enb_association->sctp_assoc_id,
+        (void*) enb_association);
     if (HASH_TABLE_OK != hash_rc) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   } else if (
-    (enb_association->s1_state == S1AP_SHUTDOWN) ||
-    (enb_association->s1_state == S1AP_RESETING)) {
+      (enb_association->s1_state == S1AP_SHUTDOWN) ||
+      (enb_association->s1_state == S1AP_RESETING)) {
     OAILOG_WARNING(
-      LOG_S1AP,
-      "Received new association request on an association that is being %s, "
-      "ignoring",
-      s1_enb_state2str(enb_association->s1_state));
+        LOG_S1AP,
+        "Received new association request on an association that is being %s, "
+        "ignoring",
+        s1_enb_state2str(enb_association->s1_state));
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     OAILOG_DEBUG(
-      LOG_S1AP,
-      "eNB context already exists for assoc_id: %d, update it\n",
-      sctp_new_peer_p->assoc_id);
+        LOG_S1AP, "eNB context already exists for assoc_id: %d, update it\n",
+        sctp_new_peer_p->assoc_id);
   }
 
   enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
   /*
    * Fill in in and out number of streams available on SCTP connection.
    */
-  enb_association->instreams = (sctp_stream_id_t) sctp_new_peer_p->instreams;
+  enb_association->instreams  = (sctp_stream_id_t) sctp_new_peer_p->instreams;
   enb_association->outstreams = (sctp_stream_id_t) sctp_new_peer_p->outstreams;
   /*
    * initialize the next sctp stream to 1 as 0 is reserved for non
    * * * * ue associated signalling.
    */
   enb_association->next_sctp_stream = 1;
-  enb_association->s1_state = S1AP_INIT;
+  enb_association->s1_state         = S1AP_INIT;
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
