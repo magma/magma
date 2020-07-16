@@ -241,6 +241,12 @@ export default createMuiTheme({
         },
       },
     },
+    MuiDivider: {
+      root: {
+        backgroundColor: colors.primary.concrete,
+        height: '2px',
+      },
+    },
     MuiFormControl: {
       marginDense: {
         marginTop: '0px',
