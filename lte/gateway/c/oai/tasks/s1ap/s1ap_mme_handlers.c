@@ -1040,17 +1040,14 @@ int s1ap_mme_handle_ue_context_release_request(
 
 //------------------------------------------------------------------------------
 static int s1ap_mme_generate_ue_context_release_command(
-  s1ap_state_t *state,
-  ue_description_t *ue_ref_p,
-  enum s1cause cause,
-  imsi64_t imsi64)
-{
-#if S1AP_R1O_TO_R15_DONE
-  uint8_t *buffer = NULL;
+    s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause cause,
+    imsi64_t imsi64) {
+  uint8_t* buffer = NULL;
   uint32_t length = 0;
-  s1ap_message message = {0};
-  S1ap_UEContextReleaseCommandIEs_t *ueContextReleaseCommandIEs_p = NULL;
-  int rc = RETURNok;
+  S1ap_S1AP_PDU_t pdu;
+  S1ap_UEContextReleaseCommand_t* out;
+  S1ap_UEContextReleaseCommand_IEs_t* ie = NULL;
+  int rc                                 = RETURNok;
   S1ap_Cause_PR cause_type;
   long cause_value;
 
@@ -1058,78 +1055,85 @@ static int s1ap_mme_generate_ue_context_release_command(
   if (ue_ref_p == NULL) {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+  pdu.choice.initiatingMessage.procedureCode =
+      S1ap_ProcedureCode_id_UEContextRelease;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
+  pdu.choice.initiatingMessage.value.present =
+      S1ap_InitiatingMessage__value_PR_UEContextReleaseCommand;
+  out = &pdu.choice.initiatingMessage.value.choice.UEContextReleaseCommand;
 
-  message.procedureCode = S1ap_ProcedureCode_id_UEContextRelease;
-  message.direction = S1AP_PDU_PR_initiatingMessage;
-  ueContextReleaseCommandIEs_p = &message.msg.s1ap_UEContextReleaseCommandIEs;
   /*
-   * Fill in ID pair
+   * Fill in ID pair, depending if a UE_REFERENCE exists or not.
    */
-  ueContextReleaseCommandIEs_p->uE_S1AP_IDs.present =
-    S1ap_UE_S1AP_IDs_PR_uE_S1AP_ID_pair;
-  ueContextReleaseCommandIEs_p->uE_S1AP_IDs.choice.uE_S1AP_ID_pair
-    .mME_UE_S1AP_ID = ue_ref_p->mme_ue_s1ap_id;
-  ueContextReleaseCommandIEs_p->uE_S1AP_IDs.choice.uE_S1AP_ID_pair
-    .eNB_UE_S1AP_ID = ue_ref_p->enb_ue_s1ap_id;
-  ueContextReleaseCommandIEs_p->uE_S1AP_IDs.choice.uE_S1AP_ID_pair
-    .iE_Extensions = NULL;
+  ie = (S1ap_UEContextReleaseCommand_IEs_t*) calloc(
+      1, sizeof(S1ap_UEContextReleaseCommand_IEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_UE_S1AP_IDs;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_UEContextReleaseCommand_IEs__value_PR_UE_S1AP_IDs;
+  ie->value.choice.UE_S1AP_IDs.present = S1ap_UE_S1AP_IDs_PR_uE_S1AP_ID_pair;
+  ie->value.choice.UE_S1AP_IDs.choice.uE_S1AP_ID_pair.mME_UE_S1AP_ID =
+      ue_ref_p->mme_ue_s1ap_id;
+  ie->value.choice.UE_S1AP_IDs.choice.uE_S1AP_ID_pair.eNB_UE_S1AP_ID =
+      ue_ref_p->enb_ue_s1ap_id;
+  ie->value.choice.UE_S1AP_IDs.choice.uE_S1AP_ID_pair.iE_Extensions = NULL;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  ie = (S1ap_UEContextReleaseCommand_IEs_t*) calloc(
+      1, sizeof(S1ap_UEContextReleaseCommand_IEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_Cause;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_UEContextReleaseCommand_IEs__value_PR_Cause;
   switch (cause) {
     case S1AP_NAS_DETACH:
-      cause_type = S1ap_Cause_PR_nas;
+      cause_type  = S1ap_Cause_PR_nas;
       cause_value = S1ap_CauseNas_detach;
       break;
     case S1AP_NAS_NORMAL_RELEASE:
-      cause_type = S1ap_Cause_PR_nas;
+      cause_type  = S1ap_Cause_PR_nas;
       cause_value = S1ap_CauseNas_unspecified;
       break;
     case S1AP_RADIO_EUTRAN_GENERATED_REASON:
       cause_type = S1ap_Cause_PR_radioNetwork;
       cause_value =
-        S1ap_CauseRadioNetwork_release_due_to_eutran_generated_reason;
+          S1ap_CauseRadioNetwork_release_due_to_eutran_generated_reason;
       break;
     case S1AP_INITIAL_CONTEXT_SETUP_FAILED:
-      cause_type = S1ap_Cause_PR_radioNetwork;
+      cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_unspecified;
       break;
     case S1AP_CSFB_TRIGGERED:
-      cause_type = S1ap_Cause_PR_radioNetwork;
+      cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_cs_fallback_triggered;
       break;
     case S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS:
-      cause_type = S1ap_Cause_PR_radioNetwork;
+      cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
     default:
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  s1ap_mme_set_cause(
-    &ueContextReleaseCommandIEs_p->cause, cause_type, cause_value);
+  s1ap_mme_set_cause(&ie->value.choice.Cause, cause_type, cause_value);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-  if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
-    free_s1ap_uecontextreleasecommand(ueContextReleaseCommandIEs_p);
+  if (s1ap_mme_encode_pdu(&pdu, &buffer, &length) < 0) {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(
-    &b,
-    ue_ref_p->enb->sctp_assoc_id,
-    ue_ref_p->sctp_stream_send,
-    ue_ref_p->mme_ue_s1ap_id);
+      &b, ue_ref_p->enb->sctp_assoc_id, ue_ref_p->sctp_stream_send,
+      ue_ref_p->mme_ue_s1ap_id);
   ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
 
   // Start timer to track UE context release complete from eNB
 
   // We can safely remove UE context now, no need for timer
   s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
-
-  free_s1ap_uecontextreleasecommand(ueContextReleaseCommandIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
