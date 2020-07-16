@@ -2979,67 +2979,65 @@ static bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container) {
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_ack(
-  s1ap_state_t* state,
-  const itti_s1ap_path_switch_request_ack_t* path_switch_req_ack_p,
-  imsi64_t imsi64)
-{
+    s1ap_state_t* state,
+    const itti_s1ap_path_switch_request_ack_t* path_switch_req_ack_p,
+    imsi64_t imsi64) {
 #if S1AP_R1O_TO_R15_DONE
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  uint8_t *buffer = NULL;
-  uint32_t length = 0;
-  ue_description_t *ue_ref_p = NULL;
-  s1ap_message message = {0};
-  S1ap_PathSwitchRequestAcknowledgeIEs_t
-     *s1ap_PathSwitchRequestAcknowledgeIEs_p = NULL;
-  int rc = RETURNok;
+  uint8_t* buffer            = NULL;
+  uint32_t length            = 0;
+  ue_description_t* ue_ref_p = NULL;
+  s1ap_message message       = {0};
+  S1ap_PathSwitchRequestAcknowledgeIEs_t*
+      s1ap_PathSwitchRequestAcknowledgeIEs_p = NULL;
+  int rc                                     = RETURNok;
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
-    state, path_switch_req_ack_p->mme_ue_s1ap_id)) == NULL) {
+           state, path_switch_req_ack_p->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG_UE(
-      LOG_S1AP,
-      imsi64,
-      "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
+        LOG_S1AP, imsi64,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+        (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   message.procedureCode = S1ap_ProcedureCode_id_PathSwitchRequest;
-  message.direction = S1AP_PDU_PR_successfulOutcome;
-  s1ap_PathSwitchRequestAcknowledgeIEs_p = &message.msg
-    .s1ap_PathSwitchRequestAcknowledgeIEs;
+  message.direction     = S1AP_PDU_PR_successfulOutcome;
+  s1ap_PathSwitchRequestAcknowledgeIEs_p =
+      &message.msg.s1ap_PathSwitchRequestAcknowledgeIEs;
   s1ap_PathSwitchRequestAcknowledgeIEs_p->presenceMask = 0;
 
   s1ap_PathSwitchRequestAcknowledgeIEs_p->mme_ue_s1ap_id =
-    path_switch_req_ack_p->mme_ue_s1ap_id;
+      path_switch_req_ack_p->mme_ue_s1ap_id;
   s1ap_PathSwitchRequestAcknowledgeIEs_p->eNB_UE_S1AP_ID =
-    path_switch_req_ack_p->enb_ue_s1ap_id;
-  s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext
-    .nextHopChainingCount = path_switch_req_ack_p->NCC;
-  s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext
-    .nextHopParameter.buf = calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t));
-  memcpy(s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext
-    .nextHopParameter.buf,
-        path_switch_req_ack_p->NH, AUTH_NEXT_HOP_SIZE);
-  s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext
-    .nextHopParameter.size = AUTH_NEXT_HOP_SIZE;
+      path_switch_req_ack_p->enb_ue_s1ap_id;
+  s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopChainingCount =
+      path_switch_req_ack_p->NCC;
+  s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopParameter.buf =
+      calloc(AUTH_NEXT_HOP_SIZE, sizeof(uint8_t));
+  memcpy(
+      s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopParameter
+          .buf,
+      path_switch_req_ack_p->NH, AUTH_NEXT_HOP_SIZE);
+  s1ap_PathSwitchRequestAcknowledgeIEs_p->securityContext.nextHopParameter
+      .size = AUTH_NEXT_HOP_SIZE;
 
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
-    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Path Switch Request Ack encoding failed \n");
+    OAILOG_ERROR_UE(
+        LOG_S1AP, imsi64, "Path Switch Request Ack encoding failed \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
   OAILOG_DEBUG_UE(
-    LOG_S1AP,
-    imsi64,
-    "send PATH_SWITCH_REQUEST_ACK for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-    (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
+      LOG_S1AP, imsi64,
+      "send PATH_SWITCH_REQUEST_ACK for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+      "\n",
+      (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
 
   rc = s1ap_mme_itti_send_sctp_request(
-    &b,
-    path_switch_req_ack_p->sctp_assoc_id,
-    ue_ref_p->sctp_stream_send,
-    path_switch_req_ack_p->mme_ue_s1ap_id);
+      &b, path_switch_req_ack_p->sctp_assoc_id, ue_ref_p->sctp_stream_send,
+      path_switch_req_ack_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 #else
   return -1;
