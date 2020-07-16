@@ -304,26 +304,21 @@ int s1ap_mme_generate_s1_setup_failure(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_s1_setup_request(
-  s1ap_state_t *state,
-  const sctp_assoc_id_t assoc_id,
-  const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *pdu)
-{
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   int rc = RETURNok;
 
-  S1ap_S1SetupRequest_t *container = NULL;
-  S1ap_S1SetupRequestIEs_t *ie = NULL;
-  S1ap_S1SetupRequestIEs_t *ie_enb_name = NULL;
-  S1ap_S1SetupRequestIEs_t *ie_supported_tas = NULL;
-  S1ap_S1SetupRequestIEs_t *ie_default_paging_drx = NULL;
+  S1ap_S1SetupRequest_t* container                = NULL;
+  S1ap_S1SetupRequestIEs_t* ie                    = NULL;
+  S1ap_S1SetupRequestIEs_t* ie_enb_name           = NULL;
+  S1ap_S1SetupRequestIEs_t* ie_supported_tas      = NULL;
+  S1ap_S1SetupRequestIEs_t* ie_default_paging_drx = NULL;
 
-  enb_description_t *enb_association = NULL;
-  uint32_t enb_id = 0;
-  char *enb_name = NULL;
-  int ta_ret = 0;
-  uint8_t bplmn_list_count = 0; //Broadcast PLMN list count
-
-
+  enb_description_t* enb_association = NULL;
+  uint32_t enb_id                    = 0;
+  char* enb_name                     = NULL;
+  int ta_ret                         = 0;
+  uint8_t bplmn_list_count = 0;  // Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("s1_setup", 1, NO_LABELS);
@@ -332,13 +327,13 @@ int s1ap_mme_handle_s1_setup_request(
      * Can not process the request, MME is not connected to HSS
      */
     OAILOG_ERROR(
-      LOG_S1AP,
-      "Rejecting s1 setup request Can not process the request, MME is not "
-      "connected to HSS\n");
+        LOG_S1AP,
+        "Rejecting s1 setup request Can not process the request, MME is not "
+        "connected to HSS\n");
     rc = s1ap_mme_generate_s1_setup_failure(
-      assoc_id, S1ap_Cause_PR_misc, S1ap_CauseMisc_unspecified, -1);
+        assoc_id, S1ap_Cause_PR_misc, S1ap_CauseMisc_unspecified, -1);
     increment_counter(
-      "s1_setup", 1, 2, "result", "failure", "cause", "s6a_interface_not_up");
+        "s1_setup", 1, 2, "result", "failure", "cause", "s6a_interface_not_up");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
@@ -355,87 +350,79 @@ int s1ap_mme_handle_s1_setup_request(
      * Send a s1 setup failure with protocol cause unspecified
      */
     rc = s1ap_mme_generate_s1_setup_failure(
-      assoc_id, S1ap_Cause_PR_protocol, S1ap_CauseProtocol_unspecified, -1);
+        assoc_id, S1ap_Cause_PR_protocol, S1ap_CauseProtocol_unspecified, -1);
     increment_counter(
-      "s1_setup",
-      1,
-      2,
-      "result",
-      "failure",
-      "cause",
-      "sctp_stream_id_non_zero");
+        "s1_setup", 1, 2, "result", "failure", "cause",
+        "sctp_stream_id_non_zero");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
   /* Handling of s1setup cases as follows.
-   * If we don't know about the association, we haven't processed the new association yet, so hope the eNB will retry
-   * the s1 setup. Ignore and return.
-   * If we get this message when the S1 interface of the MME state is in READY state then it is protocol error or
-   * out of sync state. Ignore it and return. Assume MME would detect SCTP association failure and would S1 interface
-   * state to accept S1setup from eNB.
-   * If we get this message when the s1 interface of the MME is in SHUTDOWN stage, we just hope the eNB will retry and
-   * that will result in a new association getting established followed by a subsequent s1 setup, return
-   * S1ap_TimeToWait_v20s.
-   * If we get this message when the s1 interface of the MME is in RESETTING stage then we return S1ap_TimeToWait_v20s.
+   * If we don't know about the association, we haven't processed the new
+   * association yet, so hope the eNB will retry the s1 setup. Ignore and
+   * return. If we get this message when the S1 interface of the MME state is in
+   * READY state then it is protocol error or out of sync state. Ignore it and
+   * return. Assume MME would detect SCTP association failure and would S1
+   * interface state to accept S1setup from eNB. If we get this message when the
+   * s1 interface of the MME is in SHUTDOWN stage, we just hope the eNB will
+   * retry and that will result in a new association getting established
+   * followed by a subsequent s1 setup, return S1ap_TimeToWait_v20s. If we get
+   * this message when the s1 interface of the MME is in RESETTING stage then we
+   * return S1ap_TimeToWait_v20s.
    */
   if ((enb_association = s1ap_state_get_enb(state, assoc_id)) == NULL) {
     /*
      *
-     * This should not happen as the thread processing new associations is the one that reads data from the
-     * socket. Promote to an assert once we have more confidence.
+     * This should not happen as the thread processing new associations is the
+     * one that reads data from the socket. Promote to an assert once we have
+     * more confidence.
      */
     OAILOG_ERROR(LOG_S1AP, "Ignoring s1 setup from unknown assoc %u", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
-  if (
-    enb_association->s1_state == S1AP_RESETING ||
-    enb_association->s1_state == S1AP_SHUTDOWN) {
+  if (enb_association->s1_state == S1AP_RESETING ||
+      enb_association->s1_state == S1AP_SHUTDOWN) {
     OAILOG_WARNING(
-      LOG_S1AP,
-      "Ignoring s1setup from eNB in state %s on assoc id %u",
-      s1_enb_state2str(enb_association->s1_state),
-      assoc_id);
+        LOG_S1AP, "Ignoring s1setup from eNB in state %s on assoc id %u",
+        s1_enb_state2str(enb_association->s1_state), assoc_id);
     rc = s1ap_mme_generate_s1_setup_failure(
-      assoc_id,
-      S1ap_Cause_PR_transport,
-      S1ap_CauseTransport_transport_resource_unavailable,
-      S1ap_TimeToWait_v20s);
+        assoc_id, S1ap_Cause_PR_transport,
+        S1ap_CauseTransport_transport_resource_unavailable,
+        S1ap_TimeToWait_v20s);
     increment_counter(
-      "s1_setup", 1, 2, "result", "failure", "cause", "invalid_state");
+        "s1_setup", 1, 2, "result", "failure", "cause", "invalid_state");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
-  log_queue_item_t *context = NULL;
+  log_queue_item_t* context = NULL;
   OAILOG_MESSAGE_START_SYNC(
-    OAILOG_LEVEL_DEBUG,
-    LOG_S1AP,
-    (&context),
-    "New s1 setup request incoming from ");
-  //shared_log_queue_item_t *context = NULL;
-  //OAILOG_MESSAGE_START_ASYNC (OAILOG_LEVEL_DEBUG, LOG_S1AP, (&context), "New s1 setup request incoming from ");
+      OAILOG_LEVEL_DEBUG, LOG_S1AP, (&context),
+      "New s1 setup request incoming from ");
+  // shared_log_queue_item_t *context = NULL;
+  // OAILOG_MESSAGE_START_ASYNC (OAILOG_LEVEL_DEBUG, LOG_S1AP, (&context), "New
+  // s1 setup request incoming from ");
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_enb_name, container,
-                              S1ap_ProtocolIE_ID_id_eNBname, false);
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_S1SetupRequestIEs_t, ie_enb_name, container,
+      S1ap_ProtocolIE_ID_id_eNBname, false);
   if (ie_enb_name) {
     OAILOG_MESSAGE_ADD_SYNC(
-      context,
-      "%*s ",
-      (int)ie_enb_name->value.choice.ENBname.size,
-      ie_enb_name->value.choice.ENBname.buf);
-    enb_name = (char *)ie_enb_name->value.choice.ENBname.buf;
+        context, "%*s ", (int) ie_enb_name->value.choice.ENBname.size,
+        ie_enb_name->value.choice.ENBname.buf);
+    enb_name = (char*) ie_enb_name->value.choice.ENBname.buf;
   }
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie, container,
-                             S1ap_ProtocolIE_ID_id_Global_ENB_ID, true);
-  if (
-    ie->value.choice.Global_ENB_ID.eNB_ID.present ==
-    S1ap_ENB_ID_PR_homeENB_ID) {
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_S1SetupRequestIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_Global_ENB_ID, true);
+  if (ie->value.choice.Global_ENB_ID.eNB_ID.present ==
+      S1ap_ENB_ID_PR_homeENB_ID) {
     // Home eNB ID = 28 bits
-    uint8_t *enb_id_buf =
-      ie->value.choice.Global_ENB_ID.eNB_ID.choice.homeENB_ID.buf;
+    uint8_t* enb_id_buf =
+        ie->value.choice.Global_ENB_ID.eNB_ID.choice.homeENB_ID.buf;
 
     if (ie->value.choice.Global_ENB_ID.eNB_ID.choice.homeENB_ID.size != 28) {
-      //TODO: handle case were size != 28 -> notify ? reject ?
+      // TODO: handle case were size != 28 -> notify ? reject ?
     }
 
     enb_id = (enb_id_buf[0] << 20) + (enb_id_buf[1] << 12) +
@@ -443,11 +430,11 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_MESSAGE_ADD_SYNC(context, "home eNB id: %07x", enb_id);
   } else {
     // Macro eNB = 20 bits
-    uint8_t *enb_id_buf =
-      ie->value.choice.Global_ENB_ID.eNB_ID.choice.macroENB_ID.buf;
+    uint8_t* enb_id_buf =
+        ie->value.choice.Global_ENB_ID.eNB_ID.choice.macroENB_ID.buf;
 
     if (ie->value.choice.Global_ENB_ID.eNB_ID.choice.macroENB_ID.size != 20) {
-      //TODO: handle case were size != 20 -> notify ? reject ?
+      // TODO: handle case were size != 20 -> notify ? reject ?
     }
 
     enb_id = (enb_id_buf[0] << 12) + (enb_id_buf[1] << 4) +
@@ -455,77 +442,77 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_MESSAGE_ADD_SYNC(context, "macro eNB id: %05x", enb_id);
   }
 
-  OAILOG_MESSAGE_FINISH((void *) context);
+  OAILOG_MESSAGE_FINISH((void*) context);
 
   /* Requirement MME36.413R10_8.7.3.4 Abnormal Conditions
-   * If the eNB initiates the procedure by sending a S1 SETUP REQUEST message including the PLMN Identity IEs and
-   * none of the PLMNs provided by the eNB is identified by the MME, then the MME shall reject the eNB S1 Setup
+   * If the eNB initiates the procedure by sending a S1 SETUP REQUEST message
+   * including the PLMN Identity IEs and none of the PLMNs provided by the eNB
+   * is identified by the MME, then the MME shall reject the eNB S1 Setup
    * Request procedure with the appropriate cause value, e.g, Unknown PLMN.
    */
-  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_supported_tas,
-                               container, S1ap_ProtocolIE_ID_id_SupportedTAs,
-                               true);
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_S1SetupRequestIEs_t, ie_supported_tas, container,
+      S1ap_ProtocolIE_ID_id_SupportedTAs, true);
 
-  ta_ret = s1ap_mme_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAs);
+  ta_ret =
+      s1ap_mme_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAs);
 
   /*
    * eNB and MME have no common PLMN
    */
   if (ta_ret != TA_LIST_RET_OK) {
     OAILOG_ERROR(
-      LOG_S1AP, "No Common PLMN with eNB, generate_s1_setup_failure\n");
+        LOG_S1AP, "No Common PLMN with eNB, generate_s1_setup_failure\n");
     rc = s1ap_mme_generate_s1_setup_failure(
-      assoc_id,
-      S1ap_Cause_PR_misc,
-      S1ap_CauseMisc_unknown_PLMN,
-      S1ap_TimeToWait_v20s);
+        assoc_id, S1ap_Cause_PR_misc, S1ap_CauseMisc_unknown_PLMN,
+        S1ap_TimeToWait_v20s);
 
     increment_counter(
-      "s1_setup", 1, 2, "result", "failure", "cause", "plmnid_or_tac_mismatch");
+        "s1_setup", 1, 2, "result", "failure", "cause",
+        "plmnid_or_tac_mismatch");
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
 
   S1ap_SupportedTAs_t* ta_list = &ie_supported_tas->value.choice.SupportedTAs;
   supported_ta_list_t* supp_ta_list = &enb_association->supported_ta_list;
-  supp_ta_list->list_count = ta_list->list.count;
+  supp_ta_list->list_count          = ta_list->list.count;
 
   /* Storing supported TAI lists received in S1 SETUP REQUEST message */
   for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
     S1ap_SupportedTAs_Item_t* tai = NULL;
-    tai = ta_list->list.array[tai_idx];
+    tai                           = ta_list->list.array[tai_idx];
     OCTET_STRING_TO_TAC(
-      &tai->tAC, supp_ta_list->supported_tai_items[tai_idx].tac);
+        &tai->tAC, supp_ta_list->supported_tai_items[tai_idx].tac);
 
     bplmn_list_count = tai->broadcastPLMNs.list.count;
     if (bplmn_list_count > S1AP_MAX_BROADCAST_PLMNS) {
       OAILOG_ERROR(
-        LOG_S1AP,
-        "Maximum Broadcast PLMN list count exceeded, count = %d\n",
-        bplmn_list_count);
+          LOG_S1AP, "Maximum Broadcast PLMN list count exceeded, count = %d\n",
+          bplmn_list_count);
     }
     supp_ta_list->supported_tai_items[tai_idx].bplmnlist_count =
-      bplmn_list_count;
+        bplmn_list_count;
     for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
       TBCD_TO_PLMN_T(
-        tai->broadcastPLMNs.list.array[plmn_idx],
-        &supp_ta_list->supported_tai_items[tai_idx].bplmns[plmn_idx]);
+          tai->broadcastPLMNs.list.array[plmn_idx],
+          &supp_ta_list->supported_tai_items[tai_idx].bplmns[plmn_idx]);
     }
   }
   OAILOG_DEBUG(LOG_S1AP, "Adding eNB to the list of served eNBs\n");
 
   enb_association->enb_id = enb_id;
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_S1SetupRequestIEs_t, ie_default_paging_drx,
-                               container, S1ap_ProtocolIE_ID_id_DefaultPagingDRX,
-                               true);
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_S1SetupRequestIEs_t, ie_default_paging_drx, container,
+      S1ap_ProtocolIE_ID_id_DefaultPagingDRX, true);
 
-  enb_association->default_paging_drx = ie_default_paging_drx->value.choice.PagingDRX;
+  enb_association->default_paging_drx =
+      ie_default_paging_drx->value.choice.PagingDRX;
 
   if (enb_name != NULL) {
     memcpy(
-      enb_association->enb_name,
-      ie_enb_name->value.choice.ENBname.buf,
-      ie_enb_name->value.choice.ENBname.size);
+        enb_association->enb_name, ie_enb_name->value.choice.ENBname.buf,
+        ie_enb_name->value.choice.ENBname.size);
     enb_association->enb_name[ie_enb_name->value.choice.ENBname.size] = '\0';
   }
 
