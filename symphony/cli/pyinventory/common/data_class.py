@@ -28,25 +28,32 @@ PropertyValueType = Union[
 
 class PropertyDefinition(NamedTuple):
     """
-    Attributes:
-        property_name (str): type name
-        property_kind ( `pyinventory.graphql.enum.property_kind.PropertyKind` ): property kind
-        default_raw_value (str): default property value as a string
-            ```
-            string         - "string"
-            int            - "123"
-            bool           - "true" / "True" / "TRUE"
-            float           - "0.123456"
-            date           - "24/10/2020"
-            range          - "0.123456 - 0.2345" / "1 - 2"
-            email          - "email@some.domain"
-            gps_location   - "0.1234, 0.2345"
-            ```
-        id (Optional[str]):  ID
-        is_fixed (bool): fixed value flag
-        external_id (str): property type external ID
-        is_mandatory (bool): mandatory value flag
-        is_deleted (bool): is delete flag
+        :param property_name: Type name
+        :type property_name: str
+        :param property_kind: Property kind
+        :type property_kind: class:`~pyinventory.graphql.enum.property_kind.PropertyKind`
+        :param default_raw_value: Default property value as a string
+
+            * string - "string"
+            * int - "123"
+            * bool - "true" / "True" / "TRUE"
+            * float - "0.123456"
+            * date - "24/10/2020"
+            * range - "0.123456 - 0.2345" / "1 - 2"
+            * email - "email@some.domain"
+            * gps_location - "0.1234, 0.2345"
+
+        :type default_raw_value: str, optional
+        :param id: ID
+        :type id: str, optional
+        :param is_fixed: Fixed value flag
+        :type is_fixed: bool, optional
+        :param external_id: Property type external ID
+        :type external_id: str, optional
+        :param is_mandatory: Mandatory value flag
+        :type is_mandatory: bool, optional
+        :param is_deleted: Is delete flag
+        :type is_deleted: bool, optional
     """
 
     property_name: str
@@ -61,9 +68,10 @@ class PropertyDefinition(NamedTuple):
 
 class DataTypeName(NamedTuple):
     """
-    Attributes:
-        data_type (PropertyValueType): data type
-        graphql_field_name (Tuple[str, ...]): graphql field name, in case of `gps_location` it is Tuple[`latitudeValue`, `longitudeValue`]
+        :param data_type: Data type
+        :type data_type: :attr:`~pyinventory.graphql.data_class.PropertyValueType`
+        :param graphql_field_name: GraphQL field name, in case of `gps_location` it is Tuple[`latitudeValue`, `longitudeValue`]
+        :type graphql_field_name: Tuple[str, ...]
     """
 
     data_type: PropertyValueType
@@ -86,10 +94,12 @@ TYPE_AND_FIELD_NAME = {
 
 class LocationType(NamedTuple):
     """
-    Attributes:
-        name (str): name
-        id (str):  ID
-        property_types (Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]): property types sequence
+        :param name: Name
+        :type name: str
+        :param id: ID
+        :type id: str
+        :param property_types: PropertyTypes sequence
+        :type property_types: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
     """
 
     name: str
@@ -99,14 +109,20 @@ class LocationType(NamedTuple):
 
 class Location(NamedTuple):
     """
-    Attributes:
-        name (str): name
-        id (str): ID
-        latitude (Number): latitude
-        longitude (Number): longitude
-        external_id (Optional[str]): external ID
-        location_type_name (str): location type name
-        properties (Sequence[ `pyinventory.graphql.fragment.property.PropertyFragment` ])
+        :param name: name
+        :type name: str
+        :param id: ID
+        :type id: str
+        :param latitude: latitude
+        :type latitude: Number
+        :param longitude: longitude
+        :type longitude: Number
+        :param external_id: external ID
+        :type external_id: str, optional
+        :param location_type_name: Location type name
+        :type location_type_name: str
+        :param properties: PropertyFragment sequence
+        :type properties: Sequence[ :class:`~pyinventory.graphql.fragment.property.PropertyFragment` ])
     """
 
     name: str
@@ -120,13 +136,18 @@ class Location(NamedTuple):
 
 class EquipmentType(NamedTuple):
     """
-    Attributes:
-        name (str): name
-        category (Optional[str]): category
-        id (str): ID
-        property_types (Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]):  property types sequence
-        position_definitions (Sequence[ `pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment` ]): position definitions sequence
-        port_definitions (Sequence[ `pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment` ]): port definition sequence
+        :param name: Name
+        :type name: str
+        :param category: Category
+        :type category: str, optional
+        :param id: ID
+        :type id: str
+        :param property_types: PropertyDefinitions sequence
+        :type property_types: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
+        :param position_definitions: EquipmentPositionDefinitionFragments sequence
+        :type position_definitions: Sequence[ :class:`~pyinventory.graphql.fragment.equipment_position_definition.EquipmentPositionDefinitionFragment` ]
+        :param port_definitions: EquipmentPortDefinitionFragments sequence
+        :type port_definitions: Sequence[ :class:`~pyinventory.graphql.fragment.equipment_port_definition.EquipmentPortDefinitionFragment` ]
     """
 
     name: str
@@ -139,11 +160,14 @@ class EquipmentType(NamedTuple):
 
 class EquipmentPortType(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        name (str): name
-        property_types (Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]): property types sequence
-        link_property_types (Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]): link property types sequence
+        :param id: ID
+        :type id: str
+        :param name: Name
+        :type name: str
+        :param property_types: Property types sequence
+        :type property_types: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
+        :param link_property_types: Link property types sequence
+        :type link_property_types: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
     """
 
     id: str
@@ -154,11 +178,14 @@ class EquipmentPortType(NamedTuple):
 
 class Equipment(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        external_id (Optional[str]): external ID
-        name (str): name
-        equipment_type_name (str): equipment type name
+        :param id: ID
+        :type id: str
+        :param external_id: External ID
+        :type external_id: str, optional
+        :param name: Name
+        :type name: str
+        :param equipment_type_name: Equipment type name
+        :type equipment_type_name: str
     """
 
     id: str
@@ -169,10 +196,12 @@ class Equipment(NamedTuple):
 
 class Link(NamedTuple):
     """
-    Attributes:
-        id (str): link ID
-        properties (Sequence[ `pyinventory.graphql.fragment.property.PropertyFragment` ]): properties sequence
-        service_ids (List[str]): service IDs
+        :param id: Link ID
+        :type id: str
+        :param properties: Properties sequence
+        :type properties: Sequence[ :class:`~pyinventory.graphql.fragment.property.PropertyFragment` ]
+        :param service_ids: Service IDs list
+        :type service_ids: List[str]
     """
 
     id: str
@@ -182,10 +211,12 @@ class Link(NamedTuple):
 
 class EquipmentPortDefinition(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        name (str): name
-        port_type_name (Optional[str]): port type name
+        :param id: ID
+        :type id: str
+        :param name: Name
+        :type name: str
+        :param port_type_name: Port type name
+        :type port_type_name: str, optional
     """
 
     id: str
@@ -195,11 +226,14 @@ class EquipmentPortDefinition(NamedTuple):
 
 class EquipmentPort(NamedTuple):
     """
-    Attributes:
-        id (str): equipment port ID
-        properties (Sequence[PropertyFragment]): properties sequence
-        definition ( `pyinventory.common.data_class.EquipmentPortDefinition` ): port definition
-        link (Optional[ `pyinventory.common.data_class.Link` ]): link
+        :param id: Equipment port ID
+        :type id: str
+        :param properties: Properties sequence
+        :type properties: Sequence[ :class:`~pyinventory.graphql.fragment.property.PropertyFragment` ]
+        :param definition: EquipmentPortDefinition object
+        :type definition: :class:`~pyinventory.common.data_class.EquipmentPortDefinition`
+        :param link: Link object
+        :type link: :class:`~pyinventory.common.data_class.Link`
     """
 
     id: str
@@ -210,10 +244,12 @@ class EquipmentPort(NamedTuple):
 
 class Customer(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        name (str): name
-        external_id (Optional[str]): external ID
+        :param id: ID
+        :type id: str
+        :param name: Name
+        :type name: str
+        :param external_id: External ID
+        :type external_id: str, optional
     """
 
     id: str
@@ -223,13 +259,18 @@ class Customer(NamedTuple):
 
 class Service(NamedTuple):
     """
-    Attributes:
-        name (str): name
-        id (str): ID
-        external_id (Optional[str]): external ID
-        service_type_name (str): existing service tyoe name
-        customer (Optional[ `pyinventory.common.data_class.Customer` ]): customer
-        properties (Sequence[ `pyinventory.graphql.fragment.property..PropertyFragment` ]): properties sequence
+        :param name: Name
+        :type name: str
+        :param id: ID
+        :type id: str
+        :param external_id: External ID
+        :type external_id: str, optional
+        :param service_type_name: Existing service type name
+        :type service_type_name: str
+        :param customer: Customer object
+        :type customer: :class:`~pyinventory.common.data_class.Customer`, optional
+        :param properties: Properties sequence
+        :type properties: Sequence[ :class:`~pyinventory.graphql.fragment.property..PropertyFragment` ]
     """
 
     id: str
@@ -242,12 +283,16 @@ class Service(NamedTuple):
 
 class ServiceEndpointDefinition(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        name (str): name
-        endpoint_definition_index (int): index
-        role (str): role
-        equipment_type_id (str): equipment type ID
+        :param id: ID
+        :type id: str, optional
+        :param name: Name
+        :type name: str
+        :param endpoint_definition_index: Index
+        :type endpoint_definition_index: int
+        :param role: Role
+        :type role: str, optional
+        :param equipment_type_id: Equipment type ID
+        :type equipment_type_id: str
     """
 
     id: Optional[str]
@@ -259,11 +304,14 @@ class ServiceEndpointDefinition(NamedTuple):
 
 class ServiceEndpoint(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        equipment_id (str): existing equipment ID
-        service_id (str): existing service ID
-        definition_id (str): existing service endpoint definition ID
+        :param id: ID
+        :type id: str
+        :param equipment_id: Existing equipment ID
+        :type equipment_id: str
+        :param service_id: Existing service ID
+        :type service_id: str
+        :param definition_id: Existing service endpoint definition ID
+        :type definition_id: str
     """
 
     id: str
@@ -274,12 +322,16 @@ class ServiceEndpoint(NamedTuple):
 
 class ServiceType(NamedTuple):
     """
-    Attributes:
-        name (str): name
-        id (str): ID
-        has_customer (bool): customer existence flag
-        property_types (Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]): property types sequence
-        endpoint_definitions (List[ `pyinventory.common.data_class.ServiceEndpointDefinition` ]): service endpoint definitions list
+        :param name: Name
+        :type name: str
+        :param id: ID
+        :type id: str
+        :param has_customer: Customer existence flag
+        :type has_customer: bool
+        :param property_types: PropertyDefinitions sequence
+        :type property_types: Sequence[ :c;ass:`~pyinventory.common.data_class.PropertyDefinition` ]
+        :param endpoint_definitions: ServiceEndpointDefinitions list
+        :type endpoint_definitions: List[ :class:`~pyinventory.common.data_class.ServiceEndpointDefinition` ]
     """
 
     name: str
@@ -291,12 +343,16 @@ class ServiceType(NamedTuple):
 
 class Document(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        name (str): name
-        parent_id (str): parent ID
-        parent_entity (ImageEntity): parent entity
-        category (Optional[str]): category
+        :param id: ID
+        :type id: str
+        :param name: Name
+        :type name: str
+        :param parent_id: Parent ID
+        :type parent_id: str
+        :param parent_entity: Parent entity
+        :type parent_entity: :class:`~pysymphony.graphql.enum.image_entity.ImageEntity`
+        :param category: Category
+        :type category: str, optional
     """
 
     id: str
@@ -308,12 +364,16 @@ class Document(NamedTuple):
 
 class User(NamedTuple):
     """
-    Attributes:
-        id (str): ID
-        auth_id (str): auth ID
-        email (str): email
-        status (UserStatus): status
-        role (UserRole): role
+        :param id: ID
+        :type id: str
+        :param auth_id: auth ID
+        :type auth_id: str
+        :param email: email
+        :type email: str
+        :param status: status
+        :type status: :class:`~pyinventory.graphql.enum.user_role.UserStatus`
+        :param role: role
+        :type role: :class:`~pyinventory.graphql.enum.user_status.UserRole`
     """
 
     id: str

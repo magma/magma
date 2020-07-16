@@ -14,20 +14,22 @@ from .data_class import PropertyDefinition
 def format_to_property_definition(
     property_type_fragment: PropertyTypeFragment,
 ) -> PropertyDefinition:
-    """This function gets `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` object as argument and formats it to `pyinventory.common.data_class.PropertyDefinition` object
+    """This function gets `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` object as argument
+    and formats it to `pyinventory.common.data_class.PropertyDefinition` object
 
-        Args:
-            property_type_fragment ( `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ): existing property type fragment object
+        :param property_type_fragment: Existing property type fragment object
+        :type property_type_fragment: :class:`~pyinventory.graphql.fragment.property_type.PropertyTypeFragment`
 
-        Returns:
-            `pyinventory.common.data_class.PropertyDefinition` object
+        :return: PropertyDefinition object
+        :rtype: :class:`~pyinventory.common.data_class.PropertyDefinition`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_definition = format_to_property_definition(
                 property_type_fragment=property_type_fragment,
             )
-            ```
     """
     return PropertyDefinition(
         id=property_type_fragment.id,
@@ -44,20 +46,21 @@ def format_to_property_definition(
 def format_to_property_definitions(
     data: Sequence[PropertyTypeFragment],
 ) -> Sequence[PropertyDefinition]:
-    """This function gets Sequence[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ] as argument and formats it to Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]
+    """This function gets Sequence[ `PropertyTypeFragment` ] as argument and formats it to Sequence[ `PropertyDefinition` ]
 
-        Args:
-            data (Sequence[ `pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]): existing property type fragments sequence
+        :param data: Existing property type fragments sequence
+        :type data: Sequence[ :class:`~pyinventory.graphql.fragment.property_type.PropertyTypeFragment` ]
 
-        Returns:
-            Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]
+        :return: PropertyDefinitions sequence
+        :rtype: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_definitions = format_to_property_definitions(
                 data=property_type_fragments,
             )
-            ```
     """
     return [
         format_to_property_definition(property_type_fragment)
@@ -68,20 +71,23 @@ def format_to_property_definitions(
 def format_to_property_type_input(
     property_definition: PropertyDefinition, is_new: bool = True
 ) -> PropertyTypeInput:
-    """This function gets `pyinventory.common.data_class.PropertyDefinition` object as argument and formats it to `pyinventory.graphql.input.property_type.PropertyTypeInput` object
+    """This function gets `PropertyDefinition` object as argument and formats it to `PropertyTypeInput` object
 
-        Args:
-            property_definition ( `pyinventory.graphql.input.property_type.PropertyTypeInput` ): existing property definition object
+        :param property_definition: Existing property definition object
+        :type property_definition: :class:`~pyinventory.common.data_class.PropertyDefinition`
+        :param is_new: Is new flag
+        :type is_new: bool
 
-        Returns:
-            `pyinventory.graphql.input.property_type.PropertyTypeInput` object
+        :return: PropertyTypeInput object
+        :rtype: :class:`~pyinventory.graphql.input.property_type.PropertyTypeInput`
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_type_input = format_to_property_type_input(
                 property_definition=property_definition,
             )
-            ```
     """
     string_value = None
     int_value = None
@@ -137,20 +143,21 @@ def format_to_property_type_input(
 def format_to_property_type_inputs(
     data: Sequence[PropertyDefinition],
 ) -> List[PropertyTypeInput]:
-    """This function gets Sequence[ `pyinventory.common.data_class.PropertyDefinition` ] as argument and formats it to Sequence[ `pyinventory.graphql.input.property_type.PropertyTypeInput` ]
+    """This function gets Sequence[ `PropertyDefinition` ] as argument and formats it to Sequence[ `PropertyTypeInput` ]
 
-        Args:
-            data (Sequence[ `pyinventory.common.data_class.PropertyDefinition` ]): existing property definitions sequence
+        :param data: Existing property definitions sequence
+        :type data: Sequence[ :class:`~pyinventory.common.data_class.PropertyDefinition` ]
 
-        Returns:
-            Sequence[ `pyinventory.graphql.input.property_type.PropertyTypeInput` ]
+        :return: PropertyTypeInputs list
+        :rtype: List[ :class:`~pyinventory.graphql.input.property_type.PropertyTypeInput` ]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             property_type_inputs = format_to_property_type_inputs(
                 data=property_type_definitions,
             )
-            ```
     """
     return [
         format_to_property_type_input(property_definition)

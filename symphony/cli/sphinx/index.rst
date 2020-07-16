@@ -1,13 +1,13 @@
-.. a documentation master file, created by
-   sphinx-quickstart on Thu Jul  9 16:26:46 2020.
+.. Symphony documentation master file, created by
+   sphinx-quickstart on Wed Jul 15 13:33:48 2020.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to a's documentation!
-=============================
+Welcome to Symphony's documentation!
+====================================
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Contents:
 
    modules

@@ -14,16 +14,17 @@ from ..exceptions import assert_ok
 def get_enabled_features(client: SymphonyClient) -> List[str]:
     """Returns list of the enabled features that are accessible publicly
 
-        Returns:
-            list of feature strings
+        :raises:
+            AssertionError: Server error
 
-        Raises:
-            AssertionError: error returned by server
+        :return: Enabled features list
+        :rtype: List[str]
 
-        Example:
-            ```
+        **Example**
+
+        .. code-block:: python
+
             features = client.get_enabled_features()
-            ```
     """
     resp = client.get(GET_FEATURES_URL)
     assert_ok(resp)
@@ -33,15 +34,22 @@ def get_enabled_features(client: SymphonyClient) -> List[str]:
 def set_feature(client: SymphonyClient, feature_id: str, enabled: bool) -> None:
     """Enable or disable given feature if the feature is publicly accessible
 
-        Args:
-            feature_id (str): the feature identifier to set
-            enabled (bool): enabled or disabled
+        :param feature_id: The feature identifier to set
+        :type feature_id: str
+        :param enabled: Enabled or disabled flag
+        :type enabled: bool
 
-        Example:
-            ```
+        :raises:
+            AssertionError: Server error
+
+        :return: None
+
+        **Example**
+
+        .. code-block:: python
+
             features = client.get_enabled_features()
             client.set_feature(feature[0], False)
-            ```
     """
     resp = client.post(SET_FEATURE_URL.format(feature_id), {"enabled": enabled})
     assert_ok(resp)

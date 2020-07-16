@@ -41,13 +41,7 @@
 <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">pyinventory</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">pyinventory package</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pyinventory.exceptions">pyinventory.exceptions module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pyinventory">Module contents</a></li>
-</ul>
-</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pyinventory package</a></li>
 </ul>
 </li>
 </ul>
@@ -1560,7 +1554,7 @@ It can get only the requested service type ID</p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: <a class="reference internal" href="pyinventory.common.html#id20" title="pyinventory.common.data_class.EquipmentPortDefinition.port_type_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">port_type_name</span></code></a> is None,
+<li><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortDefinition.port_type_name" title="pyinventory.common.data_class.EquipmentPortDefinition.port_type_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">port_type_name</span></code></a> is None,
 there are no properties or there any unknown property name in <cite>new_link_properties</cite> keys</p></li>
 <li><p>FailedOperationException: internal inventory error</p></li>
 </ul>
@@ -1648,7 +1642,7 @@ there are no properties or there any unknown property name in <cite>new_link_pro
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><ul class="simple">
-<li><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: <a class="reference internal" href="pyinventory.common.html#id20" title="pyinventory.common.data_class.EquipmentPortDefinition.port_type_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">port_type_name</span></code></a> is None,
+<li><p><a class="reference internal" href="#pyinventory.exceptions.EntityNotFoundError" title="pyinventory.exceptions.EntityNotFoundError"><code class="xref py py-class docutils literal notranslate"><span class="pre">EntityNotFoundError</span></code></a>: <a class="reference internal" href="pyinventory.common.html#pyinventory.common.data_class.EquipmentPortDefinition.port_type_name" title="pyinventory.common.data_class.EquipmentPortDefinition.port_type_name"><code class="xref py py-attr docutils literal notranslate"><span class="pre">port_type_name</span></code></a> is None,
 there are no properties or there any unknown property name in <cite>new_properties</cite> keys</p></li>
 <li><p>FailedOperationException: internal inventory error</p></li>
 </ul>
@@ -1835,17 +1829,20 @@ there are no properties or there any unknown property name in <cite>new_properti
 <code class="sig-name descname">get_enabled_features</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>str<span class="p">]</span><a class="headerlink" href="#pyinventory.InventoryClient.get_enabled_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns list of the enabled features that are accessible publicly</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>list of feature strings</p>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p>AssertionError: Server error</p>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>AssertionError</strong> – error returned by server</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Enabled features list</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[str]</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">features</span> <span class="pre">=</span> <span class="pre">client.get_enabled_features()</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">features</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_enabled_features</span><span class="p">()</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="py method">
@@ -2822,16 +2819,22 @@ in case it is not found, creates one.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>feature_id</strong> (<em>str</em>) – the feature identifier to set</p></li>
-<li><p><strong>enabled</strong> (<em>bool</em>) – enabled or disabled</p></li>
+<li><p><strong>feature_id</strong> (<em>str</em>) – The feature identifier to set</p></li>
+<li><p><strong>enabled</strong> (<em>bool</em>) – Enabled or disabled flag</p></li>
 </ul>
 </dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p>AssertionError: Server error</p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>None</p>
+</dd>
 </dl>
-<p class="rubric">Example</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">features</span> <span class="pre">=</span> <span class="pre">client.get_enabled_features()</span>
-<span class="pre">client.set_feature(feature[0],</span> <span class="pre">False)</span>
-<span class="pre">`</span></code></p>
+<p><strong>Example</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">features</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">get_enabled_features</span><span class="p">()</span>
+<span class="n">client</span><span class="o">.</span><span class="n">set_feature</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </dd></dl>
