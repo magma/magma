@@ -1352,139 +1352,150 @@ int s1ap_mme_handle_ue_context_release_complete(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_context_setup_failure(
-  s1ap_state_t *state,
-  __attribute__((unused)) const sctp_assoc_id_t assoc_id,
-  __attribute__((unused)) const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
-{
-#if S1AP_R1O_TO_R15_DONE
-  S1ap_InitialContextSetupFailureIEs_t *initialContextSetupFailureIEs_p = NULL;
-  ue_description_t *ue_ref_p = NULL;
-  MessageDef *message_p = NULL;
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) const sctp_stream_id_t stream,
+    S1ap_S1AP_PDU_t* pdu) {
+  S1ap_InitialContextSetupFailure_t* container;
+  S1ap_InitialContextSetupFailureIEs_t* ie = NULL;
+  ue_description_t* ue_ref_p               = NULL;
+  MessageDef* message_p                    = NULL;
   S1ap_Cause_PR cause_type;
   long cause_value;
-  int rc = RETURNok;
-  imsi64_t imsi64 = INVALID_IMSI64;
+  int rc                          = RETURNok;
+  imsi64_t imsi64                 = INVALID_IMSI64;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  initialContextSetupFailureIEs_p =
-    &message->msg.s1ap_InitialContextSetupFailureIEs;
 
-  if (
-    (ue_ref_p = s1ap_state_get_ue_mmeid(
-       state, initialContextSetupFailureIEs_p->mme_ue_s1ap_id)) == NULL) {
+  container =
+      &pdu->choice.unsuccessfulOutcome.value.choice.InitialContextSetupFailure;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_InitialContextSetupFailureIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_InitialContextSetupFailureIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (ie) {
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      */
     OAILOG_INFO(
-      LOG_S1AP,
-      "INITIAL_CONTEXT_SETUP_FAILURE ignored. No context with "
-      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
-      " ",
-      (uint32_t) initialContextSetupFailureIEs_p->mme_ue_s1ap_id,
-      (uint32_t) initialContextSetupFailureIEs_p->eNB_UE_S1AP_ID);
+        LOG_S1AP,
+        "INITIAL_CONTEXT_SETUP_FAILURE ignored. No context with "
+        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " ",
+        (uint32_t) mme_ue_s1ap_id, (uint32_t) enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (
-    ue_ref_p->enb_ue_s1ap_id !=
-    (initialContextSetupFailureIEs_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK)) {
+  if (ue_ref_p->enb_ue_s1ap_id != enb_ue_s1ap_id) {
     // abnormal case. No need to do anything. Ignore the message
     OAILOG_DEBUG(
-      LOG_S1AP,
-      "INITIAL_CONTEXT_SETUP_FAILURE ignored, mismatch enb_ue_s1ap_id: "
-      "ctxt " ENB_UE_S1AP_ID_FMT " != received " ENB_UE_S1AP_ID_FMT " ",
-      (uint32_t) ue_ref_p->enb_ue_s1ap_id,
-      (uint32_t)(
-        initialContextSetupFailureIEs_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK));
+        LOG_S1AP,
+        "INITIAL_CONTEXT_SETUP_FAILURE ignored, mismatch enb_ue_s1ap_id: "
+        "ctxt " ENB_UE_S1AP_ID_FMT " != received " ENB_UE_S1AP_ID_FMT " ",
+        (uint32_t) ue_ref_p->enb_ue_s1ap_id, (uint32_t) enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
   hashtable_uint64_ts_get(
-    imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) initialContextSetupFailureIEs_p->mme_ue_s1ap_id,
-    &imsi64);
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
 
   // Pass this message to MME APP for necessary handling
   // Log the Cause Type and Cause value
-  cause_type = initialContextSetupFailureIEs_p->cause.present;
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_InitialContextSetupFailureIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_Cause, true);
+  if (ie) {
+    cause_type = ie->value.choice.Cause.present;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
 
   switch (cause_type) {
     case S1ap_Cause_PR_radioNetwork:
-      cause_value = initialContextSetupFailureIEs_p->cause.choice.radioNetwork;
+      cause_value = ie->value.choice.Cause.choice.radioNetwork;
       OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Radio Network and "
-        "Cause_Value = %ld\n",
-        cause_value);
+          LOG_S1AP, imsi64,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Radio Network and "
+          "Cause_Value = %ld\n",
+          cause_value);
       break;
 
     case S1ap_Cause_PR_transport:
-      cause_value = initialContextSetupFailureIEs_p->cause.choice.transport;
+      cause_value = ie->value.choice.Cause.choice.transport;
       OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Transport and "
-        "Cause_Value = %ld\n",
-        cause_value);
+          LOG_S1AP, imsi64,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Transport and "
+          "Cause_Value = %ld\n",
+          cause_value);
       break;
 
     case S1ap_Cause_PR_nas:
-      cause_value = initialContextSetupFailureIEs_p->cause.choice.nas;
+      cause_value = ie->value.choice.Cause.choice.nas;
       OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = NAS and Cause_Value = "
-        "%ld\n",
-        cause_value);
+          LOG_S1AP, imsi64,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = NAS and Cause_Value "
+          "= "
+          "%ld\n",
+          cause_value);
       break;
 
     case S1ap_Cause_PR_protocol:
-      cause_value = initialContextSetupFailureIEs_p->cause.choice.protocol;
-        OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Protocol and "
-        "Cause_Value = %ld\n",
-        cause_value);
+      cause_value = ie->value.choice.Cause.choice.protocol;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = Protocol and "
+          "Cause_Value = %ld\n",
+          cause_value);
       break;
 
     case S1ap_Cause_PR_misc:
-      cause_value = initialContextSetupFailureIEs_p->cause.choice.misc;
+      cause_value = ie->value.choice.Cause.choice.misc;
       OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = MISC and Cause_Value "
-        "= %ld\n",
-        cause_value);
+          LOG_S1AP, imsi64,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Cause_Type = MISC and "
+          "Cause_Value "
+          "= %ld\n",
+          cause_value);
       break;
 
     default:
-        OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "INITIAL_CONTEXT_SETUP_FAILURE with Invalid Cause_Type = %d\n",
-        cause_type);
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "INITIAL_CONTEXT_SETUP_FAILURE with Invalid Cause_Type = %d\n",
+          cause_type);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   message_p =
-    itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+      itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
-    (void *) &message_p->ittiMsg.mme_app_initial_context_setup_failure,
-    0,
-    sizeof(itti_mme_app_initial_context_setup_failure_t));
+      (void*) &message_p->ittiMsg.mme_app_initial_context_setup_failure, 0,
+      sizeof(itti_mme_app_initial_context_setup_failure_t));
   MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(message_p).mme_ue_s1ap_id =
-    ue_ref_p->mme_ue_s1ap_id;
+      ue_ref_p->mme_ue_s1ap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 int s1ap_mme_handle_ue_context_modification_response(
