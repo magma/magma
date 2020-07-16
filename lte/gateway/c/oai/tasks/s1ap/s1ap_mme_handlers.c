@@ -2596,16 +2596,15 @@ int s1ap_mme_handle_enb_reset(
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_enb_initiated_reset_ack(
-  const itti_s1ap_enb_initiated_reset_ack_t *const enb_reset_ack_p,
-  imsi64_t imsi64)
-{
+    const itti_s1ap_enb_initiated_reset_ack_t* const enb_reset_ack_p,
+    imsi64_t imsi64) {
 #if S1AP_R1O_TO_R15_DONE
-  uint8_t *buffer = NULL;
-  uint32_t length = 0;
-  s1ap_message message = {0};
-  S1ap_ResetAcknowledgeIEs_t *s1ap_ResetAcknowledgeIEs_p = NULL;
+  uint8_t* buffer                                        = NULL;
+  uint32_t length                                        = 0;
+  s1ap_message message                                   = {0};
+  S1ap_ResetAcknowledgeIEs_t* s1ap_ResetAcknowledgeIEs_p = NULL;
   S1ap_UE_associatedLogicalS1_ConnectionItem_t
-    sig_conn_list[MAX_NUM_PARTIAL_S1_CONN_RESET] = {{0}};
+      sig_conn_list[MAX_NUM_PARTIAL_S1_CONN_RESET]               = {{0}};
   S1ap_MME_UE_S1AP_ID_t mme_ue_id[MAX_NUM_PARTIAL_S1_CONN_RESET] = {0};
   S1ap_ENB_UE_S1AP_ID_t enb_ue_id[MAX_NUM_PARTIAL_S1_CONN_RESET] = {0};
 
@@ -2613,19 +2612,18 @@ int s1ap_handle_enb_initiated_reset_ack(
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  message.procedureCode = S1ap_ProcedureCode_id_Reset;
-  message.direction = S1AP_PDU_PR_successfulOutcome;
+  message.procedureCode      = S1ap_ProcedureCode_id_Reset;
+  message.direction          = S1AP_PDU_PR_successfulOutcome;
   s1ap_ResetAcknowledgeIEs_p = &message.msg.s1ap_ResetAcknowledgeIEs;
   s1ap_ResetAcknowledgeIEs_p->presenceMask = 0;
 
   if (enb_reset_ack_p->s1ap_reset_type == RESET_PARTIAL) {
     DevAssert(enb_reset_ack_p->num_ue > 0);
     s1ap_ResetAcknowledgeIEs_p->presenceMask |=
-      S1AP_RESETACKNOWLEDGEIES_UE_ASSOCIATEDLOGICALS1_CONNECTIONLISTRESACK_PRESENT;
+        S1AP_RESETACKNOWLEDGEIES_UE_ASSOCIATEDLOGICALS1_CONNECTIONLISTRESACK_PRESENT;
     for (uint32_t i = 0; i < enb_reset_ack_p->num_ue; i++) {
-      if (
-        enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id !=
-        INVALID_MME_UE_S1AP_ID) {
+      if (enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id !=
+          INVALID_MME_UE_S1AP_ID) {
         mme_ue_id[i] = enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id;
         sig_conn_list[i].mME_UE_S1AP_ID = &mme_ue_id[i];
       } else {
@@ -2639,9 +2637,10 @@ int s1ap_handle_enb_initiated_reset_ack(
       }
       sig_conn_list[i].iE_Extensions = NULL;
       ASN_SEQUENCE_ADD(
-        &s1ap_ResetAcknowledgeIEs_p->uE_associatedLogicalS1_ConnectionListResAck
-           .s1ap_UE_associatedLogicalS1_ConnectionItemResAck,
-        &sig_conn_list[i]);
+          &s1ap_ResetAcknowledgeIEs_p
+               ->uE_associatedLogicalS1_ConnectionListResAck
+               .s1ap_UE_associatedLogicalS1_ConnectionItemResAck,
+          &sig_conn_list[i]);
     }
   }
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
@@ -2649,13 +2648,11 @@ int s1ap_handle_enb_initiated_reset_ack(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
-  rc = s1ap_mme_itti_send_sctp_request(
-    &b,
-    enb_reset_ack_p->sctp_assoc_id,
-    enb_reset_ack_p->sctp_stream_id,
-    INVALID_MME_UE_S1AP_ID);
+  rc        = s1ap_mme_itti_send_sctp_request(
+      &b, enb_reset_ack_p->sctp_assoc_id, enb_reset_ack_p->sctp_stream_id,
+      INVALID_MME_UE_S1AP_ID);
 
-  free_wrapper((void **) &(enb_reset_ack_p->ue_to_reset_list));
+  free_wrapper((void**) &(enb_reset_ack_p->ue_to_reset_list));
   increment_counter("s1_reset_from_enb", 1, 1, "action", "reset_ack_sent");
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 #else
