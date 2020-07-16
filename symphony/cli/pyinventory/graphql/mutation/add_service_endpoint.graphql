@@ -1,5 +1,0 @@
-mutation AddServiceEndpointMutation($input: AddServiceEndpointInput!) {
-  addServiceEndpoint(input: $input) {
-    ...ServiceFragment
-  }
-}

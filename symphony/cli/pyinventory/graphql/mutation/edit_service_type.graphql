@@ -1,5 +1,0 @@
-mutation EditServiceTypeMutation($input: ServiceTypeEditData!) {
-  editServiceType(data: $input) {
-    ...ServiceTypeFragment
-  }
-}

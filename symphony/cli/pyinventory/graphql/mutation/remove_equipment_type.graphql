@@ -1,3 +1,0 @@
-mutation RemoveEquipmentTypeMutation($id: ID!) {
-  removeEquipmentType(id: $id)
-}

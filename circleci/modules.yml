@@ -4,5 +4,7 @@ native_modules:
   - lte
   - feg
   - cwf
+  - fbinternal
+  - wifi
 
 external_modules: []

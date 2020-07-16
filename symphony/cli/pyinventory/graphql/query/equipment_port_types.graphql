@@ -1,9 +1,0 @@
-query EquipmentPortTypesQuery {
-  equipmentPortTypes {
-    edges {
-      node {
-        ...EquipmentPortTypeFragment
-      }
-    }
-  }
-}
