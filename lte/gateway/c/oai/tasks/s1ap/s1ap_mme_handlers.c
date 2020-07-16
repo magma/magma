@@ -2264,14 +2264,11 @@ void s1ap_mme_release_ue_context(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_error_ind_message(
-  s1ap_state_t *state,
-  const sctp_assoc_id_t assoc_id,
-  const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
-{
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n",
-                  stream);
+  OAILOG_WARNING(
+      LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n", stream);
   increment_counter("s1ap_error_ind_rcvd", 1, NO_LABELS);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
