@@ -92,6 +92,7 @@ class InOutNonNatTest(unittest.TestCase):
                     Future(),
             },
             config={
+                'setup_type': 'LTE',
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,

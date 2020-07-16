@@ -69,10 +69,10 @@ class ArpController(MagmaController):
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
 
         enable_nat = config_dict.get('enable_nat', True)
+        setup_type = config_dict.get('setup_type', None)
 
         virtual_iface = config_dict.get('virtual_interface', None)
-
-        if enable_nat is True:
+        if enable_nat is True or setup_type != 'LTE':
             if virtual_iface is not None:
                 virtual_mac = get_virtual_iface_mac(virtual_iface)
             else:
