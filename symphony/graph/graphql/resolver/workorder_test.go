@@ -1512,9 +1512,10 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 
 	mr := r.Mutation()
 	latlongPropType := models.PropertyTypeInput{
-		Name:        "lat_long_prop",
-		Type:        "gps_location",
-		IsMandatory: pointer.ToBool(true),
+		Name:               "lat_long_prop",
+		Type:               propertytype.TypeGpsLocation,
+		IsMandatory:        pointer.ToBool(true),
+		IsInstanceProperty: pointer.ToBool(true),
 	}
 	propTypeInputs := []*models.PropertyTypeInput{&latlongPropType}
 	woType, err := mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type", Properties: propTypeInputs})
@@ -1523,6 +1524,7 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            "should_fail",
 		WorkOrderTypeID: woType.ID,
+		Status:          workOrderStatusPtr(workorder.StatusDONE),
 	})
 	require.Error(t, err, "Adding work order instance with missing mandatory properties")
 	_, err = mr.EditWorkOrderType(ctx, models.EditWorkOrderTypeInput{
@@ -1530,70 +1532,41 @@ func TestAddWorkOrderWithInvalidProperties(t *testing.T) {
 		Name: woType.Name,
 		Properties: []*models.PropertyTypeInput{
 			{
-				Name:        "textMandatory",
-				Type:        propertytype.TypeString,
-				IsMandatory: pointer.ToBool(true),
+				Name:               "textMandatory",
+				Type:               propertytype.TypeString,
+				IsMandatory:        pointer.ToBool(true),
+				IsInstanceProperty: pointer.ToBool(true),
 			},
 		},
 	})
 	require.NoError(t, err)
 
-	latlongProp := models.PropertyInput{
+	latlongProp := &models.PropertyInput{
 		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("lat_long_prop")).OnlyXID(ctx),
 		LatitudeValue:  pointer.ToFloat64(32.6),
 		LongitudeValue: pointer.ToFloat64(34.7),
 	}
-	textProp := models.PropertyInput{
-		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("textMandatory")).OnlyXID(ctx),
-		StringValue:    pointer.ToString("Value"),
-	}
-	propInputs := []*models.PropertyInput{&latlongProp, &textProp}
+	propInputs := []*models.PropertyInput{latlongProp}
 	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
 		Name:            "location_name_3",
 		WorkOrderTypeID: woType.ID,
 		Properties:      propInputs,
+		Status:          workOrderStatusPtr(workorder.StatusDONE),
 	})
-	require.NoError(t, err)
+	require.Error(t, err, "Adding work order instance with missing mandatory properties")
 
-	// mandatory is deleted - should be ok
-	latlongPropType.IsDeleted = pointer.ToBool(true)
-	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type2", Properties: propTypeInputs})
-	require.NoError(t, err)
-	deletedPropType := woType.QueryPropertyTypes().OnlyX(ctx)
-	require.NoError(t, err)
-
-	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
-		Name:            "should_not_fail",
-		WorkOrderTypeID: woType.ID,
-	})
-	require.NoError(t, err, "Adding work order instance of template with mandatory properties but deleted")
-
-	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
-		Name:            "should_fail",
-		WorkOrderTypeID: woType.ID,
-		Properties: []*models.PropertyInput{{
-			PropertyTypeID: deletedPropType.ID,
-			StringValue:    pointer.ToString("new"),
-		}},
-	})
-	require.Errorf(t, err, "deleted property types")
-
-	// not mandatory props
-	notMandatoryProp := &models.PropertyTypeInput{
-		Name: "lat_long_prop",
-		Type: "gps_location",
+	textProp := &models.PropertyInput{
+		PropertyTypeID: woType.QueryPropertyTypes().Where(propertytype.Name("textMandatory")).OnlyXID(ctx),
+		StringValue:    pointer.ToString("String"),
 	}
-	props := []*models.PropertyTypeInput{notMandatoryProp}
-
-	woType, err = mr.AddWorkOrderType(ctx, models.AddWorkOrderTypeInput{Name: "example_type3", Properties: props})
-	require.NoError(t, err)
-
-	wo, err := mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
-		Name:            "should_pass",
+	propInputs = []*models.PropertyInput{latlongProp, textProp}
+	_, err = mr.AddWorkOrder(ctx, models.AddWorkOrderInput{
+		Name:            "location_name_3",
 		WorkOrderTypeID: woType.ID,
+		Properties:      propInputs,
+		Status:          workOrderStatusPtr(workorder.StatusDONE),
 	})
-	require.NoError(t, err, "Adding work order instance with missing mandatory properties")
-	require.Len(t, wo.QueryProperties().AllX(ctx), 1)
+	require.NoError(t, err)
 }
 
 func TestAddWorkOrderWithCheckListCategory(t *testing.T) {

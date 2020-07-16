@@ -15,15 +15,8 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/predicate"
 	"github.com/facebookincubator/symphony/pkg/ent/property"
 	"github.com/facebookincubator/symphony/pkg/ent/propertytype"
+	"github.com/facebookincubator/symphony/pkg/hooks"
 	"github.com/pkg/errors"
-)
-
-const (
-	NodeTypeLocation  = "location"
-	NodeTypeEquipment = "equipment"
-	NodeTypeService   = "service"
-	NodeTypeWorkOrder = "work_order"
-	NodeTypeUser      = "user"
 )
 
 type AddPropertyArgs struct {
@@ -35,23 +28,23 @@ type AddPropertyArgs struct {
 func NodePropertyValue(ctx context.Context, p *ent.Property, nodeType string) string {
 	var id *int
 	switch nodeType {
-	case NodeTypeLocation:
+	case hooks.NodeTypeLocation:
 		if i, err := p.QueryLocationValue().OnlyID(ctx); err == nil {
 			id = &i
 		}
-	case NodeTypeEquipment:
+	case hooks.NodeTypeEquipment:
 		if i, err := p.QueryEquipmentValue().OnlyID(ctx); err == nil {
 			id = &i
 		}
-	case NodeTypeService:
+	case hooks.NodeTypeService:
 		if i, err := p.QueryServiceValue().OnlyID(ctx); err == nil {
 			id = &i
 		}
-	case NodeTypeWorkOrder:
+	case hooks.NodeTypeWorkOrder:
 		if i, err := p.QueryWorkOrderValue().OnlyID(ctx); err == nil {
 			id = &i
 		}
-	case NodeTypeUser:
+	case hooks.NodeTypeUser:
 		if i, err := p.QueryUserValue().OnlyID(ctx); err == nil {
 			id = &i
 		}

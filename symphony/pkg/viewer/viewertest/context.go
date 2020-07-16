@@ -73,7 +73,7 @@ func NewContext(parent context.Context, c *ent.Client, opts ...Option) context.C
 		tenant:      DefaultTenant,
 		user:        DefaultUser,
 		role:        DefaultRole,
-		features:    []string{viewer.FeaturePermissionPolicies},
+		features:    []string{viewer.FeaturePermissionPolicies, viewer.FeatureMandatoryPropertiesOnWorkOrderClose},
 		permissions: authz.FullPermissions(),
 	}
 	for _, opt := range opts {

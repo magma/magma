@@ -213,6 +213,11 @@ const arrayConfigs = [
     enabledByDefault: false,
     rules: [AlwaysEnabledInTestEnvRule],
   },
+  {
+    id: 'mandatory_properties_on_work_order_close',
+    title: 'Mandatory properties on work order close',
+    enabledByDefault: false,
+  },
 ];
 
 export const featureConfigs: {[FeatureID]: FeatureConfig} = {};

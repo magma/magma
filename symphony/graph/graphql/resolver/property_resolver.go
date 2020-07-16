@@ -8,10 +8,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/facebookincubator/symphony/graph/resolverutil"
-
 	"github.com/facebookincubator/symphony/graph/graphql/models"
+	"github.com/facebookincubator/symphony/graph/resolverutil"
 	"github.com/facebookincubator/symphony/pkg/ent"
+	"github.com/facebookincubator/symphony/pkg/hooks"
 )
 
 type propertyTypeResolver struct{}
@@ -46,19 +46,19 @@ func (propertyResolver) NodeValue(ctx context.Context, property *ent.Property) (
 		return nil, fmt.Errorf("querying property type %w", err)
 	}
 	switch propertyType.NodeType {
-	case resolverutil.NodeTypeLocation:
+	case hooks.NodeTypeLocation:
 		l, err := property.QueryLocationValue().Only(ctx)
 		return l, ent.MaskNotFound(err)
-	case resolverutil.NodeTypeEquipment:
+	case hooks.NodeTypeEquipment:
 		e, err := property.QueryEquipmentValue().Only(ctx)
 		return e, ent.MaskNotFound(err)
-	case resolverutil.NodeTypeService:
+	case hooks.NodeTypeService:
 		s, err := property.QueryServiceValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
-	case resolverutil.NodeTypeWorkOrder:
+	case hooks.NodeTypeWorkOrder:
 		s, err := property.QueryWorkOrderValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
-	case resolverutil.NodeTypeUser:
+	case hooks.NodeTypeUser:
 		s, err := property.QueryUserValue().Only(ctx)
 		return s, ent.MaskNotFound(err)
 	default:

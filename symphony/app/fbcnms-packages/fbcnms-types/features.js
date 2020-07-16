@@ -41,4 +41,5 @@ export type FeatureID =
   | 'permission_policies'
   | 'permissions_ui_enforcement'
   | 'dashboard_v2'
-  | 'work_order_activities_display';
+  | 'work_order_activities_display'
+  | 'mandatory_properties_on_work_order_close';

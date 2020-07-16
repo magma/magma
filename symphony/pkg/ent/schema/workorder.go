@@ -203,6 +203,7 @@ func (WorkOrder) Indexes() []ent.Index {
 func (WorkOrder) Hooks() []ent.Hook {
 	return []ent.Hook{
 		hooks.WorkOrderCloseDateHook(),
+		hooks.WorkOrderMandatoryPropertyOnClose(),
 	}
 }
 

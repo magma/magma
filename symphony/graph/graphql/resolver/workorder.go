@@ -222,6 +222,7 @@ func (r mutationResolver) internalAddWorkOrder(
 	if err != nil {
 		return nil, fmt.Errorf("convert to template property inputs: %w", err)
 	}
+	skipMandatoryPropertiesCheck = skipMandatoryPropertiesCheck || viewer.FromContext(ctx).Features().Enabled(viewer.FeatureMandatoryPropertiesOnWorkOrderClose)
 	propInput, err := r.validatedPropertyInputsFromTemplate(ctx, tPropInputs, workOrderTemplate.ID, models.PropertyEntityWorkOrder, skipMandatoryPropertiesCheck)
 	if err != nil {
 		return nil, fmt.Errorf("validating property for template : %w", err)
