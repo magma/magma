@@ -1980,31 +1980,26 @@ static bool s1ap_send_enb_deregistered_ind(
 
 typedef struct arg_s1ap_construct_enb_reset_req_s {
   uint8_t current_ue_index;
-  MessageDef *msg;
+  MessageDef* msg;
 } arg_s1ap_construct_enb_reset_req_t;
 
+//------------------------------------------------------------------------------
 static bool construct_s1ap_mme_full_reset_req(
-  const hash_key_t keyP,
-  void *const dataP,
-  void *argP,
-  void **resultP)
-{
-  arg_s1ap_construct_enb_reset_req_t *arg = argP;
-  ue_description_t *const ue_ref = dataP;
-
-  uint32_t i = arg->current_ue_index;
+    const hash_key_t keyP, void* const dataP, void* argP, void** resultP) {
+  arg_s1ap_construct_enb_reset_req_t* arg = argP;
+  ue_description_t* const ue_ref          = dataP;
+  uint32_t i                              = arg->current_ue_index;
   if (ue_ref) {
     S1AP_ENB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].mme_ue_s1ap_id =
-      ue_ref->mme_ue_s1ap_id;
+        ue_ref->mme_ue_s1ap_id;
     S1AP_ENB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].enb_ue_s1ap_id =
-      ue_ref->enb_ue_s1ap_id;
+        ue_ref->enb_ue_s1ap_id;
   } else {
     OAILOG_TRACE(LOG_S1AP, "No valid UE provided in callback: %p\n", ue_ref);
     S1AP_ENB_INITIATED_RESET_REQ(arg->msg).ue_to_reset_list[i].mme_ue_s1ap_id =
-      INVALID_MME_UE_S1AP_ID;
+        INVALID_MME_UE_S1AP_ID;
   }
   arg->current_ue_index++;
-
   return false;
 }
 
