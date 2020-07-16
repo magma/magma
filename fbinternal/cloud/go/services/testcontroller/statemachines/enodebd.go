@@ -127,8 +127,11 @@ func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSe
 	return resp, err
 }
 
-func (m *MagmadClient) GetEnodebStatus(networkId string, hwId string) (*ltemodels.EnodebState, error) {
-	st, err := state.GetState(networkId, lte.EnodebStateType, hwId)
+func (m *MagmadClient) GetEnodebStatus(networkId string, enodebSN string) (*ltemodels.EnodebState, error) {
+	st, err := state.GetState(networkId, lte.EnodebStateType, enodebSN)
+	if err != nil {
+		return nil, err
+	}
 	enodebState := st.ReportedState.(*ltemodels.EnodebState)
 	enodebState.TimeReported = st.TimeMs
 	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{})
@@ -301,13 +304,13 @@ func makeTrafficTestStateHandler(trafficTestNumber int, stateNumber int, gateway
 
 func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayClient, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
 	trafficGWID := *config.TrafficGwID
-	pretext := fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, trafficGWID, "SUCCEEDED")
+	pretext := fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
 	fallback := "Generate traffic notification"
 
 	resp, err := gatewayClient.GenerateTraffic(*config.NetworkID, trafficGWID, config.Ssid, config.SsidPw)
 	if resp == nil || err != nil {
 		if stateNumber >= maxTrafficStateCount {
-			pretext = fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, trafficGWID, "FAILED")
+			pretext = fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
 			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d failed on gwID %s after %d tries", trafficTestNumber, trafficGWID, maxTrafficStateCount)
 		}
@@ -352,12 +355,7 @@ func verifyConnectivity(gatewayClient GatewayClient, successState string, machin
 	pretext := fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "FAILED")
 	fallback := "Reboot enodeb notification"
 
-	hwID, err := configurator.GetPhysicalIDOfEntity(*config.NetworkID, orc8r.MagmadGatewayType, *config.AgwConfig.TargetGatewayID)
-	if err != nil {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
-		return checkForUpgradeState, 5 * time.Minute, errors.Wrapf(err, "failed to load hwID for target gateway %s", targetGWID)
-	}
-	resp, err := gatewayClient.GetEnodebStatus(*config.NetworkID, hwID)
+	resp, err := gatewayClient.GetEnodebStatus(*config.NetworkID, enodebSN)
 	if resp == nil || err != nil {
 		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
