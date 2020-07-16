@@ -58,15 +58,10 @@ add_library(TASK_MME_APP
     mme_app_state_manager.cpp
     mme_app_state.cpp
     mme_events.cpp
+    mme_app_embedded_spgw.c
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
-
-if ( EMBEDDED_SGW)
-add_library(TASK_MME_APP
-mme_app_embedded_spgw.c
-)
-endif (EMBEDDED_SGW)
 
 target_compile_definitions(TASK_MME_APP PRIVATE
   PACKAGE_NAME=\"MME\"
@@ -82,7 +77,7 @@ target_link_libraries(TASK_MME_APP
     )
 
 if (EMBEDDED_SGW)
-  target_link_libraries(TASK_SGW)
+  target_link_libraries(TASK_MME_APP TASK_SGW)
 endif(EMBEDDED_SGW)
 
 target_include_directories(TASK_MME_APP PUBLIC
