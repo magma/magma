@@ -2232,39 +2232,31 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
 
 //------------------------------------------------------------------------------
 void s1ap_mme_release_ue_context(
-  s1ap_state_t *state,
-  ue_description_t *ue_ref_p,
-  imsi64_t imsi64)
-{
-  MessageDef *message_p = NULL;
+    s1ap_state_t* state, ue_description_t* ue_ref_p, imsi64_t imsi64) {
+  MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(ue_ref_p != NULL);
   OAILOG_DEBUG_UE(
-    LOG_S1AP,
-    imsi64,
-    "Releasing UE Context for UE id  %d \n",
-    ue_ref_p->mme_ue_s1ap_id);
+      LOG_S1AP, imsi64, "Releasing UE Context for UE id  %d \n",
+      ue_ref_p->mme_ue_s1ap_id);
   /*
    * Remove UE context and inform MME_APP.
    */
   message_p =
-    itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
+      itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
-    (void *) &message_p->ittiMsg.s1ap_ue_context_release_complete,
-    0,
-    sizeof(itti_s1ap_ue_context_release_complete_t));
+      (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
+      sizeof(itti_s1ap_ue_context_release_complete_t));
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
-    ue_ref_p->mme_ue_s1ap_id;
+      ue_ref_p->mme_ue_s1ap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   DevAssert(ue_ref_p->s1_ue_state == S1AP_UE_WAITING_CRR);
   OAILOG_DEBUG_UE(
-    LOG_S1AP,
-    imsi64,
-    "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
-    (uint32_t) ue_ref_p->mme_ue_s1ap_id);
+      LOG_S1AP, imsi64, "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
+      (uint32_t) ue_ref_p->mme_ue_s1ap_id);
 
   s1ap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
