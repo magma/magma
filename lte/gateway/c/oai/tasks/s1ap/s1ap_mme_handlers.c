@@ -2662,29 +2662,25 @@ int s1ap_handle_enb_initiated_reset_ack(
 
 //------------------------------------------------------------------------------
 void s1ap_enb_assoc_clean_up_timer_expiry(
-  s1ap_state_t *state,
-  enb_description_t *enb_ref_p)
-{
+    s1ap_state_t* state, enb_description_t* enb_ref_p) {
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(enb_ref_p != NULL);
   enb_ref_p->s1ap_enb_assoc_clean_up_timer.id = S1AP_TIMER_INACTIVE_ID;
   OAILOG_INFO(
-    LOG_S1AP,
-    "Expired Timer: wait_for_ue_cleanup timer for eNB association id  %u \n",
-    enb_ref_p->sctp_assoc_id);
+      LOG_S1AP,
+      "Expired Timer: wait_for_ue_cleanup timer for eNB association id  %u \n",
+      enb_ref_p->sctp_assoc_id);
   /*
    * Remove eNB context and update counter.
    */
   OAILOG_INFO(
-    LOG_S1AP,
-    "Removing eNB with association id %u. Number of associated UEs %d  \n",
-    enb_ref_p->sctp_assoc_id,
-    enb_ref_p->nb_ue_associated);
+      LOG_S1AP,
+      "Removing eNB with association id %u. Number of associated UEs %d  \n",
+      enb_ref_p->sctp_assoc_id, enb_ref_p->nb_ue_associated);
   s1ap_remove_enb(state, enb_ref_p);
   update_mme_app_stats_connected_enb_sub();
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
-//------------------------------------------------------------------------------
 
 int s1ap_handle_paging_request(
   s1ap_state_t *state,
