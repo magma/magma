@@ -1233,30 +1233,26 @@ static int s1ap_mme_generate_ue_context_modification(
 
 //------------------------------------------------------------------------------
 int s1ap_handle_ue_context_release_command(
-  s1ap_state_t* state,
-  const itti_s1ap_ue_context_release_command_t* const
-    ue_context_release_command_pP,
-  imsi64_t imsi64)
-{
-#if S1AP_R1O_TO_R15_DONE
+    s1ap_state_t* state,
+    const itti_s1ap_ue_context_release_command_t* const
+        ue_context_release_command_pP,
+    imsi64_t imsi64) {
   ue_description_t* ue_ref_p = NULL;
-  int rc = RETURNok;
+  int rc                     = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  if (
-    (ue_ref_p = s1ap_state_get_ue_mmeid(
-       state, ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(
+           state, ue_context_release_command_pP->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG_UE(
-      LOG_S1AP,
-      imsi64,
-      "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %u(10)\n",
-      ue_context_release_command_pP->mme_ue_s1ap_id,
-      ue_context_release_command_pP->mme_ue_s1ap_id);
+        LOG_S1AP, imsi64,
+        "Ignoring UE with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " %u(10)\n",
+        ue_context_release_command_pP->mme_ue_s1ap_id,
+        ue_context_release_command_pP->mme_ue_s1ap_id);
     rc = RETURNok;
   } else {
     /*
-     * Check the cause. If it is implicit detach or sctp reset/shutdown no need to send UE context release command to
-     * eNB. Free UE context locally.
+     * Check the cause. If it is implicit detach or sctp reset/shutdown no need
+     * to send UE context release command to eNB. Free UE context locally.
      */
 
     s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
@@ -1264,22 +1260,18 @@ int s1ap_handle_ue_context_release_command(
         imsi_map->mme_ue_id_imsi_htbl,
         (const hash_key_t) ue_context_release_command_pP->mme_ue_s1ap_id);
 
-    if (
-      ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
-      ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-      ue_context_release_command_pP->cause ==
-        S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
-      ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
+    if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
+        ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
+        ue_context_release_command_pP->cause ==
+            S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
+        ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
-        state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
+          state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
     }
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
