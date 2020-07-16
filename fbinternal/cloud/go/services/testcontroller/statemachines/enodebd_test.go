@@ -75,7 +75,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 		RfTxOn:             new(bool),
 		TimeReported:       1000,
 	}
-	mockMagmad.On("GetEnodebStatus", "n1", "hw1").Return(mockEnodebState, nil)
+	mockMagmad.On("GetEnodebStatus", "n1", "1202000038269KP0037").Return(mockEnodebState, nil)
 
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
@@ -256,7 +256,7 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 	assert.Equal(t, "check_for_upgrade", actualState)
 	assert.Equal(t, 15*time.Minute, actualDuration)
 
-	mockMagmad.On("GetEnodebStatus", "n1", "hw1").Return(mockEnodebState, errors.New("")).Once()
+	mockMagmad.On("GetEnodebStatus", "n1", "1202000038269KP0037").Return(mockEnodebState, errors.New("")).Once()
 	// ---
 	// Unable to get enodeb status
 	// --
@@ -266,7 +266,7 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 	assert.Equal(t, 5*time.Minute, actualDuration)
 
 	mockMagmad.On("RebootEnodeb", "n1", "g1", "1202000038269KP0037").Return(mockGenericCommandResp, nil)
-	mockMagmad.On("GetEnodebStatus", "n1", "hw1").Return(mockEnodebState, nil)
+	mockMagmad.On("GetEnodebStatus", "n1", "1202000038269KP0037").Return(mockEnodebState, nil)
 	// ---
 	// Reboot enodeb
 	// ---
