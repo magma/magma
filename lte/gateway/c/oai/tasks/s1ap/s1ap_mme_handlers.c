@@ -2187,38 +2187,32 @@ int s1ap_handle_new_association(
 
 //------------------------------------------------------------------------------
 void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
-  s1ap_state_t *state,
-  ue_description_t *ue_ref_p)
-{
-  MessageDef *message_p = NULL;
+    s1ap_state_t* state, ue_description_t* ue_ref_p) {
+  MessageDef* message_p = NULL;
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(ue_ref_p != NULL);
   ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
-  imsi64_t imsi64 = INVALID_IMSI64;
+  imsi64_t imsi64                        = INVALID_IMSI64;
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
   hashtable_uint64_ts_get(
       imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id,
-      &imsi64);
+      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
 
   OAILOG_DEBUG_UE(
-    LOG_S1AP,
-    imsi64,
-    "Expired- UE Context Release Timer for UE id  %d \n",
-    ue_ref_p->mme_ue_s1ap_id);
+      LOG_S1AP, imsi64, "Expired- UE Context Release Timer for UE id  %d \n",
+      ue_ref_p->mme_ue_s1ap_id);
   /*
    * Remove UE context and inform MME_APP.
    */
   message_p =
-    itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
+      itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
-    (void *) &message_p->ittiMsg.s1ap_ue_context_release_complete,
-    0,
-    sizeof(itti_s1ap_ue_context_release_complete_t));
+      (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
+      sizeof(itti_s1ap_ue_context_release_complete_t));
   S1AP_UE_CONTEXT_RELEASE_COMPLETE(message_p).mme_ue_s1ap_id =
-    ue_ref_p->mme_ue_s1ap_id;
+      ue_ref_p->mme_ue_s1ap_id;
 
   message_p->ittiMsgHeader.imsi = imsi64;
   itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
@@ -2229,10 +2223,8 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
       (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
 
   OAILOG_DEBUG_UE(
-    LOG_S1AP,
-    imsi64,
-    "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
-    (uint32_t) ue_ref_p->mme_ue_s1ap_id);
+      LOG_S1AP, imsi64, "Removed S1AP UE " MME_UE_S1AP_ID_FMT "\n",
+      (uint32_t) ue_ref_p->mme_ue_s1ap_id);
   s1ap_remove_ue(state, ue_ref_p);
 
   OAILOG_FUNC_OUT(LOG_S1AP);
