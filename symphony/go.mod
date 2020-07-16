@@ -36,7 +36,6 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f
 	github.com/stretchr/testify v1.6.1
 	github.com/uber/jaeger-client-go v2.24.0+incompatible // indirect
-	github.com/ugorji/go/codec v1.1.7
 	github.com/vektah/gqlparser/v2 v2.0.1
 	go.opencensus.io v0.22.4
 	go.uber.org/zap v1.15.0

@@ -9,7 +9,7 @@ package ent
 import (
 	"context"
 	"encoding/base64"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -61,7 +61,7 @@ import (
 	"github.com/facebookincubator/symphony/pkg/ent/workorderdefinition"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertemplate"
 	"github.com/facebookincubator/symphony/pkg/ent/workordertype"
-	"github.com/ugorji/go/codec"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // PageInfo of a connection type.
@@ -74,21 +74,23 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID int
+	ID int `json:"id"`
 }
-
-// ErrInvalidPagination error is returned when paginating with invalid parameters.
-var ErrInvalidPagination = errors.New("ent: invalid pagination parameters")
-
-var quote = []byte(`"`)
 
 // MarshalGQL implements graphql.Marshaler interface.
 func (c Cursor) MarshalGQL(w io.Writer) {
-	w.Write(quote)
-	defer w.Write(quote)
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
 	wc := base64.NewEncoder(base64.StdEncoding, w)
 	defer wc.Close()
-	_ = codec.NewEncoder(wc, &codec.MsgpackHandle{}).Encode(c)
+	_ = json.NewEncoder(wc).Encode(c)
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
@@ -97,12 +99,11 @@ func (c *Cursor) UnmarshalGQL(v interface{}) error {
 	if !ok {
 		return fmt.Errorf("%T is not a string", v)
 	}
-	if err := codec.NewDecoder(
+	if err := json.NewDecoder(
 		base64.NewDecoder(
 			base64.StdEncoding,
 			strings.NewReader(s),
 		),
-		&codec.MsgpackHandle{},
 	).Decode(c); err != nil {
 		return fmt.Errorf("decode cursor: %w", err)
 	}
@@ -125,36 +126,31 @@ type ActionsRuleConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to ActionsRule.
 func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ActionsRuleConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ActionsRuleConnection{Edges: []*ActionsRuleEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ActionsRuleConnection{
-				Edges: []*ActionsRuleEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ActionsRuleConnection{
-				Edges: []*ActionsRuleEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := ar.Clone().Count(ctx)
 		if err != nil {
-			return &ActionsRuleConnection{
-				Edges: []*ActionsRuleEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -173,10 +169,7 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 
 	nodes, err := ar.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ActionsRuleConnection{
-			TotalCount: totalCount,
-			Edges:      []*ActionsRuleEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -184,7 +177,6 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 		}
 	}
 
-	conn := ActionsRuleConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -204,7 +196,7 @@ func (ar *ActionsRuleQuery) Paginate(ctx context.Context, after *Cursor, first *
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (ar *ActionsRuleQuery) collectConnectionFields(ctx context.Context) *ActionsRuleQuery {
@@ -230,36 +222,31 @@ type ActivityConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Activity.
 func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ActivityConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ActivityConnection{Edges: []*ActivityEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ActivityConnection{
-				Edges: []*ActivityEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ActivityConnection{
-				Edges: []*ActivityEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := a.Clone().Count(ctx)
 		if err != nil {
-			return &ActivityConnection{
-				Edges: []*ActivityEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -278,10 +265,7 @@ func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 	nodes, err := a.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ActivityConnection{
-			TotalCount: totalCount,
-			Edges:      []*ActivityEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -289,7 +273,6 @@ func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
-	conn := ActivityConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -309,7 +292,7 @@ func (a *ActivityQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (a *ActivityQuery) collectConnectionFields(ctx context.Context) *ActivityQuery {
@@ -335,36 +318,31 @@ type CheckListCategoryConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to CheckListCategory.
 func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CheckListCategoryConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &CheckListCategoryConnection{Edges: []*CheckListCategoryEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &CheckListCategoryConnection{
-				Edges: []*CheckListCategoryEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &CheckListCategoryConnection{
-				Edges: []*CheckListCategoryEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := clc.Clone().Count(ctx)
 		if err != nil {
-			return &CheckListCategoryConnection{
-				Edges: []*CheckListCategoryEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -383,10 +361,7 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 
 	nodes, err := clc.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &CheckListCategoryConnection{
-			TotalCount: totalCount,
-			Edges:      []*CheckListCategoryEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -394,7 +369,6 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 		}
 	}
 
-	conn := CheckListCategoryConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -414,7 +388,7 @@ func (clc *CheckListCategoryQuery) Paginate(ctx context.Context, after *Cursor, 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (clc *CheckListCategoryQuery) collectConnectionFields(ctx context.Context) *CheckListCategoryQuery {
@@ -440,36 +414,31 @@ type CheckListCategoryDefinitionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to CheckListCategoryDefinition.
 func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CheckListCategoryDefinitionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &CheckListCategoryDefinitionConnection{Edges: []*CheckListCategoryDefinitionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &CheckListCategoryDefinitionConnection{
-				Edges: []*CheckListCategoryDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &CheckListCategoryDefinitionConnection{
-				Edges: []*CheckListCategoryDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := clcd.Clone().Count(ctx)
 		if err != nil {
-			return &CheckListCategoryDefinitionConnection{
-				Edges: []*CheckListCategoryDefinitionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -488,10 +457,7 @@ func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, afte
 
 	nodes, err := clcd.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &CheckListCategoryDefinitionConnection{
-			TotalCount: totalCount,
-			Edges:      []*CheckListCategoryDefinitionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -499,7 +465,6 @@ func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, afte
 		}
 	}
 
-	conn := CheckListCategoryDefinitionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -519,7 +484,7 @@ func (clcd *CheckListCategoryDefinitionQuery) Paginate(ctx context.Context, afte
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (clcd *CheckListCategoryDefinitionQuery) collectConnectionFields(ctx context.Context) *CheckListCategoryDefinitionQuery {
@@ -545,36 +510,31 @@ type CheckListItemConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to CheckListItem.
 func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CheckListItemConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &CheckListItemConnection{Edges: []*CheckListItemEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &CheckListItemConnection{
-				Edges: []*CheckListItemEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &CheckListItemConnection{
-				Edges: []*CheckListItemEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := cli.Clone().Count(ctx)
 		if err != nil {
-			return &CheckListItemConnection{
-				Edges: []*CheckListItemEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -593,10 +553,7 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 
 	nodes, err := cli.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &CheckListItemConnection{
-			TotalCount: totalCount,
-			Edges:      []*CheckListItemEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -604,7 +561,6 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 		}
 	}
 
-	conn := CheckListItemConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -624,7 +580,7 @@ func (cli *CheckListItemQuery) Paginate(ctx context.Context, after *Cursor, firs
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (cli *CheckListItemQuery) collectConnectionFields(ctx context.Context) *CheckListItemQuery {
@@ -650,36 +606,31 @@ type CheckListItemDefinitionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to CheckListItemDefinition.
 func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CheckListItemDefinitionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &CheckListItemDefinitionConnection{Edges: []*CheckListItemDefinitionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &CheckListItemDefinitionConnection{
-				Edges: []*CheckListItemDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &CheckListItemDefinitionConnection{
-				Edges: []*CheckListItemDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := clid.Clone().Count(ctx)
 		if err != nil {
-			return &CheckListItemDefinitionConnection{
-				Edges: []*CheckListItemDefinitionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -698,10 +649,7 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 
 	nodes, err := clid.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &CheckListItemDefinitionConnection{
-			TotalCount: totalCount,
-			Edges:      []*CheckListItemDefinitionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -709,7 +657,6 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 		}
 	}
 
-	conn := CheckListItemDefinitionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -729,7 +676,7 @@ func (clid *CheckListItemDefinitionQuery) Paginate(ctx context.Context, after *C
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (clid *CheckListItemDefinitionQuery) collectConnectionFields(ctx context.Context) *CheckListItemDefinitionQuery {
@@ -755,36 +702,31 @@ type CommentConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Comment.
 func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CommentConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &CommentConnection{Edges: []*CommentEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &CommentConnection{
-				Edges: []*CommentEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &CommentConnection{
-				Edges: []*CommentEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := c.Clone().Count(ctx)
 		if err != nil {
-			return &CommentConnection{
-				Edges: []*CommentEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -803,10 +745,7 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 
 	nodes, err := c.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &CommentConnection{
-			TotalCount: totalCount,
-			Edges:      []*CommentEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -814,7 +753,6 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 		}
 	}
 
-	conn := CommentConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -834,7 +772,7 @@ func (c *CommentQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (c *CommentQuery) collectConnectionFields(ctx context.Context) *CommentQuery {
@@ -860,36 +798,31 @@ type CustomerConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Customer.
 func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*CustomerConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &CustomerConnection{Edges: []*CustomerEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &CustomerConnection{
-				Edges: []*CustomerEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &CustomerConnection{
-				Edges: []*CustomerEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := c.Clone().Count(ctx)
 		if err != nil {
-			return &CustomerConnection{
-				Edges: []*CustomerEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -908,10 +841,7 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 	nodes, err := c.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &CustomerConnection{
-			TotalCount: totalCount,
-			Edges:      []*CustomerEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -919,7 +849,6 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
-	conn := CustomerConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -939,7 +868,7 @@ func (c *CustomerQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (c *CustomerQuery) collectConnectionFields(ctx context.Context) *CustomerQuery {
@@ -965,36 +894,31 @@ type EquipmentConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Equipment.
 func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentConnection{Edges: []*EquipmentEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentConnection{
-				Edges: []*EquipmentEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentConnection{
-				Edges: []*EquipmentEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := e.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentConnection{
-				Edges: []*EquipmentEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1013,10 +937,7 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 
 	nodes, err := e.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1024,7 +945,6 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 		}
 	}
 
-	conn := EquipmentConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1044,7 +964,7 @@ func (e *EquipmentQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (e *EquipmentQuery) collectConnectionFields(ctx context.Context) *EquipmentQuery {
@@ -1070,36 +990,31 @@ type EquipmentCategoryConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentCategory.
 func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentCategoryConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentCategoryConnection{Edges: []*EquipmentCategoryEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentCategoryConnection{
-				Edges: []*EquipmentCategoryEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentCategoryConnection{
-				Edges: []*EquipmentCategoryEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := ec.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentCategoryConnection{
-				Edges: []*EquipmentCategoryEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1118,10 +1033,7 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 
 	nodes, err := ec.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentCategoryConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentCategoryEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1129,7 +1041,6 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 		}
 	}
 
-	conn := EquipmentCategoryConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1149,7 +1060,7 @@ func (ec *EquipmentCategoryQuery) Paginate(ctx context.Context, after *Cursor, f
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (ec *EquipmentCategoryQuery) collectConnectionFields(ctx context.Context) *EquipmentCategoryQuery {
@@ -1175,36 +1086,31 @@ type EquipmentPortConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPort.
 func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentPortConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentPortConnection{Edges: []*EquipmentPortEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentPortConnection{
-				Edges: []*EquipmentPortEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentPortConnection{
-				Edges: []*EquipmentPortEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := ep.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentPortConnection{
-				Edges: []*EquipmentPortEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1223,10 +1129,7 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 
 	nodes, err := ep.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentPortConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentPortEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1234,7 +1137,6 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 		}
 	}
 
-	conn := EquipmentPortConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1254,7 +1156,7 @@ func (ep *EquipmentPortQuery) Paginate(ctx context.Context, after *Cursor, first
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (ep *EquipmentPortQuery) collectConnectionFields(ctx context.Context) *EquipmentPortQuery {
@@ -1280,36 +1182,31 @@ type EquipmentPortDefinitionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPortDefinition.
 func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentPortDefinitionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentPortDefinitionConnection{Edges: []*EquipmentPortDefinitionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentPortDefinitionConnection{
-				Edges: []*EquipmentPortDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentPortDefinitionConnection{
-				Edges: []*EquipmentPortDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := epd.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentPortDefinitionConnection{
-				Edges: []*EquipmentPortDefinitionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1328,10 +1225,7 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 
 	nodes, err := epd.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentPortDefinitionConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentPortDefinitionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1339,7 +1233,6 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 		}
 	}
 
-	conn := EquipmentPortDefinitionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1359,7 +1252,7 @@ func (epd *EquipmentPortDefinitionQuery) Paginate(ctx context.Context, after *Cu
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (epd *EquipmentPortDefinitionQuery) collectConnectionFields(ctx context.Context) *EquipmentPortDefinitionQuery {
@@ -1385,36 +1278,31 @@ type EquipmentPortTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPortType.
 func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentPortTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentPortTypeConnection{Edges: []*EquipmentPortTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentPortTypeConnection{
-				Edges: []*EquipmentPortTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentPortTypeConnection{
-				Edges: []*EquipmentPortTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := ept.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentPortTypeConnection{
-				Edges: []*EquipmentPortTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1433,10 +1321,7 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 
 	nodes, err := ept.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentPortTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentPortTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1444,7 +1329,6 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 		}
 	}
 
-	conn := EquipmentPortTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1464,7 +1348,7 @@ func (ept *EquipmentPortTypeQuery) Paginate(ctx context.Context, after *Cursor, 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (ept *EquipmentPortTypeQuery) collectConnectionFields(ctx context.Context) *EquipmentPortTypeQuery {
@@ -1490,36 +1374,31 @@ type EquipmentPositionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPosition.
 func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentPositionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentPositionConnection{Edges: []*EquipmentPositionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentPositionConnection{
-				Edges: []*EquipmentPositionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentPositionConnection{
-				Edges: []*EquipmentPositionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := ep.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentPositionConnection{
-				Edges: []*EquipmentPositionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1538,10 +1417,7 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 
 	nodes, err := ep.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentPositionConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentPositionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1549,7 +1425,6 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 		}
 	}
 
-	conn := EquipmentPositionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1569,7 +1444,7 @@ func (ep *EquipmentPositionQuery) Paginate(ctx context.Context, after *Cursor, f
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (ep *EquipmentPositionQuery) collectConnectionFields(ctx context.Context) *EquipmentPositionQuery {
@@ -1595,36 +1470,31 @@ type EquipmentPositionDefinitionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentPositionDefinition.
 func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentPositionDefinitionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentPositionDefinitionConnection{Edges: []*EquipmentPositionDefinitionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentPositionDefinitionConnection{
-				Edges: []*EquipmentPositionDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentPositionDefinitionConnection{
-				Edges: []*EquipmentPositionDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := epd.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentPositionDefinitionConnection{
-				Edges: []*EquipmentPositionDefinitionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1643,10 +1513,7 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 
 	nodes, err := epd.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentPositionDefinitionConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentPositionDefinitionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1654,7 +1521,6 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 		}
 	}
 
-	conn := EquipmentPositionDefinitionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1674,7 +1540,7 @@ func (epd *EquipmentPositionDefinitionQuery) Paginate(ctx context.Context, after
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (epd *EquipmentPositionDefinitionQuery) collectConnectionFields(ctx context.Context) *EquipmentPositionDefinitionQuery {
@@ -1700,36 +1566,31 @@ type EquipmentTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to EquipmentType.
 func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*EquipmentTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &EquipmentTypeConnection{Edges: []*EquipmentTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &EquipmentTypeConnection{
-				Edges: []*EquipmentTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &EquipmentTypeConnection{
-				Edges: []*EquipmentTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := et.Clone().Count(ctx)
 		if err != nil {
-			return &EquipmentTypeConnection{
-				Edges: []*EquipmentTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1748,10 +1609,7 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 
 	nodes, err := et.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &EquipmentTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*EquipmentTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1759,7 +1617,6 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 		}
 	}
 
-	conn := EquipmentTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1779,7 +1636,7 @@ func (et *EquipmentTypeQuery) Paginate(ctx context.Context, after *Cursor, first
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (et *EquipmentTypeQuery) collectConnectionFields(ctx context.Context) *EquipmentTypeQuery {
@@ -1805,36 +1662,31 @@ type FileConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to File.
 func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*FileConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &FileConnection{Edges: []*FileEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &FileConnection{
-				Edges: []*FileEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &FileConnection{
-				Edges: []*FileEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := f.Clone().Count(ctx)
 		if err != nil {
-			return &FileConnection{
-				Edges: []*FileEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1853,10 +1705,7 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 	nodes, err := f.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &FileConnection{
-			TotalCount: totalCount,
-			Edges:      []*FileEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1864,7 +1713,6 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	conn := FileConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1884,7 +1732,7 @@ func (f *FileQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (f *FileQuery) collectConnectionFields(ctx context.Context) *FileQuery {
@@ -1910,36 +1758,31 @@ type FloorPlanConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to FloorPlan.
 func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*FloorPlanConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &FloorPlanConnection{Edges: []*FloorPlanEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &FloorPlanConnection{
-				Edges: []*FloorPlanEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &FloorPlanConnection{
-				Edges: []*FloorPlanEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := fp.Clone().Count(ctx)
 		if err != nil {
-			return &FloorPlanConnection{
-				Edges: []*FloorPlanEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -1958,10 +1801,7 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 
 	nodes, err := fp.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &FloorPlanConnection{
-			TotalCount: totalCount,
-			Edges:      []*FloorPlanEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -1969,7 +1809,6 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 		}
 	}
 
-	conn := FloorPlanConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -1989,7 +1828,7 @@ func (fp *FloorPlanQuery) Paginate(ctx context.Context, after *Cursor, first *in
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (fp *FloorPlanQuery) collectConnectionFields(ctx context.Context) *FloorPlanQuery {
@@ -2015,36 +1854,31 @@ type FloorPlanReferencePointConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to FloorPlanReferencePoint.
 func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*FloorPlanReferencePointConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &FloorPlanReferencePointConnection{Edges: []*FloorPlanReferencePointEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &FloorPlanReferencePointConnection{
-				Edges: []*FloorPlanReferencePointEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &FloorPlanReferencePointConnection{
-				Edges: []*FloorPlanReferencePointEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := fprp.Clone().Count(ctx)
 		if err != nil {
-			return &FloorPlanReferencePointConnection{
-				Edges: []*FloorPlanReferencePointEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2063,10 +1897,7 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 
 	nodes, err := fprp.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &FloorPlanReferencePointConnection{
-			TotalCount: totalCount,
-			Edges:      []*FloorPlanReferencePointEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2074,7 +1905,6 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 		}
 	}
 
-	conn := FloorPlanReferencePointConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2094,7 +1924,7 @@ func (fprp *FloorPlanReferencePointQuery) Paginate(ctx context.Context, after *C
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (fprp *FloorPlanReferencePointQuery) collectConnectionFields(ctx context.Context) *FloorPlanReferencePointQuery {
@@ -2120,36 +1950,31 @@ type FloorPlanScaleConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to FloorPlanScale.
 func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*FloorPlanScaleConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &FloorPlanScaleConnection{Edges: []*FloorPlanScaleEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &FloorPlanScaleConnection{
-				Edges: []*FloorPlanScaleEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &FloorPlanScaleConnection{
-				Edges: []*FloorPlanScaleEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := fps.Clone().Count(ctx)
 		if err != nil {
-			return &FloorPlanScaleConnection{
-				Edges: []*FloorPlanScaleEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2168,10 +1993,7 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 
 	nodes, err := fps.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &FloorPlanScaleConnection{
-			TotalCount: totalCount,
-			Edges:      []*FloorPlanScaleEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2179,7 +2001,6 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 		}
 	}
 
-	conn := FloorPlanScaleConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2199,7 +2020,7 @@ func (fps *FloorPlanScaleQuery) Paginate(ctx context.Context, after *Cursor, fir
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (fps *FloorPlanScaleQuery) collectConnectionFields(ctx context.Context) *FloorPlanScaleQuery {
@@ -2225,36 +2046,31 @@ type HyperlinkConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Hyperlink.
 func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*HyperlinkConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &HyperlinkConnection{Edges: []*HyperlinkEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &HyperlinkConnection{
-				Edges: []*HyperlinkEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &HyperlinkConnection{
-				Edges: []*HyperlinkEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := h.Clone().Count(ctx)
 		if err != nil {
-			return &HyperlinkConnection{
-				Edges: []*HyperlinkEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2273,10 +2089,7 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 
 	nodes, err := h.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &HyperlinkConnection{
-			TotalCount: totalCount,
-			Edges:      []*HyperlinkEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2284,7 +2097,6 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 		}
 	}
 
-	conn := HyperlinkConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2304,7 +2116,7 @@ func (h *HyperlinkQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (h *HyperlinkQuery) collectConnectionFields(ctx context.Context) *HyperlinkQuery {
@@ -2330,36 +2142,31 @@ type LinkConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Link.
 func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*LinkConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &LinkConnection{Edges: []*LinkEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &LinkConnection{
-				Edges: []*LinkEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &LinkConnection{
-				Edges: []*LinkEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := l.Clone().Count(ctx)
 		if err != nil {
-			return &LinkConnection{
-				Edges: []*LinkEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2378,10 +2185,7 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 	nodes, err := l.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &LinkConnection{
-			TotalCount: totalCount,
-			Edges:      []*LinkEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2389,7 +2193,6 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	conn := LinkConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2409,7 +2212,7 @@ func (l *LinkQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (l *LinkQuery) collectConnectionFields(ctx context.Context) *LinkQuery {
@@ -2435,36 +2238,31 @@ type LocationConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Location.
 func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*LocationConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &LocationConnection{Edges: []*LocationEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &LocationConnection{
-				Edges: []*LocationEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &LocationConnection{
-				Edges: []*LocationEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := l.Clone().Count(ctx)
 		if err != nil {
-			return &LocationConnection{
-				Edges: []*LocationEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2483,10 +2281,7 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 	nodes, err := l.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &LocationConnection{
-			TotalCount: totalCount,
-			Edges:      []*LocationEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2494,7 +2289,6 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
-	conn := LocationConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2514,7 +2308,7 @@ func (l *LocationQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (l *LocationQuery) collectConnectionFields(ctx context.Context) *LocationQuery {
@@ -2540,36 +2334,31 @@ type LocationTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to LocationType.
 func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*LocationTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &LocationTypeConnection{Edges: []*LocationTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &LocationTypeConnection{
-				Edges: []*LocationTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &LocationTypeConnection{
-				Edges: []*LocationTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := lt.Clone().Count(ctx)
 		if err != nil {
-			return &LocationTypeConnection{
-				Edges: []*LocationTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2588,10 +2377,7 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 
 	nodes, err := lt.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &LocationTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*LocationTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2599,7 +2385,6 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 		}
 	}
 
-	conn := LocationTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2619,7 +2404,7 @@ func (lt *LocationTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (lt *LocationTypeQuery) collectConnectionFields(ctx context.Context) *LocationTypeQuery {
@@ -2645,36 +2430,31 @@ type PermissionsPolicyConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to PermissionsPolicy.
 func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*PermissionsPolicyConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &PermissionsPolicyConnection{Edges: []*PermissionsPolicyEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &PermissionsPolicyConnection{
-				Edges: []*PermissionsPolicyEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &PermissionsPolicyConnection{
-				Edges: []*PermissionsPolicyEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := pp.Clone().Count(ctx)
 		if err != nil {
-			return &PermissionsPolicyConnection{
-				Edges: []*PermissionsPolicyEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2693,10 +2473,7 @@ func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, f
 
 	nodes, err := pp.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &PermissionsPolicyConnection{
-			TotalCount: totalCount,
-			Edges:      []*PermissionsPolicyEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2704,7 +2481,6 @@ func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, f
 		}
 	}
 
-	conn := PermissionsPolicyConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2724,7 +2500,7 @@ func (pp *PermissionsPolicyQuery) Paginate(ctx context.Context, after *Cursor, f
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (pp *PermissionsPolicyQuery) collectConnectionFields(ctx context.Context) *PermissionsPolicyQuery {
@@ -2750,36 +2526,31 @@ type ProjectConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Project.
 func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ProjectConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ProjectConnection{Edges: []*ProjectEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ProjectConnection{
-				Edges: []*ProjectEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ProjectConnection{
-				Edges: []*ProjectEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := pr.Clone().Count(ctx)
 		if err != nil {
-			return &ProjectConnection{
-				Edges: []*ProjectEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2798,10 +2569,7 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 
 	nodes, err := pr.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ProjectConnection{
-			TotalCount: totalCount,
-			Edges:      []*ProjectEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2809,7 +2577,6 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 		}
 	}
 
-	conn := ProjectConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2829,7 +2596,7 @@ func (pr *ProjectQuery) Paginate(ctx context.Context, after *Cursor, first *int,
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (pr *ProjectQuery) collectConnectionFields(ctx context.Context) *ProjectQuery {
@@ -2855,36 +2622,31 @@ type ProjectTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to ProjectType.
 func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ProjectTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ProjectTypeConnection{Edges: []*ProjectTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ProjectTypeConnection{
-				Edges: []*ProjectTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ProjectTypeConnection{
-				Edges: []*ProjectTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := pt.Clone().Count(ctx)
 		if err != nil {
-			return &ProjectTypeConnection{
-				Edges: []*ProjectTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -2903,10 +2665,7 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 
 	nodes, err := pt.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ProjectTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*ProjectTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -2914,7 +2673,6 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 		}
 	}
 
-	conn := ProjectTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -2934,7 +2692,7 @@ func (pt *ProjectTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (pt *ProjectTypeQuery) collectConnectionFields(ctx context.Context) *ProjectTypeQuery {
@@ -2960,36 +2718,31 @@ type PropertyConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Property.
 func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*PropertyConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &PropertyConnection{Edges: []*PropertyEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &PropertyConnection{
-				Edges: []*PropertyEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &PropertyConnection{
-				Edges: []*PropertyEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := pr.Clone().Count(ctx)
 		if err != nil {
-			return &PropertyConnection{
-				Edges: []*PropertyEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3008,10 +2761,7 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 
 	nodes, err := pr.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &PropertyConnection{
-			TotalCount: totalCount,
-			Edges:      []*PropertyEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3019,7 +2769,6 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 		}
 	}
 
-	conn := PropertyConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3039,7 +2788,7 @@ func (pr *PropertyQuery) Paginate(ctx context.Context, after *Cursor, first *int
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (pr *PropertyQuery) collectConnectionFields(ctx context.Context) *PropertyQuery {
@@ -3065,36 +2814,31 @@ type PropertyTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to PropertyType.
 func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*PropertyTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &PropertyTypeConnection{Edges: []*PropertyTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &PropertyTypeConnection{
-				Edges: []*PropertyTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &PropertyTypeConnection{
-				Edges: []*PropertyTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := pt.Clone().Count(ctx)
 		if err != nil {
-			return &PropertyTypeConnection{
-				Edges: []*PropertyTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3113,10 +2857,7 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 
 	nodes, err := pt.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &PropertyTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*PropertyTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3124,7 +2865,6 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 		}
 	}
 
-	conn := PropertyTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3144,7 +2884,7 @@ func (pt *PropertyTypeQuery) Paginate(ctx context.Context, after *Cursor, first 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (pt *PropertyTypeQuery) collectConnectionFields(ctx context.Context) *PropertyTypeQuery {
@@ -3170,36 +2910,31 @@ type ReportFilterConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to ReportFilter.
 func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ReportFilterConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ReportFilterConnection{Edges: []*ReportFilterEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ReportFilterConnection{
-				Edges: []*ReportFilterEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ReportFilterConnection{
-				Edges: []*ReportFilterEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := rf.Clone().Count(ctx)
 		if err != nil {
-			return &ReportFilterConnection{
-				Edges: []*ReportFilterEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3218,10 +2953,7 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 
 	nodes, err := rf.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ReportFilterConnection{
-			TotalCount: totalCount,
-			Edges:      []*ReportFilterEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3229,7 +2961,6 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 		}
 	}
 
-	conn := ReportFilterConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3249,7 +2980,7 @@ func (rf *ReportFilterQuery) Paginate(ctx context.Context, after *Cursor, first 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (rf *ReportFilterQuery) collectConnectionFields(ctx context.Context) *ReportFilterQuery {
@@ -3275,36 +3006,31 @@ type ServiceConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Service.
 func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ServiceConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ServiceConnection{Edges: []*ServiceEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ServiceConnection{
-				Edges: []*ServiceEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ServiceConnection{
-				Edges: []*ServiceEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := s.Clone().Count(ctx)
 		if err != nil {
-			return &ServiceConnection{
-				Edges: []*ServiceEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3323,10 +3049,7 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 
 	nodes, err := s.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ServiceConnection{
-			TotalCount: totalCount,
-			Edges:      []*ServiceEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3334,7 +3057,6 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 		}
 	}
 
-	conn := ServiceConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3354,7 +3076,7 @@ func (s *ServiceQuery) Paginate(ctx context.Context, after *Cursor, first *int, 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (s *ServiceQuery) collectConnectionFields(ctx context.Context) *ServiceQuery {
@@ -3380,36 +3102,31 @@ type ServiceEndpointConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to ServiceEndpoint.
 func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ServiceEndpointConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ServiceEndpointConnection{Edges: []*ServiceEndpointEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ServiceEndpointConnection{
-				Edges: []*ServiceEndpointEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ServiceEndpointConnection{
-				Edges: []*ServiceEndpointEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := se.Clone().Count(ctx)
 		if err != nil {
-			return &ServiceEndpointConnection{
-				Edges: []*ServiceEndpointEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3428,10 +3145,7 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 
 	nodes, err := se.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ServiceEndpointConnection{
-			TotalCount: totalCount,
-			Edges:      []*ServiceEndpointEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3439,7 +3153,6 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 		}
 	}
 
-	conn := ServiceEndpointConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3459,7 +3172,7 @@ func (se *ServiceEndpointQuery) Paginate(ctx context.Context, after *Cursor, fir
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (se *ServiceEndpointQuery) collectConnectionFields(ctx context.Context) *ServiceEndpointQuery {
@@ -3485,36 +3198,31 @@ type ServiceEndpointDefinitionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to ServiceEndpointDefinition.
 func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ServiceEndpointDefinitionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ServiceEndpointDefinitionConnection{Edges: []*ServiceEndpointDefinitionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ServiceEndpointDefinitionConnection{
-				Edges: []*ServiceEndpointDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ServiceEndpointDefinitionConnection{
-				Edges: []*ServiceEndpointDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := sed.Clone().Count(ctx)
 		if err != nil {
-			return &ServiceEndpointDefinitionConnection{
-				Edges: []*ServiceEndpointDefinitionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3533,10 +3241,7 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 
 	nodes, err := sed.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ServiceEndpointDefinitionConnection{
-			TotalCount: totalCount,
-			Edges:      []*ServiceEndpointDefinitionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3544,7 +3249,6 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 		}
 	}
 
-	conn := ServiceEndpointDefinitionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3564,7 +3268,7 @@ func (sed *ServiceEndpointDefinitionQuery) Paginate(ctx context.Context, after *
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (sed *ServiceEndpointDefinitionQuery) collectConnectionFields(ctx context.Context) *ServiceEndpointDefinitionQuery {
@@ -3590,36 +3294,31 @@ type ServiceTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to ServiceType.
 func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*ServiceTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &ServiceTypeConnection{Edges: []*ServiceTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &ServiceTypeConnection{
-				Edges: []*ServiceTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &ServiceTypeConnection{
-				Edges: []*ServiceTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := st.Clone().Count(ctx)
 		if err != nil {
-			return &ServiceTypeConnection{
-				Edges: []*ServiceTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3638,10 +3337,7 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 
 	nodes, err := st.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &ServiceTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*ServiceTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3649,7 +3345,6 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 		}
 	}
 
-	conn := ServiceTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3669,7 +3364,7 @@ func (st *ServiceTypeQuery) Paginate(ctx context.Context, after *Cursor, first *
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (st *ServiceTypeQuery) collectConnectionFields(ctx context.Context) *ServiceTypeQuery {
@@ -3695,36 +3390,31 @@ type SurveyConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Survey.
 func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*SurveyConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &SurveyConnection{Edges: []*SurveyEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &SurveyConnection{
-				Edges: []*SurveyEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &SurveyConnection{
-				Edges: []*SurveyEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := s.Clone().Count(ctx)
 		if err != nil {
-			return &SurveyConnection{
-				Edges: []*SurveyEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3743,10 +3433,7 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 
 	nodes, err := s.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &SurveyConnection{
-			TotalCount: totalCount,
-			Edges:      []*SurveyEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3754,7 +3441,6 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 		}
 	}
 
-	conn := SurveyConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3774,7 +3460,7 @@ func (s *SurveyQuery) Paginate(ctx context.Context, after *Cursor, first *int, b
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (s *SurveyQuery) collectConnectionFields(ctx context.Context) *SurveyQuery {
@@ -3800,36 +3486,31 @@ type SurveyCellScanConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to SurveyCellScan.
 func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*SurveyCellScanConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &SurveyCellScanConnection{Edges: []*SurveyCellScanEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &SurveyCellScanConnection{
-				Edges: []*SurveyCellScanEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &SurveyCellScanConnection{
-				Edges: []*SurveyCellScanEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := scs.Clone().Count(ctx)
 		if err != nil {
-			return &SurveyCellScanConnection{
-				Edges: []*SurveyCellScanEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3848,10 +3529,7 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 
 	nodes, err := scs.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &SurveyCellScanConnection{
-			TotalCount: totalCount,
-			Edges:      []*SurveyCellScanEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3859,7 +3537,6 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 		}
 	}
 
-	conn := SurveyCellScanConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3879,7 +3556,7 @@ func (scs *SurveyCellScanQuery) Paginate(ctx context.Context, after *Cursor, fir
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (scs *SurveyCellScanQuery) collectConnectionFields(ctx context.Context) *SurveyCellScanQuery {
@@ -3905,36 +3582,31 @@ type SurveyQuestionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to SurveyQuestion.
 func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*SurveyQuestionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &SurveyQuestionConnection{Edges: []*SurveyQuestionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &SurveyQuestionConnection{
-				Edges: []*SurveyQuestionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &SurveyQuestionConnection{
-				Edges: []*SurveyQuestionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := sq.Clone().Count(ctx)
 		if err != nil {
-			return &SurveyQuestionConnection{
-				Edges: []*SurveyQuestionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -3953,10 +3625,7 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 
 	nodes, err := sq.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &SurveyQuestionConnection{
-			TotalCount: totalCount,
-			Edges:      []*SurveyQuestionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -3964,7 +3633,6 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 		}
 	}
 
-	conn := SurveyQuestionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -3984,7 +3652,7 @@ func (sq *SurveyQuestionQuery) Paginate(ctx context.Context, after *Cursor, firs
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (sq *SurveyQuestionQuery) collectConnectionFields(ctx context.Context) *SurveyQuestionQuery {
@@ -4010,36 +3678,31 @@ type SurveyTemplateCategoryConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to SurveyTemplateCategory.
 func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*SurveyTemplateCategoryConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &SurveyTemplateCategoryConnection{Edges: []*SurveyTemplateCategoryEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &SurveyTemplateCategoryConnection{
-				Edges: []*SurveyTemplateCategoryEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &SurveyTemplateCategoryConnection{
-				Edges: []*SurveyTemplateCategoryEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := stc.Clone().Count(ctx)
 		if err != nil {
-			return &SurveyTemplateCategoryConnection{
-				Edges: []*SurveyTemplateCategoryEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4058,10 +3721,7 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 
 	nodes, err := stc.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &SurveyTemplateCategoryConnection{
-			TotalCount: totalCount,
-			Edges:      []*SurveyTemplateCategoryEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4069,7 +3729,6 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 		}
 	}
 
-	conn := SurveyTemplateCategoryConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4089,7 +3748,7 @@ func (stc *SurveyTemplateCategoryQuery) Paginate(ctx context.Context, after *Cur
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (stc *SurveyTemplateCategoryQuery) collectConnectionFields(ctx context.Context) *SurveyTemplateCategoryQuery {
@@ -4115,36 +3774,31 @@ type SurveyTemplateQuestionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to SurveyTemplateQuestion.
 func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*SurveyTemplateQuestionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &SurveyTemplateQuestionConnection{Edges: []*SurveyTemplateQuestionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &SurveyTemplateQuestionConnection{
-				Edges: []*SurveyTemplateQuestionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &SurveyTemplateQuestionConnection{
-				Edges: []*SurveyTemplateQuestionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := stq.Clone().Count(ctx)
 		if err != nil {
-			return &SurveyTemplateQuestionConnection{
-				Edges: []*SurveyTemplateQuestionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4163,10 +3817,7 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 
 	nodes, err := stq.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &SurveyTemplateQuestionConnection{
-			TotalCount: totalCount,
-			Edges:      []*SurveyTemplateQuestionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4174,7 +3825,6 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 		}
 	}
 
-	conn := SurveyTemplateQuestionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4194,7 +3844,7 @@ func (stq *SurveyTemplateQuestionQuery) Paginate(ctx context.Context, after *Cur
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (stq *SurveyTemplateQuestionQuery) collectConnectionFields(ctx context.Context) *SurveyTemplateQuestionQuery {
@@ -4220,36 +3870,31 @@ type SurveyWiFiScanConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to SurveyWiFiScan.
 func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*SurveyWiFiScanConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &SurveyWiFiScanConnection{Edges: []*SurveyWiFiScanEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &SurveyWiFiScanConnection{
-				Edges: []*SurveyWiFiScanEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &SurveyWiFiScanConnection{
-				Edges: []*SurveyWiFiScanEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := swfs.Clone().Count(ctx)
 		if err != nil {
-			return &SurveyWiFiScanConnection{
-				Edges: []*SurveyWiFiScanEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4268,10 +3913,7 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 
 	nodes, err := swfs.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &SurveyWiFiScanConnection{
-			TotalCount: totalCount,
-			Edges:      []*SurveyWiFiScanEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4279,7 +3921,6 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 		}
 	}
 
-	conn := SurveyWiFiScanConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4299,7 +3940,7 @@ func (swfs *SurveyWiFiScanQuery) Paginate(ctx context.Context, after *Cursor, fi
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (swfs *SurveyWiFiScanQuery) collectConnectionFields(ctx context.Context) *SurveyWiFiScanQuery {
@@ -4325,36 +3966,31 @@ type UserConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to User.
 func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*UserConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &UserConnection{Edges: []*UserEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &UserConnection{
-				Edges: []*UserEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &UserConnection{
-				Edges: []*UserEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := u.Clone().Count(ctx)
 		if err != nil {
-			return &UserConnection{
-				Edges: []*UserEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4373,10 +4009,7 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 	nodes, err := u.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &UserConnection{
-			TotalCount: totalCount,
-			Edges:      []*UserEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4384,7 +4017,6 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	conn := UserConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4404,7 +4036,7 @@ func (u *UserQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (u *UserQuery) collectConnectionFields(ctx context.Context) *UserQuery {
@@ -4430,36 +4062,31 @@ type UsersGroupConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to UsersGroup.
 func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*UsersGroupConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &UsersGroupConnection{Edges: []*UsersGroupEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &UsersGroupConnection{
-				Edges: []*UsersGroupEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &UsersGroupConnection{
-				Edges: []*UsersGroupEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := ug.Clone().Count(ctx)
 		if err != nil {
-			return &UsersGroupConnection{
-				Edges: []*UsersGroupEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4478,10 +4105,7 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 
 	nodes, err := ug.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &UsersGroupConnection{
-			TotalCount: totalCount,
-			Edges:      []*UsersGroupEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4489,7 +4113,6 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 		}
 	}
 
-	conn := UsersGroupConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4509,7 +4132,7 @@ func (ug *UsersGroupQuery) Paginate(ctx context.Context, after *Cursor, first *i
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (ug *UsersGroupQuery) collectConnectionFields(ctx context.Context) *UsersGroupQuery {
@@ -4535,36 +4158,31 @@ type WorkOrderConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to WorkOrder.
 func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*WorkOrderConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &WorkOrderConnection{Edges: []*WorkOrderEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &WorkOrderConnection{
-				Edges: []*WorkOrderEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &WorkOrderConnection{
-				Edges: []*WorkOrderEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := wo.Clone().Count(ctx)
 		if err != nil {
-			return &WorkOrderConnection{
-				Edges: []*WorkOrderEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4583,10 +4201,7 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 
 	nodes, err := wo.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &WorkOrderConnection{
-			TotalCount: totalCount,
-			Edges:      []*WorkOrderEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4594,7 +4209,6 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 		}
 	}
 
-	conn := WorkOrderConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4614,7 +4228,7 @@ func (wo *WorkOrderQuery) Paginate(ctx context.Context, after *Cursor, first *in
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (wo *WorkOrderQuery) collectConnectionFields(ctx context.Context) *WorkOrderQuery {
@@ -4640,36 +4254,31 @@ type WorkOrderDefinitionConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to WorkOrderDefinition.
 func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*WorkOrderDefinitionConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &WorkOrderDefinitionConnection{Edges: []*WorkOrderDefinitionEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &WorkOrderDefinitionConnection{
-				Edges: []*WorkOrderDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &WorkOrderDefinitionConnection{
-				Edges: []*WorkOrderDefinitionEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := wod.Clone().Count(ctx)
 		if err != nil {
-			return &WorkOrderDefinitionConnection{
-				Edges: []*WorkOrderDefinitionEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4688,10 +4297,7 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 
 	nodes, err := wod.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &WorkOrderDefinitionConnection{
-			TotalCount: totalCount,
-			Edges:      []*WorkOrderDefinitionEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4699,7 +4305,6 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 		}
 	}
 
-	conn := WorkOrderDefinitionConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4719,7 +4324,7 @@ func (wod *WorkOrderDefinitionQuery) Paginate(ctx context.Context, after *Cursor
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (wod *WorkOrderDefinitionQuery) collectConnectionFields(ctx context.Context) *WorkOrderDefinitionQuery {
@@ -4745,36 +4350,31 @@ type WorkOrderTemplateConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to WorkOrderTemplate.
 func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*WorkOrderTemplateConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &WorkOrderTemplateConnection{Edges: []*WorkOrderTemplateEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &WorkOrderTemplateConnection{
-				Edges: []*WorkOrderTemplateEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &WorkOrderTemplateConnection{
-				Edges: []*WorkOrderTemplateEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := wot.Clone().Count(ctx)
 		if err != nil {
-			return &WorkOrderTemplateConnection{
-				Edges: []*WorkOrderTemplateEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4793,10 +4393,7 @@ func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, 
 
 	nodes, err := wot.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &WorkOrderTemplateConnection{
-			TotalCount: totalCount,
-			Edges:      []*WorkOrderTemplateEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4804,7 +4401,6 @@ func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, 
 		}
 	}
 
-	conn := WorkOrderTemplateConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4824,7 +4420,7 @@ func (wot *WorkOrderTemplateQuery) Paginate(ctx context.Context, after *Cursor, 
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (wot *WorkOrderTemplateQuery) collectConnectionFields(ctx context.Context) *WorkOrderTemplateQuery {
@@ -4850,36 +4446,31 @@ type WorkOrderTypeConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to WorkOrderType.
 func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*WorkOrderTypeConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &WorkOrderTypeConnection{Edges: []*WorkOrderTypeEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &WorkOrderTypeConnection{
-				Edges: []*WorkOrderTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &WorkOrderTypeConnection{
-				Edges: []*WorkOrderTypeEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := wot.Clone().Count(ctx)
 		if err != nil {
-			return &WorkOrderTypeConnection{
-				Edges: []*WorkOrderTypeEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -4898,10 +4489,7 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 
 	nodes, err := wot.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &WorkOrderTypeConnection{
-			TotalCount: totalCount,
-			Edges:      []*WorkOrderTypeEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -4909,7 +4497,6 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 		}
 	}
 
-	conn := WorkOrderTypeConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -4929,7 +4516,7 @@ func (wot *WorkOrderTypeQuery) Paginate(ctx context.Context, after *Cursor, firs
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (wot *WorkOrderTypeQuery) collectConnectionFields(ctx context.Context) *WorkOrderTypeQuery {

@@ -9,14 +9,14 @@ package ent
 import (
 	"context"
 	"encoding/base64"
-	"errors"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/facebookincubator/symphony/pkg/ent-contrib/entgqlgen/internal/todo/ent/todo"
-	"github.com/ugorji/go/codec"
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // PageInfo of a connection type.
@@ -29,21 +29,23 @@ type PageInfo struct {
 
 // Cursor of an edge type.
 type Cursor struct {
-	ID int
+	ID int `json:"id"`
 }
-
-// ErrInvalidPagination error is returned when paginating with invalid parameters.
-var ErrInvalidPagination = errors.New("ent: invalid pagination parameters")
-
-var quote = []byte(`"`)
 
 // MarshalGQL implements graphql.Marshaler interface.
 func (c Cursor) MarshalGQL(w io.Writer) {
-	w.Write(quote)
-	defer w.Write(quote)
+	const quote = '"'
+	switch w := w.(type) {
+	case io.ByteWriter:
+		w.WriteByte(quote)
+		defer w.WriteByte(quote)
+	default:
+		w.Write([]byte{quote})
+		defer w.Write([]byte{quote})
+	}
 	wc := base64.NewEncoder(base64.StdEncoding, w)
 	defer wc.Close()
-	_ = codec.NewEncoder(wc, &codec.MsgpackHandle{}).Encode(c)
+	_ = json.NewEncoder(wc).Encode(c)
 }
 
 // UnmarshalGQL implements graphql.Unmarshaler interface.
@@ -52,12 +54,11 @@ func (c *Cursor) UnmarshalGQL(v interface{}) error {
 	if !ok {
 		return fmt.Errorf("%T is not a string", v)
 	}
-	if err := codec.NewDecoder(
+	if err := json.NewDecoder(
 		base64.NewDecoder(
 			base64.StdEncoding,
 			strings.NewReader(s),
 		),
-		&codec.MsgpackHandle{},
 	).Decode(c); err != nil {
 		return fmt.Errorf("decode cursor: %w", err)
 	}
@@ -80,36 +81,31 @@ type TodoConnection struct {
 // Paginate executes the query and returns a relay based cursor connection to Todo.
 func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, before *Cursor, last *int) (*TodoConnection, error) {
 	if first != nil && last != nil {
-		return nil, ErrInvalidPagination
+		return nil, gqlerror.Errorf("Passing both `first` and `last` to paginate a connection is not supported.")
 	}
+
+	conn := &TodoConnection{Edges: []*TodoEdge{}}
 	if first != nil {
 		if *first == 0 {
-			return &TodoConnection{
-				Edges: []*TodoEdge{},
-			}, nil
+			return conn, nil
 		} else if *first < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`first` on a connection cannot be less than zero.")
 		}
 	}
 	if last != nil {
 		if *last == 0 {
-			return &TodoConnection{
-				Edges: []*TodoEdge{},
-			}, nil
+			return conn, nil
 		} else if *last < 0 {
-			return nil, ErrInvalidPagination
+			return nil, gqlerror.Errorf("`last` on a connection cannot be less than zero.")
 		}
 	}
 
-	var totalCount int
 	if field := fieldForPath(ctx, "totalCount"); field != nil {
 		count, err := t.Clone().Count(ctx)
 		if err != nil {
-			return &TodoConnection{
-				Edges: []*TodoEdge{},
-			}, err
+			return nil, err
 		}
-		totalCount = count
+		conn.TotalCount = count
 	}
 
 	if after != nil {
@@ -128,10 +124,7 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 
 	nodes, err := t.All(ctx)
 	if err != nil || len(nodes) == 0 {
-		return &TodoConnection{
-			TotalCount: totalCount,
-			Edges:      []*TodoEdge{},
-		}, err
+		return conn, err
 	}
 	if last != nil {
 		for left, right := 0, len(nodes)-1; left < right; left, right = left+1, right-1 {
@@ -139,7 +132,6 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 		}
 	}
 
-	conn := TodoConnection{TotalCount: totalCount}
 	if first != nil && len(nodes) > *first {
 		conn.PageInfo.HasNextPage = true
 		nodes = nodes[:len(nodes)-1]
@@ -159,7 +151,7 @@ func (t *TodoQuery) Paginate(ctx context.Context, after *Cursor, first *int, bef
 	conn.PageInfo.StartCursor = &conn.Edges[0].Cursor
 	conn.PageInfo.EndCursor = &conn.Edges[len(conn.Edges)-1].Cursor
 
-	return &conn, nil
+	return conn, nil
 }
 
 func (t *TodoQuery) collectConnectionFields(ctx context.Context) *TodoQuery {
