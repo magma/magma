@@ -2276,35 +2276,54 @@ int s1ap_mme_handle_error_ind_message(
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_erab_setup_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
-    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message) {
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_S1AP);
-#if S1AP_R1O_TO_R15_DONE
-  S1ap_E_RABSetupResponseIEs_t* s1ap_E_RABSetupResponseIEs_p = NULL;
-  ue_description_t* ue_ref_p                                 = NULL;
-  MessageDef* message_p                                      = NULL;
-  int rc                                                     = RETURNok;
-  imsi64_t imsi64                                            = INVALID_IMSI64;
+  S1ap_E_RABSetupResponse_t* container = NULL;
+  S1ap_E_RABSetupResponseIEs_t* ie     = NULL;
+  ue_description_t* ue_ref_p           = NULL;
+  MessageDef* message_p                = NULL;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id      = 0;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id      = 0;
+  int rc                               = RETURNok;
+  imsi64_t imsi64                      = INVALID_IMSI64;
 
-  s1ap_E_RABSetupResponseIEs_p = &message->msg.s1ap_E_RABSetupResponseIEs;
+  container = &pdu->choice.successfulOutcome.value.choice.E_RABSetupResponse;
 
-  if ((ue_ref_p = s1ap_state_get_ue_mmeid(
-           state, (uint32_t) s1ap_E_RABSetupResponseIEs_p->mme_ue_s1ap_id)) ==
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABSetupResponseIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABSetupResponseIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (ie) {
+    // eNB UE S1AP ID is limited to 24 bits
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(state, (uint32_t) mme_ue_s1ap_id)) ==
       NULL) {
     OAILOG_DEBUG(
         LOG_S1AP,
         "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
-        (mme_ue_s1ap_id_t) s1ap_E_RABSetupResponseIEs_p->mme_ue_s1ap_id);
+        mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  if (ue_ref_p->enb_ue_s1ap_id !=
-      s1ap_E_RABSetupResponseIEs_p->eNB_UE_S1AP_ID) {
+  if (ue_ref_p->enb_ue_s1ap_id != enb_ue_s1ap_id) {
     OAILOG_DEBUG(
         LOG_S1AP,
         "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
         ", received: " ENB_UE_S1AP_ID_FMT "\n",
-        ue_ref_p->enb_ue_s1ap_id,
-        (enb_ue_s1ap_id_t) s1ap_E_RABSetupResponseIEs_p->eNB_UE_S1AP_ID);
+        ue_ref_p->enb_ue_s1ap_id, enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -2320,36 +2339,39 @@ int s1ap_mme_handle_erab_setup_response(
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items           = 0;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_failed_to_setup_list.no_of_items = 0;
 
-  if (s1ap_E_RABSetupResponseIEs_p->presenceMask &
-      S1AP_E_RABSETUPRESPONSEIES_E_RABSETUPLISTBEARERSURES_PRESENT) {
-    int num_erab = s1ap_E_RABSetupResponseIEs_p->e_RABSetupListBearerSURes
-                       .s1ap_E_RABSetupItemBearerSURes.count;
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABSetupResponseIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_E_RABSetupListBearerSURes, false);
+  if (ie) {
+    int num_erab = ie->value.choice.E_RABSetupListBearerSURes.list.count;
     for (int index = 0; index < num_erab; index++) {
-      S1ap_E_RABSetupItemBearerSURes_t* erab_setup_item =
-          (S1ap_E_RABSetupItemBearerSURes_t*)
-              s1ap_E_RABSetupResponseIEs_p->e_RABSetupListBearerSURes
-                  .s1ap_E_RABSetupItemBearerSURes.array[index];
+      S1ap_E_RABSetupItemBearerSUResIEs_t* erab_setup_item =
+          (S1ap_E_RABSetupItemBearerSUResIEs_t*)
+              ie->value.choice.E_RABSetupListBearerSURes.list.array[index];
+      S1ap_E_RABSetupItemBearerSURes_t* e_rab_setup_item_bearer_su_res =
+          &erab_setup_item->value.choice.E_RABSetupItemBearerSURes;
+
       S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.item[index].e_rab_id =
-          erab_setup_item->e_RAB_ID;
+          e_rab_setup_item_bearer_su_res->e_RAB_ID;
       S1AP_E_RAB_SETUP_RSP(message_p)
           .e_rab_setup_list.item[index]
           .transport_layer_address = blk2bstr(
-          erab_setup_item->transportLayerAddress.buf,
-          erab_setup_item->transportLayerAddress.size);
+          e_rab_setup_item_bearer_su_res->transportLayerAddress.buf,
+          e_rab_setup_item_bearer_su_res->transportLayerAddress.size);
       S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.item[index].gtp_teid =
-          htonl(*((uint32_t*) erab_setup_item->gTP_TEID.buf));
+          htonl(*((uint32_t*) e_rab_setup_item_bearer_su_res->gTP_TEID.buf));
       S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items += 1;
     }
   }
 
-  if (s1ap_E_RABSetupResponseIEs_p->presenceMask &
-      S1AP_E_RABSETUPRESPONSEIES_E_RABFAILEDTOSETUPLISTBEARERSURES_PRESENT) {
-    int num_erab = s1ap_E_RABSetupResponseIEs_p
-                       ->e_RABFailedToSetupListBearerSURes.s1ap_E_RABItem.count;
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_E_RABSetupResponseIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_E_RABFailedToSetupListBearerSURes, false);
+  if (ie) {
+    int num_erab = ie->value.choice.E_RABList.list.count;
     for (int index = 0; index < num_erab; index++) {
       S1ap_E_RABItem_t* erab_item =
-          (S1ap_E_RABItem_t*) s1ap_E_RABSetupResponseIEs_p
-              ->e_RABFailedToSetupListBearerSURes.s1ap_E_RABItem.array[index];
+          (S1ap_E_RABItem_t*) ie->value.choice.E_RABList.list.array[index];
       S1AP_E_RAB_SETUP_RSP(message_p)
           .e_rab_failed_to_setup_list.item[index]
           .e_rab_id = erab_item->e_RAB_ID;
@@ -2360,13 +2382,9 @@ int s1ap_mme_handle_erab_setup_response(
           1;
     }
   }
-
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
