@@ -1,2 +1,2 @@
-//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT --proto_path=../../../../protos/mconfig --go_out=plugins=grpc:../../../../../.. ../../../../protos/mconfig/*.proto"
+//go:generate bash -c "protoc -I /usr/include --proto_path=$MAGMA_ROOT --go_out=plugins=grpc:$MAGMA_ROOT/.. $MAGMA_ROOT/wifi/protos/mconfig/*.proto"
 package mconfig
