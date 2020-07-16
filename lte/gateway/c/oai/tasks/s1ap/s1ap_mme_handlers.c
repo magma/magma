@@ -118,8 +118,7 @@ static int s1ap_mme_generate_ue_context_release_command(
   enum s1cause,
   imsi64_t imsi64);
 
-static bool is_all_erabId_same(
-  S1ap_PathSwitchRequestIEs_t *pathSwitchRequest_p);
+static bool is_all_erabId_same(S1ap_PathSwitchRequest_t *container);
 
 /* Handlers matrix. Only mme related procedures present here.
 */
@@ -3011,31 +3010,38 @@ int s1ap_mme_handle_enb_configuration_transfer(
 #endif
 }
 
-static bool is_all_erabId_same(
-  S1ap_PathSwitchRequestIEs_t *pathSwitchRequest_p)
+//------------------------------------------------------------------------------
+static bool is_all_erabId_same(S1ap_PathSwitchRequest_t *container)
 {
-#if S1AP_R1O_TO_R15_DONE
-  S1ap_E_RABToBeSwitchedDLListIEs_t *e_RABToBeSwitchedDLList = NULL;
-  uint8_t rc = true;
+  S1ap_PathSwitchRequestIEs_t *ie = NULL;
+  S1ap_E_RABToBeSwitchedDLItemIEs_t *eRABToBeSwitchedDlItemIEs_p = NULL;
   uint8_t item = 0;
   uint8_t firstItem = 0;
-  S1ap_E_RABToBeSwitchedDLItem_t *s1ap_E_RABToBeSwitchedDLItem_p = NULL;
+  uint8_t rc = true;
 
-  e_RABToBeSwitchedDLList = &pathSwitchRequest_p->e_RABToBeSwitchedDLList;
-  if (1 == e_RABToBeSwitchedDLList->s1ap_E_RABToBeSwitchedDLItem.count) {
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_PathSwitchRequestIEs_t, ie, container,
+		  S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList,
+          true);
+  DevAssert(ie);
+  S1ap_E_RABToBeSwitchedDLList_t *e_rab_to_be_switched_dl_list =
+      &ie->value.choice.E_RABToBeSwitchedDLList;
+
+  if (1 == e_rab_to_be_switched_dl_list->list.count) {
     rc = false;
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
-  s1ap_E_RABToBeSwitchedDLItem_p = (S1ap_E_RABToBeSwitchedDLItem_t *)
-    e_RABToBeSwitchedDLList->s1ap_E_RABToBeSwitchedDLItem.array[0];
-  firstItem = s1ap_E_RABToBeSwitchedDLItem_p->e_RAB_ID;
 
-  for (item = 1;
-    item < e_RABToBeSwitchedDLList->s1ap_E_RABToBeSwitchedDLItem.count;
-    ++item) {
-    s1ap_E_RABToBeSwitchedDLItem_p = (S1ap_E_RABToBeSwitchedDLItem_t *)
-      e_RABToBeSwitchedDLList->s1ap_E_RABToBeSwitchedDLItem.array[item];
-    if (firstItem == s1ap_E_RABToBeSwitchedDLItem_p->e_RAB_ID) {
+  eRABToBeSwitchedDlItemIEs_p = (S1ap_E_RABToBeSwitchedDLItemIEs_t*)
+                                    e_rab_to_be_switched_dl_list->list.array[0];
+  firstItem = eRABToBeSwitchedDlItemIEs_p->value.choice.E_RABToBeSwitchedDLItem
+                  .e_RAB_ID;
+
+  for (item = 1; item < e_rab_to_be_switched_dl_list->list.count; ++item) {
+    eRABToBeSwitchedDlItemIEs_p =
+        (S1ap_E_RABToBeSwitchedDLItemIEs_t*)
+            e_rab_to_be_switched_dl_list->list.array[item];
+    if (firstItem == eRABToBeSwitchedDlItemIEs_p->value.choice
+                         .E_RABToBeSwitchedDLItem.e_RAB_ID) {
       continue;
     } else {
       rc = false;
@@ -3043,9 +3049,6 @@ static bool is_all_erabId_same(
     }
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_ack(
