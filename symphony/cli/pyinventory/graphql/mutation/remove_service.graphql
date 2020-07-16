@@ -1,3 +1,0 @@
-mutation RemoveServiceMutation($id: ID!) {
-  removeService(id: $id)
-}

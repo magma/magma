@@ -1,5 +1,0 @@
-mutation AddEquipmentPortTypeMutation($input: AddEquipmentPortTypeInput!) {
-  addEquipmentPortType(input: $input) {
-    ...EquipmentPortTypeFragment
-  }
-}
