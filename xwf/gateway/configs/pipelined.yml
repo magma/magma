@@ -137,3 +137,4 @@ no_quota_port: 51125
 ###############
 ovs_gtp_port_number: 32768
 ovs_uplink_port_name: cwag_patch
+enable_nat: false
