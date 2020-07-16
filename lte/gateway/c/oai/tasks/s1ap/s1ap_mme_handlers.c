@@ -3045,44 +3045,41 @@ int s1ap_handle_path_switch_req_ack(
 }
 //------------------------------------------------------------------------------
 int s1ap_handle_path_switch_req_failure(
-  s1ap_state_t *state,
-  const itti_s1ap_path_switch_request_failure_t *path_switch_req_failure_p,
-  imsi64_t imsi64)
-{
+    s1ap_state_t* state,
+    const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
+    imsi64_t imsi64) {
 #if S1AP_R1O_TO_R15_DONE
 
-  uint8_t *buffer = NULL;
-  uint32_t length = 0;
-  ue_description_t *ue_ref_p = NULL;
-  s1ap_message message = {0};
-  S1ap_PathSwitchRequestFailureIEs_t
-     *s1ap_PathSwitchRequestFailureIEs_p = NULL;
+  uint8_t* buffer                                                        = NULL;
+  uint32_t length                                                        = 0;
+  ue_description_t* ue_ref_p                                             = NULL;
+  s1ap_message message                                                   = {0};
+  S1ap_PathSwitchRequestFailureIEs_t* s1ap_PathSwitchRequestFailureIEs_p = NULL;
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_S1AP);
 
   if ((ue_ref_p = s1ap_state_get_ue_mmeid(
-    state, path_switch_req_failure_p->mme_ue_s1ap_id)) == NULL) {
+           state, path_switch_req_failure_p->mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG_UE(
-      LOG_S1AP,
-      imsi64,
-      "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
+        LOG_S1AP, imsi64,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+        (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   message.procedureCode = S1ap_ProcedureCode_id_PathSwitchRequest;
-  message.direction = S1AP_PDU_PR_unsuccessfulOutcome;
-  s1ap_PathSwitchRequestFailureIEs_p = &message.msg
-    .s1ap_PathSwitchRequestFailureIEs;
+  message.direction     = S1AP_PDU_PR_unsuccessfulOutcome;
+  s1ap_PathSwitchRequestFailureIEs_p =
+      &message.msg.s1ap_PathSwitchRequestFailureIEs;
   s1ap_PathSwitchRequestFailureIEs_p->presenceMask = 0;
 
   s1ap_PathSwitchRequestFailureIEs_p->mme_ue_s1ap_id =
-    path_switch_req_failure_p->mme_ue_s1ap_id;
+      path_switch_req_failure_p->mme_ue_s1ap_id;
   s1ap_PathSwitchRequestFailureIEs_p->eNB_UE_S1AP_ID =
-    path_switch_req_failure_p->enb_ue_s1ap_id;
-  s1ap_mme_set_cause(&s1ap_PathSwitchRequestFailureIEs_p->cause,
-    S1ap_Cause_PR_radioNetwork,
-    S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system);
+      path_switch_req_failure_p->enb_ue_s1ap_id;
+  s1ap_mme_set_cause(
+      &s1ap_PathSwitchRequestFailureIEs_p->cause, S1ap_Cause_PR_radioNetwork,
+      S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system);
 
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Path Switch Request Failure encoding failed \n");
@@ -3090,21 +3087,18 @@ int s1ap_handle_path_switch_req_failure(
   }
   bstring b = blk2bstr(buffer, length);
   OAILOG_DEBUG_UE(
-    LOG_S1AP,
-    imsi64,
-    "send PATH_SWITCH_REQUEST_Failure for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-    "\n", (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
+      LOG_S1AP, imsi64,
+      "send PATH_SWITCH_REQUEST_Failure for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+      "\n",
+      (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
 
   rc = s1ap_mme_itti_send_sctp_request(
-    &b,
-    path_switch_req_failure_p->sctp_assoc_id,
-    ue_ref_p->sctp_stream_send,
-    path_switch_req_failure_p->mme_ue_s1ap_id);
+      &b, path_switch_req_failure_p->sctp_assoc_id, ue_ref_p->sctp_stream_send,
+      path_switch_req_failure_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 #else
   return -1;
 #endif
-
 }
 
 const char *s1_enb_state2str(enum mme_s1_enb_state_s state)
