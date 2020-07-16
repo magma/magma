@@ -1573,16 +1573,14 @@ int s1ap_mme_handle_ue_context_modification_response(
 }
 
 int s1ap_mme_handle_ue_context_modification_failure(
-  s1ap_state_t *state,
-  __attribute__((unused)) const sctp_assoc_id_t assoc_id,
-  __attribute__((unused)) const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
-{
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) const sctp_stream_id_t stream,
+    S1ap_S1AP_PDU_t* message) {
 #if S1AP_R1O_TO_R15_DONE
-  S1ap_UEContextModificationFailureIEs_t *ueContextModification_p = NULL;
-  ue_description_t *ue_ref_p = NULL;
-  MessageDef *message_p = NULL;
-  int rc = RETURNok;
+  S1ap_UEContextModificationFailureIEs_t* ueContextModification_p = NULL;
+  ue_description_t* ue_ref_p                                      = NULL;
+  MessageDef* message_p                                           = NULL;
+  int rc                                                          = RETURNok;
   S1ap_Cause_PR cause_type;
   int64_t cause_value;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -1590,31 +1588,27 @@ int s1ap_mme_handle_ue_context_modification_failure(
   OAILOG_FUNC_IN(LOG_S1AP);
   ueContextModification_p = &message->msg.s1ap_UEContextModificationFailureIEs;
 
-  if (
-    (ue_ref_p = s1ap_state_get_ue_mmeid(
-       state, ueContextModification_p->mme_ue_s1ap_id)) == NULL) {
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(
+           state, ueContextModification_p->mme_ue_s1ap_id)) == NULL) {
     /*
      * MME doesn't know the MME UE S1AP ID provided.
      * No need to do anything. Ignore the message
      */
     OAILOG_DEBUG(
-      LOG_S1AP,
-      "UE_CONTEXT_MODIFICATION_FAILURE ignored cause could not get context "
-      "with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
-      " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " ",
-      (uint32_t) ueContextModification_p->mme_ue_s1ap_id,
-      (uint32_t) ueContextModification_p->eNB_UE_S1AP_ID);
+        LOG_S1AP,
+        "UE_CONTEXT_MODIFICATION_FAILURE ignored cause could not get context "
+        "with mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " ",
+        (uint32_t) ueContextModification_p->mme_ue_s1ap_id,
+        (uint32_t) ueContextModification_p->eNB_UE_S1AP_ID);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
-    if (
-      ue_ref_p->enb_ue_s1ap_id ==
-      (ueContextModification_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK)) {
-
+    if (ue_ref_p->enb_ue_s1ap_id ==
+        (ueContextModification_p->eNB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK)) {
       s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
       hashtable_uint64_ts_get(
-        imsi_map->mme_ue_id_imsi_htbl,
-        (const hash_key_t) ueContextModification_p->mme_ue_s1ap_id,
-        &imsi64);
+          imsi_map->mme_ue_id_imsi_htbl,
+          (const hash_key_t) ueContextModification_p->mme_ue_s1ap_id, &imsi64);
 
       // Pass this message to MME APP for necessary handling
       // Log the Cause Type and Cause value
@@ -1623,72 +1617,65 @@ int s1ap_mme_handle_ue_context_modification_failure(
         case S1ap_Cause_PR_radioNetwork:
           cause_value = ueContextModification_p->cause.choice.radioNetwork;
           OAILOG_DEBUG_UE(
-            LOG_S1AP,
-            imsi64,
-            "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Radio Network "
-            "and Cause_Value = %ld\n",
-            cause_value);
+              LOG_S1AP, imsi64,
+              "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Radio Network "
+              "and Cause_Value = %ld\n",
+              cause_value);
           break;
 
         case S1ap_Cause_PR_transport:
           cause_value = ueContextModification_p->cause.choice.transport;
           OAILOG_DEBUG_UE(
-            LOG_S1AP,
-            imsi64,
-            "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Transport and "
-            "Cause_Value = %ld\n",
-            cause_value);
+              LOG_S1AP, imsi64,
+              "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Transport and "
+              "Cause_Value = %ld\n",
+              cause_value);
           break;
 
         case S1ap_Cause_PR_nas:
           cause_value = ueContextModification_p->cause.choice.nas;
           OAILOG_DEBUG_UE(
-            LOG_S1AP,
-            imsi64,
-            "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = NAS and "
-            "Cause_Value = %ld\n",
-            cause_value);
+              LOG_S1AP, imsi64,
+              "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = NAS and "
+              "Cause_Value = %ld\n",
+              cause_value);
           break;
 
         case S1ap_Cause_PR_protocol:
           cause_value = ueContextModification_p->cause.choice.protocol;
           OAILOG_DEBUG_UE(
-            LOG_S1AP,
-            imsi64,
-            "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Protocol and "
-            "Cause_Value = %ld\n",
-            cause_value);
+              LOG_S1AP, imsi64,
+              "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = Protocol and "
+              "Cause_Value = %ld\n",
+              cause_value);
           break;
 
         case S1ap_Cause_PR_misc:
           cause_value = ueContextModification_p->cause.choice.misc;
           OAILOG_DEBUG_UE(
-            LOG_S1AP,
-            imsi64,
-            "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = MISC and "
-            "Cause_Value = %ld\n",
-            cause_value);
+              LOG_S1AP, imsi64,
+              "UE_CONTEXT_MODIFICATION_FAILURE with Cause_Type = MISC and "
+              "Cause_Value = %ld\n",
+              cause_value);
           break;
 
         default:
           OAILOG_ERROR_UE(
-            LOG_S1AP,
-            imsi64,
-            "UE_CONTEXT_MODIFICATION_FAILURE with Invalid Cause_Type = %d\n",
-            cause_type);
+              LOG_S1AP, imsi64,
+              "UE_CONTEXT_MODIFICATION_FAILURE with Invalid Cause_Type = %d\n",
+              cause_type);
           OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
-      message_p =
-        itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_FAILURE);
+      message_p = itti_alloc_new_message(
+          TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_FAILURE);
       AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
       memset(
-        (void *) &message_p->ittiMsg.s1ap_ue_context_mod_response,
-        0,
-        sizeof(itti_s1ap_ue_context_mod_resp_fail_t));
+          (void*) &message_p->ittiMsg.s1ap_ue_context_mod_response, 0,
+          sizeof(itti_s1ap_ue_context_mod_resp_fail_t));
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).mme_ue_s1ap_id =
-        ue_ref_p->mme_ue_s1ap_id;
+          ue_ref_p->mme_ue_s1ap_id;
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).enb_ue_s1ap_id =
-        ue_ref_p->enb_ue_s1ap_id;
+          ue_ref_p->enb_ue_s1ap_id;
       S1AP_UE_CONTEXT_MODIFICATION_FAILURE(message_p).cause = cause_value;
 
       message_p->ittiMsgHeader.imsi = imsi64;
@@ -1697,13 +1684,12 @@ int s1ap_mme_handle_ue_context_modification_failure(
     } else {
       // abnormal case. No need to do anything. Ignore the message
       OAILOG_DEBUG_UE(
-        LOG_S1AP,
-        imsi64,
-        "S1AP_UE_CONTEXT_MODIFICATION_FAILURE ignored, cause mismatch "
-        "enb_ue_s1ap_id: ctxt " ENB_UE_S1AP_ID_FMT
-        " != request " ENB_UE_S1AP_ID_FMT " ",
-        (uint32_t) ue_ref_p->enb_ue_s1ap_id,
-        (uint32_t) ueContextModification_p->eNB_UE_S1AP_ID);
+          LOG_S1AP, imsi64,
+          "S1AP_UE_CONTEXT_MODIFICATION_FAILURE ignored, cause mismatch "
+          "enb_ue_s1ap_id: ctxt " ENB_UE_S1AP_ID_FMT
+          " != request " ENB_UE_S1AP_ID_FMT " ",
+          (uint32_t) ue_ref_p->enb_ue_s1ap_id,
+          (uint32_t) ueContextModification_p->eNB_UE_S1AP_ID);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
