@@ -109,116 +109,102 @@ struct S1ap_E_RABSetupItemCtxtSURes_s;
 struct S1ap_IE;
 
 static int s1ap_generate_s1_setup_response(
-  s1ap_state_t *state,
-  enb_description_t *enb_association);
+    s1ap_state_t* state, enb_description_t* enb_association);
 
 static int s1ap_mme_generate_ue_context_release_command(
-  s1ap_state_t *state,
-  ue_description_t *ue_ref_p,
-  enum s1cause,
-  imsi64_t imsi64);
+    s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause,
+    imsi64_t imsi64);
 
-static bool is_all_erabId_same(S1ap_PathSwitchRequest_t *container);
+static bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 
 /* Handlers matrix. Only mme related procedures present here.
-*/
+ */
 s1ap_message_handler_t message_handlers[][3] = {
-  {0, 0, 0},                                   /* HandoverPreparation */
-  {0, 0, 0},                                   /* HandoverResourceAllocation */
-  {0, 0, 0},                                   /* HandoverNotification */
-  {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
-  {0, 0, 0},                                   /* HandoverCancel */
-  {0,
-   s1ap_mme_handle_erab_setup_response,
-   s1ap_mme_handle_erab_setup_failure}, /* E_RABSetup */
-  {0, 0, 0},                            /* E_RABModify */
-  {0,
-   s1ap_mme_handle_erab_rel_response,
-   0},                                  /* E_RABRelease */
-  {0, 0, 0},                            /* E_RABReleaseIndication */
-  {0,
-   s1ap_mme_handle_initial_context_setup_response,
-   s1ap_mme_handle_initial_context_setup_failure}, /* InitialContextSetup */
-  {0, 0, 0},                                       /* Paging */
-  {0, 0, 0},                                       /* downlinkNASTransport */
-  {s1ap_mme_handle_initial_ue_message, 0, 0},      /* initialUEMessage */
-  {s1ap_mme_handle_uplink_nas_transport, 0, 0},    /* uplinkNASTransport */
-  {s1ap_mme_handle_enb_reset, 0, 0},               /* Reset */
-  {s1ap_mme_handle_error_ind_message, 0, 0},       /* ErrorIndication */
-  {s1ap_mme_handle_nas_non_delivery, 0, 0}, /* NASNonDeliveryIndication */
-  {s1ap_mme_handle_s1_setup_request, 0, 0}, /* S1Setup */
-  {s1ap_mme_handle_ue_context_release_request,
-   0,
-   0},       /* UEContextReleaseRequest */
-  {0, 0, 0}, /* DownlinkS1cdma2000tunneling */
-  {0, 0, 0}, /* UplinkS1cdma2000tunneling */
-  {0,
-   s1ap_mme_handle_ue_context_modification_response,
-   s1ap_mme_handle_ue_context_modification_failure}, /* UEContextModification */
-  {s1ap_mme_handle_ue_cap_indication, 0, 0}, /* UECapabilityInfoIndication */
-  {s1ap_mme_handle_ue_context_release_request,
-   s1ap_mme_handle_ue_context_release_complete,
-   0},       /* UEContextRelease */
-  {0, 0, 0}, /* eNBStatusTransfer */
-  {0, 0, 0}, /* MMEStatusTransfer */
-  {0, 0, 0}, /* DeactivateTrace */
-  {0, 0, 0}, /* TraceStart */
-  {0, 0, 0}, /* TraceFailureIndication */
-  {0, 0, 0}, /* ENBConfigurationUpdate */
-  {0, 0, 0}, /* MMEConfigurationUpdate */
-  {0, 0, 0}, /* LocationReportingControl */
-  {0, 0, 0}, /* LocationReportingFailureIndication */
-  {0, 0, 0}, /* LocationReport */
-  {0, 0, 0}, /* OverloadStart */
-  {0, 0, 0}, /* OverloadStop */
-  {0, 0, 0}, /* WriteReplaceWarning */
-  {0, 0, 0}, /* eNBDirectInformationTransfer */
-  {0, 0, 0}, /* MMEDirectInformationTransfer */
-  {0, 0, 0}, /* PrivateMessage */
-  {s1ap_mme_handle_enb_configuration_transfer, 0, 0}, /* eNBConfigurationTransfer */
-  {0, 0, 0}, /* MMEConfigurationTransfer */
-  {0, 0, 0}, /* CellTrafficTrace */
-             // UPDATE RELEASE 9
-  {0, 0, 0}, /* Kill */
-  {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
-  {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
-  {0, 0, 0}, /* DownlinkNonUEAssociatedLPPaTransport */
-  {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* HandoverPreparation */
+    {0, 0, 0}, /* HandoverResourceAllocation */
+    {0, 0, 0}, /* HandoverNotification */
+    {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
+    {0, 0, 0},                                   /* HandoverCancel */
+    {0, s1ap_mme_handle_erab_setup_response,
+     s1ap_mme_handle_erab_setup_failure},      /* E_RABSetup */
+    {0, 0, 0},                                 /* E_RABModify */
+    {0, s1ap_mme_handle_erab_rel_response, 0}, /* E_RABRelease */
+    {0, 0, 0},                                 /* E_RABReleaseIndication */
+    {0, s1ap_mme_handle_initial_context_setup_response,
+     s1ap_mme_handle_initial_context_setup_failure}, /* InitialContextSetup */
+    {0, 0, 0},                                       /* Paging */
+    {0, 0, 0},                                       /* downlinkNASTransport */
+    {s1ap_mme_handle_initial_ue_message, 0, 0},      /* initialUEMessage */
+    {s1ap_mme_handle_uplink_nas_transport, 0, 0},    /* uplinkNASTransport */
+    {s1ap_mme_handle_enb_reset, 0, 0},               /* Reset */
+    {s1ap_mme_handle_error_ind_message, 0, 0},       /* ErrorIndication */
+    {s1ap_mme_handle_nas_non_delivery, 0, 0}, /* NASNonDeliveryIndication */
+    {s1ap_mme_handle_s1_setup_request, 0, 0}, /* S1Setup */
+    {s1ap_mme_handle_ue_context_release_request, 0,
+     0},       /* UEContextReleaseRequest */
+    {0, 0, 0}, /* DownlinkS1cdma2000tunneling */
+    {0, 0, 0}, /* UplinkS1cdma2000tunneling */
+    {0, s1ap_mme_handle_ue_context_modification_response,
+     s1ap_mme_handle_ue_context_modification_failure}, /* UEContextModification
+                                                        */
+    {s1ap_mme_handle_ue_cap_indication, 0, 0}, /* UECapabilityInfoIndication */
+    {s1ap_mme_handle_ue_context_release_request,
+     s1ap_mme_handle_ue_context_release_complete, 0}, /* UEContextRelease */
+    {0, 0, 0},                                        /* eNBStatusTransfer */
+    {0, 0, 0},                                        /* MMEStatusTransfer */
+    {0, 0, 0},                                        /* DeactivateTrace */
+    {0, 0, 0},                                        /* TraceStart */
+    {0, 0, 0}, /* TraceFailureIndication */
+    {0, 0, 0}, /* ENBConfigurationUpdate */
+    {0, 0, 0}, /* MMEConfigurationUpdate */
+    {0, 0, 0}, /* LocationReportingControl */
+    {0, 0, 0}, /* LocationReportingFailureIndication */
+    {0, 0, 0}, /* LocationReport */
+    {0, 0, 0}, /* OverloadStart */
+    {0, 0, 0}, /* OverloadStop */
+    {0, 0, 0}, /* WriteReplaceWarning */
+    {0, 0, 0}, /* eNBDirectInformationTransfer */
+    {0, 0, 0}, /* MMEDirectInformationTransfer */
+    {0, 0, 0}, /* PrivateMessage */
+    {s1ap_mme_handle_enb_configuration_transfer, 0,
+     0},       /* eNBConfigurationTransfer */
+    {0, 0, 0}, /* MMEConfigurationTransfer */
+    {0, 0, 0}, /* CellTrafficTrace */
+               // UPDATE RELEASE 9
+    {0, 0, 0}, /* Kill */
+    {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
+    {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* DownlinkNonUEAssociatedLPPaTransport */
+    {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
 };
 
 int s1ap_mme_handle_message(
-  s1ap_state_t *state,
-  const sctp_assoc_id_t assoc_id,
-  const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *pdu)
-{
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   /*
    * Checking procedure Code and direction of pdu
    */
-  if (
-    pdu->choice.initiatingMessage.procedureCode >= COUNT_OF(message_handlers) ||
-    pdu->present > S1ap_S1AP_PDU_PR_unsuccessfulOutcome) {
+  if (pdu->choice.initiatingMessage.procedureCode >=
+          COUNT_OF(message_handlers) ||
+      pdu->present > S1ap_S1AP_PDU_PR_unsuccessfulOutcome) {
     OAILOG_DEBUG(
-      LOG_S1AP,
-      "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n",
-      assoc_id,
-      (int) pdu->choice.initiatingMessage.procedureCode,
-      (int) pdu->present);
+        LOG_S1AP,
+        "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n",
+        assoc_id, (int) pdu->choice.initiatingMessage.procedureCode,
+        (int) pdu->present);
     return -1;
   }
 
   s1ap_message_handler_t handler =
-    message_handlers[pdu->choice.initiatingMessage.procedureCode]
-                            [pdu->present - 1];
+      message_handlers[pdu->choice.initiatingMessage.procedureCode]
+                      [pdu->present - 1];
 
   if (handler == NULL) {
     // not implemented or no procedure for eNB (wrong message)
     OAILOG_DEBUG(
-      LOG_S1AP,
-      "[SCTP %d] No handler for procedureCode %d in %s\n",
-      assoc_id,
-      (int) pdu->choice.initiatingMessage.procedureCode,
-      s1ap_direction2str(pdu->present));
+        LOG_S1AP, "[SCTP %d] No handler for procedureCode %d in %s\n", assoc_id,
+        (int) pdu->choice.initiatingMessage.procedureCode,
+        s1ap_direction2str(pdu->present));
     return -2;
   }
 
@@ -227,27 +213,34 @@ int s1ap_mme_handle_message(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_set_cause(
-  S1ap_Cause_t *cause_p,
-  const S1ap_Cause_PR cause_type,
-  const long cause_value)
-{
+    S1ap_Cause_t* cause_p, const S1ap_Cause_PR cause_type,
+    const long cause_value) {
   DevAssert(cause_p != NULL);
   cause_p->present = cause_type;
 
   switch (cause_type) {
-    case S1ap_Cause_PR_radioNetwork: cause_p->choice.misc = cause_value; break;
+    case S1ap_Cause_PR_radioNetwork:
+      cause_p->choice.misc = cause_value;
+      break;
 
     case S1ap_Cause_PR_transport:
       cause_p->choice.transport = cause_value;
       break;
 
-    case S1ap_Cause_PR_nas: cause_p->choice.nas = cause_value; break;
+    case S1ap_Cause_PR_nas:
+      cause_p->choice.nas = cause_value;
+      break;
 
-    case S1ap_Cause_PR_protocol: cause_p->choice.protocol = cause_value; break;
+    case S1ap_Cause_PR_protocol:
+      cause_p->choice.protocol = cause_value;
+      break;
 
-    case S1ap_Cause_PR_misc: cause_p->choice.misc = cause_value; break;
+    case S1ap_Cause_PR_misc:
+      cause_p->choice.misc = cause_value;
+      break;
 
-    default: return -1;
+    default:
+      return -1;
   }
 
   return 0;
