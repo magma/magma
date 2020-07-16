@@ -162,6 +162,7 @@ const WorkOrderDetails = ({
       .map<Property>(toMutableProperty)
       .sort(sortPropertiesByIndex),
   );
+
   const [locationId, setLocationId] = useState(propsWorkOrder.location?.id);
   const [isLoadingDocument, setIsLoadingDocument] = useState(false);
   const {isFeatureEnabled} = useContext(AppContext);
@@ -267,6 +268,9 @@ const WorkOrderDetails = ({
 
   const {location} = workOrder;
   const actionsEnabled = isFeatureEnabled('planned_equipment');
+  const mandatoryPropertiesOnCloseEnabled = isFeatureEnabled(
+    'mandatory_properties_on_work_order_close',
+  );
 
   const isOwner = me?.user?.email === propsWorkOrder?.owner?.email;
   const isAssignee = me?.user?.email === propsWorkOrder?.assignedTo?.email;
@@ -428,7 +432,11 @@ const WorkOrderDetails = ({
                             lg={4}
                             xl={4}>
                             <PropertyValueInput
-                              required={!!property.propertyType.isMandatory}
+                              required={
+                                !!property.propertyType.isMandatory &&
+                                (workOrder.status === 'DONE' ||
+                                  !mandatoryPropertiesOnCloseEnabled)
+                              }
                               disabled={
                                 !property.propertyType.isInstanceProperty
                               }

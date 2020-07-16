@@ -23,6 +23,7 @@ import type {MutationCallbacks} from '../../mutations/MutationCallbacks.js';
 import type {WorkOrder} from '../../common/WorkOrder';
 
 import AddWorkOrderMutation from '../../mutations/AddWorkOrderMutation';
+import AppContext from '@fbcnms/ui/context/AppContext';
 import Breadcrumbs from '@fbcnms/ui/components/Breadcrumbs';
 import CheckListCategoryExpandingPanel from '../checklist/checkListCategory/CheckListCategoryExpandingPanel';
 import ChecklistCategoriesMutateDispatchContext from '../checklist/ChecklistCategoriesMutateDispatchContext';
@@ -34,7 +35,7 @@ import LocationTypeahead from '../typeahead/LocationTypeahead';
 import NameDescriptionSection from '@fbcnms/ui/components/NameDescriptionSection';
 import ProjectTypeahead from '../typeahead/ProjectTypeahead';
 import PropertyValueInput from '../form/PropertyValueInput';
-import React, {useCallback, useReducer, useState} from 'react';
+import React, {useCallback, useContext, useReducer, useState} from 'react';
 import Select from '@fbcnms/ui/components/design-system/Select/Select';
 import SnackbarItem from '@fbcnms/ui/components/SnackbarItem';
 import TextField from '@material-ui/core/TextField';
@@ -218,6 +219,11 @@ const AddWorkOrderCard = (props: Props) => {
           checkListCategories: [],
         }
       : null,
+  );
+
+  const {isFeatureEnabled} = useContext(AppContext);
+  const mandatoryPropertiesOnCloseEnabled = isFeatureEnabled(
+    'mandatory_properties_on_work_order_close',
   );
 
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -475,7 +481,11 @@ const AddWorkOrderCard = (props: Props) => {
                           lg={4}
                           xl={4}>
                           <PropertyValueInput
-                            required={!!property.propertyType.isMandatory}
+                            required={
+                              !!property.propertyType.isMandatory &&
+                              (workOrder.status === 'DONE' ||
+                                !mandatoryPropertiesOnCloseEnabled)
+                            }
                             disabled={!property.propertyType.isInstanceProperty}
                             label={property.propertyType.name}
                             className={classes.gridInput}
