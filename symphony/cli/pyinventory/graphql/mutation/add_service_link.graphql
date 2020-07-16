@@ -1,5 +1,0 @@
-mutation AddServiceLinkMutation($id: ID!, $linkId: ID!) {
-  addServiceLink(id: $id, linkId: $linkId) {
-    ...ServiceFragment
-  }
-}

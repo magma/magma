@@ -1,5 +1,0 @@
-mutation EditLocationMutation($input: EditLocationInput!) {
-  editLocation(input: $input) {
-    ...LocationFragment
-  }
-}
