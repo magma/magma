@@ -2939,19 +2939,18 @@ int s1ap_mme_handle_enb_configuration_transfer(
 }
 
 //------------------------------------------------------------------------------
-static bool is_all_erabId_same(S1ap_PathSwitchRequest_t *container)
-{
-  S1ap_PathSwitchRequestIEs_t *ie = NULL;
-  S1ap_E_RABToBeSwitchedDLItemIEs_t *eRABToBeSwitchedDlItemIEs_p = NULL;
-  uint8_t item = 0;
-  uint8_t firstItem = 0;
-  uint8_t rc = true;
+static bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container) {
+  S1ap_PathSwitchRequestIEs_t* ie                                = NULL;
+  S1ap_E_RABToBeSwitchedDLItemIEs_t* eRABToBeSwitchedDlItemIEs_p = NULL;
+  uint8_t item                                                   = 0;
+  uint8_t firstItem                                              = 0;
+  uint8_t rc                                                     = true;
 
-  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_PathSwitchRequestIEs_t, ie, container,
-		  S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList,
-          true);
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_PathSwitchRequestIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_E_RABToBeSwitchedDLList, true);
   DevAssert(ie);
-  S1ap_E_RABToBeSwitchedDLList_t *e_rab_to_be_switched_dl_list =
+  S1ap_E_RABToBeSwitchedDLList_t* e_rab_to_be_switched_dl_list =
       &ie->value.choice.E_RABToBeSwitchedDLList;
 
   if (1 == e_rab_to_be_switched_dl_list->list.count) {
