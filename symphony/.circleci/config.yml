@@ -69,7 +69,7 @@ executors:
       - image: hashicorp/terraform:<<parameters.tag>>
   testim:
     docker:
-      - image: testim/docker-cli:node-8
+      - image: testim/docker-cli
   yarnnode:
     docker:
       - image: circleci/node:10-buster-browsers-legacy
@@ -404,23 +404,26 @@ jobs:
           command: docker-compose build <<parameters.extra_build_args>>
       - run:
           name: Start containers
-          command: docker-compose up -d --scale tests=0 --scale pytests=0
+          command: docker-compose up -d --scale tests=0 --scale pytests=0 --scale testimio=0
       - run:
-          name: Run go tests
-          command: docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=integration.xml tests
+         name: Run go tests
+         command: docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=integration.xml tests
       - run:
-          name: Run python tests
-          command: docker-compose run --use-aliases -e XML_OUTPUT_DIRECTORY=. pytests
+          name: Run Testimio tests
+          command: docker-compose run --use-aliases -e GOTESTSUM_JUNITFILE=testimio.xml testimio
       - run:
-          name: Collect tests results
-          command: |
-            mv integration/tests/integration.xml ~/test-results/
-            mv cli/TEST-*.xml ~/test-results/
-          when: always
+         name: Run python tests
+         command: docker-compose run --use-aliases -e XML_OUTPUT_DIRECTORY=. pytests
       - run:
-          name: Stop and remove containers
-          command: docker-compose down
-          when: always
+         name: Collect tests results
+         command: |
+           mv integration/tests/integration.xml ~/test-results/
+           mv cli/TEST-*.xml ~/test-results/
+         when: always
+      - run:
+         name: Stop and remove containers
+         command: docker-compose down
+         when: always
       - *storetestdir
 
   promote-images:

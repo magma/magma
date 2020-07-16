@@ -120,3 +120,17 @@ services:
       - ..:/src/symphony:delegated
     environment:
       PLATFORM_SERVER_HEALTH_CHECK_URL: http://front/healthz
+
+  testimio:
+    image: testim/docker-cli
+    command: |
+      testim --token ${TESTIMIO_TOKEN}
+      --grid ${TESTIMIO_GRID}
+      --project ${TESTIMIO_PROJECT}
+      --retries 3
+      --tunnel
+      --tunnel-port nginx:443
+      --tunnel-host-header "fb-test.localhost"
+      --result-label "pr-blocking"
+      --parallel 15
+      --suite Sanity
