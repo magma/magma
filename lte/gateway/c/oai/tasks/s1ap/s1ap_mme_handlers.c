@@ -640,45 +640,59 @@ static int s1ap_generate_s1_setup_response(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_ue_cap_indication(
-  s1ap_state_t *state,
-  __attribute__((unused)) const sctp_assoc_id_t assoc_id,
-  const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
-{
-#if S1AP_R1O_TO_R15_DONE
-  ue_description_t *ue_ref_p = NULL;
-  S1ap_UECapabilityInfoIndicationIEs_t *ue_cap_p = NULL;
-  int rc = RETURNok;
-  imsi64_t imsi64 = INVALID_IMSI64;
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+  ue_description_t* ue_ref_p = NULL;
+  S1ap_UECapabilityInfoIndication_t* container;
+  S1ap_UECapabilityInfoIndicationIEs_t* ie = NULL;
+  int rc                                   = RETURNok;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id          = 0;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id          = 0;
+  imsi64_t imsi64                          = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  DevAssert(message != NULL);
-  ue_cap_p = &message->msg.s1ap_UECapabilityInfoIndicationIEs;
+  DevAssert(pdu != NULL);
+  container =
+      &pdu->choice.initiatingMessage.value.choice.UECapabilityInfoIndication;
 
-  if (
-    (ue_ref_p = s1ap_state_get_ue_mmeid(state, ue_cap_p->mme_ue_s1ap_id)) ==
-    NULL) {
-    OAILOG_DEBUG(
-      LOG_S1AP,
-      "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
-      (uint32_t) ue_cap_p->mme_ue_s1ap_id);
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_UECapabilityInfoIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+    if ((ue_ref_p = s1ap_state_get_ue_mmeid(state, mme_ue_s1ap_id)) == NULL) {
+      OAILOG_DEBUG(
+          LOG_S1AP,
+          "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
+          mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  } else {
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
   hashtable_uint64_ts_get(
-    s1ap_imsi_map->mme_ue_id_imsi_htbl,
-    (const hash_key_t) ue_cap_p->mme_ue_s1ap_id,
-    &imsi64);
+      s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
 
-  if (ue_ref_p->enb_ue_s1ap_id != ue_cap_p->eNB_UE_S1AP_ID) {
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_UECapabilityInfoIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (ie) {
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if (ue_ref_p->enb_ue_s1ap_id != enb_ue_s1ap_id) {
     OAILOG_DEBUG_UE(
-      LOG_S1AP,
-      imsi64,
-      "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
-      ", received: " ENB_UE_S1AP_ID_FMT "\n",
-      ue_ref_p->enb_ue_s1ap_id,
-      (uint32_t) ue_cap_p->eNB_UE_S1AP_ID);
+        LOG_S1AP, imsi64,
+        "Mismatch in eNB UE S1AP ID, known: " ENB_UE_S1AP_ID_FMT
+        ", received: " ENB_UE_S1AP_ID_FMT "\n",
+        ue_ref_p->enb_ue_s1ap_id, (uint32_t) enb_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -687,48 +701,49 @@ int s1ap_mme_handle_ue_cap_indication(
    */
   if (ue_ref_p->sctp_stream_recv != stream) {
     OAILOG_ERROR_UE(
-      LOG_S1AP,
-      imsi64,
-      "Received ue capability indication for "
-      "(MME UE S1AP ID/eNB UE S1AP ID) (" MME_UE_S1AP_ID_FMT
-      "/" ENB_UE_S1AP_ID_FMT
-      ") over wrong stream "
-      "expecting %u, received on %u\n",
-      (uint32_t) ue_cap_p->mme_ue_s1ap_id,
-      ue_ref_p->enb_ue_s1ap_id,
-      ue_ref_p->sctp_stream_recv,
-      stream);
+        LOG_S1AP, imsi64,
+        "Received ue capability indication for "
+        "(MME UE S1AP ID/eNB UE S1AP ID) (" MME_UE_S1AP_ID_FMT
+        "/" ENB_UE_S1AP_ID_FMT
+        ") over wrong stream "
+        "expecting %u, received on %u\n",
+        (uint32_t) mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id,
+        ue_ref_p->sctp_stream_recv, stream);
   }
 
   /*
    * Forward the ue capabilities to MME application layer
    */
-  {
-    MessageDef *message_p = NULL;
-    itti_s1ap_ue_cap_ind_t *ue_cap_ind_p = NULL;
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_UECapabilityInfoIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_UERadioCapability, true);
+
+  if (ie) {
+    MessageDef* message_p                = NULL;
+    itti_s1ap_ue_cap_ind_t* ue_cap_ind_p = NULL;
 
     message_p = itti_alloc_new_message(TASK_S1AP, S1AP_UE_CAPABILITIES_IND);
     DevAssert(message_p != NULL);
-    ue_cap_ind_p = &message_p->ittiMsg.s1ap_ue_cap_ind;
+    ue_cap_ind_p                 = &message_p->ittiMsg.s1ap_ue_cap_ind;
     ue_cap_ind_p->enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
     ue_cap_ind_p->mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
-    ue_cap_ind_p->radio_capabilities_length = ue_cap_p->ueRadioCapability.size;
+    ue_cap_ind_p->radio_capabilities_length =
+        ie->value.choice.UERadioCapability.size;
     ue_cap_ind_p->radio_capabilities = calloc(
-      ue_cap_ind_p->radio_capabilities_length,
-      sizeof(*ue_cap_ind_p->radio_capabilities));
+        ue_cap_ind_p->radio_capabilities_length,
+        sizeof(*ue_cap_ind_p->radio_capabilities));
     memcpy(
-      ue_cap_ind_p->radio_capabilities,
-      ue_cap_p->ueRadioCapability.buf,
-      ue_cap_ind_p->radio_capabilities_length);
+        ue_cap_ind_p->radio_capabilities,
+        ie->value.choice.UERadioCapability.buf,
+        ue_cap_ind_p->radio_capabilities_length);
 
     message_p->ittiMsgHeader.imsi = imsi64;
     rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-#else
-  return -1;
-#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
