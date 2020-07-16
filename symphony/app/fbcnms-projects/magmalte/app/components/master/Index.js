@@ -27,6 +27,7 @@ import ShowChartIcon from '@material-ui/icons/ShowChart';
 import UsersSettings from '@fbcnms/magmalte/app/components/admin/userManagement/UsersSettings';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {getProjectTabs as getAllProjectTabs} from '@fbcnms/projects/projects';
 import {makeStyles} from '@material-ui/styles';
 import {useRelativeUrl} from '@fbcnms/ui/hooks/useRouter';
 
@@ -39,6 +40,8 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(),
   },
 }));
+
+const accessibleTabs = ['NMS'];
 
 function NavItems() {
   const relativeUrl = useRelativeUrl();
@@ -84,7 +87,15 @@ function Master() {
         <Switch>
           <Route
             path={relativeUrl('/organizations/detail/:name')}
-            component={OrganizationEdit}
+            render={() => (
+              <OrganizationEdit
+                getProjectTabs={() =>
+                  getAllProjectTabs().filter(tab =>
+                    accessibleTabs.includes(tab.name),
+                  )
+                }
+              />
+            )}
           />
           <Route
             path={relativeUrl('/organizations')}

@@ -10,6 +10,7 @@
 
 import type {Organization} from './Organizations';
 import type {SSOSelectedType} from '@fbcnms/types/auth';
+import type {Tab} from '@fbcnms/types/tabs';
 
 import Button from '@fbcnms/ui/components/design-system/Button';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -32,7 +33,7 @@ import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import axios from 'axios';
 import renderList from '@fbcnms/util/renderList';
 import symphony from '@fbcnms/ui/theme/symphony';
-import {getProjectTabs} from '@fbcnms/projects/projects';
+import {getProjectTabs as getAllProjectTabs} from '@fbcnms/projects/projects';
 import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useAxios, useRouter} from '@fbcnms/ui/hooks';
@@ -70,7 +71,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function OrganizationEdit() {
+type Props = {
+  getProjectTabs?: () => Array<{id: Tab, name: string}>,
+};
+
+export default function OrganizationEdit(props: Props) {
   const {match} = useRouter();
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -170,7 +175,10 @@ export default function OrganizationEdit() {
       });
   };
 
-  const allTabs = getProjectTabs();
+  const allTabs = props.getProjectTabs
+    ? props.getProjectTabs()
+    : getAllProjectTabs();
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
