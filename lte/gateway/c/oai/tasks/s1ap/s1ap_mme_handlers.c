@@ -1140,16 +1140,15 @@ static int s1ap_mme_generate_ue_context_release_command(
 
 //------------------------------------------------------------------------------
 static int s1ap_mme_generate_ue_context_modification(
-  ue_description_t *ue_ref_p,
-  const itti_s1ap_ue_context_mod_req_t *const ue_context_mod_req_pP,
-  imsi64_t imsi64)
-{
+    ue_description_t* ue_ref_p,
+    const itti_s1ap_ue_context_mod_req_t* const ue_context_mod_req_pP,
+    imsi64_t imsi64) {
 #if S1AP_R1O_TO_R15_DONE
-  uint8_t *buffer = NULL;
-  uint32_t length = 0;
-  s1ap_message message = {0};
-  S1ap_UEContextModificationRequestIEs_t *ueContextModificationIEs_p = NULL;
-  int rc = RETURNok;
+  uint8_t* buffer                                                    = NULL;
+  uint32_t length                                                    = 0;
+  s1ap_message message                                               = {0};
+  S1ap_UEContextModificationRequestIEs_t* ueContextModificationIEs_p = NULL;
+  int rc                                                             = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (ue_ref_p == NULL) {
@@ -1157,64 +1156,61 @@ static int s1ap_mme_generate_ue_context_modification(
   }
 
   message.procedureCode = S1ap_ProcedureCode_id_UEContextModification;
-  message.direction = S1AP_PDU_PR_initiatingMessage;
+  message.direction     = S1AP_PDU_PR_initiatingMessage;
   ueContextModificationIEs_p =
-    &message.msg.s1ap_UEContextModificationRequestIEs;
+      &message.msg.s1ap_UEContextModificationRequestIEs;
   /*
    * Fill in ID pair
    */
   ueContextModificationIEs_p->mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   ueContextModificationIEs_p->eNB_UE_S1AP_ID = ue_ref_p->enb_ue_s1ap_id;
 
-  if (
-    (ue_context_mod_req_pP->presencemask & S1AP_UE_CONTEXT_MOD_LAI_PRESENT) ==
-    S1AP_UE_CONTEXT_MOD_LAI_PRESENT) {
+  if ((ue_context_mod_req_pP->presencemask & S1AP_UE_CONTEXT_MOD_LAI_PRESENT) ==
+      S1AP_UE_CONTEXT_MOD_LAI_PRESENT) {
     ueContextModificationIEs_p->presenceMask |=
-      S1AP_UECONTEXTMODIFICATIONREQUESTIES_REGISTEREDLAI_PRESENT;
+        S1AP_UECONTEXTMODIFICATIONREQUESTIES_REGISTEREDLAI_PRESENT;
 #define PLMN_SIZE 3
-    S1ap_LAI_t *lai_item = &ueContextModificationIEs_p->registeredLAI;
+    S1ap_LAI_t* lai_item        = &ueContextModificationIEs_p->registeredLAI;
     lai_item->pLMNidentity.size = PLMN_SIZE;
-    lai_item->pLMNidentity.buf = calloc(PLMN_SIZE, sizeof(uint8_t));
-    uint8_t mnc_length = mme_config_find_mnc_length(
-      ue_context_mod_req_pP->lai.mccdigit1,
-      ue_context_mod_req_pP->lai.mccdigit2,
-      ue_context_mod_req_pP->lai.mccdigit3,
-      ue_context_mod_req_pP->lai.mncdigit1,
-      ue_context_mod_req_pP->lai.mncdigit2,
-      ue_context_mod_req_pP->lai.mncdigit3);
+    lai_item->pLMNidentity.buf  = calloc(PLMN_SIZE, sizeof(uint8_t));
+    uint8_t mnc_length          = mme_config_find_mnc_length(
+        ue_context_mod_req_pP->lai.mccdigit1,
+        ue_context_mod_req_pP->lai.mccdigit2,
+        ue_context_mod_req_pP->lai.mccdigit3,
+        ue_context_mod_req_pP->lai.mncdigit1,
+        ue_context_mod_req_pP->lai.mncdigit2,
+        ue_context_mod_req_pP->lai.mncdigit3);
     if (mnc_length != 2 && mnc_length != 3) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
     LAI_T_TO_TBCD(
-      ue_context_mod_req_pP->lai, lai_item->pLMNidentity.buf, mnc_length);
+        ue_context_mod_req_pP->lai, lai_item->pLMNidentity.buf, mnc_length);
 
     TAC_TO_ASN1(ue_context_mod_req_pP->lai.lac, &lai_item->lAC);
     lai_item->iE_Extensions = NULL;
   }
-  if (
-    (ue_context_mod_req_pP->presencemask &
-     S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT) ==
-    S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT) {
+  if ((ue_context_mod_req_pP->presencemask &
+       S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT) ==
+      S1AP_UE_CONTEXT_MOD_CSFB_INDICATOR_PRESENT) {
     ueContextModificationIEs_p->presenceMask |=
-      S1AP_UECONTEXTMODIFICATIONREQUESTIES_CSFALLBACKINDICATOR_PRESENT;
+        S1AP_UECONTEXTMODIFICATIONREQUESTIES_CSFALLBACKINDICATOR_PRESENT;
     ueContextModificationIEs_p->csFallbackIndicator =
-      ue_context_mod_req_pP->cs_fallback_indicator;
+        ue_context_mod_req_pP->cs_fallback_indicator;
   }
 
-  if (
-    (ue_context_mod_req_pP->presencemask &
-     S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) ==
-    S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) {
+  if ((ue_context_mod_req_pP->presencemask &
+       S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) ==
+      S1AP_UE_CONTEXT_MOD_UE_AMBR_INDICATOR_PRESENT) {
     ueContextModificationIEs_p->presenceMask |=
-      S1AP_UECONTEXTMODIFICATIONREQUESTIES_UEAGGREGATEMAXIMUMBITRATE_PRESENT;
+        S1AP_UECONTEXTMODIFICATIONREQUESTIES_UEAGGREGATEMAXIMUMBITRATE_PRESENT;
     asn_uint642INTEGER(
-      &ueContextModificationIEs_p->uEaggregateMaximumBitrate
-         .uEaggregateMaximumBitRateDL,
-      ue_context_mod_req_pP->ue_ambr.br_dl);
+        &ueContextModificationIEs_p->uEaggregateMaximumBitrate
+             .uEaggregateMaximumBitRateDL,
+        ue_context_mod_req_pP->ue_ambr.br_dl);
     asn_uint642INTEGER(
-      &ueContextModificationIEs_p->uEaggregateMaximumBitrate
-         .uEaggregateMaximumBitRateUL,
-      ue_context_mod_req_pP->ue_ambr.br_ul);
+        &ueContextModificationIEs_p->uEaggregateMaximumBitrate
+             .uEaggregateMaximumBitRateUL,
+        ue_context_mod_req_pP->ue_ambr.br_ul);
   }
 
   if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
@@ -1225,10 +1221,8 @@ static int s1ap_mme_generate_ue_context_modification(
   bstring b = blk2bstr(buffer, length);
   free(buffer);
   rc = s1ap_mme_itti_send_sctp_request(
-    &b,
-    ue_ref_p->enb->sctp_assoc_id,
-    ue_ref_p->sctp_stream_send,
-    ue_ref_p->mme_ue_s1ap_id);
+      &b, ue_ref_p->enb->sctp_assoc_id, ue_ref_p->sctp_stream_send,
+      ue_ref_p->mme_ue_s1ap_id);
 
   free_s1ap_uecontextmodificationrequest(ueContextModificationIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
