@@ -58,7 +58,6 @@ class InOutController(MagmaController):
     )
     ARP_PROBE_FREQUENCY = 300
     UPLINK_DPCP_PORT_NAME = 'dhcp0'
-    UPLINK_PORT_NAME = 'patch-up'
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
@@ -70,9 +69,9 @@ class InOutController(MagmaController):
         else:
             self._mtr_service_enabled = False
 
-        if self.config.enable_nat is True:
-            self._uplink_port = OFPP_LOCAL
-        else:
+        self._uplink_port = OFPP_LOCAL
+        if self.config.enable_nat is False and \
+                self.config.uplink_port_name is not None:
             self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
         if (self._service_manager.is_app_enabled(LIMirrorController.APP_NAME)
@@ -89,12 +88,10 @@ class InOutController(MagmaController):
         self._gw_mac_monitor = None
 
     def _get_config(self, config_dict):
-        port_name = None
         mtr_ip = None
         mtr_port = None
         li_port_name = None
-        port_name = config_dict.get('ovs_uplink_port_name',
-                                    self.UPLINK_PORT_NAME)
+        port_name = config_dict.get('ovs_uplink_port_name', None)
         setup_type = config_dict.get('setup_type', None)
 
         if 'mtr_ip' in config_dict:
