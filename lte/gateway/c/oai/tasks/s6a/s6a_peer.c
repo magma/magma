@@ -43,8 +43,6 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 
-#if !S6A_OVER_GRPC
-
 #define NB_MAX_TRIES (8)
 
 extern __pid_t g_pid;
@@ -197,7 +195,6 @@ int s6a_fd_new_peer(void)
 #endif
 }
 
-#endif
 /*
  * Inform S1AP and MME that connection to HSS is established
  */

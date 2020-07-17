@@ -375,7 +375,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
 
       if (config_setting_lookup_string(
             setting, LOG_CONFIG_STRING_COLOR, (const char **) &astring)) {
-        if (strcasecmp("yes", astring) == 0)
+        if (0 == strcasecmp("yes", astring))
           config_pP->log_config.color = true;
         else
           config_pP->log_config.color = false;
@@ -583,7 +583,6 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->itti_config.queue_size = (uint32_t) aint;
       }
     }
-#if !S6A_OVER_GRPC
     // S6A SETTING
     setting =
       config_setting_get_member(setting_mme, MME_CONFIG_STRING_S6A_CONFIG);
@@ -619,7 +618,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
             MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
       }
     }
-#endif /* !S6A_OVER_GRPC */
+
     // SCTP SETTING
     setting =
       config_setting_get_member(setting_mme, MME_CONFIG_STRING_SCTP_CONFIG);
@@ -1224,13 +1223,6 @@ void mme_config_display(mme_config_t *config_pP)
 
   OAILOG_INFO(
     LOG_CONFIG, "==== EURECOM %s v%s ====\n", PACKAGE_NAME, PACKAGE_VERSION);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with EMBEDDED_SGW .................: %d\n", EMBEDDED_SGW);
-  OAILOG_DEBUG(
-    LOG_CONFIG,
-    "Built with S6A_OVER_GRPC .....................: %d\n", S6A_OVER_GRPC);
-
 #if DEBUG_IS_ON
   OAILOG_DEBUG(
     LOG_CONFIG,
@@ -1481,17 +1473,10 @@ void mme_config_display(mme_config_t *config_pP)
     (config_pP->nas_config.disable_esm_information) ? "true" : "false");
 
   OAILOG_INFO(LOG_CONFIG, "- S6A:\n");
-#if S6A_OVER_GRPC
-  OAILOG_INFO(
-    LOG_CONFIG, "    protocol .........: gRPC\n");
-#else
-  OAILOG_INFO(
-    LOG_CONFIG, "    protocol .........: diameter\n");
   OAILOG_INFO(
     LOG_CONFIG,
     "    conf file ........: %s\n",
     bdata(config_pP->s6a_config.conf_file));
-#endif
   OAILOG_INFO(LOG_CONFIG, "- Service303:\n");
   OAILOG_INFO(
     LOG_CONFIG,
