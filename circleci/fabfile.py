@@ -92,16 +92,19 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
     try:
         _set_host_for_lease(lease, node_ssh_key)
         _checkout_code(repo, branch, sha1, tag, pr_num, magma_root)
+        # Destroy all running vagrant VMs. If we use the same node to run integ
+        # tests on more than one repo, Vagrant will complain about colliding
+        # VM names.
+        # Pipe stderr to /dev/null to silence annoying vagrant update prompts
+        run("vagrant global-status 2>/dev/null | "
+            "awk '/virtualbox/{print $1}' | "
+            "xargs -I {} vagrant destroy -f {}")
+
         if should_test:
             if env.stack == LTE_STACK:
                 _run_remote_lte_integ_test(repo, magma_root)
             elif env.stack == CWF_STACK:
                 _run_remote_cwf_integ_test(repo, magma_root)
-
-        # In case the job that leased this node last didn't clean up, destroy
-        # all the VMs so we don't OOM
-        _destroy_vms(repo, magma_root, 'lte/gateway', [])
-        _destroy_vms(repo, magma_root, 'cwf/gateway', [])
 
         if should_build and env.stack == LTE_STACK:
             # Destroy the VM if we didn't use it to run the integ tests in
