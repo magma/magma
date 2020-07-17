@@ -2717,89 +2717,121 @@ void s1ap_enb_assoc_clean_up_timer_expiry(
 int s1ap_handle_paging_request(
     s1ap_state_t* state, const itti_s1ap_paging_request_t* paging_request,
     imsi64_t imsi64) {
-#if S1AP_R1O_TO_R15_DONE
   OAILOG_FUNC_IN(LOG_S1AP);
   DevAssert(paging_request != NULL);
-  // ue_description_t* ue_ref_p = NULL;
-  S1ap_PagingIEs_t* paging_message = NULL;
-  s1ap_message message             = {0};
-  int rc                           = RETURNok;
-  uint8_t num_of_tac               = 0;
-  uint16_t tai_list_count          = paging_request->tai_list_count;
-  bool is_tai_found                = false;
-  uint32_t idx                     = 0;
-  paging_message                   = &message.msg.s1ap_PagingIEs;
+  int rc                  = RETURNok;
+  uint8_t num_of_tac      = 0;
+  uint16_t tai_list_count = paging_request->tai_list_count;
+  bool is_tai_found       = false;
+  uint32_t idx            = 0;
+  uint8_t* buffer_p       = NULL;
+  uint32_t length         = 0;
+  S1ap_S1AP_PDU_t pdu     = {0};
+  S1ap_Paging_t* out      = NULL;
+  S1ap_PagingIEs_t* ie    = NULL;
 
-  paging_message->presenceMask   = 0;  // no optional fields
-  paging_message->pagingDRX      = 0;  // unused
-  paging_message->pagingPriority = 0;  // unused
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+  pdu.choice.initiatingMessage.procedureCode = S1ap_ProcedureCode_id_Paging;
+  pdu.choice.initiatingMessage.criticality   = S1ap_Criticality_ignore;
+  pdu.choice.initiatingMessage.value.present =
+      S1ap_InitiatingMessage__value_PR_Paging;
+  out = &pdu.choice.initiatingMessage.value.choice.Paging;
 
+  // Encode and set the UE Identity Index Value.
+  ie                = (S1ap_PagingIEs_t*) calloc(1, sizeof(S1ap_PagingIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_UEIdentityIndexValue;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_PagingIEs__value_PR_UEIdentityIndexValue;
   UE_ID_INDEX_TO_BIT_STRING(
-      (uint16_t)(imsi64 % 1024), &paging_message->ueIdentityIndexValue);
-  if (paging_request->domain_indicator == CN_DOMAIN_PS) {
-    paging_message->cnDomain = S1ap_CNDomain_ps;
-  } else if (paging_request->domain_indicator == CN_DOMAIN_CS) {
-    paging_message->cnDomain = S1ap_CNDomain_cs;
-  }
+      (uint16_t)(imsi64 % 1024), &ie->value.choice.UEIdentityIndexValue);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
-  // Set UE Paging Identity
+  // Set the UE Paging Identity .
+  ie                = (S1ap_PagingIEs_t*) calloc(1, sizeof(S1ap_PagingIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_UEPagingID;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_PagingIEs__value_PR_UEPagingID;
   if (paging_request->paging_id == S1AP_PAGING_ID_STMSI) {
-    paging_message->uePagingID.present = S1ap_UEPagingID_PR_s_TMSI;
-    MME_CODE_TO_OCTET_STRING(
-        paging_request->mme_code,
-        &paging_message->uePagingID.choice.s_TMSI.mMEC);
+    ie->value.choice.UEPagingID.present = S1ap_UEPagingID_PR_s_TMSI;
     M_TMSI_TO_OCTET_STRING(
         paging_request->m_tmsi,
-        &paging_message->uePagingID.choice.s_TMSI.m_TMSI);
-    paging_message->uePagingID.choice.s_TMSI.iE_Extensions = NULL;
+        &ie->value.choice.UEPagingID.choice.s_TMSI.m_TMSI);
+    // todo: chose the right gummei or get it from the request!
+    MME_CODE_TO_OCTET_STRING(
+        paging_request->mme_code,
+        &ie->value.choice.UEPagingID.choice.s_TMSI.mMEC);
   } else if (paging_request->paging_id == S1AP_PAGING_ID_IMSI) {
-    paging_message->uePagingID.present = S1ap_UEPagingID_PR_iMSI;
+    ie->value.choice.UEPagingID.present = S1ap_UEPagingID_PR_iMSI;
     IMSI_TO_OCTET_STRING(
         paging_request->imsi, paging_request->imsi_length,
-        &paging_message->uePagingID.choice.iMSI);
+        &ie->value.choice.UEPagingID.choice.iMSI);
   }
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // Encode the CN Domain.
+  ie                = (S1ap_PagingIEs_t*) calloc(1, sizeof(S1ap_PagingIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_CNDomain;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_PagingIEs__value_PR_CNDomain;
+  if (paging_request->domain_indicator == CN_DOMAIN_PS) {
+    ie->value.choice.CNDomain = S1ap_CNDomain_ps;
+  } else if (paging_request->domain_indicator == CN_DOMAIN_CS) {
+    ie->value.choice.CNDomain = S1ap_CNDomain_cs;
+  }
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
   // Set TAI list
+  ie                = (S1ap_PagingIEs_t*) calloc(1, sizeof(S1ap_PagingIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_TAIList;
+  ie->criticality   = S1ap_Criticality_ignore;
+  ie->value.present = S1ap_PagingIEs__value_PR_TAIList;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+  S1ap_TAIList_t* const tai_list = &ie->value.choice.TAIList;
+
   mme_config_read_lock(&mme_config);
   for (int tai_idx = 0; tai_idx < tai_list_count; tai_idx++) {
     num_of_tac = paging_request->paging_tai_list[tai_idx].numoftac;
     // Total number of TACs = number of tac + current ENB's tac(1)
     for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-      S1ap_TAIItem_t* tai_item = calloc(tai_list_count, sizeof(S1ap_TAIItem_t));
-      if (tai_item == NULL) {
+      S1ap_TAIItemIEs_t* tai_item_ies = calloc(1, sizeof(S1ap_TAIItemIEs_t));
+      if (tai_item_ies == NULL) {
         OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Failed to allocate memory\n");
         OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
+      tai_item_ies->id            = S1ap_ProtocolIE_ID_id_TAIItem;
+      tai_item_ies->criticality   = S1ap_Criticality_ignore;
+      tai_item_ies->value.present = S1ap_TAIItemIEs__value_PR_TAIItem;
+      S1ap_TAIItem_t* tai_item    = &tai_item_ies->value.choice.TAIItem;
+
       PLMN_T_TO_PLMNID(
           paging_request->paging_tai_list[tai_idx].tai_list[idx],
           &tai_item->tAI.pLMNidentity);
       TAC_TO_ASN1(
           paging_request->paging_tai_list[tai_idx].tai_list[idx].tac,
           &tai_item->tAI.tAC);
-      tai_item->iE_Extensions     = NULL;
-      tai_item->tAI.iE_Extensions = NULL;
-      ASN_SEQUENCE_ADD(&paging_message->taiList, tai_item);
+      ASN_SEQUENCE_ADD(&tai_list->list, tai_item_ies);
     }
   }
-
   mme_config_unlock(&mme_config);
 
-  uint8_t* buffer = NULL;
-  uint32_t length = 0;
-
-  message.procedureCode = S1ap_ProcedureCode_id_Paging;
-  message.direction     = S1AP_PDU_PR_initiatingMessage;
-
-  // Encode message
-  int enc_rval = s1ap_mme_encode_pdu(&message, &buffer, &length);
-  if (enc_rval < 0) {
+  // Encoding without allocating?
+  int err = 0;
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    err = 1;
+  }
+  // TODO look why called proc s1ap_mme_encode_pdu do not return value < 0
+  if (length <= 0) {
+    err = 1;
+  }
+  if (err) {
     OAILOG_ERROR_UE(
         LOG_S1AP, imsi64, "Failed to encode paging message for IMSI %s\n",
         paging_request->imsi);
-    free_s1ap_paging(paging_message);
-    return RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  /*Fetching eNB list to send paging request message*/
+  // Fetching eNB list to send paging request message
   hashtable_element_array_t* enb_array = NULL;
   enb_description_t* enb_ref_p         = NULL;
   if (state == NULL) {
@@ -2813,14 +2845,14 @@ int s1ap_handle_paging_request(
   }
   const paging_tai_list_t* p_tai_list = paging_request->paging_tai_list;
   for (idx = 0; idx < enb_array->num_elements; idx++) {
-    bstring paging_msg_buffer = blk2bstr(buffer, length);
-    enb_ref_p                 = (enb_description_t*) enb_array->elements[idx];
+    enb_ref_p = (enb_description_t*) enb_array->elements[idx];
     if (enb_ref_p->s1_state == S1AP_READY) {
       supported_ta_list_t* enb_ta_list = &enb_ref_p->supported_ta_list;
 
       if ((is_tai_found = s1ap_paging_compare_ta_lists(
                enb_ta_list, p_tai_list, paging_request->tai_list_count))) {
-        rc = s1ap_mme_itti_send_sctp_request(
+        bstring paging_msg_buffer = blk2bstr(buffer_p, length);
+        rc                        = s1ap_mme_itti_send_sctp_request(
             &paging_msg_buffer, enb_ref_p->sctp_assoc_id,
             0,   // Stream id 0 for non UE related
                  // S1AP message
@@ -2828,7 +2860,7 @@ int s1ap_handle_paging_request(
       }
     }
   }
-  free(buffer);
+  free(buffer_p);
   if (rc != RETURNok) {
     OAILOG_ERROR(
         LOG_S1AP, "Failed to send paging message over sctp for IMSI %s\n",
@@ -2838,12 +2870,7 @@ int s1ap_handle_paging_request(
         LOG_S1AP, "Sent paging message over sctp for IMSI %s\n",
         paging_request->imsi);
   }
-
-  free_s1ap_paging(paging_message);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
