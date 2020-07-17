@@ -2616,66 +2616,79 @@ int s1ap_mme_handle_enb_reset(
 int s1ap_handle_enb_initiated_reset_ack(
     const itti_s1ap_enb_initiated_reset_ack_t* const enb_reset_ack_p,
     imsi64_t imsi64) {
-#if S1AP_R1O_TO_R15_DONE
-  uint8_t* buffer                                        = NULL;
-  uint32_t length                                        = 0;
-  s1ap_message message                                   = {0};
-  S1ap_ResetAcknowledgeIEs_t* s1ap_ResetAcknowledgeIEs_p = NULL;
-  S1ap_UE_associatedLogicalS1_ConnectionItem_t
-      sig_conn_list[MAX_NUM_PARTIAL_S1_CONN_RESET]               = {{0}};
-  S1ap_MME_UE_S1AP_ID_t mme_ue_id[MAX_NUM_PARTIAL_S1_CONN_RESET] = {0};
-  S1ap_ENB_UE_S1AP_ID_t enb_ue_id[MAX_NUM_PARTIAL_S1_CONN_RESET] = {0};
-
-  int rc = RETURNok;
+  uint8_t* buffer = NULL;
+  uint32_t length = 0;
+  S1ap_S1AP_PDU_t pdu;
+  /** Reset Acknowledgment. */
+  S1ap_ResetAcknowledge_t* out;
+  S1ap_ResetAcknowledgeIEs_t* ie = NULL;
+  int rc                         = RETURNok;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  message.procedureCode      = S1ap_ProcedureCode_id_Reset;
-  message.direction          = S1AP_PDU_PR_successfulOutcome;
-  s1ap_ResetAcknowledgeIEs_p = &message.msg.s1ap_ResetAcknowledgeIEs;
-  s1ap_ResetAcknowledgeIEs_p->presenceMask = 0;
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
+  pdu.choice.successfulOutcome.procedureCode = S1ap_ProcedureCode_id_Reset;
+  pdu.choice.successfulOutcome.criticality   = S1ap_Criticality_ignore;
+  pdu.choice.successfulOutcome.value.present =
+      S1ap_SuccessfulOutcome__value_PR_ResetAcknowledge;
+  out = &pdu.choice.successfulOutcome.value.choice.ResetAcknowledge;
 
   if (enb_reset_ack_p->s1ap_reset_type == RESET_PARTIAL) {
     DevAssert(enb_reset_ack_p->num_ue > 0);
-    s1ap_ResetAcknowledgeIEs_p->presenceMask |=
-        S1AP_RESETACKNOWLEDGEIES_UE_ASSOCIATEDLOGICALS1_CONNECTIONLISTRESACK_PRESENT;
+    ie = (S1ap_ResetAcknowledgeIEs_t*) calloc(
+        1, sizeof(S1ap_ResetAcknowledgeIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_UE_associatedLogicalS1_ConnectionListResAck;
+    ie->criticality = S1ap_Criticality_ignore;
+    ie->value.present =
+        S1ap_ResetAcknowledgeIEs__value_PR_UE_associatedLogicalS1_ConnectionListResAck;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    /** MME UE S1AP ID. */
+    S1ap_UE_associatedLogicalS1_ConnectionListResAck_t* ie_p =
+        &ie->value.choice.UE_associatedLogicalS1_ConnectionListResAck;
     for (uint32_t i = 0; i < enb_reset_ack_p->num_ue; i++) {
+      S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t* sig_conn_item =
+          calloc(1, sizeof(S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t));
+      sig_conn_item->id =
+          S1ap_ProtocolIE_ID_id_UE_associatedLogicalS1_ConnectionItem;
+      sig_conn_item->criticality = S1ap_Criticality_ignore;
+      sig_conn_item->value.present =
+          S1ap_UE_associatedLogicalS1_ConnectionItemResAck__value_PR_UE_associatedLogicalS1_ConnectionItem;
+      S1ap_UE_associatedLogicalS1_ConnectionItem_t* item =
+          &sig_conn_item->value.choice.UE_associatedLogicalS1_ConnectionItem;
       if (enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id !=
           INVALID_MME_UE_S1AP_ID) {
-        mme_ue_id[i] = enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id;
-        sig_conn_list[i].mME_UE_S1AP_ID = &mme_ue_id[i];
+        item->mME_UE_S1AP_ID = calloc(1, sizeof(S1ap_MME_UE_S1AP_ID_t));
+        *item->mME_UE_S1AP_ID =
+            enb_reset_ack_p->ue_to_reset_list[i].mme_ue_s1ap_id;
       } else {
-        sig_conn_list[i].mME_UE_S1AP_ID = NULL;
+        item->mME_UE_S1AP_ID = NULL;
       }
       if (enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id != -1) {
-        enb_ue_id[i] = enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id;
-        sig_conn_list[i].eNB_UE_S1AP_ID = &enb_ue_id[i];
+        item->eNB_UE_S1AP_ID = calloc(1, sizeof(S1ap_ENB_UE_S1AP_ID_t));
+        *item->eNB_UE_S1AP_ID =
+            enb_reset_ack_p->ue_to_reset_list[i].enb_ue_s1ap_id;
       } else {
-        sig_conn_list[i].eNB_UE_S1AP_ID = NULL;
+        item->eNB_UE_S1AP_ID = NULL;
       }
-      sig_conn_list[i].iE_Extensions = NULL;
-      ASN_SEQUENCE_ADD(
-          &s1ap_ResetAcknowledgeIEs_p
-               ->uE_associatedLogicalS1_ConnectionListResAck
-               .s1ap_UE_associatedLogicalS1_ConnectionItemResAck,
-          &sig_conn_list[i]);
+      ASN_SEQUENCE_ADD(&ie_p->list, sig_conn_item);
     }
   }
-  if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
-    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Reset Ack encoding failed \n");
+  if (s1ap_mme_encode_pdu(&pdu, &buffer, &length) < 0) {
+    OAILOG_ERROR(LOG_S1AP, "Failed to S1 Reset command \n");
+    /** We rely on the handover_notify timeout to remove the UE context. */
+    DevAssert(!buffer);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  bstring b = blk2bstr(buffer, length);
-  rc        = s1ap_mme_itti_send_sctp_request(
-      &b, enb_reset_ack_p->sctp_assoc_id, enb_reset_ack_p->sctp_stream_id,
-      INVALID_MME_UE_S1AP_ID);
 
-  free_wrapper((void**) &(enb_reset_ack_p->ue_to_reset_list));
-  increment_counter("s1_reset_from_enb", 1, 1, "action", "reset_ack_sent");
+  if (buffer) {
+    bstring b = blk2bstr(buffer, length);
+    free(buffer);
+    rc = s1ap_mme_itti_send_sctp_request(
+        &b, enb_reset_ack_p->sctp_assoc_id, enb_reset_ack_p->sctp_stream_id,
+        INVALID_MME_UE_S1AP_ID);
+  }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
 }
 
 //------------------------------------------------------------------------------
