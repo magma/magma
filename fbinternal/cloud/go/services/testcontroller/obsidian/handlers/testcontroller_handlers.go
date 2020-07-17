@@ -13,9 +13,9 @@ import (
 	"sort"
 	"strconv"
 
+	"magma/fbinternal/cloud/go/services/testcontroller"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"orc8r/fbinternal/cloud/go/services/testcontroller"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"

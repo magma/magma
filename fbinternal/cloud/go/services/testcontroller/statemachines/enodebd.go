@@ -19,6 +19,9 @@ import (
 	"strings"
 	"time"
 
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
+	"magma/fbinternal/cloud/go/services/testcontroller/utils"
 	"magma/lte/cloud/go/lte"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -27,9 +30,6 @@ import (
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/lib/go/protos"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/storage"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/utils"
 
 	"github.com/golang/glog"
 	structpb "github.com/golang/protobuf/ptypes/struct"

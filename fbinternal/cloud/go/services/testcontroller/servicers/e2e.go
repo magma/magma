@@ -11,9 +11,9 @@ package servicers
 import (
 	"context"
 
+	tcprotos "magma/fbinternal/cloud/go/services/testcontroller/protos"
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/lib/go/protos"
-	tcprotos "orc8r/fbinternal/cloud/go/services/testcontroller/protos"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/storage"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

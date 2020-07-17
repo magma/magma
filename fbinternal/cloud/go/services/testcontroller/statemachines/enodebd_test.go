@@ -22,6 +22,11 @@ import (
 	"testing"
 	"time"
 
+	plugin2 "magma/fbinternal/cloud/go/plugin"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
+	storage2 "magma/fbinternal/cloud/go/services/testcontroller/storage"
+	tcTestInit "magma/fbinternal/cloud/go/services/testcontroller/test_init"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
@@ -36,11 +41,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-	plugin2 "orc8r/fbinternal/cloud/go/plugin"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/statemachines"
-	storage2 "orc8r/fbinternal/cloud/go/services/testcontroller/storage"
-	tcTestInit "orc8r/fbinternal/cloud/go/services/testcontroller/test_init"
 
 	"github.com/go-openapi/swag"
 	structpb "github.com/golang/protobuf/ptypes/struct"
@@ -51,7 +51,7 @@ import (
 // don't test intermediate failure conditions (e.g. unexpected config types,
 // service errors)
 func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
-	SetupTests(t)
+	SetupTests(t, "testcontroller__statemachines__enodebd_happy")
 	RegisterAGW(t)
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
@@ -210,7 +210,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 }
 
 func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
-	SetupTests(t)
+	SetupTests(t, "testcontroller__statemachines__enodebd_verify")
 	RegisterAGW(t)
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
@@ -288,7 +288,7 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 }
 
 func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
-	SetupTests(t)
+	SetupTests(t, "testcontroller__statemachines__enodebd_traffic")
 	RegisterAGW(t)
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
@@ -363,7 +363,7 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 }
 
 func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
-	SetupTests(t)
+	SetupTests(t, "testcontroller__statemachines__enodebd_reconfig")
 	RegisterAGW(t)
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
@@ -412,10 +412,10 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	mockMagmad.AssertExpectations(t)
 }
 
-func SetupTests(t *testing.T) {
+func SetupTests(t *testing.T, dbName string) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
-	tcTestInit.StartTestService(t)
+	tcTestInit.StartTestServiceWithDB(t, dbName)
 	cfgTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)

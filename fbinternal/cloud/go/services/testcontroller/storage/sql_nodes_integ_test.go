@@ -21,7 +21,9 @@ import (
 )
 
 func TestNewSQLNodeLeasorStorage_Integration(t *testing.T) {
-	db1, db2 := open(t), open(t)
+	const dbName = "testcontroller__storage__sql_nodes_integ_test"
+	db1 := sqorc.OpenCleanForTest(t, dbName, sqorc.PostgresDriver)
+	db2 := sqorc.OpenForTest(t, dbName, sqorc.PostgresDriver)
 	defer db1.Close()
 	defer db2.Close()
 	_, err := db1.Exec("DROP TABLE IF EXISTS testcontroller_nodes")

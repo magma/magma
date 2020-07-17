@@ -10,9 +10,9 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	storage "magma/fbinternal/cloud/go/services/testcontroller/storage"
 	protos "magma/orc8r/lib/go/protos"
 	math "math"
-	storage "orc8r/fbinternal/cloud/go/services/testcontroller/storage"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

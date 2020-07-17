@@ -1,4 +1,4 @@
-module orc8r/fbinternal/cloud/go
+module magma/fbinternal/cloud/go
 
 replace (
 	magma/gateway => ./../../../orc8r/gateway/go
@@ -34,4 +34,4 @@ require (
 	magma/orc8r/lib/go/protos v0.0.0
 )
 
-go 1.13
+go 1.12
