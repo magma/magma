@@ -86,6 +86,7 @@ class InOutController(MagmaController):
         # following fields are only used in Non Nat config
         self._dhcp_gw_info = None
         self._gw_mac_monitor = None
+        self._current_upstream_mac = None
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -178,11 +179,15 @@ class InOutController(MagmaController):
 
         uplink_match = MagmaMatch(direction=Direction.OUT)
         actions = []
+        # avoid resetting mac address on switch connect event.
+        if mac_addr is None:
+            mac_addr = self._current_upstream_mac
+
         if mac_addr is not None:
             parser = dp.ofproto_parser
             actions.append(parser.OFPActionSetField(eth_dst=mac_addr))
             self.logger.info("Using GW: %s actions: %s", mac_addr, str(actions))
-
+        self._current_upstream_mac = mac_addr
         flows.add_output_flow(dp, self._egress_tbl_num, uplink_match, actions,
                               output_port=self._uplink_port)
 
@@ -279,10 +284,9 @@ class InOutController(MagmaController):
 
     def _monitor_and_update(self, datapath):
         current_feq = self.config.non_mat_gw_probe_frequency
-        current_mac = None
         if self._dhcp_gw_info.getMac() is not None:
-            current_mac = self._dhcp_gw_info.getMac()
-            self._install_default_egress_flows(datapath, current_mac)
+            latest_mac_addr = self._dhcp_gw_info.getMac()
+            self._install_default_egress_flows(datapath, latest_mac_addr)
             flows.set_barrier(datapath)
 
         while True:
@@ -291,25 +295,21 @@ class InOutController(MagmaController):
                 self.logger.info("GW found: %s", ip)
                 latest_mac_addr = self._get_gw_mac_address(ip)
                 if latest_mac_addr is not None:
-                    # got back to configured frequency.
+                    # go back to configured frequency.
                     current_feq = self.config.non_mat_gw_probe_frequency
-                    if current_mac != latest_mac_addr:
-                        self.logger.info("Current mac %s updated gw mac: %s",
-                                         current_mac, latest_mac_addr)
-                        current_mac = latest_mac_addr
-
-                        self._install_default_egress_flows(datapath, current_mac)
+                    if self._current_upstream_mac != latest_mac_addr:
+                        self._install_default_egress_flows(datapath, latest_mac_addr)
                         flows.set_barrier(datapath)
-                        self._dhcp_gw_info.update_mac(current_mac)
+                        self._dhcp_gw_info.update_mac(latest_mac_addr)
             else:
                 self.logger.warning("No default GW found.")
-                # increase frequency.
+                # increase frequency to reduce init latency.
                 current_feq = 1
 
             e = threading.Event()
             self.logger.debug("non_mat_gw_probe_frequency: %s ip: %s mac: %s",
                               current_feq,
-                              ip, current_mac)
+                              ip, self._current_upstream_mac)
             e.wait(timeout=current_feq)
 
     def _setup_non_nat_monitoring(self, datapath):
@@ -320,6 +320,9 @@ class InOutController(MagmaController):
         :param datapath: datapath to install flows.
         :return: None
         """
+        if self._gw_mac_monitor is not None:
+            # No need to multiple probes here.
+            return
         if self.config.enable_nat is True:
             self.logger.info("Nat is on")
             return
