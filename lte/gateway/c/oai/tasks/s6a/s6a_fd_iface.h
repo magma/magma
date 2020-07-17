@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -19,40 +19,32 @@
  *      contact@openairinterface.org
  */
 
-/** @mainpage
+#ifndef S6A_FD_IFACE_H_SEEN
+#define S6A_FD_IFACE_H_SEEN
 
-  @section intro Introduction
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-  openair-mme project tends to provide an implementation of LTE core network.
+#include "s6a_defs.h"
+#include <freeDiameter/freeDiameter-host.h>
+#include <freeDiameter/libfdcore.h>
+#ifdef __cplusplus
+}
+#endif
 
-  @section scope Scope
+#include "s6a_viface.h"
 
+class S6aFdIface : public S6aViface
+{
+  public:
+    S6aFdIface(const s6a_config_t * const config);
+    bool update_location_req(s6a_update_location_req_t *ulr_p);
+    bool authentication_info_req(s6a_auth_info_req_t *air_p);
+    bool send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP);
+    bool purge_ue(const char *imsi);
+    void timer_expired(const long timer_idP);
+    ~S6aFdIface();
+};
 
-  @section design Design Philosophy
-
-  Included protocol stacks:
-  - SCTP RFC####
-  - S1AP 3GPP TS 36.413 R10.5
-  - S11 abstraction between MME and S-GW
-  - 3GPP TS 23.401 R10.5
-  - nw-gtpv1u for s1-u (http://amitchawre.net/)
-  - freeDiameter project (http://www.freediameter.net/) 3GPP TS 29.272 R10.5
-
-  @section applications Applications and Usage
-
-  Please use the script to start LTE epc in root src directory
-
- */
-
-/*! \file oai_mme.h
-  \brief
-  \author Sebastien ROUX
-  \company Eurecom
-*/
-
-#ifndef FILE_OAISIM_MME_SEEN
-#define FILE_OAISIM_MME_SEEN
-
-int main(int argc, char *argv[]);
-
-#endif /* FILE_OAISIM_MME_SEEN */
+#endif /* S6A_FD_IFACE_H_SEEN */
