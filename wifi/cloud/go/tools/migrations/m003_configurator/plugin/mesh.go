@@ -14,7 +14,7 @@ import (
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/tools/migrations/m003_configurator/migration"
-	"orc8r/wifi/cloud/go/tools/migrations/m003_configurator/plugin/types"
+	"magma/wifi/cloud/go/tools/migrations/m003_configurator/plugin/types"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/google/uuid"

@@ -11,9 +11,9 @@ package main
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
-	wifi_service "orc8r/wifi/cloud/go/services/wifi"
-	"orc8r/wifi/cloud/go/services/wifi/obsidian/handlers"
-	"orc8r/wifi/cloud/go/wifi"
+	wifi_service "magma/wifi/cloud/go/services/wifi"
+	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
+	"magma/wifi/cloud/go/wifi"
 
 	"github.com/golang/glog"
 )

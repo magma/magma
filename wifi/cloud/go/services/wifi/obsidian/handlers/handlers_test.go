@@ -25,14 +25,14 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/storage"
-	"orc8r/wifi/cloud/go/services/wifi/obsidian/handlers"
+	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
-	plugin2 "orc8r/wifi/cloud/go/plugin"
-	models2 "orc8r/wifi/cloud/go/services/wifi/obsidian/models"
-	"orc8r/wifi/cloud/go/wifi"
+	plugin2 "magma/wifi/cloud/go/plugin"
+	models2 "magma/wifi/cloud/go/services/wifi/obsidian/models"
+	"magma/wifi/cloud/go/wifi"
 
 	"github.com/go-openapi/swag"
 )

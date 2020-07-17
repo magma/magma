@@ -22,8 +22,8 @@ import (
 	orc8rmodels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-	wifimodels "orc8r/wifi/cloud/go/services/wifi/obsidian/models"
-	"orc8r/wifi/cloud/go/wifi"
+	wifimodels "magma/wifi/cloud/go/services/wifi/obsidian/models"
+	"magma/wifi/cloud/go/wifi"
 
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"

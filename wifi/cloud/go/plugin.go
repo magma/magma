@@ -2,7 +2,7 @@ package main
 
 import (
 	"magma/orc8r/cloud/go/plugin"
-	wifip "orc8r/wifi/cloud/go/plugin"
+	wifip "magma/wifi/cloud/go/plugin"
 )
 
 func main() {}

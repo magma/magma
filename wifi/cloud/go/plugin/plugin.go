@@ -17,8 +17,8 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"orc8r/wifi/cloud/go/services/wifi/obsidian/models"
-	"orc8r/wifi/cloud/go/wifi"
+	"magma/wifi/cloud/go/services/wifi/obsidian/models"
+	"magma/wifi/cloud/go/wifi"
 )
 
 type WifiOrchestratorPlugin struct{}

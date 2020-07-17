@@ -12,9 +12,9 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	merrors "magma/orc8r/lib/go/errors"
-	"orc8r/wifi/cloud/go/protos/mconfig"
-	"orc8r/wifi/cloud/go/services/wifi/obsidian/models"
-	"orc8r/wifi/cloud/go/wifi"
+	"magma/wifi/cloud/go/protos/mconfig"
+	"magma/wifi/cloud/go/services/wifi/obsidian/models"
+	"magma/wifi/cloud/go/wifi"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
