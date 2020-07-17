@@ -547,7 +547,7 @@ int sgw_handle_sgi_endpoint_updated(
             "ERROR in forwarding data on TUNNEL err=%d\n", rv);
         }
       } else {
-        rv = gtp_tunnel_ops->add_tunnel(
+        rv = gtpv1u_add_tunnel(
           ue,
           enb,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -1619,7 +1619,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
                 dlflow.udp_dst_port = packet_filter.singleremoteport;
               }
             }
-            rc = gtp_tunnel_ops->add_tunnel(
+            rc = gtpv1u_add_tunnel(
               ue,
               enb,
               eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
