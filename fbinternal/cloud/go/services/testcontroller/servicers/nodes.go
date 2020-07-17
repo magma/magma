@@ -15,6 +15,7 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -28,7 +29,7 @@ func NewNodeLeasorServicer(store storage.NodeLeasorStorage) tcprotos.NodeLeasorS
 }
 
 func (n *nodeLeasorServicer) GetNodes(_ context.Context, req *tcprotos.GetNodesRequest) (*tcprotos.GetNodesResponse, error) {
-	nodes, err := n.store.GetNodes(req.Ids, nil)
+	nodes, err := n.store.GetNodes(req.Ids, stringWrapperAsStrPtr(req.Tag))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -65,12 +66,11 @@ func (n *nodeLeasorServicer) ReserveNode(_ context.Context, req *tcprotos.Reserv
 	return &tcprotos.LeaseNodeResponse{Lease: lease}, nil
 }
 
-func (n *nodeLeasorServicer) LeaseNode(context.Context, *protos.Void) (*tcprotos.LeaseNodeResponse, error) {
-	lease, err := n.store.LeaseNode(nil)
+func (n *nodeLeasorServicer) LeaseNode(_ context.Context, req *tcprotos.LeaseNodeRequest) (*tcprotos.LeaseNodeResponse, error) {
+	lease, err := n.store.LeaseNode(strPtr(req.Tag))
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-
 	return &tcprotos.LeaseNodeResponse{Lease: lease}, nil
 }
 
@@ -85,4 +85,15 @@ func (n *nodeLeasorServicer) ReleaseNode(_ context.Context, req *tcprotos.Releas
 	default:
 		return ret, status.Error(codes.Internal, err.Error())
 	}
+}
+
+func stringWrapperAsStrPtr(s *wrappers.StringValue) *string {
+	if s == nil {
+		return nil
+	}
+	return strPtr(s.GetValue())
+}
+
+func strPtr(s string) *string {
+	return &s
 }

@@ -46,7 +46,7 @@ const (
 )
 
 func listCINodes(c echo.Context) error {
-	nodes, err := testcontroller.GetNodes(nil)
+	nodes, err := testcontroller.GetNodes(nil, nil)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -65,7 +65,7 @@ func getCINode(c echo.Context) error {
 		return nerr
 	}
 
-	nodes, err := testcontroller.GetNodes(idParam)
+	nodes, err := testcontroller.GetNodes(idParam, nil)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -130,7 +130,7 @@ func deleteCINode(c echo.Context) error {
 }
 
 func leaseCINode(c echo.Context) error {
-	lease, err := testcontroller.LeaseNode()
+	lease, err := testcontroller.LeaseNode("")
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
