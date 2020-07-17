@@ -148,7 +148,7 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 }
 
 //------------------------------------------------------------------------------
-static void* s6a_thread(__attribute__((unused)) void* args)
+static void* s6a_thread(void* args)
 {
   itti_mark_task_ready(TASK_S6A);
   init_task_context(
@@ -158,10 +158,10 @@ static void* s6a_thread(__attribute__((unused)) void* args)
       handle_message,
       &s6a_task_zmq_ctx);
 
-  if (!s6a_viface_open(&mme_config_p->s6a_config)) {
+  if (!s6a_viface_open((s6a_config_t*)args)) {
     OAILOG_ERROR(LOG_S6A, "Failed to initialize S6a interface");
     s6a_exit();
-    return NULL
+    return NULL;
   }
 
   zloop_start(s6a_task_zmq_ctx.event_loop);
@@ -174,7 +174,7 @@ int s6a_init(const mme_config_t *mme_config_p)
 {
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface\n");
 
-  if (itti_create_task(TASK_S6A, &s6a_thread, NULL) < 0) {
+  if (itti_create_task(TASK_S6A, &s6a_thread, (void*)&mme_config_p->s6a_config) < 0) {
     OAILOG_ERROR(LOG_S6A, "s6a create task\n");
     return RETURNerror;
   }

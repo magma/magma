@@ -61,4 +61,3 @@ endif ( NOT EMBEDDED_SGW )
 if ( NOT S6A_OVER_GRPC )
     target_link_libraries(mme fdproto fdcore)
 endif ( NOT S6A_OVER_GRPC )
-
