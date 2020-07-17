@@ -144,6 +144,16 @@ class SessionState {
   bool reset_reporting_charging_credit(const CreditKey &key,
                               SessionStateUpdateCriteria &update_criteria);
 
+  /**
+   * Receive the credit grant if the credit update was successful
+   *
+   * @param update
+   * @param uc
+   * @return True if usage for the charging key is allowed after receiving
+   *         the credit response. This requires that the credit update was
+   *         a success. Also it must either be an infinite credit rating group,
+   *         or have associated credit grant.
+   */
   bool receive_charging_credit(const CreditUpdateResponse &update,
                                SessionStateUpdateCriteria &update_criteria);
 
@@ -423,8 +433,25 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
+  /**
+   * Receive the credit grant if the credit update was successful
+   *
+   * @param update
+   * @param uc
+   * @return True if usage for the charging key is allowed after receiving
+   *         the credit response. This requires that the credit update was
+   *         a success. Also it must either be an infinite credit rating group,
+   *         or have associated credit grant.
+   */
   bool init_charging_credit(
     const CreditUpdateResponse &update, SessionStateUpdateCriteria &uc);
+
+  /**
+   * Return true if any credit unit is valid and has non-zero volume
+   */
+  bool contains_credit(const GrantedUnits& gsu);
+
+  bool is_infinite_credit(const CreditUpdateResponse& response);
 
   /**
    * For this session, add the UsageMonitoringUpdateRequest to the

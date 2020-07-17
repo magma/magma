@@ -48,10 +48,11 @@ class LocalEnforcerTest : public ::testing::Test {
     directoryd_client    = std::make_shared<MockDirectorydClient>();
     spgw_client          = std::make_shared<MockSpgwServiceClient>();
     aaa_client           = std::make_shared<MockAAAClient>();
+    events_reporter      = std::make_shared<MockEventsReporter>();
     auto default_mconfig = get_default_mconfig();
     local_enforcer       = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, MockEventdClient::getInstance(), spgw_client,
+        directoryd_client, events_reporter, spgw_client,
         aaa_client, 0, 0, default_mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
@@ -102,6 +103,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<MockDirectorydClient> directoryd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
+  std::shared_ptr<MockEventsReporter> events_reporter;
   SessionMap session_map;
   folly::EventBase* evb;
 };
@@ -185,6 +187,56 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
       local_enforcer->get_charging_credit(
           session_map, "IMSI1", 1, ALLOWED_TOTAL),
       1024);
+}
+
+TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
+  insert_static_rule(1, "", "rule1");
+
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response("IMSI1", 1, INFINITE_METERED, credits->Add());
+
+  StaticRuleInstall rule1;
+  rule1.set_rule_id("rule1");
+  auto rules_to_install = response.mutable_static_rules();
+  rules_to_install->Add()->CopyFrom(rule1);
+
+  // Expect rule1 to be activated
+  EXPECT_CALL(*pipelined_client,
+              activate_flows_for_rules(testing::_, testing::_, CheckCount(1),
+                                       CheckCount(0), testing::_))
+  .Times(1)
+  .WillOnce(testing::Return(true));
+  local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
+                                      response);
+  EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI1", 1,
+                                                ALLOWED_TOTAL),
+            0);
+}
+
+TEST_F(LocalEnforcerTest, test_init_no_credit) {
+  insert_static_rule(1, "", "rule1");
+
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response("IMSI1", 1, FINITE, credits->Add());
+
+  StaticRuleInstall rule1;
+  rule1.set_rule_id("rule1");
+  auto rules_to_install = response.mutable_static_rules();
+  rules_to_install->Add()->CopyFrom(rule1);
+
+  // Expect rule1 to not be activated
+  EXPECT_CALL(*pipelined_client,
+              activate_flows_for_rules(testing::_, testing::_, CheckCount(0),
+                                       CheckCount(0), testing::_))
+  .Times(1)
+  .WillOnce(testing::Return(true));
+  local_enforcer->init_session_credit(session_map, "IMSI1", "1234", test_cfg,
+                                      response);
+  EXPECT_EQ(local_enforcer->get_charging_credit(session_map, "IMSI1", 1,
+                                                ALLOWED_TOTAL),
+            0);
 }
 
 TEST_F(LocalEnforcerTest, test_init_session_credit) {

@@ -135,6 +135,8 @@ int main(int argc, char* argv[]) {
   });
 
   auto& eventd_client = magma::AsyncEventdClient::getInstance();
+  auto events_reporter =
+      std::make_shared<magma::lte::EventsReporterImpl>(eventd_client);
   std::thread eventd_thread([&]() {
     MLOG(MINFO) << "Started eventd response thread";
     eventd_client.rpc_response_loop();
@@ -215,17 +217,24 @@ int main(int argc, char* argv[]) {
     session_store = new magma::SessionStore(rule_store);
   }
   auto monitor = std::make_shared<magma::LocalEnforcer>(
-      reporter, rule_store, *session_store, pipelined_client, directoryd_client,
-      eventd_client, spgw_client, aaa_client,
-      config["session_force_termination_timeout_ms"].as<long>(),
-      quota_exhaust_termination_on_init_ms, mconfig);
+    reporter,
+    rule_store,
+    *session_store,
+    pipelined_client,
+    directoryd_client,
+    events_reporter,
+    spgw_client,
+    aaa_client,
+    config["session_force_termination_timeout_ms"].as<long>(),
+    quota_exhaust_termination_on_init_ms,
+    mconfig);
 
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-      monitor, reporter.get(), directoryd_client, *session_store);
-  auto proxy_handler =
-      std::make_unique<magma::SessionProxyResponderHandlerImpl>(
-          monitor, *session_store);
+      monitor, reporter.get(), directoryd_client, events_reporter,
+      *session_store);
+  auto proxy_handler =std::make_unique<magma::SessionProxyResponderHandlerImpl>(
+    monitor, *session_store);
 
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
       directoryd_client, aaa_client, monitor, reporter.get(), *session_store);

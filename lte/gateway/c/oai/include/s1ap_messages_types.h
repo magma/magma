@@ -331,8 +331,8 @@ typedef struct itti_s1ap_path_switch_request_ack_s {
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   // Security key
-  uint8_t NH[AUTH_NEXT_HOP_SIZE]; /* Next Hop security key*/
-  uint8_t NCC;                    /* next hop chaining count */
+  uint8_t nh[AUTH_NEXT_HOP_SIZE]; /* Next Hop security key*/
+  uint8_t ncc;                    /* next hop chaining count */
 } itti_s1ap_path_switch_request_ack_t;
 
 typedef struct itti_s1ap_path_switch_request_failure_s {

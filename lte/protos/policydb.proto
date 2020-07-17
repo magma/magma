@@ -193,6 +193,16 @@ message ChargingRuleBaseNameRecord {
   ChargingRuleNameSet RuleNamesSet = 2;
 }
 
+message RatingGroup {
+  uint32 id = 1;
+  enum LimitType {
+    FINITE = 0;
+    INFINITE_METERED = 1;
+    INFINITE_UNMETERED = 2;
+  }
+  LimitType limit_type = 2;
+}
+
 // ----------------------------------------------------------------------------
 // Subscriber-Policy Mappings
 // ----------------------------------------------------------------------------

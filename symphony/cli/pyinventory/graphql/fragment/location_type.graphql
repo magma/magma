@@ -1,7 +1,0 @@
-fragment LocationTypeFragment on LocationType {
-  id
-  name
-  propertyTypes {
-    ...PropertyTypeFragment
-  }
-}

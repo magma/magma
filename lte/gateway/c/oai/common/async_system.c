@@ -50,62 +50,76 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 
-//-------------------------------
-void async_system_exit(void);
-void *async_system_task(__attribute__((unused)) void *args_p);
+static void async_system_exit(void);
+
+task_zmq_ctx_t async_system_task_zmq_ctx;
+
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
+{
+  int rc = 0;
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case ASYNC_SYSTEM_COMMAND: {
+      rc = 0;
+      OAILOG_DEBUG(
+        LOG_ASYNC_SYSTEM,
+        "C system() call: %s\n",
+        bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command));
+      rc = system(
+        bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command));
+
+      if (rc) {
+        OAILOG_ERROR(
+          LOG_ASYNC_SYSTEM,
+          "ERROR in system command %s: %d\n",
+          bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command),
+          rc);
+        if (ASYNC_SYSTEM_COMMAND(received_message_p).is_abort_on_error) {
+          bdestroy_wrapper(
+            &ASYNC_SYSTEM_COMMAND(received_message_p).system_command);
+          exit(-1); // may be not exit
+        }
+        bdestroy_wrapper(
+          &ASYNC_SYSTEM_COMMAND(received_message_p).system_command);
+      }
+    } break;
+
+    case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      async_system_exit();
+    } break;
+
+    default: {
+      OAILOG_DEBUG(
+        LOG_ASYNC_SYSTEM,
+        "Unkwnon message ID %d: %s\n",
+        ITTI_MSG_ID(received_message_p),
+        ITTI_MSG_NAME(received_message_p));
+    } break;
+  }
+
+  itti_free_msg_content(received_message_p);
+  zframe_destroy(&msg_frame);
+  return 0;
+}
 
 //------------------------------------------------------------------------------
-void *async_system_task(__attribute__((unused)) void *args_p)
+static void* async_system_thread(__attribute__((unused)) void* args_p)
 {
-  MessageDef *received_message_p = NULL;
-  int rc = 0;
-
   itti_mark_task_ready(TASK_ASYNC_SYSTEM);
+  init_task_context(
+      TASK_ASYNC_SYSTEM,
+      (task_id_t []) {},
+      0,
+      handle_message,
+      &async_system_task_zmq_ctx);
 
-  while (1) {
-    itti_receive_msg(TASK_ASYNC_SYSTEM, &received_message_p);
-
-    if (received_message_p != NULL) {
-      switch (ITTI_MSG_ID(received_message_p)) {
-        case ASYNC_SYSTEM_COMMAND: {
-          rc = 0;
-          OAILOG_DEBUG(
-            LOG_ASYNC_SYSTEM,
-            "C system() call: %s\n",
-            bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command));
-          rc = system(
-            bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command));
-
-          if (rc) {
-            OAILOG_ERROR(
-              LOG_ASYNC_SYSTEM,
-              "ERROR in system command %s: %d\n",
-              bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command),
-              rc);
-            if (ASYNC_SYSTEM_COMMAND(received_message_p).is_abort_on_error) {
-              bdestroy_wrapper(
-                &ASYNC_SYSTEM_COMMAND(received_message_p).system_command);
-              exit(-1); // may be not exit
-            }
-            bdestroy_wrapper(
-              &ASYNC_SYSTEM_COMMAND(received_message_p).system_command);
-          }
-        } break;
-
-        case TERMINATE_MESSAGE: {
-          async_system_exit();
-          itti_exit_task();
-        } break;
-
-        default: {
-        } break;
-      }
-      // Freeing the memory allocated from the memory pool
-      itti_free_msg_content(received_message_p);
-      itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-      received_message_p = NULL;
-    }
-  }
+  zloop_start(async_system_task_zmq_ctx.event_loop);
+  async_system_exit();
   return NULL;
 }
 
@@ -113,7 +127,7 @@ void *async_system_task(__attribute__((unused)) void *args_p)
 int async_system_init(void)
 {
   OAI_FPRINTF_INFO("Initializing ASYNC_SYSTEM\n");
-  if (itti_create_task(TASK_ASYNC_SYSTEM, &async_system_task, NULL) < 0) {
+  if (itti_create_task(TASK_ASYNC_SYSTEM, &async_system_thread, NULL) < 0) {
     perror("pthread_create");
     OAILOG_ALERT(
       LOG_ASYNC_SYSTEM, "Initializing ASYNC_SYSTEM task interface: ERROR\n");
@@ -148,12 +162,14 @@ int async_system_command(
   AssertFatal(message_p, "itti_alloc_new_message Failed");
   ASYNC_SYSTEM_COMMAND(message_p).system_command = bstr;
   ASYNC_SYSTEM_COMMAND(message_p).is_abort_on_error = is_abort_on_error;
-  rv = itti_send_msg_to_task(TASK_ASYNC_SYSTEM, INSTANCE_DEFAULT, message_p);
+  rv = send_msg_to_task(&async_system_task_zmq_ctx, TASK_ASYNC_SYSTEM, message_p);
   return rv;
 }
 
 //------------------------------------------------------------------------------
 void async_system_exit(void)
 {
+  destroy_task_context(&async_system_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_ASYNC_SYSTEM terminated");
+  pthread_exit(NULL);
 }

@@ -50,11 +50,6 @@ class IPAllocator(ABC):
         ...
 
 
-class IPAllocatorType(Enum):
-    IP_POOL = 1
-    DHCP = 2
-
-
 class OverlappedIPBlocksError(Exception):
     """ Exception thrown when a given IP block overlaps with existing ones
     """

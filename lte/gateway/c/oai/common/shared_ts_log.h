@@ -82,6 +82,5 @@ int shared_log_init(const int max_threadsP);
 void shared_log_itti_connect(void);
 void shared_log_start_use(void);
 void shared_log_flush_messages(void);
-void shared_log_exit(void);
 void shared_log_item(shared_log_queue_item_t *messageP);
 #endif /* FILE_SHARED_TS_LOG_SEEN */

@@ -29,6 +29,14 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/alerts,
+        /magma/v1/networks/:network_id/metrics,
+        /magma/v1/networks/:network_id/prometheus,
+        /magma/v1/tenants/:tenant_id/metrics,
+        /magma/v1/tenants/targets_metadata
 
   certifier:
     host: "localhost"
@@ -85,9 +93,22 @@ services:
     port: 9112
     echo_port: 10112
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+        /magma/v1/channels,
+        /magma/v1/events
 
   tenants:
     host: "localhost"
     port: 9110
     echo_port: 10110
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/tenants,/magma/v1/tenants/:tenants_id"

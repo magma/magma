@@ -140,7 +140,7 @@ class IPAllocatorDHCP(IPAllocator):
 
         Returns: None
         """
-        self._dhcp_client.release_ip_address(MacAddress(sid))
+        self._dhcp_client.release_ip_address(create_mac_from_sid(sid))
         # Remove the IP from free IP list, since DHCP is the
         # owner of this IP
         self._ip_state_map.remove_ip_from_state(deleted_ip, IPState.FREE)

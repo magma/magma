@@ -1,9 +1,0 @@
-query ServiceTypesQuery {
-  serviceTypes {
-    edges {
-      node {
-        ...ServiceTypeFragment
-      }
-    }
-  }
-}

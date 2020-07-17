@@ -13,7 +13,8 @@ package main
 
 import (
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/services/aaa/protos"
 )
 
-func startBuiltInRadius(cfg *mconfig.AAAConfig) {
+func startBuiltInRadius(*mconfig.AAAConfig, protos.AuthenticatorServer, protos.AccountingServer) {
 }

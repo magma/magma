@@ -571,7 +571,7 @@ int mme_config_parse_file(mme_config_t *config_pP)
       config_pP->unauthenticated_imsi_supported = parse_bool(astring);
     }
 
-    // ITTI SETTING
+   // ITTI SETTING
     setting = config_setting_get_member(
       setting_mme, MME_CONFIG_STRING_INTERTASK_INTERFACE_CONFIG);
 
@@ -1360,7 +1360,7 @@ void mme_config_display(mme_config_t *config_pP)
   OAILOG_INFO(LOG_CONFIG, "- ITTI:\n");
   OAILOG_INFO(
     LOG_CONFIG,
-    "    queue size .......: %u (bytes)\n",
+   "    queue size .......: %u (bytes)\n",
     config_pP->itti_config.queue_size);
   OAILOG_INFO(
     LOG_CONFIG,

@@ -17,31 +17,8 @@ secret:
     orc8r: ${configs_secret}
   envdir: ${envdir_secret}
 
-proxy:
-  podDisruptionBudget:
-    enabled: true
-  image:
-    repository: ${docker_registry}/proxy
-    tag: "${docker_tag}"
-  replicas: ${proxy_replicas}
-  service:
-    enabled: true
-    legacyEnabled: true
-    %{~ if create_nginx ~}
-    %{~ else ~}
-    extraAnnotations:
-      bootstrapLagacy:
-        external-dns.alpha.kubernetes.io/hostname: bootstrapper-${controller_hostname}
-      clientcertLegacy:
-        external-dns.alpha.kubernetes.io/hostname: ${controller_hostname},${api_hostname}
-    %{~ endif ~}
-    name: orc8r-bootstrap-legacy
-    type: LoadBalancer
-  spec:
-    hostname: ${controller_hostname}
-
 nginx:
-  create: ${create_nginx}
+  create: true
 
   podDisruptionBudget:
     enabled: true

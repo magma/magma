@@ -27,6 +27,7 @@
 #include "common_defs.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "sgs_messages.h"
 #include "sgs_messages_types.h"
 
 static void _sgs_send_sgsap_vlr_reset_ack(void);
@@ -54,7 +55,7 @@ int handle_sgs_location_update_accept(
     LOG_SGS,
     "Received SGS Location Update Acc message from FedGW with IMSI %s\n",
     itti_sgsap_location_update_acc_p->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -83,7 +84,7 @@ int handle_sgs_location_update_reject(
     itti_sgsap_loc_updt_rej_p,
     sizeof(itti_sgsap_location_update_rej_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -105,7 +106,7 @@ int handle_sgs_eps_detach_ack(
     sgsap_eps_detach_ack_p,
     sizeof(itti_sgsap_eps_detach_ack_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -128,7 +129,7 @@ int handle_sgs_imsi_detach_ack(
     sgsap_imsi_detach_ack_p,
     sizeof(itti_sgsap_imsi_detach_ack_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -151,7 +152,7 @@ int handle_sgs_downlink_unitdata(
     sgs_dl_unitdata_p,
     sizeof(itti_sgsap_downlink_unitdata_t));
   // send it to NAS module for further processing
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -169,7 +170,7 @@ int handle_sgs_release_req(const itti_sgsap_release_req_t *sgs_release_req_p)
   OAILOG_DEBUG(LOG_SGS, "Received SGS Release Request message from FedGW\n");
   memcpy(sgs_rel_req_p, sgs_release_req_p, sizeof(itti_sgsap_release_req_t));
   // send it to NAS module for further processing
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 /* Fed GW calls below function, on reception of MM Information Request from MSC/VLR
@@ -205,7 +206,7 @@ int handle_sgs_mm_information_request(
     "Imsi :%s \n",
     mm_information_req_p->imsi);
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -237,7 +238,7 @@ int handle_sgs_service_abort_req(
     itti_sgsap_service_abort_req_p,
     sizeof(itti_sgsap_service_abort_req_t));
 
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
@@ -275,7 +276,7 @@ int handle_sgs_paging_request(
     "MME app"
     "for Imsi :%s \n",
     sgs_paging_req_p->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -317,7 +318,7 @@ int handle_sgs_vlr_reset_indication(
     "for vlr name :%s \n",
     sgs_vlr_reset_ind_p->vlr_name);
   if (
-    (rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p)) !=
+    (rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p)) !=
     RETURNok) {
     OAILOG_ERROR(
       LOG_SGS,
@@ -353,7 +354,7 @@ int handle_sgs_status_message(
   OAILOG_DEBUG(LOG_SGS, "Received SGS Status message from FedGW "
               "and send sgs status message to MME app for Imsi :%s \n",
                sgs_status_p->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN (LOG_NAS_EMM, rc);
 }
 
@@ -416,7 +417,7 @@ int handle_sgsap_alert_request(
     "MME app"
     "for Imsi :%s \n",
     sgsap_alert_request->imsi);
-  rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&sgs_task_zmq_ctx, TASK_MME_APP, message_p);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

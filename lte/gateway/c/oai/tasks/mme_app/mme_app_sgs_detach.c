@@ -93,7 +93,7 @@ static void mme_app_send_sgs_eps_detach_indication(
 
   SGSAP_EPS_DETACH_IND(message_p).eps_detach_type = detach_type;
 
-  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
 
   nas_itti_timer_arg_t timer_callback_fun = {0};
   timer_callback_fun.nas_timer_callback_arg =
@@ -322,7 +322,7 @@ void mme_app_send_sgs_imsi_detach_indication(
     (uint8_t) strlen(SGSAP_IMSI_DETACH_IND(message_p).imsi);
   SGSAP_IMSI_DETACH_IND(message_p).noneps_detach_type = detach_type;
 
-  itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   nas_itti_timer_arg_t timer_callback_fun = {0};
   timer_callback_fun.nas_timer_callback_arg =
     (void *) &(ue_context_p->mme_ue_s1ap_id);
@@ -437,8 +437,8 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args)
     ue_context_p->sgs_context->ts9_retransmission_count <
     IMSI_DETACH_RETRANSMISSION_COUNTER_MAX) {
     /* Send the Detach Accept to Ue after the Ts9 timer expired and maximum retransmission */
-    itti_send_msg_to_task(
-      TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
+    send_msg_to_task(&mme_app_task_zmq_ctx,
+      TASK_S1AP, ue_context_p->sgs_context->message_p);
     ue_context_p->sgs_context->message_p = NULL;
     /*
      Notify S1AP to send UE Context Release Command to eNB or free s1 context locally,
@@ -758,8 +758,8 @@ int mme_app_handle_sgs_imsi_detach_ack(
           ue_context_p->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       } else {
-        rc = itti_send_msg_to_task(
-          TASK_S1AP, INSTANCE_DEFAULT, ue_context_p->sgs_context->message_p);
+        rc = send_msg_to_task(&mme_app_task_zmq_ctx,
+          TASK_S1AP, ue_context_p->sgs_context->message_p);
         ue_context_p->sgs_context->message_p = NULL;
       }
       /*

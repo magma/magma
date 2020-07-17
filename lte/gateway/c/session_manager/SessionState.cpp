@@ -824,7 +824,8 @@ bool SessionState::receive_charging_credit(
     MLOG(MINFO) << "Quota available. Activating service";
     grant->set_service_state(SERVICE_NEEDS_ACTIVATION, *credit_uc);
   }
-  return true;
+  return contains_credit(update.credit().granted_units()) ||
+         is_infinite_credit(update);
 }
 
 bool SessionState::init_charging_credit(
@@ -846,7 +847,19 @@ bool SessionState::init_charging_credit(
   update_criteria.charging_credit_to_install[CreditKey(update)] =
       charging_grant->marshal();
   credit_map_[CreditKey(update)] = std::move(charging_grant);
-  return true;
+  return contains_credit(update.credit().granted_units()) ||
+      is_infinite_credit(update);
+}
+
+bool SessionState::contains_credit(const GrantedUnits& gsu) {
+  return (gsu.total().is_valid() && gsu.total().volume() > 0) ||
+         (gsu.tx().is_valid() && gsu.tx().volume() > 0) ||
+         (gsu.rx().is_valid() && gsu.rx().volume() > 0);
+}
+
+bool SessionState::is_infinite_credit(const CreditUpdateResponse& response) {
+  return (response.limit_type() == INFINITE_UNMETERED) ||
+         (response.limit_type() == INFINITE_METERED);
 }
 
 uint64_t SessionState::get_charging_credit(

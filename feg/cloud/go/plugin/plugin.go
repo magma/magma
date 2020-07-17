@@ -13,10 +13,8 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/services/feg/obsidian/handlers"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -62,9 +60,7 @@ func (*FegOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 }
 
 func (*FegOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
-	return plugin.FlattenHandlerLists(
-		handlers.GetHandlers(),
-	)
+	return []obsidian.Handler{}
 }
 
 func (*FegOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {

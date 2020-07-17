@@ -12,10 +12,12 @@ import (
 	"os"
 	"time"
 
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
+	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
@@ -50,6 +52,7 @@ func main() {
 	go controllerServicer.ConsumeCloudMetrics(metricsCh, os.Getenv("HOST_NAME"))
 	gatherer.Run()
 
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers(srv.Config))
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error running metricsd service: %s", err)
