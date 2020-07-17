@@ -282,6 +282,25 @@ func makeConfigEnodebStateHandler(stateNumber int, successState string) handlerF
 }
 
 func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+	_, err := configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
+		Type:      lte.CellularEnodebType,
+		Key:       *config.EnodebSN,
+		NewConfig: config.EnodebConfig,
+	})
+	if err != nil {
+		if stateNumber >= maxConfigStateCount {
+			// TODO Add postToSlack later
+			return checkForUpgradeState, 10 * time.Minute, err
+		}
+		switch successState {
+		case trafficTest3State1:
+			return fmt.Sprintf(reconfigEnodebStateFmt, stateNumber+1), 5 * time.Minute, err
+		case trafficTest4State1:
+			return fmt.Sprintf(restoreEnodebConfigStateFmt, stateNumber+1), 5 * time.Minute, err
+		default:
+			return checkForUpgradeState, 10 * time.Minute, err
+		}
+	}
 	return successState, 10 * time.Minute, nil
 }
 

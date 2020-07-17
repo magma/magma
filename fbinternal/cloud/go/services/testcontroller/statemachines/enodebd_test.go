@@ -131,7 +131,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// ---
 	mockResp = &http.Response{Status: "200", StatusCode: 200}
 	// Should test for the payload eventually
-	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil).Times(4)
+	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil).Times(6)
 	test_utils.ReportGatewayStatus(t, ctx, &models2.GatewayStatus{
 		HardwareID: "hw1",
 		PlatformInfo: &models2.PlatformInfo{
@@ -176,6 +176,54 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test2_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reconfig_enodeb1", actualState)
+	assert.Equal(t, 1*time.Minute, actualDuration)
+
+	// ---
+	// Reconfig Enodeb
+	// ---
+	actualState, actualDuration, err = sm.Run("reconfig_enodeb1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "verify_config1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Verify Config 1
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_config1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test3_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic Test 3
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test3_1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "restore_enodeb1", actualState)
+	assert.Equal(t, 1*time.Minute, actualDuration)
+
+	// ---
+	// Restore Enodeb config
+	// ---
+	actualState, actualDuration, err = sm.Run("restore_enodeb1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "verify_config2", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Verify Config 2
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_config2", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test4_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic Test 4
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test4_1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "check_for_upgrade", actualState)
 	assert.Equal(t, 1*time.Minute, actualDuration)
 
 	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil)
