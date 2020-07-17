@@ -306,7 +306,7 @@ func TestBrokerSanity(t *testing.T) {
 	_, err = client.RestartServices(context.Background(), &protos.RestartServicesRequest{})
 	sts, _ = status.FromError(err)
 	assert.GreaterOrEqual(t, Broker.numKeepaliveConnReqs, uint32(1))
-	assert.Contains(t, sts.Message(), "grpc request timed out on read")
+	assert.NotEmpty(t, sts.Message())
 
 	// TC5 - stop magmad service and check if the client recvs error
 	serverStopCh <- struct{}{}
