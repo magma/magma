@@ -33,7 +33,7 @@ export MAGMA_TAG=v1.1.0-master  # or alternative desired tag
 Publish Orchestrator images to the registry
 
 ```bash
-for image in proxy controller prometheus-cache alertmanager-configurer prometheus-configurer grafana; do
+for image in proxy controller; do
     ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} -u MYUSERNAME -p MYPASSFILE
 done
 ```

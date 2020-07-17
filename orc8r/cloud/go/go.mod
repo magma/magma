@@ -18,6 +18,7 @@ require (
 	github.com/docker/docker v1.13.1
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
+	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/go-check/check v0.0.0-20200227125254-8fa46927fb4f // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.19.2
@@ -36,7 +37,6 @@ require (
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
-	github.com/labstack/gommon v0.2.8 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
