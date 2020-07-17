@@ -15,6 +15,7 @@ package statemachines_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -27,16 +28,20 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/statemachines"
 	storage2 "magma/fbinternal/cloud/go/services/testcontroller/storage"
 	tcTestInit "magma/fbinternal/cloud/go/services/testcontroller/test_init"
+	"magma/lte/cloud/go/lte"
+	ltePlugin "magma/lte/cloud/go/plugin"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	cfgTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
@@ -59,23 +64,6 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 
 	mockMagmad.On("RebootEnodeb", "n1", "g1", "1202000038269KP0037").Return(mockGenericCommandResp, nil)
 	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
-	mockString := ""
-	mockEnodebState := &ltemodels.EnodebState{
-		EnodebConfigured:   new(bool),
-		EnodebConnected:    new(bool),
-		FsmState:           &mockString,
-		GpsConnected:       new(bool),
-		GpsLatitude:        &mockString,
-		GpsLongitude:       &mockString,
-		MmeConnected:       new(bool),
-		OpstateEnabled:     new(bool),
-		PtpConnected:       new(bool),
-		ReportingGatewayID: "g1",
-		RfTxDesired:        new(bool),
-		RfTxOn:             new(bool),
-		TimeReported:       1000,
-	}
-	mockMagmad.On("GetEnodebStatus", "n1", "1202000038269KP0037").Return(mockEnodebState, nil)
 
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
@@ -130,6 +118,8 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 			},
 		},
 	})
+
+	reportEnodebState(t, ctx, "1202000038269KP0037", ltemodels.NewDefaultEnodebStatus())
 
 	actualState, actualDuration, err = sm.Run("verify_upgrade_1", testConfig, nil)
 	assert.NoError(t, err)
@@ -215,22 +205,6 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
 	mockMagmad, mockGenericCommandResp := GetMockObjects()
-	mockString := ""
-	mockEnodebState := &ltemodels.EnodebState{
-		EnodebConfigured:   new(bool),
-		EnodebConnected:    new(bool),
-		FsmState:           &mockString,
-		GpsConnected:       new(bool),
-		GpsLatitude:        &mockString,
-		GpsLongitude:       &mockString,
-		MmeConnected:       new(bool),
-		OpstateEnabled:     new(bool),
-		PtpConnected:       new(bool),
-		ReportingGatewayID: "g1",
-		RfTxDesired:        new(bool),
-		RfTxOn:             new(bool),
-		TimeReported:       1000,
-	}
 
 	mockResp := &http.Response{Status: "200", StatusCode: 200}
 	// Should test for the payload eventually
@@ -256,17 +230,9 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 	assert.Equal(t, "check_for_upgrade", actualState)
 	assert.Equal(t, 15*time.Minute, actualDuration)
 
-	mockMagmad.On("GetEnodebStatus", "n1", "1202000038269KP0037").Return(mockEnodebState, errors.New("")).Once()
-	// ---
-	// Unable to get enodeb status
-	// --
-	actualState, actualDuration, err = sm.Run("verify_conn", testConfig, nil)
-	assert.EqualError(t, err, "error getting enodeb status: ")
-	assert.Equal(t, "check_for_upgrade", actualState)
-	assert.Equal(t, 5*time.Minute, actualDuration)
-
 	mockMagmad.On("RebootEnodeb", "n1", "g1", "1202000038269KP0037").Return(mockGenericCommandResp, nil)
-	mockMagmad.On("GetEnodebStatus", "n1", "1202000038269KP0037").Return(mockEnodebState, nil)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	reportEnodebState(t, ctx, "1202000038269KP0037", ltemodels.NewDefaultEnodebStatus())
 	// ---
 	// Reboot enodeb
 	// ---
@@ -415,6 +381,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 func SetupTests(t *testing.T, dbName string) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 	tcTestInit.StartTestServiceWithDB(t, dbName)
 	cfgTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -434,14 +401,21 @@ func RegisterAGW(t *testing.T) {
 		configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1", Config: &models2.Tier{Name: "t1", Version: "0.3.74-1560824953-b50f1bab"}},
 	)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity(
+	_, err = configurator.CreateEntities(
 		"n1",
-		configurator.NetworkEntity{
-			Type:         orc8r.MagmadGatewayType,
-			Key:          "g1",
-			Config:       &models2.MagmadGatewayConfigs{},
-			PhysicalID:   "hw1",
-			Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+		[]configurator.NetworkEntity{
+			{
+				Type:         orc8r.MagmadGatewayType,
+				Key:          "g1",
+				Config:       &models2.MagmadGatewayConfigs{},
+				PhysicalID:   "hw1",
+				Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
+			},
+			{
+				Type:       lte.CellularEnodebType,
+				Key:        "1202000038269KP0037",
+				PhysicalID: "1202000038269KP0037",
+			},
 		},
 	)
 	assert.NoError(t, err)
@@ -503,9 +477,24 @@ func (m *mockMagmadClient) RebootEnodeb(networkId string, gatewayId string, enod
 	return args.Get(0).(*protos.GenericCommandResponse), args.Error(1)
 }
 
-func (m *mockMagmadClient) GetEnodebStatus(networkId string, hwId string) (*ltemodels.EnodebState, error) {
-	args := m.Called(networkId, hwId)
-	return args.Get(0).(*ltemodels.EnodebState), args.Error(1)
+func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *ltemodels.EnodebState) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedEnodebState, err := serde.Serialize(state.SerdeDomain, lte.EnodebStateType, req)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     lte.EnodebStateType,
+			DeviceID: enodebSerial,
+			Value:    serializedEnodebState,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
+	)
+	assert.NoError(t, err)
 }
 
 type mockClient struct {

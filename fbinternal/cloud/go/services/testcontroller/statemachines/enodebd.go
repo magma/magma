@@ -91,7 +91,6 @@ const (
 type GatewayClient interface {
 	GenerateTraffic(networdId string, gatewayId string, ssid string, pw string) (*protos.GenericCommandResponse, error)
 	RebootEnodeb(networkdId string, gatewayId string, enodebSerial string) (*protos.GenericCommandResponse, error)
-	GetEnodebStatus(networkId string, hwId string) (*ltemodels.EnodebState, error)
 }
 
 type MagmadClient struct{}
@@ -127,8 +126,7 @@ func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSe
 	return resp, err
 }
 
-// GetEnodebStatus retrieves a requested enodeb's configuration
-func (m *MagmadClient) GetEnodebStatus(networkID string, enodebSN string) (*ltemodels.EnodebState, error) {
+func getEnodebStatus(networkID string, enodebSN string) (*ltemodels.EnodebState, error) {
 	st, err := state.GetState(networkID, lte.EnodebStateType, enodebSN)
 	if err != nil {
 		return nil, err
@@ -169,7 +167,7 @@ func NewEnodebdE2ETestStateMachine(store storage.TestControllerStorage, client H
 			rebootEnodeb1State:      makeRebootEnodebStateHandler(1, gatewayClient),
 			rebootEnodeb2State:      makeRebootEnodebStateHandler(2, gatewayClient),
 			rebootEnodeb3State:      makeRebootEnodebStateHandler(3, gatewayClient),
-			verifyConnectivityState: makeVerifyConnectivityHandler(gatewayClient, trafficTest2State1),
+			verifyConnectivityState: makeVerifyConnectivityHandler(trafficTest2State1),
 
 			trafficTest2State1: makeTrafficTestStateHandler(2, 1, gatewayClient, reconfigEnodebState1),
 			trafficTest2State2: makeTrafficTestStateHandler(2, 2, gatewayClient, reconfigEnodebState1),
@@ -211,7 +209,7 @@ func NewEnodebdE2ETestStateMachineNoTraffic(store storage.TestControllerStorage,
 			rebootEnodeb1State:      makeRebootEnodebStateHandler(1, gatewayClient),
 			rebootEnodeb2State:      makeRebootEnodebStateHandler(2, gatewayClient),
 			rebootEnodeb3State:      makeRebootEnodebStateHandler(3, gatewayClient),
-			verifyConnectivityState: makeVerifyConnectivityHandler(gatewayClient, reconfigEnodebState1),
+			verifyConnectivityState: makeVerifyConnectivityHandler(reconfigEnodebState1),
 
 			reconfigEnodebState1: makeConfigEnodebStateHandler(1, verifyConfig1State),
 			reconfigEnodebState2: makeConfigEnodebStateHandler(2, verifyConfig1State),
@@ -344,19 +342,19 @@ func rebootEnodebStateHandler(stateNumber int, gatewayClient GatewayClient, mach
 	return verifyConnectivityState, 15 * time.Minute, nil
 }
 
-func makeVerifyConnectivityHandler(gatewayClient GatewayClient, successState string) handlerFunc {
+func makeVerifyConnectivityHandler(successState string) handlerFunc {
 	return func(machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
-		return verifyConnectivity(gatewayClient, successState, machine, config)
+		return verifyConnectivity(successState, machine, config)
 	}
 }
 
-func verifyConnectivity(gatewayClient GatewayClient, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+func verifyConnectivity(successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
 	targetGWID := *config.AgwConfig.TargetGatewayID
 	enodebSN := *config.EnodebSN
 	pretext := fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "FAILED")
 	fallback := "Reboot enodeb notification"
 
-	resp, err := gatewayClient.GetEnodebStatus(*config.NetworkID, enodebSN)
+	resp, err := getEnodebStatus(*config.NetworkID, enodebSN)
 	if resp == nil || err != nil {
 		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
