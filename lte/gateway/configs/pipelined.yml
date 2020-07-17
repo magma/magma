@@ -117,7 +117,7 @@ monitored_ifaces: ['gtp_br0',
 # Whether pipelined should cleanup flows on restarts
 clean_restart: true
 
-redis_enabled: true
+redis_enabled: false
 
 # MTR iface IP
 mtr_ip: 10.0.2.10

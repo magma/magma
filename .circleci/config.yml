@@ -8,7 +8,7 @@ refs:
 
 aliases:
   - &appdir
-    working_directory: "symphony/app"
+    working_directory: "nms/app"
 
 executors:
   node:
@@ -81,14 +81,14 @@ commands:
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:
-            - yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+            - yarn-packages-{{ checksum "nms/app/yarn.lock" }}
       - run:
           name: Install Dependencies
           <<: *appdir
           command: yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+          key: yarn-packages-{{ checksum "nms/app/yarn.lock" }}
           paths:
             - ~/.cache/yarn
 
@@ -373,7 +373,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
     steps:
       - checkout
       - run:

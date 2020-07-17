@@ -40,9 +40,10 @@ type GatewayRPCBroker interface {
 	// InitializeGateway initializes the necessary data structures for a gwId
 	// when the gateway connects to the SyncRPC servicer so the dispatcher
 	// is ready to take any requests for this gateway, and returns
-	// a request queue for grpc servicer to listen on for incoming requests from httpserver.
+	// a request queue for gRPC servicer to listen on for incoming requests
+	// from HTTP servers.
 	InitializeGateway(gwId string) chan *protos.SyncRPCRequest
-	// CleanUpGateway cleans up the data and resources for a gwId when the gw loses SyncRPC connection to the cloud.
+	// CleanupGateway cleans up the data and resources for a gwId when the gw loses SyncRPC connection to the cloud.
 	CleanupGateway(gwId string) error
 	// CancelGatewayRequest notifies the gateway to stop handling the request with ID reqId.
 	CancelGatewayRequest(gwId string, reqId uint32) error

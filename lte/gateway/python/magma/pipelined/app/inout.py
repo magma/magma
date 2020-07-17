@@ -53,22 +53,26 @@ class InOutController(MagmaController):
     InOutConfig = namedtuple(
         'InOutConfig',
         ['gtp_port', 'uplink_port_name', 'mtr_ip', 'mtr_port', 'li_port_name',
-         'enable_nat', 'non_mat_gw_probe_frequency', 'non_nat_arp_egress_port'],
+         'enable_nat', 'non_mat_gw_probe_frequency', 'non_nat_arp_egress_port',
+         'setup_type'],
     )
     ARP_PROBE_FREQUENCY = 300
     UPLINK_DPCP_PORT_NAME = 'dhcp0'
+    UPLINK_PORT_NAME = 'patch-up'
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
         self.config = self._get_config(kwargs['config'])
-        self._uplink_port = OFPP_LOCAL
         self._li_port = None
         # TODO Alex do we want this to be cofigurable from swagger?
         if self.config.mtr_ip:
             self._mtr_service_enabled = True
         else:
             self._mtr_service_enabled = False
-        if self.config.uplink_port_name is not None:
+
+        if self.config.enable_nat is True:
+            self._uplink_port = OFPP_LOCAL
+        else:
             self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
         if (self._service_manager.is_app_enabled(LIMirrorController.APP_NAME)
@@ -89,8 +93,9 @@ class InOutController(MagmaController):
         mtr_ip = None
         mtr_port = None
         li_port_name = None
-        if 'ovs_uplink_port_name' in config_dict:
-            port_name = config_dict['ovs_uplink_port_name']
+        port_name = config_dict.get('ovs_uplink_port_name',
+                                    self.UPLINK_PORT_NAME)
+        setup_type = config_dict.get('setup_type', None)
 
         if 'mtr_ip' in config_dict:
             self._mtr_service_enabled = True
@@ -114,6 +119,7 @@ class InOutController(MagmaController):
             enable_nat=enable_nat,
             non_mat_gw_probe_frequency=non_mat_gw_probe_freq,
             non_nat_arp_egress_port=non_nat_arp_egress_port,
+            setup_type=setup_type,
         )
 
     def initialize_on_connect(self, datapath):
@@ -319,6 +325,9 @@ class InOutController(MagmaController):
         """
         if self.config.enable_nat is True:
             self.logger.info("Nat is on")
+            return
+        elif self.config.setup_type != 'LTE':
+            self.logger.info("No GW MAC probe for %s", self.config.setup_type)
             return
         else:
             self.logger.info("Non nat conf: Frequency:%s, egress port: %s, uplink: %s",

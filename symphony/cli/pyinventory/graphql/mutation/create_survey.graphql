@@ -1,3 +1,0 @@
-mutation CreateSurveyMutation($data: SurveyCreateData!) {
-  createSurvey(data: $data)
-}
