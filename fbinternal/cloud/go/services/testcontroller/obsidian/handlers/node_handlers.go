@@ -43,10 +43,23 @@ const (
 	CINodesManuallyReservePath = CINodesGetPath + obsidian.UrlSep + CIReserveBase
 	CINodesManuallyReleasePath = CINodesGetPath + obsidian.UrlSep + CIReleaseBase
 	CINodesReleasePath         = CINodesGetPath + obsidian.UrlSep + CIReleaseBase + obsidian.UrlSep + LeaseIDArg
+
+	tagParamName          = "tag"
+	listUntaggedParamName = "list_untagged"
 )
 
 func listCINodes(c echo.Context) error {
-	nodes, err := testcontroller.GetNodes(nil, nil)
+	tagVal := c.QueryParam(tagParamName)
+	shouldListUntagged := len(c.QueryParam(listUntaggedParamName)) > 0
+	var tag *string
+	if tagVal != "" {
+		tag = &tagVal
+	}
+	if shouldListUntagged {
+		tag = strPtr("")
+	}
+
+	nodes, err := testcontroller.GetNodes(nil, tag)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -85,7 +98,7 @@ func createCINode(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, VpnIP: string(*node.VpnIP)})
+	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -109,7 +122,7 @@ func updateCINode(c echo.Context) error {
 	if *node.ID != idParam[0] {
 		return obsidian.HttpError(errors.New("payload ID does not match path param"), http.StatusBadRequest)
 	}
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, VpnIP: string(*node.VpnIP)})
+	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -130,7 +143,7 @@ func deleteCINode(c echo.Context) error {
 }
 
 func leaseCINode(c echo.Context) error {
-	lease, err := testcontroller.LeaseNode("")
+	lease, err := testcontroller.LeaseNode(c.QueryParam(tagParamName))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -212,6 +225,7 @@ func protoNodeToModel(n *storage.CINode) *models.CiNode {
 	return &models.CiNode{
 		Available:     swag.Bool(n.Available),
 		ID:            swag.String(n.Id),
+		Tag:           n.Tag,
 		LastLeaseTime: strfmt.DateTime(lastLeaseTime),
 		VpnIP:         ipv4Ptr(n.VpnIp),
 	}
@@ -220,4 +234,8 @@ func protoNodeToModel(n *storage.CINode) *models.CiNode {
 func ipv4Ptr(s string) *strfmt.IPv4 {
 	ip := strfmt.IPv4(s)
 	return &ip
+}
+
+func strPtr(s string) *string {
+	return &s
 }

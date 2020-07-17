@@ -22,6 +22,9 @@ type MutableCiNode struct {
 	// Min Length: 1
 	ID *string `json:"id"`
 
+	// tag
+	Tag string `json:"tag,omitempty"`
+
 	// vpn ip
 	// Required: true
 	// Format: ipv4

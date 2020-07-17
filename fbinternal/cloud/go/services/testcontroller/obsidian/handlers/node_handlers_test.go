@@ -52,7 +52,7 @@ func Test_ListCINodes(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
+	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", Tag: "foo", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
 	err = testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node2", VpnIP: "10.0.2.1"})
 	assert.NoError(t, err)
@@ -60,9 +60,35 @@ func Test_ListCINodes(t *testing.T) {
 		{
 			Available:     swag.Bool(true),
 			ID:            swag.String("node1"),
+			Tag:           "foo",
 			LastLeaseTime: expectedDT(t, 0),
 			VpnIP:         ipv4("192.168.100.1"),
 		},
+		{
+			Available:     swag.Bool(true),
+			ID:            swag.String("node2"),
+			LastLeaseTime: expectedDT(t, 0),
+			VpnIP:         ipv4("10.0.2.1"),
+		},
+	})
+	tests.RunUnitTest(t, e, tc)
+
+	// Find tagged nodes
+	tc.URL += "?tag=foo"
+	tc.ExpectedResult = tests.JSONMarshaler([]*models.CiNode{
+		{
+			Available:     swag.Bool(true),
+			ID:            swag.String("node1"),
+			Tag:           "foo",
+			LastLeaseTime: expectedDT(t, 0),
+			VpnIP:         ipv4("192.168.100.1"),
+		},
+	})
+	tests.RunUnitTest(t, e, tc)
+
+	// Find untagged nodes
+	tc.URL += "&list_untagged=true"
+	tc.ExpectedResult = tests.JSONMarshaler([]*models.CiNode{
 		{
 			Available:     swag.Bool(true),
 			ID:            swag.String("node2"),
@@ -138,12 +164,33 @@ func Test_CreateCINode(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// With tag
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot + "/nodes",
+		Handler:        createNode,
+		ExpectedStatus: 201,
+		Payload: &models.MutableCiNode{
+			ID:    swag.String("node2"),
+			Tag:   "foo",
+			VpnIP: ipv4("10.0.0.2"),
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	actual, err := testcontroller.GetNodes(nil, nil)
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {
 			Id:            "node1",
 			VpnIp:         "192.168.100.1",
+			Available:     true,
+			LastLeaseTime: timestampProto(t, 0),
+		},
+		"node2": {
+			Id:            "node2",
+			Tag:           "foo",
+			VpnIp:         "10.0.0.2",
 			Available:     true,
 			LastLeaseTime: timestampProto(t, 0),
 		},
@@ -269,6 +316,8 @@ func Test_ReserveCINode(t *testing.T) {
 	// Happy path
 	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node1", VpnIP: "192.168.100.1"})
 	assert.NoError(t, err)
+	err = testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: "node2", Tag: "foo", VpnIP: "10.0.0.2"})
+	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot + "/nodes/reserve",
@@ -281,7 +330,7 @@ func Test_ReserveCINode(t *testing.T) {
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err := testcontroller.GetNodes(nil, nil)
+	actual, err := testcontroller.GetNodes(nil, strPtr(""))
 	assert.NoError(t, err)
 	expected := map[string]*storage.CINode{
 		"node1": {
@@ -318,12 +367,44 @@ func Test_ReserveCINode(t *testing.T) {
 		},
 	}
 	tests.RunUnitTest(t, e, tc)
+	actual, err = testcontroller.GetNodes(nil, strPtr(""))
+	assert.NoError(t, err)
+	expected = map[string]*storage.CINode{
+		"node1": {
+			Id:            "node1",
+			VpnIp:         "192.168.100.1",
+			Available:     false,
+			LastLeaseTime: timestampProto(t, int64(frozenClock/time.Second)),
+		},
+	}
+	assert.Equal(t, expected, actual)
+
+	// Lease a tagged node
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot + "/nodes/reserve?tag=foo",
+		Handler:        reserveNode,
+		ExpectedStatus: 200,
+		ExpectedResult: &models.NodeLease{
+			ID:      swag.String("node2"),
+			LeaseID: swag.String("3"),
+			VpnIP:   ipv4("10.0.0.2"),
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
 	actual, err = testcontroller.GetNodes(nil, nil)
 	assert.NoError(t, err)
 	expected = map[string]*storage.CINode{
 		"node1": {
 			Id:            "node1",
 			VpnIp:         "192.168.100.1",
+			Available:     false,
+			LastLeaseTime: timestampProto(t, int64(frozenClock/time.Second)),
+		},
+		"node2": {
+			Id:            "node2",
+			Tag:           "foo",
+			VpnIp:         "10.0.0.2",
 			Available:     false,
 			LastLeaseTime: timestampProto(t, int64(frozenClock/time.Second)),
 		},
@@ -475,4 +556,8 @@ func timestampProto(t *testing.T, ti int64) *timestamp.Timestamp {
 	ret, err := ptypes.TimestampProto(time.Unix(ti, 0))
 	assert.NoError(t, err)
 	return ret
+}
+
+func strPtr(s string) *string {
+	return &s
 }
