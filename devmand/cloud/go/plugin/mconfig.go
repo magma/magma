@@ -10,12 +10,12 @@ of patent rights can be found in the PATENTS file in the same directory.
 package plugin
 
 import (
+	"magma/devmand/cloud/go/devmand"
+	"magma/devmand/cloud/go/protos/mconfig"
+	models2 "magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
 	merrors "magma/orc8r/lib/go/errors"
-	"orc8r/devmand/cloud/go/devmand"
-	"orc8r/devmand/cloud/go/protos/mconfig"
-	models2 "orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
