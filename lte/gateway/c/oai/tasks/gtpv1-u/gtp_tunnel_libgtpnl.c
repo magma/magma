@@ -231,6 +231,11 @@ int libgtpnl_send_end_marker(struct in_addr enb, uint32_t tei)
   return -EOPNOTSUPP;
 }
 
+const char *libgtpnl_get_dev_name()
+{
+  return GTP_DEVNAME;
+}
+
 static const struct gtp_tunnel_ops libgtpnl_ops = {
   .init = libgtpnl_init,
   .uninit = libgtpnl_uninit,
@@ -238,6 +243,7 @@ static const struct gtp_tunnel_ops libgtpnl_ops = {
   .add_tunnel = libgtpnl_add_tunnel,
   .del_tunnel = libgtpnl_del_tunnel,
   .send_end_marker = libgtpnl_send_end_marker,
+  .get_dev_name = libgtpnl_get_dev_name,
 };
 
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_libgtpnl(void)
