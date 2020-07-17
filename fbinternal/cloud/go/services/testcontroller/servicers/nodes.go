@@ -28,7 +28,7 @@ func NewNodeLeasorServicer(store storage.NodeLeasorStorage) tcprotos.NodeLeasorS
 }
 
 func (n *nodeLeasorServicer) GetNodes(_ context.Context, req *tcprotos.GetNodesRequest) (*tcprotos.GetNodesResponse, error) {
-	nodes, err := n.store.GetNodes(req.Ids)
+	nodes, err := n.store.GetNodes(req.Ids, nil)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -66,7 +66,7 @@ func (n *nodeLeasorServicer) ReserveNode(_ context.Context, req *tcprotos.Reserv
 }
 
 func (n *nodeLeasorServicer) LeaseNode(context.Context, *protos.Void) (*tcprotos.LeaseNodeResponse, error) {
-	lease, err := n.store.LeaseNode()
+	lease, err := n.store.LeaseNode(nil)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

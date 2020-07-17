@@ -12,6 +12,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
@@ -29,6 +30,7 @@ const (
 
 	idCol         = "pk"
 	vpnIPCol      = "vpn_ip"
+	tagCol        = "tag"
 	availCol      = "available"
 	lastLeasedCol = "last_leased_sec"
 	leaseIdCol    = "lease_id"
@@ -74,6 +76,7 @@ func (s *sqlNodeLeasorStorage) Init() (err error) {
 		IfNotExists().
 		Column(idCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
 		Column(vpnIPCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+		Column(tagCol).Type(sqorc.ColumnTypeText).NotNull().Default("''").EndColumn().
 		Column(availCol).Type(sqorc.ColumnTypeBool).NotNull().Default(true).EndColumn().
 		Column(lastLeasedCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
 		Column(leaseIdCol).Type(sqorc.ColumnTypeText).EndColumn().
@@ -82,16 +85,31 @@ func (s *sqlNodeLeasorStorage) Init() (err error) {
 	if err != nil {
 		err = errors.Wrap(err, "failed to create worker node lease table")
 	}
+
+	// Add tag column here. We can remove this code after it runs on prod once.
+	_, err = tx.Exec(fmt.Sprintf("ALTER TABLE %s ADD COLUMN IF NOT EXISTS %s text NOT NULL DEFAULT ''", nodeTable, tagCol))
+	// sqlite doesn't support this alter table DDL but it doesn't matter since
+	// we only use ephemeral in-memory sqlite for tests
+	if err != nil && os.Getenv("SQL_DRIVER") != "sqlite3" {
+		return errors.Wrap(err, "failed to add 'tag' column to nodes table")
+	}
 	return
 }
 
-func (s *sqlNodeLeasorStorage) GetNodes(ids []string) (map[string]*CINode, error) {
+func (s *sqlNodeLeasorStorage) GetNodes(ids []string, tag *string) (map[string]*CINode, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		builder := s.builder.Select(idCol, vpnIPCol, availCol, lastLeasedCol).
+		builder := s.builder.Select(idCol, vpnIPCol, tagCol, availCol, lastLeasedCol).
 			From(nodeTable).
 			RunWith(tx)
+		clauses := squirrel.And{}
 		if !funk.IsEmpty(ids) {
-			builder = builder.Where(squirrel.Eq{idCol: ids})
+			clauses = append(clauses, squirrel.Eq{idCol: ids})
+		}
+		if tag != nil {
+			clauses = append(clauses, squirrel.Eq{tagCol: tag})
+		}
+		if !funk.IsEmpty(clauses) {
+			builder = builder.Where(clauses)
 		}
 
 		rows, err := builder.Query()
@@ -112,9 +130,15 @@ func (s *sqlNodeLeasorStorage) GetNodes(ids []string) (map[string]*CINode, error
 func (s *sqlNodeLeasorStorage) CreateOrUpdateNode(node *MutableCINode) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := s.builder.Insert(nodeTable).
-			Columns(idCol, vpnIPCol).
-			Values(node.Id, node.VpnIP).
-			OnConflict([]sqorc.UpsertValue{{Column: vpnIPCol, Value: node.VpnIP}}, idCol).
+			Columns(idCol, tagCol, vpnIPCol).
+			Values(node.Id, node.Tag, node.VpnIP).
+			OnConflict(
+				[]sqorc.UpsertValue{
+					{Column: tagCol, Value: node.Tag},
+					{Column: vpnIPCol, Value: node.VpnIP},
+				},
+				idCol,
+			).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -143,8 +167,8 @@ func (s *sqlNodeLeasorStorage) DeleteNode(id string) error {
 	return err
 }
 
-func (s *sqlNodeLeasorStorage) LeaseNode() (*NodeLease, error) {
-	ret, err := sqorc.ExecInTx(s.db, nil, nil, s.getNodeLeaseTxFn("", ""))
+func (s *sqlNodeLeasorStorage) LeaseNode(tag *string) (*NodeLease, error) {
+	ret, err := sqorc.ExecInTx(s.db, nil, nil, s.getNodeLeaseTxFn("", tag, ""))
 	switch {
 	case err != nil:
 		return nil, err
@@ -156,7 +180,7 @@ func (s *sqlNodeLeasorStorage) LeaseNode() (*NodeLease, error) {
 }
 
 func (s *sqlNodeLeasorStorage) ReserveNode(id string) (*NodeLease, error) {
-	ret, err := sqorc.ExecInTx(s.db, nil, nil, s.getNodeLeaseTxFn(id, manualLeaseID))
+	ret, err := sqorc.ExecInTx(s.db, nil, nil, s.getNodeLeaseTxFn(id, nil, manualLeaseID))
 	switch {
 	case err != nil:
 		return nil, err
@@ -196,28 +220,37 @@ func (s *sqlNodeLeasorStorage) ReleaseNode(id string, leaseID string) error {
 	return err
 }
 
-func (s *sqlNodeLeasorStorage) getNodeLeaseTxFn(id string, specificLeaseID string) func(tx *sql.Tx) (interface{}, error) {
+func (s *sqlNodeLeasorStorage) getNodeLeaseTxFn(id string, tag *string, specificLeaseID string) func(tx *sql.Tx) (interface{}, error) {
 	return func(tx *sql.Tx) (interface{}, error) {
 		now := clock.Now()
 		timeoutThreashold := now.Add(-leaseTimeout)
 
-		// SELECT id, vpn_ip, available, last_leased_sec
+		// SELECT id, vpn_ip, tag, available, last_leased_sec
 		// FROM testcontroller_nodes
-		// WHERE (available OR (NOT available AND last_leased_sec < 42)) AND id = "ci_node_1"
+		// WHERE (available OR (NOT available AND last_leased_sec < 42)) AND tag = "foo"
 		// LIMIT 1
 		// FOR UPDATE SKIP LOCKED
+		// If the ID is specified, the WHERE clause will only look for the ID, regardless of availability or tag.
 		var whereClause interface{}
-		whereClause = squirrel.Or{
-			squirrel.Eq{availCol: true},
-			squirrel.And{
-				squirrel.Eq{availCol: false},
-				squirrel.Lt{lastLeasedCol: timeoutThreashold.Unix()},
-			},
-		}
 		if id != "" {
 			whereClause = squirrel.Eq{idCol: id}
+		} else {
+			whereClause = squirrel.Or{
+				squirrel.Eq{availCol: true},
+				squirrel.And{
+					squirrel.Eq{availCol: false},
+					squirrel.Lt{lastLeasedCol: timeoutThreashold.Unix()},
+				},
+			}
+			if tag != nil {
+				whereClause = squirrel.And{
+					whereClause.(squirrel.Or),
+					squirrel.Eq{tagCol: *tag},
+				}
+			}
 		}
-		rows, err := s.builder.Select(idCol, vpnIPCol, availCol, lastLeasedCol).
+
+		rows, err := s.builder.Select(idCol, vpnIPCol, tagCol, availCol, lastLeasedCol).
 			From(nodeTable).
 			Where(whereClause).
 			Limit(1).
@@ -267,11 +300,11 @@ func (s *sqlNodeLeasorStorage) getNodeLeaseTxFn(id string, specificLeaseID strin
 func scanNodes(rows *sql.Rows) (map[string]*CINode, error) {
 	ret := map[string]*CINode{}
 	for rows.Next() {
-		var id, ip string
+		var id, ip, tag string
 		var avail bool
 		var lastLeased int64
 
-		err := rows.Scan(&id, &ip, &avail, &lastLeased)
+		err := rows.Scan(&id, &ip, &tag, &avail, &lastLeased)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to scan node row")
 		}
@@ -283,6 +316,7 @@ func scanNodes(rows *sql.Rows) (map[string]*CINode, error) {
 		ret[id] = &CINode{
 			Id:            id,
 			VpnIp:         ip,
+			Tag:           tag,
 			Available:     avail,
 			LastLeaseTime: lastLeasedTs,
 		}
