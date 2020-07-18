@@ -18,6 +18,7 @@ import (
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type ServiceRegistry struct {
@@ -34,7 +35,13 @@ type cloudConnection struct {
 	expiration time.Time
 }
 
-// New creates and initializes a new registry.
+var localKeepaliveParams = keepalive.ClientParameters{
+	Time:                31 * time.Second,
+	Timeout:             10 * time.Second,
+	PermitWithoutStream: true,
+}
+
+// New creates and returns a new registry
 func New() *ServiceRegistry {
 	return &ServiceRegistry{
 		ServiceConnections: map[string]*grpc.ClientConn{},
@@ -209,12 +216,12 @@ func (r *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error
 
 	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
-	return r.GetConnectionImpl(
-		ctx,
-		service,
-		grpc.WithBackoffMaxDelay(GrpcMaxDelaySec*time.Second),
-		grpc.WithBlock(),
-	)
+
+	opts := []grpc.DialOption{grpc.WithBackoffMaxDelay(GrpcMaxDelaySec * time.Second), grpc.WithBlock()}
+	if *grpcKeepAlive {
+		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
+	}
+	return r.GetConnectionImpl(ctx, service, opts...)
 }
 
 func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
