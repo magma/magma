@@ -31,18 +31,25 @@ const path = require('path');
 const {buildSchema, printSchema} = require('graphql');
 const fs = require('fs');
 
-let schemaPath = path.resolve(
+const schemaPath1 = path.resolve(
   __dirname,
   '../../../../fbcode/fbc/symphony/graph/graphql/schema/symphony.graphql',
 );
-if (!fs.existsSync(schemaPath)) {
-  schemaPath = path.resolve(
+const schemaPath2 = path.resolve(
     __dirname,
     '../../../graph/graphql/schema/symphony.graphql',
   )
+let schemaPath = '';
+if(fs.existsSync(schemaPath1)) {
+  schemaPath = schemaPath1;
+} else if (fs.existsSync(schemaPath2)) {
+  schemaPath = schemaPath2;
 }
-const schemaFile = fs.readFileSync(schemaPath, {encoding: 'utf8'});
-const schemaObject = buildSchema(schemaFile);
+
+let schemaObject = {};
+if(schemaPath !== '') {
+  schemaObject = buildSchema(fs.readFileSync(schemaPath, {encoding: 'utf8'}));
+}
 
 const restrictedImportsRule = ['error',{
   'paths':[{
@@ -51,7 +58,7 @@ const restrictedImportsRule = ['error',{
   }],
 }];
 
-module.exports = Object.assign({}, fbStrict, {
+const eslintMap = {
   env: {
     browser: true,
     es6: true,
@@ -185,14 +192,7 @@ module.exports = Object.assign({}, fbStrict, {
       'ignoreMemberSort': false,
       'memberSyntaxSortOrder': ['none', 'all', 'single', 'multiple'],
     }],
-    'graphql/no-deprecated-fields': [
-      'error',
-      {
-        env: 'relay',
-        schemaString: printSchema(schemaObject),
-        tagName: 'graphql',
-      },
-    ],
+
 
     // Jest Plugin
     // The following rules are made available via `eslint-plugin-jest`.
@@ -234,4 +234,16 @@ module.exports = Object.assign({}, fbStrict, {
    'extends': [
     'plugin:relay/recommended',
   ],
-});
+};
+
+if(Object.keys(schemaObject).length > 0) {
+  eslintMap['rules']['graphql/no-deprecated-fields'] = [
+      'error',
+      {
+        env: 'relay',
+        schemaString: printSchema(schemaObject),
+        tagName: 'graphql',
+      },
+  ]
+}
+module.exports = Object.assign({}, fbStrict, eslintMap);
