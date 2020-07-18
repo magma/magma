@@ -23,21 +23,20 @@ class DefGwTest(unittest.TestCase):
     """
     Validate default router setting.
     """
+    def setUp(self):
+        self.gw_store = defaultdict(str)
+        self.dhcp_gw_info = UplinkGatewayInfo(self.gw_store)
 
     def test_gw_ip_for_DHCP(self):
-        gw_store = defaultdict(str)
-        dhcp_gw_info = UplinkGatewayInfo(gw_store)
-        self.assertEqual(dhcp_gw_info.getIP(), None)
-        self.assertEqual(dhcp_gw_info.getMac(), None)
+        self.assertEqual(self.dhcp_gw_info.getIP(), None)
+        self.assertEqual(self.dhcp_gw_info.getMac(), None)
 
     def test_gw_ip_for_Ip_pool(self):
-        gw_store = defaultdict(str)
-        dhcp_gw_info = UplinkGatewayInfo(gw_store)
-        dhcp_gw_info.read_default_gw()
+        self.dhcp_gw_info.read_default_gw()
 
         def_gw_cmd = "ip route show |grep default| awk '{print $3}'"
         p = subprocess.Popen([def_gw_cmd], stdout=subprocess.PIPE, shell=True)
         def_ip = p.stdout.read().decode("utf-8").strip()
-        self.assertEqual(dhcp_gw_info.getIP(), str(def_ip))
-        self.assertEqual(dhcp_gw_info.getMac(), None)
+        self.assertEqual(self.dhcp_gw_info.getIP(), str(def_ip))
+        self.assertEqual(self.dhcp_gw_info.getMac(), None)
 

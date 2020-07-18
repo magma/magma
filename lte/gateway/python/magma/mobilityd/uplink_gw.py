@@ -15,7 +15,7 @@ from typing import MutableMapping, Optional
 DHCP_Router_key = "DHCPRouterKey"
 DHCP_Router_Mac_key = "DHCPRouterMacKey"
 
-
+# TODO: move helper class to separate directory.
 class UplinkGatewayInfo:
     def __init__(self, gw_info_map: MutableMapping[str, str]):
         """
