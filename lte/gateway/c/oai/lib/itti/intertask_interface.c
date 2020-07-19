@@ -447,6 +447,7 @@ static inline void itti_receive_msg_internal_event_fd(
     if ((itti_desc.threads[thread_id].events[i].events & EPOLLIN) &&
         (itti_desc.threads[thread_id].events[i].data.fd ==
          itti_desc.threads[thread_id].task_event_fd)) {
+/*
       struct message_list_s *message = NULL;
       eventfd_t sem_counter;
       ssize_t read_ret;
@@ -454,7 +455,6 @@ static inline void itti_receive_msg_internal_event_fd(
 
 
        // Read will always return 1
-
       read_ret = read(itti_desc.threads[thread_id].task_event_fd, &sem_counter,
                       sizeof(sem_counter));
       AssertFatal(read_ret == sizeof(sem_counter),
@@ -480,7 +480,7 @@ static inline void itti_receive_msg_internal_event_fd(
                   result);
 
        // Mark that the event has been processed
-
+*/
       itti_desc.threads[thread_id].events[i].events &= ~EPOLLIN;
       return;
     }
