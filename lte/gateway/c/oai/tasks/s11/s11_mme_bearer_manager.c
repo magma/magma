@@ -168,7 +168,7 @@ s11_mme_handle_release_access_bearer_response (
   if (rc != NW_OK) {
 
     // TODO: handle this case
-    itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+    free(message_p);
     message_p = NULL;
     rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
     DevAssert (NW_OK == rc);
@@ -181,7 +181,7 @@ s11_mme_handle_release_access_bearer_response (
   DevAssert (NW_OK == rc);
   rc = nwGtpv2cMsgDelete (*stack_p, (pUlpApi->hMsg));
   DevAssert (NW_OK == rc);
-  return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -285,7 +285,7 @@ s11_mme_handle_modify_bearer_response (
   if (rc != NW_OK) {
 
     // TODO: handle this case
-    itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+    free(message_p);
     message_p = NULL;
     rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
     DevAssert (NW_OK == rc);
@@ -303,12 +303,12 @@ s11_mme_handle_modify_bearer_response (
   if(resp_p->cause.cause_value == LATE_OVERLAPPING_REQUEST){
 	  pUlpApi->u_api_info.triggeredRspIndInfo.trx_flags |= LATE_OVERLAPPING_REQUEST;
 	  OAILOG_WARNING (LOG_S11, "Received a late overlapping request (MBR). Not forwarding message to MME_APP layer. \n");
-	  itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+	  free(message_p);
 	  message_p = NULL;
 	  return RETURNok;
   }
 
-  return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -406,7 +406,7 @@ s11_mme_handle_create_bearer_request (
     if (rc != NW_OK) {
 
      // TODO: handle this case
-      itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+      free(message_p);
       message_p = NULL;
       rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
       DevAssert (NW_OK == rc);
@@ -419,7 +419,7 @@ s11_mme_handle_create_bearer_request (
     DevAssert (NW_OK == rc);
     rc = nwGtpv2cMsgDelete (*stack_p, (pUlpApi->hMsg));
     DevAssert (NW_OK == rc);
-    return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+    return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
   }
   return RETURNerror;
 }
@@ -498,6 +498,5 @@ s11_mme_handle_downlink_data_notification(
   rc = nwGtpv2cMsgDelete (*stack_p, (pUlpApi->hMsg));
   DevAssert (NW_OK == rc);
 
-  return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
 }
-

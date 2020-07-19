@@ -29,6 +29,10 @@
 #ifndef FILE_S11_COMMON_SEEN
 #define FILE_S11_COMMON_SEEN
 
+#include "intertask_interface.h"
+
+extern task_zmq_ctx_t s11_task_zmq_ctx;
+
 nw_rc_t s11_ie_indication_generic(uint8_t  ieType,
                                 uint16_t  ieLength,
                                 uint8_t  ieInstance,

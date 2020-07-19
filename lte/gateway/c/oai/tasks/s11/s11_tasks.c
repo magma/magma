@@ -56,6 +56,7 @@
 static nw_gtpv2c_stack_handle_t             s11_mme_stack_handle = 0;
 // Store the GTPv2-C teid handle
 hash_table_ts_t                        *s11_mme_teid_2_gtv2c_teid_handle = NULL;
+task_zmq_ctx_t s11_task_zmq_ctx;
 
 static void s11_mme_exit (void);
 
@@ -165,7 +166,7 @@ s11_mme_send_udp_msg (
   udp_data_req_p->buffer = buffer;
   udp_data_req_p->buffer_length = buffer_len;
 
-  ret = itti_send_msg_to_task (TASK_UDP, INSTANCE_DEFAULT, message_p);
+  ret = send_msg_to_task(&s11_task_zmq_ctx, TASK_UDP, message_p);
   return ((ret == 0) ? NW_OK : NW_FAILURE);
 }
 
@@ -205,31 +206,25 @@ s11_mme_stop_timer_wrapper (
   return ((timer_remove (timer_id, &timeoutArg) == 0) ? NW_OK : NW_FAILURE);
 }
 
-//------------------------------------------------------------------------------
-static void                            *
-s11_mme_thread (
-  void *args)
+static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 {
-  itti_mark_task_ready (TASK_S11);
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
-  while (1) {
-    MessageDef                             *received_message_p = NULL;
-
-    itti_receive_msg (TASK_S11, &received_message_p);
-    assert(received_message_p);
-    switch (ITTI_MSG_ID (received_message_p)) {
+  switch (ITTI_MSG_ID (received_message_p)) {
     case MESSAGE_TEST:{
-    	OAI_FPRINTF_INFO("TASK_S11 received MESSAGE_TEST\n");
+      OAI_FPRINTF_INFO("TASK_S11 received MESSAGE_TEST\n");
     }
     break;
 
     case S11_CREATE_BEARER_RESPONSE:{
-    	s11_mme_create_bearer_response (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_create_bearer_response);
+      s11_mme_create_bearer_response (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_create_bearer_response);
     }
     break;
 
     case S11_CREATE_SESSION_REQUEST:{
-           s11_mme_create_session_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_create_session_request);
+        s11_mme_create_session_request (&s11_mme_stack_handle, &received_message_p->ittiMsg.s11_create_session_request);
     }
     break;
 
@@ -259,9 +254,9 @@ s11_mme_thread (
     break;
 
     case TERMINATE_MESSAGE:{
-            s11_mme_exit();
-            OAI_FPRINTF_INFO("TASK_S11 terminated\n");
-            itti_exit_task ();
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      s11_mme_exit();
     }
     break;
 
@@ -273,30 +268,28 @@ s11_mme_thread (
 
     case UDP_DATA_IND:{
             /*
-             * We received new data to handle from the UDP layer
-             */
+            * We received new data to handle from the UDP layer
+            */
             nw_rc_t                                   rc;
             udp_data_ind_t                         *udp_data_ind;
 
             udp_data_ind = &received_message_p->ittiMsg.udp_data_ind;
             rc = nwGtpv2cProcessUdpReq (s11_mme_stack_handle,
-            		udp_data_ind->msgBuf, udp_data_ind->buffer_length,
-    				udp_data_ind->local_port, udp_data_ind->peer_port,
+                udp_data_ind->msgBuf, udp_data_ind->buffer_length,
+            udp_data_ind->local_port, udp_data_ind->peer_port,
             (struct sockaddr *)&udp_data_ind->sock_addr);
             DevAssert (rc == NW_OK);
     }
     break;
 
-        default:
-            OAILOG_ERROR (LOG_S11, "Unknown message ID %d:%s\n", ITTI_MSG_ID (received_message_p), ITTI_MSG_NAME (received_message_p));
-            break;
-    }
-
-    itti_free_msg_content(received_message_p);
-    itti_free (ITTI_MSG_ORIGIN_ID (received_message_p), received_message_p);
-    received_message_p = NULL;
+    default:
+      OAILOG_ERROR (LOG_S11, "Unknown message ID %d:%s\n", ITTI_MSG_ID (received_message_p), ITTI_MSG_NAME (received_message_p));
+      break;
   }
-  return NULL;
+
+  itti_free_msg_content(received_message_p);
+  zframe_destroy(&msg_frame);
+  return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -306,7 +299,7 @@ s11_send_init_udp (
   struct in6_addr *address6,
   uint16_t port_number)
 {
-  MessageDef                             *message_p = itti_alloc_new_message (TASK_S11, UDP_INIT);
+  MessageDef* message_p = itti_alloc_new_message (TASK_S11, UDP_INIT);
   if (message_p == NULL) {
     return RETURNerror;
   }
@@ -323,24 +316,26 @@ s11_send_init_udp (
 	  inet_ntop (AF_INET6, (void*)&message_p->ittiMsg.udp_init.in6_addr, ipv6, INET6_ADDRSTRLEN);
 	  OAILOG_DEBUG (LOG_S11, "Tx UDP_INIT IPv6 addr %s:%" PRIu16 "\n", ipv6, message_p->ittiMsg.udp_init.port);
   }
-  return itti_send_msg_to_task (TASK_UDP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_UDP, message_p);
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_init (const mme_config_t * const mme_config_p)
+static void* s11_mme_thread(void* args)
 {
-  int                                     ret = 0;
+  itti_mark_task_ready(TASK_S11);
+  init_task_context(
+      TASK_S11,
+      (task_id_t []) {TASK_MME_APP, TASK_UDP},
+      2,
+      handle_message,
+      &s11_task_zmq_ctx);
+
+  mme_config_t* mme_config_p = (mme_config_t*) args;
+
   nw_gtpv2c_ulp_entity_t                      ulp;
   nw_gtpv2c_udp_entity_t                      udp;
   nw_gtpv2c_timer_mgr_entity_t                 tmrMgr;
   nw_gtpv2c_log_mgr_entity_t                   logMgr;
-
-  OAILOG_DEBUG (LOG_S11, "Initializing S11 interface\n");
-
-  if (nwGtpv2cInitialize (&s11_mme_stack_handle) != NW_OK) {
-    OAILOG_ERROR (LOG_S11, "Failed to initialize gtpv2-c stack\n");
-    goto fail;
-  }
 
   /*
    * Set ULP entity
@@ -368,19 +363,34 @@ int s11_mme_init (const mme_config_t * const mme_config_p)
   logMgr.logReqCallback = s11_mme_log_wrapper;
   DevAssert (NW_OK == nwGtpv2cSetLogMgrEntity (s11_mme_stack_handle, &logMgr));
 
-  if (itti_create_task (TASK_S11, &s11_mme_thread, NULL) < 0) {
-    OAILOG_ERROR (LOG_S11, "gtpv1u phtread_create: %s\n", strerror (errno));
-    goto fail;
-  }
-
-  //DevAssert (NW_OK == nwGtpv2cSetLogLevel (s11_mme_stack_handle, NW_LOG_LEVEL_DEBG));
-  /** Create 2 sockets, one for 2123 (received initial requests), another high port. */
   s11_send_init_udp(&mme_config.ip.s11_mme_v4, &mme_config.ip.s11_mme_v6, udp.gtpv2cStandardPort);
   s11_send_init_udp(&mme_config.ip.s11_mme_v4, &mme_config.ip.s11_mme_v6, 0);
 
   bstring b = bfromcstr("s11_mme_teid_2_gtv2c_teid_handle");
   s11_mme_teid_2_gtv2c_teid_handle = hashtable_ts_create(mme_config_p->max_ues, HASH_TABLE_DEFAULT_HASH_FUNC, hash_free_int_func, b);
   bdestroy_wrapper (&b);
+
+  zloop_start(s11_task_zmq_ctx.event_loop);
+  s11_mme_exit();
+  return NULL;
+}
+
+//------------------------------------------------------------------------------
+int s11_mme_init (mme_config_t* mme_config_p)
+{
+  int                                     ret = 0;
+
+  OAILOG_DEBUG (LOG_S11, "Initializing S11 interface\n");
+
+  if (nwGtpv2cInitialize (&s11_mme_stack_handle) != NW_OK) {
+    OAILOG_ERROR (LOG_S11, "Failed to initialize gtpv2-c stack\n");
+    goto fail;
+  }
+
+  if (itti_create_task (TASK_S11, &s11_mme_thread, mme_config_p) < 0) {
+    OAILOG_ERROR (LOG_S11, "gtpv1u phtread_create: %s\n", strerror (errno));
+    goto fail;
+  }
 
   OAILOG_DEBUG (LOG_S11, "Initializing S11 interface: DONE\n");
   return ret;
@@ -393,4 +403,7 @@ static void s11_mme_exit (void)
 {
   nwGtpv2cFinalize (s11_mme_stack_handle);
   hashtable_ts_destroy(s11_mme_teid_2_gtv2c_teid_handle);
+  destroy_task_context(&s11_task_zmq_ctx);
+  OAI_FPRINTF_INFO("TASK_S11 terminated\n");
+  pthread_exit(NULL);
 }

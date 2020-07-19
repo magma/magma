@@ -245,7 +245,7 @@ s11_mme_handle_create_session_response (
     DevAssert (NW_OK == rc);
     if(&resp_p->paa)
     	free_wrapper((void**)&resp_p->paa);
-    itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+    free(message_p);
     message_p = NULL;
     return RETURNerror;
   }
@@ -261,11 +261,11 @@ s11_mme_handle_create_session_response (
 	  OAILOG_WARNING (LOG_S11, "Received a late overlapping request. Not forwarding message to MME_APP layer. \n");
 	  if(&resp_p->paa)
 		  free_wrapper((void**)&resp_p->paa);
-	  itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+	  free(message_p);
 	  message_p = NULL;
 	  return RETURNok;
   }
-  return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -360,7 +360,7 @@ s11_mme_handle_delete_session_response (
   if (rc != NW_OK) {
 
     // TODO: handle this case
-    itti_free (ITTI_MSG_ORIGIN_ID (message_p), message_p);
+    free(message_p);
     message_p = NULL;
     rc = nwGtpv2cMsgParserDelete (*stack_p, pMsgParser);
     DevAssert (NW_OK == rc);
@@ -395,7 +395,7 @@ s11_mme_handle_delete_session_response (
     }
 
   }
-  return itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -482,7 +482,7 @@ s11_mme_handle_ulp_error_indicatior(
 
   /** Send this one directly to the ESM. */
 
-  int rc = itti_send_msg_to_task (TASK_NAS_ESM, INSTANCE_DEFAULT, message_p);
+  int rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN (LOG_S11, rc);
 
   default:
@@ -492,7 +492,6 @@ s11_mme_handle_ulp_error_indicatior(
   }
   OAILOG_WARNING (LOG_S10, "Received an error indicator for the local S11-TEID " TEID_FMT " and message type %d. \n",
       pUlpApi->u_api_info.rspFailureInfo.teidLocal, pUlpApi->u_api_info.rspFailureInfo.msgType);
-  int rc = itti_send_msg_to_task (TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  int rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN (LOG_S11, rc);
 }
-
