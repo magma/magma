@@ -5,11 +5,11 @@ import (
 	"io/ioutil"
 	"time"
 
+	fbprotos "magma/fbinternal/cloud/go/protos"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/lib/go/protos"
-	fbprotos "orc8r/fbinternal/cloud/go/protos"
 
 	"github.com/golang/protobuf/ptypes/duration"
 	"golang.org/x/net/context"

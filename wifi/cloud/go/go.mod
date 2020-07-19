@@ -1,4 +1,4 @@
-module orc8r/wifi/cloud/go
+module magma/wifi/cloud/go
 
 replace (
 	magma/gateway => ./../../../orc8r/gateway/go

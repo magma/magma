@@ -7,7 +7,7 @@
 syntax = "proto3";
 
 package magma.mconfig;
-option go_package = "orc8r/devmand/cloud/go/protos/mconfig";
+option go_package = "magma/devmand/cloud/go/protos/mconfig";
 
 message DevmandGatewayConfig {
   map<string, ManagedDevice> managed_devices = 1;

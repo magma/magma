@@ -30,6 +30,9 @@ type CiNode struct {
 	// Format: date-time
 	LastLeaseTime strfmt.DateTime `json:"last_lease_time,omitempty"`
 
+	// tag
+	Tag string `json:"tag,omitempty"`
+
 	// vpn ip
 	// Required: true
 	// Format: ipv4

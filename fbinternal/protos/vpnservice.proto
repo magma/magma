@@ -11,7 +11,7 @@ import "orc8r/protos/certifier.proto";
 import "orc8r/protos/common.proto";
 
 package magma.fbinternal;
-option go_package = "orc8r/fbinternal/cloud/go/protos";
+option go_package = "magma/fbinternal/cloud/go/protos";
 
 message VPNCertRequest {
   // Represents an x509 certificate request (.csr file)

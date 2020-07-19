@@ -8,7 +8,7 @@
 syntax = "proto3";
 
 package magma.mconfig;
-option go_package = "orc8r/wifi/cloud/go/protos/mconfig";
+option go_package = "magma/wifi/cloud/go/protos/mconfig";
 
 //------------------------------------------------------------------------------
 // Wifi configs

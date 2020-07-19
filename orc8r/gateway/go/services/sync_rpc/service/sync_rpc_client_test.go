@@ -79,8 +79,7 @@ func TestSyncRpcClient(t *testing.T) {
 	client := SyncRpcClient{
 		serviceRegistry: reg,
 		respCh:          make(chan *protos.SyncRPCResponse),
-		terminatedReqs:  make(map[uint32]bool),
-		outstandingReqs: make(map[uint32]context.CancelFunc),
+		outstandingReqs: make(map[uint32]*Request),
 		cfg:             cfg,
 		broker:          testBrokerImpl,
 	}
@@ -107,6 +106,10 @@ func TestSyncRpcClient(t *testing.T) {
 		grpcClient := protos.NewSyncRPCServiceClient(conn)
 		client.runSyncRpcClient(ctx, grpcClient)
 	}()
+	// consume first heartbeat
+	resp := <-svcSyncRpcRespCh
+	assert.Equal(t, resp.HeartBeat, true)
+
 	// send a syncRpcRequest and verify if we receive a proper syncRpcResponse
 	reg.AddService(registry.ServiceLocation{
 		Name: "testService",
@@ -157,6 +160,10 @@ func TestSyncRpcClient(t *testing.T) {
 		grpcClient := protos.NewSyncRPCServiceClient(conn)
 		client2.runSyncRpcClient(ctx, grpcClient)
 	}()
+	// consume first heartbeat
+	resp = <-svcSyncRpcRespCh
+	assert.Equal(t, resp.HeartBeat, true)
+
 	select {
 	case resp := <-svcSyncRpcRespCh:
 		assert.Equal(t, resp.HeartBeat, true)

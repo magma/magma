@@ -16,7 +16,7 @@ import (
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
-	"orc8r/wifi/cloud/go/wifi"
+	"magma/wifi/cloud/go/wifi"
 
 	"github.com/go-openapi/swag"
 )

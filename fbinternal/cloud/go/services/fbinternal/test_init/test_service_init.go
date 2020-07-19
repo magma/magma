@@ -12,11 +12,11 @@ import (
 	"os"
 	"testing"
 
+	"magma/fbinternal/cloud/go/services/fbinternal"
+	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/test_utils"
-	"orc8r/fbinternal/cloud/go/services/fbinternal"
-	"orc8r/fbinternal/cloud/go/services/fbinternal/servicers"
 )
 
 func StartTestService(t *testing.T) {

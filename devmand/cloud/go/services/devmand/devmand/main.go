@@ -9,11 +9,11 @@
 package main
 
 import (
+	"magma/devmand/cloud/go/devmand"
+	devmand_service "magma/devmand/cloud/go/services/devmand"
+	"magma/devmand/cloud/go/services/devmand/obsidian/handlers"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
-	"orc8r/devmand/cloud/go/devmand"
-	devmand_service "orc8r/devmand/cloud/go/services/devmand"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
 
 	"github.com/golang/glog"
 )

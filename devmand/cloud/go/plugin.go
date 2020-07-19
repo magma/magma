@@ -10,8 +10,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 package main
 
 import (
+	devmandp "magma/devmand/cloud/go/plugin"
 	"magma/orc8r/cloud/go/plugin"
-	devmandp "orc8r/devmand/cloud/go/plugin"
 )
 
 func main() {}

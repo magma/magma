@@ -1,10 +1,10 @@
 package vpnservice
 
 import (
+	fbprotos "magma/fbinternal/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
-	fbprotos "orc8r/fbinternal/cloud/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"

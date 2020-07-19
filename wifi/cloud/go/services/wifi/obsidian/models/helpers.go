@@ -12,7 +12,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
-	"orc8r/wifi/cloud/go/wifi"
+	"magma/wifi/cloud/go/wifi"
 )
 
 func GetMeshUpdates(gID string, oldMeshID, newMeshID MeshID) []configurator.EntityUpdateCriteria {

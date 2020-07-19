@@ -10,6 +10,8 @@ of patent rights can be found in the PATENTS file in the same directory.
 package plugin
 
 import (
+	"magma/devmand/cloud/go/devmand"
+	"magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -19,8 +21,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"orc8r/devmand/cloud/go/devmand"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 )
 
 // DevmandOrchestratorPlugin is the orchestrator plugin for devmand

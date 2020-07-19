@@ -14,6 +14,10 @@ import (
 	"fmt"
 	"testing"
 
+	"magma/devmand/cloud/go/devmand"
+	plugin2 "magma/devmand/cloud/go/plugin"
+	"magma/devmand/cloud/go/services/devmand/obsidian/handlers"
+	models2 "magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
@@ -30,10 +34,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
-	"orc8r/devmand/cloud/go/devmand"
-	plugin2 "orc8r/devmand/cloud/go/plugin"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
-	models2 "orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
