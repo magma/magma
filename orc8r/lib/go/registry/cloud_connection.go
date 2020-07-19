@@ -12,6 +12,7 @@ package registry
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 
 	"magma/orc8r/lib/go/service/config"
 )
@@ -34,10 +36,23 @@ const (
 	grpcMaxDelaySec   = 20
 )
 
-// control proxy config map
-// it'll be initialized on demand and used thereafter
-// any changed to the control proxy service config file would require process restart to take effect
-var controlProxyConfig atomic.Value
+var (
+	// control proxy config map
+	// it'll be initialized on demand and used thereafter
+	// any changed to the control proxy service config file would require process restart to take effect
+	controlProxyConfig atomic.Value
+	keepaliveParams    = keepalive.ClientParameters{
+		Time:                59 * time.Second,
+		Timeout:             20 * time.Second,
+		PermitWithoutStream: true,
+	}
+	proxiedKeepaliveParams = keepalive.ClientParameters{
+		Time:                47 * time.Second,
+		Timeout:             10 * time.Second,
+		PermitWithoutStream: true,
+	}
+	grpcKeepAlive = flag.Bool("grpc_keepalive", false, "Use keepalive option for all GRPC connections")
+)
 
 // GetCloudConnection Creates and returns a new GRPC service connection to the service in the cloud for a gateway
 // either directly or via control proxy
@@ -158,6 +173,9 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 	}
 	if useProxy {
 		opts = append(opts, grpc.WithInsecure(), grpc.WithAuthority(authority))
+		if *grpcKeepAlive {
+			opts = append(opts, grpc.WithKeepaliveParams(proxiedKeepaliveParams))
+		}
 	} else {
 		// always try to add OS certs
 		certPool, err := x509.SystemCertPool()
@@ -198,6 +216,9 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 			glog.Errorf("failed to get gateway certificate location: %v", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
+		if *grpcKeepAlive {
+			opts = append(opts, grpc.WithKeepaliveParams(keepaliveParams))
+		}
 	}
 	return opts, nil
 }

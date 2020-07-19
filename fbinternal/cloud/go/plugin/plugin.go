@@ -1,10 +1,12 @@
 package plugin
 
 import (
+	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
+	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/orc8r/cloud/go/services/state/indexer"
-	fbinternal_service "orc8r/fbinternal/cloud/go/services/fbinternal"
-	"orc8r/fbinternal/cloud/go/services/testcontroller"
 
+	"magma/fbinternal/cloud/go/fbinternal"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -14,8 +16,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"orc8r/fbinternal/cloud/go/fbinternal"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 )
 
 type FbinternalOrchestratorPlugin struct{}

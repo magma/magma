@@ -19,7 +19,7 @@ require (
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0
-	github.com/go-sql-driver/mysql v1.4.1-0.20190510102335-877a9775f068
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1

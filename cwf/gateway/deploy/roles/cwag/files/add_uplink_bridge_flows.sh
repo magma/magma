@@ -7,6 +7,8 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
+ovs-ofctl del-flows uplink_br0
+
 # gw0 configuration, TODO might want to avoid NORMAL for perf reasons
 ip_addr=$(/sbin/ifconfig gw0 | grep -m 1 inet | awk '{ print $2}')
 ovs-ofctl add-flow uplink_br0 "table=0, priority=999, arp, nw_src=$ip_addr, actions=NORMAL"

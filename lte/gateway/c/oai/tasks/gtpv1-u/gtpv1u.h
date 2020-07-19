@@ -153,6 +153,7 @@ struct gtp_tunnel_ops {
   int (*add_paging_rule)(struct in_addr ue);
   int (*delete_paging_rule)(struct in_addr ue);
   int (*send_end_marker) (struct in_addr enbode, uint32_t i_tei);
+  const char *(*get_dev_name)(void);
 };
 
 #if ENABLE_OPENFLOW
@@ -161,4 +162,7 @@ const struct gtp_tunnel_ops *gtp_tunnel_ops_init_openflow(void);
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_libgtpnl(void);
 #endif
 
+int gtpv1u_add_tunnel(
+    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl);
 #endif /* FILE_GTPV1_U_SEEN */

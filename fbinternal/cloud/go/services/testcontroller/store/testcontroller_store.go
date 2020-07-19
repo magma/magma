@@ -13,10 +13,10 @@ import (
 	"testing"
 	"time"
 
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/fbinternal/cloud/go/services/testcontroller/utils"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/utils"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"

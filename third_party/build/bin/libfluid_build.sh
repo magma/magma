@@ -10,23 +10,30 @@
 # Generate the debian package from source for libfluid msg/base
 # Example output:
 #   magma-libfluid_0.1.0-1_amd64.deb
+
 set -e
-BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
+
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
+source "${SCRIPT_DIR}"/../lib/util.sh
+
 GIT_VERSION=0.1.0
-VERSION=${GIT_VERSION}.4
 ITERATION=1
-ARCH=amd64
-PKGFMT=deb
+PKGVERSION=${GIT_VERSION}.4
+VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libfluid
+
+function buildrequires() {
+    echo g++ make libtool pkg-config libevent-dev libssl-dev
+}
+
+if_subcommand_exec
+
 WORK_DIR=/tmp/build-${PKGNAME}
-SCRIPT_DIR=$(dirname `realpath $0`)
+
 # Commit on the origin/0.2 branch, which has a lot of fixes
 LIBFLUID_BASE_COMMIT=56df5e20c49387ab8e6b5cd363c6c10d309f263e
 # Latest master commit with fixes passed v0.1.0
 LIBFLUID_MSG_COMMIT=71a4fccdedfabece730082fbe87ef8ae5f92059f
-
-# Build time dependencies
-BUILD_DEPS="g++ make libtool pkg-config libevent-dev libssl-dev"
 
 # The resulting package is placed in $OUTPUT_DIR
 # or in the cwd.
@@ -40,9 +47,6 @@ else
   fi
 fi
 
-# install build time dependency
-sudo apt-get install -y $BUILD_DEPS
-
 # build from source
 if [ -d ${WORK_DIR} ]; then
   rm -rf ${WORK_DIR}
@@ -54,26 +58,29 @@ cd ${WORK_DIR}
 git clone https://github.com/OpenNetworkingFoundation/libfluid_base.git
 git -C libfluid_base checkout $LIBFLUID_BASE_COMMIT
 
+pushd libfluid_base
+git apply "${PATCH_DIR}"/libfluid_base_patches/ExternalEventPatch.patch
+popd
+
 git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git
 git -C libfluid_msg checkout $LIBFLUID_MSG_COMMIT
+
+pushd libfluid_msg
+git apply "${PATCH_DIR}"/libfluid_msg_patches/TunnelDstPatch.patch
+popd
 
 for repo in libfluid_base libfluid_msg
 do
   cd $repo
-  patch_files=${SCRIPT_DIR}/${repo}_patches/*
-  for patch in $patch_files
-  do
-    git apply $patch
-  done
   # Configure and compile
   ./autogen.sh
   ./configure --prefix=/usr
   make
-  sudo make install DESTDIR=${WORK_DIR}/install
+  make install DESTDIR=${WORK_DIR}/install
   cd ../
 done
 # packaging
-PKGFILE=${PKGNAME}_${VERSION}-${ITERATION}_${ARCH}.${PKGFMT}
+PKGFILE="$(pkgfilename)"
 BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
 
 # remove old packages
@@ -86,7 +93,7 @@ fpm \
     -t ${PKGFMT} \
     -a ${ARCH} \
     -n ${PKGNAME} \
-    -v ${VERSION} \
+    -v ${PKGVERSION} \
     --iteration ${ITERATION} \
     --provides ${PKGNAME} \
     --conflicts ${PKGNAME} \

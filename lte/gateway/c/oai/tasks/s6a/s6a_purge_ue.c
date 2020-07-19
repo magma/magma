@@ -177,14 +177,14 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_purge_ue_req(s6a_purge_ue_req_t *pur_pP)
+int s6a_generate_purge_ue_req(const char *imsi)
 {
   struct avp *avp_p = NULL;
   struct msg *msg_p = NULL;
   struct session *sess_p = NULL;
   union avp_value value;
 
-  DevAssert(pur_pP);
+  DevAssert(imsi);
   /*
    * Create the new purge ue request message
    */
@@ -253,12 +253,12 @@ int s6a_generate_purge_ue_req(s6a_purge_ue_req_t *pur_pP)
    * Adding the User-Name (IMSI)
    */
   CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_user_name, 0, &avp_p));
-  value.os.data = (unsigned char *) pur_pP->imsi;
-  value.os.len = strlen(pur_pP->imsi);
+  value.os.data = (unsigned char *) imsi;
+  value.os.len = strlen(imsi);
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
 
   CHECK_FCT(fd_msg_send(&msg_p, NULL, NULL));
-  OAILOG_DEBUG(LOG_S6A, "Sending s6a pur for imsi=%s\n", pur_pP->imsi);
+  OAILOG_DEBUG(LOG_S6A, "Sending s6a pur for imsi=%s\n", imsi);
   return RETURNok;
 }
