@@ -2402,6 +2402,15 @@
   resolved "https://registry.yarnpkg.com/@mapbox/tiny-sdf/-/tiny-sdf-1.1.1.tgz#16a20c470741bfe9191deb336f46e194da4a91ff"
   integrity sha512-Ihn1nZcGIswJ5XGbgFAvVumOgWpvIjBX9jiRlIl46uQG9vJOF51ViBYHF95rEZupuyQbEmhLaDPLQlU7fUTsBg==
 
+"@mapbox/togeojson@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.yarnpkg.com/@mapbox/togeojson/-/togeojson-0.16.0.tgz#5b283001078431821dc74e287acaf56a11ceb37c"
+  integrity sha1-WygwAQeEMYIdx04oesr1ahHOs3w=
+  dependencies:
+    concat-stream "~1.5.1"
+    minimist "1.2.0"
+    xmldom "~0.1.19"
+
 "@mapbox/unitbezier@^0.0.0":
   version "0.0.0"
   resolved "https://registry.yarnpkg.com/@mapbox/unitbezier/-/unitbezier-0.0.0.tgz#15651bd553a67b8581fb398810c98ad86a34524e"
@@ -8502,6 +8511,15 @@ concat-stream@^1.5.0, concat-stream@^1.5.2, concat-stream@^1.6.1, concat-stream@
     inherits "^2.0.3"
     readable-stream "^2.2.2"
     typedarray "^0.0.6"
+
+concat-stream@~1.5.1:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/concat-stream/-/concat-stream-1.5.2.tgz#708978624d856af41a5a741defdd261da752c266"
+  integrity sha1-cIl4Yk2FavQaWnQd790mHadSwmY=
+  dependencies:
+    inherits "~2.0.1"
+    readable-stream "~2.0.0"
+    typedarray "~0.0.5"
 
 concaveman@*:
   version "1.2.0"
@@ -20238,6 +20256,18 @@ readable-stream@^3.0.6, readable-stream@^3.1.1, readable-stream@^3.4.0, readable
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
 
+readable-stream@~2.0.0:
+  version "2.0.6"
+  resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.0.6.tgz#8f90341e68a53ccc928788dacfcd11b36eb9b78e"
+  integrity sha1-j5A0HmilPMySh4jaz80Rs265t44=
+  dependencies:
+    core-util-is "~1.0.0"
+    inherits "~2.0.1"
+    isarray "~1.0.0"
+    process-nextick-args "~1.0.6"
+    string_decoder "~0.10.x"
+    util-deprecate "~1.0.1"
+
 readable-stream@~2.1.0:
   version "2.1.5"
   resolved "https://registry.yarnpkg.com/readable-stream/-/readable-stream-2.1.5.tgz#66fa8b720e1438b364681f2ad1a63c618448c9d0"
@@ -23074,7 +23104,7 @@ typedarray-to-buffer@^3.1.5:
   dependencies:
     is-typedarray "^1.0.0"
 
-typedarray@^0.0.6:
+typedarray@^0.0.6, typedarray@~0.0.5:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
@@ -24556,7 +24586,7 @@ xmldom@0.1.27:
   resolved "https://registry.yarnpkg.com/xmldom/-/xmldom-0.1.27.tgz#d501f97b3bdb403af8ef9ecc20573187aadac0e9"
   integrity sha1-1QH5ezvbQDr4757MIFcxh6rawOk=
 
-xmldom@0.1.x, xmldom@^0.1.22, xmldom@~0.1.15:
+xmldom@0.1.x, xmldom@^0.1.22, xmldom@~0.1.15, xmldom@~0.1.19:
   version "0.1.31"
   resolved "https://registry.yarnpkg.com/xmldom/-/xmldom-0.1.31.tgz#b76c9a1bd9f0a9737e5a72dc37231cf38375e2ff"
   integrity sha512-yS2uJflVQs6n+CyjHoaBmVSqIDevTAWrzMmjG1Gc7h1qQ7uVozNhEPJAwZXWyGQ/Gafo3fCwrcaokezLPupVyQ==
