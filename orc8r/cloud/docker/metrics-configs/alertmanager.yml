@@ -4,7 +4,6 @@ global:
   smtp_hello: localhost
   smtp_require_tls: true
   pagerduty_url: https://events.pagerduty.com/v2/enqueue
-  hipchat_api_url: https://api.hipchat.com/
   opsgenie_api_url: https://api.opsgenie.com/
   wechat_api_url: https://qyapi.weixin.qq.com/cgi-bin/
   victorops_api_url: https://alert.victorops.com/integrations/generic/20131114/alert/
