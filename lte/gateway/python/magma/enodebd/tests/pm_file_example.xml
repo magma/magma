@@ -559,7 +559,7 @@
       <SN>PDCP.UpOctUl.9</SN>
       <SV>0</SV>
     </CV>
-    <V i="96">1000</V>
+    <V i="96">500</V>
     <CV i="97">
       <SN>PDCP.UpOctDl.1</SN>
       <SV>0</SV>

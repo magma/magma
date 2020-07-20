@@ -87,4 +87,4 @@ class StatsManagerTest(TestCase):
         self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][1], {'enodeb': '1234'})
         self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][1], {'enodeb': '1234'})
         self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][2], 1000)
-        self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][2], 1000)
+        self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][2], 500)
