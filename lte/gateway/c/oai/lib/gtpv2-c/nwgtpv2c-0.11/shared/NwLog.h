@@ -30,7 +30,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF   *
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  *----------------------------------------------------------------------------*/
-
 #ifndef __NW_LOG_H__
 #define __NW_LOG_H__
 
@@ -51,30 +50,29 @@ extern "C" {
  * Log Level Definitions
  *--------------------------------------------------------------------------*/
 
-#define NW_LOG_LEVEL_EMER (0) /**< system is unusable              */
-#define NW_LOG_LEVEL_ALER (1) /**< action must be taken immediately*/
-#define NW_LOG_LEVEL_CRIT (2) /**< critical conditions             */
-#define NW_LOG_LEVEL_ERRO (3) /**< error conditions                */
-#define NW_LOG_LEVEL_WARN (4) /**< warning conditions              */
-#define NW_LOG_LEVEL_NOTI (5) /**< normal but signification condition */
-#define NW_LOG_LEVEL_INFO (6) /**< informational                   */
-#define NW_LOG_LEVEL_DEBG (7) /**< debug-level messages            */
+#define NW_LOG_LEVEL_EMER                       (0) /**< system is unusable              */
+#define NW_LOG_LEVEL_ALER                       (1) /**< action must be taken immediately*/
+#define NW_LOG_LEVEL_CRIT                       (2) /**< critical conditions             */
+#define NW_LOG_LEVEL_ERRO                       (3) /**< error conditions                */
+#define NW_LOG_LEVEL_WARN                       (4) /**< warning conditions              */
+#define NW_LOG_LEVEL_NOTI                       (5) /**< normal but signification condition */
+#define NW_LOG_LEVEL_INFO                       (6) /**< informational                   */
+#define NW_LOG_LEVEL_DEBG                       (7) /**< debug-level messages            */
 
 /*---------------------------------------------------------------------------
  * IPv4 logging macros
  *--------------------------------------------------------------------------*/
 
-#define NW_IPV4_ADDR "%u.%u.%u.%u"
-#define NW_IPV4_ADDR_FORMAT(__addr)                                            \
-  (uint8_t)((__addr) &0x000000ff), (uint8_t)(((__addr) &0x0000ff00) >> 8),     \
-    (uint8_t)(((__addr) &0x00ff0000) >> 16),                                   \
-    (uint8_t)(((__addr) &0xff000000) >> 24)
+#define NW_IPV4_ADDR                            "%u.%u.%u.%u"
+#define NW_IPV4_ADDR_FORMAT(__addr)             (uint8_t)((__addr) & 0x000000ff),        \
+                                                (uint8_t)(((__addr) & 0x0000ff00) >> 8 ), \
+                                                (uint8_t)(((__addr) & 0x00ff0000) >> 16), \
+                                                (uint8_t)(((__addr) & 0xff000000) >> 24)
 
-#define NW_IPV4_ADDR_FORMATP(__paddr)                                          \
-  (uint8_t)(*((uint8_t *) (__paddr)) & 0x000000ff),                            \
-    (uint8_t)(*((uint8_t *) (__paddr + 1)) & 0x000000ff),                      \
-    (uint8_t)(*((uint8_t *) (__paddr + 2)) & 0x000000ff),                      \
-    (uint8_t)(*((uint8_t *) (__paddr + 3)) & 0x000000ff)
+#define NW_IPV4_ADDR_FORMATP(__paddr)           (uint8_t)(*((uint8_t*)(__paddr)) & 0x000000ff),     \
+                                                (uint8_t)(*((uint8_t*)(__paddr + 1)) & 0x000000ff), \
+                                                (uint8_t)(*((uint8_t*)(__paddr + 2)) & 0x000000ff), \
+                                                (uint8_t)(*((uint8_t*)(__paddr + 3)) & 0x000000ff)
 
 #ifdef __cplusplus
 }
