@@ -59,7 +59,9 @@ void start_grpc_service(bstring server_address)
   ServerBuilder builder;
   builder.AddListeningPort(
     bdata(server_address), grpc::InsecureServerCredentials());
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
   builder.RegisterService(&spgw_service);
+#endif
   builder.RegisterService(&s6a_proxy);
   builder.RegisterService(&s6a_service);
   builder.RegisterService(&sgs_service);

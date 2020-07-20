@@ -48,14 +48,18 @@
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
-#include "mme_app_embedded_spgw.h"
 #include "bstrlib.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
-#include "service303.h"
-#include "sgw_defs.h"
-#include "shared_ts_log.h"
+#if EMBEDDED_SGW
+#include "mme_app_embedded_spgw.h"
 #include "spgw_config.h"
+#include "sgw_defs.h"
+#endif
+#include "udp_primitives_server.h"
+#include "s11_mme.h"
+#include "service303.h"
+#include "shared_ts_log.h"
 #include "grpc_service.h"
 
 static void send_timer_recovery_message(void);
@@ -131,6 +135,7 @@ int main(int argc, char *argv[])
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
 #else
+  CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
