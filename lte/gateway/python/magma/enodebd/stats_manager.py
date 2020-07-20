@@ -119,6 +119,21 @@ class StatsManager:
         # Update status metrics
         update_status_metrics(status)
 
+    def _get_enb_label_from_request(self, request) -> str:
+        label = 'default'
+        ip = request.headers.get('X-Forwarded-For')
+        if ip is None:
+            ip = request.remote_addr        
+        
+        if ip is None:
+            return label
+
+        try:
+            label = self.enb_manager.get_serial(ip)
+        except KeyError:
+            logger.error("Couldn't find serial for ip", ip)
+        return label
+
     @asyncio.coroutine
     def _post_handler(self, request) -> web.Response:
         """ HTTP POST handler """
@@ -126,12 +141,12 @@ class StatsManager:
         body = yield from request.read()
 
         root = ElementTree.fromstring(body)
-        self._parse_pm_xml(root)
+        self._parse_pm_xml(self._get_enb_label_from_request(request), root)
 
         # Return success response
         return web.Response()
 
-    def _parse_pm_xml(self, xml_root) -> None:
+    def _parse_pm_xml(self, enb_label, xml_root) -> None:
         """
         Parse performance management XML from eNodeB and populate metrics.
         The schema for this XML document, along with an example, is shown in
@@ -142,7 +157,7 @@ class StatsManager:
             names = measurement.find('PmName')
             data = measurement.find('PmData')
             if object_type == 'EutranCellTdd':
-                self._parse_tdd_counters(names, data)
+                self._parse_tdd_counters(enb_label, names, data)
             elif object_type == 'ManagedElement':
                 # Currently no counters to parse
                 pass
@@ -150,7 +165,7 @@ class StatsManager:
                 # Currently no counters to parse
                 pass
 
-    def _parse_tdd_counters(self, names, data):
+    def _parse_tdd_counters(self, enb_label, names, data):
         """
         Parse eNodeB performance management counters from TDD structure.
         Most of the logic is just to extract the correct counter based on the
@@ -238,7 +253,10 @@ class StatsManager:
                 continue
 
             # Apply new value to metric
-            metric.set(value)
+            if pm_name == 'PDCP.UpOctUl' or pm_name == 'PDCP.UpOctDl':
+                metric.labels(enb_label).set(value)
+            else:
+                metric.set(value)
 
     def _build_index_to_data_map(self, data_etree):
         """
