@@ -157,7 +157,7 @@ class StatsManager:
             names = measurement.find('PmName')
             data = measurement.find('PmData')
             if object_type == 'EutranCellTdd':
-                self._parse_tdd_counters(names, enb_label, data)
+                self._parse_tdd_counters(enb_label, names, data)
             elif object_type == 'ManagedElement':
                 # Currently no counters to parse
                 pass
@@ -253,9 +253,10 @@ class StatsManager:
                 continue
 
             # Apply new value to metric
-            if metric == 'PDCP.UpOctUl' or metric == 'PDCP.UpOctDl':
+            if pm_name == 'PDCP.UpOctUl' or pm_name == 'PDCP.UpOctDl':
                 metric.labels(enb_label).set(value)
-            metric.set(value)
+            else:
+                metric.set(value)
 
     def _build_index_to_data_map(self, data_etree):
         """
