@@ -311,6 +311,14 @@ func makeVerifyConfigStateHandler(successState string) handlerFunc {
 }
 
 func verifyConfig(successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+	resp, err := getEnodebStatus(*config.NetworkID, *config.EnodebSN)
+	if resp == nil || err != nil {
+		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
+	}
+
+	if !*resp.EnodebConfigured {
+		return checkForUpgradeState, 10 * time.Minute, err
+	}
 	return successState, 10 * time.Minute, nil
 }
 
