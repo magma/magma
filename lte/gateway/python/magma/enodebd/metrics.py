@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from prometheus_client import Gauge, Counter
+from prometheus_client import Gauge, Counter, CounterVec
 
 # Gauges for current eNodeB status
 STAT_ENODEB_CONNECTED = Gauge('enodeb_mgmt_connected',
@@ -85,3 +85,7 @@ STAT_PDCP_USER_PLANE_BYTES_UL = Gauge(
     'pdcp_user_plane_bytes_ul', 'User plane uplink bytes at PDCP')
 STAT_PDCP_USER_PLANE_BYTES_DL = Gauge(
     'pdcp_user_plane_bytes_dl', 'User plane downlink bytes at PDCP')
+STAT_PDCP_USER_PLANE_BYTES_PER_ENB_UL = CounterVec(
+    'pdcp_user_plane_bytes_per_enb_ul', 'User plane uplink bytes at PDCP')
+STAT_PDCP_USER_PLANE_BYTES_PER_ENB_DL = CounterVec(
+    'pdcp_user_plane_bytes_per_enb_dl', 'User plane downlink bytes at PDCP')
