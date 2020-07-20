@@ -70,11 +70,11 @@ then
     EXTENSION_LIST=("h" "hpp" "c" "cpp")
     NB_TO_FORMAT=0
     NB_TOTAL=0
-    for EXTENSION in ${EXTENSION_LIST[@]}
+    for EXTENSION in "${EXTENSION_LIST[@]}"
     do
         echo "Checking for all files with .${EXTENSION} extension"
         FILE_LIST=`tree -n --noreport -i -f -P *.${EXTENSION} | sed -e 's#^\./##' | grep -v test | grep "\.${EXTENSION}"`
-        for FILE_TO_CHECK in ${FILE_LIST[@]}
+        for FILE_TO_CHECK in "${FILE_LIST[@]}"
         do
             TO_FORMAT=`clang-format -output-replacements-xml ${FILE_TO_CHECK} 2>&1 | grep -v replacements | grep -c replacement`
             NB_TOTAL=$((NB_TOTAL + 1))
