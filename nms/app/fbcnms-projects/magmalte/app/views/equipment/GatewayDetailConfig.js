@@ -12,6 +12,7 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {KPIRows} from '../../components/KPIGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
+import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
@@ -330,7 +331,51 @@ function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
   return <KPIGrid data={aggregations} />;
 }
 
-function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
+function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
+  type EnodebRowType = {
+    name: string,
+    id: string,
+  };
+  const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
+    (serialNum: string) => {
+      const enbInf = enbInfo[serialNum];
+      return {
+        name: enbInf.enb.name,
+        id: serialNum,
+      };
+    },
+  );
+
+  return (
+    <ActionTable
+      title=""
+      data={enbRows}
+      columns={[{title: 'Serial Number', field: 'id'}]}
+      menuItems={[
+        {name: 'View'},
+        {name: 'Edit'},
+        {name: 'Remove'},
+        {name: 'Deactivate'},
+        {name: 'Reboot'},
+      ]}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [5],
+        toolbar: false,
+        header: false,
+        paging: false,
+      }}
+    />
+  );
+}
+
+function GatewayRAN({
+  gwInfo,
+  enbInfo,
+}: {
+  gwInfo: lte_gateway,
+  enbInfo: {[string]: EnodebInfo},
+}) {
   const [open, setOpen] = React.useState(true);
   const classes = useStyles();
 
@@ -348,28 +393,6 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
       },
     ],
   ];
-
-  function ListItems(props) {
-    return (
-      <>
-        <ListItem>
-          <ListItemText primary={props.data} />
-        </ListItem>
-        <Divider />
-      </>
-    );
-  }
-
-  function ListNull() {
-    return (
-      <>
-        <ListItem>
-          <ListItemText primary="-" />
-        </ListItem>
-        <Divider />
-      </>
-    );
-  }
 
   return (
     <>
@@ -396,9 +419,7 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
         </ListItem>
         <Divider />
         <Collapse key="reservedIp" in={open} timeout="auto" unmountOnExit>
-          {gwInfo.connected_enodeb_serials?.map(data => (
-            <ListItems data={data} />
-          )) || <ListNull />}
+          <EnodebsTable gwInfo={gwInfo} enbInfo={enbInfo} />
         </Collapse>
       </List>
     </>
