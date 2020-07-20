@@ -14,9 +14,9 @@
     Add supporting screenshots, terminal pastes, etc. as necessary
 -->
 
-# Additional Information
+## Additional Information
 
-[ ] This change is backwards-breaking
+- [ ] This change is backwards-breaking
 
 <!--
     If this is a backwards-breaking change, document the upgrade instructions.

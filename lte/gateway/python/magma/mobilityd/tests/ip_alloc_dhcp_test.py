@@ -82,8 +82,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         sid1 = "IMSI02917"
         ip1 = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
-        gw_map = store.GatewayInfoMap()
-        dhcp_gw_info = UplinkGatewayInfo(gw_map)
+        dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
         dhcp_store = store.MacToIP()  # mac => DHCP_State
 
         self.assertEqual(str(dhcp_gw_info.getIP()), "192.168.128.211")

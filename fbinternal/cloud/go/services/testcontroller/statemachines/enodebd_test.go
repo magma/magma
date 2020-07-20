@@ -382,6 +382,8 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
 	mockMagmad, mockGenericCommandResp := GetMockObjects()
+
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
 	mockResp := &http.Response{Status: "200", StatusCode: 200}
 	// Should test for the payload eventually
 	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil)
@@ -389,6 +391,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
 
+	testConfig.EnodebConfig.Pci = 261
 	// ---
 	// Reconfig Enodeb
 	// ---
@@ -397,7 +400,16 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, "verify_config1", actualState)
 	assert.Equal(t, 10*time.Minute, actualDuration)
 
-	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	reportEnodebState(t, ctx, "1202000038269KP0037", ltemodels.NewDefaultEnodebStatus())
+	// ---
+	// Verify Enb Config from original to new config
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_config1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test3_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
 	// ---
 	// Traffic Test 3
 	// ---
@@ -406,12 +418,21 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, "restore_enodeb1", actualState)
 	assert.Equal(t, 1*time.Minute, actualDuration)
 
+	testConfig.EnodebConfig.Pci = 260
 	// ---
 	// Restore Enodeb config
 	// ---
 	actualState, actualDuration, err = sm.Run("restore_enodeb1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "verify_config2", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Verify Enb Config from new config to original config
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_config2", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test4_1", actualState)
 	assert.Equal(t, 10*time.Minute, actualDuration)
 
 	// ---
@@ -463,6 +484,17 @@ func RegisterAGW(t *testing.T) {
 				Type:       lte.CellularEnodebType,
 				Key:        "1202000038269KP0037",
 				PhysicalID: "1202000038269KP0037",
+				Config: &ltemodels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 		},
 	)

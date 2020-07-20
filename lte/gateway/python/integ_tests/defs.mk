@@ -54,7 +54,6 @@ s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \
 s1aptests/test_enb_partial_reset.py \
-s1aptests/test_enb_complete_reset.py \
 s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_incorrect_plmn.py \
@@ -130,6 +129,7 @@ s1aptests/test_restore_mme_config_after_sanity.py
 # s1aptests/test_attach_detach_attach_dl_tcp_data.py
 
 # TODO flaky tests we should look at
+# s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \

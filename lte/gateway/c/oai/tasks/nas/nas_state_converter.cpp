@@ -23,7 +23,7 @@ extern "C" {
 }
 
 #include "nas_state_converter.h"
-#include "spgw_state_converter.h"
+//#include "spgw_state_converter.h"
 
 namespace magma {
 namespace lte {

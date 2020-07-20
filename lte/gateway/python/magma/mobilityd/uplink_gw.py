@@ -8,12 +8,14 @@ of patent rights can be found in the PATENTS file in the same directory.
 
 """
 import logging
+import netifaces
+
 from typing import MutableMapping, Optional
 
 DHCP_Router_key = "DHCPRouterKey"
 DHCP_Router_Mac_key = "DHCPRouterMacKey"
 
-
+# TODO: move helper class to separate directory.
 class UplinkGatewayInfo:
     def __init__(self, gw_info_map: MutableMapping[str, str]):
         """
@@ -30,6 +32,15 @@ class UplinkGatewayInfo:
         if DHCP_Router_key in self._backing_map:
             self._current_ip = self._backing_map.get(DHCP_Router_key)
             return self._current_ip
+
+    def read_default_gw(self):
+        gws = netifaces.gateways()
+        logging.info("Using GW info: %s", gws)
+        if gws is not None:
+            default_gw = gws['default']
+            if default_gw is not None and \
+                    default_gw[netifaces.AF_INET] is not None:
+                self.update_ip(default_gw[netifaces.AF_INET][0])
 
     def ip_exists(self) -> bool:
         return DHCP_Router_key in self._backing_map
