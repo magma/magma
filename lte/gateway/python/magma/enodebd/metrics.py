@@ -7,7 +7,7 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-from prometheus_client import Gauge, Counter, CounterVec
+from prometheus_client import Gauge, Counter
 
 # Gauges for current eNodeB status
 STAT_ENODEB_CONNECTED = Gauge('enodeb_mgmt_connected',
