@@ -393,7 +393,7 @@ jobs:
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
+            cd ${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
             docker-compose build magmalte
 
   nms-yarn-test:
