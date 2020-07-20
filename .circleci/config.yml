@@ -194,6 +194,47 @@ jobs:
             cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
             make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
 
+  xwfm-test:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - run:
+          name: Install Docker client
+          command: |
+            set -x
+            VER="17.03.0-ce"
+            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
+            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
+            sudo mv /tmp/docker/* /usr/bin
+      - run:
+          name: Install Docker Compose
+          command: |
+            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            sudo chmod +x ~/docker-compose
+            sudo mv ~/docker-compose /usr/local/bin/docker-compose
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+              name: Loading openvswitch kernel module
+              command: sudo modprobe openvswitch
+      - run:
+              name: Setup Environment Variables
+              command: |
+                echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
+                echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
+      - run:
+          name: "Set Python Version"
+          command: pyenv global 3.7.0
+      - run:
+          command: |
+            env
+            docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} facebookconnectivity-openflow-xwfm-docker.jfrog.io
+            cd ${MAGMA_ROOT}/xwf/docker/
+            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic && docker-compose down
+
+
+
   cloud-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -609,6 +650,7 @@ workflows:
       - cwag-precommit
       - cwf-operator-precommit
       - cloud-test
+      - xwfm-test
       - orc8r-gateway-test
       - lte-test
       - insync-checkin
@@ -618,20 +660,24 @@ workflows:
       - nms-yarn-test:
           requires:
             - nms-flow-test
+            - xwfm-test
       - orc8r-core-build:
           requires:
             - cloud-test
             - orc8r-gateway-test
             - insync-checkin
+            - xwfm-test
       - orc8r-noncore-build:
           requires:
             - cloud-test
             - orc8r-gateway-test
             - insync-checkin
+            - xwfm-test
       - nms-build:
           requires:
               - cloud-test
               - orc8r-gateway-test
+              - xwfm-test
 
   docusaurus_build_and_deploy:
     jobs:
