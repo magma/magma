@@ -82,3 +82,7 @@ devmand/gateway/cmake-build-debug/
 # Cscope and tags
 cscope.*
 tags
+
+#CI files
+archives/
+test_results_magma_converged_mme.html
