@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -146,10 +146,10 @@ int s6a_pua_cb(
 
     /*
      * 0th bit, when set, shall indicate to the MME that the M-TMSI
-     * * * * needs to be frozen 
+     * * * * needs to be frozen
      * 1st bit, when set, shall indicate to the SGSN that the P-TMSI
      * * * * needs to be frozen
-     * * * * Currently ULA flags are not used 
+     * * * * Currently ULA flags are not used
      */
     if (FLAG_IS_SET(hdr_p->avp_value->u32, PUA_FREEZE_M_TMSI)) {
       s6a_purge_ue_ans_p->freeze_m_tmsi = true;
@@ -172,19 +172,19 @@ int s6a_pua_cb(
 
 err:
   ans_p = NULL;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_DEBUG(LOG_S6A, "Sending S6A_PURGE_UE_ANS to task MME_APP\n");
   return RETURNok;
 }
 
-int s6a_generate_purge_ue_req(s6a_purge_ue_req_t *pur_pP)
+int s6a_generate_purge_ue_req(const char *imsi)
 {
   struct avp *avp_p = NULL;
   struct msg *msg_p = NULL;
   struct session *sess_p = NULL;
   union avp_value value;
 
-  DevAssert(pur_pP);
+  DevAssert(imsi);
   /*
    * Create the new purge ue request message
    */
@@ -253,12 +253,12 @@ int s6a_generate_purge_ue_req(s6a_purge_ue_req_t *pur_pP)
    * Adding the User-Name (IMSI)
    */
   CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_user_name, 0, &avp_p));
-  value.os.data = (unsigned char *) pur_pP->imsi;
-  value.os.len = strlen(pur_pP->imsi);
+  value.os.data = (unsigned char *) imsi;
+  value.os.len = strlen(imsi);
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
 
   CHECK_FCT(fd_msg_send(&msg_p, NULL, NULL));
-  OAILOG_DEBUG(LOG_S6A, "Sending s6a pur for imsi=%s\n", pur_pP->imsi);
+  OAILOG_DEBUG(LOG_S6A, "Sending s6a pur for imsi=%s\n", imsi);
   return RETURNok;
 }

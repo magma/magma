@@ -29,6 +29,7 @@
 #include "intertask_interface.h"
 #include "log.h"
 #include "MobilityClientAPI.h"
+#include "sgw_defs.h"
 #include "sgw_paging.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
@@ -56,6 +57,6 @@ int sgw_send_paging_request(const struct in_addr *dest_ip)
   free(imsi);
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
-  ret = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  ret = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   return ret;
 }

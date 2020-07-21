@@ -11,3 +11,13 @@ services:
     host: "localhost"
     port: 9200
     proxy_type: "clientcert"
+
+  cwf:
+    host: "localhost"
+    port: 9115
+    echo_port: 10115
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/cwf"

@@ -13,25 +13,30 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/streamer"
+	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 )
 
-// A little Go "polymorphism" magic for testing
-type testStreamingServer struct {
-	servicers.StreamingServer
+type testStreamerServer struct {
+	protos.StreamerServer
 }
 
-func (srv *testStreamingServer) GetUpdates(
-	request *protos.StreamRequest,
-	stream protos.Streamer_GetUpdatesServer,
-) error {
-	return servicers.GetUpdatesUnverified(request, stream)
+func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream protos.Streamer_GetUpdatesServer) error {
+	return servicers.GetUpdatesUnverified(req, stream)
 }
 
 func StartTestService(t *testing.T) {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, streamer.ServiceName)
-	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamingServer{})
+	labels := map[string]string{
+		orc8r.StreamProviderLabel: "true",
+	}
+	annotations := map[string]string{
+		orc8r.StreamProviderStreamsAnnotation: definitions.MconfigStreamName,
+	}
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamer.ServiceName, labels, annotations)
+	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
+	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewBaseOrchestratorStreamProviderServicer())
 	go srv.RunTest(lis)
 }

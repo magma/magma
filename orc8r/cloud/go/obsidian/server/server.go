@@ -26,6 +26,7 @@ import (
 
 func Start() {
 	e := echo.New()
+	e.HideBanner = true
 
 	obsidian.AttachAll(e)
 	// metrics middleware is used before all other middlewares
@@ -100,7 +101,11 @@ func Start() {
 		e.Use(access.Middleware)
 	}
 
-	e.Use(reverse_proxy.ReverseProxy)
+	e, err = reverse_proxy.AddReverseProxyPaths(e)
+	if err != nil {
+		log.Fatalf("Error adding reverse proxy paths: %s", err)
+	}
+
 	if obsidian.TLS {
 		err = e.StartServer(e.TLSServer)
 	} else {

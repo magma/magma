@@ -121,7 +121,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
 
   // First we need to watch the keys that we intend to write to.
   // If we don't, then one HSET might succeed but another will fail.
-   if (!client_->is_connected()) {
+  if (!client_->is_connected()) {
     auto connected = try_redis_connect();
     if (!connected) {
       throw RedisWriteFailed();

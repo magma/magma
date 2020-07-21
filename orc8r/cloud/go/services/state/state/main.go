@@ -54,7 +54,8 @@ func main() {
 
 	go metrics.PeriodicallyReportGatewayStatus(gatewayStatusReportInterval)
 
-	if srv.Run() != nil {
+	err = srv.Run()
+	if err != nil {
 		glog.Fatalf("Error running state service: %v", err)
 	}
 }

@@ -6,7 +6,7 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ xenial main"
+    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ bionic main"
 
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
@@ -83,9 +83,6 @@ RUN go mod download; exit 0
 # Install protoc-gen-go
 RUN go install github.com/golang/protobuf/protoc-gen-go; exit 0
 
-# Copy the configs.
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
-
 # Symlink python scripts.
 RUN ln -s /build/python/bin/generate_service_config.py /usr/local/bin/generate_service_config.py
 RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_nghttpx_config.py
@@ -109,7 +106,7 @@ RUN make -C $MAGMA_ROOT/cwf/gateway build
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:xenial AS cwag_go
+FROM ubuntu:bionic AS cwag_go
 
 # Install envdir.
 RUN apt-get -y update && apt-get -y install daemontools curl iptables

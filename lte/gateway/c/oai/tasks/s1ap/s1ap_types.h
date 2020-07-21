@@ -149,8 +149,6 @@ typedef struct enb_description_s {
   hash_table_uint64_ts_t ue_id_coll; ///< Contains comp_s1ap_id assoc to
                                      ///< enodeb, key is mme_ue_s1ap_id;
   /*@}*/
-  // Wait for associated UE clean-up timer during sctp shutdown
-  struct s1ap_timer_t s1ap_enb_assoc_clean_up_timer;
   /** SCTP stuff **/
   /*@{*/
   sctp_assoc_id_t sctp_assoc_id;     ///< SCTP association id on this machine

@@ -332,7 +332,7 @@ int s6a_aia_cb(
     }
   }
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
 err:
   return RETURNok;
 }

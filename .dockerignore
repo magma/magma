@@ -7,11 +7,14 @@
 !cwf/cloud/
 !cwf/gateway/
 !cwf/k8s
+!cwf/protos/
+!cwf/swagger/
 
 !feg/cloud/
 !feg/gateway/
 !feg/protos/
 !feg/radius
+!feg/swagger/
 
 !lte/cloud/
 !lte/gateway/configs/

@@ -49,11 +49,11 @@ typedef struct spgw_config_s {
 extern spgw_config_t spgw_config;
 #endif
 
-void spgw_config_init(spgw_config_t *);
+void spgw_config_init(spgw_config_t*);
 
-int spgw_config_parse_file(spgw_config_t *);
+int spgw_config_parse_file(spgw_config_t*);
 
-void spgw_config_display(spgw_config_t *);
+void spgw_config_display(spgw_config_t*);
 
 void free_spgw_config(spgw_config_t* spgw_config_p);
 

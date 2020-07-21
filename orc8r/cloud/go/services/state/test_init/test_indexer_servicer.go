@@ -10,6 +10,8 @@ package test_init
 
 import (
 	"context"
+	"strconv"
+	"strings"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -24,8 +26,15 @@ type indexerServicer struct {
 }
 
 // StartNewTestIndexer starts a new indexing service which forwards calls to the passed indexer.
-func StartNewTestIndexer(t *testing.T, serviceName string, idx indexer.Indexer) {
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, serviceName)
+func StartNewTestIndexer(t *testing.T, idx indexer.Indexer) {
+	labels := map[string]string{
+		orc8r.StateIndexerLabel: "true",
+	}
+	annotations := map[string]string{
+		orc8r.StateIndexerVersionAnnotation: strconv.Itoa(int(idx.GetVersion())),
+		orc8r.StateIndexerTypesAnnotation:   strings.Join(idx.GetTypes(), orc8r.AnnotationListSeparator),
+	}
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, idx.GetID(), labels, annotations)
 	servicer := &indexerServicer{idx}
 	protos.RegisterIndexerServer(srv.GrpcServer, servicer)
 	go srv.RunTest(lis)
@@ -43,7 +52,7 @@ func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (
 	}
 	stErrs, err := i.idx.Index(req.NetworkId, states)
 	res := &protos.IndexResponse{StateErrors: types.MakeProtoStateErrors(stErrs)}
-	return res, nil
+	return res, err
 }
 
 func (i *indexerServicer) PrepareReindex(ctx context.Context, req *protos.PrepareReindexRequest) (*protos.PrepareReindexResponse, error) {

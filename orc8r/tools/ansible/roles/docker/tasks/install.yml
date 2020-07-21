@@ -6,44 +6,13 @@
 # LICENSE file in the root directory of this source tree. An additional grant
 # of patent rights can be found in the PATENTS file in the same directory.
 
-# Install Docker based on instructions in:
-# https://docs.docker.com/install/linux/docker-ce/ubuntu
+- name: Debian install tasks
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  include_tasks: install_debian.yml
 
-- name: Install packages to allow apt to use a repository over HTTPS
-  apt:
-    name: "{{ packages }}"
-    state: present
-    update_cache: true
-  vars:
-    packages:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg-agent
-      - software-properties-common
-      - python3-pip
-
-- name: Add Docker’s official GPG key
-  apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    state: present
-
-- name: Verify that you now have the key with the fingerprint
-  apt_key:
-    id: 0EBFCD88
-    state: present
-
-- name: Add the stable repository for Docker
-  apt_repository:
-    # FIXME: templatize xenial -> {{ distribution }}
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
-    state: present
-
-- name: Install the latest version of Docker CE
-  apt:
-    name: docker-ce
-    state: present
-    update_cache: true
+- name: Red Hat install tasks
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  include_tasks: install_redhat.yml
 
 - name: Download the lastest version of Docker Compose
   get_url:
@@ -59,4 +28,5 @@
 
 - name: Install python docker module
   pip:
+    executable: /usr/bin/pip3
     name: docker

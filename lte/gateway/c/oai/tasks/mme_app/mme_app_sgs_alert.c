@@ -185,7 +185,7 @@ static int _mme_app_send_sgsap_alert_reject(
     "Send SGSAP-Alert Reject for IMSI" IMSI_64_FMT " with sgs-cause :%d \n",
     imsi64,
     (int) sgs_cause);
-  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
@@ -228,6 +228,6 @@ static int _mme_app_send_sgsap_alert_ack(
 
   OAILOG_INFO(
     LOG_MME_APP, "Send SGSAP-Alert Reject for IMSI" IMSI_64_FMT " \n", imsi64);
-  rc = itti_send_msg_to_task(TASK_SGS, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

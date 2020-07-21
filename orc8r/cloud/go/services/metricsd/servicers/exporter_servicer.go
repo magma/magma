@@ -97,7 +97,7 @@ func (s *PushExporterServicer) exportEvery() {
 		errs := s.pushFamilies()
 		s.resetFamilies()
 		if len(errs) > 0 {
-			glog.Errorf("error in pushing to pushgateway: %v", errs)
+			glog.Errorf("error pushing to pushgateway: %v", errs)
 		}
 	}
 }

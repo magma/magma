@@ -19,8 +19,9 @@ import (
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	lteprotos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -352,10 +353,16 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		SetQuotaGrant(quotaGrant)
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
+	expectedMSCC := &protos.MultipleServicesCreditControl{
+		RatingGroup: 1,
+		UpdateType:  int32(gy.FORCED_REAUTHORISATION),
+	}
 	// We expect an update request with some usage update after reauth
-	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
+	updateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE).
+		SetMSCC(expectedMSCC)
 	updateAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
-	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).Return(updateAnswer)
+	updateExpectation := protos.NewGyCreditControlExpectation().Expect(updateRequest).
+		Return(updateAnswer)
 	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation}
 
 	// On unexpected requests, just return the default update answer

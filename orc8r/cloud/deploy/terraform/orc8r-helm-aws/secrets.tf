@@ -35,6 +35,7 @@ locals {
     "certifier.key",
     "certifier.pem",
     "bootstrapper.key",
+    "admin_operator.pem",
   ]
 
   fluentd_cert_names = [

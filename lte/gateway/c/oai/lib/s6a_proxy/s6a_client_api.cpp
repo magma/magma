@@ -38,6 +38,8 @@
 extern "C" {
 }
 
+extern task_zmq_ctx_t s6a_task_zmq_ctx;
+
 using namespace magma;
 using namespace magma::feg;
 
@@ -107,7 +109,7 @@ static void _s6a_handle_authentication_info_ans(
   }
 
   IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }
 
@@ -169,7 +171,7 @@ static void _s6a_handle_update_location_ans(
   std::cout << "[INFO] sent itti S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
                   << std::endl;
   IMSI_STRING_TO_IMSI64((char*) imsi.c_str(), &message_p->ittiMsgHeader.imsi);
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }
 

@@ -64,6 +64,7 @@
 #include "itti_types.h"
 #include "pgw_config.h"
 #include "queue.h"
+#include "sgw_defs.h"
 #include "sgw_config.h"
 #include "pgw_handlers.h"
 #include "conversions.h"
@@ -447,7 +448,7 @@ int sgw_handle_sgi_endpoint_created(
       .cause.cause_value);
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+  rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
@@ -506,7 +507,7 @@ int sgw_handle_sgi_endpoint_updated(
       modify_response_p->cause.cause_value = CONTEXT_NOT_FOUND;
       modify_response_p->trxn = 0;
       message_p->ittiMsgHeader.imsi = imsi64;
-      rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+      rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
     } else {
       OAILOG_DEBUG_UE(
@@ -546,7 +547,7 @@ int sgw_handle_sgi_endpoint_updated(
             "ERROR in forwarding data on TUNNEL err=%d\n", rv);
         }
       } else {
-        rv = gtp_tunnel_ops->add_tunnel(
+        rv = gtpv1u_add_tunnel(
           ue,
           enb,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
@@ -576,7 +577,7 @@ int sgw_handle_sgi_endpoint_updated(
     }
 
     message_p->ittiMsgHeader.imsi = imsi64;
-    rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
 
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   } else {
@@ -596,7 +597,7 @@ int sgw_handle_sgi_endpoint_updated(
       modify_response_p->trxn = 0;
 
       message_p->ittiMsgHeader.imsi = imsi64;
-      rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+      rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
 }
@@ -727,7 +728,7 @@ int sgw_handle_sgi_endpoint_deleted(
     modify_response_p->bearer_choice.bearer_for_removal.cause = CONTEXT_NOT_FOUND;
     modify_response_p->cause = CONTEXT_NOT_FOUND;
     modify_response_p->trxn = 0;
-    rv = itti_send_msg_to_task (TASK_MME, INSTANCE_DEFAULT, message_p);*/
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);*/
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
@@ -794,7 +795,7 @@ int sgw_handle_modify_bearer_request(
         modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[0]
           .eps_bearer_id);
       message_p->ittiMsgHeader.imsi = imsi64;
-      rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+      rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
     } else {
       // Send end marker to eNB and then delete the tunnel if enb_ip is different
@@ -871,7 +872,7 @@ int sgw_handle_modify_bearer_request(
       modify_bearer_pP->teid);
 
     message_p->ittiMsgHeader.imsi = imsi64;
-    rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
 
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
@@ -935,10 +936,11 @@ int sgw_handle_delete_session_request(
         ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
 
       // TODO make async
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
       char* imsi = (char*) ctx_p->sgw_eps_bearer_context_information.imsi.digit;
       char* apn = (char *) ctx_p->sgw_eps_bearer_context_information.pdn_connection.apn_in_use;
       pcef_end_session(imsi, apn);
-
+#endif
       itti_sgi_delete_end_point_request_t sgi_delete_end_point_request;
       sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = NULL;
 
@@ -1014,7 +1016,7 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->lbi = delete_session_req_pP->lbi;
 
     message_p->ittiMsgHeader.imsi = imsi64;
-    rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 
   } else {
@@ -1038,7 +1040,7 @@ int sgw_handle_delete_session_request(
       delete_session_req_pP->peer_ip.s_addr;
 
     message_p->ittiMsgHeader.imsi = imsi64;
-    rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
     increment_counter(
       "spgw_delete_session",
       1,
@@ -1151,14 +1153,14 @@ int sgw_handle_release_access_bearers_request(
       }
     }
 
-    rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
 
     OAILOG_DEBUG_UE(LOG_SPGW_APP, imsi64, "Release Access Bearer Response sent to MME\n");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   } else {
     release_access_bearers_resp_p->cause.cause_value = CONTEXT_NOT_FOUND;
     release_access_bearers_resp_p->teid = 0;
-    rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+    rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
 }
@@ -1300,7 +1302,8 @@ void handle_s5_create_session_response(
     "Sending S11 Create Session Response to MME, MME S11 teid = %u\n",
     create_session_response_p->teid);
 
-  itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+
+  send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
 
   /* Remove the default bearer context entry already created as create session
    * response failure is received
@@ -1310,7 +1313,7 @@ void handle_s5_create_session_response(
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
       "Deleted default bearer context with SGW C-plane TEID = %u "
       "as create session response failure is received\n",
-      create_session_response_p->teid);
+      new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11);
   sgw_cm_remove_eps_bearer_entry(
     &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection,
     sgi_create_endpoint_resp.eps_bearer_id);
@@ -1414,7 +1417,7 @@ int sgw_handle_suspend_notification(
     "Send Suspend acknowledge for teid :%d\n",
     suspend_acknowledge_p->teid);
   message_p->ittiMsgHeader.imsi = imsi64;
-  rv = itti_send_msg_to_task(TASK_MME, INSTANCE_DEFAULT, message_p);
+  rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rv);
 }
 
@@ -1617,7 +1620,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
                 dlflow.udp_dst_port = packet_filter.singleremoteport;
               }
             }
-            rc = gtp_tunnel_ops->add_tunnel(
+            rc = gtpv1u_add_tunnel(
               ue,
               enb,
               eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,

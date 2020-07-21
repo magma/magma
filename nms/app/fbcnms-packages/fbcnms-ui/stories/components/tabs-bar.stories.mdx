@@ -1,0 +1,107 @@
+import TabsBar from '../../components/design-system/Tabs/TabsBar';
+import {Meta, Preview, Story} from '@storybook/addon-docs/blocks';
+import {STORY_CATEGORIES} from '../storybookUtils';
+import {useState} from 'react';
+
+export const tabs = [
+  {
+    label: 'Option 1',
+  },
+  {
+    label: 'Option 2',
+  },
+  {
+    label: 'Option 3',
+  },
+  {
+    label: 'Option 4',
+    disabled: true,
+  },
+];
+
+<Meta title={`${STORY_CATEGORIES.COMPONENTS}/TabsBar`} />
+
+# TabsBar
+
+```js
+import TabsBar from '@fbcnms/ui/components/design-system/Tabs/TabsBar';
+```
+
+`TabsBar` supports three sizes: `small`, `standard` and `large`.
+
+The `spread` prop let's you control whether the tabs will stretch to take up all the available width.
+
+### Standard Size
+
+<Preview>
+  <Story name="Standard">
+    {() => {
+      const [activeTab, setActiveTab] = useState(0);
+      return (
+        <TabsBar
+          tabs={tabs}
+          activeTabIndex={activeTab}
+          onChange={setActiveTab}
+          spread={false}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Small Size
+
+<Preview>
+  <Story name="Small">
+    {() => {
+      const [activeTab, setActiveTab] = useState(0);
+      return (
+        <TabsBar
+          tabs={tabs}
+          size="small"
+          activeTabIndex={activeTab}
+          onChange={setActiveTab}
+          spread={false}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Large Size
+
+<Preview>
+  <Story name="Large">
+    {() => {
+      const [activeTab, setActiveTab] = useState(0);
+      return (
+        <TabsBar
+          tabs={tabs}
+          size="large"
+          activeTabIndex={activeTab}
+          onChange={setActiveTab}
+          spread={false}
+        />
+      );
+    }}
+  </Story>
+</Preview>
+
+### Spread
+
+<Preview>
+  <Story name="Spread">
+    {() => {
+      const [activeTab, setActiveTab] = useState(0);
+      return (
+        <TabsBar
+          tabs={tabs}
+          size="large"
+          activeTabIndex={activeTab}
+          onChange={setActiveTab}
+          spread={true}
+        />
+      );
+    }}
+  </Story>
+</Preview>

@@ -47,7 +47,7 @@ class LocalEnforcer {
       std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
-      AsyncEventdClient& eventd_client,
+      std::shared_ptr<EventsReporter> events_reporter,
       std::shared_ptr<SpgwServiceClient> spgw_client,
       std::shared_ptr<aaa::AAAClient> aaa_client,
       long session_force_termination_timeout_ms,
@@ -144,8 +144,6 @@ class LocalEnforcer {
    * Starts the termination process for the session. When termination completes,
    * the call back function is executed.
    * @param imsi - imsi of the subscirber
-   * @param on_termination_callback - callback function to be executed after
-   * termination
    */
   void terminate_subscriber(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
@@ -230,7 +228,7 @@ class LocalEnforcer {
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
-  AsyncEventdClient& eventd_client_;
+  std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
   std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>

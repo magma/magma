@@ -10,9 +10,11 @@ package main
 
 import (
 	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/tenants"
+	"magma/orc8r/cloud/go/services/tenants/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/tenants/servicers"
 	"magma/orc8r/cloud/go/services/tenants/servicers/storage"
 	"magma/orc8r/cloud/go/sqorc"
@@ -25,7 +27,7 @@ import (
 func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, tenants.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating state service %s", err)
+		glog.Fatalf("Error creating tenants service %s", err)
 	}
 	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
 	if err != nil {
@@ -40,9 +42,10 @@ func main() {
 
 	server, err := servicers.NewTenantsServicer(store)
 	if err != nil {
-		glog.Fatalf("Error creating state server: %s", err)
+		glog.Fatalf("Error creating tenants server: %s", err)
 	}
 	protos.RegisterTenantsServiceServer(srv.GrpcServer, server)
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
 	err = srv.Run()
 	if err != nil {

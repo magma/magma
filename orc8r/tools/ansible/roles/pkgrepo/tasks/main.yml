@@ -10,24 +10,10 @@
   fail: msg="distribution is undefined for the pkgrepo role"
   when: distribution is undefined
 
-- name: Add GPG key for magma repository
-  apt_key:
-    url: http://packages.magma.etagecom.io/pubkey.gpg
-    state: present
-    id: 2E97854368E14ED8FB6F80903E838E02450E78EA
+- name: Set up debian style repository
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  include_tasks: debian.yml
 
-- name: Add apt-transport-https
-  apt: pkg=apt-transport-https state=present update_cache=yes
-#  when: preburn
-
-- name: Add JFrog key
-  apt_key:
-    data: "{{ lookup('file', 'jfrog.pub') }}"
-    state: present
-    id: EF3F24737CD69751BFF9C592B5A959C7EC708105
-
-- name: Add JFrog repo
-  apt_repository:
-    repo: 'deb https://facebookconnectivity.jfrog.io/artifactory/list/{{ repo }}/ {{ distribution }} main'
-    update_cache: yes
-    mode: 0644
+- name: Set up redhat style repository
+  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
+  include_tasks: redhat.yml

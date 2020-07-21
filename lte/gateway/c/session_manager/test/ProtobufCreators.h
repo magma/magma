@@ -22,7 +22,14 @@ void create_rule_record(
   uint64_t bytes_tx,
   RuleRecord* rule_record);
 
-void create_charging_credit(uint64_t volume, ChargingCredit* credit);
+void create_charging_credit(
+  uint64_t volume, bool is_final, ChargingCredit* credit);
+
+void create_credit_update_response(
+    const std::string& imsi,
+    uint32_t charging_key,
+    CreditLimitType limit_type,
+    CreditUpdateResponse* response);
 
 void create_credit_update_response(
   const std::string& imsi,

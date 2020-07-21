@@ -16,9 +16,6 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
-type Version uint32
-
 // Indexer creates a set of secondary indices for consumption by a service.
 // Each Indexer should
 // 	- be owned by a single service
@@ -84,11 +81,29 @@ func FilterStates(types []string, states state_types.StatesByID) state_types.Sta
 	return ret
 }
 
-// Versions represents the discrepancy between an indexer's versions, actual vs. desired.
+// Version of the indexer. Capped to uint32 to fit into Postgres/Maria integer (int32).
+type Version uint32
+
+// NewIndexerVersion returns a new indexer version, ensuring it fits into
+// the required integer size.
+func NewIndexerVersion(version int64) (Version, error) {
+	capped := Version(version)
+	if int64(capped) < version {
+		return 0, fmt.Errorf("indexer version %v too large for %T", version, Version(0))
+	}
+	return capped, nil
+}
+
+// Versions represents the discrepancy between an indexer's versions,
+// actual vs. desired.
 type Versions struct {
+	// IndexerID is the ID of the indexer.
+	// ID should be the owning service's name.
 	IndexerID string
-	Actual    Version
-	Desired   Version
+	// Actual version of the indexer.
+	Actual Version
+	// Desired version of the indexer.
+	Desired Version
 }
 
 func (v *Versions) String() string {

@@ -35,7 +35,6 @@ export PLUGIN_DIR
 ############################
 define add_module
 	$(eval MODULE := $1)
-	$(eval include $(MODULE)/cloud/go/defs.mk)
 
 	BUILD_LIST += $(MODULE)_build
 	CLEAN_LIST += $(MODULE)_clean

@@ -6,18 +6,21 @@
  LICENSE file in the root directory of this source tree.
 */
 
-// index_test.go tests indexing with local indexers.
-
-package index
+package index_test
 
 import (
 	"testing"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/pluginimpl/models"
+	"magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
+	"magma/orc8r/cloud/go/services/state/indexer/index"
 	"magma/orc8r/cloud/go/services/state/indexer/mocks"
+	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/pkg/errors"
@@ -30,31 +33,37 @@ func init() {
 
 func TestIndexImpl_HappyPath(t *testing.T) {
 	const (
+		maxRetry = 3 // copied from index.go
+
 		nid0 = "some_networkid_0"
 
-		iid0 = "some_indexerid_0"
-		iid1 = "some_indexerid_1"
-		iid2 = "some_indexerid_2"
-		iid3 = "some_indexerid_3"
+		iid0 = "SOME_INDEXERID_0"
+		iid1 = "SOME_INDEXERID_1"
+		iid2 = "SOME_INDEXERID_2"
+		iid3 = "SOME_INDEXERID_3"
 	)
-	var someErr = errors.New("some_error")
+	var (
+		someErr = errors.New("some_error")
+	)
+
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 
 	clock.SkipSleeps(t)
 	defer clock.ResumeSleeps(t)
 
 	id0 := state_types.ID{Type: orc8r.GatewayStateType}
-	id1 := state_types.ID{Type: orc8r.AccessGatewayRecordType}
+	id1 := state_types.ID{Type: state.StringMapSerdeType}
 	reported0 := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	reported1 := &models.GatewayDevice{HardwareID: "42"}
+	reported1 := &state.StringToStringMap{"apple": "banana"}
 	st0 := state_types.State{ReportedState: reported0, Type: orc8r.GatewayStateType}
-	st1 := state_types.State{ReportedState: reported1, Type: orc8r.AccessGatewayRecordType}
+	st1 := state_types.State{ReportedState: reported1, Type: state.StringMapSerdeType}
 
 	indexTwo := state_types.StatesByID{id0: st0, id1: st1}
 	indexOne := state_types.StatesByID{id1: st1}
 	in := state_types.StatesByID{id0: st0, id1: st1}
 
-	idx0 := getIndexer(iid0, []string{orc8r.GatewayStateType, orc8r.AccessGatewayRecordType})
-	idx1 := getIndexer(iid1, []string{orc8r.AccessGatewayRecordType})
+	idx0 := getIndexer(iid0, []string{orc8r.GatewayStateType, state.StringMapSerdeType})
+	idx1 := getIndexer(iid1, []string{state.StringMapSerdeType})
 	idx2 := getIndexer(iid2, []string{"type_with_no_reported_states"})
 	idx3 := getIndexer(iid3, []string{})
 
@@ -62,15 +71,22 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 	idx1.On("Index", nid0, indexOne).Return(nil, someErr).Times(maxRetry)
 	idx0.On("GetVersion").Return(indexer.Version(42))
 	idx1.On("GetVersion").Return(indexer.Version(42))
+	idx2.On("GetVersion").Return(indexer.Version(42))
+	idx3.On("GetVersion").Return(indexer.Version(42))
+
+	indexer.DeregisterAllForTest(t)
+	state_test_init.StartNewTestIndexer(t, idx0)
+	state_test_init.StartNewTestIndexer(t, idx1)
+	state_test_init.StartNewTestIndexer(t, idx2)
+	state_test_init.StartNewTestIndexer(t, idx3)
 
 	// All indexing occurs as expected
-	indexer.DeregisterAllForTest(t)
-	assert.NoError(t, indexer.RegisterIndexers(idx0, idx1, idx2, idx3))
-	actual := indexImpl(nid0, in)
+	actual, err := index.Index(nid0, in)
+	assert.NoError(t, err)
 	assert.Len(t, actual, 1) // from idx1's overarching err return
 	e := actual[0].Error()
 	assert.Contains(t, e, iid1)
-	assert.Contains(t, e, ErrIndex)
+	assert.Contains(t, e, index.ErrIndex)
 	assert.Contains(t, e, someErr.Error())
 	idx0.AssertExpectations(t)
 	idx1.AssertExpectations(t)

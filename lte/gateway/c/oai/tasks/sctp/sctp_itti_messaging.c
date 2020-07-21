@@ -49,7 +49,7 @@ int sctp_itti_send_lower_layer_conf(
   SCTP_DATA_CNF(msg).mme_ue_s1ap_id = mme_ue_s1ap_id;
   SCTP_DATA_CNF(msg).is_success = is_success;
 
-  return itti_send_msg_to_task(origin_task_id, INSTANCE_DEFAULT, msg);
+  return send_msg_to_task(&sctp_task_zmq_ctx, origin_task_id, msg);
 }
 
 //------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ int sctp_itti_send_new_association(
   SCTP_NEW_ASSOCIATION(msg).instreams = instreams;
   SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
 
-  return itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, msg);
+  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
 }
 
 //------------------------------------------------------------------------------
@@ -81,7 +81,7 @@ int sctp_itti_send_new_message_ind(
 
   STOLEN_REF *payload = NULL;
 
-  return itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, msg);
+  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
 }
 
 //------------------------------------------------------------------------------
@@ -92,5 +92,5 @@ int sctp_itti_send_com_down_ind(sctp_assoc_id_t assoc_id, bool reset)
   SCTP_CLOSE_ASSOCIATION(msg).assoc_id = assoc_id;
   SCTP_CLOSE_ASSOCIATION(msg).reset = reset;
 
-  return itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, msg);
+  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
 }

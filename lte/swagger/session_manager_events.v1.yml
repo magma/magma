@@ -16,11 +16,57 @@ definitions:
         type: string
       session_id:
         type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+  session_create_failure:
+    type: object
+    description: Used to track when a session creation failed
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      failure_reason:
+        type: string
+  session_updated:
+    type: object
+    description: Used to track when a session update is reported
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      ip_addr:
+        type: string
+  session_update_failure:
+    type: object
+    description: Used to track when a session update has failed
+    properties:
+      imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
+        type: string
+      ip_addr:
+        type: string
+      failure_reason:
+        type: string
   session_terminated:
     type: object
     description: Used to track total session metrics
     properties:
       imsi:
+        type: string
+      apn:
+        type: string
+      mac_addr:
         type: string
       ip_addr:
         type: string

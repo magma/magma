@@ -48,7 +48,6 @@ struct timeval;
 typedef enum {
   MIN_SH_TS_LOG_CLIENT = 0,
   SH_TS_LOG_TXT = MIN_SH_TS_LOG_CLIENT,
-  SH_TS_LOG_MSC,
   MAX_SH_TS_LOG_CLIENT,
 } sh_ts_log_app_id_t;
 
@@ -62,9 +61,7 @@ typedef struct shared_log_queue_item_s {
   struct lfds710_stack_element se;
   sh_ts_log_app_id_t app_id; /*!< \brief application identifier. */
   bstring bstr;              /*!< \brief string containing the message. */
-  union {
-    log_private_t log; /*!< \brief string containing the message. */
-  } u_app_log;
+  log_private_t log; /*!< \brief string containing the message. */
 } shared_log_queue_item_t;
 
 /*! \struct  log_config_t
@@ -82,6 +79,5 @@ int shared_log_init(const int max_threadsP);
 void shared_log_itti_connect(void);
 void shared_log_start_use(void);
 void shared_log_flush_messages(void);
-void shared_log_exit(void);
 void shared_log_item(shared_log_queue_item_t *messageP);
 #endif /* FILE_SHARED_TS_LOG_SEEN */

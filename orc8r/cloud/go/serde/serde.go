@@ -78,7 +78,7 @@ func (s *binarySerde) GetType() string {
 func (s *binarySerde) Serialize(in interface{}) ([]byte, error) {
 	bm, ok := in.(BinaryConvertible)
 	if !ok {
-		return nil, errors.Errorf("structure does not implement BinaryConvertible")
+		return nil, errors.Errorf("type %T structure does not implement BinaryConvertible", in)
 	}
 	return bm.MarshalBinary()
 }

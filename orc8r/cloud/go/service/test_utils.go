@@ -17,12 +17,33 @@ import (
 	"google.golang.org/grpc"
 )
 
-// NewTestOrchestratorService returns a new GRPC orchestrator service without
+// NewTestService returns a new gRPC orchestrator service without
 // loading Orchestrator plugins from disk. This should only be used in test
 // contexts, where plugins are registered manually.
-func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, error) {
+func NewTestService(t *testing.T, moduleName string, serviceType string) (*platform_service.Service, error) {
 	if t == nil {
 		panic("for tests only")
 	}
 	return platform_service.NewServiceWithOptions(moduleName, serviceType, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+}
+
+// NewTestOrchestratorService returns a new gRPC orchestrator service without
+// loading Orchestrator plugins from disk. This should only be used in test
+// contexts, where plugins are registered manually.
+func NewTestOrchestratorService(t *testing.T, moduleName string, serviceType string) (*OrchestratorService, error) {
+	if t == nil {
+		panic("for tests only")
+	}
+	platformService, err := platform_service.NewServiceWithOptions(moduleName, serviceType, grpc.UnaryInterceptor(unary.MiddlewareHandler))
+	if err != nil {
+		return nil, err
+	}
+	echoSrv, err := getEchoServerForOrchestratorService(serviceType)
+	if err != nil {
+		return nil, err
+	}
+	return &OrchestratorService{
+		Service:    platformService,
+		EchoServer: echoSrv,
+	}, nil
 }

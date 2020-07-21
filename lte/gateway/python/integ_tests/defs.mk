@@ -53,7 +53,6 @@ s1aptests/test_attach_missing_imsi.py \
 s1aptests/test_duplicate_attach.py \
 s1aptests/test_enb_partial_reset_con_dereg.py \
 s1aptests/test_enb_partial_reset.py \
-s1aptests/test_enb_complete_reset.py \
 s1aptests/test_nas_non_delivery_for_auth.py \
 s1aptests/test_outoforder_attach_complete_ICSR.py \
 s1aptests/test_s1setup_incorrect_plmn.py \
@@ -106,6 +105,14 @@ s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
+s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_detach_with_mobilityd_restart.py \
+s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
+s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
+s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
+s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
+s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
+s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py
 
 # These test cases pass without memory leaks, but needs DL-route in TRF server
@@ -116,6 +123,7 @@ s1aptests/test_attach_detach_attach_ul_tcp_data.py
 # s1aptests/test_attach_detach_attach_dl_tcp_data.py
 
 # TODO flaky tests we should look at
+# s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \

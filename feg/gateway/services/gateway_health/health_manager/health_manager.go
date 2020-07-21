@@ -17,6 +17,8 @@ import (
 	"strings"
 	"sync/atomic"
 
+	"magma/feg/gateway/services/gateway_health/events"
+
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
@@ -100,12 +102,22 @@ func (hm *HealthManager) SendHealthUpdate() error {
 	case protos.HealthResponse_NONE:
 	case protos.HealthResponse_SYSTEM_UP:
 		err = hm.takeSystemUp()
+		if err != nil {
+			events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error(), hm.prevAction)
+		} else {
+			events.LogGatewayHealthSuccessEvent(events.GatewayPromotionSucceededEvent, hm.prevAction)
+		}
 	case protos.HealthResponse_SYSTEM_DOWN:
 		disablePeriod := hm.config.GetCloudDisconnectPeriodSecs()
 		if hm.prevAction == protos.HealthResponse_SYSTEM_DOWN {
 			disablePeriod = 0
 		}
 		err = hm.takeSystemDown(disablePeriod, healthRequest.HealthStats.ServiceStatus)
+		if err != nil {
+			events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error(), hm.prevAction)
+		} else {
+			events.LogGatewayHealthSuccessEvent(events.GatewayDemotionSucceededEvent, hm.prevAction)
+		}
 	default:
 		err = fmt.Errorf("Invalid requested action: %s returned to FeG Health Manager", healthResponse.Action)
 	}

@@ -29,3 +29,4 @@ vet::
 build::
 	go install ./...
 
+precommit: fmt test vet

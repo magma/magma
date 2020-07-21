@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin/models"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/directoryd"

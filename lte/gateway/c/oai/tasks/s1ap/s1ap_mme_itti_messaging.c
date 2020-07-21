@@ -67,7 +67,7 @@ int s1ap_mme_itti_send_sctp_request(
   SCTP_DATA_REQ(message_p).stream = stream;
   SCTP_DATA_REQ(message_p).mme_ue_s1ap_id = ue_id;
 
-  return itti_send_msg_to_task(TASK_SCTP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -104,7 +104,7 @@ int s1ap_mme_itti_nas_uplink_ind(
   MME_APP_UL_DATA_IND(message_p).cgi = *cgi;
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -151,7 +151,7 @@ int s1ap_mme_itti_nas_downlink_cnf(
       ue_id);
   }
   message_p->ittiMsgHeader.imsi = imsi64;
-  return itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------
@@ -225,7 +225,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
     enb_ue_s1ap_id;
   S1AP_INITIAL_UE_MESSAGE(message_p).transparent.e_utran_cgi = *ecgi;
 
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -289,7 +289,7 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   // but let's see
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
@@ -333,6 +333,6 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     mme_ue_s1ap_id);
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

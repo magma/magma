@@ -25,7 +25,6 @@ var testPlugins = &testPluginRegistry{plugins: map[string]OrchestratorPlugin{}}
 
 var testMetricsConfigMap = &config.ConfigMap{
 	RawMap: map[interface{}]interface{}{
-		metricsd.Profile:                      "",
 		metricsd.PrometheusPushAddresses:      []string{""},
 		metricsd.PrometheusQueryAddress:       "",
 		metricsd.PrometheusConfigServiceURL:   "",

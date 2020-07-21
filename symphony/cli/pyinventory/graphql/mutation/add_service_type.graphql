@@ -1,5 +1,0 @@
-mutation AddServiceTypeMutation($data: ServiceTypeCreateData!) {
-  addServiceType(data: $data) {
-    ...ServiceTypeFragment
-  }
-}

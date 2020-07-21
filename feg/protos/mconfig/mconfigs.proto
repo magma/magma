@@ -118,6 +118,20 @@ message AAAConfig {
     bool AccountingEnabled = 3;
     // Postpone Auth success until successful accounting CreateSession completion
     bool CreateSessionOnAuth = 4;
+    // enable event logging for aaa events
+    bool EventLoggingEnabled = 5;
+    RadiusConfig RadiusConfig = 6;
+}
+
+message RadiusConfig {
+    // Radius server secret
+    bytes Secret = 1;
+    // Radius server network (udp/tcp/etc.
+    string Network = 2;
+    // Authentication Radius server address
+    string AuthAddr = 3;
+    // Accounting Radius server address
+    string AcctAddr = 4;
 }
 
 message GatewayHealthConfig {

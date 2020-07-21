@@ -8,7 +8,7 @@
 
 package test_utils
 
-import "magma/feg/cloud/go/plugin/models"
+import "magma/feg/cloud/go/services/feg/obsidian/models"
 
 func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 	// GyInitMethod_PER_SESSION

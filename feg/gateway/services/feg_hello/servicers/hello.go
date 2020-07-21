@@ -27,6 +27,9 @@ func NewFegHelloServer() *helloServer {
 }
 
 func (srv *helloServer) SayHello(ctx context.Context, req *protos.HelloRequest) (*protos.HelloReply, error) {
+	glog.Infof("[FeG HELLO] received greeting: '%s', status: %d (%s)",
+		req.GetGreeting(), req.GetGrpcErrCode(), codes.Code(req.GetGrpcErrCode()).String())
+
 	if codes.Code(req.GrpcErrCode) == codes.OK {
 		return &protos.HelloReply{Greeting: req.Greeting}, nil
 	}

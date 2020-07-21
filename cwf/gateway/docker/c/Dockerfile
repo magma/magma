@@ -1,15 +1,42 @@
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
 # -----------------------------------------------------------------------------
 # Builder image for C binaries and Magma proto files
 # -----------------------------------------------------------------------------
+
+# debian stretch image
+# ARG OS_DIST=debian
+# ARG OS_RELEASE=stretch
+# ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/list/dev/
+# ARG CLANG_VERSION=3.8
+
+# ubuntu bionic image
+ARG OS_DIST=ubuntu
+ARG OS_RELEASE=bionic
+ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
+ARG CLANG_VERSION=3.9
+
 # Stretch is required for c build
-FROM debian:stretch AS builder
+FROM $OS_DIST:$OS_RELEASE AS builder
+ARG OS_DIST
+ARG OS_RELEASE
+ARG EXTRA_REPO
+ARG CLANG_VERSION
 
 # Add the magma apt repo
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
+
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ stretch main"
+    apt-add-repository "deb ${EXTRA_REPO} ${OS_RELEASE} main"
+
 
 # Install dependencies required for building
 RUN apt-get -y update && apt-get -y install \
@@ -25,7 +52,7 @@ RUN apt-get -y update && apt-get -y install \
   pkg-config \
   libgflags-dev \
   libgtest-dev \
-  clang-3.8 \
+  clang-${CLANG_VERSION} \
   libc++-dev \
   protobuf-compiler \
   grpc-dev \
@@ -43,7 +70,11 @@ RUN apt-get -y update && apt-get -y install \
   libfolly-dev \
   magma-libfluid \
   libdouble-conversion-dev \
-  libboost-chrono-dev
+  libboost-chrono-dev \
+  libboost-context-dev \
+  libboost-program-options-dev \
+  libboost-filesystem-dev \
+  libboost-regex-dev
 
 ENV MAGMA_ROOT /magma
 ENV C_BUILD /build/c
@@ -71,14 +102,19 @@ RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_T
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
-FROM debian:stretch AS gateway_c
+FROM $OS_DIST:$OS_RELEASE AS gateway_c
+ARG OS_DIST
+ARG OS_RELEASE
+ARG EXTRA_REPO
 
 # Add the magma apt repo
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https gnupg
 COPY orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub /tmp/jfrog.pub
+
 RUN apt-key add /tmp/jfrog.pub && \
-    apt-add-repository "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev/ stretch main"
+    apt-add-repository "deb $EXTRA_REPO $OS_RELEASE main"
+
 
 # Install runtime dependencies
 RUN apt-get -y update && apt-get -y install \
@@ -98,6 +134,10 @@ RUN apt-get -y update && apt-get -y install \
   libfolly-dev \
   libdouble-conversion-dev \
   libboost-chrono-dev \
+  libboost-context-dev \
+  libboost-program-options-dev \
+  libboost-filesystem-dev \
+  libboost-regex-dev \
   nlohmann-json-dev \
   redis-server \
   python-redis \
@@ -113,5 +153,4 @@ COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
-COPY orc8r/cloud/docker/proxy/magma_headers.rb /etc/nghttpx/magma_headers.rb
 RUN mkdir -p /var/opt/magma/configs

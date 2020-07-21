@@ -56,6 +56,9 @@ func main() {
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
 
+	// Starts built in radius server if built with this option
+	startBuiltInRadius(aaaConfigs, auth, acct)
+
 	glog.Infof("Starting AAA Service v%s.", Version)
 	err = srv.Run()
 	if err != nil {

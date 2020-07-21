@@ -11,6 +11,8 @@ package main
 import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
+	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
 
 	"github.com/golang/glog"
@@ -24,10 +26,9 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}
-
-	// Run the service
+	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error running service: %s", err)
+		glog.Fatalf("Error while running service and echo server: %s", err)
 	}
 }

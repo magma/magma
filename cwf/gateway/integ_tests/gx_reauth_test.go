@@ -17,7 +17,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/lte/cloud/go/plugin/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -89,10 +89,12 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	assert.NoError(t, err)
 
 	record := recordsBySubID["IMSI"+imsi]["static-pass-all-raa1"]
-	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
+	assert.NotNil(t, record,
+		fmt.Sprintf("Policy usage record for imsi: %v rule: 'static-pass-all-raa1' does not exist", imsi))
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-	assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
-
+	if (record.BytesTx == uint64(0) && record.BytesRx == uint64(0)) {
+		dumpPipelinedState(tr)
+	}
 	// Send ReAuth Request to update quota
 	rulesRemoval := &fegprotos.RuleRemovals{
 		RuleNames:     []string{"static-pass-all-raa2"},

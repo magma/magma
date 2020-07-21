@@ -7,6 +7,16 @@
 # of patent rights can be found in the PATENTS file in the same directory.
 
 services:
+  feg:
+    host: "localhost"
+    port: 9114
+    echo_port: 10114
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/feg,/magma/v1/feg_lte"
+
   feg_relay:
     host: "localhost"
     port: 9103

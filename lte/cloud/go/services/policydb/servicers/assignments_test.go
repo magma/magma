@@ -10,7 +10,8 @@ package servicers_test
 
 import (
 	plugin2 "magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/plugin/models"
+	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"testing"
@@ -170,17 +171,17 @@ func TestAssignmentsServicer(t *testing.T) {
 	assert.Equal(t, 0, len(baseName.AssignedSubscribers))
 }
 
-func newDefaultGatewayConfig() *models.GatewayCellularConfigs {
-	return &models.GatewayCellularConfigs{
-		Ran: &models.GatewayRanConfigs{
+func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
+	return &lteModels.GatewayCellularConfigs{
+		Ran: &lteModels.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &models.GatewayEpcConfigs{
+		Epc: &lteModels.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models.GatewayNonEpsConfigs{
+		NonEpsService: &lteModels.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),

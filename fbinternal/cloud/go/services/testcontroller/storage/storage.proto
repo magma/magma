@@ -1,0 +1,75 @@
+syntax= "proto3";
+
+package magma.fbinternal.testcontroller.storage;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "storage";
+
+// TestCase is an end-to-end test case.
+message TestCase {
+    // pk uniquely identifies a test case
+    int64 pk = 1;
+    // type of the test case which identifies its state machine and how to
+    // deserialize its configuration
+    string testCaseType = 2;
+
+    // serialized configuration for the test case
+    bytes testConfig = 10;
+
+    // flag indicating if the test case is currently being run by a worker
+    bool isCurrentlyExecuting = 20;
+    // timestamp of the last time the test case was claimed for execution
+    google.protobuf.Timestamp lastExecutionTime = 21;
+
+    // current state machine state of the test case
+    string state = 30;
+    // error message, if any, for the test case
+    string error = 31;
+    // next scheduled runtime for the test case if it is currently idle
+    google.protobuf.Timestamp nextScheduledTime = 32;
+}
+
+// MutableTestCase encapsulates the set of fields available to clients for
+// modification. See TestCase for documentation on fields.
+message MutableTestCase {
+    int64 pk = 1;
+    string testCaseType = 2;
+    bytes testConfig = 10;
+}
+
+// CINode is a baremetal CI workload executor
+message CINode {
+    // unique ID for the node (e.g. VPN client ID)
+    string id = 1;
+    // IP address for the node on the VPN
+    string vpnIp = 2;
+    // Tag for the node
+    string tag = 3;
+
+    // is the node available or not
+    bool available = 10;
+    // the last time this node was leased out
+    google.protobuf.Timestamp lastLeaseTime = 11;
+
+    // Note that lease IDs are purposely not exposed in the storage API - we
+    // consider this internal state which should not be exposed apart from
+    // giving a client a lease ID when a node is leased
+}
+
+// MutableCINode encapsulates the set iof fields available to clients for
+// modification. See CINode for documentation on fields.
+message MutableCINode {
+    string id = 1;
+    string vpnIP = 2;
+    string tag = 3;
+}
+
+// NodeLease encapsulates a successful node lease. To release the lease on the
+// node, the same leaseID must be provided.
+message NodeLease {
+    string id = 1;
+    string leaseID = 2;
+
+    string vpnIP = 10;
+}

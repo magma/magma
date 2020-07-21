@@ -27,6 +27,7 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 
-int send_app_health_to_service303(task_id_t origin_id, bool healthy);
+int send_app_health_to_service303(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy);
 
 #endif /* FILE_SERVICE303_MESSAGE_UTILS */

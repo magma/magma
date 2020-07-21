@@ -64,6 +64,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   LocalSessionManagerHandlerImpl(
       std::shared_ptr<LocalEnforcer> monitor, SessionReporter* reporter,
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+      std::shared_ptr<EventsReporter> events_reporter,
       SessionStore& session_store);
   ~LocalSessionManagerHandlerImpl() {}
   /**
@@ -94,6 +95,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
+  std::shared_ptr<EventsReporter> events_reporter_;
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
@@ -165,6 +167,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    *       be undefined behavior.
    */
   SessionMap get_sessions_for_deletion(const LocalEndSessionRequest& request);
+
+  void report_session_update_event(
+      SessionMap& session_map, SessionUpdate& session_update);
+
+  void report_session_update_event_failure(
+      SessionMap& session_map, SessionUpdate& session_update,
+      const std::string& failure_reason);
 };
 
 }  // namespace magma

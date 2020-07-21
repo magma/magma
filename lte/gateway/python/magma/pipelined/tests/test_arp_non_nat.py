@@ -88,7 +88,7 @@ class ArpTableTest(unittest.TestCase):
                 'local_ue_eth_addr': True,
                 'quota_check_ip': '1.2.3.4',
                 'clean_restart': True,
-                'non_nat': True,
+                'enable_nat': False,
                 'mtr_ip': cls.MTR_IP,
                 'mtr_mac': cls.MTR_MAC,
             },
