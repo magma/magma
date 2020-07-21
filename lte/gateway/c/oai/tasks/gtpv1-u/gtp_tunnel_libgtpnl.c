@@ -234,7 +234,7 @@ int libgtpnl_send_end_marker(struct in_addr enb, uint32_t tei)
   return -EOPNOTSUPP;
 }
 
-const char *libgtpnl_get_dev_name()
+const char *libgtpnl_get_dev_name(void)
 {
   return GTP_DEVNAME;
 }
