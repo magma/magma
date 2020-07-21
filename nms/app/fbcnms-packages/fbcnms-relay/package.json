@@ -1,6 +1,5 @@
 {
     "name": "@fbcnms/relay",
-    "private": true,
     "version": "0.1.0",
     "bin": {
         "fbcnms-relay-compiler": "bin/fbcnms-relay-compiler.js"
