@@ -13,6 +13,8 @@ import type {KPIRows} from '../../components/KPIGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import Button from '@material-ui/core/Button';
+import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
@@ -25,9 +27,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import TextField from '@material-ui/core/TextField';
 
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
@@ -36,6 +37,29 @@ const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
+  },
+  list: {
+    padding: 0,
+  },
+  kpiLabel: {
+    color: colors.primary.comet,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  kpiValue: {
+    color: colors.primary.brightGray,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    width: '100%',
+  },
+  kpiBox: {
+    width: '100%',
+    padding: 0,
+    '& > div': {
+      width: '100%',
+    },
   },
   paper: {
     height: 100,
@@ -66,67 +90,65 @@ export default function GatewayConfig({
   enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
+
+  function ConfigFilter() {
+    return <Button variant="contained">Edit JSON</Button>;
+  }
+
+  function GatewayFilter() {
+    return <Button variant="text">Edit</Button>;
+  }
+
+  function AggregationsFilter() {
+    return <Button variant="text">Edit</Button>;
+  }
+
+  function EpcFilter() {
+    return <Button variant="text">Edit</Button>;
+  }
+
+  function RanFilter() {
+    return <Button variant="text">Edit</Button>;
+  }
+
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
-        <Grid container spacing={3} item xs={12}>
-          <Text>
-            <SettingsIcon /> Config
-          </Text>
-        </Grid>
-        <Grid container spacing={3} item xs={6}>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
           <Grid item xs={12}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>Gateway</Text>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <GatewayInfoConfig gwInfo={gwInfo} />
-            </Grid>
+            <CardTitleFilterRow
+              icon={SettingsIcon}
+              label="Config"
+              filter={ConfigFilter}
+            />
           </Grid>
-          <Grid item xs={12}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>Aggregations</Text>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <GatewayAggregation gwInfo={gwInfo} />
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid container spacing={3} item xs={6}>
-          <Grid item xs={12}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>EPC</Text>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6} alignItems="center">
+              <Grid container spacing={4}>
+                <Grid item xs={12}>
+                  <CardTitleFilterRow label="Gateway" filter={GatewayFilter} />
+                  <GatewayInfoConfig gwInfo={gwInfo} />
+                </Grid>
+                <Grid item xs={12}>
+                  <CardTitleFilterRow
+                    label="Aggregations"
+                    filter={AggregationsFilter}
+                  />
+                  <GatewayAggregation gwInfo={gwInfo} />
+                </Grid>
               </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <GatewayEPC gwInfo={gwInfo} />
-            </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>Ran</Text>
+            <Grid item xs={12} md={6} alignItems="center">
+              <Grid container spacing={4}>
+                <Grid item xs={12}>
+                  <CardTitleFilterRow label="EPC" filter={EpcFilter} />
+                  <GatewayEPC gwInfo={gwInfo} />
+                </Grid>
+                <Grid item xs={12}>
+                  <CardTitleFilterRow label="Ran" filter={RanFilter} />
+                  <GatewayRAN gwInfo={gwInfo} enbInfo={enbInfo} />
+                </Grid>
               </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <Text>Edit</Text>
-              </Grid>
-            </Grid>
-            <Grid item xs={12}>
-              <GatewayRAN gwInfo={gwInfo} enbInfo={enbInfo} />
             </Grid>
           </Grid>
         </Grid>
@@ -136,76 +158,49 @@ export default function GatewayConfig({
 }
 
 function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
-  const classes = useStyles();
-  const typographyProps = {
-    primaryTypographyProps: {
-      variant: 'caption',
-      className: classes.itemTitle,
-    },
-    secondaryTypographyProps: {
-      variant: 'h6',
-      className: classes.itemValue,
-    },
-  };
-  return (
-    <List component={Paper}>
-      <ListItem>
-        <ListItemText
-          primary="Name"
-          secondary={gwInfo.name}
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={gwInfo.id}
-          primary="Gateway ID"
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={gwInfo.device.hardware_id}
-          primary="Hardware UUID"
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={
-            gwInfo.status?.platform_info?.packages?.[0]?.version ?? 'null'
-          }
-          primary="Version"
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={gwInfo.description}
-          primary="Description"
-          {...typographyProps}
-        />
-      </ListItem>
-    </List>
-  );
+  const kpiData: KPIRows[] = [
+    [
+      {
+        category: 'Name',
+        value: gwInfo.name,
+        statusCircle: false,
+      },
+    ],
+    [
+      {
+        category: 'Gateway ID',
+        value: gwInfo.device.hardware_id,
+        statusCircle: false,
+      },
+    ],
+    [
+      {
+        category: 'Hardware UUID',
+        value: gwInfo.device.hardware_id,
+        statusCircle: false,
+      },
+    ],
+    [
+      {
+        category: 'Version',
+        value: gwInfo.status?.platform_info?.packages?.[0]?.version ?? 'null',
+        statusCircle: false,
+      },
+    ],
+    [
+      {
+        category: 'Description',
+        value: gwInfo.description,
+        statusCircle: false,
+      },
+    ],
+  ];
+
+  return <KPIGrid data={kpiData} />;
 }
 
 function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
   const classes = useStyles();
-  const typographyProps = {
-    primaryTypographyProps: {
-      variant: 'caption',
-      className: classes.itemTitle,
-    },
-    secondaryTypographyProps: {
-      variant: 'h6',
-      className: classes.itemValue,
-    },
-  };
 
   const [open, setOpen] = useState({
     ipAllocation: true,
@@ -217,13 +212,46 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
       [config]: !open[config],
     });
   };
+
+  function ListItems(props) {
+    return (
+      <>
+        <ListItem>
+          <ListItemText primary={props.data} />
+        </ListItem>
+        <Divider />
+      </>
+    );
+  }
+
+  function ListNull() {
+    return (
+      <>
+        <ListItem>
+          <ListItemText primary="-" />
+        </ListItem>
+        <Divider />
+      </>
+    );
+  }
+
   return (
-    <List component={Paper}>
+    <List component={Paper} elevation={0} className={classes.list}>
       <ListItem button onClick={() => handleCollapse('ipAllocation')}>
-        <ListItemText
-          primary={'IP Allocation'}
-          secondary={gwInfo.cellular.epc.nat_enabled ? 'NAT' : 'Custom'}
-          {...typographyProps}
+        <CardHeader
+          title="IP Allocation"
+          className={classes.kpiBox}
+          subheader={gwInfo.cellular.epc.nat_enabled ? 'NAT' : 'Custom'}
+          titleTypographyProps={{
+            variant: 'body3',
+            className: classes.kpiLabel,
+            title: 'IP Allocation',
+          }}
+          subheaderTypographyProps={{
+            variant: 'body1',
+            className: classes.kpiValue,
+            title: gwInfo.cellular.epc.nat_enabled ? 'NAT' : 'Custom',
+          }}
         />
         {open['ipAllocation'] ? <ExpandLess /> : <ExpandMore />}
       </ListItem>
@@ -233,27 +261,45 @@ function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
         in={open['ipAllocation']}
         timeout="auto"
         unmountOnExit>
-        <ListItem>
-          <ListItemText
-            secondary={gwInfo.cellular.epc.ip_block}
-            {...typographyProps}
-          />
-        </ListItem>
-        <Divider />
+        {gwInfo.cellular.epc.ip_block ? (
+          <ListItems data={gwInfo.cellular.epc.ip_block} />
+        ) : (
+          <ListNull />
+        )}
       </Collapse>
-      <ListItem button onClick={() => handleCollapse('reservedIp')}>
-        <ListItemText
-          primary={'Primary DNS'}
-          secondary={gwInfo.cellular.epc.dns_primary ?? '-'}
-          {...typographyProps}
+      <ListItem>
+        <CardHeader
+          title="Primary DNS"
+          className={classes.kpiBox}
+          subheader={gwInfo.cellular.epc.dns_primary ?? '-'}
+          titleTypographyProps={{
+            variant: 'body3',
+            className: classes.kpiLabel,
+            title: 'Primary DNS',
+          }}
+          subheaderTypographyProps={{
+            variant: 'body1',
+            className: classes.kpiValue,
+            title: gwInfo.cellular.epc.dns_primary ?? '-',
+          }}
         />
       </ListItem>
       <Divider />
       <ListItem>
-        <ListItemText
-          primary={'Secondary DNS'}
-          secondary={gwInfo.cellular.epc.dns_secondary ?? '-'}
-          {...typographyProps}
+        <CardHeader
+          title="Secondary DNS"
+          className={classes.kpiBox}
+          subheader={gwInfo.cellular.epc.dns_secondary ?? '-'}
+          titleTypographyProps={{
+            variant: 'body3',
+            className: classes.kpiLabel,
+            title: 'Secondary DNS',
+          }}
+          subheaderTypographyProps={{
+            variant: 'body1',
+            className: classes.kpiValue,
+            title: gwInfo.cellular.epc.dns_secondary ?? '-',
+          }}
         />
       </ListItem>
     </List>
@@ -304,10 +350,7 @@ function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
     <ActionTable
       title=""
       data={enbRows}
-      columns={[
-        {title: 'Name', field: 'name'},
-        {title: 'Serial Number', field: 'id'},
-      ]}
+      columns={[{title: 'Serial Number', field: 'id'}]}
       menuItems={[
         {name: 'View'},
         {name: 'Edit'},
@@ -335,58 +378,50 @@ function GatewayRAN({
 }) {
   const [open, setOpen] = React.useState(true);
   const classes = useStyles();
-  const typographyProps = {
-    primaryTypographyProps: {
-      variant: 'caption',
-      className: classes.itemTitle,
-      readOnly: true,
-    },
-    secondaryTypographyProps: {
-      variant: 'h6',
-      className: classes.itemValue,
-      readOnly: true,
-    },
-  };
+
+  const ran: KPIRows[] = [
+    [
+      {
+        category: 'PCI',
+        value: gwInfo.cellular.ran.pci,
+        statusCircle: false,
+      },
+      {
+        category: 'eNodeB Transmit',
+        value: gwInfo.cellular.ran.transmit_enabled ? 'Enabled' : 'Disabled',
+        statusCircle: false,
+      },
+    ],
+  ];
 
   return (
-    <List component={Paper}>
-      <ListItem>
-        <Grid container>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth={true}
-              value={gwInfo.cellular.ran.pci}
-              label="PCI"
-              InputProps={{disableUnderline: true, readOnly: true}}
-            />
-          </Grid>
-          <Grid item xs={6}>
-            <TextField
-              fullWidth={true}
-              value={
-                gwInfo.cellular.ran.transmit_enabled ? 'Enabled' : 'Disabled'
-              }
-              label="eNodeB Transmit"
-              InputProps={{disableUnderline: true, readOnly: true}}
-            />
-          </Grid>
-        </Grid>
-      </ListItem>
+    <>
+      <KPIGrid data={ran} />
       <Divider />
-      <ListItem button onClick={() => setOpen(!open)}>
-        <ListItemText
-          primary={'Registered eNodeBs'}
-          secondary={gwInfo.connected_enodeb_serials?.length || 0}
-          {...typographyProps}
-        />
-        {open ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
-      <Collapse key="reservedIp" in={open} timeout="auto" unmountOnExit>
+      <List component={Paper} elevation={0} className={classes.list}>
+        <ListItem button onClick={() => setOpen(!open)}>
+          <CardHeader
+            title="Registered eNodeBs"
+            className={classes.kpiBox}
+            subheader={gwInfo.connected_enodeb_serials?.length || 0}
+            titleTypographyProps={{
+              variant: 'body3',
+              className: classes.kpiLabel,
+              title: 'Registered eNodeBs',
+            }}
+            subheaderTypographyProps={{
+              variant: 'body1',
+              className: classes.kpiValue,
+              title: gwInfo.connected_enodeb_serials?.length || 0,
+            }}
+          />
+          {open ? <ExpandLess /> : <ExpandMore />}
+        </ListItem>
         <Divider />
-        <Grid item xs={12}>
+        <Collapse key="reservedIp" in={open} timeout="auto" unmountOnExit>
           <EnodebsTable gwInfo={gwInfo} enbInfo={enbInfo} />
-        </Grid>
-      </Collapse>
-    </List>
+        </Collapse>
+      </List>
+    </>
   );
 }
