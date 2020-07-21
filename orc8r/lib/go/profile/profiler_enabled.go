@@ -1,3 +1,5 @@
+// +build with_profiler
+
 /*
 Copyright 2020 The Magma Authors.
 
@@ -10,8 +12,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
-// +build with_profiler
 
 // Package profile provides CPU & memory profiling helper functions
 // profiling is enabled by with_profiler build tag
