@@ -11,6 +11,7 @@ package service_health
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -20,7 +21,6 @@ import (
 
 const (
 	dockerRequestTimeout = 3 * time.Second
-	radiusServiceName    = "/radius"
 )
 
 // DockerServiceHealthProvider provides service health for
@@ -58,13 +58,11 @@ func (d *DockerServiceHealthProvider) GetUnhealthyServices() ([]string, error) {
 		if len(container.Names) == 0 {
 			continue
 		}
-		// Since we purposely stop the RADIUS server on Disable
-		// don't include in the check
-		// TODO: Remove once transport failover is implemented
-		if container.Names[0] == radiusServiceName {
-			continue
+		serviceName := container.Names[0]
+		if strings.HasPrefix(serviceName, "/") {
+			serviceName = strings.ReplaceAll(serviceName, "/", "")
 		}
-		unhealthyServices = append(unhealthyServices, container.Names[0])
+		unhealthyServices = append(unhealthyServices, serviceName)
 	}
 	return unhealthyServices, nil
 }
