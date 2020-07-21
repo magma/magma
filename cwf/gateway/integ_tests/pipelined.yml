@@ -46,19 +46,19 @@ default_rule_tag: 0x1
 
 # Pipeline application level configs
 access_control:
-  # Traffic to ip blocks in the specified direction in the blacklist will be
-  # dropped. Each entry in the blacklist should consist of an ip and a
+  # Traffic to ip blocks in the specified direction in the blocklist will be
+  # dropped. Each entry in the blocklist should consist of an ip and a
   # direction('inbound' or 'outbound'). If direction is not specified, then
   # both inbound traffic to and outbound traffic from the ip will be blocked.
   # The ip block can be simply an address or an address with a netmask.
   # Examples:
-  # ip_blacklist:
+  # ip_blocklist:
   #   - ip: '127.0.0.1'
   #     direction: 'inbound'
   #   - ip: '127.0.0.1/24'
   #     direction: 'outbound
   #   - ip: '127.0.0.1/255.255.255.0'
-  ip_blacklist: []
+  ip_blocklist: []
 
 meter:
   enabled: true
