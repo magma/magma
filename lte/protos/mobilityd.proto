@@ -110,6 +110,13 @@ message RemoveIPBlockResponse {
   repeated IPBlock ip_blocks = 1;
 }
 
+// This msg is used for get/set API for mobilityD UplinkGatewayInfo object
+// This object has information about Internet Gateway
+message GWInfo {
+  IPAddress ip = 1;
+  string mac = 2;
+}
+
 service MobilityService {
 
   // Add a range of IP addresses into the free IP pool
@@ -154,4 +161,10 @@ service MobilityService {
   // allocated from them. If force is set, then will remove all IP blocks,
   // regardless of whether any IPs have been allocated.
   rpc RemoveIPBlock (RemoveIPBlockRequest) returns (RemoveIPBlockResponse);
+
+  // Get default Internet Gateway mac addresss
+  rpc GetGatewayInfo (magma.orc8r.Void) returns (GWInfo);
+
+  // Set ip and mac address of def Internet Gateway
+  rpc SetGatewayInfo(GWInfo) returns (magma.orc8r.Void);
 }

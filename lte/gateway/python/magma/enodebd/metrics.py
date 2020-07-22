@@ -82,6 +82,6 @@ STAT_ERAB_REL_REQ_OAM_INTV = Gauge(
     'erab_release_requests_oam_intervention',
     'ERAB release requests due to OAM intervention')
 STAT_PDCP_USER_PLANE_BYTES_UL = Gauge(
-    'pdcp_user_plane_bytes_ul', 'User plane uplink bytes at PDCP')
+    'pdcp_user_plane_bytes_ul', 'User plane uplink bytes at PDCP', ['enodeb'])
 STAT_PDCP_USER_PLANE_BYTES_DL = Gauge(
-    'pdcp_user_plane_bytes_dl', 'User plane downlink bytes at PDCP')
+    'pdcp_user_plane_bytes_dl', 'User plane downlink bytes at PDCP', ['enodeb'])

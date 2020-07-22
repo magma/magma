@@ -14,7 +14,6 @@ import (
 	"github.com/golang/glog"
 
 	_ "magma/orc8r/lib/go/initflag"
-	"magma/orc8r/lib/go/registry"
 	platform_registry "magma/orc8r/lib/go/registry"
 )
 
@@ -30,7 +29,7 @@ func Get() GatewayRegistry {
 		reg = NewDefaultRegistry()
 		// Overwrite/Add from /etc/magma/service_registry.yml if it exists
 		// moduleName is "" since all feg configs lie in /etc/magma without a module name
-		locations, err := registry.LoadServiceRegistryConfig("")
+		locations, err := platform_registry.LoadServiceRegistryConfig("")
 		if err != nil {
 			glog.Warningf(serviceRegLoadErrorFmt, err)
 			// return registry, but don't store/cache it
