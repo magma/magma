@@ -20,6 +20,7 @@ import TableHeader from './TableHeader';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import useVerticalScrollingEffect from '../hooks/useVerticalScrollingEffect';
+import {AutoSizer} from 'react-virtualized';
 import {TableContextProvider} from './TableContext';
 import {TableSelectionContextProvider} from './TableSelectionContext';
 import {makeStyles} from '@material-ui/styles';
@@ -138,6 +139,7 @@ type Props<T> = $ReadOnly<{|
   activeRowId?: NullableTableRowId,
   onActiveRowIdChanged?: ActiveCallbackType,
   detailsCard?: ?React.Node,
+  resizableColumns?: boolean,
   ...TableDesignProps,
   ...TableSelectionProps,
 |}>;
@@ -158,6 +160,7 @@ const Table = <T>(props: Props<T>) => {
     dataRowClassName,
     dataRowsSeparator,
     detailsCard,
+    resizableColumns = false,
   } = props;
   const classes = useStyles();
   const [dataColumns, setDataColumns] = useState([]);
@@ -193,8 +196,10 @@ const Table = <T>(props: Props<T>) => {
     false,
   );
 
-  const renderChildren = () => (
-    <div className={classNames(classes.root, classes[variant], className)}>
+  const renderChildren = (width: number) => (
+    <div
+      className={classNames(classes.root, classes[variant], className)}
+      style={{width}}>
       <div
         className={classNames(classes.tableContainer, {
           [classes.expanded]: !detailsCard,
@@ -228,25 +233,33 @@ const Table = <T>(props: Props<T>) => {
       showSelection: showSelection ?? false,
       clickableRows: !!onActiveRowIdChanged,
       sort: propSortSettings,
+      resizableColumns,
     }),
-    [onActiveRowIdChanged, propSortSettings, showSelection],
+    [onActiveRowIdChanged, propSortSettings, showSelection, resizableColumns],
   );
 
   return (
-    <TableContextProvider settings={contextValue}>
-      {contextValue.showSelection || contextValue.clickableRows ? (
-        <TableSelectionContextProvider
-          allIds={allIds}
-          activeId={activeRowId}
-          onActiveChanged={onActiveRowIdChanged}
-          selectedIds={selectedIds ?? []}
-          onSelectionChanged={onSelectionChanged}>
-          {renderChildren()}
-        </TableSelectionContextProvider>
-      ) : (
-        renderChildren()
+    <AutoSizer disableHeight>
+      {({width}: {width: number}) => (
+        <TableContextProvider
+          width={width}
+          settings={contextValue}
+          columns={columns}>
+          {contextValue.showSelection || contextValue.clickableRows ? (
+            <TableSelectionContextProvider
+              allIds={allIds}
+              activeId={activeRowId}
+              onActiveChanged={onActiveRowIdChanged}
+              selectedIds={selectedIds ?? []}
+              onSelectionChanged={onSelectionChanged}>
+              {renderChildren(width)}
+            </TableSelectionContextProvider>
+          ) : (
+            renderChildren(width)
+          )}
+        </TableContextProvider>
       )}
-    </TableContextProvider>
+    </AutoSizer>
   );
 };
 
