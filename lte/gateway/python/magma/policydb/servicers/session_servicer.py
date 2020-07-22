@@ -123,12 +123,12 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         sid: str,
     ) -> List[DynamicRuleInstall]:
         """
-        Get a list of dynamic rules to install for whitelisting.
+        Get a list of dynamic rules to install for allowlisting.
         """
         dynamic_rules = []
         # Build the rule id to be globally unique
         rule_id_info = {'sid': sid}
-        rule_id = "whitelist_sid-{sid}".format(**rule_id_info)
+        rule_id = "allowlist_sid-{sid}".format(**rule_id_info)
         rule = DynamicRuleInstall(
             policy_rule=self._get_allow_all_policy_rule(rule_id),
         )

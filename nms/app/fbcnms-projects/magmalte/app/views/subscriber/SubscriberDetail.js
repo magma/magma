@@ -31,6 +31,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -94,7 +95,6 @@ export default function SubscriberDetail(props: {
   subscriberMap: ?{[string]: subscriber},
 }) {
   const classes = useStyles();
-  const [tabPos, setTabPos] = React.useState(0);
   const {relativePath, relativeUrl, match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
   const subscriberInfo = props.subscriberMap?.[subscriberId];
@@ -112,8 +112,7 @@ export default function SubscriberDetail(props: {
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={12}>
             <Tabs
-              value={tabPos}
-              onChange={(event, v) => setTabPos(v)}
+              value={GetCurrentTabPos(match.url, DetailTabItems)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"

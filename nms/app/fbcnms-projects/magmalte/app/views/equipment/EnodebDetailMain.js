@@ -31,6 +31,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -95,10 +96,10 @@ type Props = {
 };
 export function EnodebDetail(props: Props) {
   const classes = useStyles();
-  const [tabPos, setTabPos] = useState(0);
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const [enbInfo, setEnbInfo] = useState(props.enbInfo[enodebSerial]);
+
   return (
     <>
       <div className={classes.topBar}>
@@ -109,8 +110,7 @@ export function EnodebDetail(props: Props) {
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
-              value={tabPos}
-              onChange={(event, v) => setTabPos(v)}
+              value={GetCurrentTabPos(match.url, DetailTabItems)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -196,6 +196,8 @@ export function EnodebDetail(props: Props) {
 function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
   const classes = useStyles();
   const perEnbMetricSupportAvailable = false;
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -220,8 +222,8 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
             <DateTimeMetricChart
               title={CHART_TITLE}
               queries={[
-                `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,
-                `sum(pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+                `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
+                `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,
               ]}
               legendLabels={['Download', 'Upload']}
             />

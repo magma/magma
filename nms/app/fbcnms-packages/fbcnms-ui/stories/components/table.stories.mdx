@@ -92,6 +92,7 @@ In addition, you can customize the look with the `variant` and `dataRowsSeparato
     {() => {
       const classes = useStyles();
       const [showSelection, setShowSelection] = useState(false);
+      const [resizableColumns, setResizableColumns] = useState(false);
       const [selectedIds, setSelectedIds] = useState([]);
       const [showSorting, setShowSorting] = useState(false);
       const columns = useMemo(
@@ -107,6 +108,7 @@ In addition, you can customize the look with the `variant` and `dataRowsSeparato
             title: 'First Name',
             render: row => row.firstName,
             getSortingValue: showSorting ? row => row.firstName : undefined,
+            width: 0.2,
           },
           {
             key: 'lastName',
@@ -150,6 +152,7 @@ In addition, you can customize the look with the `variant` and `dataRowsSeparato
                 <ThreeDotsVerticalIcon color="gray" />
               </Button>
             ),
+            width: 36,
           },
         ],
         [classes.iconColumn, showSorting],
@@ -175,6 +178,7 @@ In addition, you can customize the look with the `variant` and `dataRowsSeparato
                 order: TABLE_SORT_ORDER.ascending,
               }
             : undefined,
+          resizableColumns,
           showSelection: showSelection,
           selectedIds: showSelection ? selectedIds : undefined,
           onSelectionChanged: showSelection ? setSelectedIds : undefined,
@@ -204,6 +208,7 @@ In addition, you can customize the look with the `variant` and `dataRowsSeparato
           showDetailsCard,
           showSelection,
           showSorting,
+          resizableColumns,
           tableVariant,
         ],
       );
@@ -219,6 +224,14 @@ In addition, you can customize the look with the `variant` and `dataRowsSeparato
               checked={showSorting}
               onChange={selection =>
                 setShowSorting(selection === 'checked' ? true : false)
+              }
+            />
+            <Checkbox
+              className={classes.optionCheckbox}
+              title="Resizable Columns"
+              checked={resizableColumns}
+              onChange={selection =>
+                setResizableColumns(selection === 'checked' ? true : false)
               }
             />
             <Checkbox

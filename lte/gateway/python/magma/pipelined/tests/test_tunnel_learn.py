@@ -75,7 +75,7 @@ class TunnelLearnTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'clean_restart': True,
                 'access_control': {
-                    'ip_blacklist': [
+                    'ip_blocklist': [
                     ]
                 }
             },

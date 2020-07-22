@@ -11,12 +11,16 @@ import {makeStyles} from '@material-ui/styles';
 
 const styles = {
   cell: {
-    padding: '4px 8px 4px 16px',
+    padding: '4px 8px',
     minHeight: '48px',
     height: '48px',
     width: '100%',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    boxSizing: 'border-box',
+    '&:first-child': {
+      paddingLeft: '12px',
+    },
   },
 };
 

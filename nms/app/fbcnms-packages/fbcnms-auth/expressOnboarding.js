@@ -12,7 +12,7 @@ import type {ExpressResponse, NextFunction} from 'express';
 import type {FBCNMSRequest} from './access';
 
 import express from 'express';
-import staticDist from 'fbcnms-webpack-config/staticDist';
+import staticDist from '@fbcnms/webpack-config/staticDist';
 import {AccessRoles} from './roles';
 import {Organization, User} from '@fbcnms/sequelize-models';
 import {getPropsToUpdate} from './util';

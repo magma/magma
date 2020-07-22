@@ -20,6 +20,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
 
+import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -89,8 +90,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function TrafficDashboard() {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
-  const [tabPos, setTabPos] = React.useState(0);
+  const {relativePath, relativeUrl, match} = useRouter();
 
   return (
     <>
@@ -104,8 +104,7 @@ export default function TrafficDashboard() {
         <Grid container>
           <Grid item xs={6}>
             <Tabs
-              value={tabPos}
-              onChange={(_, v) => setTabPos(v)}
+              value={GetCurrentTabPos(match.url, ['policy', 'apn'])}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
