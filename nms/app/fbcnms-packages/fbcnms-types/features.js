@@ -38,8 +38,6 @@ export type FeatureID =
   | 'checklistcategories'
   | 'saved_searches'
   | 'user_management_dev'
-  | 'permission_policies'
-  | 'permissions_ui_enforcement'
   | 'dashboard_v2'
   | 'work_order_activities_display'
   | 'mandatory_properties_on_work_order_close';
