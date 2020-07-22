@@ -3116,12 +3116,11 @@ int s1ap_handle_path_switch_req_failure(
     s1ap_state_t* state,
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64) {
-#if S1AP_R1O_TO_R15_DONE
 
   uint8_t* buffer                                                        = NULL;
   uint32_t length                                                        = 0;
   ue_description_t* ue_ref_p                                             = NULL;
-  s1ap_message message                                                   = {0};
+  S1ap_S1AP_PDU_t pdu                                                    = {0};
   S1ap_PathSwitchRequestFailureIEs_t* s1ap_PathSwitchRequestFailureIEs_p = NULL;
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -3135,21 +3134,18 @@ int s1ap_handle_path_switch_req_failure(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  message.procedureCode = S1ap_ProcedureCode_id_PathSwitchRequest;
-  message.direction     = S1AP_PDU_PR_unsuccessfulOutcome;
-  s1ap_PathSwitchRequestFailureIEs_p =
-      &message.msg.s1ap_PathSwitchRequestFailureIEs;
-  s1ap_PathSwitchRequestFailureIEs_p->presenceMask = 0;
+  pdu.choice.unsuccessfulOutcome.procedureCode = S1ap_ProcedureCode_id_PathSwitchRequest;
+  pdu.present     = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
 
-  s1ap_PathSwitchRequestFailureIEs_p->mme_ue_s1ap_id =
+  s1ap_PathSwitchRequestFailureIEs_p->value.choice.MME_UE_S1AP_ID =
       path_switch_req_failure_p->mme_ue_s1ap_id;
-  s1ap_PathSwitchRequestFailureIEs_p->eNB_UE_S1AP_ID =
+  s1ap_PathSwitchRequestFailureIEs_p->value.choice.ENB_UE_S1AP_ID =
       path_switch_req_failure_p->enb_ue_s1ap_id;
   s1ap_mme_set_cause(
-      &s1ap_PathSwitchRequestFailureIEs_p->cause, S1ap_Cause_PR_radioNetwork,
+      &s1ap_PathSwitchRequestFailureIEs_p->value.choice.Cause, S1ap_Cause_PR_radioNetwork,
       S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system);
 
-  if (s1ap_mme_encode_pdu(&message, &buffer, &length) < 0) {
+  if (s1ap_mme_encode_pdu(&pdu, &buffer, &length) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Path Switch Request Failure encoding failed \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -3164,9 +3160,7 @@ int s1ap_handle_path_switch_req_failure(
       &b, path_switch_req_failure_p->sctp_assoc_id, ue_ref_p->sctp_stream_send,
       path_switch_req_failure_p->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
-#endif
+
 }
 
 const char* s1_enb_state2str(enum mme_s1_enb_state_s state) {
