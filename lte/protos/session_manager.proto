@@ -50,6 +50,34 @@ message LocalCreateSessionRequest {
   bytes hardware_addr = 13; // MAC Address for WLAN
   string radius_session_id = 14;
   uint32 bearer_id = 15;
+  CommonSessionContext common_context = 16;
+  oneof rat_specific_context {
+    LTESessionContext lte_context = 17;
+    WLANSessionContext wlan_context = 18;
+  }
+}
+
+message CommonSessionContext {
+  SubscriberID sid = 1;
+  string session_id = 2;  // Left blank for new sessions
+  string ue_ipv4 = 3;
+  string apn = 4;
+  bytes msisdn = 5;
+}
+
+message LTESessionContext {
+  string spgw_ipv4 = 1;
+  string imei = 2;
+  string plmn_id = 3;
+  string imsi_plmn_id = 4;
+  bytes user_location = 5;
+  QosInformationRequest qos_info = 6;
+  uint32 bearer_id = 7;
+}
+
+message WLANSessionContext {
+  bytes hardware_addr = 1; // mac addr
+  string radius_session_id = 2;
 }
 
 message LocalCreateSessionResponse {
@@ -311,6 +339,12 @@ message CreditUsageUpdate {
   RATType rat_type = 13;
   bytes hardware_addr = 14; // MAC Address for WLAN
   TgppContext tgpp_ctx = 15;
+
+  CommonSessionContext common_context = 16;
+  oneof rat_specific_context {
+    LTESessionContext lte_context = 17;
+    WLANSessionContext wlan_context = 18;
+  }
 }
 
 enum CreditLimitType {
@@ -371,6 +405,11 @@ message UsageMonitoringUpdateRequest {
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
   EventTrigger event_trigger = 9;
+  CommonSessionContext common_context = 16;
+  oneof rat_specific_context {
+    LTESessionContext lte_context = 17;
+    WLANSessionContext wlan_context = 18;
+  }
 }
 
 // Response to a usage monitor update with the credit received and session info
@@ -422,6 +461,11 @@ message CreateSessionRequest {
   string gc_id = 13;
   RATType rat_type = 14;
   bytes hardware_addr = 15; // MAC Address for WLAN
+  CommonSessionContext common_context = 16;
+  oneof rat_specific_context {
+    LTESessionContext lte_context = 17;
+    WLANSessionContext wlan_context = 18;
+  }
 }
 
 message CreateSessionResponse {
@@ -481,6 +525,12 @@ message SessionTerminateRequest {
   RATType rat_type = 14;
   bytes hardware_addr = 15; // MAC Address for WLAN
   TgppContext tgpp_ctx = 16;
+
+  CommonSessionContext common_context = 17;
+  oneof rat_specific_context {
+    LTESessionContext lte_context = 18;
+    WLANSessionContext wlan_context = 19;
+  }
 }
 
 service CentralSessionController {
