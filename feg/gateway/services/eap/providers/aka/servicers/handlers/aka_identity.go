@@ -68,7 +68,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packe
 						identifier,
 						aka.NOTIFICATION_FAILURE,
 						codes.PermissionDenied,
-						"PLMN ID of IMSI: %s is not whitelisted", imsi)
+						"PLMN ID of IMSI: %s is not allowlisted", imsi)
 				}
 				ctx.Imsi = string(imsi)                  // set IMSI
 				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call

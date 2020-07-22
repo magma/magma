@@ -80,7 +80,7 @@ class AccessControlTestLTE(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'access_control': {
-                    'ip_blacklist': [
+                    'ip_blocklist': [
                         {
                             'ip': cls.INBOUND_TEST_IP,
                             'direction': 'inbound',
@@ -119,7 +119,7 @@ class AccessControlTestLTE(unittest.TestCase):
     def test_inbound_ip_match(self):
         """
         Inbound ip match test, checks that packets are properly matched when
-        the inbound traffic matches an ip in the blacklist.
+        the inbound traffic matches an ip in the blocklist.
 
         Assert:
             Both packets are matched
@@ -177,7 +177,7 @@ class AccessControlTestLTE(unittest.TestCase):
     def test_outbound_ip_match(self):
         """
         Outbound ip match test, checks that packets are properly matched when
-        the outbound traffic matches an ip in the blacklist.
+        the outbound traffic matches an ip in the blocklist.
 
         Assert:
             Both packets are matched
@@ -235,7 +235,7 @@ class AccessControlTestLTE(unittest.TestCase):
     def test_no_match(self):
         """
         No match test, checks that packets are not matched when
-        the there is no match to the ip and direction in the blacklist.
+        the there is no match to the ip and direction in the blocklist.
 
         Assert:
             Both packets are not matched
@@ -347,7 +347,7 @@ class AccessControlTestCWF(unittest.TestCase):
                 'enable_queue_pgm': False,
                 'clean_restart': True,
                 'access_control': {
-                    'ip_blacklist': [
+                    'ip_blocklist': [
                         {
                             'ip': cls.INBOUND_TEST_IP,
                             'direction': 'inbound',
@@ -386,7 +386,7 @@ class AccessControlTestCWF(unittest.TestCase):
     def test_gre_peer_rules(self):
         """
         Inbound ip match test, checks that packets are properly matched when
-        the inbound traffic matches an ip in the blacklist.
+        the inbound traffic matches an ip in the blocklist.
 
         Assert:
             Both packets are matched
