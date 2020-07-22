@@ -60,6 +60,10 @@ class UplinkGatewayInfo:
         return DHCP_Router_Mac_key in self._backing_map
 
     def update_mac(self, value: str):
+        # TODO: enhance check for MAC address sanity.
+        if ':' not in value:
+            return
+
         if self._current_mac != value:
             self._backing_map[DHCP_Router_Mac_key] = value
             self._current_mac = value

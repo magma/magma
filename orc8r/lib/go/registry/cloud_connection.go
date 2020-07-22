@@ -108,6 +108,7 @@ func (r *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	if err != nil {
 		return nil, err
 	}
+	glog.V(2).Infof("connecting to: %s, authority: %s", addr, authority)
 	conn, err := grpc.DialContext(ctx, addr, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("Address: %s GRPC Dial error: %s", addr, err)
