@@ -13,7 +13,7 @@ import express from 'express';
 import expressOnboarding from './expressOnboarding';
 import logging from '@fbcnms/logging';
 import passport from 'passport';
-import staticDist from 'fbcnms-webpack-config/staticDist';
+import staticDist from '@fbcnms/webpack-config/staticDist';
 import {AccessRoles, accessRoleToString} from './roles';
 import {AuditLogEntry, User} from '@fbcnms/sequelize-models';
 import {access} from './access';
