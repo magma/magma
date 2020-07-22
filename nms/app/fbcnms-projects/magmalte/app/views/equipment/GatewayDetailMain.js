@@ -36,6 +36,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -99,7 +100,6 @@ export function GatewayDetail({
   enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
-  const [tabPos, setTabPos] = React.useState(0);
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const gwInfo = lteGateways[gatewayId];
@@ -124,8 +124,13 @@ export function GatewayDetail({
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={8}>
             <Tabs
-              value={tabPos}
-              onChange={(_, v) => setTabPos(v)}
+              value={GetCurrentTabPos(match.url, [
+                'overview',
+                'event',
+                'log',
+                'alert',
+                'config',
+              ])}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
