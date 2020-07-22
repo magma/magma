@@ -196,6 +196,8 @@ export function EnodebDetail(props: Props) {
 function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
   const classes = useStyles();
   const perEnbMetricSupportAvailable = false;
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -220,8 +222,8 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
             <DateTimeMetricChart
               title={CHART_TITLE}
               queries={[
-                `sum(pdcp_user_plane_bytes_dl{service="enodebd"})/1000`,
-                `sum(pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+                `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
+                `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,
               ]}
               legendLabels={['Download', 'Upload']}
             />
