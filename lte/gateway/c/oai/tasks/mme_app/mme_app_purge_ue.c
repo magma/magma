@@ -82,7 +82,7 @@ int mme_app_send_s6a_purge_ue_req(
   OAILOG_INFO(
     LOG_MME_APP, "Sent PUR to S6a TASK for IMSI " IMSI_64_FMT "\n", imsi);
 
-  rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

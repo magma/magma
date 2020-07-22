@@ -54,13 +54,6 @@ class PagingApplication : public Application {
       const OpenflowMessenger& messenger);
 
   /**
-   * Creates the default paging flow, which sends a packet intended for an
-   * idle UE to this application
-   */
-  void install_default_flow(
-      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger);
-
-  /**
    * Creates exact paging flow, which sends a packet intended for an
    * idle UE to this application
    */

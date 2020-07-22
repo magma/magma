@@ -5,7 +5,7 @@
 // LICENSE file in the root directory of this source tree. An additional grant
 // of patent rights can be found in the PATENTS file in the same directory.
 //
-module orc8r/devmand/cloud/go
+module magma/devmand/cloud/go
 
 replace (
 	magma/gateway => ../../../orc8r/gateway/go

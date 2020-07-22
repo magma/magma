@@ -1,0 +1,8 @@
+################################################################
+# S6A LAYER OPTIONS
+################################################################
+add_boolean_option(S6A_OVER_GRPC       False    "S6a messages sent over gRPC")
+add_boolean_option(EMBEDDED_SGW        False    "S11/GTPV2-C interface present")
+add_boolean_option(ENABLE_OPENFLOW     False    "Openflow based dataplane")
+add_boolean_option(SPGW_ENABLE_SESSIOND_AND_MOBILITYD   False
+"Disables SPGW interaction with Sessiond and Mobilityd")

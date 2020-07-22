@@ -83,6 +83,8 @@
 #define TASK_SPGW TASK_S11
 #endif
 
+extern task_zmq_ctx_t mme_app_task_zmq_ctx;
+
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -142,8 +144,10 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
   s11_modify_bearer_request->bearer_contexts_to_be_modified
     .bearer_contexts[item]
     .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-  s11_modify_bearer_request->peer_ip =
-    pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
+
+  s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr =
+  pdn_context_p->s_gw_address_s11_s4.address.ipv4_address;
+
   s11_modify_bearer_request->teid = pdn_context_p->s_gw_teid_s11_s4;
 
   if (bearer_cntxt->enb_fteid_s1u.ipv4) {
@@ -191,7 +195,7 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi)
     ue_context_p->emm_context._imsi64,
     "Sending S11_MODIFY_BEARER_REQUEST to SGW for ue" MME_UE_S1AP_ID_FMT "\n",
     ue_id);
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -261,7 +265,7 @@ int _send_pcrf_bearer_actv_rsp(
     "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u\n",
     ebi,
     bc->s_gw_fteid_s1u.teid);
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -503,7 +507,7 @@ void mme_app_handle_conn_est_cnf(nas_establish_rsp_t* const nas_conn_est_cnf_p)
     establishment_cnf_p->ue_security_capabilities_integrity_algorithms);
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   /*
    * Move the UE to ECM Connected State.However if S1-U bearer establishment fails then we need to move the UE to idle.
@@ -878,7 +882,7 @@ void mme_app_handle_erab_setup_req(
     s1ap_e_rab_setup_req->e_rab_to_be_setup_list.item[0].nas_pdu = nas_msg;
 
     message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-    itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
   } else {
     OAILOG_DEBUG_UE(
       LOG_MME_APP,
@@ -1376,14 +1380,18 @@ void mme_app_handle_initial_context_setup_rsp(
       .bearer_contexts[item]
       .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
 
-    if (!item) {
+      if (!item) {
       ebi_t ebi = initial_ctxt_setup_rsp_pP->e_rab_id[item];
       pdn_cid_t cid =
         ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
       pdn_context_t *pdn_context = ue_context_p->pdn_contexts[cid];
+     pdn_context->s_gw_address_s11_s4.address.ipv4_address.s_addr =
+     mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
 
-      s11_modify_bearer_request->peer_ip =
-        pdn_context->s_gw_address_s11_s4.address.ipv4_address;
+     s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr.s_addr =
+     pdn_context->s_gw_address_s11_s4.address.ipv4_address.s_addr;
+     s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_family = AF_INET;
+
       s11_modify_bearer_request->teid = pdn_context->s_gw_teid_s11_s4;
     }
     if (
@@ -1447,7 +1455,7 @@ void mme_app_handle_initial_context_setup_rsp(
     "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
     initial_ctxt_setup_rsp_pP->ue_id,
     s11_modify_bearer_request->teid);
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   /*
    * During Service request procedure,after initial context setup response
    * Send ULR, when UE moved from Idle to Connected and
@@ -1966,12 +1974,13 @@ static void notify_s1ap_new_ue_mme_s1ap_id_association(
   notification_p->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
   notification_p->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
 
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
   OAILOG_DEBUG_UE(
     LOG_MME_APP,
     ue_context_p->emm_context._imsi64,
     " Sent MME_APP_S1AP_MME_UE_ID_NOTIFICATION to S1AP for (ue_id = %u)\n",
     notification_p->mme_ue_s1ap_id);
+
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -2045,7 +2054,7 @@ int mme_app_paging_request_helper(
       tai_list->partial_tai_list[tai_list_idx].numberofelements);
   }
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-  rc = itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   if (!set_timer) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
@@ -2201,7 +2210,7 @@ int mme_app_send_s11_suspend_notification(
     LOG_MME_APP,
     ue_context_pP->emm_context._imsi64,
     "Send Suspend Notification\n");
-  rc = itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -2741,7 +2750,7 @@ void mme_app_handle_modify_ue_ambr_request(mme_app_desc_t *mme_app_desc_p,
       modify_ue_ambr_request_p->ue_ambr.br_dl;
 
     message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-    itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
     OAILOG_DEBUG_UE(
       LOG_MME_APP,
       ue_context_p->emm_context._imsi64,
@@ -2895,7 +2904,7 @@ void send_delete_dedicated_bearer_rsp(
     ue_context_p->emm_context._imsi64,
     " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers\n",
     num_bearer_context);
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -3177,8 +3186,8 @@ void mme_app_handle_path_switch_request(
     if (!idx) {
       cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(bearer_id)]->pdn_cx_id;
       pdn_context = ue_context_p->pdn_contexts[cid];
-      s11_modify_bearer_request->peer_ip =
-          pdn_context->s_gw_address_s11_s4.address.ipv4_address;
+      s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr =
+        pdn_context->s_gw_address_s11_s4.address.ipv4_address;
       s11_modify_bearer_request->teid = pdn_context->s_gw_teid_s11_s4;
     }
   }
@@ -3238,7 +3247,7 @@ void mme_app_handle_path_switch_request(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
       "MME_APP send S11_MODIFY_BEARER_REQUEST to teid %u \n",
       s11_modify_bearer_request->teid);
-  itti_send_msg_to_task(TASK_SPGW, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   ue_context_p->path_switch_req = true;
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -3330,7 +3339,7 @@ void mme_app_handle_erab_rel_cmd(
     ebi);
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -3418,9 +3427,9 @@ void mme_app_handle_path_switch_req_ack(
   s1ap_path_switch_req_ack->sctp_assoc_id = ue_context_p->sctp_assoc_id_key;
   s1ap_path_switch_req_ack->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
   s1ap_path_switch_req_ack->mme_ue_s1ap_id = ue_context_p->mme_ue_s1ap_id;
-  memcpy(s1ap_path_switch_req_ack->NH, emm_ctx->_security.next_hop,
+  memcpy(s1ap_path_switch_req_ack->nh, emm_ctx->_security.next_hop,
     AUTH_NEXT_HOP_SIZE);
-  s1ap_path_switch_req_ack->NCC = emm_ctx->_security.next_hop_chaining_count;
+  s1ap_path_switch_req_ack->ncc = emm_ctx->_security.next_hop_chaining_count;
   /* Generate NH key parameter */
   if (emm_ctx->_security.vector_index != 0) {
     OAILOG_DEBUG_UE(
@@ -3441,7 +3450,7 @@ void mme_app_handle_path_switch_req_ack(
     ue_context_p->mme_ue_s1ap_id);
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -3479,7 +3488,7 @@ void mme_app_handle_path_switch_req_failure(
     "MME_APP send PATH_SWITCH_REQUEST_FAILURE to S1AP for ue_id %d \n",
     ue_context_p->mme_ue_s1ap_id);
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

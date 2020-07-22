@@ -84,7 +84,6 @@ int pgw_config_process(pgw_config_t* config_pP) {
 
   // Get ipv4 address
   char str[INET_ADDRSTRLEN];
-  char str_sgi[INET_ADDRSTRLEN];
 
   // GET SGi informations
   {
@@ -92,25 +91,7 @@ int pgw_config_process(pgw_config_t* config_pP) {
     memset(&ifr, 0, sizeof(ifr));
     int fd                 = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(
-        ifr.ifr_name, (const char*) config_pP->ipv4.if_name_SGI->data,
-        IFNAMSIZ - 1);
-    if (ioctl(fd, SIOCGIFADDR, &ifr)) {
-      OAILOG_CRITICAL(
-          LOG_SPGW_APP, "Failed to read SGI ip addresses: error %s\n",
-          strerror(errno));
-      return RETURNerror;
-    }
-    struct sockaddr_in* ipaddr = (struct sockaddr_in*) &ifr.ifr_addr;
-    if (inet_ntop(
-            AF_INET, (const void*) &ipaddr->sin_addr, str_sgi,
-            INET_ADDRSTRLEN) == NULL) {
-      OAILOG_ERROR(LOG_SPGW_APP, "inet_ntop");
-      return RETURNerror;
-    }
-    config_pP->ipv4.SGI.s_addr = ipaddr->sin_addr.s_addr;
 
-    ifr.ifr_addr.sa_family = AF_INET;
     strncpy(
         ifr.ifr_name, (const char*) config_pP->ipv4.if_name_SGI->data,
         IFNAMSIZ - 1);
@@ -623,9 +604,6 @@ void pgw_config_display(pgw_config_t* config_p) {
   OAILOG_INFO(
       LOG_SPGW_APP, "    SGi iface ............: %s\n",
       bdata(config_p->ipv4.if_name_SGI));
-  OAILOG_INFO(
-      LOG_SPGW_APP, "    SGi ip  (read)........: %s\n",
-      inet_ntoa(*((struct in_addr*) &config_p->ipv4.SGI)));
   OAILOG_INFO(
       LOG_SPGW_APP, "    SGi MTU (read)........: %u\n", config_p->ipv4.mtu_SGI);
   OAILOG_INFO(

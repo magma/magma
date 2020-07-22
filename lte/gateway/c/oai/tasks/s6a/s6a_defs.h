@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -36,6 +36,9 @@
 
 #include "mme_config.h"
 #include "queue.h"
+#include "intertask_interface.h"
+
+extern task_zmq_ctx_t s6a_task_zmq_ctx;
 
 #define VENDOR_3GPP (10415)
 #define APP_S6A (16777251)
@@ -151,9 +154,12 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define IANA_IPV4 (0x1)
 #define IANA_IPV6 (0x2)
 
+#define AVP_CODE_3GPP_CHARGING_CHARACTERISTICS (13)
 #define AVP_CODE_VENDOR_ID (266)
 #define AVP_CODE_EXPERIMENTAL_RESULT (297)
 #define AVP_CODE_EXPERIMENTAL_RESULT_CODE (298)
+#define AVP_CODE_MIP_HOME_AGENT_ADDRESS (334)
+#define AVP_CODE_MIP6_AGENT_INFO (486)
 #define AVP_CODE_SERVICE_SELECTION (493)
 #define AVP_CODE_BANDWIDTH_UL (516)
 #define AVP_CODE_BANDWIDTH_DL (515)
@@ -172,11 +178,15 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define AVP_CODE_CONTEXT_IDENTIFIER (1423)
 #define AVP_CODE_SUBSCRIBER_STATUS (1424)
 #define AVP_CODE_ACCESS_RESTRICTION_DATA (1426)
+#define AVP_CODE_APN_OI_REPLACEMENT (1427)
 #define AVP_CODE_ALL_APN_CONFIG_INC_IND (1428)
 #define AVP_CODE_APN_CONFIGURATION_PROFILE (1429)
 #define AVP_CODE_APN_CONFIGURATION (1430)
 #define AVP_CODE_EPS_SUBSCRIBED_QOS_PROFILE (1431)
+#define AVP_CODE_VPLMN_DYNAMIC_ADDRESS_ALLOWED (1432)
 #define AVP_CODE_AMBR (1435)
+#define AVP_CODE_PDN_GW_ALLOCATION_TYPE (1438)
+#define AVP_CODE_REGIONAL_SUBSCRIPTION_ZONE_CODE (1446)
 #define AVP_CODE_RAND (1447)
 #define AVP_CODE_XRES (1448)
 #define AVP_CODE_AUTN (1449)

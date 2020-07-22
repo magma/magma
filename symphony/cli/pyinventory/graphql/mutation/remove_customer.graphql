@@ -1,3 +1,0 @@
-mutation RemoveCustomerMutation($id: ID!) {
-  removeCustomer(id: $id)
-}

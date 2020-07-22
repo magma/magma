@@ -119,6 +119,7 @@
       - oai-gnutls
       - oai-freediameter
       - prometheus-cpp-dev
+      - libczmq-dev
   retries: 5
   when: preburn
 

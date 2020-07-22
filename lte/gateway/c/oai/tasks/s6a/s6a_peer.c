@@ -43,6 +43,8 @@
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 
+#if !S6A_OVER_GRPC
+
 #define NB_MAX_TRIES (8)
 
 extern __pid_t g_pid;
@@ -195,6 +197,7 @@ int s6a_fd_new_peer(void)
 #endif
 }
 
+#endif
 /*
  * Inform S1AP and MME that connection to HSS is established
  */
@@ -203,9 +206,9 @@ void send_activate_messages(void)
   MessageDef *message_p;
   message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
 
   message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&s6a_task_zmq_ctx, TASK_S1AP, message_p);
 }

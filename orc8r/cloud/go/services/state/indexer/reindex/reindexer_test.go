@@ -12,9 +12,6 @@
 //	- TEST_DATABASE_HOST=localhost
 //	- TEST_DATABASE_PORT_POSTGRES=5433
 
-// reindex_test.go tests reindexing with local indexers.
-// Also contains the consts and vars shared by reindex testing code.
-
 package reindex_test
 
 import (
@@ -71,11 +68,11 @@ const (
 	hwid1 = "some_hwid_1"
 	hwid2 = "some_hwid_2"
 
-	id0 = "some_indexerid_0"
-	id1 = "some_indexerid_1"
-	id2 = "some_indexerid_2"
-	id3 = "some_indexerid_3"
-	id4 = "some_indexerid_4"
+	id0 = "SOME_INDEXERID_0"
+	id1 = "SOME_INDEXERID_1"
+	id2 = "SOME_INDEXERID_2"
+	id3 = "SOME_INDEXERID_3"
+	id4 = "SOME_INDEXERID_4"
 
 	zero      indexer.Version = 0
 	version0  indexer.Version = 10
@@ -334,10 +331,11 @@ func getIndexer(id string, from, to indexer.Version, isFirstReindex bool) *mocks
 	return idx
 }
 
-func register(t *testing.T, idx ...indexer.Indexer) {
+func register(t *testing.T, indexers ...indexer.Indexer) {
 	indexer.DeregisterAllForTest(t)
-	err := indexer.RegisterIndexers(idx...)
-	assert.NoError(t, err)
+	for _, x := range indexers {
+		state_test_init.StartNewTestIndexer(t, x)
+	}
 }
 
 func registerAndPopulate(t *testing.T, q reindex.JobQueue, idx ...indexer.Indexer) {
@@ -357,12 +355,12 @@ func recvCh(t *testing.T, ch chan interface{}) {
 }
 
 func assertComplete(t *testing.T, q reindex.JobQueue, id string) {
-	st, err := reindex.GetStatus(q, id)
-	assert.NoError(t, err)
-	assert.Equal(t, reindex.StatusComplete, st)
 	e, err := reindex.GetError(q, id)
 	assert.NoError(t, err)
 	assert.Empty(t, e)
+	st, err := reindex.GetStatus(q, id)
+	assert.NoError(t, err)
+	assert.Equal(t, reindex.StatusComplete, st)
 }
 
 func assertErrored(t *testing.T, q reindex.JobQueue, indexerID string, sentinel reindex.Error, rootErr error) {

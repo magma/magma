@@ -12,6 +12,7 @@ package registry
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 
 	"magma/orc8r/lib/go/service/config"
 )
@@ -34,10 +36,23 @@ const (
 	grpcMaxDelaySec   = 20
 )
 
-// control proxy config map
-// it'll be initialized on demand and used thereafter
-// any changed to the control proxy service config file would require process restart to take effect
-var controlProxyConfig atomic.Value
+var (
+	// control proxy config map
+	// it'll be initialized on demand and used thereafter
+	// any changed to the control proxy service config file would require process restart to take effect
+	controlProxyConfig atomic.Value
+	keepaliveParams    = keepalive.ClientParameters{
+		Time:                59 * time.Second,
+		Timeout:             20 * time.Second,
+		PermitWithoutStream: true,
+	}
+	proxiedKeepaliveParams = keepalive.ClientParameters{
+		Time:                47 * time.Second,
+		Timeout:             10 * time.Second,
+		PermitWithoutStream: true,
+	}
+	grpcKeepAlive = flag.Bool("grpc_keepalive", false, "Use keepalive option for all GRPC connections")
+)
 
 // GetCloudConnection Creates and returns a new GRPC service connection to the service in the cloud for a gateway
 // either directly or via control proxy
@@ -45,7 +60,7 @@ var controlProxyConfig atomic.Value
 //
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
-func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
+func (r *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn, error) {
 	cpc, ok := controlProxyConfig.Load().(*config.ConfigMap)
 	if (!ok) || cpc == nil {
 		var err error
@@ -56,7 +71,7 @@ func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 		}
 		controlProxyConfig.Store(cpc)
 	}
-	return reg.GetCloudConnectionFromServiceConfig(cpc, service)
+	return r.GetCloudConnectionFromServiceConfig(cpc, service)
 }
 
 // GetCloudConnectionFromServiceConfig returns a connection to the cloud
@@ -69,7 +84,7 @@ func (reg *ServiceRegistry) GetCloudConnection(service string) (*grpc.ClientConn
 //
 // Output: *grpc.ClientConn with connection to cloud service
 //         error if it exists
-func (reg *ServiceRegistry) GetCloudConnectionFromServiceConfig(
+func (r *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	controlProxyConfig *config.ConfigMap, service string) (*grpc.ClientConn, error) {
 
 	authority, err := getAuthority(controlProxyConfig, service)
@@ -79,7 +94,7 @@ func (reg *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	useProxy := getUseProxyCloudConnection(controlProxyConfig)
 	var addr string
 	if useProxy {
-		addr, err = reg.getProxyAddress(controlProxyConfig)
+		addr, err = r.getProxyAddress(controlProxyConfig)
 	} else {
 		addr, err = getCloudServiceAddress(controlProxyConfig)
 	}
@@ -113,12 +128,12 @@ func getAuthority(
 	return fmt.Sprintf("%s-%s", strings.ToLower(service), cloudAddr), nil
 }
 
-func (reg *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
+func (r *ServiceRegistry) getProxyAddress(serviceConfig *config.ConfigMap) (string, error) {
 	localPort, err := serviceConfig.GetInt("local_port")
 	if err != nil {
 		return "", err
 	}
-	localAddress, err := reg.GetServiceAddress(ControlProxyServiceName)
+	localAddress, err := r.GetServiceAddress(ControlProxyServiceName)
 	if err != nil {
 		return "", err
 	}
@@ -158,6 +173,9 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 	}
 	if useProxy {
 		opts = append(opts, grpc.WithInsecure(), grpc.WithAuthority(authority))
+		if *grpcKeepAlive {
+			opts = append(opts, grpc.WithKeepaliveParams(proxiedKeepaliveParams))
+		}
 	} else {
 		// always try to add OS certs
 		certPool, err := x509.SystemCertPool()
@@ -198,6 +216,9 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 			glog.Errorf("failed to get gateway certificate location: %v", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
+		if *grpcKeepAlive {
+			opts = append(opts, grpc.WithKeepaliveParams(keepaliveParams))
+		}
 	}
 	return opts, nil
 }

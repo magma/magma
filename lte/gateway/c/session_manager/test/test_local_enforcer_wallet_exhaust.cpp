@@ -30,23 +30,23 @@ using grpc::ServerContext;
 using grpc::Status;
 using ::testing::Test;
 
-
 namespace magma {
 
 class LocalEnforcerTest : public ::testing::Test {
-protected:
-protected:
+ protected:
+ protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
-    reporter = std::make_shared<MockSessionReporter>();
-    rule_store = std::make_shared<StaticRuleStore>();
-    session_store = std::make_shared<SessionStore>(rule_store);
-    pipelined_client = std::make_shared<MockPipelinedClient>();
+    reporter          = std::make_shared<MockSessionReporter>();
+    rule_store        = std::make_shared<StaticRuleStore>();
+    session_store     = std::make_shared<SessionStore>(rule_store);
+    pipelined_client  = std::make_shared<MockPipelinedClient>();
     directoryd_client = std::make_shared<MockDirectorydClient>();
-    spgw_client = std::make_shared<MockSpgwServiceClient>();
-    aaa_client = std::make_shared<MockAAAClient>();
-    local_enforcer = std::make_unique<LocalEnforcer>(
+    spgw_client       = std::make_shared<MockSpgwServiceClient>();
+    aaa_client        = std::make_shared<MockAAAClient>();
+    events_reporter   = std::make_shared<MockEventsReporter>();
+    local_enforcer    = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, MockEventdClient::getInstance(), spgw_client,
+        directoryd_client, events_reporter, spgw_client,
         aaa_client, 0, 0, mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
@@ -68,18 +68,20 @@ protected:
     mconfig.set_relay_enabled(false);
     auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
     wallet_config->set_terminate_on_exhaust(true);
-    wallet_config->set_method(magma::mconfig::WalletExhaustDetection_Method_GxTrackedRules);
+    wallet_config->set_method(
+        magma::mconfig::WalletExhaustDetection_Method_GxTrackedRules);
     return mconfig;
   }
 
-  void insert_static_rule(uint32_t rating_group, const std::string &m_key,
-                          const std::string &rule_id) {
+  void insert_static_rule(
+      uint32_t rating_group, const std::string& m_key,
+      const std::string& rule_id) {
     PolicyRule rule;
     create_policy_rule(rule_id, m_key, rating_group, &rule);
     rule_store->insert_rule(rule);
   }
 
-protected:
+ protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionStore> session_store;
@@ -88,12 +90,13 @@ protected:
   std::shared_ptr<MockDirectorydClient> directoryd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
+  std::shared_ptr<MockEventsReporter> events_reporter;
   SessionMap session_map;
-  folly::EventBase *evb;
+  folly::EventBase* evb;
 };
 
 MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "") {
-  auto updates = static_cast<const std::vector<SubscriberQuotaUpdate>>(arg);
+  auto updates     = static_cast<const std::vector<SubscriberQuotaUpdate>>(arg);
   int updates_size = updates.size();
   if (updates_size != size) {
     return false;
@@ -123,19 +126,20 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_VALID_QUOTA};
-  EXPECT_CALL(*pipelined_client, update_subscriber_quota_state(
-                                     CheckQuotaUpdateState(1, expected_states)))
+  EXPECT_CALL(
+      *pipelined_client,
+      update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
       .Times(1)
       .WillOnce(testing::Return(true));
-  local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
-                                      test_cwf_cfg, response);
+  local_enforcer->init_session_credit(
+      session_map, "IMSI1", "1234", test_cwf_cfg, response);
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
   SetUpWithMConfig(get_mconfig_gx_rule_wallet_exhaust());
   insert_static_rule(1, "m1", "static_1");
 
-  std::vector<std::string> static_rules{}; // no rule installs
+  std::vector<std::string> static_rules{};  // no rule installs
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
@@ -143,12 +147,13 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_NO_QUOTA};
-  EXPECT_CALL(*pipelined_client, update_subscriber_quota_state(
-                                     CheckQuotaUpdateState(1, expected_states)))
+  EXPECT_CALL(
+      *pipelined_client,
+      update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
       .Times(1)
       .WillOnce(testing::Return(true));
-  local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
-                                      test_cwf_cfg, response);
+  local_enforcer->init_session_credit(
+      session_map, "IMSI1", "1234", test_cwf_cfg, response);
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
@@ -161,8 +166,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
   create_session_create_response("IMSI1", "m1", static_rules, &response);
-  local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
-                                      test_cwf_cfg, response);
+  local_enforcer->init_session_credit(
+      session_map, "IMSI1", "1234", test_cwf_cfg, response);
 
   // send a policy reauth request with rule removals for "static_1" to indicate
   // total monitoring quota exhaustion
@@ -173,8 +178,9 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_TERMINATE};
-  EXPECT_CALL(*pipelined_client, update_subscriber_quota_state(
-                                     CheckQuotaUpdateState(1, expected_states)))
+  EXPECT_CALL(
+      *pipelined_client,
+      update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -194,44 +200,45 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
   CreateSessionResponse response;
   create_session_create_response("IMSI1", "m1", static_rules, &response);
-  local_enforcer->init_session_credit(session_map, "IMSI1", "1234",
-                                      test_cwf_cfg, response);
+  local_enforcer->init_session_credit(
+      session_map, "IMSI1", "1234", test_cwf_cfg, response);
 
   // remove only static_2, should not change anything in terms of quota since
   // static_1 is still active
   UpdateSessionResponse update_response;
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response("IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL,
-                                 2048, monitor);
+  create_monitor_update_response(
+      "IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL, 2048, monitor);
   monitor->add_rules_to_remove("static_2");
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
 
   // send an update response with rule removals for "static_1" to indicate
   // total monitoring quota exhaustion
   update_response.clear_usage_monitor_responses();
   monitor = update_response.mutable_usage_monitor_responses()->Add();
-  create_monitor_update_response("IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL,
-                                 0, monitor);
+  create_monitor_update_response(
+      "IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor);
   monitor->add_rules_to_remove("static_1");
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states = {
       SubscriberQuotaUpdate_Type_TERMINATE};
-  EXPECT_CALL(*pipelined_client, update_subscriber_quota_state(
-                                     CheckQuotaUpdateState(1, expected_states)))
+  EXPECT_CALL(
+      *pipelined_client,
+      update_subscriber_quota_state(CheckQuotaUpdateState(1, expected_states)))
       .Times(1)
       .WillOnce(testing::Return(true));
 
-  local_enforcer->update_session_credits_and_rules(session_map, update_response,
-                                                   update);
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
-  FLAGS_v = 10;
+  FLAGS_v           = 10;
   return RUN_ALL_TESTS();
 }
 
-} // namespace magma
+}  // namespace magma

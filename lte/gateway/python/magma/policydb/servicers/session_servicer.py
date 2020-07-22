@@ -12,7 +12,7 @@ import logging
 from typing import List
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
-    FlowMatch
+    FlowMatch, RatingGroup
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
     UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
@@ -21,6 +21,7 @@ from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
     add_CentralSessionControllerServicer_to_server
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+from magma.policydb.rating_group_store import RatingGroupsDict
 from orc8r.protos.common_pb2 import NetworkID
 
 
@@ -36,19 +37,27 @@ class SessionRpcServicer(CentralSessionControllerServicer):
     def __init__(
         self,
         mconfig: mconfigs_pb2.PolicyDB,
+        rating_groups_by_id: RatingGroupsDict,
         subscriberdb_stub: SubscriberDBStub,
     ):
         self._mconfig = mconfig
         self._network_id = NetworkID(id="_")
+        self._rating_groups_by_id = rating_groups_by_id
         self._subscriberdb_stub = subscriberdb_stub
 
-    @property
-    def infinite_credit_charging_keys(self) -> List[int]:
-        return self._mconfig.infinite_unmetered_charging_keys
+    def get_infinite_credit_charging_keys(self) -> List[int]:
+        keys = []
+        for rating_group in self._rating_groups_by_id.values():
+            if rating_group.limit_type == RatingGroup.INFINITE_UNMETERED:
+                keys.append(rating_group.id)
+        return keys
 
-    @property
-    def postpay_charging_keys(self) -> List[int]:
-        return self._mconfig.infinite_metered_charging_keys
+    def _get_postpay_charging_keys(self) -> List[int]:
+        keys = []
+        for rating_group in self._rating_groups_by_id.values():
+            if rating_group.limit_type == RatingGroup.INFINITE_METERED:
+                keys.append(rating_group.id)
+        return keys
 
     def add_to_server(self, server):
         """ Add the servicer to a gRPC server """
@@ -64,13 +73,16 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         """
         Handles create session request from MME by installing the necessary
         flows in pipelined's enforcement app.
+
+        NOTE: truncate the 'IMSI' prefix
         """
         imsi = request.subscriber.id
+        imsi_number = imsi[4:]
         logging.info('Creating a session for subscriber ID: %s', imsi)
         return CreateSessionResponse(
             credits=self._get_credits(imsi),
-            static_rules=self._get_rules_for_imsi(imsi),
-            dynamic_rules=self._get_default_dynamic_rules(imsi),
+            static_rules=self._get_rules_for_imsi(imsi_number),
+            dynamic_rules=self._get_default_dynamic_rules(imsi_number),
             session_id=request.session_id,
         )
 
@@ -111,13 +123,12 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         sid: str,
     ) -> List[DynamicRuleInstall]:
         """
-        Get a list of dynamic rules to install for whitelisting.
-        These rules will whitelist traffic to/from the captive portal server.
+        Get a list of dynamic rules to install for allowlisting.
         """
         dynamic_rules = []
         # Build the rule id to be globally unique
         rule_id_info = {'sid': sid}
-        rule_id = "whitelist_sid-{sid}".format(**rule_id_info)
+        rule_id = "allowlist_sid-{sid}".format(**rule_id_info)
         rule = DynamicRuleInstall(
             policy_rule=self._get_allow_all_policy_rule(rule_id),
         )
@@ -165,6 +176,10 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         ]
 
     def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
+        """
+        Get the list of static rules to be installed for a subscriber
+        NOTE: Remove "IMSI" prefix from imsi argument.
+        """
         try:
             info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
             return [StaticRuleInstall(rule_id=rule_id)
@@ -174,21 +189,21 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             return []
 
     def _get_credits(self, sid: str) -> List[CreditUpdateResponse]:
-        if len(self.infinite_credit_charging_keys) != 0:
-            return [CreditUpdateResponse(
+        infinite_credit_keys = self.get_infinite_credit_charging_keys()
+        postpay_keys = self._get_postpay_charging_keys()
+        credit_updates = []
+        for charging_key in infinite_credit_keys:
+            credit_updates.append(CreditUpdateResponse(
                 success=True,
                 sid=sid,
-                charging_key=self.infinite_credit_charging_keys[0],
-                result_code=1,
+                charging_key=charging_key,
                 limit_type=CreditLimitType.Value("INFINITE_UNMETERED")
-            )]
-        return []
-
-    def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
-        try:
-            info = self._subscriberdb_stub.GetSubscriberData(NetworkID(id=imsi))
-            return [StaticRuleInstall(rule_id=rule_id)
-                    for rule_id in info.lte.assigned_policies]
-        except grpc.RpcError:
-            logging.error('Unable to find data for subscriber %s', imsi)
-            return []
+            ))
+        for charging_key in postpay_keys:
+            credit_updates.append(CreditUpdateResponse(
+                success=True,
+                sid=sid,
+                charging_key=charging_key,
+                limit_type=CreditLimitType.Value("INFINITE_METERED")
+            ))
+        return credit_updates

@@ -8,7 +8,7 @@ refs:
 
 aliases:
   - &appdir
-    working_directory: "symphony/app"
+    working_directory: "nms/app"
 
 executors:
   node:
@@ -81,14 +81,14 @@ commands:
       - restore_cache:
           name: Restore Yarn Package Cache
           keys:
-            - yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+            - yarn-packages-{{ checksum "nms/app/yarn.lock" }}
       - run:
           name: Install Dependencies
           <<: *appdir
           command: yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
-          key: yarn-packages-{{ checksum "symphony/app/yarn.lock" }}
+          key: yarn-packages-{{ checksum "nms/app/yarn.lock" }}
           paths:
             - ~/.cache/yarn
 
@@ -175,6 +175,24 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway precommit
+
+  cwf-operator-precommit:
+    docker:
+      - image: circleci/golang:1.13-buster-node-browsers-legacy
+    environment:
+      - GO111MODULE=on
+      - GOPROXY=https://proxy.golang.org
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+          command: go mod download
+          workdir: ${MAGMA_ROOT}/cwf/k8s/cwf_operator
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
+            make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
 
   cloud-test:
     machine:
@@ -355,7 +373,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
     steps:
       - checkout
       - run:
@@ -375,7 +393,7 @@ jobs:
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
+            cd ${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
             docker-compose build magmalte
 
   nms-yarn-test:
@@ -589,6 +607,7 @@ workflows:
     jobs:
       - feg-precommit
       - cwag-precommit
+      - cwf-operator-precommit
       - cloud-test
       - orc8r-gateway-test
       - lte-test

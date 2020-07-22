@@ -34,7 +34,10 @@
 #include "common_defs.h"
 #include "bstrlib.h"
 #include "common_types.h"
+#include "intertask_interface.h"
 #include "intertask_interface_types.h"
+
+extern task_zmq_ctx_t sctp_task_zmq_ctx;
 
 int sctp_itti_send_lower_layer_conf(
   task_id_t origin_task_id,

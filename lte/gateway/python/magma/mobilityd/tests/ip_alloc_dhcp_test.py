@@ -16,10 +16,18 @@ import threading
 import unittest
 
 from ipaddress import ip_network
+from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+
 from magma.mobilityd.ip_address_man import IPAddressManager, MappingNotFoundError
 from unittest import mock
 from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.pipelined.bridge_util import BridgeTools
+from magma.mobilityd import mobility_store as store
+
+from magma.mobilityd.uplink_gw import UplinkGatewayInfo
+
+from magma.mobilityd.mac import create_mac_from_sid
+from magma.mobilityd.dhcp_desc import DHCPState
 
 LOG = logging.getLogger('mobilityd.dhcp.test')
 LOG.isEnabledFor(logging.DEBUG)
@@ -44,8 +52,6 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
     def setUp(self):
         self._br = "t_up_br0"
 
-        subprocess.check_call(["redis-cli", "flushall"])
-
         setup_dhcp_server = SCRIPT_PATH + "scripts/setup-test-dhcp-srv.sh"
         subprocess.check_call([setup_dhcp_server, "t0"])
 
@@ -62,6 +68,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
             'persist_to_redis': False,
         }
         self._dhcp_allocator = IPAddressManager(recycling_interval=2,
+                                                allocator_type=MobilityD.DHCP,
                                                 config=config)
         print("dhcp allocator created")
 
@@ -69,14 +76,25 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         self._dhcp_allocator.ip_allocator.stop_dhcp_sniffer()
         BridgeTools.destroy_bridge(self._br)
 
+    @mock.patch("redis.Redis", MockRedis)
     @unittest.skipIf(os.getuid(), reason="needs root user")
     def test_ip_alloc(self):
         sid1 = "IMSI02917"
         ip1 = self._dhcp_allocator.alloc_ip_address(sid1)
+        threading.Event().wait(2)
+        dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
+        dhcp_store = store.MacToIP()  # mac => DHCP_State
 
-        threading.Event().wait(2)
+        self.assertEqual(str(dhcp_gw_info.getIP()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)
-        threading.Event().wait(2)
+
+        # wait for DHCP release
+        threading.Event().wait(7)
+        mac1 = create_mac_from_sid(sid1)
+        dhcp_state1 = dhcp_store.get(mac1.as_redis_key())
+
+        self.assertEqual(dhcp_state1.state, DHCPState.RELEASE)
+
         ip1_1 = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
         self.assertEqual(str(ip1), str(ip1_1))
@@ -111,7 +129,11 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
                          [ip_network('192.168.128.0/24')])
 
         # wait for DHCP release
-        threading.Event().wait(20)
+        threading.Event().wait(7)
+        mac4 = create_mac_from_sid(sid4)
+        dhcp_state = dhcp_store.get(mac4.as_redis_key())
+
+        self.assertEqual(dhcp_state.state, DHCPState.RELEASE)
         ip4_2 = self._dhcp_allocator.alloc_ip_address(sid4)
         self.assertEqual(ip4, ip4_2)
 

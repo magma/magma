@@ -68,7 +68,7 @@
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
-  OAILOG_DEBUG(LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
+  (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
 #define UE_LIST_OUT(x, args...)                                                \
   OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
 #else
@@ -86,11 +86,10 @@ bool s1ap_dump_ue_hash_cb(
   void* const ue_void,
   void* parameter,
   void** unused_res);
-void* s1ap_mme_thread(void* args);
 
 bool hss_associated = false;
-
 static int indent = 0;
+task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void)
@@ -105,243 +104,246 @@ static int s1ap_send_init_sctp(void)
   message_p->ittiMsg.sctpInit.ipv6 = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
-    mme_config.ipv4.s1_mme.s_addr;
+    mme_config.ip.s1_mme_v4.s_addr;
+    
   /*
    * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
    * * * * Disable it for now.
    */
   message_p->ittiMsg.sctpInit.nb_ipv6_addr = 0;
   message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
-  return itti_send_msg_to_task(TASK_SCTP, INSTANCE_DEFAULT, message_p);
+  return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_SCTP, message_p);
+}
+
+
+static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
+{
+  s1ap_state_t* state;
+  MessagesIds message_id = MESSAGES_ID_MAX;
+
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  state = get_s1ap_state(false);
+  AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
+
+  switch (ITTI_MSG_ID(received_message_p)) {
+    case ACTIVATE_MESSAGE: {
+      hss_associated = true;
+    } break;
+
+    case MESSAGE_TEST:
+      OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE_TEST\n");
+      break;
+
+    case SCTP_DATA_IND: {
+      /*
+       * New message received from SCTP layer.
+       * * * * Decode and handle it.
+       */
+      s1ap_message message = {0};
+
+      // Invoke S1AP message decoder
+      if (s1ap_mme_decode_pdu(
+              &message, SCTP_DATA_IND(received_message_p).payload,
+              &message_id) < 0) {
+        // TODO: Notify eNB of failure with right cause
+        OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
+      } else {
+        s1ap_mme_handle_message(
+            state, SCTP_DATA_IND(received_message_p).assoc_id,
+            SCTP_DATA_IND(received_message_p).stream, &message);
+      }
+
+      if (message_id != MESSAGES_ID_MAX) {
+        s1ap_free_mme_decode_pdu(&message, message_id);
+      }
+
+      // Free received PDU array
+      bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
+    } break;
+
+    case SCTP_DATA_CNF:
+      s1ap_mme_itti_nas_downlink_cnf(
+          SCTP_DATA_CNF(received_message_p).mme_ue_s1ap_id,
+          SCTP_DATA_CNF(received_message_p).is_success);
+      break;
+    // SCTP layer notifies S1AP of disconnection of a peer.
+    case SCTP_CLOSE_ASSOCIATION: {
+      s1ap_handle_sctp_disconnection(
+          state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
+          SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
+    } break;
+
+    case SCTP_NEW_ASSOCIATION: {
+      increment_counter("mme_new_association", 1, NO_LABELS);
+      if (s1ap_handle_new_association(
+            state, &received_message_p->ittiMsg.sctp_new_peer)) {
+        increment_counter("mme_new_association", 1, 1, "result", "failure");
+      } else {
+        increment_counter("mme_new_association", 1, 1, "result", "success");
+      }
+    } break;
+
+    case S1AP_NAS_DL_DATA_REQ: {
+      /*
+       * New message received from NAS task.
+       * * * * This corresponds to a S1AP downlink nas transport message.
+       */
+      s1ap_generate_downlink_nas_transport(
+          state, S1AP_NAS_DL_DATA_REQ(received_message_p).enb_ue_s1ap_id,
+          S1AP_NAS_DL_DATA_REQ(received_message_p).mme_ue_s1ap_id,
+          &S1AP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64);
+    } break;
+
+    case S1AP_E_RAB_SETUP_REQ: {
+      s1ap_generate_s1ap_e_rab_setup_req(
+        state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
+    } break;
+
+    // From MME_APP task
+    case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
+      s1ap_handle_ue_context_release_command(
+          state, &received_message_p->ittiMsg.s1ap_ue_context_release_command,
+          imsi64);
+    } break;
+
+    case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
+      s1ap_handle_conn_est_cnf(
+          state, &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
+    } break;
+
+    case MME_APP_S1AP_MME_UE_ID_NOTIFICATION: {
+      s1ap_handle_mme_ue_id_notification(
+          state, &MME_APP_S1AP_MME_UE_ID_NOTIFICATION(received_message_p));
+    } break;
+
+    case S1AP_ENB_INITIATED_RESET_ACK: {
+      s1ap_handle_enb_initiated_reset_ack(
+        &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
+    } break;
+
+    case S1AP_PAGING_REQUEST: {
+      if (s1ap_handle_paging_request(
+              state, &S1AP_PAGING_REQUEST(received_message_p), imsi64) !=
+          RETURNok) {
+        OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
+      }
+    } break;
+
+    case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
+      s1ap_handle_ue_context_mod_req(
+          state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request,
+          imsi64);
+    } break;
+
+    case S1AP_E_RAB_REL_CMD: {
+      s1ap_generate_s1ap_e_rab_rel_cmd(
+          state, &S1AP_E_RAB_REL_CMD(received_message_p));
+    } break;
+
+    case S1AP_PATH_SWITCH_REQUEST_ACK: {
+      s1ap_handle_path_switch_req_ack(
+          state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack,
+          imsi64);
+    } break;
+
+    case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
+      s1ap_handle_path_switch_req_failure(
+        state,
+        &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
+        imsi64);
+    } break;
+
+    case TIMER_HAS_EXPIRED: {
+      if (!timer_exists(
+              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
+        break;
+      }
+      ue_description_t* ue_ref_p = NULL;
+      if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
+        // check whether timer is related to eNB procedure or UE procedure
+        s1ap_timer_arg_t timer_arg =
+            *((s1ap_timer_arg_t*) (received_message_p->ittiMsg
+                                       .timer_has_expired.arg));
+        if (timer_arg.timer_class == S1AP_UE_TIMER) {
+          mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
+          if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+            OAILOG_WARNING_UE(
+                imsi64, LOG_S1AP,
+                "Timer expired but no assoicated UE context for UE id %d\n",
+                mme_ue_s1ap_id);
+            timer_handle_expired(
+                received_message_p->ittiMsg.timer_has_expired.timer_id);
+            break;
+          }
+          if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+              ue_ref_p->s1ap_ue_context_rel_timer.id) {
+            // UE context release complete timer expiry handler
+            OAILOG_WARNING_UE(
+                LOG_S1AP, imsi64,
+                "ue_context_release_command_timer_expired for UE id %d\n",
+                mme_ue_s1ap_id);
+            increment_counter(
+                "ue_context_release_command_timer_expired", 1, NO_LABELS);
+            s1ap_mme_handle_ue_context_rel_comp_timer_expiry(state, ue_ref_p);
+          }
+        } else {
+          OAILOG_WARNING_UE(
+              LOG_S1AP, imsi64,
+              "S1AP Timer expired with invalid timer class %u \n",
+              timer_arg.timer_class);
+        }
+      }
+      timer_handle_expired(
+          received_message_p->ittiMsg.timer_has_expired.timer_id);
+
+      /* TODO - Commenting out below function as it is not used as of now.
+       * Need to handle it when we support other timers in S1AP
+       */
+
+      /* s1ap_handle_timer_expiry
+       * (&received_message_p->ittiMsg.timer_has_expired);
+       */
+    } break;
+
+    case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      s1ap_mme_exit();
+    } break;
+
+    default: {
+      OAILOG_ERROR(
+          LOG_S1AP, "Unknown message ID %d:%s\n",
+          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+    } break;
+  }
+
+  put_s1ap_state();
+  put_s1ap_imsi_map();
+  put_s1ap_ue_state(imsi64);
+  itti_free_msg_content(received_message_p);
+  zframe_destroy(&msg_frame);
+  return 0;
 }
 
 //------------------------------------------------------------------------------
-void* s1ap_mme_thread(__attribute__((unused)) void* args) {
-  s1ap_state_t* state;
-
+static void* s1ap_mme_thread(__attribute__((unused)) void* args)
+{
   itti_mark_task_ready(TASK_S1AP);
+  init_task_context(
+      TASK_S1AP, (task_id_t[]){TASK_MME_APP, TASK_SCTP}, 2, handle_message,
+      &s1ap_task_zmq_ctx);
 
-  while (1) {
-    MessageDef* received_message_p = NULL;
-    MessagesIds message_id         = MESSAGES_ID_MAX;
-    /*
-     * Trying to fetch a message from the message queue.
-     * * * * If the queue is empty, this function will block till a
-     * * * * message is sent to the task.
-     */
-    itti_receive_msg(TASK_S1AP, &received_message_p);
-
-    imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-
-    state = get_s1ap_state(false);
-    AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
-
-    switch (ITTI_MSG_ID(received_message_p)) {
-      case ACTIVATE_MESSAGE: {
-        hss_associated = true;
-      } break;
-
-      case MESSAGE_TEST:
-        OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE_TEST\n");
-        break;
-
-      case SCTP_DATA_IND: {
-        /*
-         * New message received from SCTP layer.
-         * * * * Decode and handle it.
-         */
-        s1ap_message message = {0};
-
-        // Invoke S1AP message decoder
-        if (s1ap_mme_decode_pdu(
-                &message, SCTP_DATA_IND(received_message_p).payload,
-                &message_id) < 0) {
-          // TODO: Notify eNB of failure with right cause
-          OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
-        } else {
-          s1ap_mme_handle_message(
-              state, SCTP_DATA_IND(received_message_p).assoc_id,
-              SCTP_DATA_IND(received_message_p).stream, &message);
-        }
-
-        if (message_id != MESSAGES_ID_MAX) {
-          s1ap_free_mme_decode_pdu(&message, message_id);
-        }
-
-        // Free received PDU array
-        bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
-      } break;
-
-      case SCTP_DATA_CNF:
-        s1ap_mme_itti_nas_downlink_cnf(
-            SCTP_DATA_CNF(received_message_p).mme_ue_s1ap_id,
-            SCTP_DATA_CNF(received_message_p).is_success);
-        break;
-        // SCTP layer notifies S1AP of disconnection of a peer.
-      case SCTP_CLOSE_ASSOCIATION: {
-        s1ap_handle_sctp_disconnection(
-            state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
-            SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
-      } break;
-
-      case SCTP_NEW_ASSOCIATION: {
-        increment_counter("mme_new_association", 1, NO_LABELS);
-        if (s1ap_handle_new_association(
-                state, &received_message_p->ittiMsg.sctp_new_peer)) {
-          increment_counter("mme_new_association", 1, 1, "result", "failure");
-        } else {
-          increment_counter("mme_new_association", 1, 1, "result", "success");
-        }
-      } break;
-
-      case S1AP_NAS_DL_DATA_REQ: {
-        /*
-         * New message received from NAS task.
-         * * * * This corresponds to a S1AP downlink nas transport message.
-         */
-        s1ap_generate_downlink_nas_transport(
-            state, S1AP_NAS_DL_DATA_REQ(received_message_p).enb_ue_s1ap_id,
-            S1AP_NAS_DL_DATA_REQ(received_message_p).mme_ue_s1ap_id,
-            &S1AP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64);
-      } break;
-
-      case S1AP_E_RAB_SETUP_REQ: {
-        s1ap_generate_s1ap_e_rab_setup_req(
-            state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
-      } break;
-
-      // From MME_APP task
-      case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
-        s1ap_handle_ue_context_release_command(
-            state, &received_message_p->ittiMsg.s1ap_ue_context_release_command,
-            imsi64);
-      } break;
-
-      case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
-        s1ap_handle_conn_est_cnf(
-            state, &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
-      } break;
-
-      case MME_APP_S1AP_MME_UE_ID_NOTIFICATION: {
-        s1ap_handle_mme_ue_id_notification(
-            state, &MME_APP_S1AP_MME_UE_ID_NOTIFICATION(received_message_p));
-      } break;
-
-      case S1AP_ENB_INITIATED_RESET_ACK: {
-        s1ap_handle_enb_initiated_reset_ack(
-            &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
-      } break;
-
-      case S1AP_PAGING_REQUEST: {
-        if (s1ap_handle_paging_request(
-                state, &S1AP_PAGING_REQUEST(received_message_p), imsi64) !=
-            RETURNok) {
-          OAILOG_ERROR(LOG_S1AP, "Failed to send paging message\n");
-        }
-      } break;
-
-      case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
-        s1ap_handle_ue_context_mod_req(
-            state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request,
-            imsi64);
-      } break;
-
-      case S1AP_E_RAB_REL_CMD: {
-        s1ap_generate_s1ap_e_rab_rel_cmd(
-            state, &S1AP_E_RAB_REL_CMD(received_message_p));
-      } break;
-
-      case S1AP_PATH_SWITCH_REQUEST_ACK: {
-        s1ap_handle_path_switch_req_ack(
-            state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack,
-            imsi64);
-      } break;
-
-      case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
-        s1ap_handle_path_switch_req_failure(
-            state,
-            &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
-            imsi64);
-      } break;
-
-      case TIMER_HAS_EXPIRED: {
-        if (!timer_exists(
-                received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-          break;
-        }
-        ue_description_t* ue_ref_p = NULL;
-        if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
-          // check whether timer is related to eNB procedure or UE procedure
-          s1ap_timer_arg_t timer_arg =
-              *((s1ap_timer_arg_t*) (received_message_p->ittiMsg
-                                         .timer_has_expired.arg));
-          if (timer_arg.timer_class == S1AP_UE_TIMER) {
-            mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
-            if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
-              OAILOG_WARNING_UE(
-                  imsi64, LOG_S1AP,
-                  "Timer expired but no assoicated UE context for UE id %d\n",
-                  mme_ue_s1ap_id);
-              timer_handle_expired(
-                  received_message_p->ittiMsg.timer_has_expired.timer_id);
-              break;
-            }
-            if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-                ue_ref_p->s1ap_ue_context_rel_timer.id) {
-              // UE context release complete timer expiry handler
-              OAILOG_WARNING_UE(
-                  LOG_S1AP, imsi64,
-                  "ue_context_release_command_timer_expired for UE id %d\n",
-                  mme_ue_s1ap_id);
-              increment_counter(
-                  "ue_context_release_command_timer_expired", 1, NO_LABELS);
-              s1ap_mme_handle_ue_context_rel_comp_timer_expiry(state, ue_ref_p);
-            }
-          } else {
-            OAILOG_WARNING_UE(
-                LOG_S1AP, imsi64,
-                "S1AP Timer expired with invalid timer class %u \n",
-                timer_arg.timer_class);
-          }
-        }
-        timer_handle_expired(
-            received_message_p->ittiMsg.timer_has_expired.timer_id);
-
-        /* TODO - Commenting out below function as it is not used as of now.
-         * Need to handle it when we support other timers in S1AP
-         */
-
-        /* s1ap_handle_timer_expiry
-         * (&received_message_p->ittiMsg.timer_has_expired);
-         */
-      } break;
-
-      case TERMINATE_MESSAGE: {
-        put_s1ap_state();
-        put_s1ap_imsi_map();
-        s1ap_mme_exit();
-        itti_free_msg_content(received_message_p);
-        itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-        OAI_FPRINTF_INFO("TASK_S1AP terminated\n");
-        itti_exit_task();
-      } break;
-
-      default: {
-        OAILOG_ERROR(
-            LOG_S1AP, "Unknown message ID %d:%s\n",
-            ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
-      } break;
-    }
-
-    put_s1ap_state();
-    put_s1ap_imsi_map();
-    put_s1ap_ue_state(imsi64);
-
-    itti_free_msg_content(received_message_p);
-    itti_free(ITTI_MSG_ORIGIN_ID(received_message_p), received_message_p);
-    received_message_p = NULL;
+  if (s1ap_send_init_sctp() < 0) {
+    OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
   }
 
+  zloop_start(s1ap_task_zmq_ctx.event_loop);
+  s1ap_mme_exit();
   return NULL;
 }
 
@@ -376,11 +378,6 @@ int s1ap_mme_init(const mme_config_t* mme_config_p)
     return RETURNerror;
   }
 
-  if (s1ap_send_init_sctp() < 0) {
-    OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
-    return RETURNerror;
-  }
-
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface: DONE\n");
   return RETURNok;
 }
@@ -390,9 +387,16 @@ void s1ap_mme_exit(void)
 {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
+  destroy_task_context(&s1ap_task_zmq_ctx);
+
+  put_s1ap_state();
+  put_s1ap_imsi_map();
+
   s1ap_state_exit();
 
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP: DONE\n");
+  OAI_FPRINTF_INFO("TASK_S1AP terminated\n");
+  pthread_exit(NULL);
 }
 
 //------------------------------------------------------------------------------

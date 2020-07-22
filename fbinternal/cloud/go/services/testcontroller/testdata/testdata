@@ -1,0 +1,202 @@
+Package: magma
+Version: 0.3.73-1559240979-d942fdfe
+License: unknown
+Vendor: admin@ip-192-168-61-227
+Architecture: amd64
+Maintainer: <admin@ip-192-168-61-227>
+Installed-Size: 81068
+Depends: python3-futures (>= 2.2.0), python3-hpack (>= 2.3), python3-setuptools (>= 33.1.1-1), python3-protobuf (>= 3.6.1), python3-chardet (>= 2.3.0-2), python3-markupsafe (>= 0.23-3), python3-hyperframe (>= 5.2.0), python3-pycares (>= 2.3.0), python3-priority (>= 1.3.0), python3-click (>= 5.1), python3-six (>= 1.10.0-3), python3-systemd-python (>= 234), python3-jinja2 (>= 2.8), python3-yaml (>= 3.11), python3-aiohttp (>= 0.17.2), python3-enum34 (>= 1.0.4), python3-pycparser (>= 2.17-2), python3-lazy-object-proxy (>= 1.2.2-1), python3-idna (>= 2.1), python3-psutil (>= 5.2.2), python3-aioh2 (>= 0.2.2), python3-prometheus-client (>= 0.3.1), python3-asn1crypto (>= 0.21.0), python3-astroid (>= 1.5.1), python3-itsdangerous (>= 0.24), python3-pytz (>= 2014.4), python3-cryptography (>= 1.9), python3-mccabe (>= 0.5.3-1), python3-wrapt (>= 1.9.0-2), python3-pylint (>= 1.7.1), python3-cffi (>= 1.7), python3-isort (>= 4.2.5), python3-h2 (>= 3), python3-snowflake (>= 0.0.3), python3-netifaces (>= 0.10.4), python3-redis-collections (>= 0.4.2), python3-grpcio (>= 1.16.1), python3-redis (>= 2.10.5), python3-jinja2 (>= 2.10), python3-click (>= 5.1), python3-stevedore (>= 1.5.0), python3-flask (>= 1.0.2), python3-webob (>= 1.2), python3-pymemoize (>= 1.0.2), python3-werkzeug (>= 0.14), python3-routes (>= 2.3.1-2), python3-spyne (>= 2.12.16), python3-pytz (>= 2019.1), python3-dnspython (>= 1.15.0), python3-repoze.lru (>= 0.3), python3-eventlet (>= 0.25.0), python3-msgpack (>= 0.3.0), python3-ryu (>= 4.13), python3-pycares (>= 1.0.0), python3-pbr (>= 0.11), python3-envoy (>= 0.0.3), python3-oslo.config (>= 1:1.15.0), python3-monotonic (>= 1.4), python3-scapy (>= 2.4.2), python3-itsdangerous (>= 0.24), python3-netaddr (>= 0.7.18-2), python3-greenlet (>= 0.3), python3-pycrypto (>= 2.6.1), python3-markupsafe (>= 0.23), python3-argparse (>= 1.4.0), python3-ovs (>= 2.6.0), python3-wsgiserver (>= 1.3), python3-aiodns (>= 1.1.1), python3-lxml (>= 4.2.1), python3-six (>= 1.10.0-3), python3-tinyrpc (>= 1.0.1), grpc-dev (>= 1.15.0), libprotobuf10 (>= 3.0.0), lighttpd (>= 1.4.45), libxslt1.1, nghttp2-proxy (>= 1.18.1), python3-protobuf (>= 3.0.0), redis-server (>= 3.2.0), sudo, dnsmasq (>= 2.72), net-tools, python3-pip, python3-apt, python3-aioeventlet, libsystemd-dev, libyaml-cpp-dev, libgoogle-glog-dev, nlohmann-json-dev, python-redis, magma-cpp-redis, libfolly-dev, libdouble-conversion-dev, libboost-chrono-dev, libasan3, libconfig9, oai-asn1c (>= 0~20160721+c3~r43c4a295), oai-freediameter (>= 1.2.0-1), oai-gnutls (>= 3.1.23), oai-nettle (>= 1.0.1), prometheus-cpp-dev (>= 1.0.2), liblfds710, linux-image-4.9.0-8-amd64, linux-headers-4.9.0-8-amd64, oai-gtp-4.9.0-8-amd64 (>= 4.9), bridge-utils (>= 1.5-9), openvswitch-switch (>= 2.8.0), openvswitch-datapath-module-4.9.0-8-amd64 (>= 2.8.0), python-openvswitch (>= 2.8.0), magma-libfluid (>= 0.1.0.4)
+Provides: magma
+Replaces: magma
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Magma Access Gateway
+Filename: pool/stretch-beta/main/m/magma/magma_0.3.73-1559240979-d942fdfe_amd64.deb
+MD5sum: 1cda79a820d033141d3b18f3e05a486a
+SHA1: 5752a314f96ad2662978ff96bab491607404a891
+SHA256: eaafeed1cdfea695c8de97ecba4e441c245f8ae25928bb55c26a6f6581ef83a7
+Size: 23676674
+
+Package: magma
+Version: 0.3.73-1559593778-7b146f38
+License: unknown
+Vendor: admin@ip-192-168-61-30
+Architecture: amd64
+Maintainer: <admin@ip-192-168-61-30>
+Installed-Size: 81083
+Depends: python3-yaml (>= 3.11), python3-asn1crypto (>= 0.21.0), python3-redis-collections (>= 0.4.2), python3-h2 (>= 3), python3-itsdangerous (>= 0.24), python3-enum34 (>= 1.0.4), python3-prometheus-client (>= 0.3.1), python3-pycparser (>= 2.17-2), python3-aiohttp (>= 0.17.2), python3-psutil (>= 5.2.2), python3-idna (>= 2.1), python3-astroid (>= 1.5.1), python3-systemd-python (>= 234), python3-pytz (>= 2014.4), python3-click (>= 5.1), python3-chardet (>= 2.3.0-2), python3-aioh2 (>= 0.2.2), python3-cffi (>= 1.7), python3-protobuf (>= 3.6.1), python3-redis (>= 2.10.5), python3-netifaces (>= 0.10.4), python3-hpack (>= 2.3), python3-grpcio (>= 1.16.1), python3-cryptography (>= 1.9), python3-six (>= 1.10.0-3), python3-mccabe (>= 0.5.3-1), python3-hyperframe (>= 5.2.0), python3-futures (>= 2.2.0), python3-jinja2 (>= 2.8), python3-lazy-object-proxy (>= 1.2.2-1), python3-wrapt (>= 1.9.0-2), python3-priority (>= 1.3.0), python3-markupsafe (>= 0.23-3), python3-snowflake (>= 0.0.3), python3-setuptools (>= 33.1.1-1), python3-pylint (>= 1.7.1), python3-isort (>= 4.2.5), python3-pycares (>= 2.3.0), python3-scapy (>= 2.4.2), python3-msgpack (>= 0.3.0), python3-repoze.lru (>= 0.3), python3-greenlet (>= 0.3), python3-ryu (>= 4.13), python3-click (>= 5.1), python3-pymemoize (>= 1.0.2), python3-pbr (>= 0.11), python3-aiodns (>= 1.1.1), python3-six (>= 1.10.0-3), python3-markupsafe (>= 0.23), python3-webob (>= 1.2), python3-jinja2 (>= 2.10), python3-pycrypto (>= 2.6.1), python3-flask (>= 1.0.2), python3-wsgiserver (>= 1.3), python3-monotonic (>= 1.4), python3-envoy (>= 0.0.3), python3-argparse (>= 1.4.0), python3-stevedore (>= 1.5.0), python3-netaddr (>= 0.7.18-2), python3-pycares (>= 1.0.0), python3-ovs (>= 2.6.0), python3-itsdangerous (>= 0.24), python3-tinyrpc (>= 1.0.1), python3-oslo.config (>= 1:1.15.0), python3-dnspython (>= 1.15.0), python3-werkzeug (>= 0.14), python3-spyne (>= 2.12.16), python3-routes (>= 2.3.1-2), python3-lxml (>= 4.2.1), python3-eventlet (>= 0.25.0), python3-pytz (>= 2019.1), grpc-dev (>= 1.15.0), libprotobuf10 (>= 3.0.0), lighttpd (>= 1.4.45), libxslt1.1, nghttp2-proxy (>= 1.18.1), python3-protobuf (>= 3.0.0), redis-server (>= 3.2.0), sudo, dnsmasq (>= 2.72), net-tools, python3-pip, python3-apt, python3-aioeventlet, libsystemd-dev, libyaml-cpp-dev, libgoogle-glog-dev, nlohmann-json-dev, python-redis, magma-cpp-redis, libfolly-dev, libdouble-conversion-dev, libboost-chrono-dev, libasan3, libconfig9, oai-asn1c (>= 0~20160721+c3~r43c4a295), oai-freediameter (>= 1.2.0-1), oai-gnutls (>= 3.1.23), oai-nettle (>= 1.0.1), prometheus-cpp-dev (>= 1.0.2), liblfds710, linux-image-4.9.0-8-amd64, linux-headers-4.9.0-8-amd64, oai-gtp-4.9.0-8-amd64 (>= 4.9), bridge-utils (>= 1.5-9), openvswitch-switch (>= 2.8.0), openvswitch-datapath-module-4.9.0-8-amd64 (>= 2.8.0), python-openvswitch (>= 2.8.0), magma-libfluid (>= 0.1.0.4)
+Provides: magma
+Replaces: magma
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Magma Access Gateway
+Filename: pool/stretch-beta/main/m/magma/magma_0.3.73-1559593778-7b146f38_amd64.deb
+MD5sum: 80afcf777e49d9a88ef1ce9d28656922
+SHA1: 9ebf3af6a4d0c2263ec22cff3a29b608ab2e29de
+SHA256: b6000c00d572491b4327e87881e57e5b9938a44ef7acab9b6a72861a9370fb23
+Size: 23674442
+
+Package: magma
+Version: 0.3.73-1560191474-e35baf8e
+License: unknown
+Vendor: admin@ip-192-168-61-248
+Architecture: amd64
+Maintainer: <admin@ip-192-168-61-248>
+Installed-Size: 83207
+Depends: python3-snowflake (>= 0.0.3), python3-cffi (>= 1.7), python3-redis (>= 2.10.5), python3-pycparser (>= 2.17-2), python3-hpack (>= 2.3), python3-lazy-object-proxy (>= 1.2.2-1), python3-jinja2 (>= 2.8), python3-aiohttp (>= 0.17.2), python3-h2 (>= 3), python3-click (>= 5.1), python3-chardet (>= 2.3.0-2), python3-wrapt (>= 1.9.0-2), python3-netifaces (>= 0.10.4), python3-pycares (>= 2.3.0), python3-yaml (>= 3.11), python3-psutil (>= 5.2.2), python3-redis-collections (>= 0.4.2), python3-priority (>= 1.3.0), python3-pylint (>= 1.7.1), python3-six (>= 1.10.0-3), python3-aioh2 (>= 0.2.2), python3-markupsafe (>= 0.23-3), python3-astroid (>= 1.5.1), python3-isort (>= 4.2.5), python3-systemd-python (>= 234), python3-protobuf (>= 3.6.1), python3-prometheus-client (>= 0.3.1), python3-cryptography (>= 1.9), python3-idna (>= 2.1), python3-setuptools (>= 33.1.1-1), python3-grpcio (>= 1.16.1), python3-pytz (>= 2014.4), python3-asn1crypto (>= 0.21.0), python3-enum34 (>= 1.0.4), python3-itsdangerous (>= 0.24), python3-hyperframe (>= 5.2.0), python3-mccabe (>= 0.5.3-1), python3-futures (>= 2.2.0), python3-netaddr (>= 0.7.18-2), python3-scapy (>= 2.4.2), python3-tinyrpc (>= 1.0.1), python3-pymemoize (>= 1.0.2), python3-pycares (>= 1.0.0), python3-lxml (>= 4.2.1), python3-stevedore (>= 1.5.0), python3-pytz (>= 2019.1), python3-itsdangerous (>= 0.24), python3-ryu (>= 4.13), python3-repoze.lru (>= 0.3), python3-pycrypto (>= 2.6.1), python3-greenlet (>= 0.3), python3-oslo.config (>= 1:1.15.0), python3-wsgiserver (>= 1.3), python3-spyne (>= 2.12.16), python3-click (>= 5.1), python3-flask (>= 1.0.2), python3-pbr (>= 0.11), python3-envoy (>= 0.0.3), python3-werkzeug (>= 0.14), python3-aiodns (>= 1.1.1), python3-jinja2 (>= 2.10), python3-dnspython (>= 1.15.0), python3-monotonic (>= 1.4), python3-ovs (>= 2.6.0), python3-markupsafe (>= 0.23), python3-routes (>= 2.3.1-2), python3-argparse (>= 1.4.0), python3-six (>= 1.10.0-3), python3-msgpack (>= 0.3.0), python3-webob (>= 1.2), python3-eventlet (>= 0.25.0), grpc-dev (>= 1.15.0), libprotobuf10 (>= 3.0.0), lighttpd (>= 1.4.45), libxslt1.1, nghttp2-proxy (>= 1.18.1), python3-protobuf (>= 3.0.0), redis-server (>= 3.2.0), sudo, dnsmasq (>= 2.72), net-tools, python3-pip, python3-apt, python3-aioeventlet, libsystemd-dev, libyaml-cpp-dev, libgoogle-glog-dev, nlohmann-json-dev, python-redis, magma-cpp-redis, libfolly-dev, libdouble-conversion-dev, libboost-chrono-dev, libasan3, libconfig9, oai-asn1c (>= 0~20160721+c3~r43c4a295), oai-freediameter (>= 1.2.0-1), oai-gnutls (>= 3.1.23), oai-nettle (>= 1.0.1), prometheus-cpp-dev (>= 1.0.2), liblfds710, linux-image-4.9.0-8-amd64, linux-headers-4.9.0-8-amd64, oai-gtp-4.9.0-8-amd64 (>= 4.9), bridge-utils (>= 1.5-9), openvswitch-switch (>= 2.8.0), openvswitch-datapath-module-4.9.0-8-amd64 (>= 2.8.0), python-openvswitch (>= 2.8.0), magma-libfluid (>= 0.1.0.4)
+Provides: magma
+Replaces: magma
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Magma Access Gateway
+Filename: pool/stretch-beta/main/m/magma/magma_0.3.73-1560191474-e35baf8e_amd64.deb
+MD5sum: c8aa554add9f274afd0c52a63ce5482a
+SHA1: c189ce57edbcd05627cf01a9bb0e66ede6017ef7
+SHA256: 3fcb4d779820b4dd86a1067dedbed32d8a25a1fe6b56fe787f081b264ed39e39
+Size: 24302996
+
+Package: magma
+Version: 0.3.73-1560304279-4309537e
+License: unknown
+Vendor: admin@ip-192-168-61-223
+Architecture: amd64
+Maintainer: <admin@ip-192-168-61-223>
+Installed-Size: 86336
+Depends: python3-futures (>= 2.2.0), python3-hpack (>= 2.3), python3-redis (>= 2.10.5), python3-jinja2 (>= 2.8), python3-isort (>= 4.2.5), python3-psutil (>= 5.2.2), python3-protobuf (>= 3.6.1), python3-markupsafe (>= 0.23-3), python3-cffi (>= 1.7), python3-wrapt (>= 1.9.0-2), python3-mccabe (>= 0.5.3-1), python3-six (>= 1.10.0-3), python3-cryptography (>= 1.9), python3-snowflake (>= 0.0.3), python3-aioh2 (>= 0.2.2), python3-redis-collections (>= 0.4.2), python3-pytz (>= 2014.4), python3-chardet (>= 2.3.0-2), python3-yaml (>= 3.11), python3-astroid (>= 1.5.1), python3-setuptools (>= 33.1.1-1), python3-aiohttp (>= 0.17.2), python3-grpcio (>= 1.16.1), python3-h2 (>= 3), python3-lazy-object-proxy (>= 1.2.2-1), python3-click (>= 5.1), python3-pycparser (>= 2.17-2), python3-netifaces (>= 0.10.4), python3-enum34 (>= 1.0.4), python3-idna (>= 2.1), python3-asn1crypto (>= 0.21.0), python3-prometheus-client (>= 0.3.1), python3-hyperframe (>= 5.2.0), python3-pycares (>= 2.3.0), python3-priority (>= 1.3.0), python3-pylint (>= 1.7.1), python3-itsdangerous (>= 0.24), python3-systemd-python (>= 234), python3-werkzeug (>= 0.14), python3-pycares (>= 1.0.0), python3-webob (>= 1.2), python3-repoze.lru (>= 0.3), python3-oslo.config (>= 1:1.15.0), python3-spyne (>= 2.12.16), python3-monotonic (>= 1.4), python3-dnspython (>= 1.15.0), python3-aiodns (>= 1.1.1), python3-jinja2 (>= 2.10), python3-lxml (>= 4.2.1), python3-eventlet (>= 0.25.0), python3-ovs (>= 2.6.0), python3-pymemoize (>= 1.0.2), python3-flask (>= 1.0.2), python3-routes (>= 2.3.1-2), python3-tinyrpc (>= 1.0.1), python3-greenlet (>= 0.3), python3-pytz (>= 2019.1), python3-stevedore (>= 1.5.0), python3-markupsafe (>= 0.23), python3-ryu (>= 4.13), python3-click (>= 5.1), python3-scapy (>= 2.4.2), python3-envoy (>= 0.0.3), python3-pbr (>= 0.11), python3-msgpack (>= 0.3.0), python3-pycrypto (>= 2.6.1), python3-wsgiserver (>= 1.3), python3-six (>= 1.10.0-3), python3-argparse (>= 1.4.0), python3-itsdangerous (>= 0.24), python3-netaddr (>= 0.7.18-2), grpc-dev (>= 1.15.0), libprotobuf10 (>= 3.0.0), lighttpd (>= 1.4.45), libxslt1.1, nghttp2-proxy (>= 1.18.1), python3-protobuf (>= 3.0.0), redis-server (>= 3.2.0), sudo, dnsmasq (>= 2.72), net-tools, python3-pip, python3-apt, python3-aioeventlet, libsystemd-dev, libyaml-cpp-dev, libgoogle-glog-dev, nlohmann-json-dev, python-redis, magma-cpp-redis, libfolly-dev, libdouble-conversion-dev, libboost-chrono-dev, libasan3, libconfig9, oai-asn1c (>= 0~20160721+c3~r43c4a295), oai-freediameter (>= 1.2.0-1), oai-gnutls (>= 3.1.23), oai-nettle (>= 1.0.1), prometheus-cpp-dev (>= 1.0.2), liblfds710, linux-image-4.9.0-8-amd64, linux-headers-4.9.0-8-amd64, oai-gtp-4.9.0-8-amd64 (>= 4.9), bridge-utils (>= 1.5-9), openvswitch-switch (>= 2.8.0), openvswitch-datapath-module-4.9.0-8-amd64 (>= 2.8.0), python-openvswitch (>= 2.8.0), magma-libfluid (>= 0.1.0.4)
+Provides: magma
+Replaces: magma
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Magma Access Gateway
+Filename: pool/stretch-beta/main/m/magma/magma_0.3.73-1560304279-4309537e_amd64.deb
+MD5sum: 6c77c96d124174f81559dcb2f9bb113f
+SHA1: decbc798edc4d8640a98f6daf25c7c2b59f01898
+SHA256: 9ab5f113c4d97bca7f61d907b02fb88460a599040a1d98d3c8e0f4129929f2fc
+Size: 25318700
+
+Package: magma
+Version: 0.3.74-1560824953-b50f1bab
+License: unknown
+Vendor: admin@ip-192-168-61-124
+Architecture: amd64
+Maintainer: <admin@ip-192-168-61-124>
+Installed-Size: 86424
+Depends: python3-lazy-object-proxy (>= 1.2.2-1), python3-futures (>= 2.2.0), python3-yaml (>= 3.11), python3-cryptography (>= 1.9), python3-systemd-python (>= 234), python3-aioh2 (>= 0.2.2), python3-chardet (>= 2.3.0-2), python3-hpack (>= 2.3), python3-redis (>= 2.10.5), python3-hyperframe (>= 5.2.0), python3-wrapt (>= 1.9.0-2), python3-six (>= 1.10.0-3), python3-protobuf (>= 3.6.1), python3-grpcio (>= 1.16.1), python3-astroid (>= 1.5.1), python3-itsdangerous (>= 0.24), python3-click (>= 5.1), python3-pycares (>= 2.3.0), python3-asn1crypto (>= 0.21.0), python3-isort (>= 4.2.5), python3-markupsafe (>= 0.23-3), python3-enum34 (>= 1.0.4), python3-pylint (>= 1.7.1), python3-prometheus-client (>= 0.3.1), python3-mccabe (>= 0.5.3-1), python3-snowflake (>= 0.0.3), python3-setuptools (>= 33.1.1-1), python3-cffi (>= 1.7), python3-pycparser (>= 2.17-2), python3-pytz (>= 2014.4), python3-netifaces (>= 0.10.4), python3-jinja2 (>= 2.8), python3-aiohttp (>= 0.17.2), python3-psutil (>= 5.2.2), python3-priority (>= 1.3.0), python3-idna (>= 2.1), python3-h2 (>= 3), python3-redis-collections (>= 0.4.2), python3-tinyrpc (>= 1.0.2), python3-repoze.lru (>= 0.3), python3-oslo.config (>= 1:1.15.0), python3-six (>= 1.10.0-3), python3-pbr (>= 0.11), python3-aiodns (>= 1.1.1), python3-pymemoize (>= 1.0.2), python3-spyne (>= 2.12.16), python3-greenlet (>= 0.3), python3-netaddr (>= 0.7.18-2), python3-click (>= 5.1), python3-ovs (>= 2.6.0), python3-wsgiserver (>= 1.3), python3-msgpack (>= 0.3.0), python3-envoy (>= 0.0.3), python3-pytz (>= 2019.1), python3-monotonic (>= 1.4), python3-eventlet (>= 0.25.0), python3-jinja2 (>= 2.10), python3-scapy (>= 2.4.2), python3-dnspython (>= 1.15.0), python3-lxml (>= 4.2.1), python3-webob (>= 1.2), python3-markupsafe (>= 0.23), python3-ryu (>= 4.13), python3-werkzeug (>= 0.14), python3-pycrypto (>= 2.6.1), python3-argparse (>= 1.4.0), python3-stevedore (>= 1.5.0), python3-routes (>= 2.3.1-2), python3-pycares (>= 1.0.0), python3-flask (>= 1.0.2), python3-itsdangerous (>= 0.24), grpc-dev (>= 1.15.0), libprotobuf10 (>= 3.0.0), lighttpd (>= 1.4.45), libxslt1.1, nghttp2-proxy (>= 1.18.1), python3-protobuf (>= 3.0.0), redis-server (>= 3.2.0), sudo, dnsmasq (>= 2.72), net-tools, python3-pip, python3-apt, python3-aioeventlet, libsystemd-dev, libyaml-cpp-dev, libgoogle-glog-dev, nlohmann-json-dev, python-redis, magma-cpp-redis, libfolly-dev, libdouble-conversion-dev, libboost-chrono-dev, libasan3, libconfig9, oai-asn1c (>= 0~20160721+c3~r43c4a295), oai-freediameter (>= 1.2.0-1), oai-gnutls (>= 3.1.23), oai-nettle (>= 1.0.1), prometheus-cpp-dev (>= 1.0.2), liblfds710, linux-image-4.9.0-8-amd64, linux-headers-4.9.0-8-amd64, oai-gtp-4.9.0-8-amd64 (>= 4.9), bridge-utils (>= 1.5-9), openvswitch-switch (>= 2.8.0), openvswitch-datapath-module-4.9.0-8-amd64 (>= 2.8.0), python-openvswitch (>= 2.8.0), magma-libfluid (>= 0.1.0.4)
+Provides: magma
+Replaces: magma
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Magma Access Gateway
+Filename: pool/stretch-beta/main/m/magma/magma_0.3.74-1560824953-b50f1bab_amd64.deb
+MD5sum: 076fc04f98d52c52c34222abb9e42257
+SHA1: 35ea7730aa8bb9cdc9c2db3b0d61ebd06a1b5bad
+SHA256: a5726fcdec15a775692492edfdfdd0925315237ea9e31944d5b8edc3d06d15c2
+Size: 25359860
+
+Package: magma-cpp-redis
+Version: 4.3.1.2-2
+License: unknown
+Vendor: root@magma-dev
+Architecture: amd64
+Maintainer: <root@magma-dev>
+Installed-Size: 3419
+Conflicts: magma-cpp-redis
+Provides: magma-cpp-redis
+Replaces: magma-cpp_redis
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Redis C++ client library
+Filename: pool/stretch-beta/main/m/magma-cpp-redis/magma-cpp-redis_4.3.1.2-2_amd64.deb
+MD5sum: d9054a3a2ae826c7f3f339079b7f6d57
+SHA1: 384f8e8adaf4c838a098367a4f413a17fc800be4
+SHA256: 1d73436d0d85204fe2a2dcb6d099e705ad6a389ec05440452b224dd3b71a6e88
+Size: 571898
+
+Package: magma-libfluid
+Version: 0.1.0.2-5
+License: unknown
+Vendor: vagrant@magma-dev
+Architecture: amd64
+Maintainer: <vagrant@magma-dev>
+Installed-Size: 17122
+Depends: libevent-dev, libssl-dev
+Conflicts: magma-libfluid
+Provides: magma-libfluid
+Replaces: magma-libfluid
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Libfluid Openflow Controller
+Filename: pool/stretch-beta/main/m/magma-libfluid/magma-libfluid_0.1.0.2-5_amd64.deb
+MD5sum: 010b48d87ac0e39889dca3bf4dc027b2
+SHA1: d2008ed89189e758f9232dd23b63748a5ad4014c
+SHA256: 16950097a937d50d34c6190fe50e643288dd0a56431652bbfec10d38c4f0b1f4
+Size: 4044974
+
+Package: magma-libfluid
+Version: 0.1.0.3-5
+License: unknown
+Vendor: root@magma-dev
+Architecture: amd64
+Maintainer: <root@magma-dev>
+Installed-Size: 17131
+Depends: libevent-dev, libssl-dev
+Conflicts: magma-libfluid
+Provides: magma-libfluid
+Replaces: magma-libfluid
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Libfluid Openflow Controller
+Filename: pool/stretch-beta/main/m/magma-libfluid/magma-libfluid_0.1.0.3-5_amd64.deb
+MD5sum: 930d8db6f3897c1e121400aef94b7b29
+SHA1: 9ee19af3f62f2e39091739cb355d9cb0f654f419
+SHA256: 13b782a2bd19d7958f416fd4dba89ffbffdb4fe6cef30c7ec5dfee958beb717d
+Size: 4048128
+
+Package: magma-libfluid
+Version: 0.1.0.4-1
+License: unknown
+Vendor: vagrant@magma-dev
+Architecture: amd64
+Maintainer: <vagrant@magma-dev>
+Installed-Size: 17273
+Depends: libevent-dev, libssl-dev
+Conflicts: magma-libfluid
+Provides: magma-libfluid
+Replaces: magma-libfluid
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Libfluid Openflow Controller
+Filename: pool/stretch-beta/main/m/magma-libfluid/magma-libfluid_0.1.0.4-1_amd64.deb
+MD5sum: b56ee0178e75ed28710057ae8cb77c5e
+SHA1: 7dd9b1cf3b48d415e68492080e8a16d73717ee61
+SHA256: 5ade0cfb1622203eab13e534aa559db6f0125876e37068548757e497a40e2cc0
+Size: 4093908
+
+Package: magma-support
+Version: 1.0
+License: unknown
+Vendor: vagrant@magma-dev
+Architecture: amd64
+Maintainer: <vagrant@magma-dev>
+Installed-Size: 2
+Depends: vim, tmux, openvpn, ethtool, watchdog
+Provides: magma-support
+Replaces: magma-support
+Section: default
+Priority: extra
+Homepage: http://example.com/no-uri-given
+Description: Magma support package
+Filename: pool/stretch-beta/main/m/magma-support/magma-support_1.0_amd64.deb
+MD5sum: 41683bc87a241166c6038bda8f3c5bff
+SHA1: 4b5606c863ff82fc204ff922a74361737f57bb30
+SHA256: d5d706c8f06e3edbece0debfac93c1f9838946fb57d4aa7472fa196fc1d5f002
+Size: 2452

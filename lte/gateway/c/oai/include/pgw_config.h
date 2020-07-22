@@ -104,7 +104,6 @@ typedef struct pgw_config_s {
     uint8_t mask_S5_S8;        // read from system
 
     bstring if_name_SGI;
-    struct in_addr SGI;
     uint32_t mtu_SGI;        // read from system
     struct in_addr addr_sgi; // read from system
     uint8_t mask_sgi;        // read from system

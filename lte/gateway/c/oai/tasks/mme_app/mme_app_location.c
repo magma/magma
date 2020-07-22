@@ -143,7 +143,7 @@ int mme_app_send_s6a_update_location_req(
     s6a_ulr_p->imsi,
     s6a_ulr_p->imsi_length,
     ue_context_p->mme_ue_s1ap_id);
-  rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   /*
    * Do not start this timer in case we are sending ULR after receiving HSS reset
    */
@@ -497,6 +497,6 @@ int mme_app_send_s6a_cancel_location_ans(
 
   s6a_cla_p->result = cla_result;
   s6a_cla_p->msg_cla_p = msg_cla_p;
-  rc = itti_send_msg_to_task(TASK_S6A, INSTANCE_DEFAULT, message_p);
+  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

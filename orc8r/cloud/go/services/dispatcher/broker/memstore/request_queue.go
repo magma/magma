@@ -15,6 +15,8 @@ import (
 	"time"
 
 	"magma/orc8r/lib/go/protos"
+
+	"github.com/golang/glog"
 )
 
 // InitializedQueue contains an initialized NewQueue, and an OldQueue to cleanup if any
@@ -70,6 +72,8 @@ func (queues *requestQueueImpl) CleanupQueue(gwId string) chan *protos.SyncRPCRe
 		delete(queues.reqQueueByGwId, gwId)
 		// the broker will cleanup requests in the queue
 		return queue
+	} else {
+		glog.Warningf("HWID %v: no request queue found to clean up", gwId)
 	}
 	return nil
 }

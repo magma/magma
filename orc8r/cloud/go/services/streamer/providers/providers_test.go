@@ -12,8 +12,6 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mocks"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -33,11 +31,10 @@ import (
 )
 
 func TestMconfigStreamer_Configurator(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})) // load remote providers
 	configurator_test_init.StartTestService(t)
 	streamer_test_init.StartTestService(t)
 
-	// set up mock mconfig builders (legacy and new)
+	// Set up mock mconfig builders (legacy and new)
 	configurator.ClearMconfigBuilders(t)
 	mockBuilder := &mocks.MconfigBuilder{}
 	mockBuilder.On("Build", "n1", "gw1", mock.Anything, mock.Anything, mock.Anything).

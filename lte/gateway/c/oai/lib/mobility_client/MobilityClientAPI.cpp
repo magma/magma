@@ -31,6 +31,8 @@
 #include "pcef_handlers.h"
 #include "service303.h"
 #include "spgw_types.h"
+#include "intertask_interface.h"
+
 #include "MobilityServiceClient.h"
 
 using grpc::Channel;
@@ -40,6 +42,8 @@ using grpc::CreateChannel;
 using grpc::InsecureChannelCredentials;
 using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
+
+extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
   const grpc::Status& status,

@@ -21,19 +21,55 @@
 #include "magma_logging.h"
 
 namespace magma {
+namespace lte {
+
+class EventsReporter {
+ public:
+  virtual void session_created(
+      const std::unique_ptr<SessionState>& session) {};
+
+  virtual void session_create_failure(
+      const std::string& imsi,
+      const std::string& apn,
+      const std::string& mac_addr,
+      const std::string& failure_reason) {};
+
+  virtual void session_updated(std::unique_ptr<SessionState>& session) {};
+
+  virtual void session_update_failure(
+      const std::string& failure_reason,
+      std::unique_ptr<SessionState>& session) {};
+
+  virtual void session_terminated(
+      const std::unique_ptr<SessionState>& session) {};
+};
+
 /**
  * Session Events are sent to the eventd service for logging.
  */
-namespace session_events {
+class EventsReporterImpl : public EventsReporter {
+ public:
+  EventsReporterImpl(AsyncEventdClient& eventd_client);
 
-void session_created(
-    AsyncEventdClient& client,
-    const std::string& imsi,
-    const std::string& session_id);
+  void session_created(const std::unique_ptr<SessionState>& session);
 
-void session_terminated(
-    AsyncEventdClient& client,
-    const std::unique_ptr<SessionState>& session);
+  void session_create_failure(
+      const std::string& imsi,
+      const std::string& apn,
+      const std::string& mac_addr,
+      const std::string& failure_reason);
 
-}  // namespace session_events
+  void session_updated(std::unique_ptr<SessionState>& session);
+
+  void session_update_failure(
+      const std::string& failure_reason,
+      std::unique_ptr<SessionState>& session);
+
+  void session_terminated(const std::unique_ptr<SessionState>& session);
+
+ private:
+  AsyncEventdClient& eventd_client_;
+};
+
+}  // namespace lte
 }  // namespace magma

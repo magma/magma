@@ -15,7 +15,6 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos/mconfig"
 	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
-	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
@@ -142,7 +141,9 @@ func (s *LteMconfigBuilderServicer) Build(
 			SubProfiles:  getSubProfiles(nwEpc),
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
-		"policydb": getPolicydbMconfig(graph),
+		"policydb": &mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
 		"sessiond": &mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
@@ -383,37 +384,4 @@ func getSubProfiles(epc *models2.NetworkEpcConfigs) map[string]*mconfig.Subscrib
 		}
 	}
 	return ret
-}
-
-func getPolicydbMconfig(graph configurator.EntityGraph) *mconfig.PolicyDB {
-	ratingGroups := getRatingGroups(graph)
-	infiniteUnmetered := []uint32{}
-	infiniteMetered := []uint32{}
-
-	for _, ratingGroup := range ratingGroups {
-		id := uint32(ratingGroup.ID)
-		switch limitType := *ratingGroup.LimitType; limitType {
-		case "INFINITE_UNMETERED":
-			infiniteUnmetered = append(infiniteUnmetered, id)
-		case "INFINITE_METERED":
-			infiniteMetered = append(infiniteMetered, id)
-		}
-	}
-
-	return &mconfig.PolicyDB{
-		LogLevel:                      protos.LogLevel_INFO,
-		InfiniteMeteredChargingKeys:   infiniteMetered,
-		InfiniteUnmeteredChargingKeys: infiniteUnmetered,
-	}
-}
-
-func getRatingGroups(graph configurator.EntityGraph) map[uint32]*policyModels.RatingGroup {
-	ratingGroupEnts := graph.GetEntitiesOfType(lte.RatingGroupEntityType)
-	ratingGroups := map[uint32]*policyModels.RatingGroup{}
-	for _, ent := range ratingGroupEnts {
-		ratingGroup := (ent.Config).(*policyModels.RatingGroup)
-		id := uint32(ratingGroup.ID)
-		ratingGroups[id] = ratingGroup
-	}
-	return ratingGroups
 }

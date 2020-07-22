@@ -175,21 +175,11 @@ func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) er
 	if err := serde.RegisterSerdes(plug.GetSerdes()...); err != nil {
 		return err
 	}
-	if err := metricsd.RegisterMetricsProfiles(plug.GetMetricsProfiles(metricsConfig)...); err != nil {
-		return err
-	}
 	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
-		return err
-	}
-	if err := providers.RegisterStreamProviders(plug.GetStreamerProviders()...); err != nil {
 		return err
 	}
 
 	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
-
-	if err := indexer.RegisterIndexers(plug.GetStateIndexers()...); err != nil {
-		return err
-	}
 
 	return nil
 }

@@ -3,7 +3,8 @@
     "mobilityd": {
       "@type": "type.googleapis.com/magma.mconfig.MobilityD",
       "logLevel": "INFO",
-      "ipBlock": "192.168.128.0/24"
+      "ipBlock": "192.168.128.0/24",
+      "ip_allocator_type": "IP_POOL"
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",
@@ -22,7 +23,8 @@
       "lac": 1,
       "attachedEnodebTacs": [],
       "dns_primary": "8.8.8.8",
-      "dns_secondary": "8.8.4.4"
+      "dns_secondary": "8.8.4.4",
+      "natEnabled": true
     },
     "enodebd": {
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",

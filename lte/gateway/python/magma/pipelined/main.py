@@ -50,6 +50,11 @@ def main():
     # Set Ryu config params
     cfg.CONF.ofp_listen_host = "127.0.0.1"
 
+    # override mconfig using local config.
+    enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
+    service.config['enable_nat'] = enable_nat
+    logging.info("Nat: %s", enable_nat)
+
     # Load the ryu apps
     service_manager = ServiceManager(service)
     service_manager.load()
@@ -60,7 +65,8 @@ def main():
                 "Failed to set MASQUERADE: %d", returncode
             )
 
-    if service.mconfig.nat_enabled:
+    # TODO fix this hack for XWF
+    if enable_nat is True or service.config.get('setup_type') == 'XWF':
         call_process('iptables -t nat -A POSTROUTING -o %s -j MASQUERADE'
                      % service.config['nat_iface'],
                      callback,

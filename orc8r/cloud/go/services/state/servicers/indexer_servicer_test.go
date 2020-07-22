@@ -27,9 +27,9 @@ import (
 )
 
 const (
-	id0 = "some_indexerid_0"
-	id1 = "some_indexerid_1"
-	id2 = "some_indexerid_2"
+	id0 = "SOME_INDEXERID_0"
+	id1 = "SOME_INDEXERID_1"
+	id2 = "SOME_INDEXERID_2"
 
 	zero      = 0
 	version0  = 10

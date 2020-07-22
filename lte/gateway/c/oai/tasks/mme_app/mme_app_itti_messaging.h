@@ -94,7 +94,7 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
     LOG_MME_APP,
     "Sent S1AP_UE_CONTEXT_MODIFICATION_REQUEST mme_ue_s1ap_id %06" PRIX32 " \n",
     S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id);
-  itti_send_msg_to_task(TASK_S1AP, INSTANCE_DEFAULT, message_p);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 
   /* Start timer to wait for UE Context Modification from eNB
    * If timer expires treat this as failure of ongoing procedure

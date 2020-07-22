@@ -1,0 +1,81 @@
+version: 2.1
+
+aliases:
+  - &onlymaster
+    filters:
+      branches:
+        only: master
+
+jobs:
+  deploy:
+    docker:
+      - image: circleci/node
+    parameters:
+      package_dir:
+        type: string
+      package_name:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Halt on no changes 
+          working_directory: fbcnms-packages/<<parameters.package_dir>>
+          command: |
+            published=$(npm -s show <<parameters.package_name>> version || exit 0)
+            current=$(node -p "require('./package.json').version")
+            if [[ $published == $current ]]; then
+              circleci step halt
+            fi
+      - run:
+          name: npm auth
+          working_directory: fbcnms-packages/<<parameters.package_dir>>
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+      - run:
+          name: npm publish
+          working_directory: fbcnms-packages/<<parameters.package_dir>>
+          command: npm publish --access public   
+
+workflows:
+  version: 2.1
+  deploy:
+    jobs:
+      - deploy:
+          name: deploy-fbcnms-strings
+          package_dir: fbcnms-strings
+          package_name: fbcnms/strings
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-util
+          package_dir: fbcnms-util
+          package_name: fbcnms/util
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-ui
+          package_dir: fbcnms-ui
+          package_name: fbcnms/ui
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-relay
+          package_dir: fbcnms-relay
+          package_name: fbcnms/relay
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-babel-register
+          package_dir: fbcnms-babel-register
+          package_name: fbcnms/babel-register
+          <<: *onlymaster
+      # TODO: Rename "fbcnms-webpack-config" to fbcnms/webpack-config first.
+      #
+      # - deploy:
+      #    name: deploy-fbcnms-webpack-config
+      #    package_dir: fbcnms-webpack-config
+      #    package_name: fbcnms/webpack-config
+      #    <<: *onlymaster
+      #
+      # TODO: Delete fbcnms-alarms from Symphony repository.
+      #
+      # - deploy:
+      #    name: deploy-fbcnms-alarms
+      #    package_dir: fbcnms-alarms
+      #    package_name: fbcnms/alarms
+      #    <<: *onlymaster

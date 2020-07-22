@@ -170,7 +170,10 @@ func (s *sqlJobQueue) ClaimAvailableJob() (*Job, error) {
 		return nil, err
 	}
 
-	idx := indexer.GetIndexer(reindexJob.id)
+	idx, err := indexer.GetIndexer(reindexJob.id)
+	if err != nil {
+		return nil, err
+	}
 	if idx == nil {
 		return nil, fmt.Errorf("indexer %s not found in registry", reindexJob.id)
 	}
@@ -483,7 +486,10 @@ func (s *sqlJobQueue) getIndexerVersionsImpl(tx *sql.Tx) ([]*indexer.Versions, e
 		return nil, err
 	}
 
-	composed := getComposedVersions(old)
+	composed, err := getComposedVersions(old)
+	if err != nil {
+		return nil, err
+	}
 	if EqualVersions(composed, old) {
 		return composed, nil
 	}
@@ -614,8 +620,11 @@ func scanJobs(rows *sql.Rows) (map[string]*reindexJob, error) {
 //	- new_desired	-- desired version from indexer registry
 //	- old_desired	-- desired version from existing reindex jobs
 //	- actual		-- actual version updated upon successful reindex job completion
-func getComposedVersions(old []*indexer.Versions) []*indexer.Versions {
-	newv := getIndexerVersionsByID()
+func getComposedVersions(old []*indexer.Versions) ([]*indexer.Versions, error) {
+	newv, err := getIndexerVersionsByID()
+	if err != nil {
+		return nil, err
+	}
 	composed := map[string]*indexer.Versions{}
 
 	// Insert all old versions -- old_desired and actual values
@@ -634,33 +643,37 @@ func getComposedVersions(old []*indexer.Versions) []*indexer.Versions {
 
 	ret := funk.Map(composed, func(k string, v *indexer.Versions) *indexer.Versions { return v }).([]*indexer.Versions)
 	sort.Slice(ret, func(i, j int) bool { return ret[i].IndexerID < ret[j].IndexerID }) // make deterministic
-	return ret
+	return ret, nil
 }
 
 // getIndexerVersionsByID returns a map of registered indexer IDs to their registered ("desired") versions.
-func getIndexerVersionsByID() map[string]indexer.Version {
-	indexers := indexer.GetIndexers()
+func getIndexerVersionsByID() (map[string]indexer.Version, error) {
+	indexers, err := indexer.GetIndexers()
+	if err != nil {
+		return nil, err
+	}
 	ret := map[string]indexer.Version{}
 	for _, x := range indexers {
 		ret[x.GetID()] = x.GetVersion()
 	}
-	return ret
+	return ret, nil
 }
 
 // newVersions returns a new indexer versions view.
 // First checks the indexer versions fit in an indexer.Version.
 func newVersions(indexerID string, actualVersion, desiredVersion int64) (*indexer.Versions, error) {
-	td, ta := indexer.Version(desiredVersion), indexer.Version(actualVersion)
-	if int64(td) < desiredVersion || int64(ta) < actualVersion {
-		return nil, fmt.Errorf(
-			"found versions for indexer %s are too large, %v or %v doesn't fit in %T",
-			indexerID, desiredVersion, actualVersion, indexer.Version(0),
-		)
+	actual, err := indexer.NewIndexerVersion(actualVersion)
+	if err != nil {
+		return nil, errors.Wrapf(err, "new actual version for indexer %s", indexerID)
+	}
+	desired, err := indexer.NewIndexerVersion(desiredVersion)
+	if err != nil {
+		return nil, errors.Wrapf(err, "new desired version for indexer %s", indexerID)
 	}
 	v := &indexer.Versions{
 		IndexerID: indexerID,
-		Actual:    ta,
-		Desired:   td,
+		Actual:    actual,
+		Desired:   desired,
 	}
 	return v, nil
 }

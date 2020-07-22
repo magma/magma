@@ -11,15 +11,11 @@ package plugin
 import (
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
-	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	policydb_handlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberdb_handlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -52,10 +48,10 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		// AGW state messages which use arbitrary untyped JSON serdes because
 		// they're defined/used as protos in the AGW codebase
-		state.NewStateSerde(lte.MMEStateType, &state.ArbitaryJSON{}),
-		state.NewStateSerde(lte.SPGWStateType, &state.ArbitaryJSON{}),
-		state.NewStateSerde(lte.S1APStateType, &state.ArbitaryJSON{}),
-		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitaryJSON{}),
+		state.NewStateSerde(lte.MMEStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
 
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lte_models.NetworkCellularConfigs{}),
@@ -84,11 +80,7 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 }
 
 func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
-	return plugin.FlattenHandlerLists(
-		lte_handlers.GetHandlers(),
-		policydb_handlers.GetHandlers(),
-		subscriberdb_handlers.GetHandlers(),
-	)
+	return []obsidian.Handler{}
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
@@ -98,6 +90,7 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.BaseNameStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.MappingsStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.NetworkWideRulesStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.RatingGroupStreamName),
 	}
 }
 

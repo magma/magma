@@ -25,10 +25,13 @@
 #include <stdlib.h>
 
 #include "assertions.h"
+#include "bstrlib.h"
 #include "log.h"
 #include "gtpv1u.h"
 #include "ControllerMain.h"
 #include "3gpp_23.003.h"
+#include "spgw_config.h"
+
 
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
@@ -152,6 +155,11 @@ int openflow_send_end_marker(struct in_addr enb, uint32_t tei)
   return rc;
 }
 
+const char *openflow_get_dev_name(void)
+{
+  return bdata(spgw_config.sgw_config.ovs_config.bridge_name);
+}
+
 static const struct gtp_tunnel_ops openflow_ops = {
   .init = openflow_init,
   .uninit = openflow_uninit,
@@ -163,6 +171,7 @@ static const struct gtp_tunnel_ops openflow_ops = {
   .add_paging_rule = openflow_add_paging_rule,
   .delete_paging_rule = openflow_delete_paging_rule,
   .send_end_marker = openflow_send_end_marker,
+  .get_dev_name = openflow_get_dev_name,
 };
 
 const struct gtp_tunnel_ops *gtp_tunnel_ops_init_openflow(void)

@@ -145,7 +145,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 	return service, nil
 }
 
-// CheckPlmnId returns true either if there is no PLMN ID filters (whitelist) configured or
+// CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
 // one the configured PLMN IDs matches passed IMSI
 func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
 	if len(s.plmnIds) == 0 {
