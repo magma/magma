@@ -143,12 +143,15 @@ func mainEventLoop(eventChan <-chan interface{}, freeMemChan <-chan time.Time) {
 					glog.Errorf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
 				} else {
 					glog.Infof("bootstrapped GW %s", e.HardwareId)
+					controller := service_manager.Get()
 					if config.GetControlProxyConfigs().ProxyCloudConnection {
-						// TODO: restart control proxy only
+						glog.Info("restarting control_proxy")
+						if err := controller.Restart("control_proxy"); err != nil {
+							glog.Errorf("failed to restart control_proxy: %v", err)
+						}
 					} else {
 						// Restart all magma services
 						go func() {
-							controller := service_manager.Get()
 							for _, service := range config.GetMagmadConfigs().MagmaServices {
 								controller.Restart(service)
 							}

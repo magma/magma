@@ -23,8 +23,10 @@ import (
 	"github.com/emakeev/snowflake"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
+	"google.golang.org/grpc"
 
 	"magma/gateway/config"
+	"magma/gateway/service_registry"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/key"
@@ -56,6 +58,8 @@ type Bootstrapper struct {
 	challengeKey *ecdsa.PrivateKey
 	// if set to true - start bootstrapping even is the GW certificate is still valid
 	forceBootstrap bool
+	// if useLocalService is set - the client will use local registered bootstrapper service; fo use with unit tests
+	useLocalService bool
 }
 
 // BootstrapCompletion is a type sent to bootstrap channel (if any) on every bootstrapping attempt
@@ -68,6 +72,11 @@ type BootstrapCompletionStruct struct {
 // NewBootstrapper returns a new instance of bootstrapper with initialized configuration
 func NewBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrapper {
 	return &Bootstrapper{CompletionChan: bootstrapCompletionChan}
+}
+
+// NewLocalBootstrapper returns a new instance of bootstrapper using local service with initialized configuration
+func NewLocalBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrapper {
+	return &Bootstrapper{CompletionChan: bootstrapCompletionChan, useLocalService: true}
 }
 
 // Initialize loads HW ID & challenge key and verifies it's validity
@@ -241,7 +250,10 @@ func (b *Bootstrapper) RefreshConfigs() {
 // bootstrap generates new gateway key & CSR, reaches to the cloud to sign the CSR and returns new cert & key
 // NOTE: it's a responsibility of a caller to synchronise access to Bootstrapper when calling Bootstrap
 func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
-	var err error
+	var (
+		err  error
+		conn *grpc.ClientConn
+	)
 
 	if b.challengeKey == nil {
 		if err = b.updateChallengeKey(); err != nil {
@@ -255,7 +267,11 @@ func (b *Bootstrapper) bootstrap() (*protos.Certificate, interface{}, error) {
 	}
 
 	// Complete challenge based auth & sign CSR
-	conn, err := b.GetBootstrapperCloudConnection()
+	if b.useLocalService {
+		conn, err = service_registry.Get().GetConnection("bootstrapper")
+	} else {
+		conn, err = b.GetBootstrapperCloudConnection()
+	}
 	if err != nil {
 		return nil, nil, err
 	}

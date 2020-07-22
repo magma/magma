@@ -74,3 +74,8 @@ workflows:
           package_dir: fbcnms-webpack-config
           package_name: fbcnms/webpack-config
           <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-platform-server
+          package_dir: fbcnms-platform-server
+          package_name: fbcnms/platform-server
+          <<: *onlymaster
