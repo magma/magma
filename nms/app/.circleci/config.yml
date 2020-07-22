@@ -64,18 +64,15 @@ workflows:
           package_dir: fbcnms-babel-register
           package_name: fbcnms/babel-register
           <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-alarms
+          package_dir: fbcnms-alarms
+          package_name: fbcnms/alarms
+          <<: *onlymaster
       # TODO: Rename "fbcnms-webpack-config" to fbcnms/webpack-config first.
       #
       # - deploy:
       #    name: deploy-fbcnms-webpack-config
       #    package_dir: fbcnms-webpack-config
       #    package_name: fbcnms/webpack-config
-      #    <<: *onlymaster
-      #
-      # TODO: Delete fbcnms-alarms from Symphony repository.
-      #
-      # - deploy:
-      #    name: deploy-fbcnms-alarms
-      #    package_dir: fbcnms-alarms
-      #    package_name: fbcnms/alarms
       #    <<: *onlymaster
