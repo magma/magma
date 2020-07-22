@@ -240,7 +240,7 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
 	config.OverwriteMagmadConfigs(mdc)
 
-	b := bootstrap_client.NewBootstrapper(completeChan)
+	b := bootstrap_client.NewLocalBootstrapper(completeChan)
 	err = b.Initialize()
 	assert.NoError(t, err)
 
