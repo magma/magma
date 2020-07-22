@@ -14,16 +14,16 @@ function create_backup_or_restore_mme_config {
   # Hence, this function will restore the same backup file before modifying
   # it again, otherwise MME will crash in reading configuration from file
   if [[ -f $mme_config_backup_file ]]; then
-    cp $mme_config_backup_file $mme_config_file
+    cp "$mme_config_backup_file" "$mme_config_file"
   else
-    cp -n $mme_config_file $mme_config_backup_file
+    cp -n "$mme_config_file" "$mme_config_backup_file"
   fi
 }
 
 function configure_multiple_plmn_tac {
   # Remove default PLMN and TAC from MME configuration file
   sed -i -e '/GUMMEI_LIST/{n;d}' -e '/TAI_LIST/{n;N;N;N;N;N;N;d}' \
-    -e '/TAC_LIST/{n;N;N;d}' $mme_config_file
+    -e '/TAC_LIST/{n;N;N;d}' "$mme_config_file"
 
   # Configure multiple PLMNs and TACs in MME configuration file
   gummei_config=(
@@ -36,9 +36,9 @@ function configure_multiple_plmn_tac {
   gummei_cmd_str=""
   for config in "${gummei_config[@]}"
   do
-    gummei_cmd_str=$gummei_cmd_str"\ \ \ \ \ \ \ \ "$config",\n"
+    gummei_cmd_str="$gummei_cmd_str\ \ \ \ \ \ \ \ $config,\n"
   done
-  gummei_cmd_str=`echo $gummei_cmd_str | sed -e 's/\(.*\),\\\n/\1 /'`
+  gummei_cmd_str=${gummei_cmd_str::-3}
 
   tac_config=(
     '{ MCC: "001"; MNC: "01"; TAC: "1" }'
@@ -50,21 +50,21 @@ function configure_multiple_plmn_tac {
   tac_cmd_str=""
   for config in "${tac_config[@]}"
   do
-    tac_cmd_str=$tac_cmd_str"\ \ \ \ \ \ \ \ "$config",\n"
+    tac_cmd_str="$tac_cmd_str\ \ \ \ \ \ \ \ $config,\n"
   done
-  tac_cmd_str=`echo $tac_cmd_str | sed -e 's/\(.*\),\\\n/\1 /'`
+  tac_cmd_str=${tac_cmd_str::-3}
 
   sed -i -e "/GUMMEI_LIST/a $gummei_cmd_str" \
     -e "/TAI_LIST/a $tac_cmd_str" \
     -e "/TAC_LIST/a $tac_cmd_str" \
-    $mme_config_file
+    "$mme_config_file"
 }
 
 function reduce_mobile_reachability_timer_value {
   # Reduce the mobile reachability timer to 1 minute, so that it can
   # quickly be tested as part of Sanity. The current default value of
   # Mobile Reachability Timer is 54 minutes
-  sed -i '/^        T3412/s/54/1/' $mme_config_file
+  sed -i '/^        T3412/s/54/1/' "$mme_config_file"
 }
 
 function restore_mme_config {
@@ -72,8 +72,8 @@ function restore_mme_config {
   # delete the backup configuration file, so that MME will use latest
   # configuration file in next sanity runs
   if [[ -f $mme_config_backup_file ]]; then
-    cp $mme_config_backup_file $mme_config_file
-    rm -f $mme_config_backup_file
+    cp "$mme_config_backup_file" "$mme_config_file"
+    rm -f "$mme_config_backup_file"
   else
     exit $RETURN_BACKUP_MISSING
   fi
