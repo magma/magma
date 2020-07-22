@@ -633,10 +633,10 @@ workflows:
               - cloud-test
               - orc8r-gateway-test
 
-  docusaurus_build_and_deploy:
-    jobs:
-      - docusaurus_build_and_deploy:
-          <<: *only_master
+  # docusaurus_build_and_deploy:
+  #   jobs:
+  #     - docusaurus_build_and_deploy:
+  #         <<: *only_master
 
   southpoll_test_and_publish:
     jobs:
