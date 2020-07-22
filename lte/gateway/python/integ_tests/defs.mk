@@ -42,9 +42,9 @@ s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
 s1aptests/test_standalone_pdn_conn_req.py \
 s1aptests/test_attach_act_dflt_ber_ctxt_rej.py \
-s1aptests/test_attach_detach_EEA1.py \
-s1aptests/test_attach_detach_EEA2.py \
-s1aptests/test_attach_detach_EIA1.py \
+s1aptests/test_attach_detach_security_algo_eea0_eia0.py \
+s1aptests/test_attach_detach_security_algo_eea1_eia1.py \
+s1aptests/test_attach_detach_security_algo_eea2_eia2.py \
 s1aptests/test_attach_detach_emm_status.py \
 s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
 s1aptests/test_attach_detach_ICS_Failure.py \
