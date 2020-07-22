@@ -27,12 +27,15 @@ ARG OS_RELEASE=bionic
 ARG EXTRA_REPO=https://facebookconnectivity.jfrog.io/artifactory/cwf-prod
 ARG CLANG_VERSION=3.9
 
+ARG SYSIMAGE=/tmp/sysimage
+
 # Stretch is required for c build
 FROM $OS_DIST:$OS_RELEASE AS builder
 ARG OS_DIST
 ARG OS_RELEASE
 ARG EXTRA_REPO
 ARG CLANG_VERSION
+ARG SYSIMAGE
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -104,6 +107,25 @@ ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
 RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 
+
+RUN mkdir $SYSIMAGE
+RUN apt install -y python3-pip strace gdb
+RUN pip3 install pylddwrap
+COPY bin/chrootify /usr/local/bin/chrootify
+RUN cp /build/c/session_manager/sessiond /usr/local/bin/sessiond
+RUN chrootify -d $SYSIMAGE /usr/local/bin/sessiond
+RUN chrootify -d $SYSIMAGE /sbin/sysctl /bin/bash /bin/cp /bin/rm /bin/ls /bin/sh /bin/mkdir /usr/bin/fmt
+RUN chrootify -d $SYSIMAGE /usr/bin/find /usr/bin/less /bin/grep /bin/cat
+RUN mkdir -p $SYSIMAGE/etc $SYSIMAGE/usr/share
+RUN cp -a /etc/passwd /etc/shadow /etc/group /etc/gshadow /etc/ld.so.cache $SYSIMAGE/etc/
+# Copy the configs.
+COPY lte/gateway/configs /etc/magma
+COPY orc8r/gateway/configs/templates /etc/magma/templates
+COPY lte/gateway/configs $SYSIMAGE/etc/magma
+COPY orc8r/gateway/configs/templates $SYSIMAGE/etc/magma/templates
+RUN mkdir -p $SYSIMAGE/var/opt/magma/configs
+
+
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
@@ -156,6 +178,20 @@ RUN apt-get -y update && apt-get -y install \
 COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
 
 # Copy the configs.
+COPY lte/gateway/configs /etc/magma
+COPY orc8r/gateway/configs/templates /etc/magma/templates
+RUN mkdir -p /var/opt/magma/configs
+
+
+# -----------------------------------------------------------------------------
+# Minimized Dev/Production image
+# -----------------------------------------------------------------------------
+FROM scratch as gateway_c_min
+ARG SYSIMAGE
+WORKDIR /
+ENV PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+COPY --from=builder $SYSIMAGE/ /
 COPY lte/gateway/configs /etc/magma
 COPY orc8r/gateway/configs/templates /etc/magma/templates
 RUN mkdir -p /var/opt/magma/configs

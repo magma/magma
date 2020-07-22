@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+# -*-python-*-
+"""
+Copyright (c) Facebook, Inc. and its affiliates.
+All rights reserved.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+"""
+
+
+# pip3 install pylddwrap
+
+
+import argparse
+import lddwrap
+import logging
+import os
+import pathlib
+import shutil
+import sys
+
+
+log = logging.getLogger(__name__)
+
+
+def main(args):
+    dest = pathlib.Path(args.destination)
+    if not os.path.isdir(dest):
+        os.mkdir(dest)
+
+    for item in args.items:
+        item = pathlib.Path(os.path.abspath(item))
+        relitem = item
+        if item.is_absolute():
+            relitem = pathlib.PosixPath(*item.parts[1:])
+        log.error(dest)
+        log.error(dest/relitem)
+        if os.path.isfile(item):
+            deps = []
+            try:
+                deps = lddwrap.list_dependencies(path=item)
+            except Exception as e:
+                log.exception(e)
+            try:
+                (dest / relitem).parent.mkdir(exist_ok=True, parents=True)
+            except FileExistsError:
+                pass
+            shutil.copy2(item, dest / relitem)
+            for dep in deps:
+                if dep.path.is_absolute():
+                    # dep has an absolute path
+                    # -- major exception is linux-vdso.so.1
+                    reldeppath = pathlib.PosixPath(*dep.path.parts[1:])
+                    try:
+                        (dest / reldeppath).parent.mkdir(exist_ok=True, parents=True)
+                    except FileExistsError:
+                        pass
+                    log.info(dest / reldeppath)
+                    shutil.copy2(dep.path, dest / reldeppath)
+        else:
+            raise Exception('not a file: {}'.format(item))
+
+
+if __name__ == '__main__':
+    logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
+    log.setLevel(logging.INFO)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--destination', '-d', required=True,
+                        help='top of chroot to populate')
+    parser.add_argument('items', nargs='+')
+    args = parser.parse_args()
+    main(args)

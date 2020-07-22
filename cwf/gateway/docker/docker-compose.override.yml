@@ -35,5 +35,8 @@ services:
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
     build:
+      target: gateway_c_min
+      # target: builder
+      # target: gateway_c
       context: ${BUILD_CONTEXT}
       dockerfile: cwf/gateway/docker/c/Dockerfile

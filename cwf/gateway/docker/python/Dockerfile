@@ -39,7 +39,7 @@ RUN make -C $MAGMA_ROOT/orc8r/gateway/python protos
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:bionic AS lte_gateway_python
+FROM ubuntu:bionic AS prod_preimage
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -151,3 +151,8 @@ WORKDIR /
 
 # Copy the build artifacts.
 COPY --from=builder /build/python/gen /usr/local/lib/python3.5/dist-packages/
+
+RUN rm -rf /usr/src/linux-headers* /ovs/
+
+FROM scratch as lte_gateway_python
+COPY --from=prod_preimage / /

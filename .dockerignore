@@ -4,6 +4,8 @@
 
 !third_party/
 
+!bin/
+
 !cwf/cloud/
 !cwf/gateway/
 !cwf/k8s
