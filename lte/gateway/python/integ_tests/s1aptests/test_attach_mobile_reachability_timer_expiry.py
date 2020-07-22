@@ -78,7 +78,7 @@ class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
         )
 
         # Delay by 6 minutes to ensure Mobile reachability timer expires.
-        # MOBILE REACHABILITY TIMER VALUE = 1 minutes(conf file) + delta value
+        # MOBILE REACHABILITY TIMER VALUE = 1 minute (conf file) + delta value
         print(
             "************************* Waiting for Mobile Reachability Timer"
             " to expire. Sleeping for 360 seconds.."
