@@ -13,7 +13,8 @@ package provider
 
 import (
 	"errors"
-	"log"
+
+	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa/protos"
@@ -43,12 +44,12 @@ func (prov *providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 			akaConfigs := &mconfig.EapAkaConfig{}
 			err := managed_configs.GetServiceConfigs(aka.EapAkaServiceName, akaConfigs)
 			if err != nil {
-				log.Printf("Error getting EAP AKA service configs: %s", err)
+				glog.Errorf("Error getting EAP AKA service configs: %s", err)
 				akaConfigs = nil
 			}
 			prov.EapAkaSrv, err = servicers.NewEapAkaService(akaConfigs)
 			if err != nil || prov.EapAkaSrv == nil {
-				log.Fatalf("failed to create EAP AKA Service: %v", err) // should never happen
+				glog.Fatalf("failed to create EAP AKA Service: %v", err) // should never happen
 			}
 		}
 		prov.Unlock()

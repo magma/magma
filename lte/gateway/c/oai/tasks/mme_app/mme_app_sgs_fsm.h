@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,7 +62,7 @@ typedef enum {
 
 typedef enum sgs_fsm_state_e {
   SGS_STATE_MIN = 0,
-  SGS_INVALID = SGS_STATE_MIN,
+  SGS_INVALID   = SGS_STATE_MIN,
   SGS_NULL,
   SGS_LA_UPDATE_REQUESTED,
   SGS_ASSOCIATED,
@@ -79,30 +75,28 @@ typedef enum sgs_fsm_state_e {
 typedef struct {
   sgs_primitive_t primitive; /* Primitive to identify SGSAP messages */
   mme_ue_s1ap_id_t ue_id;    /* mme_ue_s1ap_id to uniquely identify the UE */
-  void
-    *ctx; /* void pointer to point context and holds sgsap received message */
+  void*
+      ctx; /* void pointer to point context and holds sgsap received message */
 } sgs_fsm_t;
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int sgs_fsm_process(const sgs_fsm_t *sgs_evt);
+int sgs_fsm_process(const sgs_fsm_t* sgs_evt);
 int sgs_fsm_set_status(
-  mme_ue_s1ap_id_t ue_id,
-  void *ctx,
-  sgs_fsm_state_t state);
+    mme_ue_s1ap_id_t ue_id, void* ctx, sgs_fsm_state_t state);
 void sgs_fsm_initialize(void);
-sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ueid, void *ctx);
-int sgs_fsm_process(const sgs_fsm_t *sgs_evt);
+sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ueid, void* ctx);
+int sgs_fsm_process(const sgs_fsm_t* sgs_evt);
 
-int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t *fsm_evt);
-int sgs_fsm_null_loc_updt_rej(const sgs_fsm_t *fsm_evt);
-int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t *fsm_evt);
-int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t *fsm_evt);
-int sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t *fsm_evt);
-int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t *fsm_evt);
-int sgs_handle_associated_paging_request(const sgs_fsm_t *sgs_evt);
-int sgs_handle_null_paging_request(const sgs_fsm_t *sgs_evt);
-int sgs_fsm_associated_service_abort_request(const sgs_fsm_t *fsm_evt);
+int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt);
+int sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt);
+int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt);
+int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt);
+int sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt);
+int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt);
+int sgs_handle_associated_paging_request(const sgs_fsm_t* sgs_evt);
+int sgs_handle_null_paging_request(const sgs_fsm_t* sgs_evt);
+int sgs_fsm_associated_service_abort_request(const sgs_fsm_t* fsm_evt);
 #endif /* FILE_SGS_FSM_SEEN*/

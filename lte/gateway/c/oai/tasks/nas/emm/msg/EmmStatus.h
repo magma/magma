@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,7 +35,8 @@
 
 /*
  * Message name: EMM status
- * Description: This message is sent by the UE or by the network at any time to report certain error conditions listed in clause 7. See table 8.2.14.1.
+ * Description: This message is sent by the UE or by the network at any time to
+ * report certain error conditions listed in clause 7. See table 8.2.14.1.
  * Significance: local
  * Direction: both
  */
@@ -52,8 +49,8 @@ typedef struct emm_status_msg_tag {
   emm_cause_t emmcause;
 } emm_status_msg;
 
-int decode_emm_status(emm_status_msg *emmstatus, uint8_t *buffer, uint32_t len);
+int decode_emm_status(emm_status_msg* emmstatus, uint8_t* buffer, uint32_t len);
 
-int encode_emm_status(emm_status_msg *emmstatus, uint8_t *buffer, uint32_t len);
+int encode_emm_status(emm_status_msg* emmstatus, uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_EMM_STATUS_SEEN) */

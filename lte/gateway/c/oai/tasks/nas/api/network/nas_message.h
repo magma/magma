@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -112,38 +108,25 @@ typedef struct nas_message_decode_status_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 int nas_message_header_decode(
-  const unsigned char *const buffer,
-  nas_message_security_header_t *const header,
-  const size_t length,
-  nas_message_decode_status_t *const status,
-  bool *const is_sr);
+    const unsigned char* const buffer,
+    nas_message_security_header_t* const header, const size_t length,
+    nas_message_decode_status_t* const status, bool* const is_sr);
 
 int nas_message_encrypt(
-  const unsigned char *inbuf,
-  unsigned char *outbuf,
-  const nas_message_security_header_t *header,
-  size_t length,
-  void *security);
+    const unsigned char* inbuf, unsigned char* outbuf,
+    const nas_message_security_header_t* header, size_t length, void* security);
 
 int nas_message_decrypt(
-  const unsigned char *const inbuf,
-  unsigned char *const outbuf,
-  nas_message_security_header_t *header,
-  size_t length,
-  void *security,
-  nas_message_decode_status_t *status);
+    const unsigned char* const inbuf, unsigned char* const outbuf,
+    nas_message_security_header_t* header, size_t length, void* security,
+    nas_message_decode_status_t* status);
 
 int nas_message_decode(
-  const unsigned char *const buffer,
-  nas_message_t *msg,
-  size_t length,
-  void *security,
-  nas_message_decode_status_t *status);
+    const unsigned char* const buffer, nas_message_t* msg, size_t length,
+    void* security, nas_message_decode_status_t* status);
 
 int nas_message_encode(
-  unsigned char *buffer,
-  const nas_message_t *const msg,
-  size_t length,
-  void *security);
+    unsigned char* buffer, const nas_message_t* const msg, size_t length,
+    void* security);
 
 #endif /* FILE_NAS_MESSAGE_SEEN*/

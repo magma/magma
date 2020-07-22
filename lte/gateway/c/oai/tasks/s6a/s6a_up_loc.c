@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,18 +47,14 @@ struct msg;
 struct session;
 
 int s6a_ula_cb(
-  struct msg **msg_pP,
-  struct avp *paramavp_pP,
-  struct session *sess_pP,
-  void *opaque_pP,
-  enum disp_action *act_pP)
-{
-  struct msg *ans_p = NULL;
-  struct msg *qry_p = NULL;
-  struct avp *avp_p = NULL;
-  struct avp_hdr *hdr_p = NULL;
-  MessageDef *message_p = NULL;
-  s6a_update_location_ans_t *s6a_update_location_ans_p = NULL;
+    struct msg** msg_pP, struct avp* paramavp_pP, struct session* sess_pP,
+    void* opaque_pP, enum disp_action* act_pP) {
+  struct msg* ans_p                                    = NULL;
+  struct msg* qry_p                                    = NULL;
+  struct avp* avp_p                                    = NULL;
+  struct avp_hdr* hdr_p                                = NULL;
+  MessageDef* message_p                                = NULL;
+  s6a_update_location_ans_t* s6a_update_location_ans_p = NULL;
 
   DevAssert(msg_pP);
   ans_p = *msg_pP;
@@ -78,16 +70,13 @@ int s6a_ula_cb(
   if (avp_p) {
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
     memcpy(
-      s6a_update_location_ans_p->imsi,
-      hdr_p->avp_value->os.data,
-      hdr_p->avp_value->os.len);
+        s6a_update_location_ans_p->imsi, hdr_p->avp_value->os.data,
+        hdr_p->avp_value->os.len);
     s6a_update_location_ans_p->imsi[hdr_p->avp_value->os.len] = '\0';
     s6a_update_location_ans_p->imsi_length = hdr_p->avp_value->os.len;
     OAILOG_DEBUG(
-      LOG_S6A,
-      "Received s6a ula for imsi=%*s\n",
-      (int) hdr_p->avp_value->os.len,
-      hdr_p->avp_value->os.data);
+        LOG_S6A, "Received s6a ula for imsi=%*s\n",
+        (int) hdr_p->avp_value->os.len, hdr_p->avp_value->os.data);
   } else {
     DevMessage("Query has been freed before we received the answer\n");
   }
@@ -96,19 +85,17 @@ int s6a_ula_cb(
    * Retrieve the result-code
    */
   CHECK_FCT(
-    fd_msg_search_avp(ans_p, s6a_fd_cnf.dataobj_s6a_result_code, &avp_p));
+      fd_msg_search_avp(ans_p, s6a_fd_cnf.dataobj_s6a_result_code, &avp_p));
 
   if (avp_p) {
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
-    s6a_update_location_ans_p->result.present = S6A_RESULT_BASE;
+    s6a_update_location_ans_p->result.present     = S6A_RESULT_BASE;
     s6a_update_location_ans_p->result.choice.base = hdr_p->avp_value->u32;
 
     if (hdr_p->avp_value->u32 != ER_DIAMETER_SUCCESS) {
       OAILOG_ERROR(
-        LOG_S6A,
-        "Got error %u:%s\n",
-        hdr_p->avp_value->u32,
-        retcode_2_string(hdr_p->avp_value->u32));
+          LOG_S6A, "Got error %u:%s\n", hdr_p->avp_value->u32,
+          retcode_2_string(hdr_p->avp_value->u32));
       goto err;
     }
   } else {
@@ -117,17 +104,18 @@ int s6a_ula_cb(
      * * * * avp_p indicating a 3GPP specific failure.
      */
     CHECK_FCT(fd_msg_search_avp(
-      ans_p, s6a_fd_cnf.dataobj_s6a_experimental_result, &avp_p));
+        ans_p, s6a_fd_cnf.dataobj_s6a_experimental_result, &avp_p));
 
     if (avp_p) {
       /*
        * The procedure has failed within the HSS.
-       * * * * NOTE: contrary to result-code, the experimental-result is a grouped
+       * * * * NOTE: contrary to result-code, the experimental-result is a
+       * grouped
        * * * * AVP and requires parsing its childs to get the code back.
        */
       s6a_update_location_ans_p->result.present = S6A_RESULT_EXPERIMENTAL;
       s6a_parse_experimental_result(
-        avp_p, &s6a_update_location_ans_p->result.choice.experimental);
+          avp_p, &s6a_update_location_ans_p->result.choice.experimental);
       goto err;
     } else {
       /*
@@ -135,9 +123,9 @@ int s6a_ula_cb(
        * * * * totally incorrect behaviour here.
        */
       OAILOG_ERROR(
-        LOG_S6A,
-        "Experimental-Result and Result-Code are absent: "
-        "This is not a correct behaviour\n");
+          LOG_S6A,
+          "Experimental-Result and Result-Code are absent: "
+          "This is not a correct behaviour\n");
       goto err;
     }
   }
@@ -157,9 +145,9 @@ int s6a_ula_cb(
      */
     if (!FLAG_IS_SET(hdr_p->avp_value->u32, ULA_SEPARATION_IND)) {
       OAILOG_ERROR(
-        LOG_S6A,
-        "ULA-Flags does not indicate the HSS is post Rel.8: "
-        "This behaviour is not compliant\n");
+          LOG_S6A,
+          "ULA-Flags does not indicate the HSS is post Rel.8: "
+          "This behaviour is not compliant\n");
       goto err;
     }
   } else {
@@ -169,18 +157,18 @@ int s6a_ula_cb(
      * * * * TODO: handle this case.
      */
     OAILOG_ERROR(
-      LOG_S6A,
-      "ULA-Flags AVP is absent while result code indicates "
-      "DIAMETER_SUCCESS\n");
+        LOG_S6A,
+        "ULA-Flags AVP is absent while result code indicates "
+        "DIAMETER_SUCCESS\n");
     goto err;
   }
 
-  CHECK_FCT(
-    fd_msg_search_avp(ans_p, s6a_fd_cnf.dataobj_s6a_subscription_data, &avp_p));
+  CHECK_FCT(fd_msg_search_avp(
+      ans_p, s6a_fd_cnf.dataobj_s6a_subscription_data, &avp_p));
 
   if (avp_p) {
     CHECK_FCT(s6a_parse_subscription_data(
-      avp_p, &s6a_update_location_ans_p->subscription_data));
+        avp_p, &s6a_update_location_ans_p->subscription_data));
     // LG COMMENTED THIS (2014/04/01)-> DevParam(0, 0, 0);
   }
 
@@ -191,11 +179,10 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
-{
-  struct avp *avp_p = NULL;
-  struct msg *msg_p = NULL;
-  struct session *sess_p = NULL;
+int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
+  struct avp* avp_p      = NULL;
+  struct msg* msg_p      = NULL;
+  struct session* sess_p = NULL;
   union avp_value value;
 
   DevAssert(ulr_pP);
@@ -207,11 +194,8 @@ int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
    * Create a new session
    */
   CHECK_FCT(fd_sess_new(
-    &sess_p,
-    fd_g_config->cnf_diamid,
-    fd_g_config->cnf_diamid_len,
-    (os0_t) "apps6a",
-    6));
+      &sess_p, fd_g_config->cnf_diamid, fd_g_config->cnf_diamid_len,
+      (os0_t) "apps6a", 6));
   {
     os0_t sid;
     size_t sidlen;
@@ -219,12 +203,12 @@ int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
     CHECK_FCT(fd_sess_getsid(sess_p, &sid, &sidlen));
     CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_session_id, 0, &avp_p));
     value.os.data = sid;
-    value.os.len = sidlen;
+    value.os.len  = sidlen;
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_FIRST_CHILD, avp_p));
   }
   CHECK_FCT(
-    fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_auth_session_state, 0, &avp_p));
+      fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_auth_session_state, 0, &avp_p));
   /*
    * No State maintained
    */
@@ -244,9 +228,9 @@ int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
     bconchar(host, '.');
     bconcat(host, mme_config.realm);
     CHECK_FCT(
-      fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_host, 0, &avp_p));
-    value.os.data = (unsigned char *) bdata(host);
-    value.os.len = blength(host);
+        fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_host, 0, &avp_p));
+    value.os.data = (unsigned char*) bdata(host);
+    value.os.len  = blength(host);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
     bdestroy_wrapper(&host);
@@ -256,9 +240,9 @@ int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
    */
   {
     CHECK_FCT(
-      fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_realm, 0, &avp_p));
-    value.os.data = (unsigned char *) bdata(mme_config.realm);
-    value.os.len = blength(mme_config.realm);
+        fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_realm, 0, &avp_p));
+    value.os.data = (unsigned char*) bdata(mme_config.realm);
+    value.os.len  = blength(mme_config.realm);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   }
@@ -267,8 +251,8 @@ int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
    * Adding the User-Name (IMSI)
    */
   CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_user_name, 0, &avp_p));
-  value.os.data = (unsigned char *) ulr_pP->imsi;
-  value.os.len = strlen(ulr_pP->imsi);
+  value.os.data = (unsigned char*) ulr_pP->imsi;
+  value.os.len  = strlen(ulr_pP->imsi);
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   /*
@@ -278,21 +262,18 @@ int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP)
     uint8_t plmn[3];
 
     CHECK_FCT(
-      fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_visited_plmn_id, 0, &avp_p));
+        fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_visited_plmn_id, 0, &avp_p));
 
     uint8_t mnc_length = mme_config_find_mnc_length(
-      ulr_pP->visited_plmn.mcc_digit1,
-      ulr_pP->visited_plmn.mcc_digit2,
-      ulr_pP->visited_plmn.mcc_digit3,
-      ulr_pP->visited_plmn.mnc_digit1,
-      ulr_pP->visited_plmn.mnc_digit2,
-      ulr_pP->visited_plmn.mnc_digit3);
+        ulr_pP->visited_plmn.mcc_digit1, ulr_pP->visited_plmn.mcc_digit2,
+        ulr_pP->visited_plmn.mcc_digit3, ulr_pP->visited_plmn.mnc_digit1,
+        ulr_pP->visited_plmn.mnc_digit2, ulr_pP->visited_plmn.mnc_digit3);
     if (mnc_length != 2 && mnc_length != 3) {
       OAILOG_FUNC_RETURN(LOG_S6A, RETURNerror);
     }
     PLMN_T_TO_TBCD(ulr_pP->visited_plmn, plmn, mnc_length);
     value.os.data = plmn;
-    value.os.len = 3;
+    value.os.len  = 3;
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
   }

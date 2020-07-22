@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +47,7 @@
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_network_initialize(const mme_config_t *mme_config_p)
-{
+void nas_network_initialize(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS);
   /*
    * Initialize the internal NAS processing data
@@ -76,8 +71,7 @@ void nas_network_initialize(const mme_config_t *mme_config_p)
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_network_cleanup(void)
-{
+void nas_network_cleanup(void) {
   OAILOG_FUNC_IN(LOG_NAS);
   nas_proc_cleanup();
   nas_timer_cleanup();

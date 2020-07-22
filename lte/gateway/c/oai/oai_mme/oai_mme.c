@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,8 +62,7 @@ static void send_timer_recovery_message(void);
 
 task_zmq_ctx_t main_zmq_ctx;
 
-static int main_init(void)
-{
+static int main_init(void) {
   // Initialize main thread ZMQ context
   // We dont use the PULL socket nor the ZMQ loop
   init_task_context(
@@ -75,33 +70,24 @@ static int main_init(void)
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
                     TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
                     TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
-      10,
-      NULL,
-      &main_zmq_ctx);
+      10, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
 
-static void main_exit(void)
-{
+static void main_exit(void) {
   destroy_task_context(&main_zmq_ctx);
 }
 
-int main(int argc, char *argv[])
-{
-  char *pid_file_name;
+int main(int argc, char* argv[]) {
+  char* pid_file_name;
 
   CHECK_INIT_RETURN(OAILOG_INIT(
-    MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
+      MME_CONFIG_STRING_MME_CONFIG, OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
   CHECK_INIT_RETURN(shared_log_init(MAX_LOG_PROTOS));
   CHECK_INIT_RETURN(itti_init(
-    TASK_MAX,
-    THREAD_MAX,
-    MESSAGES_ID_MAX,
-    tasks_info,
-    messages_info,
-    NULL,
-    NULL));
+      TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
+      NULL));
   CHECK_INIT_RETURN(main_init());
 
   /*
@@ -109,7 +95,7 @@ int main(int argc, char *argv[])
    */
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(mme_config_embedded_spgw_parse_opt_line(
-    argc, argv, &mme_config, &spgw_config));
+      argc, argv, &mme_config, &spgw_config));
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif
@@ -119,7 +105,7 @@ int main(int argc, char *argv[])
   if (!pid_file_lock(pid_file_name)) {
     exit(-EDEADLK);
   }
-  free_wrapper((void **) &pid_file_name);
+  free_wrapper((void**) &pid_file_name);
 
   /*
    * Calling each layer init function
@@ -141,11 +127,10 @@ int main(int argc, char *argv[])
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
-  //Create SGS Task only if non_eps_service_control is not set to OFF
-  char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
-  if (
-    !(strcmp(non_eps_service_control, "SMS")) ||
-    !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
+  // Create SGS Task only if non_eps_service_control is not set to OFF
+  char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
+  if (!(strcmp(non_eps_service_control, "SMS")) ||
+      !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
     CHECK_INIT_RETURN(sgs_init(&mme_config));
     OAILOG_DEBUG(LOG_MME_APP, "SGS Task initialized\n");
   }

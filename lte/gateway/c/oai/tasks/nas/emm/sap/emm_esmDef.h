@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -71,9 +67,9 @@ typedef enum {
  */
 typedef struct emm_esm_establish_s {
   bool is_emergency; /* Indicates whether the PDN connection is established
-             * for emergency bearer services only       */
+                      * for emergency bearer services only       */
   bool is_attached;  /* Indicates whether the UE remains attached to the
-             * network                  */
+                      * network                  */
 } emm_esm_establish_t;
 
 /*
@@ -101,7 +97,7 @@ typedef struct emm_esm_data_s {
  * EMMESM primitive for Deactivate EPS bearer context request
  */
 typedef struct emm_esm_deactivate_bearer_req_s {
-  ebi_t ebi; /*bearer to de-activate */
+  ebi_t ebi;   /*bearer to de-activate */
   bstring msg; /* ESM message to be transferred     */
 } emm_esm_deactivate_bearer_req_t;
 /*
@@ -113,7 +109,7 @@ struct emm_context_s;
 typedef struct {
   emm_esm_primitive_t primitive;
   mme_ue_s1ap_id_t ue_id;
-  struct emm_context_s *ctx;
+  struct emm_context_s* ctx;
   union {
     emm_esm_establish_t establish;
     emm_esm_data_t data;

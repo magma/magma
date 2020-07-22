@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,15 +65,15 @@ Description Defines callback functions executed within EMM common procedures
  * - The EMM common procedure failed or is rejected
  * - Lower layer failure occured before the EMM common procedure completion
  */
-typedef int (*emm_common_success_callback_t)(void *);
-typedef int (*emm_common_reject_callback_t)(void *);
-typedef int (*emm_common_failure_callback_t)(void *);
-typedef int (*emm_common_ll_failure_callback_t)(void *);
-typedef int (*emm_common_non_delivered_callback_t)(void *);
+typedef int (*emm_common_success_callback_t)(void*);
+typedef int (*emm_common_reject_callback_t)(void*);
+typedef int (*emm_common_failure_callback_t)(void*);
+typedef int (*emm_common_ll_failure_callback_t)(void*);
+typedef int (*emm_common_non_delivered_callback_t)(void*);
 /* EMM common procedure to be executed when the ongoing EMM procedure is
  * aborted.
  */
-typedef int (*emm_common_abort_callback_t)(void *);
+typedef int (*emm_common_abort_callback_t)(void*);
 
 /* Ongoing EMM procedure callback functions */
 typedef struct emm_common_data_s {
@@ -92,7 +88,7 @@ typedef struct emm_common_data_s {
   emm_common_non_delivered_callback_t non_delivered;
   emm_common_abort_callback_t abort;
 
-  void *args;
+  void* args;
   RB_ENTRY(emm_common_data_s) entries;
 } emm_common_data_t;
 
@@ -111,30 +107,26 @@ extern emm_common_data_head_t emm_common_data_head;
 /****************************************************************************/
 
 int emm_proc_common_initialize(
-  mme_ue_s1ap_id_t ue_id,
-  emm_common_success_callback_t success,
-  emm_common_reject_callback_t reject,
-  emm_common_failure_callback_t failure,
-  emm_common_ll_failure_callback_t ll_failure,
-  emm_common_non_delivered_callback_t non_delivered,
-  emm_common_abort_callback_t abort,
-  void *args);
+    mme_ue_s1ap_id_t ue_id, emm_common_success_callback_t success,
+    emm_common_reject_callback_t reject, emm_common_failure_callback_t failure,
+    emm_common_ll_failure_callback_t ll_failure,
+    emm_common_non_delivered_callback_t non_delivered,
+    emm_common_abort_callback_t abort, void* args);
 
-int emm_proc_common_success(emm_common_data_t *emm_common_data_ctx);
-int emm_proc_common_reject(emm_common_data_t *emm_common_data_ctx);
-int emm_proc_common_failure(emm_common_data_t *emm_common_data_ctx);
-int emm_proc_common_ll_failure(emm_common_data_t *emm_common_data_ctx);
-int emm_proc_common_non_delivered(emm_common_data_t *emm_common_data_ctx);
-int emm_proc_common_abort(emm_common_data_t *emm_common_data_ctx);
+int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx);
+int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx);
+int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx);
+int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx);
+int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx);
+int emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx);
 
-void *emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id);
+void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id);
 // Free args and set it to NULL
 void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id);
-void emm_common_cleanup(emm_common_data_t *emm_common_data_ctx);
+void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx);
 void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id);
 
-struct emm_common_data_s *emm_common_data_context_get(
-  struct emm_common_data_head_s *root,
-  mme_ue_s1ap_id_t _ueid);
+struct emm_common_data_s* emm_common_data_context_get(
+    struct emm_common_data_head_s* root, mme_ue_s1ap_id_t _ueid);
 
 #endif /* FILE_EMM_COMMON_SEEN*/

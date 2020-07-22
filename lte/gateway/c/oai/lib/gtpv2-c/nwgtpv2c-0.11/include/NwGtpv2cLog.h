@@ -40,7 +40,7 @@
 /**
  * @file NwGtpv2cLog.h
  * @brief This header contains logging related definitions.
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,15 +50,12 @@ extern "C" {
  * Log Macro Definition
  *--------------------------------------------------------------------------*/
 
-
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* __NW_TYPES_H__ */
 
-
 /*--------------------------------------------------------------------------*
  *                      E N D     O F    F I L E                            *
  *--------------------------------------------------------------------------*/
-

@@ -10,8 +10,7 @@ LICENSE file in the root directory of this source tree.
 package main
 
 import (
-	"log"
-
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
@@ -28,7 +27,7 @@ func main() {
 	// Create the EAP AKA Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP)
 	if err != nil {
-		log.Fatalf("Error creating EAP Router service: %s", err)
+		glog.Fatalf("Error creating EAP Router service: %s", err)
 	}
 
 	protos.RegisterEapRouterServer(srv.GrpcServer, &eapRouter{supportedMethods: client.SupportedTypes()})
@@ -36,14 +35,14 @@ func main() {
 	// Run the service
 	err = srv.Run()
 	if err != nil {
-		log.Fatalf("Error running EAP Router service: %s", err)
+		glog.Fatalf("Error running EAP Router service: %s", err)
 	}
 }
 
 func (s *eapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := client.HandleIdentityResponse(uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
-		log.Printf("HandleIdentity Error: %v", err)
+		glog.Errorf("HandleIdentity Error: %v", err)
 		err = nil
 	}
 	return resp, err
@@ -52,7 +51,7 @@ func (s *eapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) 
 func (s *eapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := client.Handle(in)
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
-		log.Printf("Handle Error: %v", err)
+		glog.Errorf("Handle Error: %v", err)
 		err = nil
 	}
 	return resp, err

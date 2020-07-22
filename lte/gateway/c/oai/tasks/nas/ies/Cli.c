@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,9 +22,8 @@
 #include "Cli.h"
 
 //------------------------------------------------------------------------------
-int decode_cli(Cli *cli, uint8_t iei, uint8_t *buffer, uint32_t len)
-{
-  int decoded = 0;
+int decode_cli(Cli* cli, uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -41,9 +36,8 @@ int decode_cli(Cli *cli, uint8_t iei, uint8_t *buffer, uint32_t len)
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if (
-    (decode_result =
-       decode_bstring(cli, ielen, buffer + decoded, len - decoded)) < 0)
+  if ((decode_result =
+           decode_bstring(cli, ielen, buffer + decoded, len - decoded)) < 0)
     return decode_result;
   else
     decoded += decode_result;
@@ -52,9 +46,8 @@ int decode_cli(Cli *cli, uint8_t iei, uint8_t *buffer, uint32_t len)
 }
 
 //------------------------------------------------------------------------------
-int encode_cli(Cli cli, uint8_t iei, uint8_t *buffer, uint32_t len)
-{
-  uint8_t *lenPtr;
+int encode_cli(Cli cli, uint8_t iei, uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
   int encode_result;
 
@@ -71,8 +64,8 @@ int encode_cli(Cli cli, uint8_t iei, uint8_t *buffer, uint32_t len)
   lenPtr = (buffer + encoded);
   encoded++;
 
-  if (
-    (encode_result = encode_bstring(cli, buffer + encoded, len - encoded)) < 0)
+  if ((encode_result = encode_bstring(cli, buffer + encoded, len - encoded)) <
+      0)
     return encode_result;
   else
     encoded += encode_result;

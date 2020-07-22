@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +35,7 @@
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
-void itti_free_msg_content(MessageDef* const message_p)
-{
+void itti_free_msg_content(MessageDef* const message_p) {
   switch (ITTI_MSG_ID(message_p)) {
     case ASYNC_SYSTEM_COMMAND: {
       if (ASYNC_SYSTEM_COMMAND(message_p).system_command) {
@@ -62,11 +57,12 @@ void itti_free_msg_content(MessageDef* const message_p)
       // UNUSED actually
       break;
 
-    case SGI_CREATE_ENDPOINT_REQUEST: break;
+    case SGI_CREATE_ENDPOINT_REQUEST:
+      break;
 
     case SGI_CREATE_ENDPOINT_RESPONSE: {
       clear_protocol_configuration_options(
-        &message_p->ittiMsg.sgi_create_end_point_response.pco);
+          &message_p->ittiMsg.sgi_create_end_point_response.pco);
     } break;
 
     case SGI_UPDATE_ENDPOINT_REQUEST:
@@ -88,7 +84,8 @@ void itti_free_msg_content(MessageDef* const message_p)
       bdestroy_wrapper(&mme_app_est_cnf.ue_radio_capability);
     } break;
 
-    case MME_APP_INITIAL_CONTEXT_SETUP_RSP: break;
+    case MME_APP_INITIAL_CONTEXT_SETUP_RSP:
+      break;
 
     case MME_APP_DELETE_SESSION_RSP:
       // DO nothing
@@ -97,8 +94,8 @@ void itti_free_msg_content(MessageDef* const message_p)
     case MME_APP_UPLINK_DATA_IND:
       bdestroy_wrapper(&message_p->ittiMsg.mme_app_ul_data_ind.nas_msg);
       AssertFatal(
-        NULL == message_p->ittiMsg.mme_app_ul_data_ind.nas_msg,
-        "TODO clean pointer");
+          NULL == message_p->ittiMsg.mme_app_ul_data_ind.nas_msg,
+          "TODO clean pointer");
       break;
 
     case S11_CREATE_SESSION_REQUEST: {
@@ -107,17 +104,17 @@ void itti_free_msg_content(MessageDef* const message_p)
 
     case S11_CREATE_SESSION_RESPONSE: {
       clear_protocol_configuration_options(
-        &message_p->ittiMsg.s11_create_session_response.pco);
+          &message_p->ittiMsg.s11_create_session_response.pco);
     } break;
 
     case S11_CREATE_BEARER_REQUEST: {
       clear_protocol_configuration_options(
-        &message_p->ittiMsg.s11_create_bearer_request.pco);
+          &message_p->ittiMsg.s11_create_bearer_request.pco);
     } break;
 
     case S11_CREATE_BEARER_RESPONSE: {
       clear_protocol_configuration_options(
-        &message_p->ittiMsg.s11_create_bearer_response.pco);
+          &message_p->ittiMsg.s11_create_bearer_response.pco);
     } break;
 
     case S11_MODIFY_BEARER_REQUEST:
@@ -128,7 +125,7 @@ void itti_free_msg_content(MessageDef* const message_p)
 
     case S11_DELETE_SESSION_RESPONSE: {
       clear_protocol_configuration_options(
-        &message_p->ittiMsg.s11_delete_session_response.pco);
+          &message_p->ittiMsg.s11_delete_session_response.pco);
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_REQUEST:

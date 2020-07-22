@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,26 +37,21 @@
 
 //------------------------------------------------------------------------------
 void mme_app_select_sgw(
-  const tai_t *const tai,
-  struct sockaddr *const sgw_in_addr)
-{
+    const tai_t* const tai, struct sockaddr* const sgw_in_addr) {
+  extern mme_config_t mme_config;
 
-extern mme_config_t mme_config;
+  ((struct sockaddr_in*) sgw_in_addr)->sin_addr.s_addr =
+      mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
+  ((struct sockaddr_in*) sgw_in_addr)->sin_family = AF_INET;
 
-((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
-((struct sockaddr_in*)sgw_in_addr)->sin_family = AF_INET ;
-
-printf("Received SGW IP Address %p\n" , (void*)sgw_in_addr);
+  printf("Received SGW IP Address %p\n", (void*) sgw_in_addr);
   OAILOG_DEBUG(
-    LOG_MME_APP,
-    "SGW  returned %s\n",inet_ntoa(((struct sockaddr_in*)sgw_in_addr)->sin_addr));
+      LOG_MME_APP, "SGW  returned %s\n",
+      inet_ntoa(((struct sockaddr_in*) sgw_in_addr)->sin_addr));
   return;
 
-OAILOG_WARNING(
-    LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n", TAI_ARG(tai));
-  ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = 0;
+  OAILOG_WARNING(
+      LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n", TAI_ARG(tai));
+  ((struct sockaddr_in*) sgw_in_addr)->sin_addr.s_addr = 0;
   return;
 }
-
-
-

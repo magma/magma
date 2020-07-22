@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,7 +40,7 @@ struct s1ap_message_s;
 extern int asn_debug;
 
 #if defined(EMIT_ASN_DEBUG_EXTERN)
-inline void ASN_DEBUG(const char *fmt, ...);
+inline void ASN_DEBUG(const char* fmt, ...);
 #endif
 
 #include "S1ap-Criticality.h"
@@ -400,16 +396,14 @@ extern int asn1_xer_print;
 
 #include "s1ap_state.h"
 
-//Forward declaration
+// Forward declaration
 struct s1ap_message_s;
 
 /** \brief Function callback prototype.
  **/
 typedef int (*s1ap_message_handler_t)(
-  s1ap_state_t *state,
-  const sctp_assoc_id_t assoc_id,
-  const sctp_stream_id_t stream,
-  struct s1ap_message_s *message_p);
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, struct s1ap_message_s* message_p);
 
 /** \brief Encode a successfull outcome message
  \param buffer pointer to buffer in which data will be encoded
@@ -421,12 +415,8 @@ typedef int (*s1ap_message_handler_t)(
  @returns size in bytes encded on success or 0 on failure
  **/
 ssize_t s1ap_generate_successfull_outcome(
-  uint8_t **buffer,
-  uint32_t *length,
-  e_S1ap_ProcedureCode procedureCode,
-  S1ap_Criticality_t criticality,
-  asn_TYPE_descriptor_t *td,
-  void *sptr);
+    uint8_t** buffer, uint32_t* length, e_S1ap_ProcedureCode procedureCode,
+    S1ap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 
 /** \brief Encode an initiating message
  \param buffer pointer to buffer in which data will be encoded
@@ -438,12 +428,8 @@ ssize_t s1ap_generate_successfull_outcome(
  @returns size in bytes encded on success or 0 on failure
  **/
 ssize_t s1ap_generate_initiating_message(
-  uint8_t **buffer,
-  uint32_t *length,
-  e_S1ap_ProcedureCode procedureCode,
-  S1ap_Criticality_t criticality,
-  asn_TYPE_descriptor_t *td,
-  void *sptr);
+    uint8_t** buffer, uint32_t* length, e_S1ap_ProcedureCode procedureCode,
+    S1ap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 
 /** \brief Encode an unsuccessfull outcome message
  \param buffer pointer to buffer in which data will be encoded
@@ -455,12 +441,8 @@ ssize_t s1ap_generate_initiating_message(
  @returns size in bytes encded on success or 0 on failure
  **/
 ssize_t s1ap_generate_unsuccessfull_outcome(
-  uint8_t **buffer,
-  uint32_t *length,
-  e_S1ap_ProcedureCode procedureCode,
-  S1ap_Criticality_t criticality,
-  asn_TYPE_descriptor_t *td,
-  void *sptr);
+    uint8_t** buffer, uint32_t* length, e_S1ap_ProcedureCode procedureCode,
+    S1ap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 
 /** \brief Generate a new IE
  \param id Protocol ie id of the IE
@@ -469,11 +451,9 @@ ssize_t s1ap_generate_unsuccessfull_outcome(
  \param sptr Structure to be encoded in the value field
  @returns a pointer to the newly created IE structure or NULL in case of failure
  **/
-S1ap_IE_t *s1ap_new_ie(
-  S1ap_ProtocolIE_ID_t id,
-  S1ap_Criticality_t criticality,
-  asn_TYPE_descriptor_t *type,
-  void *sptr);
+S1ap_IE_t* s1ap_new_ie(
+    S1ap_ProtocolIE_ID_t id, S1ap_Criticality_t criticality,
+    asn_TYPE_descriptor_t* type, void* sptr);
 
 /** \brief Handle criticality
  \param criticality Criticality of the IE
