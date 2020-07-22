@@ -14,13 +14,12 @@ import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
 import AppBar from '@material-ui/core/AppBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
-import GpsFixed from '@material-ui/icons/GpsFixed';
+import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import KPIGrid from '../../components/KPIGrid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -34,6 +33,7 @@ import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
+import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -153,6 +153,12 @@ export default function SubscriberDetail(props: {
           path={relativePath('/overview')}
           render={() => <Overview subscriberInfo={subscriberInfo} />}
         />
+        <Route
+          path={relativePath('/event')}
+          render={() => (
+            <EventsTable sz="lg" eventTypes={magmaEventTypes.SUBSCRIBER} />
+          )}
+        />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
@@ -188,12 +194,11 @@ function Overview(props: {subscriberInfo: subscriber}) {
           />
         </Grid>
         <Grid item xs={12}>
-          <Grid item xs={12}>
-            <CardTitleRow icon={GpsFixed} label="Events" />
-            <Paper className={classes.paper} elevation={0}>
-              <Text variant="body2">Event Table Goes Here</Text>
-            </Paper>
-          </Grid>
+          <EventsTable
+            eventTypes={magmaEventTypes.SUBSCRIBER}
+            eventKey={props.subscriberInfo.id}
+            sz="md"
+          />
         </Grid>
       </Grid>
     </div>

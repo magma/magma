@@ -18,7 +18,6 @@ import EnodebConfig from './EnodebDetailConfig';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
@@ -31,9 +30,9 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
-import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
+import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -110,7 +109,7 @@ export function EnodebDetail(props: Props) {
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={6}>
             <Tabs
-              value={GetCurrentTabPos(match.url, DetailTabItems)}
+              value={GetCurrentTabPos(match.url, ['overview', 'config'])}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -120,13 +119,6 @@ export function EnodebDetail(props: Props) {
                 component={NestedRouteLink}
                 label={<OverviewTabLabel />}
                 to="/overview"
-                className={classes.tab}
-              />
-              <Tab
-                key="Event"
-                component={NestedRouteLink}
-                label={<EventTabLabel />}
-                to="/event"
                 className={classes.tab}
               />
               <Tab
@@ -237,14 +229,7 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
         </Grid>
         <Grid item xs={12}>
           <Grid container spacing={4}>
-            <Grid item xs={6}>
-              <CardTitleRow icon={MyLocationIcon} label="Events" />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Event Information</Text>
-              </Paper>
-            </Grid>
-
-            <Grid item xs={6}>
+            <Grid item xs={12}>
               <CardTitleRow icon={PeopleIcon} label="Subscribers" />
               <Paper className={classes.paper} elevation={0}>
                 <Text variant="body2">Subscribers data</Text>
@@ -272,16 +257,6 @@ function ConfigTabLabel() {
   return (
     <div className={classes.tabLabel}>
       <SettingsIcon className={classes.tabIconLabel} /> Config
-    </div>
-  );
-}
-
-function EventTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <MyLocationIcon className={classes.tabIconLabel} /> Event
     </div>
   );
 }
