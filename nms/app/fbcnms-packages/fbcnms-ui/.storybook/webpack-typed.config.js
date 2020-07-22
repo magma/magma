@@ -12,7 +12,7 @@ require('@fbcnms/babel-register');
 const createCompiler = require('@storybook/addon-docs/mdx-compiler-plugin');
 
 const autoprefixer = require('autoprefixer');
-const paths = require('fbcnms-webpack-config/paths');
+const paths = require('@fbcnms/webpack-config/paths');
 const webpack = require('webpack');
 
 import type {WebpackOptions} from 'webpack';

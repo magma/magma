@@ -14,13 +14,14 @@ import type {TableSortOrders, TableSortSettings} from './TableContext';
 import * as React from 'react';
 import ArrowDownIcon from '../Icons/ArrowDown';
 import ArrowUpIcon from '../Icons/ArrowUp';
+import Draggable from 'react-draggable';
 import TableHeaderCheckbox from './TableHeaderCheckbox';
 import Text from '../Text';
 import classNames from 'classnames';
 import symphony from '../../../theme/symphony';
 import {TABLE_SORT_ORDER, useTable} from './TableContext';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 import {useTableCommonStyles} from './TableCommons';
 
 const useStyles = makeStyles(() => ({
@@ -29,7 +30,6 @@ const useStyles = makeStyles(() => ({
     borderLeft: `2px solid transparent`,
   },
   cellText: {
-    display: 'flex',
     justifyContent: 'flex-start',
     color: symphony.palette.D400,
   },
@@ -41,6 +41,7 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     color: symphony.palette.D400,
+    overflow: 'hidden',
     ...symphony.typography.body2,
   },
   sortIcon: {
@@ -62,6 +63,42 @@ const useStyles = makeStyles(() => ({
   hidden: {
     visibility: 'hidden',
   },
+  dragHandleArea: {
+    willChange: 'transform',
+    position: 'absolute',
+    right: 0,
+    bottom: 8,
+    top: 8,
+    width: '4px',
+    zIndex: 2,
+    cursor: 'ew-resize',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  isOnColumnResize: {},
+  dragHandle: {
+    backgroundColor: 'transparent',
+    width: '2px',
+    height: '100%',
+    zIndex: 2,
+  },
+  dragHandleAreaActive: {
+    '& $dragHandle': {
+      backgroundColor: symphony.palette.primary,
+    },
+  },
+  headerCell: {
+    position: 'relative',
+    boxSizing: 'border-box',
+    '&$isOnColumnResize': {
+      cursor: 'ew-resize',
+    },
+    '&:not($isOnColumnResize)': {
+      '&:hover $dragHandle, $dragHandleAreaActive $dragHandle': {
+        backgroundColor: symphony.palette.primary,
+      },
+    },
+  },
 }));
 
 export type TableColumnType<T> = $ReadOnly<{|
@@ -73,6 +110,8 @@ export type TableColumnType<T> = $ReadOnly<{|
   className?: ?string,
   getSortingValue?: ?(rowData: TableRowDataType<T>) => ?(string | number),
   hidden?: boolean,
+  /* either pixels or ratio (e.g. 0.33) */
+  width?: number,
 |}>;
 
 export type TableHeaderData<T> = $ReadOnly<{|
@@ -94,7 +133,17 @@ const TableHeader = <T>({
 }: Props<T>) => {
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {settings, setSortSettings} = useTable();
+  const {
+    settings: {showSelection, sort, columnWidths, resizableColumns},
+    setSortSettings,
+    changeColumnWidthByDelta,
+    width: tableWidth,
+  } = useTable();
+  const [draggingColumnKey, setDraggingColumnKey] = useState(null);
+
+  const shownColumns = useMemo(() => columns.filter(col => !col.hidden), [
+    columns,
+  ]);
 
   const getSortIcon = useCallback(
     col => {
@@ -105,9 +154,9 @@ const TableHeader = <T>({
       return (
         <div
           className={classNames(classes.sortIcon, {
-            [classes.hidden]: col.key != settings.sort?.columnKey,
+            [classes.hidden]: col.key != sort?.columnKey,
           })}>
-          {settings.sort?.order === TABLE_SORT_ORDER.descending ? (
+          {sort?.order === TABLE_SORT_ORDER.descending ? (
             <ArrowUpIcon />
           ) : (
             <ArrowDownIcon />
@@ -115,14 +164,14 @@ const TableHeader = <T>({
         </div>
       );
     },
-    [classes.hidden, classes.sortIcon, settings.sort],
+    [classes.hidden, classes.sortIcon, sort],
   );
 
   const handleSortChange = useCallback(
     newSortingColumnKey => {
       const newSortingOrder: TableSortOrders =
-        settings.sort?.columnKey === newSortingColumnKey &&
-        settings.sort?.order === TABLE_SORT_ORDER.ascending
+        sort?.columnKey === newSortingColumnKey &&
+        sort?.order === TABLE_SORT_ORDER.ascending
           ? 'descending'
           : TABLE_SORT_ORDER.ascending;
       const newSortSettings = {
@@ -134,43 +183,77 @@ const TableHeader = <T>({
         onSortChanged(newSortSettings);
       }
     },
-    [onSortChanged, setSortSettings, settings.sort],
+    [onSortChanged, setSortSettings, sort],
   );
 
   return (
     <thead className={classes.root} style={{paddingRight: paddingRight || 0}}>
       <tr>
-        {settings.showSelection && (
+        {showSelection && (
           <th className={classes.checkBox}>
             <TableHeaderCheckbox />
           </th>
         )}
-        {columns
-          .filter(col => !col.hidden)
-          .map(col => (
-            <th
-              key={col.key}
-              className={classNames(
-                commonClasses.cell,
-                col.titleClassName,
-                cellClassName,
-                {
-                  [classes.sortableCell]: col.getSortingValue != null,
-                },
-              )}
+        {shownColumns.map((col, index) => (
+          <th
+            key={col.key}
+            className={classNames(
+              commonClasses.cell,
+              classes.headerCell,
+              col.titleClassName,
+              cellClassName,
+              {
+                [classes.sortableCell]: col.getSortingValue != null,
+                [classes.isOnColumnResize]: draggingColumnKey != null,
+              },
+            )}
+            style={{
+              width:
+                tableWidth != null && columnWidths
+                  ? columnWidths[index].width
+                  : undefined,
+            }}>
+            <div
+              className={classes.cellContent}
               onClick={
                 col.getSortingValue != null
                   ? () => handleSortChange(col.key)
                   : undefined
               }>
-              <div className={classes.cellContent}>
-                <Text className={classes.cellText} variant="body2">
-                  {col.title}
-                </Text>
-                {getSortIcon(col)}
-              </div>
-            </th>
-          ))}
+              <Text
+                className={classes.cellText}
+                variant="body2"
+                useEllipsis={true}>
+                {col.title}
+              </Text>
+              {getSortIcon(col)}
+            </div>
+            {resizableColumns && index !== shownColumns.length - 1 && (
+              <Draggable
+                defaultClassName={classNames(classes.dragHandleArea)}
+                defaultClassNameDragging={classes.dragHandleAreaActive}
+                axis="x"
+                position={{x: 0}}
+                onStart={() => setDraggingColumnKey(col.key)}
+                onStop={() => setDraggingColumnKey(null)}
+                onDrag={(event, {deltaX, node}) => {
+                  const rect = node.getBoundingClientRect();
+                  if (
+                    deltaX === 0 ||
+                    (deltaX < 0 && event.clientX > rect.left) ||
+                    (deltaX > 0 && event.clientX < rect.right)
+                  ) {
+                    return;
+                  }
+                  changeColumnWidthByDelta(index, deltaX);
+                }}>
+                <div>
+                  <div className={classes.dragHandle} />
+                </div>
+              </Draggable>
+            )}
+          </th>
+        ))}
       </tr>
     </thead>
   );

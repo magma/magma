@@ -26,8 +26,8 @@ import {useTableCommonStyles} from './TableCommons';
 
 const useStyles = makeStyles(() => ({
   row: {
-    backgroundColor: symphony.palette.white,
     borderLeft: `2px solid transparent`,
+    backgroundColor: symphony.palette.white,
     '&$bands:nth-child(odd)': {
       backgroundColor: symphony.palette.background,
     },
@@ -97,7 +97,7 @@ const TableContent = <T>(props: Props<T>) => {
   } = props;
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {settings} = useTable();
+  const {settings, width: tableWidth} = useTable();
   const {activeId, setActiveId} = useSelection();
 
   const [sortedData, setSortedData] = useState<Array<TableRowDataType<T>>>([]);
@@ -172,7 +172,13 @@ const TableContent = <T>(props: Props<T>) => {
                       commonClasses.cell,
                       col.className,
                       cellClassName,
-                    )}>
+                    )}
+                    style={{
+                      width:
+                        tableWidth != null && settings.columnWidths
+                          ? settings.columnWidths[colIndex].width
+                          : undefined,
+                    }}>
                     <Text
                       color="inherit"
                       className={classes.textualCell}

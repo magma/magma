@@ -1,5 +1,5 @@
 {
-  "name": "fbcnms-webpack-config",
+  "name": "@fbcnms/webpack-config",
   "version": "0.1.0",
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.5.5",
