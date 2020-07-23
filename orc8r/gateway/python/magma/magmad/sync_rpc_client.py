@@ -136,8 +136,8 @@ class SyncRPCClient(threading.Thread):
                 self.forward_request(req)
             except grpc.RpcError as err:
                 logging.error(
-                    "[SyncRPC] Failing to forward request, err: {}".format(
-                        err.details()))
+                    "[SyncRPC] Failing to forward request, err: %s"
+                    % err.details())
                 raise err
 
     def forward_request(self, request: SyncRPCRequest) -> None:
