@@ -256,6 +256,11 @@ commands:
       - run:
           name: Send message to Slack
           command: |
+            if [ "$SLACK_BUILD_STATUS" != "fail" ] || [ "$CIRCLE_BRANCH" != "master" ]; then
+              echo "This command will only execute on failure on master."
+              exit 0
+            fi
+
             author=$(git show -s --format='%an')
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
@@ -286,12 +291,7 @@ commands:
             EOF
             )
             echo $slack_data
-
-            if [ "$SLACK_BUILD_STATUS" = "fail" ] && [ "$CIRCLE_BRANCH" = "master" ]; then
-              curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
-            else
-              echo "This command will only execute on failure on master."
-            fi
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
           when: always
 
   persist-githash-version:
@@ -727,7 +727,7 @@ jobs:
 
   fossa-analyze:
     docker:
-      - image: ubuntu:xenial
+      - image: circleci/buildpack-deps:xenial
     working_directory: /tmp/magma
     environment:
       - MAGMA_ROOT=/tmp/magma
