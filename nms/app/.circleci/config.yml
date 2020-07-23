@@ -79,3 +79,33 @@ workflows:
           package_dir: fbcnms-platform-server
           package_name: fbcnms/platform-server
           <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-auth
+          package_dir: fbcnms-auth
+          package_name: fbcnms/auth
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-express-middleware
+          package_dir: fbcnms-express-middleware
+          package_name: fbcnms/express-middleware
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-sequelize-models
+          package_dir: fbcnms-sequelize-models
+          package_name: fbcnms/sequelize-models
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-logging
+          package_dir: fbcnms-logging
+          package_name: fbcnms/logging
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-types
+          package_dir: fbcnms-types
+          package_name: fbcnms/types
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-projects
+          package_dir: fbcnms-projects
+          package_name: fbcnms/projects
+          <<: *onlymaster
