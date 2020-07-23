@@ -339,6 +339,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
+              "channel": "#ci-publish",
               "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
               "attachments": [
                 {
