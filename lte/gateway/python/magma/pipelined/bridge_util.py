@@ -102,6 +102,13 @@ class BridgeTools:
         subprocess.Popen(["ifconfig", iface_name, "192.168.1.1/24"]).wait()
 
     @staticmethod
+    def flush_conntrack():
+        """
+        Cleanup the conntrack state
+        """
+        subprocess.Popen(["ovs-dpctl", "flush-conntrack"]).wait()
+
+    @staticmethod
     def destroy_bridge(bridge_name):
         """
         Removes the bridge.
