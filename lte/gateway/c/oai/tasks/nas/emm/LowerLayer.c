@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -438,10 +437,10 @@ void emm_as_set_security_data(
         AUTH_KNAS_ENC_SIZE);
     data->is_new = is_new;
     data->ksi    = context->eksi;
-    data->sqn =
-        context->dl_count.seq_num;  // TODO AT check whether we need to
-                                    // increment this by one or it is already
-                                    // incremented after sending last NAS mssage.
+    data->sqn    = context->dl_count
+                    .seq_num;  // TODO AT check whether we need to
+                               // increment this by one or it is already
+                               // incremented after sending last NAS mssage.
     data->count = 0x00000000 |
                   ((context->dl_count.overflow & 0x0000FFFF) << 8) |
                   (context->dl_count.seq_num & 0x000000FF);

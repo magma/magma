@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -1094,9 +1093,9 @@ static int _nas_message_decrypt(
             stream_cipher.key        = emm_security_context->knas_enc;
             stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
             stream_cipher.count      = count;
-            stream_cipher.bearer = 0x00;  // 33.401 section 8.1.1
-            stream_cipher.direction = direction;
-            stream_cipher.message   = (uint8_t*) src;
+            stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+            stream_cipher.direction  = direction;
+            stream_cipher.message    = (uint8_t*) src;
             /*
              * length in bits
              */
@@ -1140,9 +1139,9 @@ static int _nas_message_decrypt(
             stream_cipher.key        = emm_security_context->knas_enc;
             stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
             stream_cipher.count      = count;
-            stream_cipher.bearer = 0x00;  // 33.401 section 8.1.1
-            stream_cipher.direction = direction;
-            stream_cipher.message   = (uint8_t*) src;
+            stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+            stream_cipher.direction  = direction;
+            stream_cipher.message    = (uint8_t*) src;
             /*
              * length in bits
              */
@@ -1283,9 +1282,9 @@ static int _nas_message_encrypt(
           stream_cipher.key        = emm_security_context->knas_enc;
           stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
           stream_cipher.count      = count;
-          stream_cipher.bearer = 0x00;  // 33.401 section 8.1.1
-          stream_cipher.direction = direction;
-          stream_cipher.message   = (uint8_t*) src;
+          stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+          stream_cipher.direction  = direction;
+          stream_cipher.message    = (uint8_t*) src;
           /*
            * length in bits
            */
@@ -1318,9 +1317,9 @@ static int _nas_message_encrypt(
           stream_cipher.key        = emm_security_context->knas_enc;
           stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
           stream_cipher.count      = count;
-          stream_cipher.bearer = 0x00;  // 33.401 section 8.1.1
-          stream_cipher.direction = direction;
-          stream_cipher.message   = (uint8_t*) src;
+          stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+          stream_cipher.direction  = direction;
+          stream_cipher.message    = (uint8_t*) src;
           /*
            * length in bits
            */
@@ -1424,9 +1423,9 @@ static uint32_t _nas_message_get_mac(
       stream_cipher.key        = emm_security_context->knas_int;
       stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
       stream_cipher.count      = count;
-      stream_cipher.bearer = 0x00;  // 33.401 section 8.1.1
-      stream_cipher.direction = direction;
-      stream_cipher.message   = (uint8_t*) buffer;
+      stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+      stream_cipher.direction  = direction;
+      stream_cipher.message    = (uint8_t*) buffer;
       /*
        * length in bits
        */
@@ -1470,9 +1469,9 @@ static uint32_t _nas_message_get_mac(
       stream_cipher.key        = emm_security_context->knas_int;
       stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
       stream_cipher.count      = count;
-      stream_cipher.bearer = 0x00;  // 33.401 section 8.1.1
-      stream_cipher.direction = direction;
-      stream_cipher.message   = (uint8_t*) buffer;
+      stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+      stream_cipher.direction  = direction;
+      stream_cipher.message    = (uint8_t*) buffer;
       /*
        * length in bits
        */

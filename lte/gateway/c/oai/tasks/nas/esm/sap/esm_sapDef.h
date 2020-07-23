@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -141,8 +140,7 @@ typedef struct esm_eps_bearer_context_deactivate_s {
  */
 typedef struct esm_eps_dedicated_bearer_context_activate_s {
   pdn_cid_t cid; /* PDN connection local identifier      */
-  ebi_t
-      ebi; /* EPS bearer identity of the EPS bearer context to be activated */
+  ebi_t ebi; /* EPS bearer identity of the EPS bearer context to be activated */
   ebi_t linked_ebi;
   qci_t qci;
   bitrate_t gbr_ul;

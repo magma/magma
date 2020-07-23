@@ -179,8 +179,8 @@ been completed the network shall proceed with the attach procedure after deletio
 // the GMM parameters GMM state, GPRS update status, P-TMSI, P-TMSI signature,
 // RAI and GPRS ciphering key sequence number and the MM parameters update
 // status, TMSI, LAI and ciphering key sequence number as specified in 3GPP
-// TS 24.008 [13] for the case when the authentication and ciphering procedure is
-// not accepted by the network.
+// TS 24.008 [13] for the case when the authentication and ciphering procedure
+// is not accepted by the network.
 //
 // If the AUTHENTICATION REJECT message is received by the UE, the UE shall
 // abort any EMM signalling procedure, stop any of the timers T3410, T3417 or
@@ -188,15 +188,16 @@ been completed the network shall proceed with the attach procedure after deletio
 //
 // Depending on local requirements or operator preference for emergency bearer
 // services, if the UE has a PDN connection for emergency bearer services
-// established or is establishing a PDN connection for emergency bearer services,
-// the MME need not follow the procedures specified for the authentication
-// failure in the present subclause. The MME may continue a current EMM specific
-// procedure or PDN connectivity request procedure. Upon completion of the
-// authentication procedure, if not initiated as part of another procedure, or
-// upon completion of the EMM procedure or PDN connectivity request procedure,
-// the MME shall deactivate all non-emergency EPS bearers, if any, by initiating
-// an EPS bearer context deactivation procedure. The network shall consider the
-// UE to be attached for emergency bearer services only.
+// established or is establishing a PDN connection for emergency bearer
+// services, the MME need not follow the procedures specified for the
+// authentication failure in the present subclause. The MME may continue a
+// current EMM specific procedure or PDN connectivity request procedure. Upon
+// completion of the authentication procedure, if not initiated as part of
+// another procedure, or upon completion of the EMM procedure or PDN
+// connectivity request procedure, the MME shall deactivate all non-emergency
+// EPS bearers, if any, by initiating an EPS bearer context deactivation
+// procedure. The network shall consider the UE to be attached for emergency
+// bearer services only.
 
 //------------------------------
 #define R10_5_4_2_7_a                                                          \
@@ -253,9 +254,9 @@ then process the challenge             \ information as normal."*/
 // If the network is validated successfully (an AUTHENTICATION REQUEST that
 // contains a valid SQN and MAC is received), the UE shall send the
 // AUTHENTICATION RESPONSE message to the network and shall start any
-// retransmission timers (e.g. T3410, T3417, T3421 or T3430) if they were running
-// and stopped when the UE received the first failed AUTHENTICATION REQUEST
-// message.
+// retransmission timers (e.g. T3410, T3417, T3421 or T3430) if they were
+// running and stopped when the UE received the first failed AUTHENTICATION
+// REQUEST message.
 
 // If the UE receives the second AUTHENTICATION REQUEST while T3418 is running,
 // and the MAC value cannot be resolved, the UE shall follow the procedure
@@ -265,18 +266,19 @@ then process the challenge             \ information as normal."*/
 // specified in item e.
 
 // It can be assumed that the source of the authentication challenge is not
-// genuine (authentication not accepted by the UE) if any of the following occur:
+// genuine (authentication not accepted by the UE) if any of the following
+// occur:
 //- after sending the AUTHENTICATION FAILURE message with the EMM cause #20 "MAC
-//failure" the timer T3418 expires;
+// failure" the timer T3418 expires;
 //- the UE detects any combination of the authentication failures: EMM causes
 //#20 "MAC failure" and #21 "synch failure", during three consecutive
-//authentication challenges. The authentication challenges shall be considered
+// authentication challenges. The authentication challenges shall be considered
 // as consecutive only, if the authentication challenges causing the second and
 // third authentication failure are received by the UE, while the timer T3418 or
 // T3420 started after the previous authentication failure is running. When it
 // has been deemed by the UE that the source of the authentication challenge is
-// not genuine (i.e. authentication not accepted by the UE), the UE shall proceed
-// as described in item f.
+// not genuine (i.e. authentication not accepted by the UE), the UE shall
+// proceed as described in item f.
 
 #define R10_5_4_2_7_d__1                                                       \
   "Abnormal cases                                                                                \
@@ -354,9 +356,9 @@ subclause 5.4.2.5)."*/
 // If the UE receives the second AUTHENTICATION REQUEST while T3420 is running,
 // and the MAC value cannot be resolved, the UE shall follow the procedure
 // specified in item c or if the message contains a UMTS authentication
-// challenge, the UE shall proceed as specified in item d; if the SQN is invalid,
-// the UE shall follow the procedure specified in this subclause, item e,
-// starting again from the beginning.
+// challenge, the UE shall proceed as specified in item d; if the SQN is
+// invalid, the UE shall follow the procedure specified in this subclause, item
+// e, starting again from the beginning.
 //
 // The UE shall deem that the network has failed the authentication check and
 // proceed as described in item f if any of the following occurs:
@@ -394,9 +396,9 @@ subclause 5.4.2.5)."*/
 
 // i) Transmission failure of AUTHENTICATION RESPONSE message or AUTHENTICATION
 // FAILURE message indication without TAI change from lower layers (if the
-// authentication procedure is triggered by a service request procedure) It is up
-// to the UE implementation how to re-run the ongoing procedure that triggered
-// the authentication procedure.
+// authentication procedure is triggered by a service request procedure) It is
+// up to the UE implementation how to re-run the ongoing procedure that
+// triggered the authentication procedure.
 
 #define R10_5_4_2_7_j                                                          \
   "Abnormal cases                                                                            \
@@ -412,35 +414,35 @@ subclause 5.4.2.5)."*/
 // For items c, d, and e:
 // Depending on local requirements or operator preference for emergency bearer
 // services, if the UE has a PDN connection for emergency bearer services
-// established or is establishing a PDN connection for emergency bearer services,
-// the MME need not follow the procedures specified for the authentication
-// failure specified in the present subclause. The MME may respond to the
-// AUTHENTICATION FAILURE message by initiating the security mode control
-// procedure selecting the "null integrity protection algorithm" EIA0, null
-// ciphering algorithm or may abort the authentication procedure and continue
-// using the current security context, if any. The MME shall deactivate all
-// non-emergency EPS bearer contexts, if any, by initiating an EPS bearer context
-// deactivation procedure. If there is an ongoing PDN connectivity procedure, the
-// MME shall deactivate all non-emergency EPS bearer contexts upon completion of
-// the PDN connectivity procedure. The network shall consider the UE to be
-// attached for emergency bearer services only.
-// If a UE has a PDN connection for emergency bearer services established or is
-// establishing a PDN connection for emergency bearer services and sends an
-// AUTHENTICATION FAILURE message to the MME with the EMM cause appropriate for
-// these cases (#20, #21, or #26, respectively) and receives the SECURITY MODE
-// COMMAND message before the timeout of timer T3418 or T3420, the UE shall deem
-// that the network has passed the authentication check successfully, stop timer
-// T3418 or T3420, respectively, and execute the security mode control procedure.
-// If a UE has a PDN connection for emergency bearer services established or is
-// establishing a PDN connection for emergency bearer services when timer T3418
-// or T3420 expires, the UE shall not deem that the network has failed the
-// authentication check and not behave as described in item f. Instead the UE
-// shall continue using the current security context, if any, deactivate all
-// non-emergency EPS bearer contexts, if any, by initiating UE requested PDN
-// disconnect procedure. If there is an ongoing PDN connectivity procedure, the
-// UE shall deactivate all non-emergency EPS bearer contexts upon completion of
-// the PDN connectivity procedure. The UE shall consider itself to be attached
-// for emergency bearer services only.
+// established or is establishing a PDN connection for emergency bearer
+// services, the MME need not follow the procedures specified for the
+// authentication failure specified in the present subclause. The MME may
+// respond to the AUTHENTICATION FAILURE message by initiating the security mode
+// control procedure selecting the "null integrity protection algorithm" EIA0,
+// null ciphering algorithm or may abort the authentication procedure and
+// continue using the current security context, if any. The MME shall deactivate
+// all non-emergency EPS bearer contexts, if any, by initiating an EPS bearer
+// context deactivation procedure. If there is an ongoing PDN connectivity
+// procedure, the MME shall deactivate all non-emergency EPS bearer contexts
+// upon completion of the PDN connectivity procedure. The network shall consider
+// the UE to be attached for emergency bearer services only. If a UE has a PDN
+// connection for emergency bearer services established or is establishing a PDN
+// connection for emergency bearer services and sends an AUTHENTICATION FAILURE
+// message to the MME with the EMM cause appropriate for these cases (#20, #21,
+// or #26, respectively) and receives the SECURITY MODE COMMAND message before
+// the timeout of timer T3418 or T3420, the UE shall deem that the network has
+// passed the authentication check successfully, stop timer T3418 or T3420,
+// respectively, and execute the security mode control procedure. If a UE has a
+// PDN connection for emergency bearer services established or is establishing a
+// PDN connection for emergency bearer services when timer T3418 or T3420
+// expires, the UE shall not deem that the network has failed the authentication
+// check and not behave as described in item f. Instead the UE shall continue
+// using the current security context, if any, deactivate all non-emergency EPS
+// bearer contexts, if any, by initiating UE requested PDN disconnect procedure.
+// If there is an ongoing PDN connectivity procedure, the UE shall deactivate
+// all non-emergency EPS bearer contexts upon completion of the PDN connectivity
+// procedure. The UE shall consider itself to be attached for emergency bearer
+// services only.
 
 //-----------------------------------------------------------------------------------------------------------------------
 // SECURITY MODE CONTROL
@@ -484,12 +486,12 @@ subclause 5.4.2.5)."*/
 // "000" and EIA0 and EEA0 as the selected NAS security algorithms when the
 // security mode control procedure is initiated:
 //- during an attach procedure for emergency bearer services if no shared EPS
-//security context is available;
+// security context is available;
 //- during a tracking area updating procedure for a UE that has a PDN connection
-//for emergency bearer services if no shared EPS security context is available;
+// for emergency bearer services if no shared EPS security context is available;
 // or
 //- after a failed authentication procedure for a UE that has a PDN connection
-//for emergency bearer services if continued usage of a shared security context
+// for emergency bearer services if continued usage of a shared security context
 // is not possible.
 
 // The UE shall process a SECURITY MODE COMMAND message including a KSI value in
@@ -498,24 +500,24 @@ subclause 5.4.2.5)."*/
 // when the security mode control procedure is initiated:
 //- during an attach procedure for emergency bearer services;
 //- during a tracking area updating procedure when the UE has a PDN connection
-//for emergency bearer services; or
+// for emergency bearer services; or
 //- after an authentication procedure when the UE has a PDN connection for
-//emergency bearer services. NOTE 1: The process for creation of the locally
+// emergency bearer services. NOTE 1: The process for creation of the locally
 // generated K ASME by the MME and the UE is implementation dependent.
 
 // Upon receipt of a TRACKING AREA UPDATE REQUEST message including a GPRS
 // ciphering key sequence number IE, if the MME does not have the valid current
 // EPS security context indicated by the UE, the MME shall either:
 //- indicate the use of the new mapped EPS security context to the UE by setting
-//the type of security context flag in the NAS key set identifier IE to "mapped
+// the type of security context flag in the NAS key set identifier IE to "mapped
 // security context" and the KSI value related to the security context of the
 // source system; or
 //- set the KSI value "000" in the NAS key set identifier IE if the MME sets
-//EIA0 and EEA0 as the selected NAS security algorithms if the UE has a PDN
+// EIA0 and EEA0 as the selected NAS security algorithms if the UE has a PDN
 // connection for emergency bearer services. While having a current mapped EPS
-// security context with the UE, if the MME wants to take the native EPS security
-// context into use, the MME shall include the eKSI that indicates the native
-// EPS security context in the SECURITY MODE COMMAND message.
+// security context with the UE, if the MME wants to take the native EPS
+// security context into use, the MME shall include the eKSI that indicates the
+// native EPS security context in the SECURITY MODE COMMAND message.
 
 #define R10_5_4_3_2__14                                                        \
   "NAS security mode control initiation by the network                                            \
@@ -532,10 +534,10 @@ subclause 5.4.2.5)."*/
 // mode or Iu mode to S1 mode in EMM-IDLE mode.
 
 // The MME may initiate a SECURITY MODE COMMAND in order to change the NAS
-// security algorithms for a current EPS security context already in use. The MME
-// re-derives the NAS keys from K ASME with the new NAS algorithm identities as
-// input and provides the new NAS algorithm identities within the SECURITY MODE
-// COMMAND message.
+// security algorithms for a current EPS security context already in use. The
+// MME re-derives the NAS keys from K ASME with the new NAS algorithm identities
+// as input and provides the new NAS algorithm identities within the SECURITY
+// MODE COMMAND message.
 
 // Additionally, the MME may request the UE to include its IMEISV in the
 // SECURITY MODE COMPLETE message. NOTE 2: The AS and NAS security capabilities
@@ -562,7 +564,7 @@ subclause 5.4.2.5)."*/
 // If the security mode command cannot be accepted, the UE shall send a SECURITY
 // MODE REJECT message. The SECURITY MODE REJECT message contains an EMM cause
 // that typically indicates one of the following cause values: #23: UE security
-//capabilities mismatch; #24: security mode rejected, unspecified.
+// capabilities mismatch; #24: security mode rejected, unspecified.
 
 #define R10_5_4_3_5__2                                                         \
   "NAS security mode command not accepted by the UE                                                \
@@ -850,9 +852,9 @@ subclause 5.4.2.5)."*/
 #define R10_5_5_1_2_4__10_BRIEF ""
 
 // If the ATTACH ACCEPT message contains a GUTI, the UE shall use this GUTI as
-// the new temporary identity. The UE shall delete its old GUTI and store the new
-// assigned GUTI. If no GUTI has been included by the MME in the ATTACH ACCEPT
-// message, the old GUTI, if any available, shall be kept.
+// the new temporary identity. The UE shall delete its old GUTI and store the
+// new assigned GUTI. If no GUTI has been included by the MME in the ATTACH
+// ACCEPT message, the old GUTI, if any available, shall be kept.
 
 // If A/Gb mode or Iu mode is supported in the UE, the UE shall set its TIN to
 // "GUTI" when receiving the ATTACH ACCEPT message.
@@ -892,10 +894,10 @@ subclause 5.4.2.5)."*/
 // When the UE receives the ATTACH ACCEPT message combined with the ACTIVATE
 // DEFAULT EPS BEARER CONTEXT REQUEST message, it shall forward the ACTIVATE
 // DEFAULT EPS BEARER CONTEXT REQUEST message to the ESM sublayer. Upon receipt
-// of an indication from the ESM sublayer that the default EPS bearer context has
-// been activated, the UE shall send an ATTACH COMPLETE message together with an
-// ACTIVATE DEFAULT EPS BEARER CONTEXT ACCEPT message contained in the ESM
-// message container information element to the network.
+// of an indication from the ESM sublayer that the default EPS bearer context
+// has been activated, the UE shall send an ATTACH COMPLETE message together
+// with an ACTIVATE DEFAULT EPS BEARER CONTEXT ACCEPT message contained in the
+// ESM message container information element to the network.
 
 // Additionally, the UE shall reset the attach attempt counter and tracking area
 // updating attempt counter, enter state EMM- REGISTERED and set the EPS update
@@ -1144,7 +1146,7 @@ subclause 5.4.2.5)."*/
 #define R10_5_5_3_2_4__4_BRIEF ""
 
 //#define R10_5_5_3_2_4__5 "Normal and periodic tracking area updating procedure
-//accepted by the network
+// accepted by the network
 //    If an EPS bearer context status IE is included in the TRACKING AREA UPDATE
 //    REQUEST message, the MME shall deactivate all those EPS bearer contexts
 //    locally (without peer-to-peer signalling between the MME and the UE) which
@@ -1157,14 +1159,14 @@ subclause 5.4.2.5)."*/
 //    context without peer-to-peer ESM signalling to the UE."
 
 //#define R10_5_5_3_2_4__6 "Normal and periodic tracking area updating procedure
-//accepted by the network
+// accepted by the network
 //    If the EPS bearer context status IE is included in the TRACKING AREA
 //    UPDATE REQUEST, the MME shall include an EPS bearer context status IE in
 //    the TRACKING AREA UPDATE ACCEPT message, indicating which EPS bearer
 //    contexts are active in the MME."
 
 //#define R10_5_5_3_2_4__7 "Normal and periodic tracking area updating procedure
-//accepted by the network
+// accepted by the network
 //    If the EPS update type IE included in the TRACKING AREA UPDATE REQUEST
 //    message indicates \"periodic updating\", and the UE was previously
 //    successfully attached for EPS and non-EPS services, subject to operator
@@ -1172,7 +1174,7 @@ subclause 5.4.2.5)."*/
 //    one location area."
 
 //#define R10_5_5_3_2_4__8 "Normal and periodic tracking area updating procedure
-//accepted by the network
+// accepted by the network
 //    If the TRACKING AREA UPDATE ACCEPT message contains T3412 extended value
 //    IE, then the UE shall use the T3412 extended value IE as periodic tracking
 //    area update timer (T3412). If the TRACKING AREA UPDATE ACCEPT contains
@@ -1183,7 +1185,7 @@ subclause 5.4.2.5)."*/
 //    TRACKING AREA UPDATE ACCEPT message."
 
 //#define R10_5_5_3_2_4__9 "Normal and periodic tracking area updating procedure
-//accepted by the network
+// accepted by the network
 //    Also during the tracking area updating procedure without "active" flag, if
 //    the MME has deactivated EPS bearer context(s) locally for any reason, the
 //    MME shall inform the UE of the deactivated EPS bearer context(s) by
@@ -1191,7 +1193,7 @@ subclause 5.4.2.5)."*/
 //    ACCEPT message."
 
 //#define R10_5_5_3_2_4__10 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If due to regional subscription restrictions or access restrictions the UE
 //    is not allowed to access the TA, but it has a PDN connection for emergency
 //    bearer services established, the MME may accept the TRACKING AREA UPDATE
@@ -1206,7 +1208,7 @@ subclause 5.4.2.5)."*/
 //    IE in the TRACKING AREA UPDATE ACCEPT message that ISR is not activated."
 
 //#define R10_5_5_3_2_4__11 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If a TRACKING AREA UPDATE REQUEST message is received from a UE with a
 //    LIPA PDN connection, and if:
 //    - a GW Transport Layer Address IE value identifying a L-GW is provided by
@@ -1223,26 +1225,26 @@ subclause 5.4.2.5)."*/
 //    bearer contexts were locally deactivated."
 
 //#define R10_5_5_3_2_4__12 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    For a shared network, the TAIs included in the TAI list can contain
 //    different PLMN identities. The MME indicates the selected core network
 //    operator PLMN identity to the UE in the GUTI (see 3GPP TS 23.251 [8B])."
 
 //#define R10_5_5_3_2_4__13 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If the "active" flag is included in the TRACKING AREA UPDATE REQUEST
 //    message, the MME shall re-establish the radio and S1 bearers for all
 //    active EPS bearer contexts."
 
 //#define R10_5_5_3_2_4__14 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If the "active" flag is not included in the TRACKING AREA UPDATE REQUEST
 //    message, the MME may also re- establish the radio and S1 bearers for all
 //    active EPS bearer contexts due to downlink pending data or downlink
 //    pending signalling."
 
 //#define R10_5_5_3_2_4__15 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    Upon receiving a TRACKING AREA UPDATE ACCEPT message, the UE shall stop
 //    timer T3430, reset the tracking area updating attempt counter, enter state
 //    EMM-REGISTERED and set the EPS update status to EU1 UPDATED. If the
@@ -1255,7 +1257,7 @@ subclause 5.4.2.5)."*/
 //    list as valid."
 
 //#define R10_5_5_3_2_4__16 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If the UE had initiated the tracking area updating procedure in EMM-IDLE
 //    mode to perform an inter-system change from A/Gb mode or Iu mode to S1
 //    mode and the nonce UE was included in the TRACKING AREA UPDATE REQUEST
@@ -1263,7 +1265,7 @@ subclause 5.4.2.5)."*/
 //    AREA UPDATE ACCEPT message."
 
 //#define R10_5_5_3_2_4__17 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If an EPS bearer context status IE is included in the TRACKING AREA UPDATE
 //    ACCEPT message, the UE shall deactivate all those EPS bearers contexts
 //    locally (without peer-to-peer signalling between the UE and the MME) which
@@ -1278,7 +1280,7 @@ subclause 5.4.2.5)."*/
 //    emergency bearer services only."
 
 //#define R10_5_5_3_2_4__18 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    The MME may also include of list of equivalent PLMNs in the TRACKING AREA
 //    UPDATE ACCEPT message. Each entry in the list contains a PLMN code
 //    (MCC+MNC). The UE shall store the list as provided by the network, and if
@@ -1295,7 +1297,7 @@ subclause 5.4.2.5)."*/
 //    list."
 
 //#define R10_5_5_3_2_4__19 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    The network may also indicate in the EPS update result IE in the TRACKING
 //    AREA UPDATE ACCEPT message that ISR is active. If the UE is attached for
 //    emergency bearer services, the network shall indicate in the EPS update
@@ -1318,7 +1320,7 @@ subclause 5.4.2.5)."*/
 //        the TIN to "GUTI"."
 
 //#define R10_5_5_3_2_4__20 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    The network informs the UE about the support of specific features, such as
 //    IMS voice over PS session, location services (EPC-LCS, CS-LCS) or
 //    emergency bearer services, in the EPS network feature support information
@@ -1342,7 +1344,7 @@ subclause 5.4.2.5)."*/
 //    into account as specified in 3GPP TS 24.171 [13C]."
 
 //#define R10_5_5_3_2_4__21 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If the UE has initiated the tracking area updating procedure due to manual
 //    CSG selection and receives a TRACKING AREA UPDATE ACCEPT message, and the
 //    UE sent the TRACKING AREA UPDATE REQUEST message in a CSG cell, the UE
@@ -1354,13 +1356,13 @@ subclause 5.4.2.5)."*/
 //    present in neither the Operator CSG list nor the Allowed CSG list."
 
 //#define R10_5_5_3_2_4__22 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    If the TRACKING AREA UPDATE ACCEPT message contained a GUTI, the UE shall
 //    return a TRACKING AREA UPDATE COMPLETE message to the MME to acknowledge
 //    the received GUTI."
 
 //#define R10_5_5_3_2_4__23 "Normal and periodic tracking area updating
-//procedure accepted by the network
+// procedure accepted by the network
 //    Upon receiving a TRACKING AREA UPDATE COMPLETE message, the MME shall stop
 //    timer T3450, and shall consider the GUTI sent in the TRACKING AREA UPDATE
 //    ACCEPT message as valid."
@@ -1370,26 +1372,26 @@ subclause 5.4.2.5)."*/
 //------------------------------
 
 //#define R10_5_5_3_2_5__1 "Normal and periodic tracking area updating procedure
-//not accepted by the network
+// not accepted by the network
 //    If the tracking area updating cannot be accepted by the network, the MME
 //    sends a TRACKING AREA UPDATE REJECT message to the UE including an
 //    appropriate EMM cause value."
 
 //#define R10_5_5_3_2_5__2 "Normal and periodic tracking area updating procedure
-//not accepted by the network
+// not accepted by the network
 //    If the MME locally deactivates EPS bearer contexts for the UE (see
 //    subclause 5.5.3.2.4) and no active EPS bearer contexts remain for the UE,
 //    the MME shall send the TRACKING AREA UPDATE REJECT message including the
 //    EMM cause value #10 "Implicitly detached"."
 
 //#define R10_5_5_3_2_5__3 "Normal and periodic tracking area updating procedure
-//not accepted by the network
+// not accepted by the network
 //    If the tracking area update request is rejected due to general NAS level
 //    mobility management congestion control, the network shall set the EMM
 //    cause value to #22 "congestion" and assign a back-off timer T3346."
 
 //#define R10_5_5_3_2_5__4 "Normal and periodic tracking area updating procedure
-//not accepted by the network
+// not accepted by the network
 //    Upon receiving the TRACKING AREA UPDATE REJECT message, the UE shall stop
 //    timer T3430, stop any transmission of user data, and take the following
 //    actions depending on the EMM cause value received. #3 (Illegal UE); or #6

@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -741,7 +740,8 @@ int emm_proc_authentication_failure(
           }
         } else {
           REQUIREMENT_3GPP_24_301(R10_5_4_2_5__2);
-          auth_proc->emm_cause = EMM_CAUSE_MAC_FAILURE;  // EMM_CAUSE_ILLEGAL_UE;
+          auth_proc->emm_cause =
+              EMM_CAUSE_MAC_FAILURE;  // EMM_CAUSE_ILLEGAL_UE;
           // Do not accept the UE to attach to the network
           emm_sap_t emm_sap                      = {0};
           emm_sap.primitive                      = EMMREG_COMMON_PROC_REJ;

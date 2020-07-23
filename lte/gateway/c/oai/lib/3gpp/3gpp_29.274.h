@@ -290,9 +290,9 @@ typedef struct bearer_context_within_create_bearer_response_s {
                           ///< in the Create Bearer Request. See NOTE1.
   fteid_t s4_u_sgsn_fteid;  ///< C This IE shall be sent on the S4 interface if
                             ///< the S4-U interface is used. See NOTE1.
-  fteid_t s4_u_sgw_fteid;  ///< C This IE shall be sent on the S4 interface. It
-                           ///< shall be used to correlate the bearers with
-                           ///< those in the Create Bearer Request. See NOTE1.
+  fteid_t s4_u_sgw_fteid;   ///< C This IE shall be sent on the S4 interface. It
+                            ///< shall be used to correlate the bearers with
+                            ///< those in the Create Bearer Request. See NOTE1.
   fteid_t s2b_u_epdg_fteid;  ///<  C This IE shall be sent on the S2b interface.
   fteid_t s2b_u_pgw_fteid;   ///<  C This IE shall be sent on the S2b interface.
                              ///<  It shall be used

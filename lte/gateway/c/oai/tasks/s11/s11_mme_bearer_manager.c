@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -542,9 +541,8 @@ int s11_mme_handle_downlink_data_notification(
   message_p = itti_alloc_new_message(TASK_S10, S11_DOWNLINK_DATA_NOTIFICATION);
   notif_p   = &message_p->ittiMsg.s11_downlink_data_notification;
   memset(notif_p, 0, sizeof(*notif_p));
-  notif_p->teid =
-      nwGtpv2cMsgGetTeid(
-          pUlpApi->hMsg); /**< When the message is sent, this is the field,
+  notif_p->teid = nwGtpv2cMsgGetTeid(
+      pUlpApi->hMsg); /**< When the message is sent, this is the field,
 where the MME_APP sets the destination TEID. In this case, at reception and
 decoding, it is the local TEID, used to find the MME_APP ue_context. */
   notif_p->trxn = (void*) pUlpApi->u_api_info.initialReqIndInfo.hTrxn;

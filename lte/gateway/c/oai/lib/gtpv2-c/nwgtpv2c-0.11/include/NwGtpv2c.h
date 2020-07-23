@@ -114,8 +114,8 @@
  *--------------------------------------------------------------------------*/
 
 typedef NwPtrT nw_gtpv2c_stack_handle_t; /**< Gtpv2c Stack Handle */
-typedef NwPtrT nw_gtpv2c_ulp_handle_t;   /**< Gtpv2c Stack Ulp Entity Handle   */
-typedef NwPtrT nw_gtpv2c_udp_handle_t;   /**< Gtpv2c Stack Udp Entity Handle   */
+typedef NwPtrT nw_gtpv2c_ulp_handle_t; /**< Gtpv2c Stack Ulp Entity Handle   */
+typedef NwPtrT nw_gtpv2c_udp_handle_t; /**< Gtpv2c Stack Udp Entity Handle   */
 typedef NwPtrT
     nw_gtpv2c_timer_mgr_handle_t; /**< Gtpv2c Stack Timer Manager Handle  */
 typedef NwPtrT
@@ -256,9 +256,10 @@ typedef struct nw_gtpv2c_triggered_rsp_info_s {
   NW_IN uint32_t teidLocal;            /**< Required only if
                                           NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL is set
                                           to flags. */
-  NW_IN nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel; /**< Required only if
-                                                     NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL
-                                                     is set to flags. */
+  NW_IN nw_gtpv2c_ulp_tunnel_handle_t
+      hUlpTunnel; /**< Required only if
+                     NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL
+                     is set to flags. */
   NW_IN bool
       pt_trx; /**< Make the transaction passthrough, such that the message is
                  forwarded, if no msg is appended to the trx. */
@@ -279,9 +280,10 @@ typedef struct nw_gtpv2c_triggered_ack_info_s {
   NW_IN uint32_t teidLocal;            /**< Required only if
                                           NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL is set
                                           to flags. */
-  NW_IN nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel; /**< Required only if
-                                                     NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL
-                                                     is set to flags. */
+  NW_IN nw_gtpv2c_ulp_tunnel_handle_t
+      hUlpTunnel; /**< Required only if
+                     NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL
+                     is set to flags. */
 
   NW_OUT nw_gtpv2c_tunnel_handle_t
       hTunnel; /**< Returned only in case flags is set to

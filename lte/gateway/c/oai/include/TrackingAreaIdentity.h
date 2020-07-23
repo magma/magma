@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,13 +31,12 @@
   (uint16_t) 0xFFFE /*!< \brief  The following are reserved hexadecimal values \
                        of the TAC: 0000, and FFFE.   */
 
-typedef uint16_t
-    tac_t; /*!< \brief  Tracking Area Code (TAC) is a fixed length code (of 2
-              octets) identifying a Tracking Area within a PLMN. This part of
-              the tracking area identification shall be coded using a full
-              hexadecimal representation. The following are
-                                                                          reserved
-              hexadecimal values of the TAC: 0000, and FFFE.   */
+typedef uint16_t tac_t; /*!< \brief  Tracking Area Code (TAC) is a fixed length
+                           code (of 2 octets) identifying a Tracking Area within
+                           a PLMN. This part of the tracking area identification
+                           shall be coded using a full hexadecimal
+                           representation. The following are reserved
+                           hexadecimal values of the TAC: 0000, and FFFE.   */
 typedef struct tai_s {
   uint8_t mcc_digit2 : 4;
   uint8_t mcc_digit1 : 4;

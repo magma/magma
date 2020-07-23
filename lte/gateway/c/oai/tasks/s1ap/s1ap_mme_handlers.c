@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -297,7 +296,7 @@ int s1ap_mme_handle_s1_setup_request(
   uint32_t enb_id                            = 0;
   char* enb_name                             = NULL;
   int ta_ret                                 = 0;
-  uint8_t bplmn_list_count = 0;  // Broadcast PLMN list count
+  uint8_t bplmn_list_count                   = 0;  // Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("s1_setup", 1, NO_LABELS);

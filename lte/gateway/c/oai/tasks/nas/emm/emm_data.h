@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -201,11 +200,11 @@ typedef struct emm_context_s {
   //#define           EMM_CTXT_MEMBER_AUTH_VECTOR1                 ((uint32_t)1
   //<< 27)  // reserved bit for AUTH VECTOR #define EMM_CTXT_MEMBER_AUTH_VECTOR2
   //((uint32_t)1 << 28)  // reserved bit for AUTH VECTOR #define
-  //EMM_CTXT_MEMBER_AUTH_VECTOR3                 ((uint32_t)1 << 29)  //
-  //reserved bit for AUTH VECTOR #define           EMM_CTXT_MEMBER_AUTH_VECTOR4
+  // EMM_CTXT_MEMBER_AUTH_VECTOR3                 ((uint32_t)1 << 29)  //
+  // reserved bit for AUTH VECTOR #define           EMM_CTXT_MEMBER_AUTH_VECTOR4
   //((uint32_t)1 << 30)  // reserved bit for AUTH VECTOR #define
-  //EMM_CTXT_MEMBER_AUTH_VECTOR5                 ((uint32_t)1 << 31)  //
-  //reserved bit for AUTH VECTOR
+  // EMM_CTXT_MEMBER_AUTH_VECTOR5                 ((uint32_t)1 << 31)  //
+  // reserved bit for AUTH VECTOR
 
 #define EMM_CTXT_MEMBER_SET_BIT(eMmCtXtMemBeRmAsK, bIt)                        \
   do {                                                                         \

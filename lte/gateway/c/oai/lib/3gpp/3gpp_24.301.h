@@ -93,32 +93,35 @@
 #define UPLINK_GENERIC_NAS_TRANSPORT 0b01101001   /* 101 = 0x69 */
 
 // Table 9.8.2: Message types for EPS session management
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST 0b11000001 /* 193 = 0xc1   \
-                                                                */
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT 0b11000010  /* 194 = 0xc2 */
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT 0b11000011  /* 195 = 0xc3 */
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST                            \
+  0b11000001                                                  /* 193 = 0xc1    \
+                                                               */
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT 0b11000010 /* 194 = 0xc2 */
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT 0b11000011 /* 195 = 0xc3 */
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST                          \
-  0b11000101                                                    /* 197 = 0xc5 */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT 0b11000110 /* 198 = 0xc6  \
-                                                                 */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT 0b11000111 /* 199 = 0xc7  \
-                                                                 */
-#define MODIFY_EPS_BEARER_CONTEXT_REQUEST 0b11001001            /* 201 = 0xc9 */
-#define MODIFY_EPS_BEARER_CONTEXT_ACCEPT 0b11001010             /* 202 = 0xca */
-#define MODIFY_EPS_BEARER_CONTEXT_REJECT 0b11001011             /* 203 = 0xcb */
-#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST 0b11001101        /* 205 = 0xcd */
-#define DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT 0b11001110         /* 206 = 0xce */
-#define PDN_CONNECTIVITY_REQUEST 0b11010000                     /* 208 = 0xd0 */
-#define PDN_CONNECTIVITY_REJECT 0b11010001                      /* 209 = 0xd1 */
-#define PDN_DISCONNECT_REQUEST 0b11010010                       /* 210 = 0xd2 */
-#define PDN_DISCONNECT_REJECT 0b11010011                        /* 211 = 0xd3 */
-#define BEARER_RESOURCE_ALLOCATION_REQUEST 0b11010100           /* 212 = 0xd4 */
-#define BEARER_RESOURCE_ALLOCATION_REJECT 0b11010101            /* 213 = 0xd5 */
-#define BEARER_RESOURCE_MODIFICATION_REQUEST 0b11010110         /* 214 = 0xd6 */
-#define BEARER_RESOURCE_MODIFICATION_REJECT 0b11010111          /* 215 = 0xd7 */
-#define ESM_INFORMATION_REQUEST 0b11011001                      /* 217 = 0xd9 */
-#define ESM_INFORMATION_RESPONSE 0b11011010                     /* 218 = 0xda */
-#define ESM_STATUS 0b11101000                                   /* 232 = 0xe8 */
+  0b11000101 /* 197 = 0xc5 */
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT                           \
+  0b11000110 /* 198 = 0xc6                                                     \
+              */
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT                           \
+  0b11000111                                             /* 199 = 0xc7         \
+                                                          */
+#define MODIFY_EPS_BEARER_CONTEXT_REQUEST 0b11001001     /* 201 = 0xc9 */
+#define MODIFY_EPS_BEARER_CONTEXT_ACCEPT 0b11001010      /* 202 = 0xca */
+#define MODIFY_EPS_BEARER_CONTEXT_REJECT 0b11001011      /* 203 = 0xcb */
+#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST 0b11001101 /* 205 = 0xcd */
+#define DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT 0b11001110  /* 206 = 0xce */
+#define PDN_CONNECTIVITY_REQUEST 0b11010000              /* 208 = 0xd0 */
+#define PDN_CONNECTIVITY_REJECT 0b11010001               /* 209 = 0xd1 */
+#define PDN_DISCONNECT_REQUEST 0b11010010                /* 210 = 0xd2 */
+#define PDN_DISCONNECT_REJECT 0b11010011                 /* 211 = 0xd3 */
+#define BEARER_RESOURCE_ALLOCATION_REQUEST 0b11010100    /* 212 = 0xd4 */
+#define BEARER_RESOURCE_ALLOCATION_REJECT 0b11010101     /* 213 = 0xd5 */
+#define BEARER_RESOURCE_MODIFICATION_REQUEST 0b11010110  /* 214 = 0xd6 */
+#define BEARER_RESOURCE_MODIFICATION_REJECT 0b11010111   /* 215 = 0xd7 */
+#define ESM_INFORMATION_REQUEST 0b11011001               /* 217 = 0xd9 */
+#define ESM_INFORMATION_RESPONSE 0b11011010              /* 218 = 0xda */
+#define ESM_STATUS 0b11101000                            /* 232 = 0xe8 */
 
 //------------------------------------------------------------------------------
 // 9.9 OTHER INFORMATION ELEMENTS

@@ -87,12 +87,12 @@ int decode_ciphering_key_sequence_number_ie(
 
 #define INVALID_LAC_0000                                                       \
   (uint16_t) 0x0000 /*!< \brief  This LAC can be coded using a full            \
-                       hexadecimal representation except for the following                                                      \
+                       hexadecimal representation except for the following     \
                        reserved hexadecimal values: 0000, and FFFE.   */
 
 #define INVALID_LAC_FFFE                                                       \
   (uint16_t) 0xFFFE /*!< \brief  This LAC can be coded using a full            \
-                       hexadecimal representation except for the following                                                      \
+                       hexadecimal representation except for the following     \
                        reserved hexadecimal values: 0000, and FFFE.   */
 typedef uint16_t
     lac_t; /*!< \brief  Location Area Code (LAC) is a fixed length code (of 2
