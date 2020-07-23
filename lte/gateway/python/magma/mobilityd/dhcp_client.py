@@ -88,19 +88,20 @@ class DHCPClient:
         # generate DHCP request packet
         if state == DHCPState.DISCOVER:
             dhcp_opts = [("message-type", "discover")]
-            dhcp_desc = DHCPDescriptor(mac, "", DHCPState.DISCOVER)
+            dhcp_desc = DHCPDescriptor(mac=mac, ip="",
+                                       state_requested=DHCPState.DISCOVER)
             self._msg_xid = self._msg_xid + 1
             pkt_xid = self._msg_xid
         elif state == DHCPState.REQUEST:
             dhcp_opts = [("message-type", "request"),
                          ("requested_addr", dhcp_desc.ip),
                          ("server_id", dhcp_desc.server_ip)]
-            dhcp_desc.state = DHCPState.REQUEST
+            dhcp_desc.state_requested = DHCPState.REQUEST
             pkt_xid = dhcp_desc.xid
         elif state == DHCPState.RELEASE:
             dhcp_opts = [("message-type", "release"),
                          ("server_id", dhcp_desc.server_ip)]
-            dhcp_desc.state = DHCPState.RELEASE
+            dhcp_desc.state_requested = DHCPState.RELEASE
             self._msg_xid = self._msg_xid + 1
             pkt_xid = self._msg_xid
             rel_ciaddr = dhcp_desc.ip
@@ -179,6 +180,7 @@ class DHCPClient:
 
         with self._dhcp_notify:
             if mac_addr_key in self.dhcp_client_state:
+                state_requested = self.dhcp_client_state[mac_addr_key].state_requested
                 ip_offered = packet[BOOTP].yiaddr
                 subnet_mask = self._get_option(packet, "subnet_mask")
                 if subnet_mask is not None:
@@ -193,9 +195,15 @@ class DHCPClient:
                     router_ip_addr = None
 
                 lease_time = self._get_option(packet, "lease_time")
-                dhcp_state = DHCPDescriptor(mac_addr, ip_offered, state, str(ip_subnet),
-                                            packet[IP].src, router_ip_addr, lease_time,
-                                            packet[BOOTP].xid)
+                dhcp_state = DHCPDescriptor(mac=mac_addr,
+                                             ip=ip_offered,
+                                             state=state,
+                                             state_requested=state_requested,
+                                             subnet=str(ip_subnet),
+                                             server_ip=packet[IP].src,
+                                             router_ip=router_ip_addr,
+                                             lease_time=lease_time,
+                                             xid=packet[BOOTP].xid)
                 LOG.info("Record mac %s IP %s", mac_addr_key, dhcp_state)
 
                 self.dhcp_client_state[mac_addr_key] = dhcp_state
