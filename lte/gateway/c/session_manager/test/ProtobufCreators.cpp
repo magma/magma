@@ -59,6 +59,34 @@ void create_credit_update_response(
   response->set_charging_key(charging_key);
 }
 
+void create_charging_credit(
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    bool is_final,
+    ChargingCredit* credit)
+{
+  create_granted_units(&total_volume, &tx_volume, &rx_volume, credit->mutable_granted_units());
+  credit->set_type(ChargingCredit::BYTES);
+  credit->set_is_final(is_final);
+}
+
+void create_credit_update_response(
+    const std::string& imsi,
+    uint32_t charging_key,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    bool is_final,
+    CreditUpdateResponse* response)
+{
+  create_charging_credit(
+      total_volume, tx_volume, rx_volume, is_final, response->mutable_credit());
+  response->set_success(true);
+  response->set_sid(imsi);
+  response->set_charging_key(charging_key);
+}
+
 void create_usage_update(
     const std::string& imsi, uint32_t charging_key, uint64_t bytes_rx,
     uint64_t bytes_tx, CreditUsage::UpdateType type,
