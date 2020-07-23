@@ -16,6 +16,7 @@
     "react-perfect-scrollbar": "^1.4.4",
     "react-router": "5.1.2",
     "react-router-dom": "5.1.2",
+    "react-virtualized": "^9.21.0",
     "relay-runtime": "0.0.0-master-86f5456a"
   },
   "devDependencies": {
