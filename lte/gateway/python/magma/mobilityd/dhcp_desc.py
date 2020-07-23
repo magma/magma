@@ -19,6 +19,7 @@ class DHCPState(IntEnum):
     """
     DHCP protocol states.
     """
+    UNKNOWN = 0
     DISCOVER = 1
     OFFER = 2
     REQUEST = 3
@@ -30,7 +31,9 @@ class DHCPState(IntEnum):
 
 
 class DHCPDescriptor:
-    def __init__(self, mac: MacAddress, ip: str, state: DHCPState,
+    def __init__(self, mac: MacAddress, ip: str,
+                 state_requested: DHCPState,
+                 state: DHCPState = DHCPState.UNKNOWN,
                  subnet: str = None, server_ip=None, router_ip=None,
                  lease_time=None, xid=None):
         """
@@ -40,8 +43,9 @@ class DHCPDescriptor:
         Args:
             mac: Mac address of request
             ip: Allocated IP if IP is assigned by DHCP server
-            state: Last known protocol state
-            subnet: subnet of IP from DHCP offer or ACK.
+            state: Last known protocol state on server
+            state_requested: Last requested state by client
+            subnet: subnet of IP from DHCP offer or ACK
             server_ip: DHCP server IP address
             router_ip: GW IP address
             lease_time: DHCP lease time.
@@ -51,6 +55,7 @@ class DHCPDescriptor:
         self.ip = ip
         self.subnet = subnet
         self.state = state
+        self.state_requested = state_requested
         self.server_ip = server_ip
         self.xid = xid
         self.lease_time = lease_time
@@ -62,9 +67,11 @@ class DHCPDescriptor:
             self.lease_renew_deadline = datetime.now()
 
     def __str__(self):
-        return "state: {:8s} mac {} ip {} subnet {} DHCP: {} router {} " \
+        return "state: {:8s} requested state: {:8s} mac {} ip {} subnet {}" \
+               "DHCP: {} router {} " \
                "lease time {}, renew {} xid {}" \
-            .format(self.state.name, str(self.mac), self.ip, self.subnet,
+            .format(self.state.name, self.state_requested.name,
+                    str(self.mac), self.ip, self.subnet,
                     self.server_ip, self.router_ip, self.lease_time,
                     self.lease_renew_deadline, self.xid)
 
