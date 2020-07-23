@@ -206,6 +206,7 @@ const arrayConfigs = [
     id: 'mandatory_properties_on_work_order_close',
     title: 'Mandatory properties on work order close',
     enabledByDefault: false,
+    publicAccess: true,
   },
 ];
 

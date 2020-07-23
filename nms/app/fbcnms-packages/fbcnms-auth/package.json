@@ -1,6 +1,5 @@
 {
   "name": "@fbcnms/auth",
-  "private": true,
   "version": "0.1.0",
   "dependencies": {
     "@fbcnms/webpack-config": "^0.1.0",
