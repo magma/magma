@@ -35,7 +35,7 @@ services:
     image: facebookincubator/prometheus-configurer:1.0.0
     command:
       - '-port=9100'
-      - '-rules-dir=/etc/configs/alert_rules'
+      - '-rules-dir=/etc/configs/alert_rules/'
       - '-prometheusURL=prometheus:9090'
       - '-multitenant-label=networkID'
       - '-restrict-queries'

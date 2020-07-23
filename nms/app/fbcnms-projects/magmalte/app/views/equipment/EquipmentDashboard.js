@@ -31,6 +31,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -191,8 +192,9 @@ function EquipmentDashboardInternal({
   enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
-  const [tabPos, setTabPos] = React.useState(0);
+  const {relativePath, relativeUrl, match} = useRouter();
+  const tabPos = GetCurrentTabPos(match.url, ['gateway', 'enodeb']);
+
   return (
     <>
       <div className={classes.topBar}>
@@ -204,7 +206,6 @@ function EquipmentDashboardInternal({
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
-              onChange={(_, v) => setTabPos(v)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"

@@ -129,13 +129,16 @@ class SyncRPCClient(threading.Thread):
         end of the iterator sync_rpc_requests, or encounters an error)
 
         """
-        try:
-            while True:
-                logging.debug("[SyncRPC] Waiting for requests")
+        logging.info("[SyncRPC] Waiting for requests")
+        while True:
+            try:
                 req = next(sync_rpc_requests)
                 self.forward_request(req)
-        except grpc.RpcError as err:
-            raise err
+            except grpc.RpcError as err:
+                logging.error(
+                    "[SyncRPC] Failing to forward request, err: %s",
+                    err.details())
+                raise err
 
     def forward_request(self, request: SyncRPCRequest) -> None:
         if request.heartBeat:
@@ -143,6 +146,7 @@ class SyncRPCClient(threading.Thread):
             return
 
         if request.connClosed:
+            logging.debug("[SyncRPC] Got connClosed from cloud")
             self._conn_closed_table[request.reqId] = True
             return
 

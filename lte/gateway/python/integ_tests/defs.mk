@@ -42,9 +42,9 @@ s1aptests/test_attach_detach_with_ovs.py \
 s1aptests/test_resync.py \
 s1aptests/test_standalone_pdn_conn_req.py \
 s1aptests/test_attach_act_dflt_ber_ctxt_rej.py \
-s1aptests/test_attach_detach_EEA1.py \
-s1aptests/test_attach_detach_EEA2.py \
-s1aptests/test_attach_detach_EIA1.py \
+s1aptests/test_attach_detach_security_algo_eea0_eia0.py \
+s1aptests/test_attach_detach_security_algo_eea1_eia1.py \
+s1aptests/test_attach_detach_security_algo_eea2_eia2.py \
 s1aptests/test_attach_detach_emm_status.py \
 s1aptests/test_attach_detach_enb_rlf_initial_ue_msg.py \
 s1aptests/test_attach_detach_ICS_Failure.py \
@@ -125,6 +125,16 @@ s1aptests/test_attach_detach_attach_ul_tcp_data.py
 # TODO flaky tests we should look at
 # s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
+
+# These pass individually after sandwiching between:
+# s1aptests/test_modify_mme_config_for_sanity.py
+# and s1aptests/test_restore_mme_config_after_sanity.py
+# but fails when run as part of sanity.
+
+# s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
+# s1aptests/test_multi_enb_multi_ue_diff_tac.py \
+# s1aptests/test_x2_handover.py \
+# s1aptests/test_x2_handover_ping_pong.py \
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \

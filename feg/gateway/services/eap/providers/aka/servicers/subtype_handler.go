@@ -10,8 +10,9 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"log"
 	"sync"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
@@ -36,7 +37,7 @@ func AddHandler(st aka.Subtype, h Handler) {
 	}
 	oldh, ok := akaHandlers.hm[st]
 	if ok && oldh != nil {
-		log.Printf("WARNING: EAP AKA Handler for subtype %d => %+v is already registered, will overwrite with %+v",
+		glog.Warningf("EAP AKA Handler for subtype %d => %+v is already registered, will overwrite with %+v",
 			st, oldh, h)
 	}
 	akaHandlers.hm[st] = h

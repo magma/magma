@@ -363,6 +363,20 @@ class IPAddressManager:
 
             self._try_set_recycle_timer()  # start the timer to recycle
 
+    def get_gateway_ip_adress(self):
+        with self._lock:
+            return self._dhcp_gw_info.getIP()
+
+    def get_gateway_mac_adress(self):
+        with self._lock:
+            return self._dhcp_gw_info.getMac()
+
+    def set_gateway_ip_and_mac(self, ip: str, mac: str):
+        with self._lock:
+            logging.info("set ip %s mac: [%s]" % (ip, mac))
+            self._dhcp_gw_info.update_mac(mac)
+            self._dhcp_gw_info.update_ip(ip)
+
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs
 

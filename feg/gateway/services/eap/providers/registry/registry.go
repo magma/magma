@@ -10,9 +10,10 @@ LICENSE file in the root directory of this source tree.
 package registry
 
 import (
-	"log"
 	"sort"
 	"sync"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/eap/providers"
 )
@@ -36,7 +37,7 @@ func Register(p providers.Method) (oldProvider providers.Method) {
 	oldProvider, previousExists := eapProviderRegistry[typ]
 	eapProviderRegistry[typ] = p
 	if previousExists {
-		log.Printf(
+		glog.Errorf(
 			"EAP Provider is already registered for type %d: %s. Will overwrite with: %s",
 			typ, oldProvider, p)
 	} else {

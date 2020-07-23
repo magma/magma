@@ -96,13 +96,16 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 	// Currently only handling authorization requests - we have roadmap tasks to support full v2 integration T64414814
 	// When we'll have v2 support we can remove the hand crafted json packet
 	jsonPacket := map[string]map[string]interface{}{
-		"NAS-IP-Address":     {"type": "string", "value": []string{rfc2865.NASIPAddress_Get(r.Packet).String()}},
 		"Called-Station-Id":  {"type": "string", "value": []string{normalize(rfc2865.CalledStationID_GetString(r.Packet))}},
 		"Calling-Station-Id": {"type": "string", "value": []string{normalize(rfc2865.CallingStationID_GetString(r.Packet))}},
 		"NAS-Identifier":     {"type": "string", "value": []string{rfc2865.NASIdentifier_GetString(r.Packet)}},
 		"XWF-C-Version":      {"type": "string", "value": []string{analyticsVersion}},
 	}
-
+	// If no nas ip address is specified then no field will be sent
+	if rfc2865.NASIPAddress_Get(r.Packet) != nil {
+		jsonPacket["NAS-IP-Address"] =
+			map[string]interface{}{"type": "string", "value": []string{rfc2865.NASIPAddress_Get(r.Packet).String()}}
+	}
 	encodedMsg, err := json.Marshal(jsonPacket)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to marshal radius packet")

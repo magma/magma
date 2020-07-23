@@ -107,6 +107,17 @@ func TestGetHealthStatus(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStatus, health)
 	assertMocks(t, mockGREProbe, mockSystem, mockService)
+
+	// Simulate disabled, healthy
+	mockGREProbe.On("GetStatus").Return(healthyGRE).Once()
+	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
+	mockService.On("GetUnhealthyServices").Return([]string{"radius"}, nil).Once()
+	expectedStatus.Health = protos.HealthStatus_HEALTHY
+	expectedStatus.HealthMessage = "gateway status appears healthy"
+	health, err = servicer.GetHealthStatus(context.Background(), req)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedStatus, health)
+	assertMocks(t, mockGREProbe, mockSystem, mockService)
 }
 
 func assertMocks(t *testing.T, probe *mockGREProbe, systemHealth *mockSystemHealth, serviceHealth *mockServiceHealth) {

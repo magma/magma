@@ -10,10 +10,11 @@ LICENSE file in the root directory of this source tree.
 package servicers
 
 import (
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -294,7 +295,7 @@ func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration
 func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *SessionCtx) {
 	metrics.SessionTimeouts.Inc()
 	if s == nil {
-		log.Printf("ERROR: Nil EAP-AKA Server for session ID: %s", sessionId)
+		glog.Errorf("nil EAP-AKA Server for session ID: %s", sessionId)
 		return
 	}
 	var (
@@ -322,7 +323,7 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 		state := uc.state
 		uc.mu.Unlock()
 		if state != aka.StateAuthenticated {
-			log.Printf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
+			glog.Warningf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
 		}
 	}
 }
