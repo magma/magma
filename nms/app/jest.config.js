@@ -39,6 +39,7 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
+      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
     },
     {
       moduleNameMapper: {
@@ -47,9 +48,7 @@ module.exports = {
         '\\.(css|less)$': 'identity-obj-proxy',
       },
       name: 'app',
-      setupFiles: [
-        '<rootDir>/fbcnms-packages/fbcnms-babel-register/polyfill.js',
-      ],
+      setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',
@@ -63,6 +62,7 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
+      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
     },
   ],
   testEnvironment: 'jsdom',
