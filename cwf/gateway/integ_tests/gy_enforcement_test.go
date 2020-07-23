@@ -385,9 +385,12 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
 	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
 	if record != nil {
-		// We should not be seeing > 4M data here
-		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+		// We should not be seeing > 5M data here (With some room for error)
+		assertion1 := assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
+		assertion2 := assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+		if !assertion1 && !assertion2 {
+			dumpPipelinedState(tr)
+		}
 	}
 
 	// Wait for service deactivation
