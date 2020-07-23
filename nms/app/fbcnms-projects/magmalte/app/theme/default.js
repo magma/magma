@@ -255,6 +255,8 @@ export default createMuiTheme({
       root: {
         backgroundColor: colors.primary.concrete,
         height: '2px',
+      },
+    },
     MuiDialog: {
       paper: {
         backgroundColor: colors.primary.concrete,
