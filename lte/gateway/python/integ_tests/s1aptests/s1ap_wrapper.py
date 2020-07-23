@@ -19,7 +19,7 @@ from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
 from integ_tests.common.subscriber_db_client import (
     SubscriberDbGrpc,
-    SubscriberDbCassandra
+    SubscriberDbCassandra,
 )
 from integ_tests.s1aptests.s1ap_utils import (
     MagmadUtil,
@@ -58,11 +58,11 @@ class TestWrapper(object):
         self._enBConfig()
 
         if self._test_oai_upstream:
-          subscriber_client = SubscriberDbCassandra()
-          self.wait_gateway_healthy = False
+            subscriber_client = SubscriberDbCassandra()
+            self.wait_gateway_healthy = False
         else:
-          subscriber_client = SubscriberDbGrpc()
-          self.wait_gateway_healthy = True
+            subscriber_client = SubscriberDbGrpc()
+            self.wait_gateway_healthy = True
 
         mobility_client = MobilityServiceGrpc()
         magmad_client = MagmadServiceGrpc()
@@ -182,16 +182,41 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues):
+    def configUEDevice(self, num_ues, reqData=[]):
         """ Configure the device on the UE side """
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
-                "************************* UE device config for ue_id ", reqs[i].ue_id
+                "************************* UE device config for ue_id ",
+                reqs[i].ue_id,
             )
-            assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
+            if reqData and bool(reqData[i]):
+                if reqData[i].ueNwCap_pr.pres:
+                    reqs[i].ueNwCap_pr.pres = reqData[i].ueNwCap_pr.pres
+                    reqs[i].ueNwCap_pr.eea2_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eea2_128
+                    reqs[i].ueNwCap_pr.eea1_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eea1_128
+                    reqs[i].ueNwCap_pr.eea0 = reqData[i].ueNwCap_pr.eea0
+                    reqs[i].ueNwCap_pr.eia2_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eia2_128
+                    reqs[i].ueNwCap_pr.eia1_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eia1_128
+                    reqs[i].ueNwCap_pr.eia0 = reqData[i].ueNwCap_pr.eia0
+
+            assert (
+                self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
+                == 0
+            )
             response = self._s1_util.get_response()
-            assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value
+                == response.msg_type
+            )
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(

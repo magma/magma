@@ -1,6 +1,5 @@
 {
   "name": "@fbcnms/express-middleware",
-  "private": true,
   "version": "0.1.0",
   "dependencies": {
     "@fbcnms/logging": "^0.1.0",

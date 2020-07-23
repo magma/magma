@@ -10,8 +10,7 @@ LICENSE file in the root directory of this source tree.
 package handlers
 
 import (
-	"log"
-
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/gateway/services/aaa/protos"
@@ -64,7 +63,7 @@ func resyncResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packet)
 
 	state, t := uc.State()
 	if state != aka.StateChallenge {
-		log.Printf(
+		glog.Errorf(
 			"AKA-Synchronization-Failure: Overwriting unexpected user state: %d,%s for IMSI: %s",
 			state, t, imsi)
 	}
