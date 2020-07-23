@@ -12,14 +12,14 @@ const customWebpackConfigBuilder = require('./webpack.config.js').default;
 module.exports = {
   stories: ['../**/*.stories.@(js|mdx)'],
   addons: [
-    '@storybook/addon-actions',
-    '@storybook/addon-links',
     {
       name: '@storybook/addon-docs',
       options: {
         sourceLoaderOptions: null,
       },
     },
+    '@storybook/addon-actions',
+    '@storybook/addon-links',
   ],
   webpackFinal: config => customWebpackConfigBuilder({config}),
 };
