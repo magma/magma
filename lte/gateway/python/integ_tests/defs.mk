@@ -8,8 +8,7 @@
 PROTO_LIST:=orc8r_protos lte_protos feg_protos
 
 # Add the s1aptester integration tests
-MANDATORY_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
-s1aptests/test_attach_detach.py \
+MANDATORY_TESTS = s1aptests/test_attach_detach.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
 s1aptests/test_attach_detach_multi_ue.py \
 s1aptests/test_attach_detach_looped.py  \
@@ -101,11 +100,7 @@ s1aptests/test_multi_enb_multi_ue.py \
 s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
 s1aptests/test_multi_enb_complete_reset.py \
-s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
-s1aptests/test_multi_enb_multi_ue_diff_tac.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
-s1aptests/test_x2_handover.py \
-s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
@@ -118,8 +113,7 @@ s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
-s1aptests/test_restore_mme_config_after_sanity.py
+s1aptests/test_attach_detach_attach_ul_tcp_data.py
 
 # These test cases pass without memory leaks, but needs DL-route in TRF server
 # sudo /sbin/route add -net 192.168.128.0 gw 192.168.60.142
@@ -131,6 +125,16 @@ s1aptests/test_restore_mme_config_after_sanity.py
 # TODO flaky tests we should look at
 # s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
+
+# These pass individually after sandwiching between:
+# s1aptests/test_modify_mme_config_for_sanity.py
+# and s1aptests/test_restore_mme_config_after_sanity.py
+# but fails when run as part of sanity.
+
+# s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
+# s1aptests/test_multi_enb_multi_ue_diff_tac.py \
+# s1aptests/test_x2_handover.py \
+# s1aptests/test_x2_handover_ping_pong.py \
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
