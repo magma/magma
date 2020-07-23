@@ -8,6 +8,7 @@
     "@material-ui/styles": "^4.0.0",
     "@storybook/addon-actions": "^5.3.19",
     "beaver-logger": "^4.0.12",
+    "immutable": "^4.0.0-rc.12",
     "mapbox-gl": "^0.53.0",
     "notistack": "^0.8.5",
     "react": "^16.8.6",
