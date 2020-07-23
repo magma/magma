@@ -1148,6 +1148,7 @@ static int s1ap_mme_generate_ue_context_modification(
     ue_description_t* ue_ref_p,
     const itti_s1ap_ue_context_mod_req_t* const ue_context_mod_req_pP,
     imsi64_t imsi64) {
+
 #if S1AP_R1O_TO_R15_DONE
   uint8_t* buffer                                                    = NULL;
   uint32_t length                                                    = 0;
@@ -1231,8 +1232,8 @@ static int s1ap_mme_generate_ue_context_modification(
 
   free_s1ap_uecontextmodificationrequest(ueContextModificationIEs_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-#else
-  return -1;
+ #else
+ return -1;
 #endif
 }
 
@@ -2283,7 +2284,7 @@ int s1ap_mme_handle_erab_setup_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  #if S1AP_R1O_TO_R15_DONE
+
   S1ap_E_RABSetupResponse_t* container = NULL;
   S1ap_E_RABSetupResponseIEs_t* ie     = NULL;
   ue_description_t* ue_ref_p           = NULL;
@@ -2315,8 +2316,8 @@ int s1ap_mme_handle_erab_setup_response(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-S1AP_FIND_PROTOCOLIE_BY_ID(S1AP_E_RABSetupResponseIEs_t, ie, container,
-                             S1AP_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_E_RABSetupResponseIEs_t, ie, container,
+                             S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
 
   if ((ie) && (
     (ue_ref_p = s1ap_state_get_ue_mmeid(
@@ -2397,9 +2398,7 @@ S1AP_FIND_PROTOCOLIE_BY_ID(S1AP_E_RABSetupResponseIEs_t, ie, container,
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = itti_send_msg_to_task(TASK_MME_APP, INSTANCE_DEFAULT, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
-  #else
-  return -1;
-#endif
+
 }
 
 //------------------------------------------------------------------------------
@@ -3116,36 +3115,47 @@ int s1ap_handle_path_switch_req_failure(
     s1ap_state_t* state,
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64) {
-
+  S1ap_PathSwitchRequestFailure_t* container                             = NULL;
   uint8_t* buffer                                                        = NULL;
   uint32_t length                                                        = 0;
   ue_description_t* ue_ref_p                                             = NULL;
-  S1ap_S1AP_PDU_t pdu                                                    = {0};
-  S1ap_PathSwitchRequestFailureIEs_t* s1ap_PathSwitchRequestFailureIEs_p = NULL;
+  S1ap_S1AP_PDU_t* pdu                                                    = {0};
+  S1ap_PathSwitchRequestFailureIEs_t* ie = NULL;
   int rc = RETURNok;
+  //enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  if ((ue_ref_p = s1ap_state_get_ue_mmeid(
-           state, path_switch_req_failure_p->mme_ue_s1ap_id)) == NULL) {
+container = &pdu->choice.unsuccessfulOutcome.value.choice.PathSwitchRequestFailure;
+
+S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_PathSwitchRequestFailureIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  if ((ie)&&
+    (ue_ref_p = s1ap_state_get_ue_mmeid(state, (uint32_t) mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG_UE(
         LOG_S1AP, imsi64,
         "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         (uint32_t) path_switch_req_failure_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
-  pdu.choice.unsuccessfulOutcome.procedureCode = S1ap_ProcedureCode_id_PathSwitchRequest;
-  pdu.present     = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
+  pdu->choice.unsuccessfulOutcome.procedureCode = S1ap_ProcedureCode_id_PathSwitchRequest;
+  pdu->present  = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
 
-  s1ap_PathSwitchRequestFailureIEs_p->value.choice.MME_UE_S1AP_ID =
+  ie->value.choice.MME_UE_S1AP_ID =
       path_switch_req_failure_p->mme_ue_s1ap_id;
-  s1ap_PathSwitchRequestFailureIEs_p->value.choice.ENB_UE_S1AP_ID =
+  ie->value.choice.ENB_UE_S1AP_ID =
       path_switch_req_failure_p->enb_ue_s1ap_id;
   s1ap_mme_set_cause(
-      &s1ap_PathSwitchRequestFailureIEs_p->value.choice.Cause, S1ap_Cause_PR_radioNetwork,
+      &ie->value.choice.Cause, S1ap_Cause_PR_radioNetwork,
       S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system);
 
-  if (s1ap_mme_encode_pdu(&pdu, &buffer, &length) < 0) {
+  if (s1ap_mme_encode_pdu(pdu, &buffer, &length) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Path Switch Request Failure encoding failed \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
@@ -3217,9 +3227,7 @@ int s1ap_mme_handle_erab_release_response(
   mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
 
   if ((ie)&&
-    (ue_ref_p = s1ap_state_get_ue_mmeid(
-       state, (uint32_t) mme_ue_s1ap_id)) ==
-    NULL) {
+    (ue_ref_p = s1ap_state_get_ue_mmeid(state, (uint32_t) mme_ue_s1ap_id))==NULL) {
     OAILOG_ERROR(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
