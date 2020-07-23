@@ -95,11 +95,12 @@ class ControlProxyHttpClient(object):
                 SyncRPCResponse(heartBeat=False, reqId=req_id,
                                 respBody=GatewayResponse(err=str(e))))
         finally:
-            del self._connection_table[req_id]
             client.close_connection()
+            del self._connection_table[req_id]
 
     def close_all_connections(self):
-        for _, client in self._connection_table.items():
+        connections = list(self._connection_table.values())
+        for client in connections:
             client.close_connection()
         self._connection_table.clear()
 
