@@ -25,6 +25,7 @@ import (
 	magmav1alpha1 "magma/cwf/k8s/cwf_operator/pkg/apis/magma/v1alpha1"
 	"magma/cwf/k8s/cwf_operator/pkg/health_client"
 	"magma/cwf/k8s/cwf_operator/pkg/registry"
+	"magma/cwf/k8s/cwf_operator/pkg/status_reporter"
 	"magma/feg/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -54,8 +55,14 @@ func TestHAClusterControllerSingleGateway(t *testing.T) {
 		name      = "cwf-operator"
 		namespace = "test"
 		gw        = "test-gw"
+		gwID      = "test-gw1"
 	)
-	gateways := []string{gw}
+	gateways := []magmav1alpha1.GatewayResource{
+		{
+			HelmReleaseName: gw,
+			GatewayID:       gwID,
+		},
+	}
 	r := initTestReconciler(gateways, name, namespace, map[string]string{})
 	// Mock request to simulate Reconcile() being called on an event for a
 	// watched resource .
@@ -87,9 +94,20 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 		name      = "cwf-operator"
 		namespace = "test"
 		gw        = "test-gw1"
+		gwID      = "test-gwID1"
 		gw2       = "test-gw2"
+		gwID2     = "test-gwID2"
 	)
-	gateways := []string{gw, gw2}
+	gateways := []magmav1alpha1.GatewayResource{
+		{
+			HelmReleaseName: gw,
+			GatewayID:       gwID,
+		},
+		{
+			HelmReleaseName: gw2,
+			GatewayID:       gwID2,
+		},
+	}
 	mockServicer := &mockHealthServicer{}
 	mockServicer2 := &mockHealthServicer{}
 	addr := runMockService(t, mockServicer)
@@ -254,7 +272,7 @@ func assertClusterStatus(
 	assert.Equal(t, expectedStandbyFailures, actualStatus.ConsecutiveStandbyErrors)
 }
 
-func initTestReconciler(gateways []string, name string, namespace string, svcsToAddrs map[string]string) *ReconcileHACluster {
+func initTestReconciler(gateways []magmav1alpha1.GatewayResource, name string, namespace string, svcsToAddrs map[string]string) *ReconcileHACluster {
 	// An haCluster resource with metadata and spec.
 	haCluster := &magmav1alpha1.HACluster{
 		ObjectMeta: metav1.ObjectMeta{
@@ -262,7 +280,7 @@ func initTestReconciler(gateways []string, name string, namespace string, svcsTo
 			Namespace: namespace,
 		},
 		Spec: magmav1alpha1.HAClusterSpec{
-			GatewayResourceNames:       gateways,
+			GatewayResources:           gateways,
 			MaxConsecutiveActiveErrors: 2,
 		},
 	}
@@ -288,6 +306,7 @@ func initTestReconciler(gateways []string, name string, namespace string, svcsTo
 				ConnectionRegistry: registry.NewK8sConnectionRegistry(),
 			},
 		},
+		statusReporter:       status_reporter.NewStatusReporter(),
 		gatewayHealthService: healthSvcName,
 	}
 }
