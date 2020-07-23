@@ -1,6 +1,5 @@
 {
     "name": "@fbcnms/magma-api",
-    "private": true,
     "version": "0.1.0",
     "main": "__generated__/MagmaAPIBindings.js",
     "scripts": {
