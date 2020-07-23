@@ -14,18 +14,22 @@ import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 
 
-class TestAttachDetachEIA1(unittest.TestCase):
+class TestAttachDetachSecurityAlgoEea0Eia0(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_eia1(self):
-        """ Basic attach with Integrity algo type EIA1(snow3G) """
+    def test_attach_detach_security_algo_eea0_eia0(self):
         """
-        Generating this scenario by configuring UE support only eia1 algo
-        not eia2 as MME by default configures eia2 if UE support eia2
+        Basic attach/detach test case with following security algorithms:
+        Encryption algorithm type : EEA0 (Null Ciphering algorithm)
+        Integrity algorithm type  : EIA0 (Null Integrity algorithm)
+
+        The preferred Encryption/Integrity algorythms to be selected by the
+        network can be changed by manually modifying the order of preference of
+        algorithms in mme.conf.template file
         """
         num_ues = 2
         detach_type = [
@@ -33,27 +37,22 @@ class TestAttachDetachEIA1(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
         ]
         wait_for_s1 = [True, False]
-        self._s1ap_wrapper.configUEDevice(num_ues)
+
+        # Configure Encryption/Integrity algorithms for UE Network Capabilities
+        configList = []
+        for i in range(num_ues):
+            configList.append(s1ap_types.ueConfig_t())
+            configList[i].ueNwCap_pr.pres = 1
+            configList[i].ueNwCap_pr.eea2_128 = 0
+            configList[i].ueNwCap_pr.eea1_128 = 0
+            configList[i].ueNwCap_pr.eea0 = 1
+            configList[i].ueNwCap_pr.eia2_128 = 0
+            configList[i].ueNwCap_pr.eia1_128 = 0
+            configList[i].ueNwCap_pr.eia0 = 1
+        self._s1ap_wrapper.configUEDevice(num_ues, reqData=configList)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            req.ueNwCap_pr.pres = 1
-            req.ueNwCap_pr.eea2_128 = 0
-            req.ueNwCap_pr.eea1_128 = 1
-            req.ueNwCap_pr.eea0 = 1
-            req.ueNwCap_pr.eia2_128 = 0
-            req.ueNwCap_pr.eia1_128 = 1
-            req.ueNwCap_pr.eia0 = 1
-
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_CONFIG, req
-            )
-            response = self._s1ap_wrapper._s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value,
-            )
-
             print(
                 "************************* Running End to End attach for ",
                 "UE id ",
