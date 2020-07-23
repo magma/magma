@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 /*! \file mme_config.h
   \brief
@@ -167,7 +168,7 @@
 #define MAGMA_CONFIG_STRING "MAGMA"
 #define MME_CONFIG_STRING_SERVICE303_CONFIG "SERVICE303"
 #define MME_CONFIG_STRING_SERVICE303_CONF_SERVER_ADDRESS "SERVER_ADDRESS"
-//CSFB
+// CSFB
 #define MME_CONFIG_STRING_CSFB_MCC "CSFB_MCC"
 #define MME_CONFIG_STRING_CSFB_MNC "CSFB_MNC"
 #define MME_CONFIG_STRING_LAC "LAC"
@@ -187,10 +188,10 @@ typedef struct eps_network_feature_config_s {
 typedef struct served_tai_s {
   uint8_t list_type;
   uint8_t nb_tai;
-  uint16_t *plmn_mcc;
-  uint16_t *plmn_mnc;
-  uint16_t *plmn_mnc_len;
-  uint16_t *tac;
+  uint16_t* plmn_mcc;
+  uint16_t* plmn_mnc;
+  uint16_t* plmn_mnc_len;
+  uint16_t* tac;
 } served_tai_t;
 
 typedef struct sctp_config_s {
@@ -316,17 +317,13 @@ typedef struct mme_config_s {
 extern mme_config_t mme_config;
 
 int mme_config_find_mnc_length(
-  const char mcc_digit1P,
-  const char mcc_digit2P,
-  const char mcc_digit3P,
-  const char mnc_digit1P,
-  const char mnc_digit2P,
-  const char mnc_digit3P);
+    const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,
+    const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);
 
-void mme_config_init(mme_config_t *);
-int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *mme_config);
-int mme_config_parse_file(mme_config_t *);
-void mme_config_display(mme_config_t *);
+void mme_config_init(mme_config_t*);
+int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
+int mme_config_parse_file(mme_config_t*);
+void mme_config_display(mme_config_t*);
 
 void mme_config_exit(void);
 

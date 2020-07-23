@@ -50,6 +50,6 @@
 #ifndef FILE_OAISIM_MME_SEEN
 #define FILE_OAISIM_MME_SEEN
 
-int main(int argc, char *argv[]);
+int main(int argc, char* argv[]);
 
 #endif /* FILE_OAISIM_MME_SEEN */

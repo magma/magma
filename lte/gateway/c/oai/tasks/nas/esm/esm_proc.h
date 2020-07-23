@@ -48,8 +48,8 @@ Description Defines the EPS Session Management procedures executed at
 
 /* Type of PDN address */
 typedef enum {
-  ESM_PDN_TYPE_IPV4 = NET_PDN_TYPE_IPV4,
-  ESM_PDN_TYPE_IPV6 = NET_PDN_TYPE_IPV6,
+  ESM_PDN_TYPE_IPV4   = NET_PDN_TYPE_IPV4,
+  ESM_PDN_TYPE_IPV6   = NET_PDN_TYPE_IPV6,
   ESM_PDN_TYPE_IPV4V6 = NET_PDN_TYPE_IPV4V6
 } esm_proc_pdn_type_t;
 
@@ -70,11 +70,7 @@ struct emm_context_s;
  * or initiated by the network
  */
 typedef int (*esm_proc_procedure_t)(
-  const bool,
-  struct emm_context_s *const,
-  const ebi_t,
-  bstring *,
-  const bool);
+    const bool, struct emm_context_s* const, const ebi_t, bstring*, const bool);
 
 /* PDN connection and EPS bearer context data */
 typedef struct esm_proc_data_s {
@@ -103,16 +99,11 @@ typedef struct esm_proc_data_s {
  */
 
 int esm_proc_status_ind(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, const proc_tid_t pti, ebi_t ebi,
+    esm_cause_t* esm_cause);
 int esm_proc_status(
-  const bool is_standalone,
-  emm_context_t *const emm_context,
-  const ebi_t ebi,
-  bstring *msg,
-  const bool sent_by_ue);
+    const bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
+    bstring* msg, const bool sent_by_ue);
 
 /*
  * --------------------------------------------------------------------------
@@ -121,27 +112,18 @@ int esm_proc_status(
  */
 
 int esm_proc_pdn_connectivity_request(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  const pdn_cid_t pdn_cid,
-  const context_identifier_t context_identifier,
-  const esm_proc_pdn_request_t request_type,
-  const_bstring const apn,
-  esm_proc_pdn_type_t pdn_type,
-  const_bstring const pdn_addr,
-  bearer_qos_t *default_qos,
-  protocol_configuration_options_t *const pco,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
+    const context_identifier_t context_identifier,
+    const esm_proc_pdn_request_t request_type, const_bstring const apn,
+    esm_proc_pdn_type_t pdn_type, const_bstring const pdn_addr,
+    bearer_qos_t* default_qos, protocol_configuration_options_t* const pco,
+    esm_cause_t* esm_cause);
 
 int esm_proc_pdn_connectivity_reject(
-  bool is_standalone,
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  bstring *msg,
-  bool ue_triggered);
+    bool is_standalone, emm_context_t* emm_context, ebi_t ebi, bstring* msg,
+    bool ue_triggered);
 int esm_proc_pdn_connectivity_failure(
-  emm_context_t *emm_context,
-  pdn_cid_t pid);
+    emm_context_t* emm_context, pdn_cid_t pid);
 
 /*
  * --------------------------------------------------------------------------
@@ -150,20 +132,13 @@ int esm_proc_pdn_connectivity_failure(
  */
 
 int esm_proc_pdn_disconnect_request(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, const proc_tid_t pti, esm_cause_t* esm_cause);
 
 int esm_proc_pdn_disconnect_accept(
-  emm_context_t *emm_context,
-  pdn_cid_t pid,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, pdn_cid_t pid, esm_cause_t* esm_cause);
 int esm_proc_pdn_disconnect_reject(
-  const bool is_standalone,
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  bstring *msg,
-  const bool ue_triggered);
+    const bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
+    bstring* msg, const bool ue_triggered);
 
 /*
  * --------------------------------------------------------------------------
@@ -172,15 +147,12 @@ int esm_proc_pdn_disconnect_reject(
  */
 
 int esm_proc_esm_information_request(
-  emm_context_t* const emm_context_p,
-  const pti_t pti);
+    emm_context_t* const emm_context_p, const pti_t pti);
 
 int esm_proc_esm_information_response(
-  emm_context_t* emm_context_p,
-  pti_t pti,
-  const_bstring const apn,
-  const protocol_configuration_options_t* const pco,
-  esm_cause_t* const esm_cause);
+    emm_context_t* emm_context_p, pti_t pti, const_bstring const apn,
+    const protocol_configuration_options_t* const pco,
+    esm_cause_t* const esm_cause);
 
 /*
  * --------------------------------------------------------------------------
@@ -188,30 +160,18 @@ int esm_proc_esm_information_response(
  * --------------------------------------------------------------------------
  */
 int esm_proc_default_eps_bearer_context(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  pdn_cid_t pid,
-  ebi_t *ebi,
-  const qci_t qci,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, const proc_tid_t pti, pdn_cid_t pid, ebi_t* ebi,
+    const qci_t qci, esm_cause_t* esm_cause);
 int esm_proc_default_eps_bearer_context_request(
-  bool is_standalone,
-  emm_context_t *const emm_context,
-  const ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  const bool ue_triggered);
+    bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
+    STOLEN_REF bstring* msg, const bool ue_triggered);
 int esm_proc_default_eps_bearer_context_failure(
-  emm_context_t *emm_context,
-  pdn_cid_t *const pid);
+    emm_context_t* emm_context, pdn_cid_t* const pid);
 
 int esm_proc_default_eps_bearer_context_accept(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
 int esm_proc_default_eps_bearer_context_reject(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
 
 /*
  * --------------------------------------------------------------------------
@@ -219,35 +179,20 @@ int esm_proc_default_eps_bearer_context_reject(
  * --------------------------------------------------------------------------
  */
 int esm_proc_dedicated_eps_bearer_context(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  pdn_cid_t pid,
-  ebi_t *ebi,
-  ebi_t *default_ebi,
-  const qci_t qci,
-  const bitrate_t gbr_dl,
-  const bitrate_t gbr_ul,
-  const bitrate_t mbr_dl,
-  const bitrate_t mbr_ul,
-  traffic_flow_template_t *tft,
-  protocol_configuration_options_t *pco,
-  fteid_t *sgw_fteid,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, const proc_tid_t pti, pdn_cid_t pid, ebi_t* ebi,
+    ebi_t* default_ebi, const qci_t qci, const bitrate_t gbr_dl,
+    const bitrate_t gbr_ul, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
+    traffic_flow_template_t* tft, protocol_configuration_options_t* pco,
+    fteid_t* sgw_fteid, esm_cause_t* esm_cause);
 
 int esm_proc_dedicated_eps_bearer_context_request(
-  const bool is_standalone,
-  emm_context_t *const emm_context,
-  const ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  const bool ue_triggered);
+    const bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
+    STOLEN_REF bstring* msg, const bool ue_triggered);
 
 int esm_proc_dedicated_eps_bearer_context_accept(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
 int esm_proc_dedicated_eps_bearer_context_reject(
-  emm_context_t *emm_context,
-  ebi_t ebi);
+    emm_context_t* emm_context, ebi_t ebi);
 
 /*
  * --------------------------------------------------------------------------
@@ -255,21 +200,12 @@ int esm_proc_dedicated_eps_bearer_context_reject(
  * --------------------------------------------------------------------------
  */
 int esm_proc_eps_bearer_context_deactivate(
-  emm_context_t* const emm_context_p,
-  const bool is_local,
-  const ebi_t ebi,
-  pdn_cid_t* pid,
-  int* const bidx,
-  esm_cause_t* const esm_cause);
+    emm_context_t* const emm_context_p, const bool is_local, const ebi_t ebi,
+    pdn_cid_t* pid, int* const bidx, esm_cause_t* const esm_cause);
 int esm_proc_eps_bearer_context_deactivate_request(
-  const bool is_standalone,
-  emm_context_t *const emm_context,
-  const ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  const bool ue_triggered);
+    const bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
+    STOLEN_REF bstring* msg, const bool ue_triggered);
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_cause_t *esm_cause);
+    emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause);
 
 #endif /* __ESM_PROC_H__*/

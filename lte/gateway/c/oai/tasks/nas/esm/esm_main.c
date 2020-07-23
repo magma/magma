@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -49,8 +49,7 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void esm_main_initialize(void)
-{
+void esm_main_initialize(void) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   /*
@@ -58,7 +57,7 @@ void esm_main_initialize(void)
    */
   if (mme_api_get_esm_config(&_esm_data.conf) != RETURNok) {
     OAILOG_ERROR(
-      LOG_NAS_ESM, "ESM-MAIN  - Failed to get MME configuration data\n");
+        LOG_NAS_ESM, "ESM-MAIN  - Failed to get MME configuration data\n");
   }
   /*
    * Initialize the EPS bearer context manager
@@ -81,8 +80,7 @@ void esm_main_initialize(void)
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void esm_main_cleanup(void)
-{
+void esm_main_cleanup(void) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }

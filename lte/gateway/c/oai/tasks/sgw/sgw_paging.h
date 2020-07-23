@@ -21,6 +21,6 @@
 
 struct in_addr;
 
-int sgw_send_paging_request(const struct in_addr *dest_ip);
+int sgw_send_paging_request(const struct in_addr* dest_ip);
 
 #endif

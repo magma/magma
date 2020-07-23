@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -24,11 +24,7 @@
 
 //------------------------------------------------------------------------------
 int decode_lcs_indicator(
-  lcs_indicator_t *lcsindicator,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    lcs_indicator_t* lcsindicator, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -43,18 +39,14 @@ int decode_lcs_indicator(
 
 //------------------------------------------------------------------------------
 int encode_lcs_indicator(
-  lcs_indicator_t *lcsindicator,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    lcs_indicator_t* lcsindicator, uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, LCS_INDICATOR_MINIMUM_LENGTH, len);
+      buffer, LCS_INDICATOR_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;

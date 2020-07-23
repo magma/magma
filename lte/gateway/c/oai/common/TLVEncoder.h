@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -50,9 +50,7 @@
 extern int errorCodeEncoder;
 
 int encode_bstring(
-  const_bstring const str,
-  uint8_t *const buffer,
-  const uint32_t buflen);
+    const_bstring const str, uint8_t* const buffer, const uint32_t buflen);
 
 void tlv_encode_perror(void);
 
@@ -64,11 +62,8 @@ void tlv_encode_perror(void);
   }                                                                            \
   if (lENGTH < mINIMUMlENGTH) {                                                \
     OAI_FPRINTF_ERR(                                                           \
-      "(%s:%d) Expecting at least %d bytes, got %d\n",                         \
-      __FILE__,                                                                \
-      __LINE__,                                                                \
-      mINIMUMlENGTH,                                                           \
-      lENGTH);                                                                 \
+        "(%s:%d) Expecting at least %d bytes, got %d\n", __FILE__, __LINE__,   \
+        mINIMUMlENGTH, lENGTH);                                                \
     errorCodeEncoder = TLV_BUFFER_TOO_SHORT;                                   \
     return TLV_BUFFER_TOO_SHORT;                                               \
   }

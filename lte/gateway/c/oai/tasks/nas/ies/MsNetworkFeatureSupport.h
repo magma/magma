@@ -29,19 +29,14 @@ typedef struct MsNetworkFeatureSupport_tag {
 } MsNetworkFeatureSupport;
 
 int encode_ms_network_feature_support(
-  MsNetworkFeatureSupport *msnetworkfeaturesupport,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 int decode_ms_network_feature_support(
-  MsNetworkFeatureSupport *msnetworkfeaturesupport,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 void dump_ms_network_feature_support_xml(
-  MsNetworkFeatureSupport *msnetworkfeaturesupport,
-  uint8_t iei);
+    MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei);
 
 #endif /* MS NETWORK CAPABILITY_H_ */

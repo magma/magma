@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -25,12 +25,9 @@
 #include "PacketFlowIdentifier.h"
 
 int decode_packet_flow_identifier(
-  PacketFlowIdentifier *packetflowidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -50,19 +47,16 @@ int decode_packet_flow_identifier(
 }
 
 int encode_packet_flow_identifier(
-  PacketFlowIdentifier *packetflowidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, PACKET_FLOW_IDENTIFIER_MINIMUM_LENGTH, len);
+      buffer, PACKET_FLOW_IDENTIFIER_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_packet_flow_identifier_xml(packetflowidentifier, iei);
 #endif
@@ -81,9 +75,7 @@ int encode_packet_flow_identifier(
 }
 
 void dump_packet_flow_identifier_xml(
-  PacketFlowIdentifier *packetflowidentifier,
-  uint8_t iei)
-{
+    PacketFlowIdentifier* packetflowidentifier, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Packet Flow Identifier>\n");
 
   if (iei > 0)
@@ -93,8 +85,8 @@ void dump_packet_flow_identifier_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <Packet flow identifier value>%u</Packet flow identifier value>\n",
-    *packetflowidentifier);
+      LOG_NAS,
+      "    <Packet flow identifier value>%u</Packet flow identifier value>\n",
+      *packetflowidentifier);
   OAILOG_DEBUG(LOG_NAS, "</Packet Flow Identifier>\n");
 }

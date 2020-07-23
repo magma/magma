@@ -37,21 +37,16 @@
 extern task_zmq_ctx_t sctp_task_zmq_ctx;
 
 int sctp_itti_send_lower_layer_conf(
-  task_id_t origin_task_id,
-  sctp_assoc_id_t assoc_id,
-  sctp_stream_id_t stream,
-  uint32_t mme_ue_s1ap_id,
-  bool is_success);
+    task_id_t origin_task_id, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
+    uint32_t mme_ue_s1ap_id, bool is_success);
 
 int sctp_itti_send_new_association(
-  sctp_assoc_id_t assoc_id,
-  sctp_stream_id_t instreams,
-  sctp_stream_id_t outstreams);
+    sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
+    sctp_stream_id_t outstreams);
 
 int sctp_itti_send_new_message_ind(
-  STOLEN_REF bstring *payload,
-  sctp_assoc_id_t assoc_id,
-  sctp_stream_id_t stream);
+    STOLEN_REF bstring* payload, sctp_assoc_id_t assoc_id,
+    sctp_stream_id_t stream);
 
 int sctp_itti_send_com_down_ind(sctp_assoc_id_t assoc_id, bool reset);
 

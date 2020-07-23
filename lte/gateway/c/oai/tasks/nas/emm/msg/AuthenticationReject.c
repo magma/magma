@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -23,15 +23,14 @@
 #include "AuthenticationReject.h"
 
 int decode_authentication_reject(
-  authentication_reject_msg *authentication_reject,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    authentication_reject_msg* authentication_reject, uint8_t* buffer,
+    uint32_t len) {
   uint32_t decoded = 0;
 
-  // Check if we got a NULL pointer and if buffer length is >= minimum length expected for the message.
+  // Check if we got a NULL pointer and if buffer length is >= minimum length
+  // expected for the message.
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-    buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
+      buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
   /*
    * Decoding mandatory fields
    */
@@ -39,16 +38,14 @@ int decode_authentication_reject(
 }
 
 int encode_authentication_reject(
-  authentication_reject_msg *authentication_reject,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    authentication_reject_msg* authentication_reject, uint8_t* buffer,
+    uint32_t len) {
   int encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
+      buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
   return encoded;
 }

@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -26,12 +26,9 @@
 
 //------------------------------------------------------------------------------
 int decode_tracking_area_identity_list(
-  tai_list_t *trackingareaidentitylist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    tai_list_t* trackingareaidentitylist, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -46,119 +43,116 @@ int decode_tracking_area_identity_list(
   while ((decoded < ielen) &&
          (partial_item < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI)) {
     trackingareaidentitylist->partial_tai_list[partial_item].typeoflist =
-      (*(buffer + decoded) >> 5) & 0x3;
+        (*(buffer + decoded) >> 5) & 0x3;
     trackingareaidentitylist->partial_tai_list[partial_item].numberofelements =
-      *(buffer + decoded) & 0x1f;
-    if (
-      TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI <=
-      ((trackingareaidentitylist->partial_tai_list[partial_item]
-          .numberofelements +
-        1))) {
+        *(buffer + decoded) & 0x1f;
+    if (TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI <=
+        ((trackingareaidentitylist->partial_tai_list[partial_item]
+              .numberofelements +
+          1))) {
       return TLV_VALUE_DOESNT_MATCH;
     }
     decoded++;
-    if (
-      TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS ==
-      trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
+    if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS ==
+        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_consecutive_tacs.mcc_digit2 =
-        (*(buffer + decoded) >> 4) & 0xf;
+          .u.tai_one_plmn_consecutive_tacs.mcc_digit2 =
+          (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_consecutive_tacs.mcc_digit1 = *(buffer + decoded) & 0xf;
+          .u.tai_one_plmn_consecutive_tacs.mcc_digit1 =
+          *(buffer + decoded) & 0xf;
       decoded++;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_consecutive_tacs.mnc_digit3 =
-        (*(buffer + decoded) >> 4) & 0xf;
+          .u.tai_one_plmn_consecutive_tacs.mnc_digit3 =
+          (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_consecutive_tacs.mcc_digit3 = *(buffer + decoded) & 0xf;
+          .u.tai_one_plmn_consecutive_tacs.mcc_digit3 =
+          *(buffer + decoded) & 0xf;
       decoded++;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_consecutive_tacs.mnc_digit2 =
-        (*(buffer + decoded) >> 4) & 0xf;
+          .u.tai_one_plmn_consecutive_tacs.mnc_digit2 =
+          (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_consecutive_tacs.mnc_digit1 = *(buffer + decoded) & 0xf;
+          .u.tai_one_plmn_consecutive_tacs.mnc_digit1 =
+          *(buffer + decoded) & 0xf;
       decoded++;
       IES_DECODE_U16(
-        buffer,
-        decoded,
-        trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.tac);
+          buffer, decoded,
+          trackingareaidentitylist->partial_tai_list[partial_item]
+              .u.tai_one_plmn_consecutive_tacs.tac);
     } else if (
-      TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
-      trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
+        TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
+        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       int i;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 =
-        (*(buffer + decoded) >> 4) & 0xf;
+          .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 =
+          (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 =
-        *(buffer + decoded) & 0xf;
+          .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 =
+          *(buffer + decoded) & 0xf;
       decoded++;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 =
-        (*(buffer + decoded) >> 4) & 0xf;
+          .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 =
+          (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 =
-        *(buffer + decoded) & 0xf;
+          .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 =
+          *(buffer + decoded) & 0xf;
       decoded++;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 =
-        (*(buffer + decoded) >> 4) & 0xf;
+          .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 =
+          (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-        .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 =
-        *(buffer + decoded) & 0xf;
+          .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 =
+          *(buffer + decoded) & 0xf;
       decoded++;
       for (i = 0; i <= trackingareaidentitylist->partial_tai_list[partial_item]
-                           .numberofelements +
-                         1;
+                               .numberofelements +
+                           1;
            i++) {
         IES_DECODE_U16(
-          buffer,
-          decoded,
-          trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_non_consecutive_tacs.tac[i]);
+            buffer, decoded,
+            trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_non_consecutive_tacs.tac[i]);
       }
     } else if (
-      TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
-      trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
+        TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
+        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       int i;
       for (i = 0; i <= trackingareaidentitylist->partial_tai_list[partial_item]
-                           .numberofelements +
-                         1;
+                               .numberofelements +
+                           1;
            i++) {
         trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_many_plmn[i]
-          .mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
+            .u.tai_many_plmn[i]
+            .mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_many_plmn[i]
-          .mcc_digit1 = *(buffer + decoded) & 0xf;
+            .u.tai_many_plmn[i]
+            .mcc_digit1 = *(buffer + decoded) & 0xf;
         decoded++;
         trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_many_plmn[i]
-          .mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
+            .u.tai_many_plmn[i]
+            .mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_many_plmn[i]
-          .mcc_digit3 = *(buffer + decoded) & 0xf;
+            .u.tai_many_plmn[i]
+            .mcc_digit3 = *(buffer + decoded) & 0xf;
         decoded++;
         trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_many_plmn[i]
-          .mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
+            .u.tai_many_plmn[i]
+            .mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_many_plmn[i]
-          .mnc_digit1 = *(buffer + decoded) & 0xf;
+            .u.tai_many_plmn[i]
+            .mnc_digit1 = *(buffer + decoded) & 0xf;
         decoded++;
         IES_DECODE_U16(
-          buffer,
-          decoded,
-          trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
-            .tac);
+            buffer, decoded,
+            trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_many_plmn[i]
+                .tac);
       }
     } else {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "Type of TAIL list not handled %d",
-        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist);
+          LOG_NAS, "Type of TAIL list not handled %d",
+          trackingareaidentitylist->partial_tai_list[partial_item].typeoflist);
       return TLV_VALUE_DOESNT_MATCH;
     }
     partial_item++;
@@ -168,19 +162,16 @@ int decode_tracking_area_identity_list(
 
 //------------------------------------------------------------------------------
 int encode_tracking_area_identity_list(
-  tai_list_t *trackingareaidentitylist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    tai_list_t* trackingareaidentitylist, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH, len);
+      buffer, TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -194,151 +185,146 @@ int encode_tracking_area_identity_list(
   while ((encoded < len) &&
          (partial_item < trackingareaidentitylist->numberoflists)) {
     *(buffer + encoded) =
-      0x00 |
-      ((trackingareaidentitylist->partial_tai_list[partial_item].typeoflist &
-        0x3)
-       << 5) |
-      (trackingareaidentitylist->partial_tai_list[partial_item]
-         .numberofelements &
-       0x1f);
+        0x00 |
+        ((trackingareaidentitylist->partial_tai_list[partial_item].typeoflist &
+          0x3)
+         << 5) |
+        (trackingareaidentitylist->partial_tai_list[partial_item]
+             .numberofelements &
+         0x1f);
     encoded++;
 
-    if (
-      TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS ==
-      trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
+    if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS ==
+        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       *(buffer + encoded) =
-        0x00 |
-        ((trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_consecutive_tacs.mcc_digit2 &
-          0xf)
-         << 4) |
-        (trackingareaidentitylist->partial_tai_list[partial_item]
-           .u.tai_one_plmn_consecutive_tacs.mcc_digit1 &
-         0xf);
+          0x00 |
+          ((trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_consecutive_tacs.mcc_digit2 &
+            0xf)
+           << 4) |
+          (trackingareaidentitylist->partial_tai_list[partial_item]
+               .u.tai_one_plmn_consecutive_tacs.mcc_digit1 &
+           0xf);
       encoded++;
       *(buffer + encoded) =
-        0x00 |
-        ((trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit3 &
-          0xf)
-         << 4) |
-        (trackingareaidentitylist->partial_tai_list[partial_item]
-           .u.tai_one_plmn_consecutive_tacs.mcc_digit3 &
-         0xf);
+          0x00 |
+          ((trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_consecutive_tacs.mnc_digit3 &
+            0xf)
+           << 4) |
+          (trackingareaidentitylist->partial_tai_list[partial_item]
+               .u.tai_one_plmn_consecutive_tacs.mcc_digit3 &
+           0xf);
       encoded++;
       *(buffer + encoded) =
-        0x00 |
-        ((trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_consecutive_tacs.mnc_digit2 &
-          0xf)
-         << 4) |
-        (trackingareaidentitylist->partial_tai_list[partial_item]
-           .u.tai_one_plmn_consecutive_tacs.mnc_digit1 &
-         0xf);
+          0x00 |
+          ((trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_consecutive_tacs.mnc_digit2 &
+            0xf)
+           << 4) |
+          (trackingareaidentitylist->partial_tai_list[partial_item]
+               .u.tai_one_plmn_consecutive_tacs.mnc_digit1 &
+           0xf);
       encoded++;
       IES_ENCODE_U16(
-        buffer,
-        encoded,
-        trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.tac);
+          buffer, encoded,
+          trackingareaidentitylist->partial_tai_list[partial_item]
+              .u.tai_one_plmn_consecutive_tacs.tac);
     } else if (
-      TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
-      trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
+        TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
+        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       int i;
       *(buffer + encoded) =
-        0x00 |
-        ((trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 &
-          0xf)
-         << 4) |
-        (trackingareaidentitylist->partial_tai_list[partial_item]
-           .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 &
-         0xf);
+          0x00 |
+          ((trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 &
+            0xf)
+           << 4) |
+          (trackingareaidentitylist->partial_tai_list[partial_item]
+               .u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 &
+           0xf);
       encoded++;
       *(buffer + encoded) =
-        0x00 |
-        ((trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 &
-          0xf)
-         << 4) |
-        (trackingareaidentitylist->partial_tai_list[partial_item]
-           .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 &
-         0xf);
+          0x00 |
+          ((trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 &
+            0xf)
+           << 4) |
+          (trackingareaidentitylist->partial_tai_list[partial_item]
+               .u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 &
+           0xf);
       encoded++;
       *(buffer + encoded) =
-        0x00 |
-        ((trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 &
-          0xf)
-         << 4) |
-        (trackingareaidentitylist->partial_tai_list[partial_item]
-           .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 &
-         0xf);
+          0x00 |
+          ((trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 &
+            0xf)
+           << 4) |
+          (trackingareaidentitylist->partial_tai_list[partial_item]
+               .u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 &
+           0xf);
       encoded++;
       for (i = 0; i <= trackingareaidentitylist->partial_tai_list[partial_item]
-                         .numberofelements;
+                           .numberofelements;
            i++) {
         IES_ENCODE_U16(
-          buffer,
-          encoded,
-          trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_one_plmn_non_consecutive_tacs.tac[i]);
+            buffer, encoded,
+            trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_one_plmn_non_consecutive_tacs.tac[i]);
       }
     } else if (
-      TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
-      trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
+        TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
+        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       int i;
       for (i = 0; i <= trackingareaidentitylist->partial_tai_list[partial_item]
-                         .numberofelements;
+                           .numberofelements;
            i++) {
         *(buffer + encoded) =
-          0x00 |
-          ((trackingareaidentitylist->partial_tai_list[partial_item]
-              .u.tai_many_plmn[i]
-              .mcc_digit2 &
-            0xf)
-           << 4) |
-          (trackingareaidentitylist->partial_tai_list[partial_item]
-             .u.tai_many_plmn[i]
-             .mcc_digit1 &
-           0xf);
+            0x00 |
+            ((trackingareaidentitylist->partial_tai_list[partial_item]
+                  .u.tai_many_plmn[i]
+                  .mcc_digit2 &
+              0xf)
+             << 4) |
+            (trackingareaidentitylist->partial_tai_list[partial_item]
+                 .u.tai_many_plmn[i]
+                 .mcc_digit1 &
+             0xf);
         encoded++;
         *(buffer + encoded) =
-          0x00 |
-          ((trackingareaidentitylist->partial_tai_list[partial_item]
-              .u.tai_many_plmn[i]
-              .mnc_digit3 &
-            0xf)
-           << 4) |
-          (trackingareaidentitylist->partial_tai_list[partial_item]
-             .u.tai_many_plmn[i]
-             .mcc_digit3 &
-           0xf);
+            0x00 |
+            ((trackingareaidentitylist->partial_tai_list[partial_item]
+                  .u.tai_many_plmn[i]
+                  .mnc_digit3 &
+              0xf)
+             << 4) |
+            (trackingareaidentitylist->partial_tai_list[partial_item]
+                 .u.tai_many_plmn[i]
+                 .mcc_digit3 &
+             0xf);
         encoded++;
         *(buffer + encoded) =
-          0x00 |
-          ((trackingareaidentitylist->partial_tai_list[partial_item]
-              .u.tai_many_plmn[i]
-              .mnc_digit2 &
-            0xf)
-           << 4) |
-          (trackingareaidentitylist->partial_tai_list[partial_item]
-             .u.tai_many_plmn[i]
-             .mnc_digit1 &
-           0xf);
+            0x00 |
+            ((trackingareaidentitylist->partial_tai_list[partial_item]
+                  .u.tai_many_plmn[i]
+                  .mnc_digit2 &
+              0xf)
+             << 4) |
+            (trackingareaidentitylist->partial_tai_list[partial_item]
+                 .u.tai_many_plmn[i]
+                 .mnc_digit1 &
+             0xf);
         encoded++;
         IES_ENCODE_U16(
-          buffer,
-          encoded,
-          trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
-            .tac);
+            buffer, encoded,
+            trackingareaidentitylist->partial_tai_list[partial_item]
+                .u.tai_many_plmn[i]
+                .tac);
       }
     } else {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "Type of TAIL list not handled %d",
-        trackingareaidentitylist->partial_tai_list[partial_item].typeoflist);
+          LOG_NAS, "Type of TAIL list not handled %d",
+          trackingareaidentitylist->partial_tai_list[partial_item].typeoflist);
       return TLV_VALUE_DOESNT_MATCH;
     }
     partial_item++;

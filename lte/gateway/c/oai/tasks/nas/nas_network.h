@@ -53,12 +53,12 @@ Description NAS procedure functions triggered by the network
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void nas_network_initialize(const mme_config_t *mme_config_p);
+void nas_network_initialize(const mme_config_t* mme_config_p);
 
 void nas_network_cleanup(void);
 
-int nas_network_process_data(int command_id, const void *data);
+int nas_network_process_data(int command_id, const void* data);
 
-const void *nas_network_get_data(void);
+const void* nas_network_get_data(void);
 
 #endif /* FILE_NAS_NETWORK_SEEN*/

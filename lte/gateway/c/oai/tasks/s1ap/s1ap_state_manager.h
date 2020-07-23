@@ -35,8 +35,8 @@ extern "C" {
 
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
-constexpr char S1AP_TASK_NAME[] = "S1AP";
-}
+constexpr char S1AP_TASK_NAME[]   = "S1AP";
+}  // namespace
 
 namespace magma {
 namespace lte {
@@ -45,13 +45,10 @@ namespace lte {
  * S1apStateManager is a thread safe singleton class that contains functions
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
-class S1apStateManager :
-  public StateManager<
-    s1ap_state_t,
-    ue_description_t,
-    magma::lte::oai::S1apState,
-    magma::lte::oai::UeDescription,
-    S1apStateConverter> {
+class S1apStateManager
+    : public StateManager<
+          s1ap_state_t, ue_description_t, magma::lte::oai::S1apState,
+          magma::lte::oai::UeDescription, S1apStateConverter> {
  public:
   /**
    * Returns an instance of S1apStateManager, guaranteed to be thread safe and
@@ -107,5 +104,5 @@ class S1apStateManager :
   uint32_t max_enbs_;
   s1ap_imsi_map_t* s1ap_imsi_map_;
 };
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -47,7 +47,8 @@ typedef enum attach_reject_iei_tag {
 
 /*
  * Message name: Attach reject
- * Description: This message is sent by the network to the UE to indicate that the corresponding attach request has been rejected. See table 8.2.3.1.
+ * Description: This message is sent by the network to the UE to indicate that
+ * the corresponding attach request has been rejected. See table 8.2.3.1.
  * Significance: dual
  * Direction: network to UE
  */
@@ -64,13 +65,9 @@ typedef struct attach_reject_msg_tag {
 } attach_reject_msg;
 
 int decode_attach_reject(
-  attach_reject_msg *attachreject,
-  uint8_t *buffer,
-  uint32_t len);
+    attach_reject_msg* attachreject, uint8_t* buffer, uint32_t len);
 
 int encode_attach_reject(
-  attach_reject_msg *attachreject,
-  uint8_t *buffer,
-  uint32_t len);
+    attach_reject_msg* attachreject, uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_REJECT_SEEN) */

@@ -32,29 +32,23 @@ extern "C" {
 #include "s6a_grpc_iface.h"
 
 //------------------------------------------------------------------------------
-S6aGrpcIface::S6aGrpcIface(void)
-{
+S6aGrpcIface::S6aGrpcIface(void) {
   send_activate_messages();
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface over gRPC: DONE\n");
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::update_location_req(s6a_update_location_req_t *ulr_p)
-{
+bool S6aGrpcIface::update_location_req(s6a_update_location_req_t* ulr_p) {
   return s6a_update_location_req(ulr_p);
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::authentication_info_req(s6a_auth_info_req_t *air_p)
-{
+bool S6aGrpcIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
   return s6a_authentication_info_req(air_p);
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP)
-{
+bool S6aGrpcIface::send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::purge_ue(const char *imsi)
-{
+bool S6aGrpcIface::purge_ue(const char* imsi) {
   return s6a_purge_ue(imsi);
 }
-

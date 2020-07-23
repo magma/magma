@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -34,19 +34,14 @@ typedef struct SupportedCodecList_tag {
 } SupportedCodecList[SUPPORTED_CODEC_LIST_NUMBER_OF_SYSTEM_INDICATION];
 
 int encode_supported_codec_list(
-  SupportedCodecList *supportedcodeclist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    SupportedCodecList* supportedcodeclist, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int decode_supported_codec_list(
-  SupportedCodecList *supportedcodeclist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    SupportedCodecList* supportedcodeclist, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 void dump_supported_codec_list_xml(
-  SupportedCodecList *supportedcodeclist,
-  uint8_t iei);
+    SupportedCodecList* supportedcodeclist, uint8_t iei);
 
 #endif /* SUPPORTED CODEC LIST_H_ */

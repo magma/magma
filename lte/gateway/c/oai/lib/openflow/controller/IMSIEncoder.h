@@ -31,7 +31,7 @@ class IMSIEncoder {
    * @param imsi - string representation of imsi
    * @return uint representation of imsi with padding amount at end
    */
-  static uint64_t compact_imsi(const std::string &imsi);
+  static uint64_t compact_imsi(const std::string& imsi);
 
   /*
    * Convert from the compacted uint back to a string, using the first two bits
@@ -42,4 +42,4 @@ class IMSIEncoder {
   static std::string expand_imsi(uint64_t compact);
 };
 
-} // namespace openflow
+}  // namespace openflow

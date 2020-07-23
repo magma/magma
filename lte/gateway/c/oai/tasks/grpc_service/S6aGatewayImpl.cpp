@@ -43,17 +43,13 @@ using namespace feg;
 S6aGatewayImpl::S6aGatewayImpl() {}
 
 Status S6aGatewayImpl::CancelLocation(
-  ServerContext *context,
-  const CancelLocationRequest *request,
-  CancelLocationAnswer *answer)
-{
-  auto imsi = request->user_name();
+    ServerContext* context, const CancelLocationRequest* request,
+    CancelLocationAnswer* answer) {
+  auto imsi              = request->user_name();
   auto cancellation_type = request->cancellation_type();
   OAILOG_INFO(
-    LOG_MME_APP,
-    "Received CLR for %s of type %d\n ",
-    imsi.c_str(),
-    cancellation_type);
+      LOG_MME_APP, "Received CLR for %s of type %d\n ", imsi.c_str(),
+      cancellation_type);
   if (cancellation_type == CancelLocationRequest::SUBSCRIPTION_WITHDRAWAL) {
     auto imsi_len = imsi.length();
     delete_subscriber_request(imsi.c_str(), imsi_len);
@@ -66,10 +62,8 @@ Status S6aGatewayImpl::CancelLocation(
 }
 
 Status S6aGatewayImpl::Reset(
-  ServerContext *context,
-  const ResetRequest *request,
-  ResetAnswer *response)
-{
+    ServerContext* context, const ResetRequest* request,
+    ResetAnswer* response) {
   if (response != NULL) {
     response->set_error_code(ErrorCode::SUCCESS);
   }
@@ -79,4 +73,4 @@ Status S6aGatewayImpl::Reset(
   return Status::OK;
 }
 
-} // namespace magma
+}  // namespace magma

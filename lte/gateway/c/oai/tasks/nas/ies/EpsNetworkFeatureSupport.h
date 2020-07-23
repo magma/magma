@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -56,15 +56,11 @@ typedef uint8_t eps_network_feature_support_t;
 #define EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST_BITMASK 0x20
 
 int encode_eps_network_feature_support(
-  eps_network_feature_support_t *epsnetworkfeaturesupport,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 int decode_eps_network_feature_support(
-  eps_network_feature_support_t *epsnetworkfeaturesupport,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* EPS_NETWORK_FEATURE_SUPPORT_SEEN */

@@ -33,32 +33,26 @@
 
 //------------------------------------------------------------------------------
 int sctp_itti_send_lower_layer_conf(
-  task_id_t origin_task_id,
-  sctp_assoc_id_t assoc_id,
-  sctp_stream_id_t stream,
-  uint32_t mme_ue_s1ap_id,
-  bool is_success)
-{
-  MessageDef *msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_CNF);
+    task_id_t origin_task_id, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
+    uint32_t mme_ue_s1ap_id, bool is_success) {
+  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_CNF);
 
-  SCTP_DATA_CNF(msg).assoc_id = assoc_id;
-  SCTP_DATA_CNF(msg).stream = stream;
+  SCTP_DATA_CNF(msg).assoc_id       = assoc_id;
+  SCTP_DATA_CNF(msg).stream         = stream;
   SCTP_DATA_CNF(msg).mme_ue_s1ap_id = mme_ue_s1ap_id;
-  SCTP_DATA_CNF(msg).is_success = is_success;
+  SCTP_DATA_CNF(msg).is_success     = is_success;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, origin_task_id, msg);
 }
 
 //------------------------------------------------------------------------------
 int sctp_itti_send_new_association(
-  sctp_assoc_id_t assoc_id,
-  sctp_stream_id_t instreams,
-  sctp_stream_id_t outstreams)
-{
-  MessageDef *msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
+    sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
+    sctp_stream_id_t outstreams) {
+  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
-  SCTP_NEW_ASSOCIATION(msg).assoc_id = assoc_id;
-  SCTP_NEW_ASSOCIATION(msg).instreams = instreams;
+  SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
+  SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
   SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
@@ -66,28 +60,25 @@ int sctp_itti_send_new_association(
 
 //------------------------------------------------------------------------------
 int sctp_itti_send_new_message_ind(
-  STOLEN_REF bstring *payload,
-  sctp_assoc_id_t assoc_id,
-  sctp_stream_id_t stream)
-{
-  MessageDef *msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_IND);
+    STOLEN_REF bstring* payload, sctp_assoc_id_t assoc_id,
+    sctp_stream_id_t stream) {
+  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_IND);
 
-  SCTP_DATA_IND(msg).payload = *payload;
-  SCTP_DATA_IND(msg).stream = stream;
+  SCTP_DATA_IND(msg).payload  = *payload;
+  SCTP_DATA_IND(msg).stream   = stream;
   SCTP_DATA_IND(msg).assoc_id = assoc_id;
 
-  STOLEN_REF *payload = NULL;
+  STOLEN_REF* payload = NULL;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
 }
 
 //------------------------------------------------------------------------------
-int sctp_itti_send_com_down_ind(sctp_assoc_id_t assoc_id, bool reset)
-{
-  MessageDef *msg = itti_alloc_new_message(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
+int sctp_itti_send_com_down_ind(sctp_assoc_id_t assoc_id, bool reset) {
+  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
 
   SCTP_CLOSE_ASSOCIATION(msg).assoc_id = assoc_id;
-  SCTP_CLOSE_ASSOCIATION(msg).reset = reset;
+  SCTP_CLOSE_ASSOCIATION(msg).reset    = reset;
 
   return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
 }

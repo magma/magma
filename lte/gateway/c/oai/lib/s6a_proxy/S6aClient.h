@@ -59,32 +59,32 @@ class S6aClient : public GRPCReceiver {
    * Proxy a purge gRPC call to s6a_proxy
    */
   static void purge_ue(
-    const char *imsi,
-    std::function<void(Status, feg::PurgeUEAnswer)> callback);
+      const char* imsi,
+      std::function<void(Status, feg::PurgeUEAnswer)> callback);
 
   /**
    * Proxy a purge gRPC call to s6a_proxy
    */
   static void authentication_info_req(
-    const s6a_auth_info_req_t *const msg,
-    std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk);
+      const s6a_auth_info_req_t* const msg,
+      std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk);
 
   /**
    * Proxy a purge gRPC call to s6a_proxy
    */
   static void update_location_request(
-    const s6a_update_location_req_t *const msg,
-    std::function<void(Status, feg::UpdateLocationAnswer)> callback);
+      const s6a_update_location_req_t* const msg,
+      std::function<void(Status, feg::UpdateLocationAnswer)> callback);
 
  public:
-  S6aClient(S6aClient const &) = delete;
-  void operator=(S6aClient const &) = delete;
+  S6aClient(S6aClient const&) = delete;
+  void operator=(S6aClient const&) = delete;
 
  private:
   S6aClient();
-  static S6aClient &get_instance();
+  static S6aClient& get_instance();
   std::unique_ptr<feg::S6aProxy::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 3; // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 3;  // seconds
 };
 
 // There are 3 services which can handle authentication:
@@ -99,4 +99,4 @@ class S6aClient : public GRPCReceiver {
 bool get_s6a_relay_enabled(void);
 bool get_cloud_subscriberdb_enabled(void);
 
-} // namespace magma
+}  // namespace magma

@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -42,8 +42,8 @@
 
 /*
  * Message name: Authentication request
- * Description: This message is sent by the network to the UE to initiate authentication of the UE identity. See table 8.2.7.1.
- * Significance: dual
+ * Description: This message is sent by the network to the UE to initiate
+ * authentication of the UE identity. See table 8.2.7.1. Significance: dual
  * Direction: network to UE
  */
 
@@ -58,13 +58,11 @@ typedef struct authentication_request_msg_tag {
 } authentication_request_msg;
 
 int decode_authentication_request(
-  authentication_request_msg *authenticationrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    authentication_request_msg* authenticationrequest, uint8_t* buffer,
+    uint32_t len);
 
 int encode_authentication_request(
-  authentication_request_msg *authenticationrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    authentication_request_msg* authenticationrequest, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(FILE_AUTHENTICATION_REQUEST_SEEN) */

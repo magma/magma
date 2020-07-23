@@ -33,7 +33,7 @@ Description Defines internal private data handled by EPS Session
         Management sublayer.
 
 *****************************************************************************/
-#include <stdio.h> // sprintf
+#include <stdio.h>  // sprintf
 
 #ifndef __ESMDATA_H__
 #define __ESMDATA_H__
@@ -65,19 +65,19 @@ Description Defines internal private data handled by EPS Session
 typedef enum {
   ESM_EBR_INACTIVE,         /* No EPS bearer context exists     */
   ESM_EBR_ACTIVE,           /* The EPS bearer context is active,
-                 * in the UE, in the network        */
+                             * in the UE, in the network        */
   ESM_EBR_INACTIVE_PENDING, /* The network has initiated an EPS bearer
-                 * context deactivation towards the UE  */
+                             * context deactivation towards the UE  */
   ESM_EBR_MODIFY_PENDING,   /* The network has initiated an EPS bearer
-                 * context modification towards the UE  */
+                             * context modification towards the UE  */
   ESM_EBR_ACTIVE_PENDING,   /* The network has initiated an EPS bearer
-                 * context activation towards the UE    */
+                             * context activation towards the UE    */
   ESM_EBR_STATE_MAX
 } esm_ebr_state;
 
 /* ESM message timer retransmission data */
 typedef struct esm_ebr_timer_data_s {
-  void *ctx;
+  void* ctx;
   mme_ue_s1ap_id_t ue_id; /* Lower layers UE identifier       */
   unsigned int ebi;       /* EPS bearer identity          */
   unsigned int count;     /* Retransmission counter       */
@@ -94,14 +94,14 @@ typedef struct esm_ebr_context_s {
   esm_ebr_state status; /* EPS bearer context status        */
 
   struct nas_timer_t timer;   /* Retransmission timer         */
-  esm_ebr_timer_data_t *args; /* Retransmission timer parameters data */
+  esm_ebr_timer_data_t* args; /* Retransmission timer parameters data */
 } esm_ebr_context_t;
 
 typedef struct esm_ebr_data_s {
   unsigned char index; /* Index of the next EPS bearer context
-                 * identity to be used */
+                        * identity to be used */
 #define ESM_EBR_DATA_SIZE (ESM_EBI_MAX - ESM_EBI_MIN + 1)
-  esm_ebr_context_t *context[ESM_EBR_DATA_SIZE + 1];
+  esm_ebr_context_t* context[ESM_EBR_DATA_SIZE + 1];
 } esm_ebr_data_t;
 
 /*
@@ -135,7 +135,7 @@ typedef struct esm_bearer_s {
  */
 typedef struct esm_pdn_s {
   unsigned int pti;  /* Identity of the procedure transaction executed
-             * to activate the PDN connection entry     */
+                      * to activate the PDN connection entry     */
   bool is_emergency; /* Emergency bearer services indicator      */
   bstring apn;       /* Access Point Name currently in used      */
   int ambr;          /* Aggregate Maximum Bit Rate of this APN   */
@@ -147,13 +147,13 @@ typedef struct esm_pdn_s {
   /* IPv4 PDN address and/or IPv6 prefix      */
   char ip_addr[ESM_DATA_IP_ADDRESS_SIZE + 1];
   int addr_realloc; /* Indicates whether the UE is allowed to subsequently
-             * request another PDN connectivity to the same APN
-             * using an address PDN type (IPv4 or IPv6) other
-             * than the one already activated       */
+                     * request another PDN connectivity to the same APN
+                     * using an address PDN type (IPv4 or IPv6) other
+                     * than the one already activated       */
   int n_bearers;    /* Number of allocated EPS bearers;
-             * default EPS bearer is defined at index 0 */
+                     * default EPS bearer is defined at index 0 */
 #define ESM_DATA_EPS_BEARER_MAX 4
-  esm_bearer_t *bearer[ESM_DATA_EPS_BEARER_MAX];
+  esm_bearer_t* bearer[ESM_DATA_EPS_BEARER_MAX];
 } esm_pdn_t;
 
 /*
@@ -170,14 +170,14 @@ typedef struct esm_data_context_s {
   int n_ebrs;        /* Total number of active EPS bearer contexts   */
   int n_pdns;        /* Number of active PDN connections     */
   bool is_emergency; /* Indicates whether a PDN connection for emergency
-             * bearer services is established       */
+                      * bearer services is established       */
 #define ESM_DATA_PDN_MAX 4
   struct {
     int pid;         /* Identifier of the PDN connection        */
     bool is_active;  /* true/false if the PDN connection is active/inactive
-              * or the process to activate/deactivate the PDN
-              * connection is in progress           */
-    esm_pdn_t *data; /* Active PDN connection data          */
+                      * or the process to activate/deactivate the PDN
+                      * connection is in progress           */
+    esm_pdn_t* data; /* Active PDN connection data          */
   } pdn[ESM_DATA_PDN_MAX + 1];
 
   esm_ebr_data_t ebr;
@@ -186,7 +186,8 @@ typedef struct esm_data_context_s {
      Buffer used to encode ESM messages before being returned to the EPS
      Mobility Management sublayer in order to be sent onto the network.
      Used in _esm_sap_send(), _esm_sap_recv().
-     TODO: May be not the best place to put this buffer, but better than global variable as it was before
+     TODO: May be not the best place to put this buffer, but better than global
+   variable as it was before
   */
 #define ESM_SAP_BUFFER_SIZE 4096
   char esm_sap_buffer[ESM_SAP_BUFFER_SIZE];
@@ -215,17 +216,15 @@ typedef struct esm_data_s {
   RB_HEAD(esm_data_context_map, esm_data_context_s) ctx_map;
 } esm_data_t;
 
-void free_esm_data_context(esm_data_context_t *esm_data_ctx);
+void free_esm_data_context(esm_data_context_t* esm_data_ctx);
 
-struct esm_data_context_s *esm_data_context_get(
-  esm_data_t *esm_data,
-  unsigned int _ueid);
+struct esm_data_context_s* esm_data_context_get(
+    esm_data_t* esm_data, unsigned int _ueid);
 
-struct esm_data_context_s *esm_data_context_remove(
-  esm_data_t *esm_data,
-  struct esm_data_context_s *elm);
+struct esm_data_context_s* esm_data_context_remove(
+    esm_data_t* esm_data, struct esm_data_context_s* elm);
 
-void esm_data_context_add(esm_data_t *esm_data, struct esm_data_context_s *elm);
+void esm_data_context_add(esm_data_t* esm_data, struct esm_data_context_s* elm);
 
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
@@ -243,10 +242,10 @@ extern esm_data_t _esm_data;
 
 extern char ip_addr_str[100];
 
-extern char *esm_data_get_ipv4_addr(const_bstring ip_addr);
+extern char* esm_data_get_ipv4_addr(const_bstring ip_addr);
 
-extern char *esm_data_get_ipv6_addr(const_bstring ip_addr);
+extern char* esm_data_get_ipv6_addr(const_bstring ip_addr);
 
-extern char *esm_data_get_ipv4v6_addr(const_bstring ip_addr);
+extern char* esm_data_get_ipv4v6_addr(const_bstring ip_addr);
 
 #endif /* __ESMDATA_H__*/

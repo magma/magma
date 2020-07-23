@@ -49,7 +49,7 @@ int log_event(const Event& event) {
     } else if (
         status.error_code() == DEADLINE_EXCEEDED ||
         status.error_code() == UNAVAILABLE) {
-      return 0; // Suppress error logs if eventd is unavailable
+      return 0;  // Suppress error logs if eventd is unavailable
     } else {
       std::cout << "[ERROR] Failed to log event: " << event.event_type()
                 << "; Status: " << status.error_message() << std::endl;

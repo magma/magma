@@ -46,10 +46,10 @@ extern "C" {
 using namespace std;
 
 static int gnutls_log_level = 9;
-static long timer_id = 0;
+static long timer_id        = 0;
 
-static void fd_gnutls_debug(int level, const char *str);
-static void oai_fd_logger(int loglevel, const char *format, va_list args);
+static void fd_gnutls_debug(int level, const char* str);
+static void oai_fd_logger(int loglevel, const char* format, va_list args);
 
 #define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
 #define S6A_PEER_CONNECT_TIMEOUT_SEC (1)
@@ -58,15 +58,13 @@ static void oai_fd_logger(int loglevel, const char *format, va_list args);
 s6a_fd_cnf_t s6a_fd_cnf;
 
 //------------------------------------------------------------------------------
-static void fd_gnutls_debug(int loglevel, const char *str)
-{
+static void fd_gnutls_debug(int loglevel, const char* str) {
   OAILOG_EXTERNAL(loglevel, LOG_S6A, "[GTLS] %s", str);
 }
 
 //------------------------------------------------------------------------------
 // callback for freeDiameter logs
-static void oai_fd_logger(int loglevel, const char *format, va_list args)
-{
+static void oai_fd_logger(int loglevel, const char* format, va_list args) {
 #define FD_LOG_MAX_MESSAGE_LENGTH 8192
   char buffer[FD_LOG_MAX_MESSAGE_LENGTH];
   int rv = 0;
@@ -79,8 +77,7 @@ static void oai_fd_logger(int loglevel, const char *format, va_list args)
 }
 
 //------------------------------------------------------------------------------
-S6aFdIface::S6aFdIface(const s6a_config_t * const config)
-{
+S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
   int ret = RETURNok;
   memset(&s6a_fd_cnf, 0, sizeof(s6a_fd_cnf_t));
 
@@ -93,10 +90,11 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   ret = fd_log_handler_register(oai_fd_logger);
   if (ret) {
     OAILOG_ERROR(
-      LOG_S6A,
-      "An error occurred during freeDiameter log handler registration: %d\n",
-      ret);
-    std::runtime_error("An error occurred during freeDiameter log handler "
+        LOG_S6A,
+        "An error occurred during freeDiameter log handler registration: %d\n",
+        ret);
+    std::runtime_error(
+        "An error occurred during freeDiameter log handler "
         "registration");
   } else {
     OAILOG_DEBUG(LOG_S6A, "Initializing freeDiameter log handler done\n");
@@ -109,10 +107,12 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   ret = fd_core_initialize();
   if (ret) {
     OAILOG_ERROR(
-      LOG_S6A,
-      "An error occurred during freeDiameter core library initialization: %d\n",
-      ret);
-    std::runtime_error("An error occurred during freeDiameter core library "
+        LOG_S6A,
+        "An error occurred during freeDiameter core library initialization: "
+        "%d\n",
+        ret);
+    std::runtime_error(
+        "An error occurred during freeDiameter core library "
         "initialization");
   } else {
     OAILOG_DEBUG(LOG_S6A, "Initializing freeDiameter core done\n");
@@ -123,9 +123,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   ret = fd_core_parseconf(bdata(config->conf_file));
   if (ret) {
     OAILOG_ERROR(
-      LOG_S6A,
-      "An error occurred during fd_core_parseconf file : %s.\n",
-      bdata(config->conf_file));
+        LOG_S6A, "An error occurred during fd_core_parseconf file : %s.\n",
+        bdata(config->conf_file));
     std::runtime_error("An error occurred during fd_core_parseconf file");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_parseconf done\n");
@@ -138,7 +137,7 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
     gnutls_global_set_log_function((gnutls_log_func) fd_gnutls_debug);
     gnutls_global_set_log_level(gnutls_log_level);
     OAILOG_DEBUG(
-      LOG_S6A, "Enabled GNUTLS debug at level %d\n", gnutls_log_level);
+        LOG_S6A, "Enabled GNUTLS debug at level %d\n", gnutls_log_level);
   }
 
   /*
@@ -147,8 +146,9 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   ret = fd_core_start();
   if (ret) {
     OAILOG_ERROR(
-      LOG_S6A, "An error occurred during freeDiameter core library start\n");
-    std::runtime_error("An error occurred during freeDiameter core library "
+        LOG_S6A, "An error occurred during freeDiameter core library start\n");
+    std::runtime_error(
+        "An error occurred during freeDiameter core library "
         "start");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_start done\n");
@@ -157,8 +157,9 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   ret = fd_core_waitstartcomplete();
   if (ret) {
     OAILOG_ERROR(
-      LOG_S6A, "An error occurred during freeDiameter core library start\n");
-    std::runtime_error("An error occurred during freeDiameter core library "
+        LOG_S6A, "An error occurred during freeDiameter core library start\n");
+    std::runtime_error(
+        "An error occurred during freeDiameter core library "
         "start\n");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_waitstartcomplete done\n");
@@ -173,49 +174,46 @@ S6aFdIface::S6aFdIface(const s6a_config_t * const config)
   }
 
   OAILOG_DEBUG(
-    LOG_S6A,
-    "Initializing S6a interface over free-diameter:"
-    "DONE\n");
+      LOG_S6A,
+      "Initializing S6a interface over free-diameter:"
+      "DONE\n");
 
   /* Add timer here to send message to connect to peer */
   timer_setup(
-    S6A_PEER_CONNECT_TIMEOUT_SEC,
-    S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
-    TASK_S6A,
-    INSTANCE_DEFAULT,
-    TIMER_ONE_SHOT,
-    NULL,
-    0,
-    &timer_id);
+      S6A_PEER_CONNECT_TIMEOUT_SEC, S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
+      TASK_S6A, INSTANCE_DEFAULT, TIMER_ONE_SHOT, NULL, 0, &timer_id);
 }
 
 //------------------------------------------------------------------------------
-bool S6aFdIface::update_location_req(s6a_update_location_req_t *ulr_p)
-{
- if (s6a_generate_update_location(ulr_p)) return false;
- else return true;
+bool S6aFdIface::update_location_req(s6a_update_location_req_t* ulr_p) {
+  if (s6a_generate_update_location(ulr_p))
+    return false;
+  else
+    return true;
 }
 //------------------------------------------------------------------------------
-bool S6aFdIface::authentication_info_req(s6a_auth_info_req_t *air_p)
-{
-  if (s6a_generate_authentication_info_req(air_p)) return false;
-  else return true;
+bool S6aFdIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
+  if (s6a_generate_authentication_info_req(air_p))
+    return false;
+  else
+    return true;
 }
 //------------------------------------------------------------------------------
-bool  S6aFdIface::send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP)
-{
-  if (s6a_send_cancel_location_ans(cla_pP)) return false;
-  else return true;
+bool S6aFdIface::send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
+  if (s6a_send_cancel_location_ans(cla_pP))
+    return false;
+  else
+    return true;
 }
 //------------------------------------------------------------------------------
-bool S6aFdIface::purge_ue(const char *imsi)
-{
-  if (s6a_generate_purge_ue_req(imsi)) return false;
-  else return true;
+bool S6aFdIface::purge_ue(const char* imsi) {
+  if (s6a_generate_purge_ue_req(imsi))
+    return false;
+  else
+    return true;
 }
 //------------------------------------------------------------------------------
-void S6aFdIface::timer_expired (const long timer_idP)
-{
+void S6aFdIface::timer_expired(const long timer_idP) {
   if (!timer_exists(timer_idP)) {
     return;
   }
@@ -230,35 +228,24 @@ void S6aFdIface::timer_expired (const long timer_idP)
      * * longer to return than the period, the timer will schedule while
      * * the previous one is active, causing a seg fault.
      */
-    increment_counter(
-      "s6a_subscriberdb_connection_failure", 1, NO_LABELS);
+    increment_counter("s6a_subscriberdb_connection_failure", 1, NO_LABELS);
     OAILOG_ERROR(
-      LOG_S6A,
-      "s6a_fd_new_peer has failed (%s:%d)\n",
-      __FILE__,
-      __LINE__);
+        LOG_S6A, "s6a_fd_new_peer has failed (%s:%d)\n", __FILE__, __LINE__);
     timer_setup(
-      S6A_PEER_CONNECT_TIMEOUT_SEC,
-      S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
-      TASK_S6A,
-      INSTANCE_DEFAULT,
-      TIMER_ONE_SHOT,
-      NULL,
-      0,
-      &timer_id);
+        S6A_PEER_CONNECT_TIMEOUT_SEC, S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
+        TASK_S6A, INSTANCE_DEFAULT, TIMER_ONE_SHOT, NULL, 0, &timer_id);
   }
   timer_handle_expired(timer_idP);
 }
 //------------------------------------------------------------------------------
-S6aFdIface::~S6aFdIface()
-{
+S6aFdIface::~S6aFdIface() {
   if (timer_id) {
     timer_remove(timer_id, NULL);
   }
   // Release all resources
-  free_wrapper((void **) &fd_g_config->cnf_diamid);
+  free_wrapper((void**) &fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;
-  int rv = RETURNok;
+  int rv                      = RETURNok;
   /* Initialize shutdown of the framework */
   rv = fd_core_shutdown();
   if (rv) {
@@ -270,6 +257,6 @@ S6aFdIface::~S6aFdIface()
   rv = fd_core_wait_shutdown_complete();
   if (rv) {
     OAI_FPRINTF_ERR(
-      "An error occurred during fd_core_wait_shutdown_complete().\n");
+        "An error occurred during fd_core_wait_shutdown_complete().\n");
   }
 }

@@ -43,7 +43,8 @@ Description Defines the EMMAS Service Access Point that provides
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/
 #define QUADLET 4
-#define EMM_GET_BYTE_ALIGNED_LENGTH(LENGTH) LENGTH += QUADLET - (LENGTH % QUADLET)
+#define EMM_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+  LENGTH += QUADLET - (LENGTH % QUADLET)
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/
 /****************************************************************************/
@@ -58,6 +59,6 @@ Description Defines the EMMAS Service Access Point that provides
 
 void emm_as_initialize(void);
 
-int emm_as_send(emm_as_t *msg);
+int emm_as_send(emm_as_t* msg);
 
 #endif /* FILE_EMM_AS_SEEN*/

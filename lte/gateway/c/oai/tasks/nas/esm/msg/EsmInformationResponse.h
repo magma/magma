@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -43,14 +43,14 @@
 typedef enum esm_information_response_iei_tag {
   ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_IEI = SM_ACCESS_POINT_NAME_IEI,
   ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } esm_information_response_iei;
 
 /*
  * Message name: ESM information response
- * Description: This message is sent by the UE to the network in response to an ESM INFORMATION REQUEST message and provides the requested ESM information. See table 8.3.14.1.
- * Significance: dual
- * Direction: UE to network
+ * Description: This message is sent by the UE to the network in response to an
+ * ESM INFORMATION REQUEST message and provides the requested ESM information.
+ * See table 8.3.14.1. Significance: dual Direction: UE to network
  */
 
 typedef struct esm_information_response_msg_tag {
@@ -66,13 +66,11 @@ typedef struct esm_information_response_msg_tag {
 } esm_information_response_msg;
 
 int decode_esm_information_response(
-  esm_information_response_msg *esminformationresponse,
-  uint8_t *buffer,
-  uint32_t len);
+    esm_information_response_msg* esminformationresponse, uint8_t* buffer,
+    uint32_t len);
 
 int encode_esm_information_response(
-  esm_information_response_msg *esminformationresponse,
-  uint8_t *buffer,
-  uint32_t len);
+    esm_information_response_msg* esminformationresponse, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(ESM_INFORMATION_RESPONSE_H_) */

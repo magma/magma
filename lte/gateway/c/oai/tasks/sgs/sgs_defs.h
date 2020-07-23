@@ -17,11 +17,11 @@
  */
 
 /*! \file sgs.h
-* \brief
-* \author
-* \company
-* \email:
-*/
+ * \brief
+ * \author
+ * \company
+ * \email:
+ */
 
 #ifndef FILE_SGS_SEEN
 #define FILE_SGS_SEEN
@@ -33,6 +33,6 @@
 #include "nas/commonDef.h"
 #include "common_types.h"
 
-int sgs_init(const mme_config_t *mme_config);
+int sgs_init(const mme_config_t* mme_config);
 
 #endif

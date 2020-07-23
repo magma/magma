@@ -35,27 +35,25 @@
 #include "conversions.h"
 
 int sgs_send_paging_reject(
-  itti_sgsap_paging_reject_t *const sgs_paging_reject_p)
-{
+    itti_sgsap_paging_reject_t* const sgs_paging_reject_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
   IMSI_TO_IMSI64(&(sgs_paging_reject_p->imsi), imsi64);
   OAILOG_DEBUG(
-    LOG_SGS,
-    "Received SGS_SERVICE_REQUEST from task MME_APP for (IMSI = " IMSI_64_FMT
-    ") \n",
-    imsi64);
+      LOG_SGS,
+      "Received SGS_SERVICE_REQUEST from task MME_APP for (IMSI = " IMSI_64_FMT
+      ") \n",
+      imsi64);
   return 0;
 }
 
 int sgs_send_ue_unreachable(
-  itti_sgsap_ue_unreachable_t *const sgs_ue_unreachable_p)
-{
+    itti_sgsap_ue_unreachable_t* const sgs_ue_unreachable_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
   IMSI_TO_IMSI64(&(sgs_ue_unreachable_p->imsi), imsi64);
   OAILOG_DEBUG(
-    LOG_SGS,
-    "Received SGS_UE_UNREACHABLE from task MME_APP for (IMSI = " IMSI_64_FMT
-    ") \n",
-    imsi64);
+      LOG_SGS,
+      "Received SGS_UE_UNREACHABLE from task MME_APP for (IMSI = " IMSI_64_FMT
+      ") \n",
+      imsi64);
   return 0;
 }

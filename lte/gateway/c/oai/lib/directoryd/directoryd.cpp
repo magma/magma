@@ -27,40 +27,35 @@
 
 static void directoryd_rpc_call_done(const grpc::Status& status);
 
-bool directoryd_report_location(char* imsi)
-{
+bool directoryd_report_location(char* imsi) {
   // Actual GW_ID will be filled in the cloud
   magma::GatewayDirectoryServiceClient::UpdateRecord(
-    "IMSI" + std::string(imsi),
-    std::string("GW_ID"),
-    [&](grpc::Status status, magma::Void response) {
-      directoryd_rpc_call_done(status);
-    });
+      "IMSI" + std::string(imsi), std::string("GW_ID"),
+      [&](grpc::Status status, magma::Void response) {
+        directoryd_rpc_call_done(status);
+      });
   return true;
 }
 
-bool directoryd_remove_location(char* imsi)
-{
+bool directoryd_remove_location(char* imsi) {
   magma::GatewayDirectoryServiceClient::DeleteRecord(
-    "IMSI" + std::string(imsi), [&](grpc::Status status, magma::Void response) {
-      directoryd_rpc_call_done(status);
-    });
+      "IMSI" + std::string(imsi),
+      [&](grpc::Status status, magma::Void response) {
+        directoryd_rpc_call_done(status);
+      });
   return true;
 }
 
-bool directoryd_update_location(char* imsi, char* location)
-{
+bool directoryd_update_location(char* imsi, char* location) {
   magma::GatewayDirectoryServiceClient::UpdateRecord(
-    "IMSI" + std::string(imsi),
-    std::string(location),
-    [&](grpc::Status status, magma::Void response) {
-      directoryd_rpc_call_done(status);
-    });
+      "IMSI" + std::string(imsi), std::string(location),
+      [&](grpc::Status status, magma::Void response) {
+        directoryd_rpc_call_done(status);
+      });
   return true;
 }
 
-void directoryd_rpc_call_done(const grpc::Status& status)
-{
+void directoryd_rpc_call_done(const grpc::Status& status) {
   if (!status.ok()) {
     std::cerr << "Directoryd RPC failed with code " << status.error_code()
               << ", msg: " << status.error_message() << std::endl;

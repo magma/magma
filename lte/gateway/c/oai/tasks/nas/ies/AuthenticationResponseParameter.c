@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -25,12 +25,9 @@
 #include "AuthenticationResponseParameter.h"
 
 int decode_authentication_response_parameter(
-  AuthenticationResponseParameter *authenticationresponseparameter,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    AuthenticationResponseParameter* authenticationresponseparameter,
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
   int decode_result;
 
@@ -43,12 +40,9 @@ int decode_authentication_response_parameter(
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  if (
-    (decode_result = decode_bstring(
-       authenticationresponseparameter,
-       ielen,
-       buffer + decoded,
-       len - decoded)) < 0)
+  if ((decode_result = decode_bstring(
+           authenticationresponseparameter, ielen, buffer + decoded,
+           len - decoded)) < 0)
     return decode_result;
   else
     decoded += decode_result;
@@ -57,12 +51,9 @@ int decode_authentication_response_parameter(
 }
 
 int encode_authentication_response_parameter(
-  AuthenticationResponseParameter authenticationresponseparameter,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    AuthenticationResponseParameter authenticationresponseparameter,
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
   int encode_result;
 
@@ -70,7 +61,7 @@ int encode_authentication_response_parameter(
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, AUTHENTICATION_RESPONSE_PARAMETER_MINIMUM_LENGTH, len);
+      buffer, AUTHENTICATION_RESPONSE_PARAMETER_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -80,9 +71,9 @@ int encode_authentication_response_parameter(
   lenPtr = (buffer + encoded);
   encoded++;
 
-  if (
-    (encode_result = encode_bstring(
-       authenticationresponseparameter, buffer + encoded, len - encoded)) < 0)
+  if ((encode_result = encode_bstring(
+           authenticationresponseparameter, buffer + encoded, len - encoded)) <
+      0)
     return encode_result;
   else
     encoded += encode_result;
@@ -92,9 +83,8 @@ int encode_authentication_response_parameter(
 }
 
 void dump_authentication_response_parameter_xml(
-  AuthenticationResponseParameter authenticationresponseparameter,
-  uint8_t iei)
-{
+    AuthenticationResponseParameter authenticationresponseparameter,
+    uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Authentication Response Parameter>\n");
   bstring b = dump_bstring_xml(authenticationresponseparameter);
   OAILOG_DEBUG(LOG_NAS, "%s", bdata(b));

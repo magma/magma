@@ -16,7 +16,6 @@
  *      contact@openairinterface.org
  */
 
-
 #pragma once
 
 #include <gmp.h>
@@ -33,36 +32,36 @@ namespace magma {
 using namespace feg;
 
 AlertAck convert_itti_sgsap_alert_ack_to_proto_msg(
-  const itti_sgsap_alert_ack_t *msg);
+    const itti_sgsap_alert_ack_t* msg);
 
 AlertReject convert_itti_sgsap_alert_reject_to_proto_msg(
-  const itti_sgsap_alert_reject_t *msg);
+    const itti_sgsap_alert_reject_t* msg);
 
 LocationUpdateRequest convert_itti_sgsap_location_update_req_to_proto_msg(
-  const itti_sgsap_location_update_req_t *msg);
+    const itti_sgsap_location_update_req_t* msg);
 
 TMSIReallocationComplete convert_itti_sgsap_tmsi_reallocation_comp_to_proto_msg(
-  const itti_sgsap_tmsi_reallocation_comp_t *msg);
+    const itti_sgsap_tmsi_reallocation_comp_t* msg);
 
 EPSDetachIndication convert_itti_sgsap_eps_detach_ind_to_proto_msg(
-  const itti_sgsap_eps_detach_ind_t *msg);
+    const itti_sgsap_eps_detach_ind_t* msg);
 
 IMSIDetachIndication convert_itti_sgsap_imsi_detach_ind_to_proto_msg(
-  const itti_sgsap_imsi_detach_ind_t *msg);
+    const itti_sgsap_imsi_detach_ind_t* msg);
 
 PagingReject convert_itti_sgsap_paging_reject_to_proto_msg(
-  const itti_sgsap_paging_reject_t *msg);
+    const itti_sgsap_paging_reject_t* msg);
 
 ServiceRequest convert_itti_sgsap_service_request_to_proto_msg(
-  const itti_sgsap_service_request_t *msg);
+    const itti_sgsap_service_request_t* msg);
 
 UEActivityIndication convert_itti_sgsap_ue_activity_indication_to_proto_msg(
-  const itti_sgsap_ue_activity_ind_t *msg);
+    const itti_sgsap_ue_activity_ind_t* msg);
 
 UEUnreachable convert_itti_sgsap_ue_unreachable_to_proto_msg(
-  const itti_sgsap_ue_unreachable_t *msg);
+    const itti_sgsap_ue_unreachable_t* msg);
 
 UplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
-  const itti_sgsap_uplink_unitdata_t *msg);
+    const itti_sgsap_uplink_unitdata_t* msg);
 
-} // namespace magma
+}  // namespace magma

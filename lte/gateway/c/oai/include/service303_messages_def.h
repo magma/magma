@@ -15,13 +15,11 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-//WARNING: Do not include this header directly. Use intertask_interface.h instead.
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
 
 MESSAGE_DEF(
-  APPLICATION_HEALTHY_MSG,
-  application_healthy_msg_t,
-  application_healthy_msg)
+    APPLICATION_HEALTHY_MSG, application_healthy_msg_t, application_healthy_msg)
 MESSAGE_DEF(
-  APPLICATION_UNHEALTHY_MSG,
-  application_unhealthy_msg_t,
-  application_unhealthy_msg)
+    APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
+    application_unhealthy_msg)

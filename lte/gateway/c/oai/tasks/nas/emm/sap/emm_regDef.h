@@ -87,8 +87,8 @@ typedef enum {
  */
 typedef struct emm_reg_attach_s {
   bool is_emergency; /* true if the UE was attempting to register to
-             * the network for emergency services only  */
-  struct nas_emm_attach_proc_s *proc;
+                      * the network for emergency services only  */
+  struct nas_emm_attach_proc_s* proc;
 } emm_reg_attach_t;
 
 /*
@@ -96,7 +96,7 @@ typedef struct emm_reg_attach_s {
  * -------------------------------------
  */
 typedef struct emm_reg_tau_s {
-  struct nas_emm_tau_proc_s *proc;
+  struct nas_emm_tau_proc_s* proc;
 } emm_reg_tau_t;
 
 /*
@@ -113,8 +113,8 @@ typedef struct emm_reg_detach_s {
  */
 typedef struct emm_reg_sr_s {
   bool is_emergency; /* true if the UE was attempting to register to
-             * the network for emergency services only  */
-  struct nas_sr_proc_s *proc;
+                      * the network for emergency services only  */
+  struct nas_sr_proc_s* proc;
 } emm_reg_sr_t;
 
 /*
@@ -124,7 +124,7 @@ typedef struct emm_reg_sr_s {
 struct nas_emm_common_proc_s;
 typedef struct emm_reg_common_s {
   emm_fsm_state_t previous_emm_fsm_state;
-  struct nas_emm_common_proc_s *common_proc;
+  struct nas_emm_common_proc_s* common_proc;
 } emm_reg_common_t;
 /*
  * EMMREG primitive for Lower Layer success
@@ -166,8 +166,8 @@ typedef struct emm_reg_sdu_non_delivery_ho_s {
 typedef struct emm_reg_s {
   emm_reg_primitive_t primitive;
   mme_ue_s1ap_id_t ue_id;
-  struct emm_context_s *ctx;
-  bool notify; // notify through call-backs
+  struct emm_context_s* ctx;
+  bool notify;  // notify through call-backs
   bool free_proc;
 
   union {

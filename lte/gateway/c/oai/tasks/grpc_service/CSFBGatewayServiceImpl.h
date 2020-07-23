@@ -66,9 +66,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status AlertReq(
-    ServerContext *context,
-    const AlertRequest *request,
-    Void *response) override;
+      ServerContext* context, const AlertRequest* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to transparently relay a NAS message
@@ -79,9 +78,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status Downlink(
-    ServerContext *context,
-    const DownlinkUnitdata *request,
-    Void *response) override;
+      ServerContext* context, const DownlinkUnitdata* request,
+      Void* response) override;
   /*
    * Sent from the VLR to the MME to acknowledge
        a previous SGsAP-EPS-DETACH-INDICATION message
@@ -92,9 +90,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status EPSDetachAc(
-    ServerContext *context,
-    const EPSDetachAck *request,
-    Void *response) override;
+      ServerContext* context, const EPSDetachAck* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to acknowledge
@@ -106,9 +103,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status IMSIDetachAc(
-    ServerContext *context,
-    const IMSIDetachAck *request,
-    Void *response) override;
+      ServerContext* context, const IMSIDetachAck* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to indicate that update or IMSI attach
@@ -121,9 +117,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status LocationUpdateAcc(
-    ServerContext *context,
-    const LocationUpdateAccept *request,
-    Void *response) override;
+      ServerContext* context, const LocationUpdateAccept* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to indicate that
@@ -136,9 +131,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status LocationUpdateRej(
-    ServerContext *context,
-    const LocationUpdateReject *request,
-    Void *response) override;
+      ServerContext* context, const LocationUpdateReject* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to provide the UE
@@ -150,9 +144,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status MMInformationReq(
-    ServerContext *context,
-    const MMInformationRequest *request,
-    Void *response) override;
+      ServerContext* context, const MMInformationRequest* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME, containing sufficient information
@@ -166,9 +159,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status PagingReq(
-    ServerContext *context,
-    const PagingRequest *request,
-    Void *response) override;
+      ServerContext* context, const PagingRequest* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME when the VLR determines that
@@ -182,9 +174,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status ReleaseReq(
-    ServerContext *context,
-    const ReleaseRequest *request,
-    Void *response) override;
+      ServerContext* context, const ReleaseRequest* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to abort a mobile
@@ -196,9 +187,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status ServiceAbort(
-    ServerContext *context,
-    const ServiceAbortRequest *request,
-    Void *response) override;
+      ServerContext* context, const ServiceAbortRequest* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to acknowledge
@@ -211,9 +201,7 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status VLRResetAck(
-    ServerContext *context,
-    const ResetAck *request,
-    Void *response) override;
+      ServerContext* context, const ResetAck* request, Void* response) override;
 
   /*
    * Sent from the VLR to the MME to indicate that a failure in the VLR has
@@ -225,9 +213,8 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status VLRResetIndication(
-    ServerContext *context,
-    const ResetIndication *request,
-    Void *response) override;
+      ServerContext* context, const ResetIndication* request,
+      Void* response) override;
 
   /*
    * Sent from the VLR to the MME to indicate an error
@@ -238,9 +225,7 @@ class CSFBGatewayServiceImpl final : public CSFBGatewayService::Service {
    * @return grpc Status instance
    */
   grpc::Status VLRStatus(
-    ServerContext *context,
-    const Status *request,
-    Void *response) override;
+      ServerContext* context, const Status* request, Void* response) override;
 };
 
-} // namespace magma
+}  // namespace magma

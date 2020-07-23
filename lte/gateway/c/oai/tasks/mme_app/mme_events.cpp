@@ -34,10 +34,9 @@
 #include "EventClientAPI.h"
 
 using grpc::Status;
-using magma::orc8r::Event;
-using magma::orc8r::Void;
-using magma::lte::log_event;
 using magma::lte::init_eventd_client;
+using magma::lte::log_event;
+using magma::orc8r::Event;
 using magma::orc8r::Void;
 
 namespace {

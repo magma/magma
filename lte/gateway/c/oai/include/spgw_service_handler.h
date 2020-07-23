@@ -25,9 +25,9 @@
  * Sends an GX_NW_INITIATED_ACTIVATE_BEARER_REQ message to SPGW.
  */
 int send_activate_bearer_request_itti(
-  itti_gx_nw_init_actv_bearer_request_t* itti_msg);
+    itti_gx_nw_init_actv_bearer_request_t* itti_msg);
 /*
  * Sends an GX_NW_INITIATED_DEACTIVATE_BEARER_REQ message to SPGW.
  */
 void send_deactivate_bearer_request_itti(
-  itti_gx_nw_init_deactv_bearer_request_t* itti_msg);
+    itti_gx_nw_init_deactv_bearer_request_t* itti_msg);

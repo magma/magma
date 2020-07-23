@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -48,9 +48,9 @@
 #define EMM_DEVICE_PROPERITIES (1 << 2)
 /*
  * Message name: Extended service request
- * Description: This message is sent by the UE to the network to initiate a CS fallback call or respond to a mobile terminated CS fallback request from the network. See table 8.2.15.1.
- * Significance: dual
- * Direction: UE to network
+ * Description: This message is sent by the UE to the network to initiate a CS
+ * fallback call or respond to a mobile terminated CS fallback request from the
+ * network. See table 8.2.15.1. Significance: dual Direction: UE to network
  */
 
 typedef struct extended_service_request_msg_tag {
@@ -67,13 +67,11 @@ typedef struct extended_service_request_msg_tag {
 } extended_service_request_msg;
 
 int decode_extended_service_request(
-  extended_service_request_msg *extendedservicerequest,
-  uint8_t *buffer,
-  uint32_t len);
+    extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
+    uint32_t len);
 
 int encode_extended_service_request(
-  extended_service_request_msg *extendedservicerequest,
-  uint8_t *buffer,
-  uint32_t len);
+    extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(FILE_EXTENDED_SERVICE_REQUEST_SEEN) */

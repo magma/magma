@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -26,12 +26,9 @@
 
 //------------------------------------------------------------------------------
 int decode_ue_security_capability(
-  ue_security_capability_t *uesecuritycapability,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    ue_security_capability_t* uesecuritycapability, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -50,14 +47,14 @@ int decode_ue_security_capability(
 
   if (len >= (decoded + 2)) {
     uesecuritycapability->umts_present = 1;
-    uesecuritycapability->uea = *(buffer + decoded);
+    uesecuritycapability->uea          = *(buffer + decoded);
     decoded++;
     uesecuritycapability->uia = *(buffer + decoded) & 0x7f;
     decoded++;
 
     if (len >= (decoded + 1)) {
       uesecuritycapability->gprs_present = 1;
-      uesecuritycapability->gea = *(buffer + decoded) & 0x7f;
+      uesecuritycapability->gea          = *(buffer + decoded) & 0x7f;
       decoded++;
     }
   }
@@ -66,19 +63,16 @@ int decode_ue_security_capability(
 
 //------------------------------------------------------------------------------
 int encode_ue_security_capability(
-  ue_security_capability_t *uesecuritycapability,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    ue_security_capability_t* uesecuritycapability, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH, len);
+      buffer, UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -93,11 +87,15 @@ int encode_ue_security_capability(
   encoded++;
 
   // From ETSI TS 124 301 V10.15.0 (2014-10) 9.9.3.36 Security capability:
-  // Octets 5, 6, and 7 are optional. If octet 5 is included, then also octet 6 shall be included and octet 7 may be included.
-  // If a UE did not indicate support of any security algorithm for Gb mode, octet 7 shall not be included. If the UE did not
-  // indicate support of any security algorithm for Iu mode and Gb mode, octets 5, 6, and 7 shall not be included.
-  // If the UE did not indicate support of any security algorithm for Iu mode but indicated support of a security algorithm for
-  // Gb mode, octets 5, 6, and 7 shall be included. In this case octets 5 and 6 are filled with the value of zeroes.
+  // Octets 5, 6, and 7 are optional. If octet 5 is included, then also octet 6
+  // shall be included and octet 7 may be included. If a UE did not indicate
+  // support of any security algorithm for Gb mode, octet 7 shall not be
+  // included. If the UE did not indicate support of any security algorithm for
+  // Iu mode and Gb mode, octets 5, 6, and 7 shall not be included. If the UE
+  // did not indicate support of any security algorithm for Iu mode but
+  // indicated support of a security algorithm for Gb mode, octets 5, 6, and 7
+  // shall be included. In this case octets 5 and 6 are filled with the value of
+  // zeroes.
   if (uesecuritycapability->umts_present) {
     *(buffer + encoded) = uesecuritycapability->uea;
     encoded++;

@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -54,8 +54,7 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_pt_is_reserved(int pti)
-{
+int esm_pt_is_reserved(int pti) {
   return ((pti != ESM_PT_UNASSIGNED) && (pti > ESM_PTI_MAX));
 }
 

@@ -17,11 +17,11 @@
  */
 
 /*! \file sgw_config.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_SGW_CONFIG_SEEN
 #define FILE_SGW_CONFIG_SEEN
@@ -100,10 +100,10 @@ typedef struct sgw_config_s {
   ovs_config_t ovs_config;
 } sgw_config_t;
 
-void sgw_config_init(sgw_config_t *config_pP);
-int sgw_config_process(sgw_config_t *config_pP);
-int sgw_config_parse_file(sgw_config_t *config_pP);
-void sgw_config_display(sgw_config_t *config_p);
+void sgw_config_init(sgw_config_t* config_pP);
+int sgw_config_process(sgw_config_t* config_pP);
+int sgw_config_parse_file(sgw_config_t* config_pP);
+void sgw_config_display(sgw_config_t* config_p);
 
 #define sgw_config_read_lock(sGWcONFIG)                                        \
   do {                                                                         \

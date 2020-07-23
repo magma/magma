@@ -23,7 +23,7 @@
 /*
  * Sends a S6A_CANCEL_LOCATION_REQ message to MME.
  */
-int delete_subscriber_request(const char *imsi, const uint imsi_len);
+int delete_subscriber_request(const char* imsi, const uint imsi_len);
 /*
  * Sends a S6A_RESET_REQ message to MME.
  */

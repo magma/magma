@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -24,9 +24,8 @@
 #include "intertask_interface_types.h"
 
 int s1ap_mme_decode_pdu(
-  s1ap_message *message,
-  const_bstring const raw,
-  MessagesIds *messages_id) __attribute__((warn_unused_result));
-int s1ap_free_mme_decode_pdu(s1ap_message *message, MessagesIds messages_id);
+    s1ap_message* message, const_bstring const raw, MessagesIds* messages_id)
+    __attribute__((warn_unused_result));
+int s1ap_free_mme_decode_pdu(s1ap_message* message, MessagesIds messages_id);
 
 #endif /* FILE_S1AP_MME_DECODER_SEEN */

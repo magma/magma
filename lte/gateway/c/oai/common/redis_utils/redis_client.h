@@ -61,17 +61,14 @@ class RedisClient {
    * @return response code of operation
    */
   int write_proto(
-    const std::string& key,
-    const google::protobuf::Message& proto_msg);
+      const std::string& key, const google::protobuf::Message& proto_msg);
 
   /**
    * Reads value from redis mapped to key and returns proto object
    * @param key
    * @return response code of operation
    */
-  int read_proto(
-    const std::string& key,
-    google::protobuf::Message& proto_msg);
+  int read_proto(const std::string& key, google::protobuf::Message& proto_msg);
 
   int clear_keys(const std::vector<std::string>& keys_to_clear);
 
@@ -117,5 +114,5 @@ class RedisClient {
       const std::string& str_to_deserialize);
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

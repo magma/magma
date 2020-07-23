@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -27,17 +27,11 @@
 typedef bstring PTmsiSignature;
 
 int encode_p_tmsi_signature(
-  PTmsiSignature ptmsisignature,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    PTmsiSignature ptmsisignature, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 void dump_p_tmsi_signature_xml(PTmsiSignature ptmsisignature, uint8_t iei);
 
 int decode_p_tmsi_signature(
-  PTmsiSignature *ptmsisignature,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    PTmsiSignature* ptmsisignature, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 #endif /* P TMSI SIGNATURE_H_ */

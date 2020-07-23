@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -36,9 +36,9 @@
 
 /*
  * Message name: Attach complete
- * Description: This message is sent by the UE to the network in response to an ATTACH ACCEPT message. See table 8.2.2.1.
- * Significance: dual
- * Direction: UE to network
+ * Description: This message is sent by the UE to the network in response to an
+ * ATTACH ACCEPT message. See table 8.2.2.1. Significance: dual Direction: UE to
+ * network
  */
 
 typedef struct attach_complete_msg_tag {
@@ -50,13 +50,9 @@ typedef struct attach_complete_msg_tag {
 } attach_complete_msg;
 
 int decode_attach_complete(
-  attach_complete_msg *attachcomplete,
-  uint8_t *buffer,
-  uint32_t len);
+    attach_complete_msg* attachcomplete, uint8_t* buffer, uint32_t len);
 
 int encode_attach_complete(
-  attach_complete_msg *attachcomplete,
-  uint8_t *buffer,
-  uint32_t len);
+    attach_complete_msg* attachcomplete, uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_COMPLETE_SEEN) */

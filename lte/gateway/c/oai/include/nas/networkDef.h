@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -246,7 +246,7 @@ typedef struct {
 typedef struct {
   int n_pkfs;
 #define NET_PACKET_FILTER_MAX 16
-  network_pkf_t *pkf[NET_PACKET_FILTER_MAX];
+  network_pkf_t* pkf[NET_PACKET_FILTER_MAX];
 } network_tft_t;
 
 /*

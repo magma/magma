@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -25,11 +25,8 @@
 #include "TimeZoneAndTime.h"
 
 int decode_time_zone_and_time(
-  TimeZoneAndTime *timezoneandtime,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    TimeZoneAndTime* timezoneandtime, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -58,18 +55,15 @@ int decode_time_zone_and_time(
 }
 
 int encode_time_zone_and_time(
-  TimeZoneAndTime *timezoneandtime,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    TimeZoneAndTime* timezoneandtime, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, TIME_ZONE_AND_TIME_MINIMUM_LENGTH, len);
+      buffer, TIME_ZONE_AND_TIME_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_time_zone_and_time_xml(timezoneandtime, iei);
 #endif
@@ -96,8 +90,8 @@ int encode_time_zone_and_time(
   return encoded;
 }
 
-void dump_time_zone_and_time_xml(TimeZoneAndTime *timezoneandtime, uint8_t iei)
-{
+void dump_time_zone_and_time_xml(
+    TimeZoneAndTime* timezoneandtime, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Time Zone And Time>\n");
 
   if (iei > 0)
@@ -113,6 +107,6 @@ void dump_time_zone_and_time_xml(TimeZoneAndTime *timezoneandtime, uint8_t iei)
   OAILOG_DEBUG(LOG_NAS, "    <Minute>%u</Minute>\n", timezoneandtime->minute);
   OAILOG_DEBUG(LOG_NAS, "    <Second>%u</Second>\n", timezoneandtime->second);
   OAILOG_DEBUG(
-    LOG_NAS, "    <Time Zone>%u</Time Zone>\n", timezoneandtime->timezone);
+      LOG_NAS, "    <Time Zone>%u</Time Zone>\n", timezoneandtime->timezone);
   OAILOG_DEBUG(LOG_NAS, "</Time Zone And Time>\n");
 }

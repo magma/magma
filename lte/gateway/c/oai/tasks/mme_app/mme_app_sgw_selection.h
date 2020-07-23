@@ -30,7 +30,6 @@ struct in_addr;
 */
 
 void mme_app_select_sgw(
-  const tai_t *const tai,
-  struct sockaddr *const sgw_in_addr);
+    const tai_t* const tai, struct sockaddr* const sgw_in_addr);
 
 #endif

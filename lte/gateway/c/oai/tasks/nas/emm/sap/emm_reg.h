@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -58,6 +58,6 @@ Description Defines the EMMREG Service Access Point that provides
 
 void emm_reg_initialize(void);
 
-int emm_reg_send(emm_reg_t *const msg);
+int emm_reg_send(emm_reg_t* const msg);
 
 #endif /* FILE_EMM_REG_SEEN*/

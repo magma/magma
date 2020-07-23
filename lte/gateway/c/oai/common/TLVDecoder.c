@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -32,11 +32,8 @@ int errorCodeDecoder = 0;
 
 //------------------------------------------------------------------------------
 int decode_bstring(
-  bstring *bstr,
-  const uint16_t pdulen,
-  const uint8_t *const buffer,
-  const uint32_t buflen)
-{
+    bstring* bstr, const uint16_t pdulen, const uint8_t* const buffer,
+    const uint32_t buflen) {
   if (buflen < pdulen) {
     return TLV_BUFFER_TOO_SHORT;
   }
@@ -51,8 +48,7 @@ int decode_bstring(
 }
 
 //------------------------------------------------------------------------------
-bstring dump_bstring_xml(const bstring const bstr)
-{
+bstring dump_bstring_xml(const bstring const bstr) {
   if (bstr) {
     int i;
 

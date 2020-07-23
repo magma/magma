@@ -68,9 +68,9 @@ typedef enum {
  */
 typedef struct emm_esm_establish_s {
   bool is_emergency; /* Indicates whether the PDN connection is established
-             * for emergency bearer services only       */
+                      * for emergency bearer services only       */
   bool is_attached;  /* Indicates whether the UE remains attached to the
-             * network                  */
+                      * network                  */
 } emm_esm_establish_t;
 
 /*
@@ -98,7 +98,7 @@ typedef struct emm_esm_data_s {
  * EMMESM primitive for Deactivate EPS bearer context request
  */
 typedef struct emm_esm_deactivate_bearer_req_s {
-  ebi_t ebi; /*bearer to de-activate */
+  ebi_t ebi;   /*bearer to de-activate */
   bstring msg; /* ESM message to be transferred     */
 } emm_esm_deactivate_bearer_req_t;
 /*
@@ -110,7 +110,7 @@ struct emm_context_s;
 typedef struct {
   emm_esm_primitive_t primitive;
   mme_ue_s1ap_id_t ue_id;
-  struct emm_context_s *ctx;
+  struct emm_context_s* ctx;
   union {
     emm_esm_establish_t establish;
     emm_esm_data_t data;

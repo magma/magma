@@ -21,17 +21,16 @@
 
 #include "s6a_viface.h"
 
-class S6aGrpcIface : public S6aViface
-{
-  public:
-    S6aGrpcIface();
-    bool update_location_req(s6a_update_location_req_t *const ulr_p);
-    bool authentication_info_req(s6a_auth_info_req_t *const air_p);
-    bool send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP);
-    bool purge_ue(const char *imsi);
-    void timer_expired (const long timer_idP) {};
+class S6aGrpcIface : public S6aViface {
+ public:
+  S6aGrpcIface();
+  bool update_location_req(s6a_update_location_req_t* const ulr_p);
+  bool authentication_info_req(s6a_auth_info_req_t* const air_p);
+  bool send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP);
+  bool purge_ue(const char* imsi);
+  void timer_expired(const long timer_idP){};
 
-    ~S6aGrpcIface() {};
+  ~S6aGrpcIface(){};
 };
 
 #endif /* S6A_GRPC_IFACE_H_SEEN */

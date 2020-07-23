@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -43,13 +43,13 @@
 
 typedef enum activate_default_eps_bearer_context_reject_iei_tag {
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } activate_default_eps_bearer_context_reject_iei;
 
 /*
  * Message name: Activate default EPS bearer context reject
- * Description: This message is sent by UE to the network to reject activation of a default EPS bearer context. See table 8.3.5.1.
- * Significance: dual
+ * Description: This message is sent by UE to the network to reject activation
+ * of a default EPS bearer context. See table 8.3.5.1. Significance: dual
  * Direction: UE to network
  */
 
@@ -66,15 +66,13 @@ typedef struct activate_default_eps_bearer_context_reject_msg_tag {
 } activate_default_eps_bearer_context_reject_msg;
 
 int decode_activate_default_eps_bearer_context_reject(
-  activate_default_eps_bearer_context_reject_msg
-    *activatedefaultepsbearercontextreject,
-  uint8_t *buffer,
-  uint32_t len);
+    activate_default_eps_bearer_context_reject_msg*
+        activatedefaultepsbearercontextreject,
+    uint8_t* buffer, uint32_t len);
 
 int encode_activate_default_eps_bearer_context_reject(
-  activate_default_eps_bearer_context_reject_msg
-    *activatedefaultepsbearercontextreject,
-  uint8_t *buffer,
-  uint32_t len);
+    activate_default_eps_bearer_context_reject_msg*
+        activatedefaultepsbearercontextreject,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT_H_) */

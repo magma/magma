@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -27,15 +27,11 @@
 typedef uint8_t paging_identity_t;
 
 int encode_paging_identity(
-  paging_identity_t *pagingidentity,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    paging_identity_t* pagingidentity, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int decode_paging_identity(
-  paging_identity_t *pagingidentity,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    paging_identity_t* pagingidentity, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* PAGING IDENTITY_SEEN */

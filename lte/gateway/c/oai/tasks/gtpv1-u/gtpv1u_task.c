@@ -47,8 +47,8 @@ static void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
     return;
   }
   // Use replace to avoid error related to existing routes.
-  bstring system_cmd =
-      bformat("ip route replace %s/%u dev %s", inet_ntoa(ue_net), mask,
+  bstring system_cmd = bformat(
+      "ip route replace %s/%u dev %s", inet_ntoa(ue_net), mask,
       gtp_tunnel_ops->get_dev_name());
   int ret = system((const char*) system_cmd->data);
   if (ret) {
@@ -70,9 +70,8 @@ static void del_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
   if (ue_net.s_addr == htonl(INADDR_ANY) || mask == 0) {
     return;
   }
-  bstring system_cmd =
-      bformat("ip route del %s/%u", inet_ntoa(ue_net), mask);
-  int ret = system((const char*) system_cmd->data);
+  bstring system_cmd = bformat("ip route del %s/%u", inet_ntoa(ue_net), mask);
+  int ret            = system((const char*) system_cmd->data);
   if (ret) {
     OAILOG_ERROR(
         LOG_GTPV1U, "ERROR in system command %s: %d at %s:%u\n",
@@ -90,10 +89,7 @@ static void del_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
  * Check if _addr is in given subnet (_net/mask)
  */
 static bool ue_ip_is_in_subnet(
-  struct in_addr _net,
-  int mask,
-  struct in_addr _addr) {
-
+    struct in_addr _net, int mask, struct in_addr _addr) {
   if (mask == 0) {
     // This is first time checking for subnect.
     return false;
@@ -113,10 +109,8 @@ static bool ue_ip_is_in_subnet(
 
 //------------------------------------------------------------------------------
 int gtpv1u_init(
-  spgw_state_t* spgw_state_p,
-  spgw_config_t* spgw_config,
-  bool persist_state)
-{
+    spgw_state_t* spgw_state_p, spgw_config_t* spgw_config,
+    bool persist_state) {
   int rv = 0;
   struct in_addr netaddr;
   uint32_t netmask = 0;
@@ -147,24 +141,21 @@ int gtpv1u_init(
   if (spgw_config->pgw_config.enable_nat) {
     rv = get_ip_block(&netaddr, &netmask);
     if (rv != 0) {
-        OAILOG_CRITICAL(
+      OAILOG_CRITICAL(
           LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd\n");
-        return -1;
+      return -1;
     }
   } else {
     // Allow All IPs in Non-NAT case.
     netaddr.s_addr = INADDR_ANY;
-    netmask = 0;
+    netmask        = 0;
   }
 
   // Init GTP device, using the same MTU as SGi.
   gtp_tunnel_ops->init(
-    &netaddr,
-    netmask,
-    spgw_config->pgw_config.ipv4.mtu_SGI,
-    &spgw_state_p->gtpv1u_data.fd0,
-    &spgw_state_p->gtpv1u_data.fd1u,
-    persist_state);
+      &netaddr, netmask, spgw_config->pgw_config.ipv4.mtu_SGI,
+      &spgw_state_p->gtpv1u_data.fd0, &spgw_state_p->gtpv1u_data.fd1u,
+      persist_state);
 
   // END-GTP quick integration only for evaluation purpose
 
@@ -176,18 +167,12 @@ int gtpv1u_init(
 }
 
 int gtpv1u_add_tunnel(
-    struct in_addr ue,
-    struct in_addr enb,
-    uint32_t i_tei,
-    uint32_t o_tei,
-    Imsi_t imsi,
-    struct ipv4flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add tunnel ue %s", inet_ntoa(ue));
 
   if (spgw_config.pgw_config.enable_nat) {
     if (!ue_ip_is_in_subnet(current_ue_net, current_ue_net_mask, ue)) {
-
       struct in_addr netaddr;
       uint32_t netmask = 0;
 
@@ -195,12 +180,13 @@ int gtpv1u_add_tunnel(
       int rv = get_ip_block(&netaddr, &netmask);
       if (rv != 0) {
         OAILOG_INFO(
-            LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd,"
+            LOG_GTPV1U,
+            "ERROR in getting assigned IP block from mobilityd,"
             "could not set the route to UE network\n");
       } else {
         // add the route if needed
-        OAILOG_INFO(LOG_GTPV1U, "Got new ip-block %s/%d", inet_ntoa(netaddr),
-        netmask);
+        OAILOG_INFO(
+            LOG_GTPV1U, "Got new ip-block %s/%d", inet_ntoa(netaddr), netmask);
         if (netaddr.s_addr != current_ue_net.s_addr ||
             current_ue_net_mask != netmask) {
           del_route_for_ue_block(current_ue_net, current_ue_net_mask);
@@ -210,9 +196,9 @@ int gtpv1u_add_tunnel(
     }
   }
 
-  return gtp_tunnel_ops->add_tunnel(ue, enb, i_tei, o_tei, imsi, flow_dl,
-    flow_precedence_dl);
-  }
+  return gtp_tunnel_ops->add_tunnel(
+      ue, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
+}
 
 //------------------------------------------------------------------------------
 void gtpv1u_exit(void) {

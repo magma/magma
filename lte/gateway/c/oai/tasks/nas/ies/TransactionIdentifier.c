@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -25,19 +25,13 @@
 #include "TransactionIdentifier.h"
 
 int decode_transaction_identifier(
-  TransactionIdentifier *transactionidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    TransactionIdentifier* transactionidentifier, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   return 0;
 }
 
 int encode_transaction_identifier(
-  TransactionIdentifier *transactionidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    TransactionIdentifier* transactionidentifier, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   return 0;
 }

@@ -16,7 +16,6 @@
  *      contact@openairinterface.org
  */
 
-
 #pragma once
 
 #include <gmp.h>
@@ -40,10 +39,8 @@ namespace magma {
 using namespace feg;
 
 void convert_proto_msg_to_itti_s6a_auth_info_ans(
-  AuthenticationInformationAnswer msg,
-  s6a_auth_info_ans_t *itti_msg);
+    AuthenticationInformationAnswer msg, s6a_auth_info_ans_t* itti_msg);
 
 void convert_proto_msg_to_itti_s6a_update_location_ans(
-  UpdateLocationAnswer msg,
-  s6a_update_location_ans_t *itti_msg);
-} // namespace magma
+    UpdateLocationAnswer msg, s6a_update_location_ans_t* itti_msg);
+}  // namespace magma

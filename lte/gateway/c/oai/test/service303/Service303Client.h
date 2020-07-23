@@ -37,27 +37,27 @@ namespace magma {
  */
 class Service303Client {
  public:
-  explicit Service303Client(const std::shared_ptr<Channel> &channel);
+  explicit Service303Client(const std::shared_ptr<Channel>& channel);
 
   /**
-     * Get Service303 Info
-     *
-     * @param response: a pointer to the ServiceInfo object to populate
-     * @return 0 on success, -1 on failure
-     */
-  int GetServiceInfo(ServiceInfo *response);
+   * Get Service303 Info
+   *
+   * @param response: a pointer to the ServiceInfo object to populate
+   * @return 0 on success, -1 on failure
+   */
+  int GetServiceInfo(ServiceInfo* response);
 
   /**
-     * Get Metrics from server
-     *
-     * @param response: the MetricsContainer instance to populate
-     * @return 0 on success, -1 on failure
-     */
-  int GetMetrics(MetricsContainer *response);
+   * Get Metrics from server
+   *
+   * @param response: the MetricsContainer instance to populate
+   * @return 0 on success, -1 on failure
+   */
+  int GetMetrics(MetricsContainer* response);
 
  private:
   std::shared_ptr<Service303::Stub> stub_;
 };
 
-} // namespace magma
-#endif // SERVICE303_CLIENT_H
+}  // namespace magma
+#endif  // SERVICE303_CLIENT_H

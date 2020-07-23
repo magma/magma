@@ -45,7 +45,7 @@ typedef struct pgw_base_proc_s {
 
 typedef struct sgw_eps_bearer_entry_wrapper_s {
   LIST_ENTRY(sgw_eps_bearer_entry_wrapper_s) entries; /* List. */
-  sgw_eps_bearer_ctxt_t *sgw_eps_bearer_entry;
+  sgw_eps_bearer_ctxt_t* sgw_eps_bearer_entry;
 } sgw_eps_bearer_entry_wrapper_t;
 
 typedef struct pgw_ni_cbr_proc_s {
@@ -54,16 +54,16 @@ typedef struct pgw_ni_cbr_proc_s {
   sdf_id_t sdf_id;
   // a list of sgw_eps_bearer_entry_t
   LIST_HEAD(pending_eps_bearers_s, sgw_eps_bearer_entry_wrapper_s) *
-    pending_eps_bearers;
+      pending_eps_bearers;
 } pgw_ni_cbr_proc_t;
 
-void pgw_delete_procedures(s_plus_p_gw_eps_bearer_context_information_t *ctx_p);
-pgw_ni_cbr_proc_t *pgw_create_procedure_create_bearer(
-  s_plus_p_gw_eps_bearer_context_information_t *ctx_p);
-pgw_ni_cbr_proc_t *pgw_get_procedure_create_bearer(
-  s_plus_p_gw_eps_bearer_context_information_t *ctx_p);
+void pgw_delete_procedures(s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
+    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
+    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
 void pgw_delete_procedure_create_bearer(
-  s_plus_p_gw_eps_bearer_context_information_t *ctx_p);
-void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t **ni_cbr_proc);
+    s_plus_p_gw_eps_bearer_context_information_t* ctx_p);
+void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc);
 
 #endif

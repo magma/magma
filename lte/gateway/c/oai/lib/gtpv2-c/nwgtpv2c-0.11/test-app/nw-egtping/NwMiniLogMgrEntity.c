@@ -25,8 +25,8 @@
 extern "C" {
 #endif
 
-static NwCharT *gLogLevelStr[] =
-  {"EMER", "ALER", "CRIT", "ERRO", "WARN", "NOTI", "INFO", "DEBG"};
+static NwCharT* gLogLevelStr[] = {"EMER", "ALER", "CRIT", "ERRO",
+                                  "WARN", "NOTI", "INFO", "DEBG"};
 
 NwMiniLogMgrT __gLogMgr;
 
@@ -34,33 +34,27 @@ NwMiniLogMgrT __gLogMgr;
    Public functions
   --------------------------------------------------------------------------*/
 
-NwMiniLogMgrT *nwMiniLogMgrGetInstance()
-{
+NwMiniLogMgrT* nwMiniLogMgrGetInstance() {
   return &(__gLogMgr);
 }
 
-nw_rc_t nwMiniLogMgrInit(NwMiniLogMgrT *thiz, uint32_t logLevel)
-{
+nw_rc_t nwMiniLogMgrInit(NwMiniLogMgrT* thiz, uint32_t logLevel) {
   thiz->logLevel = logLevel;
   return NW_OK;
 }
 
-nw_rc_t nwMiniLogMgrSetLogLevel(NwMiniLogMgrT *thiz, uint32_t logLevel)
-{
+nw_rc_t nwMiniLogMgrSetLogLevel(NwMiniLogMgrT* thiz, uint32_t logLevel) {
   thiz->logLevel = logLevel;
 }
 
 nw_rc_t nwMiniLogMgrLogRequest(
-  nw_gtpv2c_LogMgrHandleT hLogMgr,
-  uint32_t logLevel,
-  NwCharT *file,
-  uint32_t line,
-  NwCharT *logStr)
-{
-  NwMiniLogMgrT *thiz = (NwMiniLogMgrT *) hLogMgr;
+    nw_gtpv2c_LogMgrHandleT hLogMgr, uint32_t logLevel, NwCharT* file,
+    uint32_t line, NwCharT* logStr) {
+  NwMiniLogMgrT* thiz = (NwMiniLogMgrT*) hLogMgr;
 
   if (thiz->logLevel >= logLevel)
-    //printf("NWEGTPSTK  %s - %s <%s,%u>\n", gLogLevelStr[logLevel], logStr, basename(file), line);
+    // printf("NWEGTPSTK  %s - %s <%s,%u>\n", gLogLevelStr[logLevel], logStr,
+    // basename(file), line);
     return NW_OK;
 }
 

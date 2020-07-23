@@ -55,25 +55,25 @@ class PCEFClient : public GRPCReceiver {
    * Proxy a CreateSession gRPC call to sessiond
    */
   static void create_session(
-    const LocalCreateSessionRequest &request,
-    std::function<void(Status, LocalCreateSessionResponse)> callback);
+      const LocalCreateSessionRequest& request,
+      std::function<void(Status, LocalCreateSessionResponse)> callback);
 
   /**
    * Proxy a EndSession gRPC call to sessiond
    */
   static void end_session(
-    const LocalEndSessionRequest &request,
-    std::function<void(Status, LocalEndSessionResponse)> callback);
+      const LocalEndSessionRequest& request,
+      std::function<void(Status, LocalEndSessionResponse)> callback);
 
  public:
-  PCEFClient(PCEFClient const &) = delete;
-  void operator=(PCEFClient const &) = delete;
+  PCEFClient(PCEFClient const&) = delete;
+  void operator=(PCEFClient const&) = delete;
 
  private:
   PCEFClient();
-  static PCEFClient &get_instance();
+  static PCEFClient& get_instance();
   std::unique_ptr<LocalSessionManager::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 10; // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
 };
 
-} // namespace magma
+}  // namespace magma

@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -35,23 +35,14 @@ typedef struct EpsUpdateType_tag {
 } EpsUpdateType;
 
 int encode_eps_update_type(
-  EpsUpdateType *epsupdatetype,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t* buffer, uint32_t len);
 
-uint8_t encode_u8_eps_update_type(EpsUpdateType *epsupdatetype);
+uint8_t encode_u8_eps_update_type(EpsUpdateType* epsupdatetype);
 
 int decode_eps_update_type(
-  EpsUpdateType *epsupdatetype,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_u8_eps_update_type(
-  EpsUpdateType *epsupdatetype,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len);
+    EpsUpdateType* epsupdatetype, uint8_t iei, uint8_t value, uint32_t len);
 
 #endif /* EPS UPDATE TYPE_SEEN */

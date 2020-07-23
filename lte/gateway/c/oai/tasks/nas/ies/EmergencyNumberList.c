@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -25,12 +25,9 @@
 #include "EmergencyNumberList.h"
 
 int decode_emergency_number_list(
-  EmergencyNumberList *emergencynumberlist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    EmergencyNumberList* emergencynumberlist, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -44,25 +41,22 @@ int decode_emergency_number_list(
   emergencynumberlist->lengthofemergency = *(buffer + decoded);
   decoded++;
   emergencynumberlist->emergencyservicecategoryvalue =
-    *(buffer + decoded) & 0x1f;
+      *(buffer + decoded) & 0x1f;
   decoded++;
   return decoded;
 }
 
 int encode_emergency_number_list(
-  EmergencyNumberList *emergencynumberlist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    EmergencyNumberList* emergencynumberlist, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH, len);
+      buffer, EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -74,16 +68,14 @@ int encode_emergency_number_list(
   *(buffer + encoded) = emergencynumberlist->lengthofemergency;
   encoded++;
   *(buffer + encoded) =
-    0x00 | (emergencynumberlist->emergencyservicecategoryvalue & 0x1f);
+      0x00 | (emergencynumberlist->emergencyservicecategoryvalue & 0x1f);
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }
 
 void dump_emergency_number_list_xml(
-  EmergencyNumberList *emergencynumberlist,
-  uint8_t iei)
-{
+    EmergencyNumberList* emergencynumberlist, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Emergency Number List>\n");
 
   if (iei > 0)
@@ -93,13 +85,12 @@ void dump_emergency_number_list_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <Length of emergency>%u</Length of emergency>\n",
-    emergencynumberlist->lengthofemergency);
+      LOG_NAS, "    <Length of emergency>%u</Length of emergency>\n",
+      emergencynumberlist->lengthofemergency);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <Emergency service category value>%u</Emergency service category "
-    "value>\n",
-    emergencynumberlist->emergencyservicecategoryvalue);
+      LOG_NAS,
+      "    <Emergency service category value>%u</Emergency service category "
+      "value>\n",
+      emergencynumberlist->emergencyservicecategoryvalue);
   OAILOG_DEBUG(LOG_NAS, "</Emergency Number List>\n");
 }

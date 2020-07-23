@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -46,10 +46,8 @@
 extern int errorCodeDecoder;
 
 int decode_bstring(
-  bstring *octetstring,
-  const uint16_t pdulen,
-  const uint8_t *const buffer,
-  const uint32_t buflen);
+    bstring* octetstring, const uint16_t pdulen, const uint8_t* const buffer,
+    const uint32_t buflen);
 
 bstring dump_bstring_xml(const bstring const bstr);
 
@@ -63,29 +61,25 @@ void tlv_decode_perror(void);
   }                                                                            \
   if (lENGTH < mINIMUMlENGTH) {                                                \
     OAILOG_WARNING(                                                            \
-      LOG_NAS,                                                                 \
-      "Expecting at least %d bytes, got %d\n",                                 \
-      mINIMUMlENGTH,                                                           \
-      lENGTH);                                                                 \
+        LOG_NAS, "Expecting at least %d bytes, got %d\n", mINIMUMlENGTH,       \
+        lENGTH);                                                               \
     errorCodeDecoder = TLV_BUFFER_TOO_SHORT;                                   \
     return TLV_BUFFER_TOO_SHORT;                                               \
   }
 
 #define CHECK_PDU_POINTER_AND_LENGTH_DECODER_FOR_MANDATORY_IES(                \
-      bUFFER, mINIMUMlENGTH, lENGTH)                                           \
+    bUFFER, mINIMUMlENGTH, lENGTH)                                             \
   if (bUFFER == NULL) {                                                        \
     OAILOG_WARNING(LOG_NAS, "Got NULL pointer for the payload\n");             \
-    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                                        \
-    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                                    \
+    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                        \
+    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                    \
   }                                                                            \
   if (lENGTH < mINIMUMlENGTH) {                                                \
     OAILOG_WARNING(                                                            \
-      LOG_NAS,                                                                 \
-      "Expecting at least %d bytes, got %d\n",                                 \
-      mINIMUMlENGTH,                                                           \
-      lENGTH);                                                                 \
-    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                                   \
-    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                               \
+        LOG_NAS, "Expecting at least %d bytes, got %d\n", mINIMUMlENGTH,       \
+        lENGTH);                                                               \
+    errorCodeDecoder = TLV_MANDATORY_FIELD_NOT_PRESENT;                        \
+    return TLV_MANDATORY_FIELD_NOT_PRESENT;                                    \
   }
 
 #define CHECK_LENGTH_DECODER(bUFFERlENGTH, lENGTH)                             \
@@ -105,11 +99,10 @@ void tlv_decode_perror(void);
 #define CHECK_IEI_DECODER(iEI, bUFFER)                                         \
   if (iEI != bUFFER) {                                                         \
     OAILOG_WARNING(                                                            \
-      LOG_NAS,                                                                 \
-      "IEI is different than the one expected."                                \
-      "(Got: 0x%x, expecting: 0x%x\n",                                         \
-      bUFFER,                                                                  \
-      iEI);                                                                    \
+        LOG_NAS,                                                               \
+        "IEI is different than the one expected."                              \
+        "(Got: 0x%x, expecting: 0x%x\n",                                       \
+        bUFFER, iEI);                                                          \
     errorCodeDecoder = TLV_UNEXPECTED_IEI;                                     \
     return TLV_UNEXPECTED_IEI;                                                 \
   }

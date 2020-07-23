@@ -17,11 +17,11 @@
  */
 
 /*! \file sgw_defs.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_SGW_DEFS_SEEN
 #define FILE_SGW_DEFS_SEEN
@@ -31,6 +31,6 @@
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
-int spgw_app_init(spgw_config_t *spgw_config_pP, bool persist_state);
+int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state);
 
 #endif /* FILE_SGW_DEFS_SEEN */

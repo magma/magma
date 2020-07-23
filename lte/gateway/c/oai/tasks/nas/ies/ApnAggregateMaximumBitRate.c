@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -24,12 +24,9 @@
 
 //------------------------------------------------------------------------------
 int decode_apn_aggregate_maximum_bit_rate(
-  ApnAggregateMaximumBitRate *apnaggregatemaximumbitrate,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    ApnAggregateMaximumBitRate* apnaggregatemaximumbitrate, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -47,17 +44,17 @@ int decode_apn_aggregate_maximum_bit_rate(
 
   if (ielen >= 4) {
     apnaggregatemaximumbitrate->apnambrfordownlink_extended =
-      *(buffer + decoded);
+        *(buffer + decoded);
     decoded++;
     apnaggregatemaximumbitrate->apnambrforuplink_extended = *(buffer + decoded);
     decoded++;
 
     if (ielen >= 6) {
       apnaggregatemaximumbitrate->apnambrfordownlink_extended2 =
-        *(buffer + decoded);
+          *(buffer + decoded);
       decoded++;
       apnaggregatemaximumbitrate->apnambrforuplink_extended2 =
-        *(buffer + decoded);
+          *(buffer + decoded);
       decoded++;
     }
   }
@@ -66,19 +63,16 @@ int decode_apn_aggregate_maximum_bit_rate(
 
 //------------------------------------------------------------------------------
 int encode_apn_aggregate_maximum_bit_rate(
-  ApnAggregateMaximumBitRate *apnaggregatemaximumbitrate,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    ApnAggregateMaximumBitRate* apnaggregatemaximumbitrate, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, APN_AGGREGATE_MAXIMUM_BIT_RATE_MINIMUM_LENGTH, len);
+      buffer, APN_AGGREGATE_MAXIMUM_BIT_RATE_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -92,23 +86,21 @@ int encode_apn_aggregate_maximum_bit_rate(
   *(buffer + encoded) = apnaggregatemaximumbitrate->apnambrforuplink;
   encoded++;
 
-  if (
-    apnaggregatemaximumbitrate->extensions &
-    APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT) {
+  if (apnaggregatemaximumbitrate->extensions &
+      APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT) {
     *(buffer + encoded) =
-      apnaggregatemaximumbitrate->apnambrfordownlink_extended;
+        apnaggregatemaximumbitrate->apnambrfordownlink_extended;
     encoded++;
     *(buffer + encoded) = apnaggregatemaximumbitrate->apnambrforuplink_extended;
     encoded++;
 
-    if (
-      apnaggregatemaximumbitrate->extensions &
-      APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT) {
+    if (apnaggregatemaximumbitrate->extensions &
+        APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT) {
       *(buffer + encoded) =
-        apnaggregatemaximumbitrate->apnambrfordownlink_extended2;
+          apnaggregatemaximumbitrate->apnambrfordownlink_extended2;
       encoded++;
       *(buffer + encoded) =
-        apnaggregatemaximumbitrate->apnambrforuplink_extended2;
+          apnaggregatemaximumbitrate->apnambrforuplink_extended2;
       encoded++;
     }
   }

@@ -28,11 +28,10 @@ using prometheus::detail::CounterBuilder;
 using ::testing::Test;
 
 // Tests the MetricsRegistry properly initializes and retrieves metrics
-TEST_F(Test, TestMetricsRegistry)
-{
+TEST_F(Test, TestMetricsRegistry) {
   auto prometheus_registry = std::make_shared<Registry>();
   auto registry = MetricsRegistry<prometheus::Counter, CounterBuilder (&)()>(
-    prometheus_registry, BuildCounter);
+      prometheus_registry, BuildCounter);
   EXPECT_EQ(registry.SizeFamilies(), 0);
   EXPECT_EQ(registry.SizeMetrics(), 0);
 
@@ -54,8 +53,7 @@ TEST_F(Test, TestMetricsRegistry)
   EXPECT_EQ(registry.SizeMetrics(), 4);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

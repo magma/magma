@@ -32,12 +32,12 @@ namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-} // namespace grpc
+}  // namespace grpc
 namespace magma {
 namespace orc8r {
 class Void;
-} // namespace orc8r
-} // namespace magma
+}  // namespace orc8r
+}  // namespace magma
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -51,13 +51,11 @@ using namespace orc8r;
 class GatewayDirectoryServiceClient : public GRPCReceiver {
  public:
   static bool UpdateRecord(
-    const std::string& id,
-    const std::string& location,
-    std::function<void(Status, Void)> callback);
+      const std::string& id, const std::string& location,
+      std::function<void(Status, Void)> callback);
 
   static bool DeleteRecord(
-    const std::string& id,
-    std::function<void(Status, Void)> callback);
+      const std::string& id, std::function<void(Status, Void)> callback);
 
  public:
   GatewayDirectoryServiceClient(GatewayDirectoryServiceClient const&) = delete;
@@ -67,7 +65,7 @@ class GatewayDirectoryServiceClient : public GRPCReceiver {
   GatewayDirectoryServiceClient();
   static GatewayDirectoryServiceClient& get_instance();
   std::shared_ptr<GatewayDirectoryService::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 30; // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 30;  // seconds
 };
 
-} // namespace magma
+}  // namespace magma

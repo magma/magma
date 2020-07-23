@@ -23,13 +23,13 @@
 #include "spgw_state_converter.h"
 
 namespace {
-constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
+constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
 constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
-  "s11_bearer_context_information_htbl";
+    "s11_bearer_context_information_htbl";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
-constexpr char SPGW_TASK_NAME[] = "SPGW";
-} // namespace
+constexpr char SPGW_TASK_NAME[]        = "SPGW";
+}  // namespace
 
 namespace magma {
 namespace lte {
@@ -39,13 +39,10 @@ namespace lte {
  * that contains functions to maintain SGW and PGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SpgwStateManager :
-  public StateManager<
-    spgw_state_t,
-    s_plus_p_gw_eps_bearer_context_information_t,
-    oai::SpgwState,
-    oai::S11BearerContext,
-    SpgwStateConverter> {
+class SpgwStateManager
+    : public StateManager<
+          spgw_state_t, s_plus_p_gw_eps_bearer_context_information_t,
+          oai::SpgwState, oai::S11BearerContext, SpgwStateConverter> {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
@@ -88,5 +85,5 @@ class SpgwStateManager :
   const spgw_config_t* config_;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

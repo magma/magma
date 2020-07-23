@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -26,19 +26,14 @@
 typedef uint8_t PacketFlowIdentifier;
 
 int encode_packet_flow_identifier(
-  PacketFlowIdentifier *packetflowidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int decode_packet_flow_identifier(
-  PacketFlowIdentifier *packetflowidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    PacketFlowIdentifier* packetflowidentifier, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 void dump_packet_flow_identifier_xml(
-  PacketFlowIdentifier *packetflowidentifier,
-  uint8_t iei);
+    PacketFlowIdentifier* packetflowidentifier, uint8_t iei);
 
 #endif /* PACKET FLOW IDENTIFIER_H_ */

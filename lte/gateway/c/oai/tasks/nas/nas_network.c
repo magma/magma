@@ -48,8 +48,7 @@
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_network_initialize(const mme_config_t *mme_config_p)
-{
+void nas_network_initialize(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS);
   /*
    * Initialize the internal NAS processing data
@@ -73,8 +72,7 @@ void nas_network_initialize(const mme_config_t *mme_config_p)
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_network_cleanup(void)
-{
+void nas_network_cleanup(void) {
   OAILOG_FUNC_IN(LOG_NAS);
   nas_proc_cleanup();
   nas_timer_cleanup();

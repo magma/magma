@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -24,16 +24,15 @@
 #include "EsmInformationRequest.h"
 
 int decode_esm_information_request(
-  esm_information_request_msg *esm_information_request,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    esm_information_request_msg* esm_information_request, uint8_t* buffer,
+    uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   uint32_t decoded = 0;
 
-  // Check if we got a NULL pointer and if buffer length is >= minimum length expected for the message.
+  // Check if we got a NULL pointer and if buffer length is >= minimum length
+  // expected for the message.
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-    buffer, ESM_INFORMATION_REQUEST_MINIMUM_LENGTH, len);
+      buffer, ESM_INFORMATION_REQUEST_MINIMUM_LENGTH, len);
   /*
    * Decoding mandatory fields
    */
@@ -41,10 +40,8 @@ int decode_esm_information_request(
 }
 
 int encode_esm_information_request(
-  esm_information_request_msg *esm_information_request,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    esm_information_request_msg* esm_information_request, uint8_t* buffer,
+    uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int encoded = 0;
 
@@ -52,6 +49,6 @@ int encode_esm_information_request(
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, ESM_INFORMATION_REQUEST_MINIMUM_LENGTH, len);
+      buffer, ESM_INFORMATION_REQUEST_MINIMUM_LENGTH, len);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, encoded);
 }

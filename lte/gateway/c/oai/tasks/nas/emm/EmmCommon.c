@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -66,26 +66,19 @@ emm_common_data_head_t emm_common_data_head = {PTHREAD_MUTEX_INITIALIZER,
                                                RB_INITIALIZER()};
 
 static inline int emm_common_data_compare_ueid(
-  struct emm_common_data_s *p1,
-  struct emm_common_data_s *p2);
+    struct emm_common_data_s* p1, struct emm_common_data_s* p2);
 
 RB_PROTOTYPE(
-  emm_common_data_map,
-  emm_common_data_s,
-  entries,
-  emm_common_data_compare_ueid);
+    emm_common_data_map, emm_common_data_s, entries,
+    emm_common_data_compare_ueid);
 
 /* Generate functions used for the MAP */
 RB_GENERATE(
-  emm_common_data_map,
-  emm_common_data_s,
-  entries,
-  emm_common_data_compare_ueid);
+    emm_common_data_map, emm_common_data_s, entries,
+    emm_common_data_compare_ueid);
 
 static inline int emm_common_data_compare_ueid(
-  struct emm_common_data_s *p1,
-  struct emm_common_data_s *p2)
-{
+    struct emm_common_data_s* p1, struct emm_common_data_s* p2) {
   if (p1->ue_id > p2->ue_id) {
     return 1;
   }
@@ -100,12 +93,10 @@ static inline int emm_common_data_compare_ueid(
   return 0;
 }
 
-struct emm_common_data_s *emm_common_data_context_get(
-  struct emm_common_data_head_s *root,
-  mme_ue_s1ap_id_t _ueid)
-{
+struct emm_common_data_s* emm_common_data_context_get(
+    struct emm_common_data_head_s* root, mme_ue_s1ap_id_t _ueid) {
   struct emm_common_data_s reference;
-  struct emm_common_data_s *reference_p = NULL;
+  struct emm_common_data_s* reference_p = NULL;
 
   DevAssert(root);
   DevCheck(_ueid > 0, _ueid, 0, 0);
@@ -113,7 +104,7 @@ struct emm_common_data_s *emm_common_data_context_get(
   reference.ue_id = _ueid;
   pthread_mutex_lock(&root->mutex);
   reference_p =
-    RB_FIND(emm_common_data_map, &root->emm_common_data_root, &reference);
+      RB_FIND(emm_common_data_map, &root->emm_common_data_root, &reference);
   pthread_mutex_unlock(&root->mutex);
   return reference_p;
 }
@@ -147,31 +138,27 @@ struct emm_common_data_s *emm_common_data_context_get(
  **                                                                        **
  ***************************************************************************/
 int emm_proc_common_initialize(
-  mme_ue_s1ap_id_t ue_id,
-  emm_common_success_callback_t _success,
-  emm_common_reject_callback_t _reject,
-  emm_common_failure_callback_t _failure,
-  emm_common_ll_failure_callback_t _ll_failure,
-  emm_common_non_delivered_callback_t _non_delivered,
-  emm_common_abort_callback_t _abort,
-  void *args)
-{
-  struct emm_common_data_s *emm_common_data_ctx = NULL;
+    mme_ue_s1ap_id_t ue_id, emm_common_success_callback_t _success,
+    emm_common_reject_callback_t _reject,
+    emm_common_failure_callback_t _failure,
+    emm_common_ll_failure_callback_t _ll_failure,
+    emm_common_non_delivered_callback_t _non_delivered,
+    emm_common_abort_callback_t _abort, void* args) {
+  struct emm_common_data_s* emm_common_data_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   assert(ue_id > 0);
   emm_common_data_ctx =
-    emm_common_data_context_get(&emm_common_data_head, ue_id);
+      emm_common_data_context_get(&emm_common_data_head, ue_id);
 
   if (emm_common_data_ctx == NULL) {
     emm_common_data_ctx =
-      (emm_common_data_t *) calloc(1, sizeof(emm_common_data_t));
+        (emm_common_data_t*) calloc(1, sizeof(emm_common_data_t));
     emm_common_data_ctx->ue_id = ue_id;
     pthread_mutex_lock(&emm_common_data_head.mutex);
     RB_INSERT(
-      emm_common_data_map,
-      &emm_common_data_head.emm_common_data_root,
-      emm_common_data_ctx);
+        emm_common_data_map, &emm_common_data_head.emm_common_data_root,
+        emm_common_data_ctx);
     pthread_mutex_unlock(&emm_common_data_head.mutex);
 
     if (emm_common_data_ctx) {
@@ -181,13 +168,13 @@ int emm_proc_common_initialize(
 
   if (emm_common_data_ctx) {
     __sync_fetch_and_add(&emm_common_data_ctx->ref_count, 1);
-    emm_common_data_ctx->success = _success;
-    emm_common_data_ctx->reject = _reject;
-    emm_common_data_ctx->failure = _failure;
-    emm_common_data_ctx->ll_failure = _ll_failure;
+    emm_common_data_ctx->success       = _success;
+    emm_common_data_ctx->reject        = _reject;
+    emm_common_data_ctx->failure       = _failure;
+    emm_common_data_ctx->ll_failure    = _ll_failure;
     emm_common_data_ctx->non_delivered = _non_delivered;
-    emm_common_data_ctx->abort = _abort;
-    emm_common_data_ctx->args = args;
+    emm_common_data_ctx->abort         = _abort;
+    emm_common_data_ctx->args          = args;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
@@ -211,18 +198,17 @@ int emm_proc_common_initialize(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_success(emm_common_data_t *emm_common_data_ctx)
-{
+int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
   emm_common_success_callback_t emm_callback = {0};
-  int rc = RETURNerror;
+  int rc                                     = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (emm_common_data_ctx) {
     emm_callback = emm_common_data_ctx->success;
 
     if (emm_callback) {
-      struct emm_context_s *ctx =
-        emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
+      struct emm_context_s* ctx =
+          emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
     }
 
@@ -248,8 +234,7 @@ int emm_proc_common_success(emm_common_data_t *emm_common_data_ctx)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_reject(emm_common_data_t *emm_common_data_ctx)
-{
+int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
   int rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -258,8 +243,8 @@ int emm_proc_common_reject(emm_common_data_t *emm_common_data_ctx)
     emm_callback = emm_common_data_ctx->reject;
 
     if (emm_callback) {
-      struct emm_context_s *ctx =
-        emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
+      struct emm_context_s* ctx =
+          emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
     }
 
@@ -268,8 +253,7 @@ int emm_proc_common_reject(emm_common_data_t *emm_common_data_ctx)
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-int emm_proc_common_failure(emm_common_data_t *emm_common_data_ctx)
-{
+int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
   int rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -278,8 +262,8 @@ int emm_proc_common_failure(emm_common_data_t *emm_common_data_ctx)
     emm_callback = emm_common_data_ctx->failure;
 
     if (emm_callback) {
-      struct emm_context_s *ctx =
-        emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
+      struct emm_context_s* ctx =
+          emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
     }
 
@@ -306,8 +290,7 @@ int emm_proc_common_failure(emm_common_data_t *emm_common_data_ctx)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_ll_failure(emm_common_data_t *emm_common_data_ctx)
-{
+int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx) {
   emm_common_ll_failure_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -317,10 +300,10 @@ int emm_proc_common_ll_failure(emm_common_data_t *emm_common_data_ctx)
     emm_callback = emm_common_data_ctx->ll_failure;
 
     if (emm_callback) {
-      struct emm_context_s *ctx = NULL;
+      struct emm_context_s* ctx = NULL;
 
       ctx = emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
-      rc = (*emm_callback)(ctx);
+      rc  = (*emm_callback)(ctx);
     }
 
     emm_common_cleanup(emm_common_data_ctx);
@@ -346,8 +329,7 @@ int emm_proc_common_ll_failure(emm_common_data_t *emm_common_data_ctx)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_non_delivered(emm_common_data_t *emm_common_data_ctx)
-{
+int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx) {
   emm_common_non_delivered_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -357,10 +339,10 @@ int emm_proc_common_non_delivered(emm_common_data_t *emm_common_data_ctx)
     emm_callback = emm_common_data_ctx->non_delivered;
 
     if (emm_callback) {
-      struct emm_context_s *ctx = NULL;
+      struct emm_context_s* ctx = NULL;
 
       ctx = emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
-      rc = (*emm_callback)(ctx);
+      rc  = (*emm_callback)(ctx);
     }
 
     // emm_common_cleanup (emm_common_data_ctx);
@@ -385,8 +367,7 @@ int emm_proc_common_non_delivered(emm_common_data_t *emm_common_data_ctx)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_abort(emm_common_data_t *emm_common_data_ctx)
-{
+int emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
   emm_common_abort_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -396,10 +377,10 @@ int emm_proc_common_abort(emm_common_data_t *emm_common_data_ctx)
     emm_callback = emm_common_data_ctx->abort;
 
     if (emm_callback) {
-      struct emm_context_s *ctx = NULL;
+      struct emm_context_s* ctx = NULL;
 
       ctx = emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
-      rc = (*emm_callback)(ctx);
+      rc  = (*emm_callback)(ctx);
     }
 
     emm_common_cleanup(emm_common_data_ctx);
@@ -423,13 +404,12 @@ int emm_proc_common_abort(emm_common_data_t *emm_common_data_ctx)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void *emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id)
-{
-  emm_common_data_t *emm_common_data_ctx = NULL;
+void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id) {
+  emm_common_data_t* emm_common_data_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_common_data_ctx =
-    emm_common_data_context_get(&emm_common_data_head, ue_id);
+      emm_common_data_context_get(&emm_common_data_head, ue_id);
   if (emm_common_data_ctx) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, emm_common_data_ctx->args);
   } else {
@@ -458,8 +438,7 @@ void *emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id)
  **      Others:    _emm_common_data                           **
  **                                                                        **
  ***************************************************************************/
-void emm_common_cleanup(emm_common_data_t *emm_common_data_ctx)
-{
+void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
   if (emm_common_data_ctx) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
 
@@ -469,45 +448,41 @@ void emm_common_cleanup(emm_common_data_t *emm_common_data_ctx)
        */
       pthread_mutex_lock(&emm_common_data_head.mutex);
       RB_REMOVE(
-        emm_common_data_map,
-        &emm_common_data_head.emm_common_data_root,
-        emm_common_data_ctx);
+          emm_common_data_map, &emm_common_data_head.emm_common_data_root,
+          emm_common_data_ctx);
       free_wrapper(&emm_common_data_ctx->args);
-      free_wrapper((void **) &emm_common_data_ctx);
+      free_wrapper((void**) &emm_common_data_ctx);
       pthread_mutex_unlock(&emm_common_data_head.mutex);
     }
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
-void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id)
-{
-  emm_common_data_t *emm_common_data_ctx = NULL;
+void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id) {
+  emm_common_data_t* emm_common_data_ctx = NULL;
 
   emm_common_data_ctx =
-    emm_common_data_context_get(&emm_common_data_head, ue_id);
+      emm_common_data_context_get(&emm_common_data_head, ue_id);
 
   if (emm_common_data_ctx) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
     pthread_mutex_lock(&emm_common_data_head.mutex);
     RB_REMOVE(
-      emm_common_data_map,
-      &emm_common_data_head.emm_common_data_root,
-      emm_common_data_ctx);
+        emm_common_data_map, &emm_common_data_head.emm_common_data_root,
+        emm_common_data_ctx);
     if (emm_common_data_ctx->args) {
       free_wrapper(&emm_common_data_ctx->args);
     }
-    free_wrapper((void **) &emm_common_data_ctx);
+    free_wrapper((void**) &emm_common_data_ctx);
     pthread_mutex_unlock(&emm_common_data_head.mutex);
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
-void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id)
-{
-  emm_common_data_t *emm_common_data_ctx = NULL;
+void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id) {
+  emm_common_data_t* emm_common_data_ctx = NULL;
   emm_common_data_ctx =
-    emm_common_data_context_get(&emm_common_data_head, ue_id);
+      emm_common_data_context_get(&emm_common_data_head, ue_id);
   if (emm_common_data_ctx && emm_common_data_ctx->args) {
     free_wrapper(&emm_common_data_ctx->args);
   }

@@ -26,7 +26,7 @@
 
 int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy) {
-  MessageDef *message_p;
+  MessageDef* message_p;
   if (healthy) {
     message_p = itti_alloc_new_message(origin_id, APPLICATION_HEALTHY_MSG);
   } else {

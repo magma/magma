@@ -36,14 +36,13 @@
 #include "conversions.h"
 
 int sgs_send_service_request(
-  itti_sgsap_service_request_t *const sgs_service_request_p)
-{
+    itti_sgsap_service_request_t* const sgs_service_request_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
   IMSI_TO_IMSI64(&(sgs_service_request_p->imsi), imsi64);
   OAILOG_DEBUG(
-    LOG_SGS,
-    "Received SGS_SERVICE_REQUEST from task MME_APP for (IMSI = " IMSI_64_FMT
-    ") \n",
-    imsi64);
+      LOG_SGS,
+      "Received SGS_SERVICE_REQUEST from task MME_APP for (IMSI = " IMSI_64_FMT
+      ") \n",
+      imsi64);
   return 0;
 }

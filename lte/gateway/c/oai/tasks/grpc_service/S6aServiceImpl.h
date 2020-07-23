@@ -55,9 +55,8 @@ class S6aServiceImpl final : public S6aService::Service {
        * @return grpc Status instance
        */
   grpc::Status DeleteSubscriber(
-    ServerContext *context,
-    const DeleteSubscriberRequest *request,
-    DeleteSubscriberResponse *response) override;
+      ServerContext* context, const DeleteSubscriberRequest* request,
+      DeleteSubscriberResponse* response) override;
 };
 
-} // namespace magma
+}  // namespace magma

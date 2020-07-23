@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -24,12 +24,9 @@
 
 //------------------------------------------------------------------------------
 int decode_eps_network_feature_support(
-  eps_network_feature_support_t *epsnetworkfeaturesupport,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -47,19 +44,16 @@ int decode_eps_network_feature_support(
 
 //------------------------------------------------------------------------------
 int encode_eps_network_feature_support(
-  eps_network_feature_support_t *epsnetworkfeaturesupport,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, EPS_NETWORK_FEATURE_SUPPORT_MINIMUM_LENGTH, len);
+      buffer, EPS_NETWORK_FEATURE_SUPPORT_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;

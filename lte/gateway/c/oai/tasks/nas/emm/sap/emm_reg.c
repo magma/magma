@@ -2,7 +2,7 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the terms found in the LICENSE file in the root of this
  * source tree.
  *
@@ -49,8 +49,7 @@
  **      Others:    NONE                                       **
  **                                                                        **
  ***************************************************************************/
-void emm_reg_initialize(void)
-{
+void emm_reg_initialize(void) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
    * Initialize the EMM state machine
@@ -73,8 +72,7 @@ void emm_reg_initialize(void)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_reg_send(emm_reg_t *const msg)
-{
+int emm_reg_send(emm_reg_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
