@@ -9,9 +9,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
 
-"""
 This is one of ip allocator for ip address manager.
 The IP allocator accepts IP blocks (range of IP addresses), and supports
 allocating and releasing IP addresses from the assigned IP blocks.
