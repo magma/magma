@@ -24,5 +24,6 @@ module.exports = {
   appSrc: resolveApp('app'),
   distPath: resolveApp('static/dist'),
   packagesDir: resolveApp('../../fbcnms-packages'),
+  nodeModulesDir: resolveApp('../../node_modules'),
   resolveApp,
 };

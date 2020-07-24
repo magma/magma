@@ -77,6 +77,7 @@ function createDevWebpackConfig(options: Options) {
               include: [
                 paths.appSrc,
                 paths.packagesDir,
+                paths.nodeModulesDir,
                 ...(options.extraPaths || []),
               ],
               loader: require.resolve('babel-loader'),
