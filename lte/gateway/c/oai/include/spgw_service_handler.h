@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,9 +24,9 @@
  * Sends an GX_NW_INITIATED_ACTIVATE_BEARER_REQ message to SPGW.
  */
 int send_activate_bearer_request_itti(
-  itti_gx_nw_init_actv_bearer_request_t* itti_msg);
+    itti_gx_nw_init_actv_bearer_request_t* itti_msg);
 /*
  * Sends an GX_NW_INITIATED_DEACTIVATE_BEARER_REQ message to SPGW.
  */
 void send_deactivate_bearer_request_itti(
-  itti_gx_nw_init_deactv_bearer_request_t* itti_msg);
+    itti_gx_nw_init_deactv_bearer_request_t* itti_msg);

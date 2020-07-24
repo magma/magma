@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,6 +49,6 @@
 #ifndef FILE_OAISIM_MME_SEEN
 #define FILE_OAISIM_MME_SEEN
 
-int main(int argc, char *argv[]);
+int main(int argc, char* argv[]);
 
 #endif /* FILE_OAISIM_MME_SEEN */

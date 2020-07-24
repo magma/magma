@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,19 +43,14 @@ typedef struct MobileStationClassmark2_tag {
 } MobileStationClassmark2;
 
 int encode_mobile_station_classmark_2(
-  MobileStationClassmark2 *mobilestationclassmark2,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 int decode_mobile_station_classmark_2(
-  MobileStationClassmark2 *mobilestationclassmark2,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 void dump_mobile_station_classmark_2_xml(
-  MobileStationClassmark2 *mobilestationclassmark2,
-  uint8_t iei);
+    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei);
 
 #endif /* MOBILE STATION CLASSMARK 2_H_ */

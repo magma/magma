@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,8 +25,8 @@
 
 typedef uint32_t nonce_t;
 
-int encode_nonce(nonce_t *nonce, uint8_t iei, uint8_t *buffer, uint32_t len);
+int encode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
 
-int decode_nonce(nonce_t *nonce, uint8_t iei, uint8_t *buffer, uint32_t len);
+int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 #endif /* NONCE_SEEN */

@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,9 +33,9 @@
 
 /*
  * Message name: ESM information request
- * Description: This message is sent by the network to the UE to request the UE to provide ESM information, i.e. protocol configuration options or APN or both. See table 8.3.13.1.
- * Significance: dual
- * Direction: network to UE
+ * Description: This message is sent by the network to the UE to request the UE
+ * to provide ESM information, i.e. protocol configuration options or APN or
+ * both. See table 8.3.13.1. Significance: dual Direction: network to UE
  */
 
 typedef struct esm_information_request_msg_tag {
@@ -48,13 +47,11 @@ typedef struct esm_information_request_msg_tag {
 } esm_information_request_msg;
 
 int decode_esm_information_request(
-  esm_information_request_msg *esminformationrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    esm_information_request_msg* esminformationrequest, uint8_t* buffer,
+    uint32_t len);
 
 int encode_esm_information_request(
-  esm_information_request_msg *esminformationrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    esm_information_request_msg* esminformationrequest, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(ESM_INFORMATION_REQUEST_H_) */

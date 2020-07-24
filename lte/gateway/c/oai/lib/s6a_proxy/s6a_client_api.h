@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,19 +30,19 @@ extern "C" {
  * s6a_purge is an asynchronous call that forwards S6a PU to Federation Gateway
  * if S6a Relay is enabled by mconfig
  */
-bool s6a_purge_ue(const char *imsi);
+bool s6a_purge_ue(const char* imsi);
 
 /**
  * s6a_authentication_info_req is an asynchronous call that forwards S6a AIR to
  * Federation Gateway, if S6a Relay is enabled by mconfig
  */
-bool s6a_authentication_info_req(const s6a_auth_info_req_t *air_p);
+bool s6a_authentication_info_req(const s6a_auth_info_req_t* air_p);
 
 /**
  * s6a_update_location_req is an asynchronous call that forwards S6a ULR to
  * Federation Gateway, if S6a Relay is enabled by mconfig
  */
-bool s6a_update_location_req(const s6a_update_location_req_t *const ulr_p);
+bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p);
 
 #ifdef __cplusplus
 }

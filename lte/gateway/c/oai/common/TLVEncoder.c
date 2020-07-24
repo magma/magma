@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,14 +29,11 @@
 int errorCodeEncoder = 0;
 
 int encode_bstring(
-  const_bstring const str,
-  uint8_t *const buffer,
-  const uint32_t buflen)
-{
+    const_bstring const str, uint8_t* const buffer, const uint32_t buflen) {
   if (str) {
     if (blength(str) > 0) {
       CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, blength(str), buflen);
-      memcpy((void *) buffer, (void *) str->data, blength(str));
+      memcpy((void*) buffer, (void*) str->data, blength(str));
       return blength(str);
     } else {
       return 0;

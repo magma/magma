@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,14 +30,12 @@
 #include "assertions.h"
 
 int sgs_send_uplink_unitdata(
-  itti_sgsap_uplink_unitdata_t *sgs_uplink_unitdata_p)
-{
+    itti_sgsap_uplink_unitdata_t* sgs_uplink_unitdata_p) {
   DevAssert(sgs_uplink_unitdata_p);
 
   OAILOG_DEBUG(
-    LOG_SGS,
-    "Received SGS_UPLINK_UNITDATA from task NAS for IMSI : %s \n",
-    sgs_uplink_unitdata_p->imsi);
+      LOG_SGS, "Received SGS_UPLINK_UNITDATA from task NAS for IMSI : %s \n",
+      sgs_uplink_unitdata_p->imsi);
   /* TODO: Add the code for sending this message to sgs service*/
 
   return 0;

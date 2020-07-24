@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,11 +27,10 @@ using prometheus::detail::CounterBuilder;
 using ::testing::Test;
 
 // Tests the MetricsRegistry properly initializes and retrieves metrics
-TEST_F(Test, TestMetricsRegistry)
-{
+TEST_F(Test, TestMetricsRegistry) {
   auto prometheus_registry = std::make_shared<Registry>();
   auto registry = MetricsRegistry<prometheus::Counter, CounterBuilder (&)()>(
-    prometheus_registry, BuildCounter);
+      prometheus_registry, BuildCounter);
   EXPECT_EQ(registry.SizeFamilies(), 0);
   EXPECT_EQ(registry.SizeMetrics(), 0);
 
@@ -54,8 +52,7 @@ TEST_F(Test, TestMetricsRegistry)
   EXPECT_EQ(registry.SizeMetrics(), 4);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

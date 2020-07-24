@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,11 +37,8 @@ class OpenflowMessenger {
    * @return a filled-in FlowMod object
    */
   virtual fluid_msg::of13::FlowMod create_default_flow_mod(
-    uint8_t table_id,
-    fluid_msg::of13::ofp_flow_mod_command command,
-    uint16_t priority) const
-  {
-  }
+      uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
+      uint16_t priority) const {}
 
   /**
    * Sends a completed flow modification to OVS
@@ -51,10 +47,7 @@ class OpenflowMessenger {
    * @param ofconn - the connection to send the flow mod to
    */
   virtual void send_of_msg(
-    fluid_msg::OFMsg &of_msg,
-    fluid_base::OFConnection *ofconn) const
-  {
-  }
+      fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn) const {}
 };
 
 /**
@@ -63,12 +56,11 @@ class OpenflowMessenger {
 class DefaultMessenger : public OpenflowMessenger {
  public:
   fluid_msg::of13::FlowMod create_default_flow_mod(
-    uint8_t table_id,
-    fluid_msg::of13::ofp_flow_mod_command command,
-    uint16_t priority) const;
+      uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
+      uint16_t priority) const;
 
-  void send_of_msg(fluid_msg::OFMsg &of_msg, fluid_base::OFConnection *ofconn)
-    const;
+  void send_of_msg(
+      fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn) const;
 };
 
-} // namespace openflow
+}  // namespace openflow

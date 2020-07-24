@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,16 +63,15 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int sgs_null_handler(const sgs_fsm_t* evt)
-{
+int sgs_null_handler(const sgs_fsm_t* evt) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_NULL) {
     OAILOG_ERROR(
-      LOG_MME_APP,
-      "SGS not in the SGS_NULL state for UE Id: " MME_UE_S1AP_ID_FMT "\n",
-      evt->ue_id);
+        LOG_MME_APP,
+        "SGS not in the SGS_NULL state for UE Id: " MME_UE_S1AP_ID_FMT "\n",
+        evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -103,19 +101,19 @@ int sgs_null_handler(const sgs_fsm_t* evt)
     case _SGS_RESET_INDICATION: {
       /* No handling required, if Reset indication received in NULL state */
       OAILOG_DEBUG(
-        LOG_MME_APP,
-        " Received Reset Indication while SGS context is in SGS_NULL state for "
-        "ue_id:%d \n",
-        evt->ue_id);
+          LOG_MME_APP,
+          " Received Reset Indication while SGS context is in SGS_NULL state "
+          "for "
+          "ue_id:%d \n",
+          evt->ue_id);
       rc = RETURNok;
       ;
     } break;
 
     default: {
       OAILOG_ERROR(
-        LOG_MME_APP,
-        "SGS-FSM   - Primitive is not valid (%d)\n",
-        evt->primitive);
+          LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+          evt->primitive);
     } break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

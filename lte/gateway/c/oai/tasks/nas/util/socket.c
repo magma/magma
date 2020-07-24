@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,13 +35,13 @@
 #include "socket.h"
 #include "nas/commonDef.h"
 
-#include <stdlib.h> // malloc, free, atoi
-#include <string.h> // memset
-#include <unistd.h> // close
-#include <errno.h>  // EINTR
+#include <stdlib.h>  // malloc, free, atoi
+#include <string.h>  // memset
+#include <unistd.h>  // close
+#include <errno.h>   // EINTR
 #include <sys/types.h>
-#include <sys/socket.h> // socket, setsockopt, connect, bind, recv, send
-#include <netdb.h>      // getaddrinfo
+#include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
+#include <netdb.h>       // getaddrinfo
 #include "dynamic_memory_check.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -101,8 +100,7 @@ static int _socket_set_option(int sfd);
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-void *socket_udp_open(int type, const char *host, const char *port)
-{
+void* socket_udp_open(int type, const char* host, const char* port) {
   struct addrinfo socket_info;       /* endpoint information    */
   struct addrinfo *socket_addr, *sp; /* endpoint address    */
   int sfd;                           /* socket file descriptor  */
@@ -131,15 +129,15 @@ void *socket_udp_open(int type, const char *host, const char *port)
    * are returned by getaddrinfo in the list pointed to by result.
    */
   memset(&socket_info, 0, sizeof(struct addrinfo));
-  socket_info.ai_socktype = SOCK_DGRAM;  /* Datagram socket   */
-  socket_info.ai_flags = AI_NUMERICSERV; /* numeric port number  */
+  socket_info.ai_socktype = SOCK_DGRAM;     /* Datagram socket   */
+  socket_info.ai_flags    = AI_NUMERICSERV; /* numeric port number  */
 
   if (type != SOCKET_CLIENT) {
     /*
      * Setup socket address options at the server side
      */
     socket_info.ai_family = AF_INET6;    /* Accept either IPv4 or IPv6
-                                         * connections     */
+                                          * connections     */
     socket_info.ai_flags |= AI_PASSIVE;  /* Use "wildcard address"  */
     socket_info.ai_flags |= AI_V4MAPPED; /* IPv4-mapped IPv6 address */
   } else {
@@ -147,7 +145,8 @@ void *socket_udp_open(int type, const char *host, const char *port)
      * Setup socket address options at the client side
      */
     socket_info.ai_family = AF_INET; /* Any address family   */
-    //         socket_info.ai_flags |= AI_V4MAPPED; /* IPv4-mapped IPv6 address */
+    //         socket_info.ai_flags |= AI_V4MAPPED; /* IPv4-mapped IPv6 address
+    //         */
   }
 
   /*
@@ -230,12 +229,12 @@ void *socket_udp_open(int type, const char *host, const char *port)
   /*
    * The connection endpoint has been successfully setup
    */
-  socket_id_t *sid = (socket_id_t *) malloc(sizeof(struct socket_id_s));
+  socket_id_t* sid = (socket_id_t*) malloc(sizeof(struct socket_id_s));
 
   if (sid) {
     sid->type = type;
     sid->port = atoi(port);
-    sid->fd = sfd;
+    sid->fd   = sfd;
   }
 
   return sid;
@@ -258,10 +257,9 @@ void *socket_udp_open(int type, const char *host, const char *port)
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-void socket_close(void *id)
-{
+void socket_close(void* id) {
   if (id) {
-    close(((socket_id_t *) id)->fd);
+    close(((socket_id_t*) id)->fd);
     free(id);
   }
 }
@@ -284,10 +282,9 @@ void socket_close(void *id)
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-ssize_t socket_recv(void *id, char *buffer, size_t length)
-{
-  socket_id_t *sid = (socket_id_t *) (id);
-  ssize_t rbytes = -1;
+ssize_t socket_recv(void* id, char* buffer, size_t length) {
+  socket_id_t* sid = (socket_id_t*) (id);
+  ssize_t rbytes   = -1;
 
   if (sid->type == SOCKET_CLIENT) {
     /*
@@ -301,8 +298,8 @@ ssize_t socket_recv(void *id, char *buffer, size_t length)
     /*
      * Receive data from the socket and retreive the remote host address
      */
-    rbytes =
-      recvfrom(sid->fd, buffer, length, 0, (struct sockaddr *) &addr, &addrlen);
+    rbytes = recvfrom(
+        sid->fd, buffer, length, 0, (struct sockaddr*) &addr, &addrlen);
     sid->addr = addr;
   }
 
@@ -339,10 +336,9 @@ ssize_t socket_recv(void *id, char *buffer, size_t length)
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-ssize_t socket_send(const void *id, const char *buffer, size_t length)
-{
-  const socket_id_t *sid = (socket_id_t *) (id);
-  ssize_t sbytes = -1;
+ssize_t socket_send(const void* id, const char* buffer, size_t length) {
+  const socket_id_t* sid = (socket_id_t*) (id);
+  ssize_t sbytes         = -1;
 
   if (sid->type == SOCKET_CLIENT) {
     /*
@@ -354,12 +350,8 @@ ssize_t socket_send(const void *id, const char *buffer, size_t length)
      * Send data to the socket using the remote host address
      */
     sbytes = sendto(
-      sid->fd,
-      buffer,
-      length,
-      0,
-      (struct sockaddr *) &sid->addr,
-      (socklen_t) sizeof(sid->addr));
+        sid->fd, buffer, length, 0, (struct sockaddr*) &sid->addr,
+        (socklen_t) sizeof(sid->addr));
   }
 
   if (errno == EINTR) {
@@ -393,10 +385,9 @@ ssize_t socket_send(const void *id, const char *buffer, size_t length)
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int socket_get_fd(const void *id)
-{
+int socket_get_fd(const void* id) {
   if (id) {
-    return ((socket_id_t *) id)->fd;
+    return ((socket_id_t*) id)->fd;
   }
 
   return RETURNerror;
@@ -420,8 +411,7 @@ int socket_get_fd(const void *id)
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _socket_set_option(int sfd)
-{
+static int _socket_set_option(int sfd) {
   int optval;
 
   /*
@@ -445,7 +435,8 @@ static int _socket_set_option(int sfd)
    * * * * -------------------------
    * * * * When option is set to true, the socket is restricted to sending and
    * * * * receiving IPv6 packets only.
-   * * * * When option is set to false, the socket can be used to send and receive
+   * * * * When option is set to false, the socket can be used to send and
+   * receive
    * * * * packets to and from an IPv6 address or an IPv4-mapped IPv6 address.
    */
   optval = false;

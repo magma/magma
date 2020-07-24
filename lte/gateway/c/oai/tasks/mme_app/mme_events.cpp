@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -34,10 +33,9 @@
 #include "EventClientAPI.h"
 
 using grpc::Status;
-using magma::orc8r::Event;
-using magma::orc8r::Void;
-using magma::lte::log_event;
 using magma::lte::init_eventd_client;
+using magma::lte::log_event;
+using magma::orc8r::Event;
 using magma::orc8r::Void;
 
 namespace {

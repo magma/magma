@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,7 +29,6 @@ struct in_addr;
 */
 
 void mme_app_select_sgw(
-  const tai_t *const tai,
-  struct sockaddr *const sgw_in_addr);
+    const tai_t* const tai, struct sockaddr* const sgw_in_addr);
 
 #endif

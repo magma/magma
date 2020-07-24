@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -50,8 +49,7 @@
  **      Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-void emm_main_initialize(const mme_config_t *mme_config_p)
-{
+void emm_main_initialize(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
    * Retreive MME supported configuration data
@@ -59,7 +57,7 @@ void emm_main_initialize(const mme_config_t *mme_config_p)
   memset(&_emm_data.conf, 0, sizeof(_emm_data.conf));
   if (mme_api_get_emm_config(&_emm_data.conf, mme_config_p) != RETURNok) {
     OAILOG_ERROR(
-      LOG_NAS_EMM, "EMM-MAIN  - Failed to get MME configuration data");
+        LOG_NAS_EMM, "EMM-MAIN  - Failed to get MME configuration data");
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
@@ -78,8 +76,7 @@ void emm_main_initialize(const mme_config_t *mme_config_p)
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void emm_main_cleanup(void)
-{
+void emm_main_cleanup(void) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }

@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +15,6 @@
  *      contact@openairinterface.org
  */
 
-
 #include "orc8r/protos/service303.grpc.pb.h"
 #include "orc8r/protos/metricsd.pb.h"
 #include "orc8r/protos/common.pb.h"
@@ -26,19 +24,16 @@
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
+using magma::Service303Client;
 using magma::orc8r::MetricsContainer;
 using magma::orc8r::Service303;
-using magma::Service303Client;
 using magma::orc8r::ServiceInfo;
 using magma::orc8r::Void;
 
-Service303Client::Service303Client(const std::shared_ptr<Channel> &channel):
-  stub_(Service303::NewStub(channel))
-{
-}
+Service303Client::Service303Client(const std::shared_ptr<Channel>& channel)
+    : stub_(Service303::NewStub(channel)) {}
 
-int Service303Client::GetServiceInfo(ServiceInfo *response)
-{
+int Service303Client::GetServiceInfo(ServiceInfo* response) {
   Void request;
   ClientContext context;
   Status status = stub_->GetServiceInfo(&context, request, response);
@@ -50,8 +45,7 @@ int Service303Client::GetServiceInfo(ServiceInfo *response)
   return 0;
 }
 
-int Service303Client::GetMetrics(MetricsContainer *response)
-{
+int Service303Client::GetMetrics(MetricsContainer* response) {
   ClientContext context;
   Void request;
   Status status = stub_->GetMetrics(&context, request, response);

@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,14 +42,14 @@
 
 typedef enum bearer_resource_allocation_reject_iei_tag {
   BEARER_RESOURCE_ALLOCATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } bearer_resource_allocation_reject_iei;
 
 /*
  * Message name: Bearer resource allocation reject
- * Description: This message is sent by the network to the UE to reject the allocation of a dedicated bearer resource. See table 8.3.7.1.
- * Significance: dual
- * Direction: network to UE
+ * Description: This message is sent by the network to the UE to reject the
+ * allocation of a dedicated bearer resource. See table 8.3.7.1. Significance:
+ * dual Direction: network to UE
  */
 
 typedef struct bearer_resource_allocation_reject_msg_tag {
@@ -66,13 +65,11 @@ typedef struct bearer_resource_allocation_reject_msg_tag {
 } bearer_resource_allocation_reject_msg;
 
 int decode_bearer_resource_allocation_reject(
-  bearer_resource_allocation_reject_msg *bearerresourceallocationreject,
-  uint8_t *buffer,
-  uint32_t len);
+    bearer_resource_allocation_reject_msg* bearerresourceallocationreject,
+    uint8_t* buffer, uint32_t len);
 
 int encode_bearer_resource_allocation_reject(
-  bearer_resource_allocation_reject_msg *bearerresourceallocationreject,
-  uint8_t *buffer,
-  uint32_t len);
+    bearer_resource_allocation_reject_msg* bearerresourceallocationreject,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(BEARER_RESOURCE_ALLOCATION_REJECT_H_) */
