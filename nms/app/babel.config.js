@@ -11,9 +11,7 @@
 module.exports = {
   ignore: [
     filename => {
-      if (filename.indexOf('fbcnms') >= 0) {
-        return false;
-      } else if (filename.indexOf('magmalte') >= 0) {
+      if (filename.indexOf('magmalte') >= 0) {
         return false;
       } else if (filename.indexOf('node_modules') >= 0) {
         return true;

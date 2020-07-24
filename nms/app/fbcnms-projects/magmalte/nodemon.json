@@ -1,10 +1,6 @@
 {
   "verbose": true,
-  "ignore": [
-    "../../fbcnms-packages/fbcnms-ui"
-  ],
   "watch": [
-    "../../fbcnms-packages",
     "config/",
     "scripts/",
     "server/"

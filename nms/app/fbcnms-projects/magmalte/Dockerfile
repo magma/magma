@@ -7,7 +7,9 @@ WORKDIR /usr/src/
 # Copy project dependencies
 COPY package.json yarn.lock babel.config.js ./
 COPY fbcnms-projects/magmalte/package.json fbcnms-projects/magmalte/
-COPY fbcnms-packages fbcnms-packages
+COPY fbcnms-packages/ fbcnms-packages/
+RUN find . 
+
 
 # Install node dependencies
 RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
