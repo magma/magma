@@ -68,10 +68,13 @@ const message_info_t messages_info[] = {
 #endif
 
 /** \brief Init function for the intertask interface. Init queues, Mutexes and
- *Cond vars. \param thread_max Maximum number of threads \param messages_id_max
- *Maximum message id \param threads_name Pointer on the threads name information
- *as created by this include file \param messages_info Pointer on messages
- *information as created by this include file
+ * Cond vars.
+ * \param thread_max Maximum number of threads
+ * \param messages_id_max Maximum message id
+ * \param threads_name Pointer on the threads name information as created by
+ * this include file
+ * \param messages_info Pointer on messages information as created by this
+ * include file
  **/
 int itti_init(
     task_id_t task_max, thread_id_t thread_max, MessagesIds messages_id_max,

@@ -508,10 +508,11 @@ ue_mm_context_t* mme_ue_context_exists_guti(
 void mme_app_move_context(ue_mm_context_t* dst, ue_mm_context_t* src);
 
 /** \brief Notify the MME_APP that a duplicated ue_context_t exist (both share
- *the same mme_ue_s1ap_id) \param enb_key        The UE id identifier used in
- *S1AP and MME_APP (agregated with a enb_id) \param mme_ue_s1ap_id The UE id
- *identifier used in MME_APP and NAS \param is_remove_old  Remove old UE context
- *or new UE context ?
+ * the same mme_ue_s1ap_id)
+ * \param enb_key The UE id identifier used in S1AP and MME_APP (agregated with
+ * a enb_id)
+ * \param mme_ue_s1ap_id The UE id identifier used in MME_APP and NAS
+ * \param is_remove_old  Remove old UE context or new UE context ?
  **/
 void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
     const enb_s1ap_id_key_t enb_key, const mme_ue_s1ap_id_t mme_ue_s1ap_id,
@@ -550,8 +551,9 @@ int mme_insert_ue_context(
     const struct ue_mm_context_s* const ue_context_p);
 
 /** \brief TODO WORK HERE Remove UE context unnecessary information.
- *  mark it as released. It is necessary to keep track of the association
- *(s_tmsi (guti), mme_ue_s1ap_id) \param ue_context_p The UE context to remove
+ * mark it as released. It is necessary to keep track of the association
+ * (s_tmsi (guti), mme_ue_s1ap_id)
+ * \param ue_context_p The UE context to remove
  **/
 void mme_notify_ue_context_released(
     mme_ue_context_t* const mme_ue_context_p,

@@ -43,9 +43,10 @@
 //-----------------------begin func -------------------
 
 /*! \fn uint8_t BIT_STRING_to_uint8(BIT_STRING_t *)
- *\brief  This function extract at most a 8 bits value from a BIT_STRING_t
- *object, the exact bits number depend on the BIT_STRING_t contents. \param[in]
- *pointer to the BIT_STRING_t object. \return the extracted value.
+ * \brief This function extract at most a 8 bits value from a BIT_STRING_t
+ * object, the exact bits number depend on the BIT_STRING_t contents.
+ * \param[in] pointer to the BIT_STRING_t object.
+ * \return the extracted value.
  */
 static inline uint8_t BIT_STRING_to_uint8(BIT_STRING_t* asn) {
   DevCheck((asn->size == 1), asn->size, 0, 0);
@@ -54,9 +55,10 @@ static inline uint8_t BIT_STRING_to_uint8(BIT_STRING_t* asn) {
 }
 
 /*! \fn uint16_t BIT_STRING_to_uint16(BIT_STRING_t *)
- *\brief  This function extract at most a 16 bits value from a BIT_STRING_t
- *object, the exact bits number depend on the BIT_STRING_t contents. \param[in]
- *pointer to the BIT_STRING_t object. \return the extracted value.
+ * \brief This function extract at most a 16 bits value from a BIT_STRING_t
+ * object, the exact bits number depend on the BIT_STRING_t contents.
+ * \param[in] pointer to the BIT_STRING_t object.
+ * \return the extracted value.
  */
 static inline uint16_t BIT_STRING_to_uint16(BIT_STRING_t* asn) {
   uint16_t result = 0;
@@ -80,9 +82,10 @@ static inline uint16_t BIT_STRING_to_uint16(BIT_STRING_t* asn) {
 }
 
 /*! \fn uint32_t BIT_STRING_to_uint32(BIT_STRING_t *)
- *\brief  This function extract at most a 32 bits value from a BIT_STRING_t
- *object, the exact bits number depend on the BIT_STRING_t contents. \param[in]
- *pointer to the BIT_STRING_t object. \return the extracted value.
+ * \brief  This function extract at most a 32 bits value from a BIT_STRING_t
+ * object, the exact bits number depend on the BIT_STRING_t contents.
+ * \param[in] pointer to the BIT_STRING_t object.
+ * \return the extracted value.
  */
 static inline uint32_t BIT_STRING_to_uint32(BIT_STRING_t* asn) {
   uint32_t result = 0;
@@ -103,9 +106,10 @@ static inline uint32_t BIT_STRING_to_uint32(BIT_STRING_t* asn) {
 }
 
 /*! \fn uint64_t BIT_STRING_to_uint64(BIT_STRING_t *)
- *\brief  This function extract at most a 64 bits value from a BIT_STRING_t
- *object, the exact bits number depend on the BIT_STRING_t contents. \param[in]
- *pointer to the BIT_STRING_t object. \return the extracted value.
+ * \brief  This function extract at most a 64 bits value from a BIT_STRING_t
+ * object, the exact bits number depend on the BIT_STRING_t contents.
+ * \param[in] pointer to the BIT_STRING_t object.
+ * \return the extracted value.
  */
 static inline uint64_t BIT_STRING_to_uint64(BIT_STRING_t* asn) {
   uint64_t result = 0;
