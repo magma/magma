@@ -11,7 +11,6 @@ import logging
 
 import aioh2
 import h2.events
-from h2.exceptions import ProtocolError
 
 from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
 
