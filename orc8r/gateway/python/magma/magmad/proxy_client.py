@@ -11,7 +11,6 @@ import logging
 
 import aioh2
 import h2.events
-from h2.exceptions import ProtocolError
 
 from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
 
@@ -96,15 +95,19 @@ class ControlProxyHttpClient(object):
                 SyncRPCResponse(heartBeat=False, reqId=req_id,
                                 respBody=GatewayResponse(err=str(e))))
         finally:
-            client.close_connection()
             del self._connection_table[req_id]
+            try:
+                client.close_connection()
+            except AttributeError as e:
+                logging.error('[SyncRPC] Error while trying to close conn: %s',
+                              str(e))
 
     def close_all_connections(self):
         connections = list(self._connection_table.values())
         for client in connections:
             try:
                 client.close_connection()
-            except (ConnectionAbortedError, ProtocolError) as e:
+            except (ConnectionAbortedError, AttributeError) as e:
                 logging.error('[SyncRPC] Error while trying to close conn: %s',
                               str(e))
         self._connection_table.clear()
