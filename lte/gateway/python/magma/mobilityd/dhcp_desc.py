@@ -34,8 +34,9 @@ class DHCPDescriptor:
     def __init__(self, mac: MacAddress, ip: str,
                  state_requested: DHCPState,
                  state: DHCPState = DHCPState.UNKNOWN,
-                 subnet: str = None, server_ip=None, router_ip=None,
-                 lease_time=None, xid=None):
+                 subnet: str = None, server_ip: str = None,
+                 router_ip: str = None, lease_expiration_time: int = 0,
+                 xid: str = None):
         """
         DHCP descriptor. This object maintains all information for
         given DHCP protocol transactions.
@@ -48,7 +49,7 @@ class DHCPDescriptor:
             subnet: subnet of IP from DHCP offer or ACK
             server_ip: DHCP server IP address
             router_ip: GW IP address
-            lease_time: DHCP lease time.
+            lease_expiration_time: DHCP lease time.
             xid: XID used in DHCP protocol.
         """
         self.mac = mac
@@ -58,10 +59,10 @@ class DHCPDescriptor:
         self.state_requested = state_requested
         self.server_ip = server_ip
         self.xid = xid
-        self.lease_time = lease_time
+        self.lease_expiration_time = datetime.now() + timedelta(seconds=lease_expiration_time)
         self.router_ip = router_ip
         if self.state == DHCPState.ACK:
-            new_deadline = datetime.now() + timedelta(seconds=(lease_time / 2))
+            new_deadline = datetime.now() + timedelta(seconds=(lease_expiration_time / 2))
             self.lease_renew_deadline = new_deadline
         else:
             self.lease_renew_deadline = datetime.now()
@@ -72,7 +73,7 @@ class DHCPDescriptor:
                "lease time {}, renew {} xid {}" \
             .format(self.state.name, self.state_requested.name,
                     str(self.mac), self.ip, self.subnet,
-                    self.server_ip, self.router_ip, self.lease_time,
+                    self.server_ip, self.router_ip, self.lease_expiration_time,
                     self.lease_renew_deadline, self.xid)
 
     def get_ip_address(self) -> Optional[str]:
