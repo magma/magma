@@ -733,14 +733,12 @@ jobs:
       - MAGMA_ROOT=/tmp/magma
     steps:
       - checkout
-      - run: apt update
-      - run: apt install -y wget
       - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
       - run: bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
       - run: rm -f /tmp/magma/fossa
       - run: tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: cp /tmp/magma/fossa /usr/local/bin/
-      - run: ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+      - run: sudo cp /tmp/magma/fossa /usr/local/bin/
+      - run: sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
       - magma_slack_notify
 
   ### DOCUSAURUS
