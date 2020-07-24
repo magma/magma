@@ -17,7 +17,7 @@ import type {
 import type {SelectionType} from '../Checkbox/Checkbox';
 
 import * as React from 'react';
-import emptyFunction from '../../../../fbcnms-util/emptyFunction';
+import emptyFunction from '@fbcnms/util/emptyFunction';
 import {useContext, useMemo} from 'react';
 
 export type TableSelectionContextValue = {
