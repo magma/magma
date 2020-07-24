@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,11 +16,11 @@
  */
 
 /*! \file sgw_ie_defs.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_SGW_IE_DEFS_SEEN
 #define FILE_SGW_IE_DEFS_SEEN
@@ -191,7 +190,7 @@ typedef struct {
 #define FTEID_T_2_IP_ADDRESS_T(fte_p, ip_p)                                    \
   do {                                                                         \
     if ((fte_p)->ipv4) {                                                       \
-      (ip_p)->pdn_type = IPv4;                                                 \
+      (ip_p)->pdn_type                    = IPv4;                              \
       (ip_p)->address.ipv4_address.s_addr = (fte_p)->ipv4_address.s_addr;      \
     }                                                                          \
     if ((fte_p)->ipv6) {                                                       \
@@ -201,17 +200,16 @@ typedef struct {
         (ip_p)->pdn_type = IPv6;                                               \
       }                                                                        \
       memcpy(                                                                  \
-        &(ip_p)->address.ipv6_address,                                         \
-        &(fte_p)->ipv6_address,                                                \
-        sizeof((fte_p)->ipv6_address));                                        \
+          &(ip_p)->address.ipv6_address, &(fte_p)->ipv6_address,               \
+          sizeof((fte_p)->ipv6_address));                                      \
     }                                                                          \
   } while (0)
 
 typedef enum {
-  TARGET_ID_RNC_ID = 0,
+  TARGET_ID_RNC_ID       = 0,
   TARGET_ID_MACRO_ENB_ID = 1,
-  TARGET_ID_CELL_ID = 2,
-  TARGET_ID_HOME_ENB_ID = 3
+  TARGET_ID_CELL_ID      = 2,
+  TARGET_ID_HOME_ENB_ID  = 3
   /* Other values are spare */
 } target_type_t;
 
@@ -250,9 +248,9 @@ typedef struct {
 } target_identification_t;
 
 typedef enum SelectionMode_e {
-  MS_O_N_P_APN_S_V = 0, ///< MS or network provided APN, subscribed verified
-  MS_P_APN_S_N_V = 1,   ///< MS provided APN, subscription not verified
-  N_P_APN_S_N_V = 2,    ///< Network provided APN, subscription not verified
+  MS_O_N_P_APN_S_V = 0,  ///< MS or network provided APN, subscribed verified
+  MS_P_APN_S_N_V   = 1,  ///< MS provided APN, subscription not verified
+  N_P_APN_S_N_V    = 2,  ///< Network provided APN, subscription not verified
 } SelectionMode_t;
 
 typedef struct {
@@ -263,13 +261,13 @@ typedef struct {
 typedef enum node_id_type_e {
   GLOBAL_UNICAST_IPv4 = 0,
   GLOBAL_UNICAST_IPv6 = 1,
-  TYPE_EXOTIC =
-    2, ///< (MCC * 1000 + MNC) << 12 + Integer value assigned to MME by operator
+  TYPE_EXOTIC = 2,  ///< (MCC * 1000 + MNC) << 12 + Integer value assigned to
+                    ///< MME by operator
 } node_id_type_t;
 
 typedef struct {
   node_id_type_t node_id_type;
-  uint16_t csid; ///< Connection Set Identifier
+  uint16_t csid;  ///< Connection Set Identifier
   union {
     struct in_addr unicast_ipv4;
     struct in6_addr unicast_ipv6;
@@ -318,39 +316,48 @@ typedef struct {
 typedef enum node_type_e { NODE_TYPE_MME = 0, NODE_TYPE_SGSN = 1 } node_type_t;
 
 typedef struct {
-  uint8_t eps_bearer_id; ///< EBI,  Mandatory CSR
+  uint8_t eps_bearer_id;  ///< EBI,  Mandatory CSR
   bearer_qos_t bearer_level_qos;
   traffic_flow_template_t
-    tft; ///< Bearer TFT, Optional CSR, This IE may be included on the S4/S11 and S5/S8 interfaces.
+      tft;  ///< Bearer TFT, Optional CSR, This IE may be included on the S4/S11
+            ///< and S5/S8 interfaces.
 } bearer_to_create_t;
 
 //-----------------
 typedef struct bearer_context_to_be_created_s {
-  uint8_t eps_bearer_id; ///< EBI,  Mandatory CSR
+  uint8_t eps_bearer_id;  ///< EBI,  Mandatory CSR
   traffic_flow_template_t
-    tft; ///< Bearer TFT, Optional CSR, This IE may be included on the S4/S11 and S5/S8 interfaces.
-  fteid_t
-    s1u_enb_fteid; ///< S1-U eNodeB F-TEID, Conditional CSR, This IE shall be included on the S11 interface for X2-based handover with SGW relocation.
-    fteid_t
-    s1u_sgw_fteid;   ///< S1-U SGW F-TEID, Conditional CSR, This IE shall be included on the S11 interface for X2-based handover with SGW relocation.fteid_t
+      tft;  ///< Bearer TFT, Optional CSR, This IE may be included on the S4/S11
+            ///< and S5/S8 interfaces.
+  fteid_t s1u_enb_fteid;  ///< S1-U eNodeB F-TEID, Conditional CSR, This IE
+                          ///< shall be included on the S11 interface for
+                          ///< X2-based handover with SGW relocation.
+  fteid_t s1u_sgw_fteid;  ///< S1-U SGW F-TEID, Conditional CSR, This IE shall
+                          ///< be included on the S11 interface for X2-based
+                          ///< handover with SGW relocation.fteid_t
 
+  fteid_t s4u_sgsn_fteid;  ///< S4-U SGSN F-TEID, Conditional CSR, This IE shall
+                           ///< be included on the S4 interface if the S4-U
+                           ///< interface is used.
+  fteid_t s5_s8_u_sgw_fteid;  ///< S5/S8-U SGW F-TEID, Conditional CSR, This IE
+                              ///< shall be included on the S5/S8 interface for
+                              ///< an "eUTRAN Initial Attach",
+  ///  a "PDP Context Activation" or a "UE Requested PDN Connectivity".
+  fteid_t s5_s8_u_pgw_fteid;  ///< S5/S8-U PGW F-TEID, Conditional CSR, This IE
+                              ///< shall be included on the S4 and S11
+                              ///< interfaces for the TAU/RAU/Handover
+                              /// cases when the GTP-based S5/S8 is used.
+  fteid_t s12_rnc_fteid;  ///< S12 RNC F-TEID, Conditional Optional CSR, This IE
+                          ///< shall be included on the S4 interface if the S12
+  /// interface is used in the Enhanced serving RNS relocation with SGW
+  /// relocation procedure.
   fteid_t
-    s4u_sgsn_fteid; ///< S4-U SGSN F-TEID, Conditional CSR, This IE shall be included on the S4 interface if the S4-U interface is used.
-  fteid_t
-    s5_s8_u_sgw_fteid; ///< S5/S8-U SGW F-TEID, Conditional CSR, This IE shall be included on the S5/S8 interface for an "eUTRAN Initial Attach",
-    ///  a "PDP Context Activation" or a "UE Requested PDN Connectivity".
-  fteid_t
-    s5_s8_u_pgw_fteid; ///< S5/S8-U PGW F-TEID, Conditional CSR, This IE shall be included on the S4 and S11 interfaces for the TAU/RAU/Handover
-                       /// cases when the GTP-based S5/S8 is used.
-  fteid_t
-    s12_rnc_fteid; ///< S12 RNC F-TEID, Conditional Optional CSR, This IE shall be included on the S4 interface if the S12
-    /// interface is used in the Enhanced serving RNS relocation with SGW relocation procedure.
-  fteid_t
-    s2b_u_epdg_fteid; ///< S2b-U ePDG F-TEID, Conditional CSR, This IE shall be included on the S2b interface for an Attach
-    /// with GTP on S2b, a UE initiated Connectivity to Additional PDN with GTP on S2b and a Handover to Untrusted Non-
-    /// 3GPP IP Access with GTP on S2b.
+      s2b_u_epdg_fteid;  ///< S2b-U ePDG F-TEID, Conditional CSR, This IE shall
+                         ///< be included on the S2b interface for an Attach
+  /// with GTP on S2b, a UE initiated Connectivity to Additional PDN with GTP on
+  /// S2b and a Handover to Untrusted Non- 3GPP IP Access with GTP on S2b.
   /* This parameter is received only if the QoS parameters have been modified */
-  bearer_qos_t bearer_level_qos; ///< Bearer QoS, Mandatory CSR
+  bearer_qos_t bearer_level_qos;  ///< Bearer QoS, Mandatory CSR
   protocol_configuration_options_t
       pco;  ///< This IE may be sent on the S5/S8 and S4/S11 interfaces
             ///< if ePCO is not supported by the UE or the network. This bearer
@@ -363,7 +370,8 @@ typedef struct bearer_contexts_to_be_created_s {
 #define MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS 11
   uint8_t num_bearer_context;
   bearer_context_to_be_created_t bearer_contexts
-    [MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS]; ///< Bearer Contexts to be created
+      [MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS];  ///< Bearer Contexts to
+                                                         ///< be created
   ///< Several IEs with the same type and instance value shall be
   ///< included on the S4/S11 and S5/S8 interfaces as necessary
   ///< to represent a list of Bearers. One single IE shall be
@@ -380,14 +388,14 @@ typedef struct bearer_contexts_to_be_created_s {
 
 //-----------------
 typedef struct bearer_context_created_s {
-  uint8_t eps_bearer_id; ///< EPS Bearer ID
+  uint8_t eps_bearer_id;  ///< EPS Bearer ID
   gtpv2c_cause_t cause;
 
   /* This parameter is used on S11 interface only */
-  fteid_t s1u_sgw_fteid; ///< S1-U SGW F-TEID
+  fteid_t s1u_sgw_fteid;  ///< S1-U SGW F-TEID
 
   /* This parameter is used on S4 interface only */
-  fteid_t s4u_sgw_fteid; ///< S4-U SGW F-TEID
+  fteid_t s4u_sgw_fteid;  ///< S4-U SGW F-TEID
 
   /* This parameter is used on S11 and S5/S8 interface only for a
    * GTP-based S5/S8 interface and during:
@@ -395,21 +403,22 @@ typedef struct bearer_context_created_s {
    * - PDP Context Activation
    * - UE requested PDN connectivity
    */
-  fteid_t s5_s8_u_pgw_fteid; ///< S4-U SGW F-TEID
+  fteid_t s5_s8_u_pgw_fteid;  ///< S4-U SGW F-TEID
 
-  /* This parameter is used on S4 interface only and when S12 interface is used */
-  fteid_t s12_sgw_fteid; ///< S12 SGW F-TEID
+  /* This parameter is used on S4 interface only and when S12 interface is used
+   */
+  fteid_t s12_sgw_fteid;  ///< S12 SGW F-TEID
 
   /* This parameter is received only if the QoS parameters have been modified */
-  bearer_qos_t *bearer_level_qos;
+  bearer_qos_t* bearer_level_qos;
 
-  traffic_flow_template_t tft; ///< Bearer TFT
+  traffic_flow_template_t tft;  ///< Bearer TFT
 } bearer_context_created_t;
 
 typedef struct bearer_contexts_created_s {
   uint8_t num_bearer_context;
   bearer_context_created_t
-    bearer_contexts[MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS];
 } bearer_contexts_created_t;
 
 //-----------------
@@ -449,54 +458,56 @@ typedef struct bearer_contexts_to_be_updated_s {
 } bearer_contexts_to_be_updated_t;
 //-----------------
 typedef struct bearer_context_modified_s {
-  uint8_t eps_bearer_id; ///< EPS Bearer ID
+  uint8_t eps_bearer_id;  ///< EPS Bearer ID
   gtpv2c_cause_t cause;
-  fteid_t s1u_sgw_fteid; ///< Sender F-TEID for user plane
+  fteid_t s1u_sgw_fteid;  ///< Sender F-TEID for user plane
 } bearer_context_modified_t;
 
 typedef struct bearer_contexts_modified_s {
 #define MSG_MODIFY_BEARER_RESPONSE_MAX_BEARER_CONTEXTS 11
   uint8_t num_bearer_context;
   bearer_context_modified_t
-    bearer_contexts[MSG_MODIFY_BEARER_RESPONSE_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_MODIFY_BEARER_RESPONSE_MAX_BEARER_CONTEXTS];
 } bearer_contexts_modified_t;
 
 //-----------------
 typedef struct bearer_context_marked_for_removal_s {
-  uint8_t eps_bearer_id; ///< EPS bearer ID
+  uint8_t eps_bearer_id;  ///< EPS bearer ID
   gtpv2c_cause_t cause;
 } bearer_context_marked_for_removal_t;
 
 typedef struct bearer_contexts_marked_for_removal_s {
   uint8_t num_bearer_context;
   bearer_context_marked_for_removal_t
-    bearer_contexts[MSG_MODIFY_BEARER_RESPONSE_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_MODIFY_BEARER_RESPONSE_MAX_BEARER_CONTEXTS];
 } bearer_contexts_marked_for_removal_t;
 
 //-----------------
 typedef struct bearer_context_to_be_modified_s {
-  uint8_t eps_bearer_id; ///< EPS Bearer ID
-  fteid_t s1_eNB_fteid;  ///< S1 eNodeB F-TEID
+  uint8_t eps_bearer_id;  ///< EPS Bearer ID
+  fteid_t s1_eNB_fteid;   ///< S1 eNodeB F-TEID
 } bearer_context_to_be_modified_t;
 
 typedef struct bearer_contexts_to_be_modified_s {
 #define MSG_MODIFY_BEARER_REQUEST_MAX_BEARER_CONTEXTS 11
   uint8_t num_bearer_context;
   bearer_context_to_be_modified_t
-    bearer_contexts[MSG_MODIFY_BEARER_REQUEST_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_MODIFY_BEARER_REQUEST_MAX_BEARER_CONTEXTS];
 } bearer_contexts_to_be_modified_t;
 //-----------------
 
 typedef struct bearer_context_to_be_removed_s {
-  uint8_t eps_bearer_id;          ///< EPS Bearer ID, Mandatory
-  fteid_t s4u_sgsn_fteid;         ///< S4-U SGSN F-TEID, Conditional , redundant
+  uint8_t eps_bearer_id;   ///< EPS Bearer ID, Mandatory
+  fteid_t s4u_sgsn_fteid;  ///< S4-U SGSN F-TEID, Conditional , redundant
   gtpv2c_cause_t cause;
-} bearer_context_to_be_removed_t; // Within Create Session Request, Modify Bearer Request, Modify Access Bearers Request
+} bearer_context_to_be_removed_t;  // Within Create Session Request, Modify
+                                   // Bearer Request, Modify Access Bearers
+                                   // Request
 
 typedef struct bearer_contexts_to_be_removed_s {
   uint8_t num_bearer_context;
   bearer_context_to_be_removed_t
-    bearer_contexts[MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS];
 } bearer_contexts_to_be_removed_t;
 
 typedef struct ebi_list_s {
@@ -553,7 +564,7 @@ typedef struct bearer_context_within_delete_bearer_response_s {
             ///< precedence over the PCO IE in the message body if they
 } bearer_context_within_delete_bearer_response_t;
 
-#define MSG_DELETE_BEARER_REQUEST_MAX_FAILED_BEARER_CONTEXTS \
+#define MSG_DELETE_BEARER_REQUEST_MAX_FAILED_BEARER_CONTEXTS                   \
   11  // todo: find optimum number
 
 typedef struct bearer_contexts_within_delete_bearer_response_s {
@@ -569,14 +580,14 @@ typedef struct bearer_contexts_within_create_bearer_request_s {
 #define MSG_CREATE_BEARER_REQUEST_MAX_BEARER_CONTEXTS 11
   uint8_t num_bearer_context;
   bearer_context_within_create_bearer_request_t
-    bearer_contexts[MSG_CREATE_BEARER_REQUEST_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_CREATE_BEARER_REQUEST_MAX_BEARER_CONTEXTS];
 } bearer_contexts_within_create_bearer_request_t;
 
 typedef struct bearer_contexts_within_create_bearer_response_s {
 #define MSG_CREATE_BEARER_RESPONSE_MAX_BEARER_CONTEXTS 11
   uint8_t num_bearer_context;
   bearer_context_within_create_bearer_response_t
-    bearer_contexts[MSG_CREATE_BEARER_RESPONSE_MAX_BEARER_CONTEXTS];
+      bearer_contexts[MSG_CREATE_BEARER_RESPONSE_MAX_BEARER_CONTEXTS];
 } bearer_contexts_within_create_bearer_response_t;
 
 #endif /* FILE_SGW_IE_DEFS_SEEN */

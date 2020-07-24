@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 
 /*! \file 3gpp_24.008.h
@@ -50,13 +51,13 @@
 //******************************************************************************
 
 typedef enum common_ie_e {
-  C_MOBILE_STATION_CLASSMARK_2_IEI = 0x11,            /* 0x11 = 17   */
-  C_LOCATION_AREA_IDENTIFICATION_IEI = 0x13,          /* 0x13 = 19   */
-  C_MOBILE_STATION_CLASSMARK_3_IEI = 0x20,            /* 0x20 = 32   */
-  C_MOBILE_IDENTITY_IEI = 0x23,                       /* 0x23 = 35   */
-  C_PLMN_LIST_IEI = 0x4A,                             /* 0x4A = 74   */
-  C_CIPHERING_KEY_SEQUENCE_NUMBER_IEI = 0x80,         /* 0x80 = 128  */
-  C_MS_NETWORK_FEATURE_SUPPORT_IEI = 0xC0,            /* 0xC- = 192- */
+  C_MOBILE_STATION_CLASSMARK_2_IEI            = 0x11, /* 0x11 = 17   */
+  C_LOCATION_AREA_IDENTIFICATION_IEI          = 0x13, /* 0x13 = 19   */
+  C_MOBILE_STATION_CLASSMARK_3_IEI            = 0x20, /* 0x20 = 32   */
+  C_MOBILE_IDENTITY_IEI                       = 0x23, /* 0x23 = 35   */
+  C_PLMN_LIST_IEI                             = 0x4A, /* 0x4A = 74   */
+  C_CIPHERING_KEY_SEQUENCE_NUMBER_IEI         = 0x80, /* 0x80 = 128  */
+  C_MS_NETWORK_FEATURE_SUPPORT_IEI            = 0xC0, /* 0xC- = 192- */
   C_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI = 0x10, /* 0x10 = 16   */
 } common_ie_t;
 
@@ -71,15 +72,11 @@ typedef enum common_ie_e {
 typedef uint8_t ciphering_key_sequence_number_t;
 
 int encode_ciphering_key_sequence_number_ie(
-  ciphering_key_sequence_number_t *cipheringkeysequencenumber,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    ciphering_key_sequence_number_t* cipheringkeysequencenumber,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_ciphering_key_sequence_number_ie(
-  ciphering_key_sequence_number_t *cipheringkeysequencenumber,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    ciphering_key_sequence_number_t* cipheringkeysequencenumber,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.1.3 Location Area Identification
@@ -89,14 +86,17 @@ int decode_ciphering_key_sequence_number_ie(
 #define LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH 6
 
 #define INVALID_LAC_0000                                                       \
-  (uint16_t) 0x0000 /*!< \brief  This LAC can be coded using a full hexadecimal representation
-                                                                        except for the following reserved hexadecimal values: 0000, and FFFE.   */
+  (uint16_t) 0x0000 /*!< \brief  This LAC can be coded using a full            \
+                       hexadecimal representation except for the following     \
+                       reserved hexadecimal values: 0000, and FFFE.   */
 
 #define INVALID_LAC_FFFE                                                       \
-  (uint16_t) 0xFFFE /*!< \brief  This LAC can be coded using a full hexadecimal representation
-                                                                        except for the following reserved hexadecimal values: 0000, and FFFE.   */
+  (uint16_t) 0xFFFE /*!< \brief  This LAC can be coded using a full            \
+                       hexadecimal representation except for the following     \
+                       reserved hexadecimal values: 0000, and FFFE.   */
 typedef uint16_t
-  lac_t; /*!< \brief  Location Area Code (LAC) is a fixed length code (of 2 octets) identifying a location area within a PLMN */
+    lac_t; /*!< \brief  Location Area Code (LAC) is a fixed length code (of 2
+              octets) identifying a location area within a PLMN */
 
 typedef struct location_area_identification_s {
   uint8_t mccdigit2 : 4;
@@ -111,15 +111,11 @@ typedef struct location_area_identification_s {
 typedef location_area_identification_t lai_t;
 
 int encode_location_area_identification_ie(
-  location_area_identification_t *locationareaidentification,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    location_area_identification_t* locationareaidentification,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_location_area_identification_ie(
-  location_area_identification_t *locationareaidentification,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    location_area_identification_t* locationareaidentification,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.1.4 Mobile Identity
@@ -251,15 +247,11 @@ typedef union mobile_identity_s {
 } mobile_identity_t;
 
 int encode_mobile_identity_ie(
-  mobile_identity_t *mobileidentity,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    mobile_identity_t* mobileidentity, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_mobile_identity_ie(
-  mobile_identity_t *mobileidentity,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    mobile_identity_t* mobileidentity, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.1.6 Mobile Station Classmark 2
@@ -289,37 +281,29 @@ typedef struct mobile_station_classmark2_s {
 } mobile_station_classmark2_t;
 
 int encode_mobile_station_classmark_2_ie(
-  mobile_station_classmark2_t *mobilestationclassmark2,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    mobile_station_classmark2_t* mobilestationclassmark2,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_mobile_station_classmark_2_ie(
-  mobile_station_classmark2_t *mobilestationclassmark2,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    mobile_station_classmark2_t* mobilestationclassmark2,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.1.7 Mobile Station Classmark 3
 //------------------------------------------------------------------------------
 #define MOBILE_STATION_CLASSMARK_3_IE_TYPE 4
-#define MOBILE_STATION_CLASSMARK_3_IE_MIN_LENGTH 34 //TODO
+#define MOBILE_STATION_CLASSMARK_3_IE_MIN_LENGTH 34  // TODO
 #define MOBILE_STATION_CLASSMARK_3_IE_MAX_LENGTH 34
 
 typedef struct mobile_station_classmark3_s {
-  uint8_t byte[32]; //TODO
+  uint8_t byte[32];  // TODO
 } mobile_station_classmark3_t;
 
 int encode_mobile_station_classmark_3_ie(
-  mobile_station_classmark3_t *mobilestationclassmark3,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    mobile_station_classmark3_t* mobilestationclassmark3,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_mobile_station_classmark_3_ie(
-  mobile_station_classmark3_t *mobilestationclassmark3,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    mobile_station_classmark3_t* mobilestationclassmark3,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.1.13 PLMN list
@@ -335,15 +319,11 @@ typedef struct plmn_list_s {
 } plmn_list_t;
 
 int encode_plmn_list_ie(
-  plmn_list_t *plmnlist,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    plmn_list_t* plmnlist, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_plmn_list_ie(
-  plmn_list_t *plmnlist,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    plmn_list_t* plmnlist, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.1.15 MS network feature support
@@ -358,52 +338,44 @@ typedef struct ms_network_feature_support_s {
 } ms_network_feature_support_t;
 
 int encode_ms_network_feature_support_ie(
-  ms_network_feature_support_t *msnetworkfeaturesupport,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    ms_network_feature_support_t* msnetworkfeaturesupport,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_ms_network_feature_support_ie(
-  ms_network_feature_support_t *msnetworkfeaturesupport,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    ms_network_feature_support_t* msnetworkfeaturesupport,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 //------------------------------------------------------------------------------
 // 10.5.5.31 Network Resource Identifier Container
 //------------------------------------------------------------------------------
 #define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_TYPE 4
-#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MIN_LENGTH 4 //TODO
+#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MIN_LENGTH 4  // TODO
 #define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MAX_LENGTH 4
 
 typedef struct network_resource_identifier_container_s {
-  uint8_t byte[32]; //TODO
+  uint8_t byte[32];  // TODO
 } network_resource_identifier_container_t;
 
 int encode_network_resource_identifier_container_ie(
-  network_resource_identifier_container_t *networkresourceidentifiercontainer,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    network_resource_identifier_container_t* networkresourceidentifiercontainer,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_network_resource_identifier_container_ie(
-  network_resource_identifier_container_t *networkresourceidentifiercontainer,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    network_resource_identifier_container_t* networkresourceidentifiercontainer,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //******************************************************************************
 // 10.5.3 Mobility management information elements.
 //******************************************************************************
 
 typedef enum mobility_managenent_ie_e {
-  MM_AUTHENTICATION_PARAMETER_RAND_IEI = 0x21,     /* 0x21 = 33 */
-  MM_AUTHENTICATION_PARAMETER_AUTN_IEI = 0x28,     /* 0x28 = 40 */
+  MM_AUTHENTICATION_PARAMETER_RAND_IEI     = 0x21, /* 0x21 = 33 */
+  MM_AUTHENTICATION_PARAMETER_AUTN_IEI     = 0x28, /* 0x28 = 40 */
   MM_AUTHENTICATION_RESPONSE_PARAMETER_IEI = 0x29, /* 0x28 = 41 */
-  MM_AUTHENTICATION_FAILURE_PARAMETER_IEI = 0x30,  /* 0x30 = 48 */
-  MM_EMERGENCY_NUMBER_LIST_IEI = 0x34,             /* 0x34 = 52 */
-  MM_FULL_NETWORK_NAME_IEI = 0x43,                 /* 0x43 = 67 */
-  MM_SHORT_NETWORK_NAME_IEI = 0x45,                /* 0x45 = 69 */
-  MM_TIME_ZONE_IEI = 0x46,                         /* 0x46 = 70 */
-  MM_TIME_ZONE_AND_TIME_IEI = 0x47,                /* 0x47 = 71 */
-  MM_DAYLIGHT_SAVING_TIME_IEI = 0x49,              /* 0x49 = 73 */
+  MM_AUTHENTICATION_FAILURE_PARAMETER_IEI  = 0x30, /* 0x30 = 48 */
+  MM_EMERGENCY_NUMBER_LIST_IEI             = 0x34, /* 0x34 = 52 */
+  MM_FULL_NETWORK_NAME_IEI                 = 0x43, /* 0x43 = 67 */
+  MM_SHORT_NETWORK_NAME_IEI                = 0x45, /* 0x45 = 69 */
+  MM_TIME_ZONE_IEI                         = 0x46, /* 0x46 = 70 */
+  MM_TIME_ZONE_AND_TIME_IEI                = 0x47, /* 0x47 = 71 */
+  MM_DAYLIGHT_SAVING_TIME_IEI              = 0x49, /* 0x49 = 73 */
 } mobility_managenent_ie_t;
 
 //------------------------------------------------------------------------------
@@ -416,18 +388,15 @@ typedef enum mobility_managenent_ie_e {
 typedef bstring authentication_parameter_rand_t;
 
 int encode_authentication_parameter_rand_ie(
-  authentication_parameter_rand_t authenticationparameterrand,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_parameter_rand_t authenticationparameterrand,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_parameter_rand_ie(
-  authentication_parameter_rand_t *authenticationparameterrand,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_parameter_rand_t* authenticationparameterrand,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
-// 10.5.3.1.1 Authentication Parameter AUTN (UMTS and EPS authentication challenge)
+// 10.5.3.1.1 Authentication Parameter AUTN (UMTS and EPS authentication
+// challenge)
 //------------------------------------------------------------------------------
 #define AUTHENTICATION_PARAMETER_AUTN_IE_TYPE 4
 #define AUTHENTICATION_PARAMETER_AUTN_IE_MIN_LENGTH 18
@@ -436,15 +405,11 @@ int decode_authentication_parameter_rand_ie(
 typedef bstring authentication_parameter_autn_t;
 
 int encode_authentication_parameter_autn_ie(
-  authentication_parameter_autn_t authenticationparameterautn,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_parameter_autn_t authenticationparameterautn,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_parameter_autn_ie(
-  authentication_parameter_autn_t *authenticationparameterautn,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_parameter_autn_t* authenticationparameterautn,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.3.2 Authentication Response parameter
@@ -456,18 +421,15 @@ int decode_authentication_parameter_autn_ie(
 typedef bstring authentication_response_parameter_t;
 
 int encode_authentication_response_parameter_ie(
-  authentication_response_parameter_t authenticationresponseparameter,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_response_parameter_t authenticationresponseparameter,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_response_parameter_ie(
-  authentication_response_parameter_t *authenticationresponseparameter,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_response_parameter_t* authenticationresponseparameter,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
-// 10.5.3.2.2 Authentication Failure parameter (UMTS and EPS authentication challenge)
+// 10.5.3.2.2 Authentication Failure parameter (UMTS and EPS authentication
+// challenge)
 //------------------------------------------------------------------------------
 #define AUTHENTICATION_FAILURE_PARAMETER_IE_TYPE 4
 #define AUTHENTICATION_FAILURE_PARAMETER_IE_MIN_LENGTH 16
@@ -476,22 +438,18 @@ int decode_authentication_response_parameter_ie(
 typedef bstring authentication_failure_parameter_t;
 
 int encode_authentication_failure_parameter_ie(
-  authentication_failure_parameter_t authenticationfailureparameter,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_failure_parameter_t authenticationfailureparameter,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_authentication_failure_parameter_ie(
-  authentication_failure_parameter_t *authenticationfailureparameter,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    authentication_failure_parameter_t* authenticationfailureparameter,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.3.5a Network Name
 //------------------------------------------------------------------------------
 #define NETWORK_NAME_IE_TYPE 4
 #define NETWORK_NAME_IE_MIN_LENGTH 4
-//TODO
+// TODO
 #define NETWORK_NAME_IE_MAX_LENGTH 255
 
 typedef struct network_name_s {
@@ -502,15 +460,11 @@ typedef struct network_name_s {
 } network_name_t;
 
 int encode_network_name_ie(
-  network_name_t *networkname,
-  const uint8_t iei,
-  uint8_t *buffer,
-  const uint32_t len);
+    network_name_t* networkname, const uint8_t iei, uint8_t* buffer,
+    const uint32_t len);
 int decode_network_name_ie(
-  network_name_t *networkname,
-  const uint8_t iei,
-  uint8_t *buffer,
-  const uint32_t len);
+    network_name_t* networkname, const uint8_t iei, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.3.8 Time Zone
@@ -522,15 +476,11 @@ int decode_network_name_ie(
 typedef uint8_t time_zone_t;
 
 int encode_time_zone(
-  time_zone_t *timezone,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    time_zone_t* timezone, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_time_zone(
-  time_zone_t *timezone,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    time_zone_t* timezone, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.3.9 Time Zone and Time
@@ -550,15 +500,11 @@ typedef struct time_zone_and_time_s {
 } time_zone_and_time_t;
 
 int encode_time_zone_and_time(
-  time_zone_and_time_t *timezoneandtime,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    time_zone_and_time_t* timezoneandtime, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_time_zone_and_time(
-  time_zone_and_time_t *timezoneandtime,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    time_zone_and_time_t* timezoneandtime, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.3.12 Daylight Saving Time
@@ -570,15 +516,11 @@ int decode_time_zone_and_time(
 typedef uint8_t daylight_saving_time_t;
 
 int encode_daylight_saving_time_ie(
-  daylight_saving_time_t *daylightsavingtime,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    daylight_saving_time_t* daylightsavingtime, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_daylight_saving_time_ie(
-  daylight_saving_time_t *daylightsavingtime,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    daylight_saving_time_t* daylightsavingtime, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.3.13 Emergency Number List
@@ -593,19 +535,15 @@ typedef struct emergency_number_list_s {
   uint8_t emergencyservicecategoryvalue : 5;
 #define EMERGENCY_NUMBER_MAX_DIGITS (MSISDN_DIGIT_SIZE * 2)
   uint8_t number_digit[EMERGENCY_NUMBER_MAX_DIGITS];
-  struct emergency_number_list_s *next;
+  struct emergency_number_list_s* next;
 } emergency_number_list_t;
 
 int encode_emergency_number_list_ie(
-  emergency_number_list_t *emergencynumberlist,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    emergency_number_list_t* emergencynumberlist, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_emergency_number_list_ie(
-  emergency_number_list_t *emergencynumberlist,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    emergency_number_list_t* emergencynumberlist, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //******************************************************************************
 // 10.5.4 Call control information elements
@@ -624,26 +562,22 @@ typedef enum call_control_ie_e {
 typedef bstring supported_codec_list_t;
 
 int encode_supported_codec_list(
-  supported_codec_list_t *supportedcodeclist,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    supported_codec_list_t* supportedcodeclist, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_supported_codec_list(
-  supported_codec_list_t *supportedcodeclist,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    supported_codec_list_t* supportedcodeclist, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //******************************************************************************
 // 10.5.5 GPRS mobility management information elements
 //******************************************************************************
 
 typedef enum gprs_mobility_managenent_ie_e {
-  GMM_PTMSI_SIGNATURE_IEI = 0x19,                              /* 0x19 = 25  */
-  GMM_MS_NETWORK_CAPABILITY_IEI = 0x31,                        /* 0x31 = 49  */
-  GMM_DRX_PARAMETER_IEI = 0x5C,                                /* 0x5C = 92  */
+  GMM_PTMSI_SIGNATURE_IEI                              = 0x19, /* 0x19 = 25  */
+  GMM_MS_NETWORK_CAPABILITY_IEI                        = 0x31, /* 0x31 = 49  */
+  GMM_DRX_PARAMETER_IEI                                = 0x5C, /* 0x5C = 92  */
   GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI = 0x5D, /* 0x5D = 93  */
-  GMM_TMSI_STATUS_IEI = 0x90,    /* 0x90 = 144 (shifted by 4)*/
+  GMM_TMSI_STATUS_IEI    = 0x90, /* 0x90 = 144 (shifted by 4)*/
   GMM_IMEISV_REQUEST_IEI = 0xC0, /* 0xC0 = 192 (shifted by 4)*/
 } gprs_mobility_managenent_ie_t;
 
@@ -657,15 +591,11 @@ typedef enum gprs_mobility_managenent_ie_e {
 typedef uint8_t tmsi_status_t;
 
 int encode_tmsi_status(
-  tmsi_status_t *tmsistatus,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    tmsi_status_t* tmsistatus, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_tmsi_status(
-  tmsi_status_t *tmsistatus,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    tmsi_status_t* tmsistatus, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.5.6 DRX parameter
@@ -682,15 +612,11 @@ typedef struct drx_parameter_s {
 } drx_parameter_t;
 
 int encode_drx_parameter_ie(
-  drx_parameter_t *drxparameter,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    drx_parameter_t* drxparameter, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_drx_parameter_ie(
-  drx_parameter_t *drxparameter,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    drx_parameter_t* drxparameter, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.5.8 P-TMSI signature
@@ -702,15 +628,11 @@ int decode_drx_parameter_ie(
 typedef uint32_t p_tmsi_signature_t;
 
 int encode_p_tmsi_signature_ie(
-  p_tmsi_signature_t ptmsisignature,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    p_tmsi_signature_t ptmsisignature, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_p_tmsi_signature_ie(
-  p_tmsi_signature_t *ptmsisignature,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    p_tmsi_signature_t* ptmsisignature, const bool iei_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.5.9 Identity type 2
@@ -727,15 +649,11 @@ int decode_p_tmsi_signature_ie(
 typedef uint8_t identity_type2_t;
 
 int encode_identity_type_2_ie(
-  identity_type2_t *identitytype2,
-  bool is_ie_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    identity_type2_t* identitytype2, bool is_ie_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_identity_type_2_ie(
-  identity_type2_t *identitytype2,
-  bool is_ie_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    identity_type2_t* identitytype2, bool is_ie_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.5.10 IMEISV request
@@ -750,15 +668,11 @@ typedef uint8_t imeisv_request_t;
 #define IMEISV_REQUESTED 0b001
 
 int encode_imeisv_request_ie(
-  imeisv_request_t *imeisvrequest,
-  bool is_ie_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    imeisv_request_t* imeisvrequest, bool is_ie_present, uint8_t* buffer,
+    const uint32_t len);
 int decode_imeisv_request_ie(
-  imeisv_request_t *imeisvrequest,
-  bool is_ie_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    imeisv_request_t* imeisvrequest, bool is_ie_present, uint8_t* buffer,
+    const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.5.12 MS network capability
@@ -815,15 +729,11 @@ typedef struct ms_network_capability_s {
 } ms_network_capability_t;
 
 int encode_ms_network_capability_ie(
-  ms_network_capability_t *msnetworkcapability,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len) __attribute__((unused));
+    ms_network_capability_t* msnetworkcapability, const bool iei_present,
+    uint8_t* buffer, const uint32_t len) __attribute__((unused));
 int decode_ms_network_capability_ie(
-  ms_network_capability_t *msnetworkcapability,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    ms_network_capability_t* msnetworkcapability, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.5.15 Routing area identification
@@ -836,7 +746,8 @@ typedef uint8_t routing_area_code_t; /*!< \brief  Routing Area Code    */
  */
 typedef struct routing_area_identification_s {
   location_area_identification_t
-    lai; /*!< \brief  See 3GPP TS 23.003 4.2 Composition of the Routing Area Identification (RAI)    */
+      lai; /*!< \brief  See 3GPP TS 23.003 4.2 Composition of the Routing Area
+              Identification (RAI)    */
   routing_area_code_t rac; /*!< \brief  Routing Area Code    */
 } routing_area_identification_t;
 
@@ -862,30 +773,26 @@ typedef struct voice_domain_preference_and_ue_usage_setting_s {
 } voice_domain_preference_and_ue_usage_setting_t;
 
 int encode_voice_domain_preference_and_ue_usage_setting(
-  voice_domain_preference_and_ue_usage_setting_t
-    *voicedomainpreferenceandueusagesetting,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    voice_domain_preference_and_ue_usage_setting_t*
+        voicedomainpreferenceandueusagesetting,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_voice_domain_preference_and_ue_usage_setting(
-  voice_domain_preference_and_ue_usage_setting_t
-    *voicedomainpreferenceandueusagesetting,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    voice_domain_preference_and_ue_usage_setting_t*
+        voicedomainpreferenceandueusagesetting,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //******************************************************************************
 // 10.5.6 Session management information elements
 //******************************************************************************
 
 typedef enum session_managenent_ie_e {
-  SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI = 0x27,      /* 0x27 = 39 */
-  SM_ACCESS_POINT_NAME_IEI = 0x28,                   /* 0x28 = 40 */
-  SM_QUALITY_OF_SERVICE_IEI = 0x30,                  /* 0x30 = 48 */
+  SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI      = 0x27, /* 0x27 = 39 */
+  SM_ACCESS_POINT_NAME_IEI                   = 0x28, /* 0x28 = 40 */
+  SM_QUALITY_OF_SERVICE_IEI                  = 0x30, /* 0x30 = 48 */
   SM_LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IEI = 0x32, /* 0x32 = 50 */
-  SM_PACKET_FLOW_IDENTIFIER_IEI = 0x34,              /* 0x34 = 52 */
-  SM_TRAFFIC_FLOW_TEMPLATE_IEI = 0x36,               /* 0x36 = 54 */
-  SM_LINKED_TI_IEI = 0x5D,                           /* 0x5D = 93 */
+  SM_PACKET_FLOW_IDENTIFIER_IEI              = 0x34, /* 0x34 = 52 */
+  SM_TRAFFIC_FLOW_TEMPLATE_IEI               = 0x36, /* 0x36 = 54 */
+  SM_LINKED_TI_IEI                           = 0x5D, /* 0x5D = 93 */
 
 } session_managenent_ie_t;
 
@@ -900,15 +807,11 @@ typedef enum session_managenent_ie_e {
 typedef bstring access_point_name_t;
 
 int encode_access_point_name_ie(
-  access_point_name_t accesspointname,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    access_point_name_t accesspointname, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_access_point_name_ie(
-  access_point_name_t *accesspointname,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    access_point_name_t* accesspointname, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.3 Protocol configuration options
@@ -941,7 +844,7 @@ int decode_access_point_name_ie(
 #define PCO_CI_MSISDN_REQUEST (0x000E)
 #define PCO_CI_IFOM_SUPPORT_REQUEST (0x000F)
 #define PCO_CI_IPV4_LINK_MTU_REQUEST (0x0010)
-// RESERVED                                                             (0xFF00..FFFF)
+// RESERVED (0xFF00..FFFF)
 
 /* CONTAINER IDENTIFIER Network to MS direction:*/
 #define PCO_CI_P_CSCF_IPV6_ADDRESS (0x0001)
@@ -959,7 +862,7 @@ int decode_access_point_name_ie(
 #define PCO_CI_MSISDN (0x000E)
 #define PCO_CI_IFOM_SUPPORT (0x000F)
 #define PCO_CI_IPV4_LINK_MTU (0x0010)
-// RESERVED                                                             (0xFF00..FFFF)
+// RESERVED (0xFF00..FFFF)
 
 /* Both directions:*/
 #define PCO_CI_IM_CN_SUBSYSTEM_SIGNALING_FLAG (0x0002)
@@ -976,10 +879,11 @@ typedef struct protocol_configuration_options_s {
   uint8_t configuration_protocol : 3;
   uint8_t num_protocol_or_container_id;
   // arbitrary value, can be greater than defined (250/3)
-  // Setting this value to 30 to support maximum possible number of protocol id or container id defined in 24.008 release 13
+  // Setting this value to 30 to support maximum possible number of protocol id
+  // or container id defined in 24.008 release 13
 #define PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID 30
   pco_protocol_or_container_id_t
-    protocol_or_container_ids[PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID];
+      protocol_or_container_ids[PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID];
 } protocol_configuration_options_t;
 
 typedef struct TimeZoneAndTime_s {
@@ -993,34 +897,28 @@ typedef struct TimeZoneAndTime_s {
 } TimeZoneAndTime_t;
 
 void copy_protocol_configuration_options(
-  protocol_configuration_options_t *const pco_dst,
-  const protocol_configuration_options_t *const pco_src);
+    protocol_configuration_options_t* const pco_dst,
+    const protocol_configuration_options_t* const pco_src);
 void clear_protocol_configuration_options(
-  protocol_configuration_options_t *const pco);
+    protocol_configuration_options_t* const pco);
 void free_protocol_configuration_options(
-  protocol_configuration_options_t **const protocol_configuration_options);
+    protocol_configuration_options_t** const protocol_configuration_options);
 
 int decode_protocol_configuration_options(
-  protocol_configuration_options_t *protocolconfigurationoptions,
-  const uint8_t *const buffer,
-  const uint32_t len);
+    protocol_configuration_options_t* protocolconfigurationoptions,
+    const uint8_t* const buffer, const uint32_t len);
 
 int decode_protocol_configuration_options_ie(
-  protocol_configuration_options_t *protocolconfigurationoptions,
-  const bool iei_present,
-  const uint8_t *const buffer,
-  const uint32_t len);
+    protocol_configuration_options_t* protocolconfigurationoptions,
+    const bool iei_present, const uint8_t* const buffer, const uint32_t len);
 
 int encode_protocol_configuration_options(
-  const protocol_configuration_options_t *const protocolconfigurationoptions,
-  uint8_t *buffer,
-  const uint32_t len);
+    const protocol_configuration_options_t* const protocolconfigurationoptions,
+    uint8_t* buffer, const uint32_t len);
 
 int encode_protocol_configuration_options_ie(
-  const protocol_configuration_options_t *const protocolconfigurationoptions,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    const protocol_configuration_options_t* const protocolconfigurationoptions,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.5 Quality of service
@@ -1052,15 +950,11 @@ typedef struct quality_of_service_s {
 } quality_of_service_t;
 
 int encode_quality_of_service_ie(
-  quality_of_service_t *qualityofservice,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    quality_of_service_t* qualityofservice, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_quality_of_service_ie(
-  quality_of_service_t *qualityofservice,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    quality_of_service_t* qualityofservice, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.7 Linked TI
@@ -1077,15 +971,11 @@ typedef struct linked_ti_s {
 } linked_ti_t;
 
 int encode_linked_ti_ie(
-  linked_ti_t *llcserviceaccesspointidentifier,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    linked_ti_t* llcserviceaccesspointidentifier, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_linked_ti_ie(
-  linked_ti_t *llcserviceaccesspointidentifier,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    linked_ti_t* llcserviceaccesspointidentifier, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.9 LLC service access point identifier
@@ -1097,15 +987,11 @@ int decode_linked_ti_ie(
 typedef uint8_t llc_service_access_point_identifier_t;
 
 int encode_llc_service_access_point_identifier_ie(
-  llc_service_access_point_identifier_t *llcserviceaccesspointidentifier,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    llc_service_access_point_identifier_t* llcserviceaccesspointidentifier,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_llc_service_access_point_identifier_ie(
-  llc_service_access_point_identifier_t *llcserviceaccesspointidentifier,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    llc_service_access_point_identifier_t* llcserviceaccesspointidentifier,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.11 Packet Flow Identifier
@@ -1117,15 +1003,11 @@ int decode_llc_service_access_point_identifier_ie(
 typedef uint8_t packet_flow_identifier_t;
 
 int encode_packet_flow_identifier_ie(
-  packet_flow_identifier_t *packetflowidentifier,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 int decode_packet_flow_identifier_ie(
-  packet_flow_identifier_t *packetflowidentifier,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
+    uint8_t* buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.12 Traffic Flow Template
@@ -1251,20 +1133,20 @@ typedef packet_filter_t replace_packet_filter_t;
 typedef union {
   create_new_tft_t createnewtft[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
   add_packet_filter_t
-    addpacketfilter[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
+      addpacketfilter[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
   replace_packet_filter_t
-    replacepacketfilter[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
+      replacepacketfilter[TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX];
   delete_packet_filter_t
-    deletepacketfilter[TRAFFIC_FLOW_TEMPLATE_PACKET_IDENTIFIER_MAX];
+      deletepacketfilter[TRAFFIC_FLOW_TEMPLATE_PACKET_IDENTIFIER_MAX];
   delete_existing_tft_t deleteexistingtft;
   no_tft_operation_t notftoperation;
 } packet_filter_list_t;
 
 typedef struct parameter_s {
-#define PARAMETER_IDENTIFIER_AUTHORIZATION_TOKEN 0x01 // Authorization Token
-#define PARAMETER_IDENTIFIER_FLOW_IDENTIFIER 0x02     // Flow Identifier
+#define PARAMETER_IDENTIFIER_AUTHORIZATION_TOKEN 0x01  // Authorization Token
+#define PARAMETER_IDENTIFIER_FLOW_IDENTIFIER 0x02      // Flow Identifier
 #define PARAMETER_IDENTIFIER_PACKET_FILTER_IDENTIFIER                          \
-  0x03 // Packet Filter Identifier
+  0x03  // Packet Filter Identifier
   uint8_t parameteridentifier;
   uint8_t length;
   bstring contents;
@@ -1272,7 +1154,7 @@ typedef struct parameter_s {
 
 typedef struct parameters_list_s {
   uint8_t num_parameters;
-#define TRAFFIC_FLOW_TEMPLATE_NB_PARAMETERS_MAX 16 // TODO or may use []
+#define TRAFFIC_FLOW_TEMPLATE_NB_PARAMETERS_MAX 16  // TODO or may use []
   parameter_t parameter[TRAFFIC_FLOW_TEMPLATE_NB_PARAMETERS_MAX];
 } parameters_list_t;
 
@@ -1293,10 +1175,10 @@ typedef struct traffic_flow_template_s {
   uint8_t ebit : 1;
   uint8_t numberofpacketfilters : 4;
   packet_filter_list_t packetfilterlist;
-  parameters_list_t
-    parameterslist; // The parameters list contains a variable number of parameters that may be
-    // transferred. If the parameters list is included, the E bit is set to 1; otherwise, the E bit
-    // is set to 0.
+  parameters_list_t parameterslist;  // The parameters list contains a variable
+                                     // number of parameters that may be
+  // transferred. If the parameters list is included, the E bit is set to 1;
+  // otherwise, the E bit is set to 0.
 } traffic_flow_template_t;
 
 #define TFT_ENCODE_IEI_TRUE true
@@ -1305,36 +1187,30 @@ typedef struct traffic_flow_template_s {
 #define TFT_ENCODE_LENGTH_FALSE false
 
 int encode_traffic_flow_template(
-  const traffic_flow_template_t *trafficflowtemplate,
-  uint8_t *buffer,
-  const uint32_t len);
+    const traffic_flow_template_t* trafficflowtemplate, uint8_t* buffer,
+    const uint32_t len);
 int encode_traffic_flow_template_ie(
-  const traffic_flow_template_t *const trafficflowtemplate,
-  const bool iei_present,
-  uint8_t *buffer,
-  const uint32_t len);
+    const traffic_flow_template_t* const trafficflowtemplate,
+    const bool iei_present, uint8_t* buffer, const uint32_t len);
 int decode_traffic_flow_template(
-  traffic_flow_template_t *trafficflowtemplate,
-  const uint8_t *const buffer,
-  const uint32_t len);
+    traffic_flow_template_t* trafficflowtemplate, const uint8_t* const buffer,
+    const uint32_t len);
 int decode_traffic_flow_template_ie(
-  traffic_flow_template_t *trafficflowtemplate,
-  const bool iei_present,
-  const uint8_t *const buffer,
-  const uint32_t len);
+    traffic_flow_template_t* trafficflowtemplate, const bool iei_present,
+    const uint8_t* const buffer, const uint32_t len);
 void copy_traffic_flow_template(
-  traffic_flow_template_t *const tft_dst,
-  const traffic_flow_template_t *const tft_src);
-void free_traffic_flow_template(traffic_flow_template_t **tft);
+    traffic_flow_template_t* const tft_dst,
+    const traffic_flow_template_t* const tft_src);
+void free_traffic_flow_template(traffic_flow_template_t** tft);
 
 //******************************************************************************
 // 10.5.7 GPRS Common information elements
 //******************************************************************************
 
 typedef enum gprs_common_ie_e {
-  GPRS_C_TIMER_3402_VALUE_IEI = 0x17,          /* 0x17 = 23 */
-  GPRS_C_TIMER_3423_VALUE_IEI = 0x59,          /* 0x59 = 89 */
-  GPRS_C_TIMER_3412_VALUE_IEI = 0x5A,          /* 0x5A = 90 */
+  GPRS_C_TIMER_3402_VALUE_IEI          = 0x17, /* 0x17 = 23 */
+  GPRS_C_TIMER_3423_VALUE_IEI          = 0x59, /* 0x59 = 89 */
+  GPRS_C_TIMER_3412_VALUE_IEI          = 0x5A, /* 0x5A = 90 */
   GPRS_C_TIMER_3412_EXTENDED_VALUE_IEI = 0x5E, /* 0x5E = 94 */
 } gprs_common_ie_t;
 
@@ -1355,15 +1231,9 @@ typedef struct gprs_timer_s {
 } gprs_timer_t;
 
 int encode_gprs_timer_ie(
-  gprs_timer_t *gprstimer,
-  uint8_t iei,
-  uint8_t *buffer,
-  const uint32_t len);
+    gprs_timer_t* gprstimer, uint8_t iei, uint8_t* buffer, const uint32_t len);
 int decode_gprs_timer_ie(
-  gprs_timer_t *gprstimer,
-  uint8_t iei,
-  uint8_t *buffer,
-  const uint32_t len);
-long gprs_timer_value(gprs_timer_t *gprstimer);
+    gprs_timer_t* gprstimer, uint8_t iei, uint8_t* buffer, const uint32_t len);
+long gprs_timer_value(gprs_timer_t* gprstimer);
 
 #endif /* FILE_3GPP_24_008_SEEN */

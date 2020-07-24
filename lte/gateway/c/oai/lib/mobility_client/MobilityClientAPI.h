@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,9 +58,7 @@ extern "C" {
  * @return -RPC_STATUS_FAILED_PRECONDITION if IPBlock overlaps
  */
 int get_assigned_ipv4_block(
-  int index,
-  struct in_addr* netaddr,
-  uint32_t* netmask);
+    int index, struct in_addr* netaddr, uint32_t* netmask);
 
 /**
  * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
@@ -80,17 +77,12 @@ int get_assigned_ipv4_block(
  * @return status of gRPC call
  */
 int pgw_handle_allocate_ipv4_address(
-  const char* subscriber_id,
-  const char* apn,
-  struct in_addr *addr,
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-  const char* pdn_type,
-  teid_t context_teid,
-  ebi_t eps_bearer_id,
-  spgw_state_t* spgw_state,
-  s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-  s5_create_session_response_t s5_response);
-
+    const char* subscriber_id, const char* apn, struct in_addr* addr,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
+    spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t s5_response);
 
 /*
  * Release an allocated IP address.
@@ -104,9 +96,7 @@ int pgw_handle_allocate_ipv4_address(
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
 int release_ipv4_address(
-  const char* subscriber_id,
-  const char* apn,
-  const struct in_addr* addr);
+    const char* subscriber_id, const char* apn, const struct in_addr* addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber
@@ -116,9 +106,7 @@ int release_ipv4_address(
  * @return -RPC_STATUS_NOT_FOUND if the SID is not found
  */
 int get_ipv4_address_for_subscriber(
-  const char* subscriber_id,
-  const char* apn,
-  struct in_addr* addr);
+    const char* subscriber_id, const char* apn, struct in_addr* addr);
 
 /*
  * Get the subscriber id given its allocated IPv4 address. If the address
@@ -130,11 +118,10 @@ int get_ipv4_address_for_subscriber(
  * @return -RPC_STATUS_NOT_FOUND if IPv4 address is not found
  */
 int get_subscriber_id_from_ipv4(
-  const struct in_addr* addr,
-  char** subscriber_id);
+    const struct in_addr* addr, char** subscriber_id);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // RPC_CLIENT_H
+#endif  // RPC_CLIENT_H

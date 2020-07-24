@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,7 +58,7 @@ emm_data_t _emm_data;
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void emm_main_initialize(const mme_config_t *mme_config_p);
+void emm_main_initialize(const mme_config_t* mme_config_p);
 void emm_main_cleanup(void);
 
 #endif /* __EMM_MAIN_H__*/

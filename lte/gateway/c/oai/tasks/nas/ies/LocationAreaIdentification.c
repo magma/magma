@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -25,11 +24,8 @@
 #include "LocationAreaIdentification.h"
 
 int decode_location_area_identification(
-  LocationAreaIdentification *locationareaidentification,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    LocationAreaIdentification* locationareaidentification, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -46,7 +42,7 @@ int decode_location_area_identification(
   locationareaidentification->mncdigit2 = (*(buffer + decoded) >> 4) & 0xf;
   locationareaidentification->mncdigit1 = *(buffer + decoded) & 0xf;
   decoded++;
-  //IES_DECODE_U16(locationareaidentification->lac, *(buffer + decoded));
+  // IES_DECODE_U16(locationareaidentification->lac, *(buffer + decoded));
   IES_DECODE_U16(buffer, decoded, locationareaidentification->lac);
 #if NAS_DEBUG
   dump_location_area_identification_xml(locationareaidentification, iei);
@@ -55,18 +51,15 @@ int decode_location_area_identification(
 }
 
 int encode_location_area_identification(
-  LocationAreaIdentification *locationareaidentification,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    LocationAreaIdentification* locationareaidentification, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, LOCATION_AREA_IDENTIFICATION_MINIMUM_LENGTH, len);
+      buffer, LOCATION_AREA_IDENTIFICATION_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_location_area_identification_xml(locationareaidentification, iei);
 #endif
@@ -93,9 +86,7 @@ int encode_location_area_identification(
 }
 
 void dump_location_area_identification_xml(
-  LocationAreaIdentification *locationareaidentification,
-  uint8_t iei)
-{
+    LocationAreaIdentification* locationareaidentification, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Location Area Identification>\n");
 
   if (iei > 0)
@@ -105,29 +96,23 @@ void dump_location_area_identification_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <MCC digit 2>%u</MCC digit 2>\n",
-    locationareaidentification->mccdigit2);
+      LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n",
+      locationareaidentification->mccdigit2);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <MCC digit 1>%u</MCC digit 1>\n",
-    locationareaidentification->mccdigit1);
+      LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n",
+      locationareaidentification->mccdigit1);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <MNC digit 3>%u</MNC digit 3>\n",
-    locationareaidentification->mncdigit3);
+      LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n",
+      locationareaidentification->mncdigit3);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <MCC digit 3>%u</MCC digit 3>\n",
-    locationareaidentification->mccdigit3);
+      LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n",
+      locationareaidentification->mccdigit3);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <MNC digit 2>%u</MNC digit 2>\n",
-    locationareaidentification->mncdigit2);
+      LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n",
+      locationareaidentification->mncdigit2);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <MNC digit 1>%u</MNC digit 1>\n",
-    locationareaidentification->mncdigit1);
+      LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n",
+      locationareaidentification->mncdigit1);
   OAILOG_DEBUG(LOG_NAS, "    <LAC>%u</LAC>\n", locationareaidentification->lac);
   OAILOG_DEBUG(LOG_NAS, "</Location Area Identification>\n");
 }

@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,7 +14,6 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,13 +35,11 @@ extern "C" {
 #include <new>
 #include <exception>
 
-S6aViface * s6a_interface = nullptr;
-
+S6aViface* s6a_interface = nullptr;
 
 //------------------------------------------------------------------------------
-bool s6a_viface_open(const s6a_config_t *config)
-{
-  if (! s6a_interface) {
+bool s6a_viface_open(const s6a_config_t* config) {
+  if (!s6a_interface) {
 #if S6A_OVER_GRPC
     s6a_interface = new S6aGrpcIface();
 #else
@@ -54,8 +50,7 @@ bool s6a_viface_open(const s6a_config_t *config)
 }
 
 //------------------------------------------------------------------------------
-void s6a_viface_close()
-{
+void s6a_viface_close() {
   if (s6a_interface) {
     delete s6a_interface;
     s6a_interface = nullptr;
@@ -63,8 +58,7 @@ void s6a_viface_close()
 }
 
 //------------------------------------------------------------------------------
-bool s6a_viface_update_location_req(s6a_update_location_req_t * ulr_p)
-{
+bool s6a_viface_update_location_req(s6a_update_location_req_t* ulr_p) {
   if (s6a_interface) {
     return s6a_interface->update_location_req(ulr_p);
   }
@@ -72,8 +66,7 @@ bool s6a_viface_update_location_req(s6a_update_location_req_t * ulr_p)
 }
 
 //------------------------------------------------------------------------------
-bool s6a_viface_authentication_info_req(s6a_auth_info_req_t *air_p)
-{
+bool s6a_viface_authentication_info_req(s6a_auth_info_req_t* air_p) {
   if (s6a_interface) {
     return s6a_interface->authentication_info_req(air_p);
   }
@@ -81,27 +74,22 @@ bool s6a_viface_authentication_info_req(s6a_auth_info_req_t *air_p)
 }
 
 //------------------------------------------------------------------------------
-bool  s6a_viface_send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP)
-{
+bool s6a_viface_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
   if (s6a_interface) {
     return s6a_interface->send_cancel_location_ans(cla_pP);
   }
   return false;
 }
 //------------------------------------------------------------------------------
-bool s6a_viface_purge_ue(const char *imsi)
-{
+bool s6a_viface_purge_ue(const char* imsi) {
   if (s6a_interface) {
     return s6a_interface->purge_ue(imsi);
   }
   return false;
 }
 //------------------------------------------------------------------------------
-void s6a_viface_timer_expired(const long timer_idP)
-{
+void s6a_viface_timer_expired(const long timer_idP) {
   if (s6a_interface) {
     s6a_interface->timer_expired(timer_idP);
   }
 }
-
-

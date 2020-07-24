@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -37,19 +36,19 @@ int mme_nas_state_init(const mme_config_t* mme_config_p);
  * processing any message. This is a thread safe call
  * If the read_from_db flag is set to true, the state is loaded from data store
  * before returning the pointer.
-*/
+ */
 mme_app_desc_t* get_mme_nas_state(bool read_from_db);
 
 /**
  * Write the MME/NAS state to data store after processing any message. This is a
  * thread safe call
-*/
+ */
 void put_mme_nas_state(void);
 
 /**
  * Release the memory allocated for the MME NAS state, this does not clean the
  * state persisted in data store
-*/
+ */
 void clear_mme_nas_state(void);
 
 // Returns UE MME state hashtable, indexed by IMSI

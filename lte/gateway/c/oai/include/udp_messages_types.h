@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,7 +26,7 @@
 #define FILE_UDP_MESSAGES_TYPES_SEEN
 
 #define UDP_INIT(mSGpTR) (mSGpTR)->ittiMsg.udp_init
-#define UDP_DATA_MAX_MSG_LEN \
+#define UDP_DATA_MAX_MSG_LEN                                                   \
   (4096) /**< Maximum supported gtpv2c packet length including header */
 
 typedef struct {

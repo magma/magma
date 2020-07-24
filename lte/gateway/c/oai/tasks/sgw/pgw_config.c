@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -369,8 +368,9 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
       }
     }
     config_pP->enable_nat = true;
-    if (config_setting_lookup_string(setting_pgw, PGW_CONFIG_STRING_NAT_ENABLED,
-                (const char**)&nat_enabled)) {
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_STRING_NAT_ENABLED,
+            (const char**) &nat_enabled)) {
       if (strcasecmp(nat_enabled, "false") == 0) {
         config_pP->enable_nat = false;
       } else {
@@ -574,9 +574,8 @@ void pgw_config_display(pgw_config_t* config_p) {
       LOG_SPGW_APP, "    User TCP MSS clamping : %s\n",
       config_p->ue_tcp_mss_clamp == 0 ? "false" : "true");
   OAILOG_INFO(
-    LOG_SPGW_APP,
-    "    User IP masquerading  : %s\n",
-    config_p->masquerade_SGI == 0 ? "false" : "true");
+      LOG_SPGW_APP, "    User IP masquerading  : %s\n",
+      config_p->masquerade_SGI == 0 ? "false" : "true");
   OAILOG_INFO(
       LOG_SPGW_APP, "- PCEF support ...........: %s (in development)\n",
       config_p->pcef.enabled == 0 ? "false" : "true");

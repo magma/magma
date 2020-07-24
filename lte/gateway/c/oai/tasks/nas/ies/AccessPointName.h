@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -27,16 +26,12 @@
 typedef bstring AccessPointName;
 
 int encode_access_point_name(
-  AccessPointName accesspointname,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    AccessPointName accesspointname, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int decode_access_point_name(
-  AccessPointName *accesspointname,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    AccessPointName* accesspointname, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 void dump_access_point_name_xml(AccessPointName accesspointname, uint8_t iei);
 

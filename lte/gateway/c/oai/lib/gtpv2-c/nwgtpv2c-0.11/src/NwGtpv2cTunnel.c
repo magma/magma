@@ -43,47 +43,49 @@
 #include "NwGtpv2cTunnel.h"
 
 #ifdef __cplusplus
-extern                                  "C" {
+extern "C" {
 #endif
 
-static nw_gtpv2c_tunnel_t                 *gpGtpv2cTunnelPool = NULL;
+static nw_gtpv2c_tunnel_t* gpGtpv2cTunnelPool = NULL;
 
 //------------------------------------------------------------------------------
-nw_gtpv2c_tunnel_t  *nwGtpv2cTunnelNew (struct nw_gtpv2c_stack_s *pStack,
-      uint32_t                 teid,
-      struct sockaddr        * ipAddrRemote,
-      nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel)
-{
-  nw_gtpv2c_tunnel_t                        *thiz;
+nw_gtpv2c_tunnel_t* nwGtpv2cTunnelNew(
+    struct nw_gtpv2c_stack_s* pStack, uint32_t teid,
+    struct sockaddr* ipAddrRemote, nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel) {
+  nw_gtpv2c_tunnel_t* thiz;
 
   if (gpGtpv2cTunnelPool) {
-    thiz = gpGtpv2cTunnelPool;
+    thiz               = gpGtpv2cTunnelPool;
     gpGtpv2cTunnelPool = gpGtpv2cTunnelPool->next;
   } else {
-    NW_GTPV2C_MALLOC (pStack, sizeof (nw_gtpv2c_tunnel_t), thiz, nw_gtpv2c_tunnel_t *);
+    NW_GTPV2C_MALLOC(
+        pStack, sizeof(nw_gtpv2c_tunnel_t), thiz, nw_gtpv2c_tunnel_t*);
   }
 
   if (thiz) {
-    memset (thiz, 0, sizeof (nw_gtpv2c_tunnel_t));
+    memset(thiz, 0, sizeof(nw_gtpv2c_tunnel_t));
     thiz->teid = teid;
-    memcpy((void*)&thiz->ipAddrRemote, ipAddrRemote, ipAddrRemote->sa_family == AF_INET ? sizeof(struct sockaddr_in)
-    		: sizeof(struct sockaddr_in6));
+    memcpy(
+        (void*) &thiz->ipAddrRemote, ipAddrRemote,
+        ipAddrRemote->sa_family == AF_INET ? sizeof(struct sockaddr_in) :
+                                             sizeof(struct sockaddr_in6));
     thiz->hUlpTunnel = hUlpTunnel;
   }
   return thiz;
 }
 
 //------------------------------------------------------------------------------
-nw_rc_t nwGtpv2cTunnelDelete (__attribute__ ((unused)) struct nw_gtpv2c_stack_s * pStack, nw_gtpv2c_tunnel_t * thiz)
-{
-  thiz->next = gpGtpv2cTunnelPool;
+nw_rc_t nwGtpv2cTunnelDelete(
+    __attribute__((unused)) struct nw_gtpv2c_stack_s* pStack,
+    nw_gtpv2c_tunnel_t* thiz) {
+  thiz->next         = gpGtpv2cTunnelPool;
   gpGtpv2cTunnelPool = thiz;
   return NW_OK;
 }
 
 //------------------------------------------------------------------------------
-nw_rc_t nwGtpv2cTunnelGetUlpTunnelHandle (nw_gtpv2c_tunnel_t * thiz, nw_gtpv2c_ulp_tunnel_handle_t * phUlpTunnel)
-{
+nw_rc_t nwGtpv2cTunnelGetUlpTunnelHandle(
+    nw_gtpv2c_tunnel_t* thiz, nw_gtpv2c_ulp_tunnel_handle_t* phUlpTunnel) {
   *phUlpTunnel = (thiz ? thiz->hUlpTunnel : 0x00000000);
   return NW_OK;
 }

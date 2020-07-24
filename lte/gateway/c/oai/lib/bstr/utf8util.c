@@ -18,41 +18,37 @@
 #ifdef __cplusplus
 #define NULL 0
 #else
-#define NULL ((void *) 0)
+#define NULL ((void*) 0)
 #endif
 #endif
 
-/* Surrogate range is wrong, there is a maximum, the BOM alias is illegal and 0xFFFF is illegal */
+/* Surrogate range is wrong, there is a maximum, the BOM alias is illegal and
+ * 0xFFFF is illegal */
 #define isLegalUnicodeCodePoint(v)                                             \
   ((((v) < 0xD800L) || ((v) > 0xDFFFL)) &&                                     \
    (((unsigned long) (v)) <= 0x0010FFFFL) && (((v) | 0x1F0001) != 0x1FFFFFL))
 
-void utf8IteratorInit(struct utf8Iterator *iter, unsigned char *data, int slen)
-{
+void utf8IteratorInit(
+    struct utf8Iterator* iter, unsigned char* data, int slen) {
   if (iter) {
-    iter->data = data;
-    iter->slen = (iter->data && slen >= 0) ? slen : -1;
+    iter->data  = data;
+    iter->slen  = (iter->data && slen >= 0) ? slen : -1;
     iter->start = -1;
-    iter->next = (iter->slen >= 0) ? 0 : -1;
+    iter->next  = (iter->slen >= 0) ? 0 : -1;
     iter->error = (iter->slen >= 0) ? 0 : 1;
   }
 }
 
-void utf8IteratorUninit(struct utf8Iterator *iter)
-{
+void utf8IteratorUninit(struct utf8Iterator* iter) {
   if (iter) {
-    iter->data = NULL;
-    iter->slen = -1;
+    iter->data  = NULL;
+    iter->slen  = -1;
     iter->start = iter->next = -1;
   }
 }
 
 int utf8ScanBackwardsForCodePoint(
-  unsigned char *msg,
-  int len,
-  int pos,
-  cpUcs4 *out)
-{
+    unsigned char* msg, int len, int pos, cpUcs4* out) {
   cpUcs4 v1, v2, v3, v4, x;
   int ret;
   if (NULL == msg || len < 0 || (unsigned) pos >= (unsigned) len) {
@@ -140,11 +136,11 @@ U-04000000 - U-7FFFFFFF:  1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
  *
  *  iter->data + iter->next points at the characters that will be read next.
  *
- *  iter->error is boolean indicating whether or not last read contained an error.
+ *  iter->error is boolean indicating whether or not last read contained an
+ * error.
  */
-cpUcs4 utf8IteratorGetNextCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
-{
-  unsigned char *chrs;
+cpUcs4 utf8IteratorGetNextCodePoint(struct utf8Iterator* iter, cpUcs4 errCh) {
+  unsigned char* chrs;
   unsigned char c, d, e;
   long v;
   int i, ofs;
@@ -159,12 +155,12 @@ cpUcs4 utf8IteratorGetNextCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
   chrs = iter->data + iter->next;
 
   iter->error = 0;
-  c = chrs[0];
-  ofs = 0;
+  c           = chrs[0];
+  ofs         = 0;
 
   if (c < 0xC0 || c > 0xFD) {
     if (c >= 0x80) goto ErrMode;
-    v = c;
+    v   = c;
     ofs = 1;
   } else if (c < 0xE0) {
     if (iter->next >= iter->slen + 1) goto ErrMode;
@@ -195,7 +191,7 @@ cpUcs4 utf8IteratorGetNextCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
   } else { /* 5 and 6 byte encodings are invalid */
   ErrMode:;
     iter->error = 1;
-    v = errCh;
+    v           = errCh;
     for (i = iter->next + 1; i < iter->slen; i++)
       if ((iter->data[i] & 0xC0) != 0x80) break;
     ofs = i - iter->next;
@@ -213,11 +209,11 @@ cpUcs4 utf8IteratorGetNextCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
  *
  *  iter->data + iter->next points at the characters that will be read next.
  *
- *  iter->error is boolean indicating whether or not last read contained an error.
+ *  iter->error is boolean indicating whether or not last read contained an
+ * error.
  */
-cpUcs4 utf8IteratorGetCurrCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
-{
-  unsigned char *chrs;
+cpUcs4 utf8IteratorGetCurrCodePoint(struct utf8Iterator* iter, cpUcs4 errCh) {
+  unsigned char* chrs;
   unsigned char c, d, e;
   long v;
 
@@ -231,7 +227,7 @@ cpUcs4 utf8IteratorGetCurrCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
   chrs = iter->data + iter->next;
 
   iter->error = 0;
-  c = chrs[0];
+  c           = chrs[0];
 
   if (c < 0xC0 || c > 0xFD) {
     if (c >= 0x80) goto ErrMode;
@@ -262,7 +258,7 @@ cpUcs4 utf8IteratorGetCurrCodePoint(struct utf8Iterator *iter, cpUcs4 errCh)
   } else { /* 5 and 6 byte encodings are invalid */
   ErrMode:;
     iter->error = 1;
-    v = errCh;
+    v           = errCh;
   }
   return v;
 }

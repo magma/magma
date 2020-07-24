@@ -2,9 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,19 +25,15 @@
 typedef uint8_t LlcServiceAccessPointIdentifier;
 
 int encode_llc_service_access_point_identifier(
-  LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
+    uint8_t iei, uint8_t* buffer, uint32_t len);
 
 void dump_llc_service_access_point_identifier_xml(
-  LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
-  uint8_t iei);
+    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
+    uint8_t iei);
 
 int decode_llc_service_access_point_identifier(
-  LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
+    uint8_t iei, uint8_t* buffer, uint32_t len);
 
 #endif /* LLC SERVICE ACCESS POINT IDENTIFIER_H_ */

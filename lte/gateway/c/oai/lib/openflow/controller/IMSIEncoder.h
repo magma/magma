@@ -3,8 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this
- * source tree.
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +30,7 @@ class IMSIEncoder {
    * @param imsi - string representation of imsi
    * @return uint representation of imsi with padding amount at end
    */
-  static uint64_t compact_imsi(const std::string &imsi);
+  static uint64_t compact_imsi(const std::string& imsi);
 
   /*
    * Convert from the compacted uint back to a string, using the first two bits
@@ -42,4 +41,4 @@ class IMSIEncoder {
   static std::string expand_imsi(uint64_t compact);
 };
 
-} // namespace openflow
+}  // namespace openflow
