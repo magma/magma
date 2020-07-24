@@ -8,7 +8,7 @@
  * @format
  */
 
-import type {FeatureID} from '../../fbcnms-types/features';
+import type {FeatureID} from '@fbcnms/types/features';
 
 import AppContext from './AppContext';
 import {useContext} from 'react';

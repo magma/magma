@@ -11,7 +11,7 @@
 import Button from '@fbcnms/ui/components/design-system/Button';
 import FormAction from './FormAction';
 import React from 'react';
-import Strings from '../../../../fbcnms-strings/Strings';
+import Strings from '@fbcnms/strings/Strings';
 import classNames from 'classnames';
 import {makeStyles} from '@material-ui/styles';
 
