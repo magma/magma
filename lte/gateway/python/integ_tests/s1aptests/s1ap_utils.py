@@ -465,7 +465,14 @@ class MagmadUtil(object):
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start"
         )
-        time.sleep(10)
+        print(
+            "Waiting for all services to restart. Sleeping for 60 seconds.."
+        )
+        timeSlept = 0
+        while timeSlept < 60:
+            time.sleep(5)
+            timeSlept += 5
+            print("*********** Slept for " + str(timeSlept) + " seconds")
 
     def restart_services(self, services):
         """
