@@ -765,8 +765,38 @@ jobs:
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
 
+  ### XWF
+
+  xwfm-test:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    steps:
+      - checkout
+      - docker/install-dc
+      - run:
+          name: Loading openvswitch kernel module
+          command: sudo modprobe openvswitch
+      - run:
+          name: Setup Environment Variables
+          command: |
+            echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
+            echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
+            echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
+      - run:
+          command: |
+            env
+            docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
+            cd ${MAGMA_ROOT}/xwf/docker/
+            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
+
 workflows:
   version: 2.1
+
+  xwfm:
+    jobs:
+      - xwfm-test:
+          <<: *only_master
 
   cloud:
     jobs:
