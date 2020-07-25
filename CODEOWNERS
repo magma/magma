@@ -15,6 +15,6 @@ lte/gateway/c/sctpd @ssanadhya @ulaskozat
 lte/gateway/release @kkahrs
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 
-nms/ @karthiksubraveti @andreilee
+nms/ @karthiksubraveti @andreilee @xjtian
 
 CODEOWNERS @xjtian @amarpad
