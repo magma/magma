@@ -7,9 +7,9 @@ hide_title: true
 ## Prerequisites
 
 Make sure you follow the instructions in "[Deploying Orchestrator](
-https://facebookincubator.github.io/magma/docs/orc8r/deploying)" for successful
+https://magma.github.io/magma/docs/orc8r/deploying)" for successful
 installation of Orchestrator and the instructions in "[AGW Configuration](
-https://facebookincubator.github.io/magma/docs/lte/config_agw)" to provision and
+https://magma.github.io/magma/docs/lte/config_agw)" to provision and
 configure your Access Gateway (AGW).
 
 ## S1 interface
