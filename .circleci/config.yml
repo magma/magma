@@ -755,14 +755,15 @@ jobs:
             mv docs/readmes readmes/
             rm -rf docs/
             mv readmes/ docs/
+      # Yeah I fucked up and created mamga-... instead of magma-... oops
       - run:
           name: Deploying to GitHub Pages
           command: |
-            git config --global user.email "docusaurus-bot@users.noreply.github.com"
-            git config --global user.name "docusaurus-bot"
-            echo "machine github.com login docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
+            git config --global user.email "mamga-docusaurus-bot@users.noreply.github.com"
+            git config --global user.name "mamga-docusaurus-bot"
+            echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=docusaurus-bot yarn run publish-gh-pages
+            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
 
 workflows:
   version: 2.1
@@ -828,10 +829,10 @@ workflows:
             - eslint
             - nms-yarn-test
 
-  # docusaurus
-  #   jobs:
-  #     - docusaurus_build_and_deploy:
-  #         <<: *only_master
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
 
   fossa:
     jobs:
