@@ -18,6 +18,7 @@ import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
 import DashboardKPIs from '../DashboardKPIs';
 import EventAlertChart from '../EventAlertChart';
+import EventsTable from '../../views/events/EventsTable';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React, {useState} from 'react';
@@ -30,6 +31,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
+import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -174,14 +176,10 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
 
         <Grid item xs={12}>
-          {/* <Text>
-            <GpsFixed /> Events
-          </Text>
-          <EventsTable
-            eventTypes={magmaEventTypes.NETWORK}
-            gatewayHardwareId={'f9a9fc7c-7977-474d-9617-8a309479f2bb'}
-          /> */}
           <DashboardKPIs />
+        </Grid>
+        <Grid item xs={12}>
+          <EventsTable eventTypes={magmaEventTypes.NETWORK} sz="md" />
         </Grid>
       </Grid>
     </div>

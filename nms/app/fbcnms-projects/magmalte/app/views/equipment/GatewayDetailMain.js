@@ -21,6 +21,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
@@ -44,6 +45,7 @@ import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
+import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -205,6 +207,16 @@ export function GatewayDetail({
           render={() => <GatewayConfig gwInfo={gwInfo} enbInfo={gwEnbs} />}
         />
         <Route
+          path={relativePath('/event')}
+          render={() => (
+            <EventsTable
+              eventTypes={magmaEventTypes.GATEWAY}
+              eventKey={gwInfo.device.hardware_id}
+              sz="lg"
+            />
+          )}
+        />
+        <Route
           path={relativePath('/overview')}
           render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={gwEnbs} />}
         />
@@ -231,9 +243,11 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             </Grid>
             <Grid item xs={12} alignItems="center">
               <CardTitleRow icon={MyLocationIcon} label="Events" />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Event Information</Text>
-              </Paper>
+              <EventsTable
+                eventTypes={magmaEventTypes.GATEWAY}
+                eventKey={gwInfo.device.hardware_id}
+                sz="sm"
+              />
             </Grid>
           </Grid>
         </Grid>
