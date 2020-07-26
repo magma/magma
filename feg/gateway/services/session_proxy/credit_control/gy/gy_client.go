@@ -61,6 +61,7 @@ type GyGlobalConfig struct {
 	OCSOverwriteApn      string
 	OCSServiceIdentifier string
 	DisableGy            bool
+	VirtualApnRules      []*credit_control.VirtualApnRule
 }
 
 var (
@@ -324,8 +325,18 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
 	apn := datatype.UTF8String(request.Apn)
-	if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
-		apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
+	if gyGlobalConfig != nil {
+		if len(gyGlobalConfig.VirtualApnRules) > 0 {
+			for _, rule := range gyGlobalConfig.VirtualApnRules {
+				if rule.ApnFilter.MatchString(request.Apn) && len(rule.ApnOverwrite) > 0 {
+					apn = datatype.UTF8String(rule.ApnOverwrite)
+					break
+				}
+			}
+		} else if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
+			// OverwriteApn is deprected transition to VirtualApnRules
+			apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
+		}
 	}
 	if len(apn) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn))

@@ -73,7 +73,7 @@ func TestOCSExpectations(t *testing.T) {
 
 	clientConfig := getClientConfig()
 	ocs := startServerWithExpectations(clientConfig, &serverConfig, gy.PerSessionInit, expectations, failureBehavior, defaultCCA)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -198,9 +198,12 @@ func getExpectedCreditByKey(credits []*fegprotos.QuotaGrant) map[uint32]*fegprot
 	return creditsByKey
 }
 
-func getGyGlobalConfig(ocsOverwriteApn string) *gy.GyGlobalConfig {
+func getGyGlobalConfig(matchApn, overwriteApn string) *gy.GyGlobalConfig {
+	rules := []*credit_control.VirtualApnRule{}
+	rules = append(rules,
+		credit_control.GetVirtualApnRule(matchApn, overwriteApn))
 	return &gy.GyGlobalConfig{
-		OCSOverwriteApn: ocsOverwriteApn,
+		VirtualApnRules: rules,
 	}
 }
 

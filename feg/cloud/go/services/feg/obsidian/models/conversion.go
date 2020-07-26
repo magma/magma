@@ -296,3 +296,13 @@ func (m *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile
 	protos.FillIn(m, res)
 	return res
 }
+
+func ToVirtualApnRuleMconfig(rules []*VirtualApnRule) []*mconfig.VirtualApnRule {
+  virtualApnRuleConfigs := make([]*mconfig.VirtualApnRule, 0, len(rules)+1)
+	for _, ruleProto := range rules {
+		apnConf := &mconfig.VirtualApnRule{}
+		protos.FillIn(ruleProto, apnConf)
+		virtualApnRuleConfigs = append(virtualApnRuleConfigs, apnConf)
+	}
+	return virtualApnRuleConfigs
+}

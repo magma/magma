@@ -63,6 +63,7 @@ type GxClient struct {
 type GxGlobalConfig struct {
 	PCFROverwriteApn string
 	DisableGx        bool
+	VirtualApnRules  []*credit_control.VirtualApnRule
 }
 
 // NewConnectedGxClient contructs a new GxClient with the magma diameter settings
@@ -251,8 +252,18 @@ func (gxClient *GxClient) createCreditControlMessage(
 	}
 
 	apn := datatype.UTF8String(request.Apn)
-	if globalConfig != nil && len(globalConfig.PCFROverwriteApn) > 0 {
-		apn = datatype.UTF8String(globalConfig.PCFROverwriteApn)
+	if globalConfig != nil {
+		if len(globalConfig.VirtualApnRules) > 0 {
+			for _, rule := range globalConfig.VirtualApnRules {
+				if rule.ApnFilter.MatchString(request.Apn) && len(rule.ApnOverwrite) > 0 {
+					apn = datatype.UTF8String(rule.ApnOverwrite)
+					break
+				}
+			}
+		} else if len(globalConfig.PCFROverwriteApn) > 0 {
+			// OverwriteApn is deprected transition to VirtualApnRules
+			apn = datatype.UTF8String(globalConfig.PCFROverwriteApn)
+		}
 	}
 	if len(apn) > 0 {
 		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn)

@@ -135,6 +135,12 @@ func TestBuilder_Build(t *testing.T) {
 					},
 				},
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
+				VirtualApnRules: []*mconfig.VirtualApnRule{
+					&mconfig.VirtualApnRule{
+						ApnFilter:    ".*",
+						ApnOverwrite: "vApnGx.magma-fedgw.magma.com",
+					},
+				},
 			},
 			Gy: &feg_mconfig.GyConfig{
 				DisableGy: true,
@@ -173,6 +179,12 @@ func TestBuilder_Build(t *testing.T) {
 				},
 				InitMethod:   feg_mconfig.GyInitMethod_PER_SESSION,
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
+				VirtualApnRules: []*mconfig.VirtualApnRule{
+					&mconfig.VirtualApnRule{
+						ApnFilter:    ".*",
+						ApnOverwrite: "vApnGy.magma-fedgw.magma.com",
+					},
+				},
 			},
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
@@ -321,6 +333,12 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			},
 		},
 		OverwriteApn: "apnGx.magma-fedgw.magma.com",
+		VirtualApnRules: []*mconfig.VirtualApnRule{
+			&mconfig.VirtualApnRule{
+				ApnFilter:    ".*",
+				ApnOverwrite: "vApnGx.magma-fedgw.magma.com",
+			},
+		},
 	},
 	Gy: &models.Gy{
 		DisableGy: swag.Bool(true),
@@ -346,6 +364,12 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 		InitMethod:   uint32Ptr(1),
 		OverwriteApn: "apnGy.magma-fedgw.magma.com",
+		VirtualApnRules: []*mconfig.VirtualApnRule{
+			&mconfig.VirtualApnRule{
+				ApnFilter:    ".*",
+				ApnOverwrite: "vApnGy.magma-fedgw.magma.com",
+			},
+		},
 	},
 	Hss: &models.Hss{
 		Server: &models.DiameterServerConfigs{

@@ -215,10 +215,24 @@ func GetGyGlobalConfig() *GyGlobalConfig {
 			DisableGy:            false,
 		}
 	}
+
+	virtualApnConfigs := []*credit_control.VirtualApnRule{}
+	for _, virtualApnlCfg := range configsPtr.GetGy().GetVirtualApnRules() {
+		apnRule := credit_control.GetVirtualApnRule(
+			virtualApnlCfg.GetApnFilter(),
+			virtualApnlCfg.GetApnOverwrite(),
+		)
+		if apnRule == nil {
+			log.Printf("%s Managed Gy Virtual APN Rule Config Load Error: %v", virtualApnlCfg.GetApnFilter(), err)
+			continue
+		}
+		virtualApnConfigs = append(virtualApnConfigs, apnRule)
+	}
 	return &GyGlobalConfig{
 		OCSOverwriteApn:      diameter.GetValueOrEnv(OCSApnOverwriteFlag, OCSApnOverwriteEnv, configsPtr.GetGy().GetOverwriteApn()),
 		OCSServiceIdentifier: siStr,
 		DisableGy:            configsPtr.GetGy().GetDisableGy(),
+		VirtualApnRules:      virtualApnConfigs,
 	}
 }
 
