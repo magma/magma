@@ -143,3 +143,4 @@ non_nat_arp_egress_port: dhcp0
 ovs_uplink_port_name: patch-up
 virtual_mac: '02:ff:bb:cc:dd:ee'
 uplink_bridge: uplink_br0
+uplink_eth_port_name: uplink_p0
