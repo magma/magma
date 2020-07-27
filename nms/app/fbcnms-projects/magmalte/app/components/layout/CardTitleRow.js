@@ -53,7 +53,7 @@ export const CardTitleRow = (props: CardTitleRowProps) => {
 type CardTitleFilterRowProps = {
   icon?: ComponentType<SvgIconExports>,
   label: string,
-  filter: () => React$Node,
+  filter?: () => React$Node,
 };
 
 export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
@@ -67,9 +67,7 @@ export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
         {Icon ? <Icon className={classes.cardTitleIcon} /> : null}
         <Text variant="body1">{props.label}</Text>
       </Grid>
-      <Grid item>
-        <Filters />
-      </Grid>
+      <Grid item>{Filters ? <Filters /> : null}</Grid>
     </Grid>
   );
 };
