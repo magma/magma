@@ -44,7 +44,10 @@ struct SessionConfig {
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;
   uint32_t bearer_id;
+  // TODO The fields above will be replaced by the bundled fields below
   QoSInfo qos_info;
+  CommonSessionContext common_context;
+  RatSpecificContext rat_specific_context;
 };
 
 // Session Credit
