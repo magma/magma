@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,11 +16,11 @@
  */
 
 /*! \file pgw_ue_ip_address_alloc.h
-* \brief
-* \author
-* \company
-* \email:
-*/
+ * \brief
+ * \author
+ * \company
+ * \email:
+ */
 
 #ifndef PGW_UE_IP_ADDRESS_ALLOC_SEEN
 #define PGW_UE_IP_ADDRESS_ALLOC_SEEN
@@ -35,10 +31,9 @@
 #include "spgw_state.h"
 #include "ip_forward_messages_types.h"
 
-int release_ue_ipv4_address(const char *imsi,
-                            const char *apn,
-                            struct in_addr *addr);
+int release_ue_ipv4_address(
+    const char* imsi, const char* apn, struct in_addr* addr);
 
-int get_ip_block(struct in_addr *netaddr, uint32_t *netmask);
+int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
 
 #endif /*PGW_UE_IP_ADDRESS_ALLOC_SEEN */

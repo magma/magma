@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 // package cloud_registry provides CloudRegistry interface for Go based gateways
 package service_registry
@@ -14,7 +19,6 @@ import (
 	"github.com/golang/glog"
 
 	_ "magma/orc8r/lib/go/initflag"
-	"magma/orc8r/lib/go/registry"
 	platform_registry "magma/orc8r/lib/go/registry"
 )
 
@@ -30,7 +34,7 @@ func Get() GatewayRegistry {
 		reg = NewDefaultRegistry()
 		// Overwrite/Add from /etc/magma/service_registry.yml if it exists
 		// moduleName is "" since all feg configs lie in /etc/magma without a module name
-		locations, err := registry.LoadServiceRegistryConfig("")
+		locations, err := platform_registry.LoadServiceRegistryConfig("")
 		if err != nil {
 			glog.Warningf(serviceRegLoadErrorFmt, err)
 			// return registry, but don't store/cache it

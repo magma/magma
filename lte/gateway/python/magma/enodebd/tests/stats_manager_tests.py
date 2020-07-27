@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import pkg_resources
@@ -62,7 +66,7 @@ class StatsManagerTest(TestCase):
                                                         'pm_file_example.xml')
 
         root = ElementTree.fromstring(pm_file_example)
-        self.mgr._parse_pm_xml(root)
+        self.mgr._parse_pm_xml('1234', root)
 
         # Check that metrics were correctly populated
         # See '<V i="5">123</V>' in pm_file_example
@@ -79,3 +83,12 @@ class StatsManagerTest(TestCase):
         erab_rel_req_radio_conn_lost = \
             metrics.STAT_ERAB_REL_REQ_RADIO_CONN_LOST.collect()
         self.assertEqual(erab_rel_req_radio_conn_lost[0].samples[0][2], 65537)
+
+        pdcp_user_plane_bytes_ul = \
+            metrics.STAT_PDCP_USER_PLANE_BYTES_UL.collect()
+        pdcp_user_plane_bytes_dl = \
+            metrics.STAT_PDCP_USER_PLANE_BYTES_DL.collect()
+        self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][1], {'enodeb': '1234'})
+        self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][1], {'enodeb': '1234'})
+        self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][2], 1000)
+        self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][2], 500)

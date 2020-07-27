@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -51,8 +47,7 @@ using magma::sctpd::SendDlRes;
 class SctpdDownlinkClient {
  public:
   explicit SctpdDownlinkClient(
-    const std::shared_ptr<Channel>& channel,
-    bool force_restart);
+      const std::shared_ptr<Channel>& channel, bool force_restart);
 
   int init(InitReq& req, InitRes* res);
   int sendDl(SendDlReq& req, SendDlRes* res);
@@ -64,15 +59,12 @@ class SctpdDownlinkClient {
 };
 
 SctpdDownlinkClient::SctpdDownlinkClient(
-  const std::shared_ptr<Channel>& channel,
-  bool force_restart)
-{
-  _stub = SctpdDownlink::NewStub(channel);
+    const std::shared_ptr<Channel>& channel, bool force_restart) {
+  _stub                = SctpdDownlink::NewStub(channel);
   should_force_restart = force_restart;
 }
 
-int SctpdDownlinkClient::init(InitReq& req, InitRes* res)
-{
+int SctpdDownlinkClient::init(InitReq& req, InitRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -81,14 +73,13 @@ int SctpdDownlinkClient::init(InitReq& req, InitRes* res)
 
   if (!status.ok()) {
     OAILOG_ERROR(
-      LOG_SCTP, "sctpdl.init error = %s\n", status.error_message().c_str());
+        LOG_SCTP, "sctpdl.init error = %s\n", status.error_message().c_str());
   }
 
   return status.ok() ? 0 : -1;
 }
 
-int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res)
-{
+int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -97,14 +88,14 @@ int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res)
 
   if (!status.ok()) {
     OAILOG_ERROR(
-      LOG_SCTP, "sctpdl.senddl error = %s\n", status.error_message().c_str());
+        LOG_SCTP, "sctpdl.senddl error = %s\n", status.error_message().c_str());
   }
 
   return status.ok() ? 0 : -1;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
 
 using magma::lte::SctpdDownlinkClient;
 using magma::sctpd::InitReq;
@@ -114,16 +105,14 @@ using magma::sctpd::SendDlRes;
 
 std::unique_ptr<SctpdDownlinkClient> _client = nullptr;
 
-int init_sctpd_downlink_client(bool force_restart)
-{
+int init_sctpd_downlink_client(bool force_restart) {
   auto channel =
-    grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
+      grpc::CreateChannel(DOWNSTREAM_SOCK, grpc::InsecureChannelCredentials());
   _client = std::make_unique<SctpdDownlinkClient>(channel, force_restart);
 }
 
 // init
-int sctpd_init(sctp_init_t* init)
-{
+int sctpd_init(sctp_init_t* init) {
   assert(init != nullptr);
 
   int i;
@@ -158,15 +147,14 @@ int sctpd_init(sctp_init_t* init)
 
   req.set_force_restart(_client->should_force_restart);
 
-  auto rc = _client->init(req, &res);
+  auto rc      = _client->init(req, &res);
   auto init_ok = res.result() == InitRes::INIT_OK;
 
   return (rc == 0) && init_ok ? 0 : -1;
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload)
-{
+int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 
@@ -177,7 +165,9 @@ int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload)
   auto rc = _client->sendDl(req, &res);
 
   if (rc != 0) {
-    OAILOG_ERROR(LOG_SCTP, "assoc_id %u stream %u rc = %d\n", assoc_id, (uint32_t) stream, rc);
+    OAILOG_ERROR(
+        LOG_SCTP, "assoc_id %u stream %u rc = %d\n", assoc_id,
+        (uint32_t) stream, rc);
   }
 
   return rc == 0 && res.result() == SendDlRes::SEND_DL_OK ? 0 : -1;

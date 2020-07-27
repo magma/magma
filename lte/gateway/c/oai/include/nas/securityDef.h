@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +53,7 @@ Description Contains global security definitions
 #define AUTH_AMF_SIZE 2 /* Authentication Management Field:  16 bits  */
 #define AUTH_MAC_SIZE 8 /* Message Authentication Code:  64 bits  */
 #define AUTH_AUTN_SIZE                                                         \
-  16                          /* Authentication token:     128 bits
+  16                          /* Authentication token:     128 bits            \
                 AUTN = (SQN ⊕ AK) || AMF || MAC        */
 #define AUTH_MACS_SIZE 8      /* Re-synchronization MAC:       64 bits  */
 #define AUTH_AUTS_SIZE 16     /* Re-synchronization AUT:       128 bits */
@@ -69,7 +65,7 @@ Description Contains global security definitions
 #define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
-#define AUTH_KENB_SIZE AUTH_KASME_SIZE /* eNodeB security key   */
+#define AUTH_KENB_SIZE AUTH_KASME_SIZE     /* eNodeB security key   */
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
 
 /* "Separation bit" of AMF field */
@@ -85,7 +81,7 @@ typedef enum {
   SECURITY_CTX_TYPE_NOT_AVAILABLE = 0,
   SECURITY_CTX_TYPE_PARTIAL_NATIVE,
   SECURITY_CTX_TYPE_FULL_NATIVE,
-  SECURITY_CTX_TYPE_MAPPED // UNUSED
+  SECURITY_CTX_TYPE_MAPPED  // UNUSED
 } emm_sc_type_t;
 
 /****************************************************************************/

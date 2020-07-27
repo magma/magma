@@ -1,9 +1,14 @@
 /*
- Copyright (c) Facebook, Inc. and its affiliates.
- All rights reserved.
+Copyright 2020 The Magma Authors.
 
- This source code is licensed under the BSD-style license found in the
- LICENSE file in the root directory of this source tree.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // NOTE: to run these tests outside the testing environment, e.g. from IntelliJ,
@@ -355,12 +360,12 @@ func recvCh(t *testing.T, ch chan interface{}) {
 }
 
 func assertComplete(t *testing.T, q reindex.JobQueue, id string) {
-	st, err := reindex.GetStatus(q, id)
-	assert.NoError(t, err)
-	assert.Equal(t, reindex.StatusComplete, st)
 	e, err := reindex.GetError(q, id)
 	assert.NoError(t, err)
 	assert.Empty(t, e)
+	st, err := reindex.GetStatus(q, id)
+	assert.NoError(t, err)
+	assert.Equal(t, reindex.StatusComplete, st)
 }
 
 func assertErrored(t *testing.T, q reindex.JobQueue, indexerID string, sentinel reindex.Error, rootErr error) {

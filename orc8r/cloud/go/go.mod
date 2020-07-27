@@ -1,8 +1,13 @@
-// Copyright (c) Facebook, Inc. and its affiliates.
-// All rights reserved.
+// Copyright 2020 The Magma Authors.
 //
 // This source code is licensed under the BSD-style license found in the
 // LICENSE file in the root directory of this source tree.
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 module magma/orc8r/cloud/go
 
@@ -18,6 +23,7 @@ require (
 	github.com/docker/docker v1.13.1
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
+	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
 	github.com/go-check/check v0.0.0-20200227125254-8fa46927fb4f // indirect
 	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.19.2
@@ -28,16 +34,14 @@ require (
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.18.0
 	github.com/go-openapi/validate v0.18.0
-	github.com/go-sql-driver/mysql v1.4.1-0.20190510102335-877a9775f068
+	github.com/go-sql-driver/mysql v1.4.1
 	github.com/go-swagger/go-swagger v0.18.0
 	github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013 // indirect
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
-	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/google/uuid v1.1.1
 	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
-	github.com/labstack/gommon v0.2.8 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
@@ -51,7 +55,7 @@ require (
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.7.0
 	github.com/prometheus/procfs v0.0.5
-	github.com/prometheus/prometheus v0.0.0-20190115164134-b639fe140c1f
+	github.com/prometheus/prometheus v0.0.0-20190607092147-e23fa22233cf
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.4.0
@@ -61,7 +65,6 @@ require (
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a
-	google.golang.org/api v0.3.1 // indirect
 	google.golang.org/grpc v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	gopkg.in/yaml.v2 v2.2.8

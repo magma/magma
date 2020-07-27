@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package service implements the core of bootstrapper
@@ -28,49 +33,38 @@ import (
 )
 
 // GetBootstrapperCloudConnection initializes and returns Bootstrapper cloud grpc connection
-func (b *Bootstrapper) GetBootstrapperCloudConnection() (*grpc.ClientConn, error) {
+func (b *Bootstrapper) GetBootstrapperCloudConnection() (conn *grpc.ClientConn, err error) {
 	cfg := config.GetControlProxyConfigs()
 	addrPieces := strings.Split(cfg.BootstrapAddr, ":")
-	addr := fmt.Sprintf("%s:%d", addrPieces[0], cfg.BootstrapPort)
-
+	configuredAddr := fmt.Sprintf("%s:%d", addrPieces[0], cfg.BootstrapPort)
 	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxLocalTimeoutSec*time.Second)
 	defer cancel()
-	proxied := cfg.ProxyCloudConnection
-	opts := b.getGrpcOpts(proxied, cfg)
-	conn, err := grpc.DialContext(ctx, addr, opts...)
+	opts := b.getGrpcOpts(false, cfg)
+	conn, err = grpc.DialContext(ctx, configuredAddr, opts...)
 	if err == nil {
-		return conn, ctx.Err()
+		err = ctx.Err()
 	}
-	// in case the proxy is not present, we should try again with direct TLS connection to the default as well as
-	// the configured TLS ports
-	firstErr := fmt.Errorf("Bootstrapper dial failure for address: %s; GRPC Dial error: %s", addr, err)
-	if proxied {
-		addr = fmt.Sprintf("%s:%d", addrPieces[0], DefaultTLSBootstrapPort)
-		glog.Warningf("%v; trying secure connection to: %s", firstErr, addr)
+	if err == nil {
+		return
+	}
+	glog.Errorf("Bootstrapper dial failure %v for address: %s", err, configuredAddr)
+	// in case of an error, try again with direct TLS connection to the default TLS port
+	if cfg.BootstrapPort != DefaultTLSBootstrapPort {
+		addr := fmt.Sprintf("%s:%d", addrPieces[0], DefaultTLSBootstrapPort)
+		glog.Infof("trying default bootstrapper TLS port, address: %s", addr)
 		// Try to call cloud directly
 		ctxTls, cancelTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 		defer cancelTls()
 		opts = b.getGrpcOpts(false, cfg)
 		conn, err = grpc.DialContext(ctxTls, addr, opts...)
 		if err == nil {
-			return conn, ctxTls.Err()
+			err = ctxTls.Err()
 		}
-		err = fmt.Errorf("Bootstrapper TLS dial failure for address: %s; GRPC Dial error: %s", addr, err)
-		// final attempt, use direct cloud connection and configured bootstrapper port instead of default TLS port
-		if cfg.BootstrapPort != DefaultTLSBootstrapPort {
-			addr = fmt.Sprintf("%s:%d", addrPieces[0], cfg.BootstrapPort)
-			glog.Warningf("%v; trying: %s", err, addr)
-			ctx2Tls, cance2lTls := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
-			defer cance2lTls()
-			conn, err = grpc.DialContext(ctx2Tls, addr, opts...)
-			if err == nil {
-				return conn, ctx2Tls.Err()
-			}
-			err = fmt.Errorf("final Bootstrapper TLS dial failure for: %s; GRPC Dial error: %s", addr, err)
+		if err != nil {
+			glog.Errorf("Bootstrapper TLS dial failure for address: %s; GRPC Dial error: %s", addr, err)
 		}
-		glog.Error(err)
 	}
-	return conn, firstErr
+	return
 }
 
 func (b *Bootstrapper) getGrpcOpts(useProxy bool, cfg *config.ControlProxyCfg) []grpc.DialOption {
@@ -102,7 +96,7 @@ func (b *Bootstrapper) getGrpcOpts(useProxy bool, cfg *config.ControlProxyCfg) [
 		var tlsCfg *tls.Config
 		if len(certPool.Subjects()) > 0 {
 			tlsCfg = &tls.Config{
-				InsecureSkipVerify: false, // last resort - do not verify the server cert, but rely only on
+				InsecureSkipVerify: false, // last resort - do not verify the server cert, but rely only on challenge
 				RootCAs:            certPool,
 			}
 		} else {

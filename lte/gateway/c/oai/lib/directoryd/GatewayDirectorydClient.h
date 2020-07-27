@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -35,12 +31,12 @@ namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-} // namespace grpc
+}  // namespace grpc
 namespace magma {
 namespace orc8r {
 class Void;
-} // namespace orc8r
-} // namespace magma
+}  // namespace orc8r
+}  // namespace magma
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -54,13 +50,11 @@ using namespace orc8r;
 class GatewayDirectoryServiceClient : public GRPCReceiver {
  public:
   static bool UpdateRecord(
-    const std::string& id,
-    const std::string& location,
-    std::function<void(Status, Void)> callback);
+      const std::string& id, const std::string& location,
+      std::function<void(Status, Void)> callback);
 
   static bool DeleteRecord(
-    const std::string& id,
-    std::function<void(Status, Void)> callback);
+      const std::string& id, std::function<void(Status, Void)> callback);
 
  public:
   GatewayDirectoryServiceClient(GatewayDirectoryServiceClient const&) = delete;
@@ -70,7 +64,7 @@ class GatewayDirectoryServiceClient : public GRPCReceiver {
   GatewayDirectoryServiceClient();
   static GatewayDirectoryServiceClient& get_instance();
   std::shared_ptr<GatewayDirectoryService::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 30; // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 30;  // seconds
 };
 
-} // namespace magma
+}  // namespace magma

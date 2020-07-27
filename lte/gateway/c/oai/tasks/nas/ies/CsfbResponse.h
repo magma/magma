@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,32 +25,23 @@
 typedef uint8_t csfb_response_t;
 
 int encode_csfb_response(
-  csfb_response_t *csfbresponse,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    csfb_response_t* csfbresponse, uint8_t iei, uint8_t* buffer, uint32_t len);
 
-uint8_t encode_u8_csfb_response(csfb_response_t *csfbresponse);
+uint8_t encode_u8_csfb_response(csfb_response_t* csfbresponse);
 
 int decode_csfb_response(
-  csfb_response_t *csfbresponse,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    csfb_response_t* csfbresponse, uint8_t iei, uint8_t* buffer, uint32_t len);
 
 int decode_u8_csfb_response(
-  csfb_response_t *csfbresponse,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len);
+    csfb_response_t* csfbresponse, uint8_t iei, uint8_t value, uint32_t len);
 
 /*
-*  CSFB response value:reference 24301-e40:Table 9.9.3.5
-* Bits
-* 3	2	1
-* 0	0	0		CS fallback rejected by the UE
-* 0	0	1		CS fallback accepted by the UE
-*/
+ *  CSFB response value:reference 24301-e40:Table 9.9.3.5
+ * Bits
+ * 3	2	1
+ * 0	0	0		CS fallback rejected by the UE
+ * 0	0	1		CS fallback accepted by the UE
+ */
 
 typedef enum { CSFB_REJECTED_BY_UE, CSFB_ACCEPTED_BY_UE } Csfb_response;
 

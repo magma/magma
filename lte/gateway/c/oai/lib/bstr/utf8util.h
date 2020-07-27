@@ -43,7 +43,7 @@ typedef unsigned char cpUcs2;
    (((unsigned long) (v)) <= 0x0010FFFFL) && (((v) | 0x1F0001) != 0x1FFFFFL))
 
 struct utf8Iterator {
-  unsigned char *data;
+  unsigned char* data;
   int slen;
   int start, next;
   int error;
@@ -51,20 +51,15 @@ struct utf8Iterator {
 
 #define utf8IteratorNoMore(it) (!(it) || (it)->next >= (it)->slen)
 
-extern void
-utf8IteratorInit(struct utf8Iterator *iter, unsigned char *data, int slen);
-extern void utf8IteratorUninit(struct utf8Iterator *iter);
+extern void utf8IteratorInit(
+    struct utf8Iterator* iter, unsigned char* data, int slen);
+extern void utf8IteratorUninit(struct utf8Iterator* iter);
 extern cpUcs4 utf8IteratorGetNextCodePoint(
-  struct utf8Iterator *iter,
-  cpUcs4 errCh);
+    struct utf8Iterator* iter, cpUcs4 errCh);
 extern cpUcs4 utf8IteratorGetCurrCodePoint(
-  struct utf8Iterator *iter,
-  cpUcs4 errCh);
+    struct utf8Iterator* iter, cpUcs4 errCh);
 extern int utf8ScanBackwardsForCodePoint(
-  unsigned char *msg,
-  int len,
-  int pos,
-  cpUcs4 *out);
+    unsigned char* msg, int len, int pos, cpUcs4* out);
 
 #ifdef __cplusplus
 }

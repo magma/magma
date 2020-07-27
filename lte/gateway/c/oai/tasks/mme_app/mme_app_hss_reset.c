@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,14 +37,13 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
-int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP)
-{
-  int rc = RETURNok;
+int mme_app_handle_s6a_reset_req(const s6a_reset_req_t* const rsr_pP) {
+  int rc                               = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
-  hash_node_t* node = NULL;
-  unsigned int i = 0;
-  unsigned int num_elements = 0;
-  hash_table_ts_t* hashtblP = NULL;
+  hash_node_t* node                    = NULL;
+  unsigned int i                       = 0;
+  unsigned int num_elements            = 0;
+  hash_table_ts_t* hashtblP            = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -56,7 +51,7 @@ int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP)
 
   if (rsr_pP == NULL) {
     OAILOG_ERROR(
-      LOG_MME_APP, "Invalid S6a Reset Request ITTI message received\n");
+        LOG_MME_APP, "Invalid S6a Reset Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -74,27 +69,27 @@ int mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP)
     while (node) {
       num_elements++;
       hashtable_ts_get(
-        hashtblP, (const hash_key_t) node->key, (void**) &ue_context_p);
+          hashtblP, (const hash_key_t) node->key, (void**) &ue_context_p);
       if (ue_context_p != NULL) {
         if (ue_context_p->mm_state == UE_REGISTERED) {
           /*
-          * set the flag: location_info_confirmed_in_hss to indicate that,
-          * hss has restarted and MME shall send ULR to hss
-          */
+           * set the flag: location_info_confirmed_in_hss to indicate that,
+           * hss has restarted and MME shall send ULR to hss
+           */
           ue_context_p->location_info_confirmed_in_hss = true;
           /*
-          * set the sgs context flag: neaf to indicate that,
-          * hss has restarted and MME shall send SGS Ue Activity Indication to MSC/VLR
-          * to indicate that activity from a UE has been detected
-          */
+           * set the sgs context flag: neaf to indicate that,
+           * hss has restarted and MME shall send SGS Ue Activity Indication to
+           * MSC/VLR to indicate that activity from a UE has been detected
+           */
           if (ue_context_p->sgs_context != NULL) {
             ue_context_p->sgs_context->neaf = true;
           }
 
           if (ue_context_p->ecm_state == ECM_CONNECTED) {
             /*
-            * hss has restarted and MME shall send ULR to hss for connected Ue
-            */
+             * hss has restarted and MME shall send ULR to hss for connected Ue
+             */
             rc = mme_app_send_s6a_update_location_req(ue_context_p);
           }
         }

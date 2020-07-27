@@ -1,0 +1,183 @@
+version: 2.1
+
+aliases:
+  - &onlypr
+    filters:
+      branches:
+        ignore: master
+  - &onlymaster
+    filters:
+      branches:
+        only: master
+
+executors:
+  yarnnode:
+    docker:
+      - image: circleci/node:10-buster-browsers-legacy
+
+commands:
+  yarn-install:
+    steps:
+      - restore_cache:
+          name: Restore Yarn Package Cache
+          keys:
+            - yarn-packages-{{ checksum "yarn.lock" }}
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          name: Save Yarn Package Cache
+          key: yarn-packages-{{ checksum "yarn.lock" }}
+          paths:
+            - ~/.cache/yarn
+
+jobs:
+  eslint:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: eslint
+          command: yarn run eslint ./
+  flowtest:
+    executor: yarnnode
+    steps:
+      - checkout
+      - run:
+          name: install flow
+          # Extract the specified flow version from the .flowconfig
+          command: yarn add --dev -W flow-bin@$(x=$(grep "\[version\]" .flowconfig -A 1 | tail -n 1); echo ${x:1})
+  yarntest:
+    executor: yarnnode
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: yarn test
+          command: yarn test:ci
+  deploy:
+    docker:
+      - image: circleci/node
+    parameters:
+      package_dir:
+        type: string
+      package_name:
+        type: string
+    steps:
+      - checkout
+      - run:
+          name: Halt on no changes 
+          working_directory: fbcnms-packages/<<parameters.package_dir>>
+          command: |
+            published=$(npm -s show <<parameters.package_name>> version || exit 0)
+            current=$(node -p "require('./package.json').version")
+            if [[ $published == $current ]]; then
+              circleci step halt
+            fi
+      - run:
+          name: npm auth
+          working_directory: fbcnms-packages/<<parameters.package_dir>>
+          command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+      - run:
+          name: npm publish
+          working_directory: fbcnms-packages/<<parameters.package_dir>>
+          command: npm publish --access public   
+
+workflows:
+  version: 2.1
+  all:
+    jobs:
+      - eslint:
+          <<: *onlypr
+      - flowtest
+      - yarntest:
+          requires:
+            - flowtest
+  deploy:
+    jobs:
+      - deploy:
+          name: deploy-fbcnms-strings
+          package_dir: fbcnms-strings
+          package_name: fbcnms/strings
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-util
+          package_dir: fbcnms-util
+          package_name: fbcnms/util
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-ui
+          package_dir: fbcnms-ui
+          package_name: fbcnms/ui
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-relay
+          package_dir: fbcnms-relay
+          package_name: fbcnms/relay
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-babel-register
+          package_dir: fbcnms-babel-register
+          package_name: fbcnms/babel-register
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-alarms
+          package_dir: fbcnms-alarms
+          package_name: fbcnms/alarms
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-webpack-config
+          package_dir: fbcnms-webpack-config
+          package_name: fbcnms/webpack-config
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-platform-server
+          package_dir: fbcnms-platform-server
+          package_name: fbcnms/platform-server
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-auth
+          package_dir: fbcnms-auth
+          package_name: fbcnms/auth
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-express-middleware
+          package_dir: fbcnms-express-middleware
+          package_name: fbcnms/express-middleware
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-sequelize-models
+          package_dir: fbcnms-sequelize-models
+          package_name: fbcnms/sequelize-models
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-logging
+          package_dir: fbcnms-logging
+          package_name: fbcnms/logging
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-types
+          package_dir: fbcnms-types
+          package_name: fbcnms/types
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-projects
+          package_dir: fbcnms-projects
+          package_name: fbcnms/projects
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-magma-api
+          package_dir: fbcnms-magma-api
+          package_name: fbcnms/magma-api
+          <<: *onlymaster
+      - deploy:
+          name: deploy-fbcnms-mobileapp
+          package_dir: fbcnms-mobileapp
+          package_name: fbcnms/mobileapp
+          <<: *onlymaster
+      - deploy:
+          name: deploy-eslint-config-fbcnms
+          package_dir: eslint-config-fbcnms
+          package_name: eslint-config-fbcnms
+          <<: *onlymaster

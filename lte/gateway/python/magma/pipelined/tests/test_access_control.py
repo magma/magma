@@ -1,10 +1,14 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
@@ -80,7 +84,7 @@ class AccessControlTestLTE(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'access_control': {
-                    'ip_blacklist': [
+                    'ip_blocklist': [
                         {
                             'ip': cls.INBOUND_TEST_IP,
                             'direction': 'inbound',
@@ -119,7 +123,7 @@ class AccessControlTestLTE(unittest.TestCase):
     def test_inbound_ip_match(self):
         """
         Inbound ip match test, checks that packets are properly matched when
-        the inbound traffic matches an ip in the blacklist.
+        the inbound traffic matches an ip in the blocklist.
 
         Assert:
             Both packets are matched
@@ -177,7 +181,7 @@ class AccessControlTestLTE(unittest.TestCase):
     def test_outbound_ip_match(self):
         """
         Outbound ip match test, checks that packets are properly matched when
-        the outbound traffic matches an ip in the blacklist.
+        the outbound traffic matches an ip in the blocklist.
 
         Assert:
             Both packets are matched
@@ -235,7 +239,7 @@ class AccessControlTestLTE(unittest.TestCase):
     def test_no_match(self):
         """
         No match test, checks that packets are not matched when
-        the there is no match to the ip and direction in the blacklist.
+        the there is no match to the ip and direction in the blocklist.
 
         Assert:
             Both packets are not matched
@@ -347,7 +351,7 @@ class AccessControlTestCWF(unittest.TestCase):
                 'enable_queue_pgm': False,
                 'clean_restart': True,
                 'access_control': {
-                    'ip_blacklist': [
+                    'ip_blocklist': [
                         {
                             'ip': cls.INBOUND_TEST_IP,
                             'direction': 'inbound',
@@ -386,7 +390,7 @@ class AccessControlTestCWF(unittest.TestCase):
     def test_gre_peer_rules(self):
         """
         Inbound ip match test, checks that packets are properly matched when
-        the inbound traffic matches an ip in the blacklist.
+        the inbound traffic matches an ip in the blocklist.
 
         Assert:
             Both packets are matched

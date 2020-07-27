@@ -40,7 +40,7 @@
 /**
  * @file NwGtpv2cLog.h
  * @brief This header contains logging related definitions.
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {

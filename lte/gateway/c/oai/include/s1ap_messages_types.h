@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 /*! \file s1ap_messages_types.h
   \brief
@@ -71,11 +72,11 @@
 #define S1AP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.s1ap_paging_request
 #define S1AP_E_RAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_cmd
 #define S1AP_E_RAB_REL_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_rsp
-#define S1AP_PATH_SWITCH_REQUEST(mSGpTR)                          \
+#define S1AP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request
-#define S1AP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                      \
+#define S1AP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_ack
-#define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                      \
+#define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
 
 // NOT a ITTI message
@@ -136,7 +137,7 @@ typedef struct itti_s1ap_initial_ctxt_setup_req_s {
 typedef struct itti_s1ap_ue_cap_ind_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
-  uint8_t *radio_capabilities;
+  uint8_t* radio_capabilities;
   size_t radio_capabilities_length;
 } itti_s1ap_ue_cap_ind_t;
 
@@ -164,7 +165,7 @@ typedef struct itti_s1ap_enb_initiated_reset_req_s {
   uint32_t enb_id;
   s1ap_reset_type_t s1ap_reset_type;
   uint32_t num_ue;
-  s1_sig_conn_id_t *ue_to_reset_list;
+  s1_sig_conn_id_t* ue_to_reset_list;
 } itti_s1ap_enb_initiated_reset_req_t;
 
 typedef struct itti_s1ap_enb_initiated_reset_ack_s {
@@ -172,10 +173,11 @@ typedef struct itti_s1ap_enb_initiated_reset_ack_s {
   uint16_t sctp_stream_id;
   s1ap_reset_type_t s1ap_reset_type;
   uint32_t num_ue;
-  s1_sig_conn_id_t *ue_to_reset_list;
+  s1_sig_conn_id_t* ue_to_reset_list;
 } itti_s1ap_enb_initiated_reset_ack_t;
 
-// List of possible causes for MME generated UE context release command towards eNB
+// List of possible causes for MME generated UE context release command towards
+// eNB
 enum s1cause {
   S1AP_INVALID_CAUSE = 0,
   S1AP_NAS_NORMAL_RELEASE,
@@ -236,18 +238,17 @@ typedef struct itti_s1ap_paging_request_s {
 } itti_s1ap_paging_request_t;
 
 typedef struct itti_s1ap_initial_ue_message_s {
-  sctp_assoc_id_t
-    sctp_assoc_id; // key stored in MME_APP for MME_APP forward NAS response to S1AP
+  sctp_assoc_id_t sctp_assoc_id;  // key stored in MME_APP for MME_APP forward
+                                  // NAS response to S1AP
   uint32_t enb_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id;
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   bstring nas;
-  tai_t
-    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message. */
-  ecgi_t
-    ecgi; /* Indicating the cell from which the UE has sent the NAS message. */
-  rrc_establishment_cause_t
-    rrc_establishment_cause; /* Establishment cause                     */
+  tai_t tai; /* Indicating the Tracking Area from which the UE has sent the NAS
+                message. */
+  ecgi_t ecgi; /* Indicating the cell from which the UE has sent the NAS
+                  message. */
+  rrc_establishment_cause_t rrc_establishment_cause; /* Establishment cause */
 
   bool is_s_tmsi_valid;
   bool is_csg_id_valid;
@@ -255,9 +256,9 @@ typedef struct itti_s1ap_initial_ue_message_s {
   s_tmsi_t opt_s_tmsi;
   csg_id_t opt_csg_id;
   gummei_t opt_gummei;
-  //void                opt_cell_access_mode;
-  //void                opt_cell_gw_transport_address;
-  //void                opt_relay_node_indicator;
+  // void                opt_cell_access_mode;
+  // void                opt_cell_gw_transport_address;
+  // void                opt_relay_node_indicator;
   /* Transparent message from s1ap to be forwarded to MME_APP or
    * to S1AP if connection establishment is rejected by NAS.
    */

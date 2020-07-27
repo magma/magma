@@ -1,3 +1,0 @@
-mutation RemoveSiteSurveyMutation($id: ID!) {
-  removeSiteSurvey(id: $id)
-}

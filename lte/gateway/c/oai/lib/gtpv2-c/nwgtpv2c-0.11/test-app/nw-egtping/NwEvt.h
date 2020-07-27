@@ -32,7 +32,7 @@
 /**
  * @file NwEvt.h
  * @brief
-*/
+ */
 
 #ifdef __WITH_LIBEVENT__
 
@@ -42,14 +42,14 @@ typedef struct event NwEventT;
 
 #define NW_EVT_READ (EV_READ)
 #define NW_EVT_PERSIST (EV_PERSIST)
-#define NW_EVT_CALLBACK(__cbFunc) __cbFunc(int fd, short event, void *arg)
-#define NW_TMR_CALLBACK(__cbFunc) __cbFunc(int fd, short event, void *arg)
+#define NW_EVT_CALLBACK(__cbFunc) __cbFunc(int fd, short event, void* arg)
+#define NW_TMR_CALLBACK(__cbFunc) __cbFunc(int fd, short event, void* arg)
 
 #define NW_EVT_INIT event_init
 #define NW_EVT_LOOP event_dispatch
 
 #define NW_EVENT_ADD(                                                          \
-  __ev, __evSelObj, __evCallback, __evCallbackArg, __evFlags)                  \
+    __ev, __evSelObj, __evCallback, __evCallbackArg, __evFlags)                \
   do {                                                                         \
     event_set(&(__ev), __evSelObj, __evFlags, __evCallback, __evCallbackArg);  \
     event_add(&(__ev), NULL);                                                  \
@@ -67,8 +67,8 @@ typedef struct {
 
 #define NW_EVT_READ (0)
 #define NW_EVT_PERSIST (1)
-#define NW_EVT_CALLBACK(__cbFunc) __cbFunc(void *arg)
-#define NW_TMR_CALLBACK(__cbFunc) __cbFunc(void *arg)
+#define NW_EVT_CALLBACK(__cbFunc) __cbFunc(void* arg)
+#define NW_TMR_CALLBACK(__cbFunc) __cbFunc(void* arg)
 
 #define NW_EVT_INIT()                                                          \
   do {                                                                         \

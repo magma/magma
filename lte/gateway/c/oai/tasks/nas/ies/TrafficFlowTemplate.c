@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,85 +24,56 @@
 #include "TrafficFlowTemplate.h"
 
 static int decode_traffic_flow_template_delete_packet(
-  DeletePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    DeletePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 static int decode_traffic_flow_template_create_tft(
-  CreateNewTft *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    CreateNewTft* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 static int decode_traffic_flow_template_add_packet(
-  AddPacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    AddPacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 static int decode_traffic_flow_template_replace_packet(
-  ReplacePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    ReplacePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 
 static int decode_traffic_flow_template_packet_filter_identifiers(
-  PacketFilterIdentifiers *packetfilteridentifiers,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    PacketFilterIdentifiers* packetfilteridentifiers, uint8_t nbpacketfilters,
+    uint8_t* buffer, uint32_t len);
 static int decode_traffic_flow_template_packet_filters(
-  PacketFilters *packetfilters,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    PacketFilters* packetfilters, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 
 static int encode_traffic_flow_template_delete_packet(
-  DeletePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    DeletePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 static int encode_traffic_flow_template_create_tft(
-  CreateNewTft *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    CreateNewTft* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 static int encode_traffic_flow_template_add_packet(
-  AddPacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    AddPacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 static int encode_traffic_flow_template_replace_packet(
-  ReplacePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    ReplacePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 
 static int encode_traffic_flow_template_packet_filter_identifiers(
-  PacketFilterIdentifiers *packetfilteridentifiers,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    PacketFilterIdentifiers* packetfilteridentifiers, uint8_t nbpacketfilters,
+    uint8_t* buffer, uint32_t len);
 static int encode_traffic_flow_template_packet_filters(
-  PacketFilters *packetfilters,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len);
+    PacketFilters* packetfilters, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len);
 
 static void dump_traffic_flow_template_packet_filter_identifiers(
-  PacketFilterIdentifiers *packetfilteridentifiers,
-  uint8_t nbpacketfilters);
+    PacketFilterIdentifiers* packetfilteridentifiers, uint8_t nbpacketfilters);
 static void dump_traffic_flow_template_packet_filters(
-  PacketFilters *packetfilters,
-  uint8_t nbpacketfilters);
+    PacketFilters* packetfilters, uint8_t nbpacketfilters);
 
 int decode_traffic_flow_template(
-  TrafficFlowTemplate *trafficflowtemplate,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    TrafficFlowTemplate* trafficflowtemplate, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded        = 0;
   int decoded_result = 0;
-  uint8_t ielen = 0;
+  uint8_t ielen      = 0;
 
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
@@ -116,46 +83,41 @@ int decode_traffic_flow_template(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  trafficflowtemplate->tftoperationcode = (*(buffer + decoded) >> 5) & 0x7;
-  trafficflowtemplate->ebit = (*(buffer + decoded) >> 4) & 0x1;
+  trafficflowtemplate->tftoperationcode      = (*(buffer + decoded) >> 5) & 0x7;
+  trafficflowtemplate->ebit                  = (*(buffer + decoded) >> 4) & 0x1;
   trafficflowtemplate->numberofpacketfilters = *(buffer + decoded) & 0xf;
   decoded++;
 
   /*
    * Decoding packet filter list
    */
-  if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET) {
+  if (trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET) {
     decoded_result = decode_traffic_flow_template_delete_packet(
-      &trafficflowtemplate->packetfilterlist.deletepacketfilter,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + decoded),
-      len - decoded);
+        &trafficflowtemplate->packetfilterlist.deletepacketfilter,
+        trafficflowtemplate->numberofpacketfilters, (buffer + decoded),
+        len - decoded);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE) {
     decoded_result = decode_traffic_flow_template_create_tft(
-      &trafficflowtemplate->packetfilterlist.createtft,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + decoded),
-      len - decoded);
+        &trafficflowtemplate->packetfilterlist.createtft,
+        trafficflowtemplate->numberofpacketfilters, (buffer + decoded),
+        len - decoded);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET) {
     decoded_result = decode_traffic_flow_template_add_packet(
-      &trafficflowtemplate->packetfilterlist.addpacketfilter,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + decoded),
-      len - decoded);
+        &trafficflowtemplate->packetfilterlist.addpacketfilter,
+        trafficflowtemplate->numberofpacketfilters, (buffer + decoded),
+        len - decoded);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET) {
     decoded_result = decode_traffic_flow_template_replace_packet(
-      &trafficflowtemplate->packetfilterlist.replacepacketfilter,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + decoded),
-      len - decoded);
+        &trafficflowtemplate->packetfilterlist.replacepacketfilter,
+        trafficflowtemplate->numberofpacketfilters, (buffer + decoded),
+        len - decoded);
   }
 #if NAS_DEBUG
   dump_traffic_flow_template_xml(trafficflowtemplate, iei);
@@ -169,19 +131,16 @@ int decode_traffic_flow_template(
 }
 
 int encode_traffic_flow_template(
-  TrafficFlowTemplate *trafficflowtemplate,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    TrafficFlowTemplate* trafficflowtemplate, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, TRAFFIC_FLOW_TEMPLATE_MINIMUM_LENGTH, len);
+      buffer, TRAFFIC_FLOW_TEMPLATE_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_traffic_flow_template_xml(trafficflowtemplate, iei);
 #endif
@@ -202,38 +161,33 @@ int encode_traffic_flow_template(
   /*
    * Encoding packet filter list
    */
-  if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET) {
+  if (trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET) {
     encoded += encode_traffic_flow_template_delete_packet(
-      &trafficflowtemplate->packetfilterlist.deletepacketfilter,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + encoded),
-      len - encoded);
+        &trafficflowtemplate->packetfilterlist.deletepacketfilter,
+        trafficflowtemplate->numberofpacketfilters, (buffer + encoded),
+        len - encoded);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE) {
     encoded += encode_traffic_flow_template_create_tft(
-      &trafficflowtemplate->packetfilterlist.createtft,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + encoded),
-      len - encoded);
+        &trafficflowtemplate->packetfilterlist.createtft,
+        trafficflowtemplate->numberofpacketfilters, (buffer + encoded),
+        len - encoded);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET) {
     encoded += encode_traffic_flow_template_add_packet(
-      &trafficflowtemplate->packetfilterlist.addpacketfilter,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + encoded),
-      len - encoded);
+        &trafficflowtemplate->packetfilterlist.addpacketfilter,
+        trafficflowtemplate->numberofpacketfilters, (buffer + encoded),
+        len - encoded);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET) {
     encoded += encode_traffic_flow_template_replace_packet(
-      &trafficflowtemplate->packetfilterlist.replacepacketfilter,
-      trafficflowtemplate->numberofpacketfilters,
-      (buffer + encoded),
-      len - encoded);
+        &trafficflowtemplate->packetfilterlist.replacepacketfilter,
+        trafficflowtemplate->numberofpacketfilters, (buffer + encoded),
+        len - encoded);
   }
 
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
@@ -241,9 +195,7 @@ int encode_traffic_flow_template(
 }
 
 void dump_traffic_flow_template_xml(
-  TrafficFlowTemplate *trafficflowtemplate,
-  uint8_t iei)
-{
+    TrafficFlowTemplate* trafficflowtemplate, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Traffic Flow Template>\n");
 
   if (iei > 0)
@@ -253,90 +205,72 @@ void dump_traffic_flow_template_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <TFT operation code>%u</TFT operation code>\n",
-    trafficflowtemplate->tftoperationcode);
+      LOG_NAS, "    <TFT operation code>%u</TFT operation code>\n",
+      trafficflowtemplate->tftoperationcode);
   OAILOG_DEBUG(LOG_NAS, "    <E bit>%u</E bit>\n", trafficflowtemplate->ebit);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <Number of packet filters>%u</Number of packet filters>\n",
-    trafficflowtemplate->numberofpacketfilters);
+      LOG_NAS, "    <Number of packet filters>%u</Number of packet filters>\n",
+      trafficflowtemplate->numberofpacketfilters);
 
-  if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET) {
+  if (trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET) {
     dump_traffic_flow_template_packet_filter_identifiers(
-      &trafficflowtemplate->packetfilterlist.deletepacketfilter,
-      trafficflowtemplate->numberofpacketfilters);
+        &trafficflowtemplate->packetfilterlist.deletepacketfilter,
+        trafficflowtemplate->numberofpacketfilters);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE) {
     dump_traffic_flow_template_packet_filters(
-      &trafficflowtemplate->packetfilterlist.createtft,
-      trafficflowtemplate->numberofpacketfilters);
+        &trafficflowtemplate->packetfilterlist.createtft,
+        trafficflowtemplate->numberofpacketfilters);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET) {
     dump_traffic_flow_template_packet_filters(
-      &trafficflowtemplate->packetfilterlist.addpacketfilter,
-      trafficflowtemplate->numberofpacketfilters);
+        &trafficflowtemplate->packetfilterlist.addpacketfilter,
+        trafficflowtemplate->numberofpacketfilters);
   } else if (
-    trafficflowtemplate->tftoperationcode ==
-    TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET) {
+      trafficflowtemplate->tftoperationcode ==
+      TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET) {
     dump_traffic_flow_template_packet_filters(
-      &trafficflowtemplate->packetfilterlist.replacepacketfilter,
-      trafficflowtemplate->numberofpacketfilters);
+        &trafficflowtemplate->packetfilterlist.replacepacketfilter,
+        trafficflowtemplate->numberofpacketfilters);
   }
 
   OAILOG_DEBUG(LOG_NAS, "</Traffic Flow Template>\n");
 }
 
 static int decode_traffic_flow_template_delete_packet(
-  DeletePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    DeletePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return decode_traffic_flow_template_packet_filter_identifiers(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int decode_traffic_flow_template_create_tft(
-  CreateNewTft *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    CreateNewTft* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return decode_traffic_flow_template_packet_filters(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int decode_traffic_flow_template_add_packet(
-  AddPacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    AddPacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return decode_traffic_flow_template_packet_filters(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int decode_traffic_flow_template_replace_packet(
-  ReplacePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    ReplacePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return decode_traffic_flow_template_packet_filters(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int decode_traffic_flow_template_packet_filter_identifiers(
-  PacketFilterIdentifiers *packetfilteridentifiers,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    PacketFilterIdentifiers* packetfilteridentifiers, uint8_t nbpacketfilters,
+    uint8_t* buffer, uint32_t len) {
   int decoded = 0, i;
 
   for (i = 0; (i < nbpacketfilters) && (len - decoded > 0); i++) {
@@ -350,11 +284,8 @@ static int decode_traffic_flow_template_packet_filter_identifiers(
 }
 
 static int decode_traffic_flow_template_packet_filters(
-  PacketFilters *packetfilters,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    PacketFilters* packetfilters, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   int decoded = 0, i, j;
 
   for (i = 0; (i < nbpacketfilters); i++) {
@@ -405,16 +336,16 @@ static int decode_traffic_flow_template_packet_filters(
       switch (component_type) {
         case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR:
           /*
-         * IPv4 remote address type
-         */
+           * IPv4 remote address type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
 
           for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
             (*packetfilters)[i].packetfilter.ipv4remoteaddr[j].addr =
-              *(buffer + decoded);
+                *(buffer + decoded);
             (*packetfilters)[i].packetfilter.ipv4remoteaddr[j].mask =
-              *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE);
+                *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE);
             decoded++;
           }
 
@@ -423,16 +354,16 @@ static int decode_traffic_flow_template_packet_filters(
 
         case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR:
           /*
-         * IPv6 remote address type
-         */
+           * IPv6 remote address type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
 
           for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; j++) {
             (*packetfilters)[i].packetfilter.ipv6remoteaddr[j].addr =
-              *(buffer + decoded);
+                *(buffer + decoded);
             (*packetfilters)[i].packetfilter.ipv6remoteaddr[j].mask =
-              *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE);
+                *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE);
             decoded++;
           }
 
@@ -441,110 +372,106 @@ static int decode_traffic_flow_template_packet_filters(
 
         case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER:
           /*
-         * Protocol identifier/Next header type
-         */
+           * Protocol identifier/Next header type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
           IES_DECODE_U8(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.protocolidentifier_nextheader);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.protocolidentifier_nextheader);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT:
           /*
-         * Single local port type
-         */
+           * Single local port type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
           IES_DECODE_U16(
-            buffer, decoded, (*packetfilters)[i].packetfilter.singlelocalport);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.singlelocalport);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE:
           /*
-         * Local port range type
-         */
+           * Local port range type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
           IES_DECODE_U16(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.localportrange.lowlimit);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.localportrange.lowlimit);
           IES_DECODE_U16(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.localportrange.highlimit);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.localportrange.highlimit);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT:
           /*
-         * Single remote port type
-         */
+           * Single remote port type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
           IES_DECODE_U16(
-            buffer, decoded, (*packetfilters)[i].packetfilter.singleremoteport);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.singleremoteport);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE:
           /*
-         * Remote port range type
-         */
+           * Remote port range type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
           IES_DECODE_U16(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.remoteportrange.lowlimit);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.remoteportrange.lowlimit);
           IES_DECODE_U16(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.remoteportrange.highlimit);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.remoteportrange.highlimit);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX:
           /*
-         * Security parameter index type
-         */
+           * Security parameter index type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
           IES_DECODE_U32(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.securityparameterindex);
+              buffer, decoded,
+              (*packetfilters)[i].packetfilter.securityparameterindex);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS:
           /*
-         * Type of service/Traffic class type
-         */
+           * Type of service/Traffic class type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
           IES_DECODE_U8(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.value);
+              buffer, decoded,
+              (*packetfilters)[i]
+                  .packetfilter.typdeofservice_trafficclass.value);
           IES_DECODE_U8(
-            buffer,
-            decoded,
-            (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.mask);
+              buffer, decoded,
+              (*packetfilters)[i]
+                  .packetfilter.typdeofservice_trafficclass.mask);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL:
           /*
-         * Flow label type
-         */
+           * Flow label type
+           */
           (*packetfilters)[i].packetfilter.flags |=
-            TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
+              TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
           IES_DECODE_U24(
-            buffer, decoded, (*packetfilters)[i].packetfilter.flowlabel);
+              buffer, decoded, (*packetfilters)[i].packetfilter.flowlabel);
           break;
 
         default:
           /*
-         * Packet filter component type identifier is not valid
-         */
+           * Packet filter component type identifier is not valid
+           */
           return (TLV_UNEXPECTED_IEI);
           break;
       }
@@ -563,51 +490,36 @@ static int decode_traffic_flow_template_packet_filters(
 }
 
 static int encode_traffic_flow_template_delete_packet(
-  DeletePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    DeletePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return encode_traffic_flow_template_packet_filter_identifiers(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int encode_traffic_flow_template_create_tft(
-  CreateNewTft *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    CreateNewTft* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return encode_traffic_flow_template_packet_filters(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int encode_traffic_flow_template_add_packet(
-  AddPacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    AddPacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return encode_traffic_flow_template_packet_filters(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int encode_traffic_flow_template_replace_packet(
-  ReplacePacketFilter *packetfilter,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    ReplacePacketFilter* packetfilter, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   return encode_traffic_flow_template_packet_filters(
-    packetfilter, nbpacketfilters, buffer, len);
+      packetfilter, nbpacketfilters, buffer, len);
 }
 
 static int encode_traffic_flow_template_packet_filter_identifiers(
-  PacketFilterIdentifiers *packetfilteridentifiers,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    PacketFilterIdentifiers* packetfilteridentifiers, uint8_t nbpacketfilters,
+    uint8_t* buffer, uint32_t len) {
   int encoded = 0, i;
 
   for (i = 0; (i < nbpacketfilters) && (len - encoded > 0); i++) {
@@ -621,11 +533,8 @@ static int encode_traffic_flow_template_packet_filter_identifiers(
 }
 
 static int encode_traffic_flow_template_packet_filters(
-  PacketFilters *packetfilters,
-  uint8_t nbpacketfilters,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    PacketFilters* packetfilters, uint8_t nbpacketfilters, uint8_t* buffer,
+    uint32_t len) {
   int encoded = 0, i, j;
 
   for (i = 0; (i < nbpacketfilters) && (len - encoded > 0); i++) {
@@ -641,10 +550,9 @@ static int encode_traffic_flow_template_packet_filters(
      * Packet filter identifier and direction
      */
     IES_ENCODE_U8(
-      buffer,
-      encoded,
-      (0x00 | ((*packetfilters)[i].direction << 4) |
-       ((*packetfilters)[i].identifier)));
+        buffer, encoded,
+        (0x00 | ((*packetfilters)[i].direction << 4) |
+         ((*packetfilters)[i].identifier)));
     /*
      * Packet filter evaluation precedence
      */
@@ -652,29 +560,29 @@ static int encode_traffic_flow_template_packet_filters(
     /*
      * Save address of the Packet filter contents field length
      */
-    uint8_t *pkflenPtr = buffer + encoded;
+    uint8_t* pkflenPtr = buffer + encoded;
 
     encoded++;
     /*
      * Packet filter contents
      */
-    int pkfstart = encoded;
+    int pkfstart  = encoded;
     uint16_t flag = TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
 
     while (flag <= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
       switch ((*packetfilters)[i].packetfilter.flags & flag) {
         case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG:
           /*
-         * IPv4 remote address type
-         */
+           * IPv4 remote address type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR);
 
           for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
             *(buffer + encoded) =
-              (*packetfilters)[i].packetfilter.ipv4remoteaddr[j].addr;
+                (*packetfilters)[i].packetfilter.ipv4remoteaddr[j].addr;
             *(buffer + encoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE) =
-              (*packetfilters)[i].packetfilter.ipv4remoteaddr[j].mask;
+                (*packetfilters)[i].packetfilter.ipv4remoteaddr[j].mask;
             encoded++;
           }
 
@@ -683,16 +591,16 @@ static int encode_traffic_flow_template_packet_filters(
 
         case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG:
           /*
-         * IPv6 remote address type
-         */
+           * IPv6 remote address type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR);
 
           for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; j++) {
             *(buffer + encoded) =
-              (*packetfilters)[i].packetfilter.ipv6remoteaddr[j].addr;
+                (*packetfilters)[i].packetfilter.ipv6remoteaddr[j].addr;
             *(buffer + encoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE) =
-              (*packetfilters)[i].packetfilter.ipv6remoteaddr[j].mask;
+                (*packetfilters)[i].packetfilter.ipv6remoteaddr[j].mask;
             encoded++;
           }
 
@@ -701,110 +609,105 @@ static int encode_traffic_flow_template_packet_filters(
 
         case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG:
           /*
-         * Protocol identifier/Next header type
-         */
+           * Protocol identifier/Next header type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
           IES_ENCODE_U8(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.protocolidentifier_nextheader);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.protocolidentifier_nextheader);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG:
           /*
-         * Single local port type
-         */
+           * Single local port type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
           IES_ENCODE_U16(
-            buffer, encoded, (*packetfilters)[i].packetfilter.singlelocalport);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.singlelocalport);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG:
           /*
-         * Local port range type
-         */
+           * Local port range type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE);
           IES_ENCODE_U16(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.localportrange.lowlimit);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.localportrange.lowlimit);
           IES_ENCODE_U16(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.localportrange.highlimit);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.localportrange.highlimit);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG:
           /*
-         * Single remote port type
-         */
+           * Single remote port type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
           IES_ENCODE_U16(
-            buffer, encoded, (*packetfilters)[i].packetfilter.singleremoteport);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.singleremoteport);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG:
           /*
-         * Remote port range type
-         */
+           * Remote port range type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE);
           IES_ENCODE_U16(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.remoteportrange.lowlimit);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.remoteportrange.lowlimit);
           IES_ENCODE_U16(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.remoteportrange.highlimit);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.remoteportrange.highlimit);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG:
           /*
-         * Security parameter index type
-         */
+           * Security parameter index type
+           */
           IES_ENCODE_U8(
-            buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
+              buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
           IES_ENCODE_U32(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.securityparameterindex);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.securityparameterindex);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG:
           /*
-         * Type of service/Traffic class type
-         */
+           * Type of service/Traffic class type
+           */
           IES_ENCODE_U8(
-            buffer,
-            encoded,
-            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
+              buffer, encoded,
+              TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
           IES_ENCODE_U8(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.value);
+              buffer, encoded,
+              (*packetfilters)[i]
+                  .packetfilter.typdeofservice_trafficclass.value);
           IES_ENCODE_U8(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.mask);
+              buffer, encoded,
+              (*packetfilters)[i]
+                  .packetfilter.typdeofservice_trafficclass.mask);
           break;
 
         case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG:
           /*
-         * Flow label type
-         */
+           * Flow label type
+           */
           IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL);
           IES_ENCODE_U24(
-            buffer,
-            encoded,
-            (*packetfilters)[i].packetfilter.flowlabel & 0x000fffff);
+              buffer, encoded,
+              (*packetfilters)[i].packetfilter.flowlabel & 0x000fffff);
           break;
 
-        default: break;
+        default:
+          break;
       }
 
       flag = flag << 1;
@@ -820,202 +723,186 @@ static int encode_traffic_flow_template_packet_filters(
 }
 
 static void dump_traffic_flow_template_packet_filter_identifiers(
-  PacketFilterIdentifiers *packetfilteridentifiers,
-  uint8_t nbpacketfilters)
-{
+    PacketFilterIdentifiers* packetfilteridentifiers, uint8_t nbpacketfilters) {
   int i;
 
   OAILOG_DEBUG(LOG_NAS, "    <Packet filter list>\n");
 
   for (i = 0; i < nbpacketfilters; i++) {
     OAILOG_DEBUG(
-      LOG_NAS,
-      "        <Identifier>%u</Identifier>\n",
-      (*packetfilteridentifiers)[i].identifier);
+        LOG_NAS, "        <Identifier>%u</Identifier>\n",
+        (*packetfilteridentifiers)[i].identifier);
   }
 
   OAILOG_DEBUG(LOG_NAS, "    </Packet filter list>\n");
 }
 
 static void dump_traffic_flow_template_packet_filters(
-  PacketFilters *packetfilters,
-  uint8_t nbpacketfilters)
-{
+    PacketFilters* packetfilters, uint8_t nbpacketfilters) {
   int i;
 
   OAILOG_DEBUG(LOG_NAS, "    <Packet filter list>\n");
 
   for (i = 0; i < nbpacketfilters; i++) {
     OAILOG_DEBUG(
-      LOG_NAS,
-      "        <Identifier>%u</Identifier>\n",
-      (*packetfilters)[i].identifier);
+        LOG_NAS, "        <Identifier>%u</Identifier>\n",
+        (*packetfilters)[i].identifier);
     OAILOG_DEBUG(
-      LOG_NAS,
-      "        <Direction>%u</Direction>\n",
-      (*packetfilters)[i].direction);
+        LOG_NAS, "        <Direction>%u</Direction>\n",
+        (*packetfilters)[i].direction);
     OAILOG_DEBUG(
-      LOG_NAS,
-      "        <Evaluation precedence>%u</Evaluation precedence>\n",
-      (*packetfilters)[i].eval_precedence);
+        LOG_NAS, "        <Evaluation precedence>%u</Evaluation precedence>\n",
+        (*packetfilters)[i].eval_precedence);
     OAILOG_DEBUG(LOG_NAS, "        <Packet filter>\n");
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <IPv4 remote address>%u.%u.%u.%u</IPv4 remote address>\n",
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[0].addr,
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[1].addr,
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[2].addr,
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[3].addr);
+          LOG_NAS,
+          "            <IPv4 remote address>%u.%u.%u.%u</IPv4 remote "
+          "address>\n",
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[0].addr,
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[1].addr,
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[2].addr,
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[3].addr);
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <IPv4 remote address mask>%u.%u.%u.%u</IPv4 remote "
-        "address mask>\n",
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[0].mask,
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[1].mask,
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[2].mask,
-        (*packetfilters)[i].packetfilter.ipv4remoteaddr[3].mask);
+          LOG_NAS,
+          "            <IPv4 remote address mask>%u.%u.%u.%u</IPv4 remote "
+          "address mask>\n",
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[0].mask,
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[1].mask,
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[2].mask,
+          (*packetfilters)[i].packetfilter.ipv4remoteaddr[3].mask);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Ipv6 remote "
-        "address>%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x</Ipv6 "
-        "remote address>\n",
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[0].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[1].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[2].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[3].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[4].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[5].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[6].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[7].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[8].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[9].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[10].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[11].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[12].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[13].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[14].addr,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[15].addr);
+          LOG_NAS,
+          "            <Ipv6 remote "
+          "address>%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x</"
+          "Ipv6 "
+          "remote address>\n",
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[0].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[1].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[2].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[3].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[4].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[5].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[6].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[7].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[8].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[9].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[10].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[11].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[12].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[13].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[14].addr,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[15].addr);
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Ipv6 remote address "
-        "mask>%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x</Ipv6 "
-        "remote address mask>\n",
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[0].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[1].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[2].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[3].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[4].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[5].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[6].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[7].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[8].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[9].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[10].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[11].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[12].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[13].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[14].mask,
-        (*packetfilters)[i].packetfilter.ipv6remoteaddr[15].mask);
+          LOG_NAS,
+          "            <Ipv6 remote address "
+          "mask>%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x:%x%.2x</Ipv6 "
+          "remote address mask>\n",
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[0].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[1].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[2].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[3].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[4].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[5].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[6].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[7].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[8].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[9].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[10].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[11].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[12].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[13].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[14].mask,
+          (*packetfilters)[i].packetfilter.ipv6remoteaddr[15].mask);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Protocol identifier - Next header type>%u</Protocol "
-        "identifier - Next header type>\n",
-        (*packetfilters)[i].packetfilter.protocolidentifier_nextheader);
+          LOG_NAS,
+          "            <Protocol identifier - Next header type>%u</Protocol "
+          "identifier - Next header type>\n",
+          (*packetfilters)[i].packetfilter.protocolidentifier_nextheader);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Single local port>%u</Single local port>\n",
-        (*packetfilters)[i].packetfilter.singlelocalport);
+          LOG_NAS, "            <Single local port>%u</Single local port>\n",
+          (*packetfilters)[i].packetfilter.singlelocalport);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Local port range low limit>%u</Local port range low "
-        "limit>\n",
-        (*packetfilters)[i].packetfilter.localportrange.lowlimit);
+          LOG_NAS,
+          "            <Local port range low limit>%u</Local port range low "
+          "limit>\n",
+          (*packetfilters)[i].packetfilter.localportrange.lowlimit);
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Local port range high limit>%u</Local port range high "
-        "limit>\n",
-        (*packetfilters)[i].packetfilter.localportrange.highlimit);
+          LOG_NAS,
+          "            <Local port range high limit>%u</Local port range high "
+          "limit>\n",
+          (*packetfilters)[i].packetfilter.localportrange.highlimit);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Single remote port>%u</Single remote port>\n",
-        (*packetfilters)[i].packetfilter.singleremoteport);
+          LOG_NAS, "            <Single remote port>%u</Single remote port>\n",
+          (*packetfilters)[i].packetfilter.singleremoteport);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Remote port range low limit>%u</Remote port range low "
-        "limit>\n",
-        (*packetfilters)[i].packetfilter.remoteportrange.lowlimit);
+          LOG_NAS,
+          "            <Remote port range low limit>%u</Remote port range low "
+          "limit>\n",
+          (*packetfilters)[i].packetfilter.remoteportrange.lowlimit);
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Remote port range high limit>%u</Remote port range high "
-        "limit>\n",
-        (*packetfilters)[i].packetfilter.remoteportrange.highlimit);
+          LOG_NAS,
+          "            <Remote port range high limit>%u</Remote port range "
+          "high "
+          "limit>\n",
+          (*packetfilters)[i].packetfilter.remoteportrange.highlimit);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Security parameter index>%u</Security parameter index>\n",
-        (*packetfilters)[i].packetfilter.securityparameterindex);
+          LOG_NAS,
+          "            <Security parameter index>%u</Security parameter "
+          "index>\n",
+          (*packetfilters)[i].packetfilter.securityparameterindex);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Type of service - Traffic class>%u</Type of service - "
-        "Traffic class>\n",
-        (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.value);
+          LOG_NAS,
+          "            <Type of service - Traffic class>%u</Type of service - "
+          "Traffic class>\n",
+          (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.value);
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Type of service - Traffic class mask>%u</Type of service "
-        "- Traffic class mask>\n",
-        (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.mask);
+          LOG_NAS,
+          "            <Type of service - Traffic class mask>%u</Type of "
+          "service "
+          "- Traffic class mask>\n",
+          (*packetfilters)[i].packetfilter.typdeofservice_trafficclass.mask);
     }
 
-    if (
-      (*packetfilters)[i].packetfilter.flags &
-      TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
+    if ((*packetfilters)[i].packetfilter.flags &
+        TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
       OAILOG_DEBUG(
-        LOG_NAS,
-        "            <Flow label>%u</Flow label>\n",
-        (*packetfilters)[i].packetfilter.flowlabel);
+          LOG_NAS, "            <Flow label>%u</Flow label>\n",
+          (*packetfilters)[i].packetfilter.flowlabel);
     }
 
     OAILOG_DEBUG(LOG_NAS, "        </Packet filter>\n");

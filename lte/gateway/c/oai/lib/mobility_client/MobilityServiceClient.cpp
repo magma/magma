@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,20 +35,18 @@
 #include "ServiceRegistrySingleton.h"
 
 using grpc::Channel;
-using grpc::ClientContext;
-using grpc::Status;
 using grpc::ChannelCredentials;
+using grpc::ClientContext;
 using grpc::InsecureChannelCredentials;
+using grpc::Status;
 using magma::orc8r::Void;
 
 namespace magma {
 namespace lte {
 
 int MobilityServiceClient::AllocateIPv4AddressAsync(
-  const std::string& imsi,
-  const std::string& apn,
-  const std::function<void(Status, IPAddress)>& callback)
-{
+    const std::string& imsi, const std::string& apn,
+    const std::function<void(Status, IPAddress)>& callback) {
   AllocateIPRequest request = AllocateIPRequest();
   request.set_version(AllocateIPRequest::IPV4);
 
@@ -67,12 +61,10 @@ int MobilityServiceClient::AllocateIPv4AddressAsync(
 }
 
 int MobilityServiceClient::ReleaseIPv4Address(
-  const std::string& imsi,
-  const std::string& apn,
-  const struct in_addr& addr)
-{
+    const std::string& imsi, const std::string& apn,
+    const struct in_addr& addr) {
   ReleaseIPRequest request = ReleaseIPRequest();
-  SubscriberID* sid = request.mutable_sid();
+  SubscriberID* sid        = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
 
@@ -95,12 +87,9 @@ int MobilityServiceClient::ReleaseIPv4Address(
 // More than one IP can be assigned due to multiple PDNs (one per PDN)
 // Get PDN specific IP address
 int MobilityServiceClient::GetIPv4AddressForSubscriber(
-  const std::string& imsi,
-  const std::string& apn,
-  struct in_addr* addr)
-{
+    const std::string& imsi, const std::string& apn, struct in_addr* addr) {
   IPLookupRequest request = IPLookupRequest();
-  SubscriberID* sid = request.mutable_sid();
+  SubscriberID* sid       = request.mutable_sid();
   sid->set_id(imsi);
   sid->set_type(SubscriberID::IMSI);
 
@@ -122,10 +111,7 @@ int MobilityServiceClient::GetIPv4AddressForSubscriber(
 }
 
 int MobilityServiceClient::GetAssignedIPv4Block(
-  int index,
-  struct in_addr* netaddr,
-  uint32_t* netmask)
-{
+    int index, struct in_addr* netaddr, uint32_t* netmask) {
   ClientContext context;
   Void request;
   ListAddedIPBlocksResponse response;
@@ -142,17 +128,15 @@ int MobilityServiceClient::GetAssignedIPv4Block(
   }
 
   memcpy(
-    netaddr,
-    response.mutable_ip_block_list(index)->mutable_net_address()->c_str(),
-    sizeof(in_addr));
+      netaddr,
+      response.mutable_ip_block_list(index)->mutable_net_address()->c_str(),
+      sizeof(in_addr));
   *netmask = response.mutable_ip_block_list(index)->prefix_len();
   return 0;
 }
 
 int MobilityServiceClient::GetSubscriberIDFromIPv4(
-  const struct in_addr& addr,
-  std::string* imsi)
-{
+    const struct in_addr& addr, std::string* imsi) {
   IPAddress ip_addr = IPAddress();
   ip_addr.set_version(IPAddress::IPV4);
   ip_addr.set_address(&addr, sizeof(struct in_addr));
@@ -173,27 +157,23 @@ int MobilityServiceClient::GetSubscriberIDFromIPv4(
 }
 
 void MobilityServiceClient::AllocateIPv4AddressRPC(
-  const AllocateIPRequest& request,
-  const std::function<void(Status, IPAddress)>& callback)
-{
+    const AllocateIPRequest& request,
+    const std::function<void(Status, IPAddress)>& callback) {
   auto localResp =
-    new AsyncLocalResponse<IPAddress>(std::move(callback), RESPONSE_TIMEOUT);
-  localResp->set_response_reader(std::move(
-    stub_->AsyncAllocateIPAddress(localResp->get_context(), request, &queue_)));
+      new AsyncLocalResponse<IPAddress>(std::move(callback), RESPONSE_TIMEOUT);
+  localResp->set_response_reader(std::move(stub_->AsyncAllocateIPAddress(
+      localResp->get_context(), request, &queue_)));
 }
 
 void MobilityServiceClient::ReleaseIPv4AddressRPC(
-  const ReleaseIPRequest& request,
-  const std::function<void(grpc::Status, magma::orc8r::Void)>& callback)
-{
-  auto localResp =
-    new AsyncLocalResponse<Void>(callback, RESPONSE_TIMEOUT);
-  localResp->set_response_reader(std::move(
-    stub_->AsyncReleaseIPAddress(localResp->get_context(), request, &queue_)));
+    const ReleaseIPRequest& request,
+    const std::function<void(grpc::Status, magma::orc8r::Void)>& callback) {
+  auto localResp = new AsyncLocalResponse<Void>(callback, RESPONSE_TIMEOUT);
+  localResp->set_response_reader(std::move(stub_->AsyncReleaseIPAddress(
+      localResp->get_context(), request, &queue_)));
 }
 
-MobilityServiceClient::MobilityServiceClient()
-{
+MobilityServiceClient::MobilityServiceClient() {
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "mobilityd", ServiceRegistrySingleton::LOCAL);
   stub_ = MobilityService::NewStub(channel);
@@ -201,11 +181,10 @@ MobilityServiceClient::MobilityServiceClient()
   resp_loop_thread.detach();
 }
 
-MobilityServiceClient& MobilityServiceClient::getInstance()
-{
+MobilityServiceClient& MobilityServiceClient::getInstance() {
   static MobilityServiceClient instance;
   return instance;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

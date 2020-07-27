@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Server's main package, run with obsidian -h to see all available options
@@ -101,7 +106,11 @@ func Start() {
 		e.Use(access.Middleware)
 	}
 
-	e.Use(reverse_proxy.ReverseProxy)
+	e, err = reverse_proxy.AddReverseProxyPaths(e)
+	if err != nil {
+		log.Fatalf("Error adding reverse proxy paths: %s", err)
+	}
+
 	if obsidian.TLS {
 		err = e.StartServer(e.TLSServer)
 	} else {

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,33 +69,27 @@ typedef struct {
 bool mme_app_is_imsi_empty(mme_app_imsi_t const* imsi);
 
 bool mme_app_imsi_compare(
-  mme_app_imsi_t const* imsi_a,
-  mme_app_imsi_t const* imsi_b);
+    mme_app_imsi_t const* imsi_a, mme_app_imsi_t const* imsi_b);
 
 void mme_app_copy_imsi(
-  mme_app_imsi_t* imsi_dst,
-  mme_app_imsi_t const* imsi_src);
+    mme_app_imsi_t* imsi_dst, mme_app_imsi_t const* imsi_src);
 
 void mme_app_string_to_imsi(
-  mme_app_imsi_t* const imsi_dst,
-  char const* const imsi_string_src);
+    mme_app_imsi_t* const imsi_dst, char const* const imsi_string_src);
 
 void mme_app_imsi_to_string(
-  char* const imsi_dst,
-  mme_app_imsi_t const* const imsi_src);
+    char* const imsi_dst, mme_app_imsi_t const* const imsi_src);
 
 uint64_t mme_app_imsi_to_u64(mme_app_imsi_t imsi_src);
 
 void mme_app_ue_context_uint_to_imsi(
-  uint64_t imsi_src,
-  mme_app_imsi_t* imsi_dst);
+    uint64_t imsi_src, mme_app_imsi_t* imsi_dst);
 
 void mme_app_convert_imsi_to_imsi_mme(
-  mme_app_imsi_t* imsi_dst,
-  const imsi_t* imsi_src);
+    mme_app_imsi_t* imsi_dst, const imsi_t* imsi_src);
 
-mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(mme_ue_s1ap_id_t*
-                                           mme_app_ue_s1ap_id_generator_p);
+mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
+    mme_ue_s1ap_id_t* mme_app_ue_s1ap_id_generator_p);
 
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has
@@ -107,13 +97,13 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(mme_ue_s1ap_id_t*
  */
 #define MME_APP_TIMER_INACTIVE_ID (-1)
 
-#define MME_APP_DELTA_T3412_REACHABILITY_TIMER 4           // in minutes
-#define MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER 0 // in minutes
+#define MME_APP_DELTA_T3412_REACHABILITY_TIMER 4            // in minutes
+#define MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER 0  // in minutes
 
-#define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2 // In seconds
-#define MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2   // In seconds
-#define MME_APP_PAGING_RESPONSE_TIMER_VALUE 4           // In seconds
-#define MME_APP_ULR_RESPONSE_TIMER_VALUE 3              // In seconds
+#define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2  // In seconds
+#define MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2    // In seconds
+#define MME_APP_PAGING_RESPONSE_TIMER_VALUE 4            // In seconds
+#define MME_APP_ULR_RESPONSE_TIMER_VALUE 3               // In seconds
 /* Timer structure */
 struct mme_app_timer_t {
   long id;  /* The timer identifier                 */
@@ -446,9 +436,9 @@ typedef struct ue_mm_context_s {
   uint8_t sgs_detach_type;
   /* granted_service_t: informs the granted service to UE */
   granted_service_t granted_service;
-  /*  paging_proceeding_flag (PPF) shall set to true, when UE moves to connected.
-   * Indicates that paging procedure can be prooceeded,
-   * Is set to false, due to "Inactivity of UE including lack of periodic TAU"
+  /*  paging_proceeding_flag (PPF) shall set to true, when UE moves to
+   * connected. Indicates that paging procedure can be prooceeded, Is set to
+   * false, due to "Inactivity of UE including lack of periodic TAU"
    */
   bool ppf;
 
@@ -464,51 +454,52 @@ typedef struct ue_mm_context_s {
 } ue_mm_context_t;
 
 typedef struct mme_ue_context_s {
-  hash_table_uint64_ts_t* imsi_mme_ue_id_htbl;   // data is mme_ue_s1ap_id_t
-  hash_table_uint64_ts_t* tun11_ue_context_htbl; // data is mme_ue_s1ap_id_t
+  hash_table_uint64_ts_t* imsi_mme_ue_id_htbl;    // data is mme_ue_s1ap_id_t
+  hash_table_uint64_ts_t* tun11_ue_context_htbl;  // data is mme_ue_s1ap_id_t
   hash_table_uint64_ts_t*
-    enb_ue_s1ap_id_ue_context_htbl;              // data is mme_ue_s1ap_id_t
-  obj_hash_table_uint64_t* guti_ue_context_htbl; // data is mme_ue_s1ap_id_t
+      enb_ue_s1ap_id_ue_context_htbl;             // data is mme_ue_s1ap_id_t
+  obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is mme_ue_s1ap_id_t
 } mme_ue_context_t;
 
 /** \brief Retrieve an UE context by selecting the provided IMSI
  * \param imsi Imsi to find in UE map
- * @returns an UE context matching the IMSI or NULL if the context doesn't exists
+ * @returns an UE context matching the IMSI or NULL if the context doesn't
+ *exists
  **/
 ue_mm_context_t* mme_ue_context_exists_imsi(
-  mme_ue_context_t* const mme_ue_context,
-  const imsi64_t imsi);
+    mme_ue_context_t* const mme_ue_context, const imsi64_t imsi);
 
 /** \brief Retrieve an UE context by selecting the provided S11 teid
  * \param teid The tunnel endpoint identifier used between MME and S-GW
- * @returns an UE context matching the teid or NULL if the context doesn't exists
+ * @returns an UE context matching the teid or NULL if the context doesn't
+ *exists
  **/
 ue_mm_context_t* mme_ue_context_exists_s11_teid(
-  mme_ue_context_t* const mme_ue_context,
-  const s11_teid_t teid);
+    mme_ue_context_t* const mme_ue_context, const s11_teid_t teid);
 
 /** \brief Retrieve an UE context by selecting the provided mme_ue_s1ap_id
  * \param mme_ue_s1ap_id The UE id identifier used in S1AP MME (and NAS)
- * @returns an UE context matching the mme_ue_s1ap_id or NULL if the context doesn't exists
+ * @returns an UE context matching the mme_ue_s1ap_id or NULL if the context
+ *doesn't exists
  **/
 ue_mm_context_t* mme_ue_context_exists_mme_ue_s1ap_id(
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id);
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 /** \brief Retrieve an UE context by selecting the provided enb_ue_s1ap_id
  * \param enb_ue_s1ap_id The UE id identifier used in S1AP MME
- * @returns an UE context matching the enb_ue_s1ap_id or NULL if the context doesn't exists
+ * @returns an UE context matching the enb_ue_s1ap_id or NULL if the context
+ *doesn't exists
  **/
 ue_mm_context_t* mme_ue_context_exists_enb_ue_s1ap_id(
-  mme_ue_context_t* const mme_ue_context_p,
-  const enb_s1ap_id_key_t enb_key);
+    mme_ue_context_t* const mme_ue_context_p, const enb_s1ap_id_key_t enb_key);
 
 /** \brief Retrieve an UE context by selecting the provided guti
  * \param guti The GUTI used by the UE
- * @returns an UE context matching the guti or NULL if the context doesn't exists
+ * @returns an UE context matching the guti or NULL if the context doesn't
+ *exists
  **/
 ue_mm_context_t* mme_ue_context_exists_guti(
-  mme_ue_context_t* const mme_ue_context,
-  const guti_t* const guti);
+    mme_ue_context_t* const mme_ue_context, const guti_t* const guti);
 
 /** \brief Move the content of a context to another context
  * \param dst            The destination context
@@ -516,15 +507,16 @@ ue_mm_context_t* mme_ue_context_exists_guti(
  **/
 void mme_app_move_context(ue_mm_context_t* dst, ue_mm_context_t* src);
 
-/** \brief Notify the MME_APP that a duplicated ue_context_t exist (both share the same mme_ue_s1ap_id)
- * \param enb_key        The UE id identifier used in S1AP and MME_APP (agregated with a enb_id)
+/** \brief Notify the MME_APP that a duplicated ue_context_t exist (both share
+ * the same mme_ue_s1ap_id)
+ * \param enb_key The UE id identifier used in S1AP and MME_APP (agregated with
+ * a enb_id)
  * \param mme_ue_s1ap_id The UE id identifier used in MME_APP and NAS
  * \param is_remove_old  Remove old UE context or new UE context ?
  **/
 void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
-  const enb_s1ap_id_key_t enb_key,
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  const bool is_remove_old);
+    const enb_s1ap_id_key_t enb_key, const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const bool is_remove_old);
 
 /** \brief Update an UE context by selecting the provided guti
  * \param mme_ue_context_p The MME context
@@ -538,13 +530,11 @@ void mme_ue_context_duplicate_enb_ue_s1ap_id_detected(
  * \param guti_p The GUTI used by the UE
  **/
 void mme_ue_context_update_coll_keys(
-  mme_ue_context_t* const mme_ue_context_p,
-  ue_mm_context_t* const ue_context_p,
-  const enb_s1ap_id_key_t enb_s1ap_id_key,
-  const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-  const imsi64_t imsi,
-  const s11_teid_t mme_s11_teid,
-  const guti_t* const guti_p);
+    mme_ue_context_t* const mme_ue_context_p,
+    ue_mm_context_t* const ue_context_p,
+    const enb_s1ap_id_key_t enb_s1ap_id_key,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const imsi64_t imsi,
+    const s11_teid_t mme_s11_teid, const guti_t* const guti_p);
 
 /** \brief dump MME associative collections
  **/
@@ -557,23 +547,24 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p);
  * @returns 0 in case of success, -1 otherwise
  **/
 int mme_insert_ue_context(
-  mme_ue_context_t* const mme_ue_context,
-  const struct ue_mm_context_s* const ue_context_p);
+    mme_ue_context_t* const mme_ue_context,
+    const struct ue_mm_context_s* const ue_context_p);
 
 /** \brief TODO WORK HERE Remove UE context unnecessary information.
- *  mark it as released. It is necessary to keep track of the association (s_tmsi (guti), mme_ue_s1ap_id)
+ * mark it as released. It is necessary to keep track of the association
+ * (s_tmsi (guti), mme_ue_s1ap_id)
  * \param ue_context_p The UE context to remove
  **/
 void mme_notify_ue_context_released(
-  mme_ue_context_t* const mme_ue_context_p,
-  struct ue_mm_context_s* ue_context_p);
+    mme_ue_context_t* const mme_ue_context_p,
+    struct ue_mm_context_s* ue_context_p);
 
 /** \brief Remove a UE context of the tree of known UEs.
  * \param ue_context_p The UE context to remove
  **/
 void mme_remove_ue_context(
-  mme_ue_context_t* const mme_ue_context,
-  struct ue_mm_context_s* const ue_context_p);
+    mme_ue_context_t* const mme_ue_context,
+    struct ue_mm_context_s* const ue_context_p);
 
 /** \brief Allocate memory for a new UE context
  * @returns Pointer to the new structure, NULL if allocation failed
@@ -585,10 +576,10 @@ void mme_app_free_pdn_connection(pdn_context_t** const pdn_connection);
 void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
 
 /**
-  * Release memory allocated by MmeNasStateManager through MmeNasStateConverter
-  * and NasStateConverter for each UE context, this is called by
-  * hashtable_ts_destroy
-  */
+ * Release memory allocated by MmeNasStateManager through MmeNasStateConverter
+ * and NasStateConverter for each UE context, this is called by
+ * hashtable_ts_destroy
+ */
 void mme_app_state_free_ue_context(void** ue_context_node);
 
 /** \brief Dump the UE contexts present in the tree
@@ -596,36 +587,33 @@ void mme_app_state_free_ue_context(void** ue_context_node);
 void mme_app_dump_ue_contexts(void);
 
 void mme_app_handle_s1ap_ue_context_release_req(
-  const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
+    const itti_s1ap_ue_context_release_req_t* s1ap_ue_context_release_req);
 
 bearer_context_t* mme_app_get_bearer_context(
-  ue_mm_context_t* const ue_context,
-  const ebi_t ebi);
+    ue_mm_context_t* const ue_context, const ebi_t ebi);
 
 void mme_app_handle_enb_deregister_ind(
-  const itti_s1ap_eNB_deregistered_ind_t* eNB_deregistered_ind);
+    const itti_s1ap_eNB_deregistered_ind_t* eNB_deregistered_ind);
 
 ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context);
 
 void mme_app_free_bearer_context(bearer_context_t** bc);
 
 void mme_app_send_delete_session_request(
-  struct ue_mm_context_s* const ue_context_p,
-  const ebi_t ebi,
-  const pdn_cid_t cid);
+    struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
+    const pdn_cid_t cid);
 
 void mme_app_handle_s1ap_ue_context_modification_resp(
-  const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
+    const itti_s1ap_ue_context_mod_resp_t* s1ap_ue_context_mod_resp);
 void mme_app_handle_s1ap_ue_context_modification_fail(
-  const itti_s1ap_ue_context_mod_resp_fail_t* s1ap_ue_context_mod_fail);
+    const itti_s1ap_ue_context_mod_resp_fail_t* s1ap_ue_context_mod_fail);
 
 void mme_app_ue_sgs_context_free_content(
-  sgs_context_t* const sgs_context_p,
-  imsi64_t imsi);
+    sgs_context_t* const sgs_context_p, imsi64_t imsi);
 bool is_mme_ue_context_network_access_mode_packet_only(
-  ue_mm_context_t* ue_context_p);
+    ue_mm_context_t* ue_context_p);
 int mme_app_send_s6a_update_location_req(
-  struct ue_mm_context_s* const ue_context_pP);
+    struct ue_mm_context_s* const ue_context_pP);
 void mme_app_recover_timers_for_all_ues(void);
 
 #endif /* FILE_MME_APP_UE_CONTEXT_SEEN */

@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,21 +55,22 @@
 
 typedef enum modify_eps_bearer_context_request_iei_tag {
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEW_EPS_QOS_IEI = 0x5B, /* 0x5B = 91 */
-  MODIFY_EPS_BEARER_CONTEXT_REQUEST_TFT_IEI = SM_TRAFFIC_FLOW_TEMPLATE_IEI,
+  MODIFY_EPS_BEARER_CONTEXT_REQUEST_TFT_IEI     = SM_TRAFFIC_FLOW_TEMPLATE_IEI,
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEW_QOS_IEI = SM_QUALITY_OF_SERVICE_IEI,
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_IEI =
-    SM_LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IEI,
+      SM_LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IEI,
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_IEI = 0x80, /* 0x80 = 128 */
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_IEI =
-    SM_PACKET_FLOW_IDENTIFIER_IEI,
+      SM_PACKET_FLOW_IDENTIFIER_IEI,
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_IEI = 0x5E, /* 0x5E = 94 */
   MODIFY_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } modify_eps_bearer_context_request_iei;
 
 /*
  * Message name: Modify EPS bearer context request
- * Description: This message is sent by the network to the UE to request modification of an active EPS bearer context. See table 8.3.18.1.
+ * Description: This message is sent by the network to the UE to request
+ * modification of an active EPS bearer context. See table 8.3.18.1.
  * Significance: dual
  * Direction: network to UE
  */
@@ -97,13 +94,11 @@ typedef struct modify_eps_bearer_context_request_msg_tag {
 } modify_eps_bearer_context_request_msg;
 
 int decode_modify_eps_bearer_context_request(
-  modify_eps_bearer_context_request_msg *modifyepsbearercontextrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    modify_eps_bearer_context_request_msg* modifyepsbearercontextrequest,
+    uint8_t* buffer, uint32_t len);
 
 int encode_modify_eps_bearer_context_request(
-  modify_eps_bearer_context_request_msg *modifyepsbearercontextrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    modify_eps_bearer_context_request_msg* modifyepsbearercontextrequest,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(MODIFY_EPS_BEARER_CONTEXT_REQUEST_H_) */

@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+"""
 Pre-run script for services to generate a nghttpx config from a jinja template
 and the config/mconfig for the service.
 """
@@ -145,7 +151,9 @@ def _get_context():
     Create the context which has the interface IP and the OAI log level to use.
     """
     context = {}
-    context["s11_ip"] = _get_iface_ip("spgw", "s11_iface_name")
+    context["mme_s11_ip"] = _get_iface_ip("mme", "s11_iface_name")
+    context["sgw_s11_ip"] = _get_iface_ip("spgw", "s11_iface_name")
+    context["remote_sgw_ip"] = get_service_config_value("mme", "remote_sgw_ip", "")
     context["s1ap_ip"] = _get_iface_ip("mme", "s1ap_iface_name")
     context["s1u_ip"] = _get_iface_ip("spgw", "s1u_iface_name")
     context["oai_log_level"] = _get_oai_log_level()

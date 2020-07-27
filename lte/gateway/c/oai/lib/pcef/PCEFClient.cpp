@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -47,18 +43,16 @@ using grpc::Status;
 
 namespace magma {
 
-PCEFClient &PCEFClient::get_instance()
-{
+PCEFClient& PCEFClient::get_instance() {
   static PCEFClient client_instance;
   return client_instance;
 }
 
-PCEFClient::PCEFClient()
-{
+PCEFClient::PCEFClient() {
   // Create channel
   std::shared_ptr<Channel> channel;
-channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-  "sessiond", ServiceRegistrySingleton::LOCAL);
+  channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+      "sessiond", ServiceRegistrySingleton::LOCAL);
   // Create stub for LocalSessionManager gRPC service
   stub_ = LocalSessionManager::NewStub(channel);
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
@@ -66,19 +60,18 @@ channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
 }
 
 void PCEFClient::create_session(
-  const LocalCreateSessionRequest &request,
-  std::function<void(Status, LocalCreateSessionResponse)> callback)
-{
-  PCEFClient &client = get_instance();
+    const LocalCreateSessionRequest& request,
+    std::function<void(Status, LocalCreateSessionResponse)> callback) {
+  PCEFClient& client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto local_response = new AsyncLocalResponse<LocalCreateSessionResponse>(
-    std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT);
   // Create a response reader for the `CreateSession` RPC call. This reader
   // stores the client context, the request to pass in, and the queue to add
   // the response to when done
   auto response_reader = client.stub_->AsyncCreateSession(
-    local_response->get_context(), request, &client.queue_);
+      local_response->get_context(), request, &client.queue_);
   // Set the reader for the local response. This executes the `CreateSession`
   // response using the response reader. When it is done, the callback stored in
   // `local_response` will be called
@@ -86,15 +79,14 @@ void PCEFClient::create_session(
 }
 
 void PCEFClient::end_session(
-  const LocalEndSessionRequest &request,
-  std::function<void(Status, LocalEndSessionResponse)> callback)
-{
-  PCEFClient &client = get_instance();
+    const LocalEndSessionRequest& request,
+    std::function<void(Status, LocalEndSessionResponse)> callback) {
+  PCEFClient& client  = get_instance();
   auto local_response = new AsyncLocalResponse<LocalEndSessionResponse>(
-    std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncEndSession(
-    local_response->get_context(), request, &client.queue_);
+      local_response->get_context(), request, &client.queue_);
   local_response->set_response_reader(std::move(response_reader));
 }
 
-} // namespace magma
+}  // namespace magma

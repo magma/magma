@@ -1,10 +1,14 @@
 """
-Copyright (c) 2020-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import subprocess
 from collections import namedtuple
@@ -29,7 +33,7 @@ class UplinkBridgeController(MagmaController):
     UplinkConfig = namedtuple(
         'UplinkBridgeConfig',
         ['uplink_bridge', 'uplink_eth_port_name', 'uplink_patch',
-         'non_nat', 'virtual_mac', 'dhcp_port'],
+         'enable_nat', 'virtual_mac', 'dhcp_port'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -40,7 +44,7 @@ class UplinkBridgeController(MagmaController):
 
     def _get_config(self, config_dict) -> namedtuple:
 
-        non_nat = config_dict.get('non_nat', False)
+        enable_nat = config_dict.get('enable_nat', True)
         bridge_name = config_dict.get('uplink_bridge',
                                       self.UPLINK_OVS_BRIDGE_NAME)
         dhcp_port = config_dict.get('uplink_dhcp_port',
@@ -54,7 +58,7 @@ class UplinkBridgeController(MagmaController):
                                       self.DEFAULT_UPLINK_MAC)
 
         return self.UplinkConfig(
-            non_nat=non_nat,
+            enable_nat=enable_nat,
             uplink_bridge=bridge_name,
             uplink_eth_port_name=uplink_eth_port_name,
             virtual_mac=virtual_mac,
@@ -63,7 +67,7 @@ class UplinkBridgeController(MagmaController):
         )
 
     def initialize_on_connect(self, datapath):
-        if self.config.non_nat is False:
+        if self.config.enable_nat is True:
             self._delete_all_flows()
             return
 
@@ -110,7 +114,7 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (del_flows, ex))
 
     def _install_flow(self, priority: int, flow_match: str, flow_action: str):
-        if self.config.non_nat is False:
+        if self.config.enable_nat is True:
             return
         flow_cmd = "ovs-ofctl add-flow %s \"priority=%s,%s, actions=%s\"" % (
             self.config.uplink_bridge, priority,
@@ -124,7 +128,7 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (flow_cmd, ex))
 
     def _add_eth_port(self):
-        if self.config.non_nat is False or \
+        if self.config.enable_nat is True or \
                 self.config.uplink_eth_port_name is None:
             return
 
@@ -137,7 +141,7 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (ovs_add_port, ex))
 
     def _del_eth_port(self):
-        if self.config.non_nat is False or \
+        if self.config.enable_nat is True or \
                 self.config.uplink_eth_port_name is None:
             return
 

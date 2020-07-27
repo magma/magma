@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -70,22 +66,21 @@
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
 
-static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char *result);
+static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char* result);
 
-int emm_proc_emm_informtion(ue_mm_context_t *ue_emm_ctx)
-{
-  int rc = RETURNerror;
+int emm_proc_emm_informtion(ue_mm_context_t* ue_emm_ctx) {
+  int rc                    = RETURNerror;
   unsigned char result[256] = {0};
-  emm_sap_t emm_sap = {0};
-  emm_as_data_t *emm_as = &emm_sap.u.emm_as.u.data;
-  emm_context_t *emm_ctx = &(ue_emm_ctx->emm_context);
+  emm_sap_t emm_sap         = {0};
+  emm_as_data_t* emm_as     = &emm_sap.u.emm_as.u.data;
+  emm_context_t* emm_ctx    = &(ue_emm_ctx->emm_context);
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   /*
    * Setup NAS information message to transfer
    */
   emm_as->nas_info = EMM_AS_NAS_EMM_INFORMATION;
-  emm_as->nas_msg = NULL; // No ESM container
+  emm_as->nas_msg  = NULL;  // No ESM container
   /*
    * Set the UE identifier
    */
@@ -95,16 +90,17 @@ int emm_proc_emm_informtion(ue_mm_context_t *ue_emm_ctx)
 
   /*
    * Encode full_network_name with gsm 7 bit encoding
-   * The encoding is done referring to 3gpp 24.008 (section: 10.5.3.5a)and 23.038
+   * The encoding is done referring to 3gpp 24.008
+   * (section: 10.5.3.5a)and 23.038
    */
   _emm_information_pack_gsm_7Bit(_emm_data.conf.full_network_name, result);
-  emm_as->full_network_name = bfromcstr((const char *) result);
+  emm_as->full_network_name = bfromcstr((const char*) result);
   /*
    * Encode short_network_name with gsm 7 bit encoding
    */
   memset(result, 0, sizeof(result));
   _emm_information_pack_gsm_7Bit(_emm_data.conf.short_network_name, result);
-  emm_as->short_network_name = bfromcstr((const char *) result);
+  emm_as->short_network_name = bfromcstr((const char*) result);
 
   /*
    * Setup EPS NAS security data
@@ -114,14 +110,13 @@ int emm_proc_emm_informtion(ue_mm_context_t *ue_emm_ctx)
    * Notify EMM-AS SAP that TAU Accept message has to be sent to the network
    */
   emm_sap.primitive = EMMAS_DATA_REQ;
-  rc = emm_sap_send(&emm_sap);
+  rc                = emm_sap_send(&emm_sap);
   bdestroy(emm_as->full_network_name);
   bdestroy(emm_as->short_network_name);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char *result)
-{
+static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char* result) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int encIdx = 0;
   int len, i = 0, j = 0;
@@ -131,7 +126,7 @@ static void _emm_information_pack_gsm_7Bit(bstring str, unsigned char *result)
   while (i <= len) {
     if (i < len) {
       result[encIdx++] =
-        ((bchar(str, i) >> j) | ((bchar(str, i + 1) << (7 - j)) & 0xFF));
+          ((bchar(str, i) >> j) | ((bchar(str, i + 1) << (7 - j)) & 0xFF));
     } else {
       result[encIdx++] = ((bchar(str, i) >> j) & 0x7f);
     }

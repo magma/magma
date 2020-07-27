@@ -1,21 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
 
-This file translates the TR-069/CWMP XML schema (cwmp-1-0.xsd, available from
-www.broadband-forum.org) into spyne model format, preserving the order of
-parameters for ease of comparison. In other words, this is
-the schema for all elements that make up the CWMP interface.
-For each class below, see corresponding element (with the same name) in the
-CWMP XSD file.
-Notes:
-  - Per CWMP spec, fields must be in specific order. Use 'odict' (ordered
-    dictionary) to achieve this
-  - Arrays are created by setting 'max_occurs > 1' for the relevant element
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 

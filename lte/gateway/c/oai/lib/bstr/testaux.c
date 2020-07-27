@@ -15,8 +15,7 @@
 #include "bstrlib.h"
 #include "bstraux.h"
 
-static int tWrite(const void *buf, size_t elsize, size_t nelem, void *parm)
-{
+static int tWrite(const void* buf, size_t elsize, size_t nelem, void* parm) {
   bstring b = (bstring) parm;
   size_t i;
 
@@ -24,14 +23,13 @@ static int tWrite(const void *buf, size_t elsize, size_t nelem, void *parm)
 
   for (i = 0; i < nelem; i++) {
     if (0 > bcatblk(b, buf, elsize)) break;
-    buf = (const void *) (elsize + (const char *) buf);
+    buf = (const void*) (elsize + (const char*) buf);
   }
   return (int) i;
 }
 
-int test0(void)
-{
-  struct bwriteStream *ws;
+int test0(void) {
+  struct bwriteStream* ws;
   bstring s;
   int ret = 0;
 
@@ -52,8 +50,7 @@ int test0(void)
   return ret;
 }
 
-int test1(void)
-{
+int test1(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b, c, d;
   int ret = 0;
@@ -87,8 +84,7 @@ int test1(void)
   return ret;
 }
 
-int test2(void)
-{
+int test2(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b;
   int ret = 0, reto;
@@ -113,7 +109,7 @@ int test2(void)
   printf("\t# failures: %d\n", ret);
 
   reto = ret;
-  ret = 0;
+  ret  = 0;
 
   printf("TEST: bSetCstrChar function.\n");
   ret += 0 <= bSetCstrChar(&t, 4, ',');
@@ -135,8 +131,7 @@ int test2(void)
   return reto + ret;
 }
 
-int test3(void)
-{
+int test3(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b;
   int ret = 0;
@@ -155,8 +150,7 @@ int test3(void)
   return ret;
 }
 
-int test4(void)
-{
+int test4(void) {
   struct tagbstring t = bsStatic("foo");
   bstring b;
   int ret = 0;
@@ -175,8 +169,7 @@ int test4(void)
   return ret;
 }
 
-int test5(void)
-{
+int test5(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b;
   int ret = 0;
@@ -195,8 +188,7 @@ int test5(void)
   return ret;
 }
 
-int test6(void)
-{
+int test6(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b;
   int ret = 0;
@@ -212,8 +204,7 @@ int test6(void)
   return ret;
 }
 
-int test7(void)
-{
+int test7(void) {
   struct tagbstring t = bsStatic("  i am  ");
   bstring b;
   int ret = 0;
@@ -238,11 +229,10 @@ int test7(void)
   return ret;
 }
 
-int test8(void)
-{
+int test8(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b;
-  char *c;
+  char* c;
   int ret = 0;
 
   printf("TEST: NetStr functions.\n");
@@ -258,8 +248,7 @@ int test8(void)
   return ret;
 }
 
-int test9(void)
-{
+int test9(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b, c;
   int err, ret = 0;
@@ -279,8 +268,7 @@ int test9(void)
   return ret;
 }
 
-int test10(void)
-{
+int test10(void) {
   struct tagbstring t = bsStatic("Hello world");
   bstring b, c;
   int err, ret = 0;
@@ -300,11 +288,10 @@ int test10(void)
   return ret;
 }
 
-int test11(void)
-{
-  struct tagbstring t = bsStatic("Hello world");
-  unsigned char Ytstr[] = {
-    0x72, 0x8f, 0x96, 0x96, 0x99, 0x4a, 0xa1, 0x99, 0x9c, 0x96, 0x8e};
+int test11(void) {
+  struct tagbstring t   = bsStatic("Hello world");
+  unsigned char Ytstr[] = {0x72, 0x8f, 0x96, 0x96, 0x99, 0x4a,
+                           0xa1, 0x99, 0x9c, 0x96, 0x8e};
   bstring b, c;
   int ret = 0;
 
@@ -323,10 +310,9 @@ int test11(void)
   return ret;
 }
 
-int test12(void)
-{
+int test12(void) {
   struct tagbstring t = bsStatic("Hello world");
-  struct bStream *s;
+  struct bStream* s;
   bstring b;
   int ret = 0;
 
@@ -351,9 +337,8 @@ struct vfgetc {
   bstring base;
 };
 
-static int test13_fgetc(void *ctx)
-{
-  struct vfgetc *vctx = (struct vfgetc *) ctx;
+static int test13_fgetc(void* ctx) {
+  struct vfgetc* vctx = (struct vfgetc*) ctx;
   int c;
 
   if (NULL == vctx || NULL == vctx->base) return EOF;
@@ -363,10 +348,9 @@ static int test13_fgetc(void *ctx)
   return c;
 }
 
-int test13(void)
-{
+int test13(void) {
   struct tagbstring t0 =
-    bsStatic("Random String, long enough to cause to reallocing");
+      bsStatic("Random String, long enough to cause to reallocing");
   struct vfgetc vctx;
   bstring b;
   int ret = 0;
@@ -375,9 +359,9 @@ int test13(void)
   printf("TEST: bSecureInput, bSecureDestroy.\n");
 
   for (i = 0; i < 1000; i++) {
-    unsigned char *h;
+    unsigned char* h;
 
-    vctx.ofs = 0;
+    vctx.ofs  = 0;
     vctx.base = &t0;
 
     b = bSecureInput(INT_MAX, '\n', (bNgetc) test13_fgetc, &vctx);
@@ -396,29 +380,26 @@ int test13(void)
   return ret;
 }
 
-int test14_aux(bstring b, const char *chkVal)
-{
+int test14_aux(bstring b, const char* chkVal) {
   int ret = 0;
   ret += 0 != bSGMLEncode(b);
   ret += 1 != biseqcstr(b, chkVal);
   return ret;
 }
 
-int test14(void)
-{
+int test14(void) {
   bstring b;
   int ret = 0;
 
   printf("TEST: bSGMLEncode.\n");
   ret += test14_aux(
-    b = bfromStatic("<\"Hello, you, me, & world\">"),
-    "&lt;&quot;Hello, you, me, &amp; world&quot;&gt;");
+      b = bfromStatic("<\"Hello, you, me, & world\">"),
+      "&lt;&quot;Hello, you, me, &amp; world&quot;&gt;");
   printf("\t# failures: %d\n", ret);
   return ret;
 }
 
-int main()
-{
+int main() {
   int ret = 0;
 
   printf("Direct case testing of bstraux functions\n");

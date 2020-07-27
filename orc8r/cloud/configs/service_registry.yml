@@ -1,10 +1,14 @@
 ---
-# Copyright (c) 2019-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # proxy_type refers to the names of the proxy systemd nghttpx services installed.
 # Currently the values supported are: 'clientcert', 'open', 'obsidian', 'internal'
@@ -29,6 +33,14 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/alerts,
+        /magma/v1/networks/:network_id/metrics,
+        /magma/v1/networks/:network_id/prometheus,
+        /magma/v1/tenants/:tenant_id/metrics,
+        /magma/v1/tenants/targets_metadata
 
   certifier:
     host: "localhost"
@@ -85,9 +97,22 @@ services:
     port: 9112
     echo_port: 10112
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+        /magma/v1/channels,
+        /magma/v1/events
 
   tenants:
     host: "localhost"
     port: 9110
     echo_port: 10110
     proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/tenants,/magma/v1/tenants/:tenants_id"

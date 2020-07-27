@@ -1,17 +1,22 @@
 /*
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package plugin
 
 import (
+	"magma/devmand/cloud/go/devmand"
+	"magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -20,9 +25,6 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
-	"orc8r/devmand/cloud/go/devmand"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/handlers"
-	"orc8r/devmand/cloud/go/services/devmand/obsidian/models"
 )
 
 // DevmandOrchestratorPlugin is the orchestrator plugin for devmand
@@ -63,9 +65,7 @@ func (*DevmandOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.Confi
 
 // GetObsidianHandlers gets the devmand obsidian handlers
 func (*DevmandOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
-	return plugin.FlattenHandlerLists(
-		handlers.GetHandlers(),
-	)
+	return []obsidian.Handler{}
 }
 
 // GetStreamerProviders gets the stream providers

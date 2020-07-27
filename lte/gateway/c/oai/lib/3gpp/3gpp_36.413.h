@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 
 /*! \file 3gpp_36.413.h
@@ -40,24 +41,26 @@
 #include "3gpp_24.007.h"
 
 // 9.2.1.60 Allocation and Retention Priority
-// This IE specifies the relative importance compared to other E-RABs for allocation and retention of the E-UTRAN
-// Radio Access Bearer.
+// This IE specifies the relative importance compared to other E-RABs for
+// allocation and retention of the E-UTRAN Radio Access Bearer.
 typedef struct allocation_and_retention_priority_s {
-  priority_level_t priority_level; // INTEGER (0..15)
+  priority_level_t priority_level;  // INTEGER (0..15)
   pre_emption_capability_t pre_emption_capability;
   pre_emption_vulnerability_t pre_emption_vulnerability;
 } allocation_and_retention_priority_t;
 
 // 9.2.1.19 Bit Rate
-// This IE indicates the number of bits delivered by E-UTRAN in UL or to E-UTRAN in DL within a period of time,
-// divided by the duration of the period. It is used, for example, to indicate the maximum or guaranteed bit rate for a GBR
+// This IE indicates the number of bits delivered by E-UTRAN in UL or to E-UTRAN
+// in DL within a period of time, divided by the duration of the period. It is
+// used, for example, to indicate the maximum or guaranteed bit rate for a GBR
 // bearer, or an aggregated maximum bit rate.
 
 typedef uint64_t bit_rate_t;
 
 // 9.2.1.20 UE Aggregate Maximum Bit Rate
-// The UE Aggregate Maximum Bitrate is applicable for all Non-GBR bearers per UE which is defined for the Downlink
-//and the Uplink direction and provided by the MME to the eNB.
+// The UE Aggregate Maximum Bitrate is applicable for all Non-GBR bearers per UE
+// which is defined for the Downlink
+// and the Uplink direction and provided by the MME to the eNB.
 // Applicable for non-GBR E-RABs
 typedef struct ue_aggregate_maximum_bit_rate_s {
   bit_rate_t dl;
@@ -65,7 +68,8 @@ typedef struct ue_aggregate_maximum_bit_rate_s {
 } ue_aggregate_maximum_bit_rate_t;
 
 // 9.2.1.18 GBR QoS Information
-// This IE indicates the maximum and guaranteed bit rates of a GBR bearer for downlink and uplink.
+// This IE indicates the maximum and guaranteed bit rates of a GBR bearer for
+// downlink and uplink.
 typedef struct gbr_qos_information_s {
   bit_rate_t e_rab_maximum_bit_rate_downlink;
   bit_rate_t e_rab_maximum_bit_rate_uplink;

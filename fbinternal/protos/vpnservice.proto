@@ -1,0 +1,52 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+import "orc8r/protos/certifier.proto";
+import "orc8r/protos/common.proto";
+
+package magma.fbinternal;
+option go_package = "magma/fbinternal/cloud/go/protos";
+
+message VPNCertRequest {
+  // Represents an x509 certificate request (.csr file)
+  bytes request = 1; // CSR in ASN.1 DER encoding
+}
+
+message VPNCertificate {
+  // Represents an x509 certificate used to connect with OpenVPN (.crt file)
+  string serial = 1; // Serial number of certificate, given by signer
+  bytes cert = 2; // Certificate in ASN.1 DER encoding
+}
+
+message PSK {
+    bytes ta_key = 1;
+}
+
+service VPNService {
+    // A service that helps manage VPN access.
+    // Keeps track of the CA cert and private key,
+    // and issues signed certificates to be used with OpenVPN.
+
+    // Return the CA (ca.crt)
+    rpc GetCA (magma.orc8r.Void) returns (magma.orc8r.CACert) {}
+
+    // Given a request (client.csr), return a signed certificate (client.crt)
+    rpc RequestCert (VPNCertRequest) returns (VPNCertificate) {}
+
+    // Request for the PSK (preshared key, i.e. tls-auth key used in openvpn)
+    // See https://community.openvpn.net/openvpn/wiki/Hardening#Useof--tls-auth
+    // for detail
+    rpc RequestPSK (magma.orc8r.Void) returns (PSK) {}
+}

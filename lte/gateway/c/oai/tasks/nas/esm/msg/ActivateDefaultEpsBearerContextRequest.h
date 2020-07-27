@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -69,28 +65,28 @@
 
 typedef enum activate_default_eps_bearer_context_request_iei_tag {
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_IEI =
-    SM_LINKED_TI_IEI,
+      SM_LINKED_TI_IEI,
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_IEI =
-    SM_QUALITY_OF_SERVICE_IEI,
+      SM_QUALITY_OF_SERVICE_IEI,
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_IEI =
-    SM_LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IEI,
+      SM_LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IEI,
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_IEI =
-    0x80, /* 0x80 = 128 */
+      0x80, /* 0x80 = 128 */
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_IEI =
-    SM_PACKET_FLOW_IDENTIFIER_IEI,
+      SM_PACKET_FLOW_IDENTIFIER_IEI,
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_IEI =
-    0x5E, /* 0x5E = 94 */
+      0x5E, /* 0x5E = 94 */
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_IEI =
-    0x58, /* 0x58 = 88 */
+      0x58, /* 0x58 = 88 */
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } activate_default_eps_bearer_context_request_iei;
 
 /*
  * Message name: Activate default EPS bearer context request
- * Description: This message is sent by the network to the UE to request activation of a default EPS bearer context. See table 8.3.6.1.
- * Significance: dual
- * Direction: network to UE
+ * Description: This message is sent by the network to the UE to request
+ * activation of a default EPS bearer context. See table 8.3.6.1. Significance:
+ * dual Direction: network to UE
  */
 
 typedef struct activate_default_eps_bearer_context_request_msg_tag {
@@ -115,15 +111,13 @@ typedef struct activate_default_eps_bearer_context_request_msg_tag {
 } activate_default_eps_bearer_context_request_msg;
 
 int decode_activate_default_eps_bearer_context_request(
-  activate_default_eps_bearer_context_request_msg
-    *activatedefaultepsbearercontextrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    activate_default_eps_bearer_context_request_msg*
+        activatedefaultepsbearercontextrequest,
+    uint8_t* buffer, uint32_t len);
 
 int encode_activate_default_eps_bearer_context_request(
-  activate_default_eps_bearer_context_request_msg
-    *activatedefaultepsbearercontextrequest,
-  uint8_t *buffer,
-  uint32_t len);
+    activate_default_eps_bearer_context_request_msg*
+        activatedefaultepsbearercontextrequest,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_H_) */

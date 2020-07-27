@@ -1,9 +1,0 @@
-query LocationTypesQuery {
-  locationTypes {
-    edges {
-      node {
-        ...LocationTypeFragment
-      }
-    }
-  }
-}

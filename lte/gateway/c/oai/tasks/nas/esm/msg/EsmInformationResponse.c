@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,17 +25,16 @@
 #include "common_defs.h"
 
 int decode_esm_information_response(
-  esm_information_response_msg *esm_information_response,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    esm_information_response_msg* esm_information_response, uint8_t* buffer,
+    uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  uint32_t decoded = 0;
+  uint32_t decoded   = 0;
   int decoded_result = 0;
 
-  // Check if we got a NULL pointer and if buffer length is >= minimum length expected for the message.
+  // Check if we got a NULL pointer and if buffer length is >= minimum length
+  // expected for the message.
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-    buffer, ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH, len);
+      buffer, ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH, len);
 
   /*
    * Decoding mandatory fields
@@ -57,37 +52,31 @@ int decode_esm_information_response(
 
     switch (ieiDecoded) {
       case ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_IEI:
-        if (
-          (decoded_result = decode_access_point_name_ie(
-             &esm_information_response->accesspointname,
-             true,
-             buffer + decoded,
-             len - decoded)) <= 0)
+        if ((decoded_result = decode_access_point_name_ie(
+                 &esm_information_response->accesspointname, true,
+                 buffer + decoded, len - decoded)) <= 0)
           OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded_result);
 
         decoded += decoded_result;
         /*
-       * Set corresponding mask to 1 in presencemask
-       */
+         * Set corresponding mask to 1 in presencemask
+         */
         esm_information_response->presencemask |=
-          ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT;
+            ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT;
         break;
 
       case ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if (
-          (decoded_result = decode_protocol_configuration_options_ie(
-             &esm_information_response->protocolconfigurationoptions,
-             true,
-             buffer + decoded,
-             len - decoded)) <= 0)
+        if ((decoded_result = decode_protocol_configuration_options_ie(
+                 &esm_information_response->protocolconfigurationoptions, true,
+                 buffer + decoded, len - decoded)) <= 0)
           OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded_result);
 
         decoded += decoded_result;
         /*
-       * Set corresponding mask to 1 in presencemask
-       */
+         * Set corresponding mask to 1 in presencemask
+         */
         esm_information_response->presencemask |=
-          ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+            ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
         break;
 
       default:
@@ -100,46 +89,36 @@ int decode_esm_information_response(
 }
 
 int encode_esm_information_response(
-  esm_information_response_msg *esm_information_response,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    esm_information_response_msg* esm_information_response, uint8_t* buffer,
+    uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int encoded = 0;
+  int encoded       = 0;
   int encode_result = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH, len);
+      buffer, ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH, len);
 
-  if (
-    (esm_information_response->presencemask &
-     ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT) ==
-    ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT) {
-    if (
-      (encode_result = encode_access_point_name_ie(
-         esm_information_response->accesspointname,
-         true,
-         buffer + encoded,
-         len - encoded)) < 0)
+  if ((esm_information_response->presencemask &
+       ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT) ==
+      ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT) {
+    if ((encode_result = encode_access_point_name_ie(
+             esm_information_response->accesspointname, true, buffer + encoded,
+             len - encoded)) < 0)
       // Return in case of error
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, encode_result);
     else
       encoded += encode_result;
   }
 
-  if (
-    (esm_information_response->presencemask &
-     ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT) ==
-    ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT) {
-    if (
-      (encode_result = encode_protocol_configuration_options_ie(
-         &esm_information_response->protocolconfigurationoptions,
-         true,
-         buffer + encoded,
-         len - encoded)) < 0)
+  if ((esm_information_response->presencemask &
+       ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT) ==
+      ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT) {
+    if ((encode_result = encode_protocol_configuration_options_ie(
+             &esm_information_response->protocolconfigurationoptions, true,
+             buffer + encoded, len - encoded)) < 0)
       // Return in case of error
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, encode_result);
     else

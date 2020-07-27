@@ -1,10 +1,14 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import logging
@@ -92,11 +96,12 @@ class InOutNonNatTest(unittest.TestCase):
                     Future(),
             },
             config={
+                'setup_type': 'LTE',
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
-                'non_nat': True,
+                'enable_nat': False,
                 'non_mat_gw_probe_frequency': .2,
                 'non_nat_arp_egress_port': 't_dhcp0',
                 'ovs_uplink_port_name': 'patch-up'

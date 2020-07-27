@@ -1,16 +1,22 @@
 /**
- * Copyright (c) 2016-present, Facebook, Inc.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 #include "PipelinedClient.h"
 
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
+#include "GrpcMagmaUtils.h"
+#include <google/protobuf/util/time_util.h>
 
 using grpc::Status;
 
@@ -274,24 +280,6 @@ bool AsyncPipelinedClient::update_subscriber_quota_state(
   return true;
 }
 
-void AsyncPipelinedClient::setup_policy_rpc(
-    const SetupPolicyRequest& request,
-    std::function<void(Status, SetupFlowsResult)> callback) {
-  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub_->AsyncSetupPolicyFlows(
-      local_resp->get_context(), request, &queue_)));
-}
-
-void AsyncPipelinedClient::setup_ue_mac_rpc(
-    const SetupUEMacRequest& request,
-    std::function<void(Status, SetupFlowsResult)> callback) {
-  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
-      std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub_->AsyncSetupUEMacFlows(
-      local_resp->get_context(), request, &queue_)));
-}
-
 bool AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::vector<std::string>& static_rules,
@@ -319,11 +307,36 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
       });
   return true;
 }
+
+void AsyncPipelinedClient::setup_policy_rpc(
+    const SetupPolicyRequest& request,
+    std::function<void(Status, SetupFlowsResult)> callback) {
+  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(stub_->AsyncSetupPolicyFlows(
+      local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::setup_ue_mac_rpc(
+    const SetupUEMacRequest& request,
+    std::function<void(Status, SetupFlowsResult)> callback) {
+  auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(stub_->AsyncSetupUEMacFlows(
+      local_resp->get_context(), request, &queue_)));
+}
+
 void AsyncPipelinedClient::deactivate_flows_rpc(
     const DeactivateFlowsRequest& request,
     std::function<void(Status, DeactivateFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<DeactivateFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncDeactivateFlows(
       local_resp->get_context(), request, &queue_)));
 }
@@ -333,6 +346,8 @@ void AsyncPipelinedClient::activate_flows_rpc(
     std::function<void(Status, ActivateFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<ActivateFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_)));
 }
@@ -342,6 +357,8 @@ void AsyncPipelinedClient::add_ue_mac_flow_rpc(
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_)));
 }
@@ -351,6 +368,8 @@ void AsyncPipelinedClient::update_ipfix_flow_rpc(
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncUpdateIPFIXFlow(
       local_resp->get_context(), request, &queue_)));
 }
@@ -360,6 +379,8 @@ void AsyncPipelinedClient::delete_ue_mac_flow_rpc(
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(stub_->AsyncDeleteUEMacFlow(
       local_resp->get_context(), request, &queue_)));
 }
@@ -369,6 +390,8 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(
+      static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(
           local_resp->get_context(), request, &queue_)));

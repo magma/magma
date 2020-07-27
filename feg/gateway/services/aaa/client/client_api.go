@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package client provides a thin API client for communicating with AAA Server.
@@ -89,7 +94,7 @@ func Start(aaaCtx *protos.Context) (*protos.AcctResp, error) {
 	return cli.Start(context.Background(), aaaCtx)
 }
 
-// InterimUpdate implements Radius Acct-Status-Type: Interim-Update endpoint
+// Acct-Status-Type Stop
 func InterimUpdate(ur *protos.UpdateRequest) (*protos.AcctResp, error) {
 	if ur == nil {
 		return nil, errors.New("Nil Interim Update Request")

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -54,25 +50,20 @@ class SctpdUplinkImpl final : public SctpdUplink::Service {
  public:
   SctpdUplinkImpl();
 
-  Status SendUl(ServerContext *context, const SendUlReq *req, SendUlRes *res)
-    override;
+  Status SendUl(
+      ServerContext* context, const SendUlReq* req, SendUlRes* res) override;
   Status NewAssoc(
-    ServerContext *context,
-    const NewAssocReq *req,
-    NewAssocRes *res) override;
+      ServerContext* context, const NewAssocReq* req,
+      NewAssocRes* res) override;
   Status CloseAssoc(
-    ServerContext *context,
-    const CloseAssocReq *req,
-    CloseAssocRes *res) override;
+      ServerContext* context, const CloseAssocReq* req,
+      CloseAssocRes* res) override;
 };
 
 SctpdUplinkImpl::SctpdUplinkImpl() {}
 
 Status SctpdUplinkImpl::SendUl(
-  ServerContext *context,
-  const SendUlReq *req,
-  SendUlRes *res)
-{
+    ServerContext* context, const SendUlReq* req, SendUlRes* res) {
   bstring payload;
   uint32_t assoc_id;
   uint16_t stream;
@@ -84,7 +75,7 @@ Status SctpdUplinkImpl::SendUl(
   }
 
   assoc_id = req->assoc_id();
-  stream = req->stream();
+  stream   = req->stream();
 
   if (sctp_itti_send_new_message_ind(&payload, assoc_id, stream) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send new_message_ind for SendUl\n");
@@ -97,16 +88,13 @@ Status SctpdUplinkImpl::SendUl(
 #include <assert.h>
 
 Status SctpdUplinkImpl::NewAssoc(
-  ServerContext *context,
-  const NewAssocReq *req,
-  NewAssocRes *res)
-{
+    ServerContext* context, const NewAssocReq* req, NewAssocRes* res) {
   uint32_t assoc_id;
   uint16_t instreams;
   uint16_t outstreams;
 
-  assoc_id = req->assoc_id();
-  instreams = req->instreams();
+  assoc_id   = req->assoc_id();
+  instreams  = req->instreams();
   outstreams = req->outstreams();
 
   if (sctp_itti_send_new_association(assoc_id, instreams, outstreams) < 0) {
@@ -118,15 +106,12 @@ Status SctpdUplinkImpl::NewAssoc(
 }
 
 Status SctpdUplinkImpl::CloseAssoc(
-  ServerContext *context,
-  const CloseAssocReq *req,
-  CloseAssocRes *res)
-{
+    ServerContext* context, const CloseAssocReq* req, CloseAssocRes* res) {
   uint32_t assoc_id;
   bool reset;
 
   assoc_id = req->assoc_id();
-  reset = req->is_reset();
+  reset    = req->is_reset();
 
   if (sctp_itti_send_com_down_ind(assoc_id, reset) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send com_down_ind for CloseAssoc\n");
@@ -136,8 +121,8 @@ Status SctpdUplinkImpl::CloseAssoc(
   return Status::OK;
 }
 
-} // namespace mme
-} // namespace magma
+}  // namespace mme
+}  // namespace magma
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -145,10 +130,9 @@ using grpc::ServerBuilder;
 using magma::mme::SctpdUplinkImpl;
 
 std::shared_ptr<SctpdUplinkImpl> _service = nullptr;
-std::unique_ptr<Server> _server = nullptr;
+std::unique_ptr<Server> _server           = nullptr;
 
-int start_sctpd_uplink_server(void)
-{
+int start_sctpd_uplink_server(void) {
   _service = std::make_shared<SctpdUplinkImpl>();
 
   ServerBuilder builder;
@@ -160,8 +144,7 @@ int start_sctpd_uplink_server(void)
   return 0;
 }
 
-void stop_sctpd_uplink_server(void)
-{
+void stop_sctpd_uplink_server(void) {
   if (_server != nullptr) {
     _server->Shutdown();
     _server->Wait();

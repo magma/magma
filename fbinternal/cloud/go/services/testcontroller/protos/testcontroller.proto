@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+import "magma/orc8r/protos/common.proto";
+import "magma/fbinternal/cloud/go/services/testcontroller/storage/storage.proto";
+
+package magma.fbinternal.testcontroller;
+option go_package = "protos";
+
+// TestController is an RPC service for managing and executing end to end test
+// cases.
+// Test execution is not exposed by this RPC controller, only test status and
+// configuration.
+service TestController {
+    rpc GetTestCases(GetTestCasesRequest) returns (GetTestCasesResponse) {}
+
+    rpc CreateOrUpdateTestCase(CreateTestCaseRequest) returns (magma.orc8r.Void) {}
+
+    rpc DeleteTestCase(DeleteTestCaseRequest) returns (magma.orc8r.Void) {}
+}
+
+message CreateTestCaseRequest {
+    storage.MutableTestCase test = 1;
+}
+
+message GetTestCasesRequest {
+    repeated int64 pks = 1;
+}
+
+message GetTestCasesResponse {
+    map<int64, storage.TestCase> tests = 1;
+}
+
+message DeleteTestCaseRequest {
+    int64 pk = 1;
+}
+
+// NodeLeasor is an RPC service for managing baremetal CI leases
+service NodeLeasor {
+    rpc GetNodes(GetNodesRequest) returns (GetNodesResponse) {}
+
+    rpc CreateOrUpdateNode(CreateOrUpdateNodeRequest) returns (magma.orc8r.Void) {}
+
+    rpc DeleteNode(DeleteNodeRequest) returns (magma.orc8r.Void) {}
+
+    rpc ReserveNode(ReserveNodeRequest) returns (LeaseNodeResponse) {}
+
+    rpc LeaseNode(LeaseNodeRequest) returns (LeaseNodeResponse) {}
+
+    rpc ReleaseNode(ReleaseNodeRequest) returns (magma.orc8r.Void) {}
+}
+
+message GetNodesRequest {
+    repeated string ids = 1;
+    google.protobuf.StringValue tag = 2;
+}
+
+message GetNodesResponse {
+    map<string, storage.CINode> nodes = 1;
+}
+
+message CreateOrUpdateNodeRequest {
+    storage.MutableCINode node = 1;
+}
+
+message DeleteNodeRequest {
+    string id = 1;
+}
+
+message ReserveNodeRequest {
+    string id = 1;
+    string tag = 2;
+}
+
+message LeaseNodeRequest {
+    string tag = 1;
+}
+
+message LeaseNodeResponse {
+    storage.NodeLease lease = 1;
+}
+
+message ReleaseNodeRequest {
+    string nodeID = 1;
+    string leaseID = 2;
+}

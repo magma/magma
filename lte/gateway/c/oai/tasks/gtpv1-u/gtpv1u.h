@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,11 +15,11 @@
  *      contact@openairinterface.org
  */
 /*! \file gtpv1u.h
-* \brief
-* \author Sebastien ROUX, Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Sebastien ROUX, Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_GTPV1_U_SEEN
 #define FILE_GTPV1_U_SEEN
@@ -70,14 +66,15 @@ struct ipv4flow_dl {
 };
 
 /*
- * This structure defines the management hooks for GTP tunnels and paging support.
- * The following hooks can be defined; unless noted otherwise, they are
+ * This structure defines the management hooks for GTP tunnels and paging
+ * support. The following hooks can be defined; unless noted otherwise, they are
  * optional and can be filled with a null pointer.
  *
  * int (*init)(struct in_addr *ue_net, uint32_t mask,
  *             int mtu, int *fd0, int *fd1u);
  *     This function is called when initializing GTP network device. How to use
- *     these input parameters are defined by the actual function implementations.
+ *     these input parameters are defined by the actual function
+ * implementations.
  *         @ue_net: subnet assigned to UEs
  *         @mask: network mask for the UE subnet
  *         @mtu: MTU for the GTP network device.
@@ -90,8 +87,8 @@ struct ipv4flow_dl {
  * int (*reset)(void);
  *     This function is called to reset the GTP network device to clean state.
  *
- * int (*add_tunnel)(struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei, Imsi_t imsi);
- *     Add a gtp tunnel.
+ * int (*add_tunnel)(struct in_addr ue, struct in_addr enb, uint32_t i_tei,
+ * uint32_t o_tei, Imsi_t imsi); Add a gtp tunnel.
  *         @ue: UE IP address
  *         @enb: eNB IP address
  *         @i_tei: RX GTP Tunnel ID
@@ -125,40 +122,34 @@ struct ipv4flow_dl {
  */
 struct gtp_tunnel_ops {
   int (*init)(
-    struct in_addr* ue_net,
-    uint32_t mask,
-    int mtu,
-    int* fd0,
-    int* fd1u,
-    bool persist_state);
+      struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0, int* fd1u,
+      bool persist_state);
   int (*uninit)(void);
   int (*reset)(void);
   int (*add_tunnel)(
-    struct in_addr ue,
-    struct in_addr enb,
-    uint32_t i_tei,
-    uint32_t o_tei,
-    Imsi_t imsi,
-    struct ipv4flow_dl *flow_dl,
-    uint32_t flow_precedence_dl);
-  int (*del_tunnel)(struct in_addr ue, uint32_t i_tei,
-      uint32_t o_tei, struct ipv4flow_dl *flow_dl);
-  int (*discard_data_on_tunnel)(struct in_addr ue,
-      uint32_t i_tei, struct ipv4flow_dl *flow_dl);
+      struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+      Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl);
+  int (*del_tunnel)(
+      struct in_addr ue, uint32_t i_tei, uint32_t o_tei,
+      struct ipv4flow_dl* flow_dl);
+  int (*discard_data_on_tunnel)(
+      struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl);
   int (*forward_data_on_tunnel)(
-    struct in_addr ue,
-    uint32_t i_tei,
-    struct ipv4flow_dl* flow_dl,
-    uint32_t flow_precedence_dl);
+      struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl,
+      uint32_t flow_precedence_dl);
   int (*add_paging_rule)(struct in_addr ue);
   int (*delete_paging_rule)(struct in_addr ue);
-  int (*send_end_marker) (struct in_addr enbode, uint32_t i_tei);
+  int (*send_end_marker)(struct in_addr enbode, uint32_t i_tei);
+  const char* (*get_dev_name)(void);
 };
 
 #if ENABLE_OPENFLOW
-const struct gtp_tunnel_ops *gtp_tunnel_ops_init_openflow(void);
+const struct gtp_tunnel_ops* gtp_tunnel_ops_init_openflow(void);
 #else
-const struct gtp_tunnel_ops *gtp_tunnel_ops_init_libgtpnl(void);
+const struct gtp_tunnel_ops* gtp_tunnel_ops_init_libgtpnl(void);
 #endif
 
+int gtpv1u_add_tunnel(
+    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl);
 #endif /* FILE_GTPV1_U_SEEN */

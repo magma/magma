@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package plugin
@@ -11,15 +16,11 @@ package plugin
 import (
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
-	lte_handlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	policydb_handlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
-	subscriberdb_handlers "magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -84,11 +85,7 @@ func (*LteOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap
 }
 
 func (*LteOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
-	return plugin.FlattenHandlerLists(
-		lte_handlers.GetHandlers(),
-		policydb_handlers.GetHandlers(),
-		subscriberdb_handlers.GetHandlers(),
-	)
+	return []obsidian.Handler{}
 }
 
 func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider {
