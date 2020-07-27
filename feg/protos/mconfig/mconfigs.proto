@@ -138,6 +138,8 @@ message RadiusConfig {
     string AuthAddr = 3;
     // Accounting Radius server address
     string AcctAddr = 4;
+    // DAE server Address
+    string DAEAddr = 5;
 }
 
 message GatewayHealthConfig {
