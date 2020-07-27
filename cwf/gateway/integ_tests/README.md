@@ -43,7 +43,7 @@ This VM runs an iperf3 server.
 ## Running the test 
 #### Requirements
 * fabric3 
-* see https://facebookincubator.github.io/magma/docs/basics/prerequisites for 
+* see https://magma.github.io/magma/docs/basics/prerequisites for 
 our prerequisites on running our VMs.
 
 To the run the test, run `fab integ_test` from `magma/cwf/gateway`.

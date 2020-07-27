@@ -2,7 +2,7 @@
 
 [![facebookincubator](https://circleci.com/gh/facebookincubator/magma.svg?style=shield)](https://circleci.com/gh/facebookincubator/magma)
 
-**magmad** service is a core part of [magma](https://facebookincubator.github.io/magma) gateway platform, it is required on every gateway and facilitates the following gateway functionality:
+**magmad** service is a core part of [magma](https://magma.github.io/magma) gateway platform, it is required on every gateway and facilitates the following gateway functionality:
 
 * Maintaining and displaying unique gateway identity information necessary for the gateway register on and join a network
 * Bootstraping gateway on the network and maintaining gateway's client certificates

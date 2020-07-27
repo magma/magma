@@ -1,7 +1,7 @@
 # Orchestrator Helm Deployment
 
 The contents of this README have been moved to the "Deploying Orchestrator"
-section of the docs: https://facebookincubator.github.io/magma.
+section of the docs: https://magma.github.io/magma.
 
 If you're running locally in Minikube, see the section below.
 
