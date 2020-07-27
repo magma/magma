@@ -9,7 +9,7 @@
 /**
  * @file hello-world.c
  * @brief This file contains example of a minimalistic log manager entity.
-*/
+ */
 
 #include <stdio.h>
 #include <assert.h>
@@ -50,21 +50,21 @@ extern "C" {
 /**
  * Get global singleton MiniLogMgr instance
  */
-NwMiniLogMgrT *nwMiniLogMgrGetInstance();
+NwMiniLogMgrT* nwMiniLogMgrGetInstance();
 
 /**
  * Initialize MiniLogMgr
  * @param thiz : Pointer to global singleton MiniLogMgr instance
  * @param logLevel : Log Level
  */
-nw_rc_t nwMiniLogMgrInit(NwMiniLogMgrT *thiz, uint32_t logLevel);
+nw_rc_t nwMiniLogMgrInit(NwMiniLogMgrT* thiz, uint32_t logLevel);
 
 /**
  * Set MiniLogMgr log level
  * @param thiz : Pointer to global singleton MiniLogMgr instance
  * @param logLevel : Log Level
  */
-nw_rc_t nwMiniLogMgrSetLogLevel(NwMiniLogMgrT *thiz, uint32_t logLevel);
+nw_rc_t nwMiniLogMgrSetLogLevel(NwMiniLogMgrT* thiz, uint32_t logLevel);
 
 /**
  * Process log request from stack
@@ -75,11 +75,8 @@ nw_rc_t nwMiniLogMgrSetLogLevel(NwMiniLogMgrT *thiz, uint32_t logLevel);
  * @param logStr : Log string
  */
 nw_rc_t nwMiniLogMgrLogRequest(
-  nw_gtpv2c_LogMgrHandleT logMgrHandle,
-  uint32_t logLevel,
-  NwCharT *file,
-  uint32_t line,
-  NwCharT *logStr);
+    nw_gtpv2c_LogMgrHandleT logMgrHandle, uint32_t logLevel, NwCharT* file,
+    uint32_t line, NwCharT* logStr);
 
 #ifdef __cplusplus
 }

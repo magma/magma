@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
@@ -12,6 +17,7 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
+import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
@@ -31,6 +37,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -191,8 +198,9 @@ function EquipmentDashboardInternal({
   enbInfo: {[string]: EnodebInfo},
 }) {
   const classes = useStyles();
-  const {relativePath, relativeUrl} = useRouter();
-  const [tabPos, setTabPos] = React.useState(0);
+  const {relativePath, relativeUrl, match} = useRouter();
+  const tabPos = GetCurrentTabPos(match.url, ['gateway', 'enodeb']);
+
   return (
     <>
       <div className={classes.topBar}>
@@ -204,7 +212,6 @@ function EquipmentDashboardInternal({
           <Grid item xs={6}>
             <Tabs
               value={tabPos}
-              onChange={(_, v) => setTabPos(v)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -234,6 +241,9 @@ function EquipmentDashboardInternal({
                 </Button>
               </Grid>
               <Grid item>
+                {tabPos == 0 && (
+                  <AddEditGatewayButton title="Add New" isLink={false} />
+                )}
                 {tabPos == 1 && (
                   <AddEditEnodeButton title="Add New" isLink={false} />
                 )}

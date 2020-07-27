@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package main
@@ -89,22 +94,30 @@ func getHealthMconfig() *mconfigprotos.CwfGatewayHealthConfig {
 	if ret.GreProbeInterval == 0 {
 		ret.GreProbeInterval = defaultGREProbeInterval
 	}
-	ret.GrePeers = removeCIDREndpoints(ret.GrePeers)
+	ret.GrePeers = removeSubnetEndpoints(ret.GrePeers)
 	glog.Infof("Using config: %v", ret)
 	return ret
 }
 
-// For now, we don't support querying all endpoints defined in a CIDR
-// formatted endpoint.
-func removeCIDREndpoints(endpoints []*mconfigprotos.CwfGatewayHealthConfigGrePeer) []*mconfigprotos.CwfGatewayHealthConfigGrePeer {
+// removeSubnetEndpoints removes all endpoints that do not correspond to a
+// singular IP address
+func removeSubnetEndpoints(endpoints []*mconfigprotos.CwfGatewayHealthConfigGrePeer) []*mconfigprotos.CwfGatewayHealthConfigGrePeer {
 	ret := []*mconfigprotos.CwfGatewayHealthConfigGrePeer{}
 	for _, endpoint := range endpoints {
 		_, _, err := net.ParseCIDR(endpoint.Ip)
+		parsedIP, _, err := net.ParseCIDR(endpoint.Ip)
 		if err != nil {
 			ret = append(ret, endpoint)
 			continue
 		}
-		glog.Infof("Not monitoring CIDR formatted IP: %s. Health service only supports monitoring specific endpoints", endpoint.Ip)
+		if !strings.HasSuffix(parsedIP.String(), ".0") {
+			parsedGrePeer := &mconfigprotos.CwfGatewayHealthConfigGrePeer{
+				Ip: parsedIP.String(),
+			}
+			ret = append(ret, parsedGrePeer)
+			continue
+		}
+		glog.Infof("Not monitoring GRE peer: %s. Health service only supports monitoring specific (non-subnet) endpoints", endpoint.Ip)
 	}
 	return ret
 }

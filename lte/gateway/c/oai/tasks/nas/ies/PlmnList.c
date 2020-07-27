@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,12 +24,8 @@
 #include "PlmnList.h"
 
 int decode_plmn_list(
-  PlmnList *plmnlist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    PlmnList* plmnlist, uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -60,12 +52,8 @@ int decode_plmn_list(
 }
 
 int encode_plmn_list(
-  PlmnList *plmnlist,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    PlmnList* plmnlist, uint8_t iei, uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
@@ -84,20 +72,19 @@ int encode_plmn_list(
   lenPtr = (buffer + encoded);
   encoded++;
   *(buffer + encoded) =
-    0x00 | ((plmnlist->mccdigit2 & 0xf) << 4) | (plmnlist->mccdigit1 & 0xf);
+      0x00 | ((plmnlist->mccdigit2 & 0xf) << 4) | (plmnlist->mccdigit1 & 0xf);
   encoded++;
   *(buffer + encoded) =
-    0x00 | ((plmnlist->mncdigit3 & 0xf) << 4) | (plmnlist->mccdigit3 & 0xf);
+      0x00 | ((plmnlist->mncdigit3 & 0xf) << 4) | (plmnlist->mccdigit3 & 0xf);
   encoded++;
   *(buffer + encoded) =
-    0x00 | ((plmnlist->mncdigit2 & 0xf) << 4) | (plmnlist->mncdigit1 & 0xf);
+      0x00 | ((plmnlist->mncdigit2 & 0xf) << 4) | (plmnlist->mncdigit1 & 0xf);
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }
 
-void dump_plmn_list_xml(PlmnList *plmnlist, uint8_t iei)
-{
+void dump_plmn_list_xml(PlmnList* plmnlist, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Plmn List>\n");
 
   if (iei > 0)
@@ -107,16 +94,16 @@ void dump_plmn_list_xml(PlmnList *plmnlist, uint8_t iei)
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n", plmnlist->mccdigit2);
+      LOG_NAS, "    <MCC digit 2>%u</MCC digit 2>\n", plmnlist->mccdigit2);
   OAILOG_DEBUG(
-    LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n", plmnlist->mccdigit1);
+      LOG_NAS, "    <MCC digit 1>%u</MCC digit 1>\n", plmnlist->mccdigit1);
   OAILOG_DEBUG(
-    LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n", plmnlist->mncdigit3);
+      LOG_NAS, "    <MNC digit 3>%u</MNC digit 3>\n", plmnlist->mncdigit3);
   OAILOG_DEBUG(
-    LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n", plmnlist->mccdigit3);
+      LOG_NAS, "    <MCC digit 3>%u</MCC digit 3>\n", plmnlist->mccdigit3);
   OAILOG_DEBUG(
-    LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n", plmnlist->mncdigit2);
+      LOG_NAS, "    <MNC digit 2>%u</MNC digit 2>\n", plmnlist->mncdigit2);
   OAILOG_DEBUG(
-    LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n", plmnlist->mncdigit1);
+      LOG_NAS, "    <MNC digit 1>%u</MNC digit 1>\n", plmnlist->mncdigit1);
   OAILOG_DEBUG(LOG_NAS, "</Plmn List>\n");
 }

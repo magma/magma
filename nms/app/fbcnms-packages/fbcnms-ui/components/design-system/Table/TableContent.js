@@ -1,8 +1,14 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
@@ -26,8 +32,8 @@ import {useTableCommonStyles} from './TableCommons';
 
 const useStyles = makeStyles(() => ({
   row: {
-    backgroundColor: symphony.palette.white,
     borderLeft: `2px solid transparent`,
+    backgroundColor: symphony.palette.white,
     '&$bands:nth-child(odd)': {
       backgroundColor: symphony.palette.background,
     },
@@ -97,7 +103,7 @@ const TableContent = <T>(props: Props<T>) => {
   } = props;
   const classes = useStyles();
   const commonClasses = useTableCommonStyles();
-  const {settings} = useTable();
+  const {settings, width: tableWidth} = useTable();
   const {activeId, setActiveId} = useSelection();
 
   const [sortedData, setSortedData] = useState<Array<TableRowDataType<T>>>([]);
@@ -172,7 +178,13 @@ const TableContent = <T>(props: Props<T>) => {
                       commonClasses.cell,
                       col.className,
                       cellClassName,
-                    )}>
+                    )}
+                    style={{
+                      width:
+                        tableWidth != null && settings.columnWidths
+                          ? settings.columnWidths[colIndex].width
+                          : undefined,
+                    }}>
                     <Text
                       color="inherit"
                       className={classes.textualCell}

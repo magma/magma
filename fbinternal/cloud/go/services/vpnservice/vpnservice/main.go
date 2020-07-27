@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
+	"magma/fbinternal/cloud/go/fbinternal"
+	"magma/fbinternal/cloud/go/protos"
+	"magma/fbinternal/cloud/go/services/vpnservice"
+	"magma/fbinternal/cloud/go/services/vpnservice/servicers"
 	"magma/orc8r/cloud/go/service"
-	"orc8r/fbinternal/cloud/go/fbinternal"
-	"orc8r/fbinternal/cloud/go/protos"
-	"orc8r/fbinternal/cloud/go/services/vpnservice"
-	"orc8r/fbinternal/cloud/go/services/vpnservice/servicers"
 )
 
 const taKeyPath = "/var/opt/magma/certs/vpn_ta.key"

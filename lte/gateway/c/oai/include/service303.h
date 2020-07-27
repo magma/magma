@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,7 +25,7 @@
 
 #define NO_BOUNDARIES 0
 #define NO_LABELS 0
-#define EPC_STATS_TIMER_VALUE 60 // In seconds
+#define EPC_STATS_TIMER_VALUE 60  // In seconds
 
 void service303_statistics_read(void);
 
@@ -41,12 +37,12 @@ typedef struct {
 } service303_data_t;
 
 typedef enum application_health_e {
-  APP_UNKNOWN = 0,
+  APP_UNKNOWN   = 0,
   APP_UNHEALTHY = 1,
-  APP_HEALTHY = 2,
+  APP_HEALTHY   = 2,
 } application_health_t;
 
-int service303_init(service303_data_t *service303_data);
+int service303_init(service303_data_t* service303_data);
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,10 +75,7 @@ void stop_service303_server(void);
  * @param value1: the value of the first label
  */
 void increment_counter(
-  const char *name,
-  double increment,
-  size_t n_labels,
-  ...);
+    const char* name, double increment, size_t n_labels, ...);
 
 /**
  * Increment a gauge defined by the name and label set. Metric is
@@ -96,7 +89,7 @@ void increment_counter(
  * @param key1: the key of the first label
  * @param value1: the value of the first label
  */
-void increment_gauge(const char *name, double increment, size_t n_labels, ...);
+void increment_gauge(const char* name, double increment, size_t n_labels, ...);
 
 /**
  * Decrement a gauge defined by the name and label set. Metric is
@@ -110,7 +103,7 @@ void increment_gauge(const char *name, double increment, size_t n_labels, ...);
  * @param key1: the key of the first label
  * @param value1: the value of the first label
  */
-void decrement_gauge(const char *name, double decrement, size_t n_labels, ...);
+void decrement_gauge(const char* name, double decrement, size_t n_labels, ...);
 
 /**
  * Set a gauge defined by the name and label set. Metric is
@@ -124,7 +117,7 @@ void decrement_gauge(const char *name, double decrement, size_t n_labels, ...);
  * @param key1: the key of the first label
  * @param value1: the value of the first label
  */
-void set_gauge(const char *name, double value, size_t n_labels, ...);
+void set_gauge(const char* name, double value, size_t n_labels, ...);
 
 /**
  * Record an observation in the histogram defined by the name and label set.
@@ -132,7 +125,8 @@ void set_gauge(const char *name, double value, size_t n_labels, ...);
  * static and only set on the first observation. Usage example:
  *    observe_histogram("test", 1, NO_LABELS, NO_BOUNDARIES);
  *    observe_histogram("test", 1, 1, "key", "value", NO_BOUNDARIES);
- *    observe_histogram("test", 1, 2, "key1", "value1", "key2", "value2", NO_BOUNDARIES);
+ *    observe_histogram("test", 1, 2, "key1", "value1", "key2", "value2",
+ NO_BOUNDARIES);
  *    observe_histogram("test", 50, 1, "key", "value", 2, 10., 100.);
 
  *
@@ -147,10 +141,7 @@ void set_gauge(const char *name, double value, size_t n_labels, ...);
  *    NOTE: This must be a float or double (ie. requires a decimal point)
  */
 void observe_histogram(
-  const char *name,
-  double observation,
-  size_t n_labels,
-  ...);
+    const char* name, double observation, size_t n_labels, ...);
 
 /**
  * Simple helper function to set application health in the service. Only needed

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,8 +55,7 @@ static void sctp_exit(void);
 sctp_config_t sctp_conf;
 task_zmq_ctx_t sctp_task_zmq_ctx;
 
-static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
-{
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
@@ -90,16 +85,13 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     case SCTP_DATA_REQ: {
       uint32_t assoc_id = SCTP_DATA_REQ(received_message_p).assoc_id;
-      uint16_t stream = SCTP_DATA_REQ(received_message_p).stream;
-      bstring payload = SCTP_DATA_REQ(received_message_p).payload;
+      uint16_t stream   = SCTP_DATA_REQ(received_message_p).stream;
+      bstring payload   = SCTP_DATA_REQ(received_message_p).payload;
 
       if (sctpd_send_dl(assoc_id, stream, payload) < 0) {
         sctp_itti_send_lower_layer_conf(
-          received_message_p->ittiMsgHeader.originTaskId,
-          assoc_id,
-          stream,
-          SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id,
-          false);
+            received_message_p->ittiMsgHeader.originTaskId, assoc_id, stream,
+            SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
       }
     } break;
 
@@ -114,10 +106,8 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     default: {
       OAILOG_DEBUG(
-        LOG_SCTP,
-        "Unkwnon message ID %d:%s\n",
-        ITTI_MSG_ID(received_message_p),
-        ITTI_MSG_NAME(received_message_p));
+          LOG_SCTP, "Unkwnon message ID %d:%s\n",
+          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
 
@@ -127,14 +117,10 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 }
 
 //------------------------------------------------------------------------------
-static void* sctp_thread(__attribute__((unused)) void* args_p)
-{
+static void* sctp_thread(__attribute__((unused)) void* args_p) {
   itti_mark_task_ready(TASK_SCTP);
   init_task_context(
-      TASK_SCTP,
-      (task_id_t []) {TASK_MME_APP, TASK_S1AP},
-      2,
-      handle_message,
+      TASK_SCTP, (task_id_t[]){TASK_MME_APP, TASK_S1AP}, 2, handle_message,
       &sctp_task_zmq_ctx);
 
   zloop_start(sctp_task_zmq_ctx.event_loop);
@@ -142,8 +128,7 @@ static void* sctp_thread(__attribute__((unused)) void* args_p)
   return NULL;
 }
 
-int sctp_init(const mme_config_t* mme_config_p)
-{
+int sctp_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface\n");
 
   if (init_sctpd_downlink_client(!mme_config.use_stateless) < 0) {
@@ -160,8 +145,7 @@ int sctp_init(const mme_config_t* mme_config_p)
   return 0;
 }
 
-static void sctp_exit(void)
-{
+static void sctp_exit(void) {
   destroy_task_context(&sctp_task_zmq_ctx);
   stop_sctpd_uplink_server();
   OAI_FPRINTF_INFO("TASK_SCTP terminated\n");

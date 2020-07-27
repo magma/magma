@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package handlers provided AKA Response handlers for supported AKA subtypes
@@ -11,10 +16,10 @@ package handlers
 
 import (
 	"io"
-	"log"
 	"reflect"
 	"time"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/gateway/services/aaa/protos"
@@ -67,9 +72,8 @@ func challengeResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Pack
 
 	state, _ := uc.State()
 	if state != aka.StateChallenge {
-		log.Printf(
-			"AKA Challenge Response: Unexpected user state: %d for IMSI: %s, Session: %s",
-			state, imsi, ctx.SessionId)
+		glog.Errorf(
+			"AKA Challenge Response: Unexpected user state: %d for IMSI: %s, Session: %s", state, imsi, ctx.SessionId)
 	}
 
 	p := make([]byte, len(req))
@@ -97,7 +101,7 @@ attrLoop:
 			}
 		case aka.AT_CHECKCODE: // Ignore CHECKCODE for now
 		default:
-			log.Printf("INFO: Unexpected EAP-AKA Challenge Response Attribute type %d", a.Type())
+			glog.Infof("Unexpected EAP-AKA Challenge Response Attribute type %d", a.Type())
 		}
 	}
 
@@ -127,7 +131,7 @@ attrLoop:
 	mac := aka.GenMac(p, uc.K_aut)
 	if !reflect.DeepEqual(ueMac, mac) {
 		s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
-		log.Printf(
+		glog.Errorf(
 			"Invalid MAC for Session ID: %s; IMSI: %s; UE MAC: %x; Expected MAC: %x; EAP: %x",
 			ctx.SessionId, imsi, ueMac, mac, req)
 		return aka.EapErrorResPacket(
@@ -138,7 +142,7 @@ attrLoop:
 	// Verify AT_RES
 	ueRes := atRes.Marshaled()[aka.ATT_HDR_LEN:]
 	if success = reflect.DeepEqual(ueRes, uc.Xres); !success {
-		log.Printf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v",
+		glog.Errorf("Invalid AT_RES for Session ID: %s; IMSI: %s\n\t%.3v !=\n\t%.3v",
 			sessionId, imsi, ueRes, uc.Xres)
 		s.UpdateSessionUnlockCtx(uc, s.NotificationTimeout())
 		return aka.EapErrorResPacketWithMac(

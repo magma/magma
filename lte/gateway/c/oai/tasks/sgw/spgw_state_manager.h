@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -26,13 +22,13 @@
 #include "spgw_state_converter.h"
 
 namespace {
-constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE = 512;
+constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
 constexpr int MAX_PREDEFINED_PCC_RULES_HT_SIZE = 32;
 constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
-  "s11_bearer_context_information_htbl";
+    "s11_bearer_context_information_htbl";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
-constexpr char SPGW_TASK_NAME[] = "SPGW";
-} // namespace
+constexpr char SPGW_TASK_NAME[]        = "SPGW";
+}  // namespace
 
 namespace magma {
 namespace lte {
@@ -42,13 +38,10 @@ namespace lte {
  * that contains functions to maintain SGW and PGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SpgwStateManager :
-  public StateManager<
-    spgw_state_t,
-    s_plus_p_gw_eps_bearer_context_information_t,
-    oai::SpgwState,
-    oai::S11BearerContext,
-    SpgwStateConverter> {
+class SpgwStateManager
+    : public StateManager<
+          spgw_state_t, s_plus_p_gw_eps_bearer_context_information_t,
+          oai::SpgwState, oai::S11BearerContext, SpgwStateConverter> {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
@@ -91,5 +84,5 @@ class SpgwStateManager :
   const spgw_config_t* config_;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

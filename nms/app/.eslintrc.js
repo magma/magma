@@ -1,17 +1,23 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @format
  */
 
 // enforces copyright header to be present in every file
 // eslint-disable-next-line max-len
-const openSourcePattern = /\*\n \* Copyright 20\d{2}-present Facebook\. All Rights Reserved\.\n \*\n \* This source code is licensed under the BSD-style license found in the\n \* LICENSE file in the root directory of this source tree\.\n \*\n/;
+const openSourcePattern = /\*\n \* Copyright 2020 The Magma Authors\.\n \*\n \* This source code is licensed under the BSD-style license found in the\n \* LICENSE file in the root directory of this source tree\.\n \*\n \* Unless required by applicable law or agreed to in writing, software\n \* distributed under the License is distributed on an "AS IS" BASIS,\n \* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied\.\n \* See the License for the specific language governing permissions and\n \* limitations under the License\.\n \*\n/;
 // eslint-disable-next-line max-len
-const newOpenSourcePattern = /Copyright \(c\) Facebook, Inc\. and its affiliates\./;
+const newOpenSourcePattern = /Copyright 2020 The Magma Authors\./;
 const combinedOpenSourcePattern = new RegExp(
   '(' + newOpenSourcePattern.source + ')|(' + openSourcePattern.source + ')',
 );
@@ -101,8 +107,6 @@ module.exports.overrides = [
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
       'fbcnms-projects/platform-server/**/*.js',
-      'fbcnms-projects/workflows-proxy/**/*.js',
-      'fbcnms-projects/workflows-wasm-workers/**/*.js',
       'scripts/fb/fbt/*.js',
     ],
     rules: {

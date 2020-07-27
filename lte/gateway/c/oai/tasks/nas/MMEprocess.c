@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,10 +41,10 @@
 #include "nas_network.h"
 #include "nas_parser.h"
 
-#include <stdlib.h> // exit
-#include <poll.h>   // poll
-#include <string.h> // memset
-#include <signal.h> // sigaction
+#include <stdlib.h>  // exit
+#include <poll.h>    // poll
+#include <string.h>  // memset
+#include <signal.h>  // sigaction
 #include <pthread.h>
 
 /****************************************************************************/
@@ -61,7 +57,7 @@
 
 #define NAS_SLEEP_TIMEOUT 1000 /* 1 second */
 
-static void *_nas_network_mngr(void *);
+static void* _nas_network_mngr(void*);
 
 static int _nas_set_signal_handler(int signal, void(handler)(int));
 static void _nas_signal_handler(int signal);
@@ -73,8 +69,7 @@ static void _nas_clean(int net_fd);
 /****************************************************************************/
 
 /****************************************************************************/
-int main(int argc, const char *argv[])
-{
+int main(int argc, const char* argv[]) {
   /*
    * Get the command line options
    */
@@ -87,16 +82,12 @@ int main(int argc, const char *argv[])
    * Initialize logging trace utility
    */
   nas_log_init(nas_parser_get_trace_level());
-  const char *nhost = nas_parser_get_network_host();
-  const char *nport = nas_parser_get_network_port();
+  const char* nhost = nas_parser_get_network_host();
+  const char* nport = nas_parser_get_network_port();
 
   OAILOG_TRACE(
-    INFO,
-    "MME-MAIN  - %s -nhost %s -nport %s -trace 0x%x",
-    argv[0],
-    nhost,
-    nport,
-    nas_parser_get_trace_level());
+      INFO, "MME-MAIN  - %s -nhost %s -nport %s -trace 0x%x", argv[0], nhost,
+      nport, nas_parser_get_trace_level());
 
   /*
    * Initialize the Network interface
@@ -131,12 +122,12 @@ int main(int argc, const char *argv[])
    */
   pthread_t network_mngr;
 
-  if (
-    pthread_create(&network_mngr, &attr, _nas_network_mngr, &network_fd) != 0) {
+  if (pthread_create(&network_mngr, &attr, _nas_network_mngr, &network_fd) !=
+      0) {
     OAILOG_TRACE(
-      ERROR,
-      "MME-MAIN  - "
-      "Failed to create the network management thread");
+        ERROR,
+        "MME-MAIN  - "
+        "Failed to create the network management thread");
     network_api_close(network_fd);
     exit(EXIT_FAILURE);
   }
@@ -178,16 +169,15 @@ int main(int argc, const char *argv[])
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void *_nas_network_mngr(void *args)
-{
+static void* _nas_network_mngr(void* args) {
   OAILOG_FUNC_IN;
   int ret_code;
   int network_message_id;
   int bytes;
-  int *fd = (int *) args;
+  int* fd = (int*) args;
 
   OAILOG_TRACE(
-    INFO, "MME-MAIN  - Network connection manager started (%d)", *fd);
+      INFO, "MME-MAIN  - Network connection manager started (%d)", *fd);
 
   /*
    * Network receiving loop
@@ -204,9 +194,9 @@ static void *_nas_network_mngr(void *args)
        * * * * exit from the receiving loop
        */
       OAILOG_TRACE(
-        ERROR,
-        "MME-MAIN  - "
-        "Failed to read data from the network sublayer");
+          ERROR,
+          "MME-MAIN  - "
+          "Failed to read data from the network sublayer");
       break;
     }
 
@@ -233,7 +223,7 @@ static void *_nas_network_mngr(void *args)
      * Process the network data message
      */
     ret_code =
-      nas_network_process_data(network_message_id, network_api_get_data());
+        nas_network_process_data(network_message_id, network_api_get_data());
 
     if (ret_code != RETURNok) {
       /*
@@ -241,10 +231,10 @@ static void *_nas_network_mngr(void *args)
        * * * * processed
        */
       OAILOG_TRACE(
-        WARNING,
-        "MME-MAIN  - "
-        "The network procedure call 0x%x failed",
-        network_message_id);
+          WARNING,
+          "MME-MAIN  - "
+          "The network procedure call 0x%x failed",
+          network_message_id);
     }
   }
 
@@ -252,9 +242,9 @@ static void *_nas_network_mngr(void *args)
    * Close the connection to the network sublayer
    */
   OAILOG_TRACE(
-    WARNING,
-    "MME-MAIN  - "
-    "The network connection endpoint manager exited");
+      WARNING,
+      "MME-MAIN  - "
+      "The network connection endpoint manager exited");
   OAILOG_FUNC_RETURN(NULL);
 }
 
@@ -272,8 +262,7 @@ static void *_nas_network_mngr(void *args)
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _nas_set_signal_handler(int signal, void(handler)(int))
-{
+static int _nas_set_signal_handler(int signal, void(handler)(int)) {
   OAILOG_FUNC_IN;
   struct sigaction act;
 
@@ -305,7 +294,7 @@ static int _nas_set_signal_handler(int signal, void(handler)(int))
   }
 
   OAILOG_TRACE(
-    INFO, "MME-MAIN  - Handler successfully set for signal %d", signal);
+      INFO, "MME-MAIN  - Handler successfully set for signal %d", signal);
   OAILOG_FUNC_RETURN(RETURNok);
 }
 
@@ -322,8 +311,7 @@ static int _nas_set_signal_handler(int signal, void(handler)(int))
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _nas_signal_handler(int signal)
-{
+static void _nas_signal_handler(int signal) {
   OAILOG_FUNC_IN;
   OAILOG_TRACE(WARNING, "MME-MAIN  - Signal %d received", signal);
   _nas_clean(network_api_get_fd());
@@ -344,8 +332,7 @@ static void _nas_signal_handler(int signal)
  **          Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _nas_clean(int net_fd)
-{
+static void _nas_clean(int net_fd) {
   OAILOG_FUNC_IN;
   OAILOG_TRACE(INFO, "MME-MAIN  - Perform EMM and ESM cleanup");
   nas_network_cleanup();

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,9 +32,9 @@ class BaseApplication : public Application {
   BaseApplication(bool persist_state);
 
  private:
-  bool persist_state_ = false;
+  bool persist_state_                = false;
   static const uint32_t LOW_PRIORITY = 0;
-  static const uint16_t NEXT_TABLE = 1;
+  static const uint16_t NEXT_TABLE   = 1;
   /**
    * Main callback event required by inherited Application class. Whenever
    * the controller gets an event like packet in or switch up, it will pass
@@ -47,19 +43,16 @@ class BaseApplication : public Application {
    * @param ev (in) - some subclass of ControllerEvent that occurred
    */
   virtual void event_callback(
-    const ControllerEvent &ev,
-    const OpenflowMessenger &messenger);
+      const ControllerEvent& ev, const OpenflowMessenger& messenger);
 
   /**
    * Creates the default table 0 flow, which resubmits to table 1
    */
   void install_default_flow(
-    fluid_base::OFConnection *ofconn,
-    const OpenflowMessenger &messenger);
+      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger);
 
   void remove_all_flows(
-    fluid_base::OFConnection *ofconn,
-    const OpenflowMessenger &messenger);
+      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger);
 
   /**
    * Log all error messages sent to the controller. These can be rejected flows
@@ -67,7 +60,7 @@ class BaseApplication : public Application {
    *
    * @param ev (in) - Error event containing type and code of OF error
    */
-  void handle_error_message(const ErrorEvent &ev);
+  void handle_error_message(const ErrorEvent& ev);
 };
 
-} // namespace openflow
+}  // namespace openflow

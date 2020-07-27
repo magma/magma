@@ -538,7 +538,7 @@
     <V i="91">0</V>
     <V i="92">0</V>
     <V i="93">0</V>
-    <V i="94">0</V>
+    <V i="94">1000</V>
     <CV i="95">
       <SN>PDCP.UpOctUl.1</SN>
       <SV>0</SV>
@@ -559,7 +559,7 @@
       <SN>PDCP.UpOctUl.9</SN>
       <SV>0</SV>
     </CV>
-    <V i="96">0</V>
+    <V i="96">500</V>
     <CV i="97">
       <SN>PDCP.UpOctDl.1</SN>
       <SV>0</SV>

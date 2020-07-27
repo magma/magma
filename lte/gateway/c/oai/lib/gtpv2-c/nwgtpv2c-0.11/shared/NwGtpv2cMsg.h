@@ -39,7 +39,8 @@
 
 /**
  * @file NwGtpv2cMsg.h
- * @brief This file defines APIs for to build new outgoing gtpv2c messages and to parse incoming messages.
+ * @brief This file defines APIs for to build new outgoing gtpv2c messages and
+ * to parse incoming messages.
  */
 
 #ifdef __cplusplus
@@ -52,7 +53,7 @@ extern "C" {
 
 #define NW_GTP_VERSION (0x02) /**< GTP Version                         */
 #define NW_GTPV2C_MINIMUM_HEADER_SIZE                                          \
-  (8) /**< Size of GTPv2c minimum header       */
+  (8) /**< Size of GTPv2c minimun header       */
 #define NW_GTPV2C_EPC_SPECIFIC_HEADER_SIZE                                     \
   (12) /**< Size of GTPv2c EPC specific header  */
 
@@ -66,6 +67,8 @@ extern "C" {
 #define NW_GTP_MODIFY_BEARER_RSP (35)
 #define NW_GTP_DELETE_SESSION_REQ (36)
 #define NW_GTP_DELETE_SESSION_RSP (37)
+#define NW_GTP_REMOTE_UE_REPORT_NOTIFICATION (40)
+#define NW_GTP_GTP_REMOTE_UE_REPORT_ACK (41)
 #define NW_GTP_MODIFY_BEARER_CMD (64)
 #define NW_GTP_MODIFY_BEARER_FAILURE_IND (65)
 #define NW_GTP_DELETE_BEARER_CMD (66)
@@ -233,12 +236,9 @@ typedef struct nw_gtpv2c_ie_tlv_s {
  */
 
 nw_rc_t nwGtpv2cMsgNew(
-  NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-  NW_IN uint8_t teidPresent,
-  NW_IN uint8_t msgType,
-  NW_IN uint32_t teid,
-  NW_IN uint32_t seqNum,
-  NW_OUT nw_gtpv2c_msg_handle_t *phMsg);
+    NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle, NW_IN uint8_t teidPresent,
+    NW_IN uint8_t msgType, NW_IN uint32_t teid, NW_IN uint32_t seqNum,
+    NW_OUT nw_gtpv2c_msg_handle_t* phMsg);
 
 /**
  * Allocate a gtpv2c message from data buffer.
@@ -250,10 +250,8 @@ nw_rc_t nwGtpv2cMsgNew(
  */
 
 nw_rc_t nwGtpv2cMsgFromBufferNew(
-  NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-  NW_IN uint8_t *pBuf,
-  NW_IN uint32_t bufLen,
-  NW_OUT nw_gtpv2c_msg_handle_t *phMsg);
+    NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle, NW_IN uint8_t* pBuf,
+    NW_IN uint32_t bufLen, NW_OUT nw_gtpv2c_msg_handle_t* phMsg);
 
 /**
  * Free a gtpv2c message.
@@ -263,8 +261,8 @@ nw_rc_t nwGtpv2cMsgFromBufferNew(
  */
 
 nw_rc_t nwGtpv2cMsgDelete(
-  NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-  NW_IN nw_gtpv2c_msg_handle_t hMsg);
+    NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
+    NW_IN nw_gtpv2c_msg_handle_t hMsg);
 
 /**
  * Set TEID for gtpv2c message.
@@ -283,8 +281,7 @@ nw_rc_t nwGtpv2cMsgSetTeid(NW_IN nw_gtpv2c_msg_handle_t hMsg, uint32_t teid);
  */
 
 nw_rc_t nwGtpv2cMsgSetTeidPresent(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  bool teidPresent);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, bool teidPresent);
 
 /**
  * Set sequence for gtpv2c message.
@@ -294,8 +291,7 @@ nw_rc_t nwGtpv2cMsgSetTeidPresent(
  */
 
 nw_rc_t nwGtpv2cMsgSetSeqNumber(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  uint32_t seqNum);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, uint32_t seqNum);
 
 /**
  * Get TEID present for gtpv2c message.
@@ -322,7 +318,7 @@ bool nwGtpv2cMsgGetTeidPresent(NW_IN nw_gtpv2c_msg_handle_t hMsg);
 uint32_t nwGtpv2cMsgGetSeqNumber(NW_IN nw_gtpv2c_msg_handle_t hMsg);
 
 /**
- * Get msg length for gtpv2c message.
+ * Get msg lenght for gtpv2c message.
  *
  * @param[in] hMsg : Message handle.
  */
@@ -339,10 +335,8 @@ uint32_t nwGtpv2cMsgGetLength(NW_IN nw_gtpv2c_msg_handle_t hMsg);
  */
 
 nw_rc_t nwGtpv2cMsgAddIeTV1(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_IN uint8_t value);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_IN uint8_t value);
 
 /**
  * Add a gtpv2c information element of length 2 to gtpv2c message.
@@ -354,10 +348,8 @@ nw_rc_t nwGtpv2cMsgAddIeTV1(
  */
 
 nw_rc_t nwGtpv2cMsgAddIeTV2(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_IN uint16_t value);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_IN uint16_t value);
 
 /**
  * Add a gtpv2c information element of length 4 to gtpv2c message.
@@ -369,10 +361,8 @@ nw_rc_t nwGtpv2cMsgAddIeTV2(
  */
 
 nw_rc_t nwGtpv2cMsgAddIeTV4(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_IN uint32_t value);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_IN uint32_t value);
 
 /**
  * Add a gtpv2c information element of variable length to gtpv2c message.
@@ -385,11 +375,8 @@ nw_rc_t nwGtpv2cMsgAddIeTV4(
  */
 
 nw_rc_t nwGtpv2cMsgAddIe(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint16_t length,
-  NW_IN uint8_t instance,
-  NW_IN uint8_t *pVal);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint16_t length, NW_IN uint8_t instance, NW_IN uint8_t* pVal);
 
 /**
  * Add CAUSE information element to gtpv2c message.
@@ -397,18 +384,16 @@ nw_rc_t nwGtpv2cMsgAddIe(
  * @param[in] hMsg : Handle to gtpv2c message.
  * @param[in] instance : IE instance.
  * @param[in] causeValue: Cause value.
- * @param[in] bitFlags: PDN Connetiion IE Error Flag, Bearer Context IE Error Flag, Cause Source Flag.
+ * @param[in] bitFlags: PDN Connetiion IE Error Flag, Bearer Context IE Error
+ * Flag, Cause Source Flag.
  * @param[in] offendingIeType: Offending IE type.
  * @param[in] offendingIeInstance: Offending IE instance.
  */
 
 nw_rc_t nwGtpv2cMsgAddIeCause(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t instance,
-  NW_IN uint8_t causeValue,
-  NW_IN uint8_t bitFlags,
-  NW_IN uint8_t offendingIeType,
-  NW_IN uint8_t offendingIeInstance);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_IN uint8_t causeValue, NW_IN uint8_t bitFlags,
+    NW_IN uint8_t offendingIeType, NW_IN uint8_t offendingIeInstance);
 
 /**
  * Add F-TEID information element to gtpv2c message.
@@ -422,19 +407,34 @@ nw_rc_t nwGtpv2cMsgAddIeCause(
  */
 
 nw_rc_t nwGtpv2cMsgAddIeFteid(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t instance,
-  NW_IN uint8_t ifType,
-  NW_IN const uint32_t teidOrGreKey,
-  NW_IN const struct in_addr const *ipv4Addr,
-  NW_IN const struct in6_addr const *pIpv6Addr);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_IN uint8_t ifType, NW_IN const uint32_t teidOrGreKey,
+    NW_IN const struct in_addr* const ipv4Addr,
+    NW_IN const struct in6_addr* const pIpv6Addr);
 
 nw_rc_t nwGtpv2cMsgGroupedIeStart(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance);
 
 nw_rc_t nwGtpv2cMsgGroupedIeEnd(NW_IN nw_gtpv2c_msg_handle_t hMsg);
+
+/*
+ * New FTEIDs for Inter-MME S10 handover.
+ */
+
+nw_rc_t nwGtpv2cMsgAddIeFCause(
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_IN uint8_t fcauseType, NW_IN uint8_t fcauseValue);
+
+nw_rc_t nwGtpv2cMsgAddIeFContainer(
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_IN uint8_t* container_value, NW_IN uint32_t container_data_size,
+    NW_IN uint8_t container_type);
+
+nw_rc_t nwGtpv2cMsgAddIeCompleteRequestMessage(
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_IN uint8_t* request_value, NW_IN uint32_t request_size,
+    NW_IN uint8_t request_type);
 
 /**
  * Check if information element of type and instance is present
@@ -447,9 +447,8 @@ nw_rc_t nwGtpv2cMsgGroupedIeEnd(NW_IN nw_gtpv2c_msg_handle_t hMsg);
  */
 
 bool nwGtpv2cMsgIsIePresent(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance);
 
 /**
  * Get an information element of type 'uint8_t' from gtpv2c message.
@@ -462,10 +461,8 @@ bool nwGtpv2cMsgIsIePresent(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeTV1(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_OUT uint8_t *pVal);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_OUT uint8_t* pVal);
 
 /**
  * Get an information element of type 'uint16_t' from gtpv2c message.
@@ -478,10 +475,8 @@ nw_rc_t nwGtpv2cMsgGetIeTV1(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeTV2(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_OUT uint16_t *pVal);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_OUT uint16_t* pVal);
 
 /**
  * Get an information element of type 'uint32_t' from gtpv2c message.
@@ -494,10 +489,8 @@ nw_rc_t nwGtpv2cMsgGetIeTV2(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeTV4(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_OUT uint32_t *pVal);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_OUT uint32_t* pVal);
 
 /**
  * Get an information element of type 'uint64_t' from gtpv2c message.
@@ -510,10 +503,8 @@ nw_rc_t nwGtpv2cMsgGetIeTV4(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeTV8(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_OUT uint64_t *pVal);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_OUT uint64_t* pVal);
 
 /**
  * Get an information element of variable length from gtpv2c message.
@@ -528,12 +519,9 @@ nw_rc_t nwGtpv2cMsgGetIeTV8(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeTlv(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_IN uint16_t maxLen,
-  NW_OUT uint8_t *pVal,
-  NW_OUT uint16_t *pLen);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_IN uint16_t maxLen, NW_OUT uint8_t* pVal,
+    NW_OUT uint16_t* pLen);
 
 /**
  * Get an information element of variable length from gtpv2c message.
@@ -547,11 +535,8 @@ nw_rc_t nwGtpv2cMsgGetIeTlv(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeTlvP(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t type,
-  NW_IN uint8_t instance,
-  NW_OUT uint8_t **ppVal,
-  NW_OUT uint16_t *pLen);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t type,
+    NW_IN uint8_t instance, NW_OUT uint8_t** ppVal, NW_OUT uint16_t* pLen);
 
 /**
  * Get F-TEID information element to gtpv2c message.
@@ -565,20 +550,14 @@ nw_rc_t nwGtpv2cMsgGetIeTlvP(
  */
 
 nw_rc_t nwGtpv2cMsgGetIeFteid(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t instance,
-  NW_OUT uint8_t *ifType,
-  NW_OUT uint32_t *teidOrGreKey,
-  NW_OUT struct in_addr *ipv4Addr,
-  NW_OUT struct in6_addr *pIpv6Addr);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_OUT uint8_t* ifType, NW_OUT uint32_t* teidOrGreKey,
+    NW_OUT struct in_addr* ipv4Addr, NW_OUT struct in6_addr* pIpv6Addr);
 
 nw_rc_t nwGtpv2cMsgGetIeCause(
-  NW_IN nw_gtpv2c_msg_handle_t hMsg,
-  NW_IN uint8_t instance,
-  NW_OUT uint8_t *causeValue,
-  NW_OUT uint8_t *flags,
-  NW_OUT uint8_t *offendingIeType,
-  NW_OUT uint8_t *offendingIeInstance);
+    NW_IN nw_gtpv2c_msg_handle_t hMsg, NW_IN uint8_t instance,
+    NW_OUT uint8_t* causeValue, NW_OUT uint8_t* flags,
+    NW_OUT uint8_t* offendingIeType, NW_OUT uint8_t* offendingIeInstance);
 
 /**
  * Get msg type for gtpv2c message.
@@ -595,7 +574,7 @@ uint32_t nwGtpv2cMsgGetMsgType(NW_IN nw_gtpv2c_msg_handle_t hMsg);
  * @param[in] fp: Pointer to output file.
  */
 
-nw_rc_t nwGtpv2cMsgHexDump(nw_gtpv2c_msg_handle_t hMsg, FILE *fp);
+nw_rc_t nwGtpv2cMsgHexDump(nw_gtpv2c_msg_handle_t hMsg, FILE* fp);
 
 #ifdef __cplusplus
 }

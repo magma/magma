@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,28 +25,21 @@
 typedef uint8_t CipheringKeySequenceNumber;
 
 int encode_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 void dump_ciphering_key_sequence_number_xml(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei);
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei);
 
 uint8_t encode_u8_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber);
+    CipheringKeySequenceNumber* cipheringkeysequencenumber);
 
 int decode_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    uint8_t* buffer, uint32_t len);
 
 int decode_u8_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len);
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    uint8_t value, uint32_t len);
 
 #endif /* CIPHERING KEY SEQUENCE NUMBER_H_ */

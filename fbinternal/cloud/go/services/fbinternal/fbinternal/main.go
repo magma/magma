@@ -1,9 +1,14 @@
 /*
- Copyright (c) Facebook, Inc. and its affiliates.
- All rights reserved.
+Copyright 2020 The Magma Authors.
 
- This source code is licensed under the BSD-style license found in the
- LICENSE file in the root directory of this source tree.
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 package main
@@ -11,11 +16,11 @@ package main
 import (
 	"os"
 
+	"magma/fbinternal/cloud/go/fbinternal"
+	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
+	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
-	"orc8r/fbinternal/cloud/go/fbinternal"
-	fbinternal_service "orc8r/fbinternal/cloud/go/services/fbinternal"
-	"orc8r/fbinternal/cloud/go/services/fbinternal/servicers"
 
 	"github.com/golang/glog"
 )

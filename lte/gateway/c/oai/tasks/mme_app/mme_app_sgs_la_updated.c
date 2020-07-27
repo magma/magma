@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -57,7 +53,7 @@
 
 /****************************************************************************
  **                                                                        **
- ** Name:    sgs_la_update_requested_handler()                                            **
+ ** Name:    sgs_la_update_requested_handler() **
  **                                                                        **
  ** Description: Handles the behaviour of the UE in MME while the          **
  **              SGS is in SGS-LA_UPDATE_REQUEST state.                    **
@@ -68,17 +64,16 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int sgs_la_update_requested_handler(const sgs_fsm_t* evt)
-{
+int sgs_la_update_requested_handler(const sgs_fsm_t* evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   int rc = RETURNerror;
 
   if (sgs_fsm_get_status(evt->ue_id, evt->ctx) != SGS_LA_UPDATE_REQUESTED) {
     OAILOG_ERROR(
-      LOG_MME_APP,
-      "SGS not in the SGS_LA_UPDATE_REQUESTED state for UE "
-      "Id: " MME_UE_S1AP_ID_FMT "\n",
-      evt->ue_id);
+        LOG_MME_APP,
+        "SGS not in the SGS_LA_UPDATE_REQUESTED state for UE "
+        "Id: " MME_UE_S1AP_ID_FMT "\n",
+        evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -93,18 +88,18 @@ int sgs_la_update_requested_handler(const sgs_fsm_t* evt)
 
     case _SGS_PAGING_REQUEST: {
       OAILOG_DEBUG(
-        LOG_MME_APP,
-        "Handle paging request in SGS_LA_UPDATE_REQUESTED state for ue-id :"
-        "" MME_UE_S1AP_ID_FMT " \n",
-        evt->ue_id);
+          LOG_MME_APP,
+          "Handle paging request in SGS_LA_UPDATE_REQUESTED state for ue-id :"
+          "" MME_UE_S1AP_ID_FMT " \n",
+          evt->ue_id);
       rc = RETURNok;
     } break;
 
     case _SGS_EPS_DETACH_IND:
       /*
-     * SGS EPS Detach procedure successful
-     * enter state SGS-NULL.
-     */
+       * SGS EPS Detach procedure successful
+       * enter state SGS-NULL.
+       */
       rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
       break;
 
@@ -117,21 +112,21 @@ int sgs_la_update_requested_handler(const sgs_fsm_t* evt)
       break;
 
     case _SGS_RESET_INDICATION: {
-      /* No handling required, if Reset indication received in La-Update-Requested state */
+      /* No handling required, if Reset indication received in
+       * La-Update-Requested state */
       OAILOG_DEBUG(
-        LOG_MME_APP,
-        " Received Reset Indication while SGS context is in "
-        "La-Update-Requested state for ue_id"
-        " :%d \n",
-        evt->ue_id);
+          LOG_MME_APP,
+          " Received Reset Indication while SGS context is in "
+          "La-Update-Requested state for ue_id"
+          " :%d \n",
+          evt->ue_id);
       rc = RETURNok;
     } break;
 
     default:
       OAILOG_ERROR(
-        LOG_MME_APP,
-        "SGS-FSM   - Primitive is not valid (%d)\n",
-        evt->primitive);
+          LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+          evt->primitive);
       break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,11 +28,10 @@
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 int send_activate_bearer_request_itti(
-  itti_gx_nw_init_actv_bearer_request_t* itti_msg)
-{
+    itti_gx_nw_init_actv_bearer_request_t* itti_msg) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Sending nw_init_actv_bearer_request to SPGW \n");
   MessageDef* message_p = itti_alloc_new_message(
-    TASK_GRPC_SERVICE, GX_NW_INITIATED_ACTIVATE_BEARER_REQ);
+      TASK_GRPC_SERVICE, GX_NW_INITIATED_ACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_actv_bearer_request = *itti_msg;
 
   IMSI_STRING_TO_IMSI64((char*) itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
@@ -45,11 +40,10 @@ int send_activate_bearer_request_itti(
 }
 
 int send_deactivate_bearer_request_itti(
-  itti_gx_nw_init_deactv_bearer_request_t* itti_msg)
-{
+    itti_gx_nw_init_deactv_bearer_request_t* itti_msg) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Sending spgw_nw_init_deactv_bearer_request\n");
   MessageDef* message_p = itti_alloc_new_message(
-    TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
+      TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_deactv_bearer_request = *itti_msg;
 
   IMSI_STRING_TO_IMSI64((char*) itti_msg->imsi, &message_p->ittiMsgHeader.imsi);

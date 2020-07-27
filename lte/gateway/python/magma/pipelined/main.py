@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 # pylint: skip-file
 # pylint does not play well with aioeventlet, as it uses asyncio.async which
@@ -50,6 +54,11 @@ def main():
     # Set Ryu config params
     cfg.CONF.ofp_listen_host = "127.0.0.1"
 
+    # override mconfig using local config.
+    enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
+    service.config['enable_nat'] = enable_nat
+    logging.info("Nat: %s", enable_nat)
+
     # Load the ryu apps
     service_manager = ServiceManager(service)
     service_manager.load()
@@ -60,9 +69,6 @@ def main():
                 "Failed to set MASQUERADE: %d", returncode
             )
 
-    # override mconfig using local config.
-    enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
-    service.config['enable_nat'] = enable_nat
     # TODO fix this hack for XWF
     if enable_nat is True or service.config.get('setup_type') == 'XWF':
         call_process('iptables -t nat -A POSTROUTING -o %s -j MASQUERADE'

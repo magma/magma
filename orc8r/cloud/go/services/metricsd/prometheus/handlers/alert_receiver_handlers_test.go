@@ -8,8 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
-
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
 	"github.com/labstack/echo"
 	amconfig "github.com/prometheus/alertmanager/config"
 	"github.com/stretchr/testify/assert"

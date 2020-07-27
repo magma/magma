@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,12 +59,12 @@ typedef struct socket_id_s socket_id_t;
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void *socket_udp_open(int type, const char *host, const char *port);
-int socket_get_fd(const void *id);
+void* socket_udp_open(int type, const char* host, const char* port);
+int socket_get_fd(const void* id);
 
-ssize_t socket_recv(void *id, char *buffer, size_t length);
-ssize_t socket_send(const void *id, const char *buffer, size_t length);
+ssize_t socket_recv(void* id, char* buffer, size_t length);
+ssize_t socket_send(const void* id, const char* buffer, size_t length);
 
-void socket_close(void *id);
+void socket_close(void* id);
 
 #endif /* FILE_SOCKET_SEEN*/

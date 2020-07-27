@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 
 /*! \file log.h
@@ -127,7 +128,7 @@ extern int fd_g_debug_lvl;
 #define LOG_CONFIG_STRING_SGS_LOG_LEVEL "SGS_LOG_LEVEL"
 
 typedef enum {
-  MIN_LOG_LEVEL = 0,
+  MIN_LOG_LEVEL          = 0,
   OAILOG_LEVEL_EMERGENCY = MIN_LOG_LEVEL,
   OAILOG_LEVEL_ALERT,
   OAILOG_LEVEL_CRITICAL,
@@ -142,7 +143,7 @@ typedef enum {
 
 typedef enum {
   MIN_LOG_PROTOS = 0,
-  LOG_UDP = MIN_LOG_PROTOS,
+  LOG_UDP        = MIN_LOG_PROTOS,
   LOG_GTPV1U,
   LOG_GTPV2C,
   LOG_SCTP,
@@ -152,6 +153,8 @@ typedef enum {
   LOG_NAS_EMM,
   LOG_NAS_ESM,
   LOG_SPGW_APP,
+  LOG_PGW_APP,
+  LOG_S10,
   LOG_S11,
   LOG_S6A,
   LOG_SECU,
@@ -166,85 +169,99 @@ typedef enum {
 } log_proto_t;
 
 /*! \struct  log_thread_ctxt_t
-* \brief Structure containing a thread context.
-*/
+ * \brief Structure containing a thread context.
+ */
 typedef struct log_thread_ctxt_s {
   int indent;
   pthread_t tid;
 } log_thread_ctxt_t;
 
 /*! \struct  log_queue_item_t
-* \brief Structure containing a string to be logged.
-* This structure is pushed in thread safe queues by thread producers of logs.
-* This structure is then popped by a dedicated thread that will write the string
-* in the opened stream ( file, tcp, stdout)
-*/
+ * \brief Structure containing a string to be logged.
+ * This structure is pushed in thread safe queues by thread producers of logs.
+ * This structure is then popped by a dedicated thread that will write the
+ * string in the opened stream ( file, tcp, stdout)
+ */
 typedef struct log_queue_item_s {
   int32_t log_level; /*!< \brief log level for syslog. */
   bstring bstr;      /*!< \brief string containing the message. */
 } log_queue_item_t;
 
 /*! \struct  log_private_t
-* \brief Structure containing a string to be logged.
-* This structure is pushed in thread safe queues by thread producers of logs.
-* This structure is then popped by a dedicated thread that will write the string
-* in the opened stream ( file, tcp, stdout)
-*/
+ * \brief Structure containing a string to be logged.
+ * This structure is pushed in thread safe queues by thread producers of logs.
+ * This structure is then popped by a dedicated thread that will write the
+ * string in the opened stream ( file, tcp, stdout)
+ */
 typedef struct log_private_s {
   int32_t log_level; /*!< \brief log level. */
 } log_private_t;
 
 /*! \struct  log_config_t
-* \brief Structure containing the dynamically configurable parameters of the Logging facilities.
-* This structure is filled by configuration facilities when parsing a configuration file.
-*/
+ * \brief Structure containing the dynamically configurable parameters of the
+ * Logging facilities. This structure is filled by configuration facilities when
+ * parsing a configuration file.
+ */
 typedef struct log_config_s {
-  bstring
-    output; /*!< \brief Where logs go, choice in { "CONSOLE", "`path to file`", "`IPv4@`:`TCP port num`"} . */
-  bool
-    is_output_thread_safe; /*!< \brief Is final string goes in a thread safe buffer of is flushed without care . */
+  bstring output; /*!< \brief Where logs go, choice in { "CONSOLE", "`path to
+                     file`", "`IPv4@`:`TCP port num`"} . */
+  bool is_output_thread_safe; /*!< \brief Is final string goes in a thread safe
+                                 buffer of is flushed without care . */
   log_level_t
-    udp_log_level; /*!< \brief UDP ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      udp_log_level; /*!< \brief UDP ITTI task log level starting from
+                        OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  log_level_t gtpv1u_log_level; /*!< \brief GTPv1-U ITTI task log level starting
+                                   from OAILOG_LEVEL_EMERGENCY up to
+                                   MAX_LOG_LEVEL (no log) */
+  log_level_t gtpv2c_log_level; /*!< \brief GTPv2-C ITTI task log level starting
+                                   from OAILOG_LEVEL_EMERGENCY up to
+                                   MAX_LOG_LEVEL (no log) */
   log_level_t
-    gtpv1u_log_level; /*!< \brief GTPv1-U ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      sctp_log_level; /*!< \brief SCTP ITTI task log level starting from
+                         OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
-    gtpv2c_log_level; /*!< \brief GTPv2-C ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      s1ap_log_level; /*!< \brief S1AP ITTI task log level starting from
+                         OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
-    sctp_log_level; /*!< \brief SCTP ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      nas_log_level; /*!< \brief NAS ITTI task log level starting from
+                        OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  log_level_t mme_app_log_level;  /*!< \brief MME-APP ITTI task log level
+                                     starting from OAILOG_LEVEL_EMERGENCY up to
+                                     MAX_LOG_LEVEL (no log) */
+  log_level_t spgw_app_log_level; /*!< \brief SP-GW ITTI task log level starting
+                                     from OAILOG_LEVEL_EMERGENCY up to
+                                     MAX_LOG_LEVEL (no log) */
   log_level_t
-    s1ap_log_level; /*!< \brief S1AP ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      s11_log_level; /*!< \brief S11 ITTI task log level starting from
+                        OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
-    nas_log_level; /*!< \brief NAS ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      s6a_log_level; /*!< \brief S6a layer log level starting from
+                        OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
-    mme_app_log_level; /*!< \brief MME-APP ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      secu_log_level; /*!< \brief LTE security log level starting from
+                         OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
-    spgw_app_log_level; /*!< \brief SP-GW ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      util_log_level; /*!< \brief Misc utilities log level starting from
+                         OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  log_level_t async_system_log_level; /*!< \brief async system log level
+                                         starting from OAILOG_LEVEL_EMERGENCY up
+                                         to MAX_LOG_LEVEL (no log) */
   log_level_t
-    s11_log_level; /*!< \brief S11 ITTI task log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+      itti_log_level; /*!< \brief ITTI layer log level starting from
+                         OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
   log_level_t
-    s6a_log_level; /*!< \brief S6a layer log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    secu_log_level; /*!< \brief LTE security log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    util_log_level; /*!< \brief Misc utilities log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    async_system_log_level; /*!< \brief async system log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    itti_log_level; /*!< \brief ITTI layer log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  log_level_t
-    sgs_log_level; /*!< \brief SGS layer log level starting from OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
-  uint8_t
-    asn1_verbosity_level; /*!< \brief related to asn1c generated code for S1AP verbosity level */
-  bool color; /*!< \brief use of ANSI styling codes or no */
+      sgs_log_level;            /*!< \brief SGS layer log level starting from
+                                   OAILOG_LEVEL_EMERGENCY up to MAX_LOG_LEVEL (no log) */
+  uint8_t asn1_verbosity_level; /*!< \brief related to asn1c generated code for
+                                   S1AP verbosity level */
+  bool color;                   /*!< \brief use of ANSI styling codes or no */
 } log_config_t;
 
-inline void nop(int x, ...)
-{
+inline void nop(int x, ...) {
   (void) x;
 }
 
-inline void nopp(void *x, ...)
-{
+inline void nopp(void* x, ...) {
   (void) x;
 }
 
@@ -258,111 +275,79 @@ inline void nopp(void *x, ...)
     nopp(__VA_ARGS__);                                                         \
   } while (0)
 
-void log_configure(const log_config_t *const config);
-const char *log_level_int2str(const log_level_t log_level);
-log_level_t log_level_str2int(const char *const log_level_str);
+void log_configure(const log_config_t* const config);
+const char* log_level_int2str(const log_level_t log_level);
+log_level_t log_level_str2int(const char* const log_level_str);
 
 int log_init(
-  const char *app_name,
-  log_level_t default_log_levelP,
-  int max_threadsP);
+    const char* app_name, log_level_t default_log_levelP, int max_threadsP);
 
 void log_itti_connect(void);
 void log_start_use(void);
 struct shared_log_queue_item_s;
 
-void log_flush_message(struct shared_log_queue_item_s *item_p)
-  __attribute__((hot));
+void log_flush_message(struct shared_log_queue_item_s* item_p)
+    __attribute__((hot));
 
 void log_stream_hex(
-  const log_level_t log_levelP,
-  const log_proto_t protoP,
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  const char *const messageP,
-  const char *const streamP,
-  const size_t sizeP);
+    const log_level_t log_levelP, const log_proto_t protoP,
+    const char* const source_fileP, const unsigned int line_numP,
+    const char* const messageP, const char* const streamP, const size_t sizeP);
 
 void log_message_add_async(
-  struct shared_log_queue_item_s *contextP,
-  char *format,
-  ...) __attribute__((format(printf, 2, 3)));
+    struct shared_log_queue_item_s* contextP, char* format, ...)
+    __attribute__((format(printf, 2, 3)));
 
-void log_message_add_sync(log_queue_item_t *messageP, char *format, ...);
+void log_message_add_sync(log_queue_item_t* messageP, char* format, ...);
 
-void log_message_finish(void *contextP);
+void log_message_finish(void* contextP);
 
 void log_message_start_async(
-  log_thread_ctxt_t *const thread_ctxtP,
-  const log_level_t log_levelP,
-  const log_proto_t protoP,
-  struct shared_log_queue_item_s **contextP, // Out parameter
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  char *format,
-  ...) __attribute__((format(printf, 7, 8)));
+    log_thread_ctxt_t* const thread_ctxtP, const log_level_t log_levelP,
+    const log_proto_t protoP,
+    struct shared_log_queue_item_s** contextP,  // Out parameter
+    const char* const source_fileP, const unsigned int line_numP, char* format,
+    ...) __attribute__((format(printf, 7, 8)));
 
 void log_message_start_sync(
-  log_thread_ctxt_t *const thread_ctxtP,
-  const log_level_t log_levelP,
-  const log_proto_t protoP,
-  log_queue_item_t **messageP, // Out parameter
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  char *format,
-  ...) __attribute__((format(printf, 7, 8)));
+    log_thread_ctxt_t* const thread_ctxtP, const log_level_t log_levelP,
+    const log_proto_t protoP,
+    log_queue_item_t** messageP,  // Out parameter
+    const char* const source_fileP, const unsigned int line_numP, char* format,
+    ...) __attribute__((format(printf, 7, 8)));
 
 void log_func(
-  bool is_entering,
-  const log_proto_t protoP,
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  const char *const function);
+    bool is_entering, const log_proto_t protoP, const char* const source_fileP,
+    const unsigned int line_numP, const char* const function);
 
 void log_func_return(
-  const log_proto_t protoP,
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  const char *const functionP,
-  const long return_codeP);
+    const log_proto_t protoP, const char* const source_fileP,
+    const unsigned int line_numP, const char* const functionP,
+    const long return_codeP);
 
 void log_message(
-  log_thread_ctxt_t *const thread_ctxtP,
-  const log_level_t log_levelP,
-  const log_proto_t protoP,
-  const char *const source_fileP,
-  const unsigned int line_numP,
-  const char *format,
-  ...) __attribute__((format(printf, 6, 7)));
+    log_thread_ctxt_t* const thread_ctxtP, const log_level_t log_levelP,
+    const log_proto_t protoP, const char* const source_fileP,
+    const unsigned int line_numP, const char* format, ...)
+    __attribute__((format(printf, 6, 7)));
 
 void log_message_prefix_id(
-    log_level_t log_levelP,
-    log_proto_t protoP,
-    const char* source_fileP,
-    unsigned int line_numP,
-    uint64_t prefix_id,
-    const char* format, ...)
+    log_level_t log_levelP, log_proto_t protoP, const char* source_fileP,
+    unsigned int line_numP, uint64_t prefix_id, const char* format, ...)
     __attribute__((format(printf, 6, 7)));
 
 void log_message_int(
-    log_thread_ctxt_t *const thread_ctxtP,
-    const log_level_t log_levelP,
+    log_thread_ctxt_t* const thread_ctxtP, const log_level_t log_levelP,
     const log_proto_t protoP,
-    void **contextP, // Out parameter
-    const char *const source_fileP,
-    const unsigned int line_numP,
-    const char *format,
-    va_list args);
+    void** contextP,  // Out parameter
+    const char* const source_fileP, const unsigned int line_numP,
+    const char* format, va_list args);
 
 void log_message_int_prefix_id(
-    const log_level_t log_levelP,
-    const log_proto_t protoP,
-    void **contextP, // Out parameter
-    const char *const source_fileP,
-    const unsigned int line_numP,
-    const uint64_t prefix_id,
-    const char *format,
-    va_list args);
+    const log_level_t log_levelP, const log_proto_t protoP,
+    void** contextP,  // Out parameter
+    const char* const source_fileP, const unsigned int line_numP,
+    const uint64_t prefix_id, const char* format, va_list args);
 
 int append_log_ctx_info(
     bstring bstr, const log_level_t* log_levelP, const log_proto_t* protoP,
@@ -371,13 +356,12 @@ int append_log_ctx_info(
     const char* short_source_fileP);
 
 int append_log_ctx_info_prefix_id(
-    const uint64_t prefix_id, bstring bstr, const log_level_t* log_levelP, const log_proto_t* protoP,
-    const unsigned int line_numP, size_t filename_length,
-    const log_thread_ctxt_t* thread_ctxt, time_t* cur_time,
-    const char* short_source_fileP);
+    const uint64_t prefix_id, bstring bstr, const log_level_t* log_levelP,
+    const log_proto_t* protoP, const unsigned int line_numP,
+    size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
+    time_t* cur_time, const char* short_source_fileP);
 
-const char *const get_short_file_name(
-  const char *const source_file_nameP);
+const char* const get_short_file_name(const char* const source_file_nameP);
 
 #define OAILOG_LOG_CONFIGURE log_configure
 #define OAILOG_LEVEL_STR2INT log_level_str2int
@@ -387,84 +371,86 @@ const char *const get_short_file_name(
 #define OAILOG_SPEC(pRoTo, ...)                                                \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_NOTICE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);    \
+        NULL, OAILOG_LEVEL_NOTICE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
   } while (0) /*!< \brief 3GPP trace on specifications */
 #define OAILOG_EMERGENCY(pRoTo, ...)                                           \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_EMERGENCY, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__); \
+        NULL, OAILOG_LEVEL_EMERGENCY, pRoTo, __FILE__, __LINE__,               \
+        ##__VA_ARGS__);                                                        \
   } while (0) /*!< \brief system is unusable */
 #define OAILOG_ALERT(pRoTo, ...)                                               \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_ALERT, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);     \
+        NULL, OAILOG_LEVEL_ALERT, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);   \
   } while (0) /*!< \brief action must be taken immediately */
 #define OAILOG_CRITICAL(pRoTo, ...)                                            \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_CRITICAL, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
+        NULL, OAILOG_LEVEL_CRITICAL, pRoTo, __FILE__, __LINE__,                \
+        ##__VA_ARGS__);                                                        \
   } while (0) /*!< \brief critical conditions */
 #define OAILOG_ERROR(pRoTo, ...)                                               \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_ERROR, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);     \
+        NULL, OAILOG_LEVEL_ERROR, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);   \
   } while (0) /*!< \brief error conditions */
 #define OAILOG_WARNING(pRoTo, ...)                                             \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_WARNING, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);   \
+        NULL, OAILOG_LEVEL_WARNING, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__); \
   } while (0) /*!< \brief warning conditions */
 #define OAILOG_NOTICE(pRoTo, ...)                                              \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_NOTICE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);    \
+        NULL, OAILOG_LEVEL_NOTICE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);  \
   } while (0) /*!< \brief normal but significant condition */
 #define OAILOG_INFO(pRoTo, ...)                                                \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);      \
+        NULL, OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);    \
   } while (0) /*!< \brief informational */
 #define OAILOG_MESSAGE_START_SYNC(lOgLeVeL, pRoTo, cOnTeXt, ...)               \
   do {                                                                         \
     log_message_start_sync(                                                    \
-      NULL, lOgLeVeL, pRoTo, cOnTeXt, __FILE__, __LINE__, ##__VA_ARGS__);      \
-  } while (                                                                    \
-    0) /*!< \brief when need to log only 1 message with many char messages, ex formating a dumped struct */
+        NULL, lOgLeVeL, pRoTo, cOnTeXt, __FILE__, __LINE__, ##__VA_ARGS__);    \
+  } while (0) /*!< \brief when need to log only 1 message with many char       \
+                 messages, ex formating a dumped struct */
 #define OAILOG_MESSAGE_START_ASYNC(lOgLeVeL, pRoTo, cOnTeXt, ...)              \
   do {                                                                         \
     log_message_start_async(                                                   \
-      NULL, lOgLeVeL, pRoTo, cOnTeXt, __FILE__, __LINE__, ##__VA_ARGS__);      \
-  } while (                                                                    \
-    0) /*!< \brief when need to log only 1 message with many char messages, ex formating a dumped struct */
+        NULL, lOgLeVeL, pRoTo, cOnTeXt, __FILE__, __LINE__, ##__VA_ARGS__);    \
+  } while (0) /*!< \brief when need to log only 1 message with many char       \
+                 messages, ex formating a dumped struct */
 #define OAILOG_MESSAGE_ADD_SYNC(cOnTeXt, ...)                                  \
   do {                                                                         \
     log_message_add_sync(cOnTeXt, ##__VA_ARGS__);                              \
-  } while (                                                                    \
-    0) /*!< \brief can be called as many times as needed after OAILOG_MESSAGE_START() */
+  } while (0) /*!< \brief can be called as many times as needed after          \
+                 OAILOG_MESSAGE_START() */
 #define OAILOG_MESSAGE_ADD_ASYNC(cOnTeXt, ...)                                 \
   do {                                                                         \
     log_message_add_async(cOnTeXt, ##__VA_ARGS__);                             \
-  } while (                                                                    \
-    0) /*!< \brief can be called as many times as needed after OAILOG_MESSAGE_START() */
+  } while (0) /*!< \brief can be called as many times as needed after          \
+                 OAILOG_MESSAGE_START() */
 #define OAILOG_MESSAGE_FINISH(cOnTeXt)                                         \
   do {                                                                         \
     log_message_finish(cOnTeXt);                                               \
-  } while (                                                                    \
-    0) /*!< \brief Send the message built by OAILOG_MESSAGE_START() n*LOG_MESSAGE_ADD() (n=0..N) */
+  } while (0) /*!< \brief Send the message built by OAILOG_MESSAGE_START()     \
+                 n*LOG_MESSAGE_ADD() (n=0..N) */
 #define OAILOG_STREAM_HEX(lOgLeVeL, pRoTo, mEsSaGe, sTrEaM, sIzE)              \
   do {                                                                         \
     /* clang-format off */ \
                                                                    OAI_GCC_DIAG_OFF(pointer-sign);                                                   \
     /* clang-format on */                                                      \
     log_stream_hex(                                                            \
-      lOgLeVeL, pRoTo, __FILE__, __LINE__, mEsSaGe, sTrEaM, sIzE);             \
+        lOgLeVeL, pRoTo, __FILE__, __LINE__, mEsSaGe, sTrEaM, sIzE);           \
     OAI_GCC_DIAG_ON(pointer - sign);                                           \
   } while (0); /*!< \brief trace buffer content */
 #if DEBUG_IS_ON
 #define OAILOG_DEBUG(pRoTo, ...)                                               \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_DEBUG, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);     \
+        NULL, OAILOG_LEVEL_DEBUG, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);   \
   } while (0) /*!< \brief debug informations */
 #define OAILOG_DEBUG_UE(pRoTo, ue_id, ...)                                     \
   do {                                                                         \
@@ -479,7 +465,7 @@ const char *const get_short_file_name(
 #define OAILOG_TRACE(pRoTo, ...)                                               \
   do {                                                                         \
     log_message(                                                               \
-      NULL, OAILOG_LEVEL_TRACE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);     \
+        NULL, OAILOG_LEVEL_TRACE, pRoTo, __FILE__, __LINE__, ##__VA_ARGS__);   \
   } while (0) /*!< \brief most detailed information, struct dumps */
 #define OAILOG_TRACE_UE(pRoTo, ue_id, ...)                                     \
   do {                                                                         \
@@ -498,7 +484,7 @@ const char *const get_short_file_name(
 #define OAILOG_FUNC_RETURN(pRoTo, rEtUrNcOdE)                                  \
   do {                                                                         \
     log_func_return(                                                           \
-      pRoTo, __FILE__, __LINE__, __FUNCTION__, (long) rEtUrNcOdE);             \
+        pRoTo, __FILE__, __LINE__, __FUNCTION__, (long) rEtUrNcOdE);           \
     return rEtUrNcOdE;                                                         \
   } while (0) /*!< \brief informational */
 #endif
@@ -593,4 +579,4 @@ const char *const get_short_file_name(
     log_message_prefix_id(                                                     \
         OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ue_id, ##__VA_ARGS__);   \
   } while (0) /*!< \brief informational */
-#endif /* FILE_LOG_SEEN */
+#endif        /* FILE_LOG_SEEN */

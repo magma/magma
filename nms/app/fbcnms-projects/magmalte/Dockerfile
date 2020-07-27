@@ -1,4 +1,4 @@
-FROM node:10-alpine as builder
+FROM node:12.18-alpine as builder
 
 RUN apk add python g++ make libx11 glew-dev libxi-dev ca-certificates
 

@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -53,9 +49,7 @@
 /****************************************************************************/
 
 int emm_msg_encode_header(
-  const emm_msg_header_t *header,
-  uint8_t *buffer,
-  uint32_t len);
+    const emm_msg_header_t* header, uint8_t* buffer, uint32_t len);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -79,8 +73,7 @@ int emm_msg_encode_header(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
-{
+int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int header_result = 0;
   int decode_result = 0;
@@ -92,37 +85,38 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
   if (header_result < 0) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "EMM-MSG   - Failed to decode EMM message header "
-      "(%d)\n",
-      header_result);
+        LOG_NAS_EMM,
+        "EMM-MSG   - Failed to decode EMM message header "
+        "(%d)\n",
+        header_result);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, header_result);
   }
 
   buffer += header_result;
   len -= header_result;
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMM-MSG   - Message Type 0x%02x\n", msg->header.message_type);
+      LOG_NAS_EMM, "EMM-MSG   - Message Type 0x%02x\n",
+      msg->header.message_type);
 
   switch (msg->header.message_type) {
     case EMM_INFORMATION:
       decode_result =
-        decode_emm_information(&msg->emm_information, buffer, len);
+          decode_emm_information(&msg->emm_information, buffer, len);
       break;
 
     case UPLINK_NAS_TRANSPORT:
       decode_result =
-        decode_uplink_nas_transport(&msg->uplink_nas_transport, buffer, len);
+          decode_uplink_nas_transport(&msg->uplink_nas_transport, buffer, len);
       break;
 
     case AUTHENTICATION_REJECT:
-      decode_result =
-        decode_authentication_reject(&msg->authentication_reject, buffer, len);
+      decode_result = decode_authentication_reject(
+          &msg->authentication_reject, buffer, len);
       break;
 
     case AUTHENTICATION_FAILURE:
       decode_result = decode_authentication_failure(
-        &msg->authentication_failure, buffer, len);
+          &msg->authentication_failure, buffer, len);
       break;
 
     case DETACH_ACCEPT:
@@ -135,12 +129,12 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case AUTHENTICATION_REQUEST:
       decode_result = decode_authentication_request(
-        &msg->authentication_request, buffer, len);
+          &msg->authentication_request, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_REQUEST:
       decode_result = decode_tracking_area_update_request(
-        &msg->tracking_area_update_request, buffer, len);
+          &msg->tracking_area_update_request, buffer, len);
       break;
 
     case ATTACH_REQUEST:
@@ -153,22 +147,22 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case IDENTITY_RESPONSE:
       decode_result =
-        decode_identity_response(&msg->identity_response, buffer, len);
+          decode_identity_response(&msg->identity_response, buffer, len);
       break;
 
     case IDENTITY_REQUEST:
       decode_result =
-        decode_identity_request(&msg->identity_request, buffer, len);
+          decode_identity_request(&msg->identity_request, buffer, len);
       break;
 
     case GUTI_REALLOCATION_COMMAND:
       decode_result = decode_guti_reallocation_command(
-        &msg->guti_reallocation_command, buffer, len);
+          &msg->guti_reallocation_command, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_REJECT:
       decode_result = decode_tracking_area_update_reject(
-        &msg->tracking_area_update_reject, buffer, len);
+          &msg->tracking_area_update_reject, buffer, len);
       break;
 
     case ATTACH_ACCEPT:
@@ -177,12 +171,12 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case SECURITY_MODE_COMPLETE:
       decode_result = decode_security_mode_complete(
-        &msg->security_mode_complete, buffer, len);
+          &msg->security_mode_complete, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_ACCEPT:
       decode_result = decode_tracking_area_update_accept(
-        &msg->tracking_area_update_accept, buffer, len);
+          &msg->tracking_area_update_accept, buffer, len);
       break;
 
     case ATTACH_REJECT:
@@ -191,22 +185,22 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case ATTACH_COMPLETE:
       decode_result =
-        decode_attach_complete(&msg->attach_complete, buffer, len);
+          decode_attach_complete(&msg->attach_complete, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_COMPLETE:
       decode_result = decode_tracking_area_update_complete(
-        &msg->tracking_area_update_complete, buffer, len);
+          &msg->tracking_area_update_complete, buffer, len);
       break;
 
     case CS_SERVICE_NOTIFICATION:
       decode_result = decode_cs_service_notification(
-        &msg->cs_service_notification, buffer, len);
+          &msg->cs_service_notification, buffer, len);
       break;
 
     case SECURITY_MODE_REJECT:
       decode_result =
-        decode_security_mode_reject(&msg->security_mode_reject, buffer, len);
+          decode_security_mode_reject(&msg->security_mode_reject, buffer, len);
       break;
 
     case DETACH_REQUEST:
@@ -215,47 +209,45 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case GUTI_REALLOCATION_COMPLETE:
       decode_result = decode_guti_reallocation_complete(
-        &msg->guti_reallocation_complete, buffer, len);
+          &msg->guti_reallocation_complete, buffer, len);
       break;
 
     case SECURITY_MODE_COMMAND:
-      decode_result =
-        decode_security_mode_command(&msg->security_mode_command, buffer, len);
+      decode_result = decode_security_mode_command(
+          &msg->security_mode_command, buffer, len);
       break;
 
     case DOWNLINK_NAS_TRANSPORT:
       decode_result = decode_downlink_nas_transport(
-        &msg->downlink_nas_transport, buffer, len);
+          &msg->downlink_nas_transport, buffer, len);
       break;
 
     case EXTENDED_SERVICE_REQUEST:
       decode_result = decode_extended_service_request(
-        &msg->extended_service_request, buffer, len);
+          &msg->extended_service_request, buffer, len);
       break;
 
     case AUTHENTICATION_RESPONSE:
       decode_result = decode_authentication_response(
-        &msg->authentication_response, buffer, len);
+          &msg->authentication_response, buffer, len);
       break;
 
     default:
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-MSG   - Unexpected message type: 0x%x\n",
-        msg->header.message_type);
+          LOG_NAS_EMM, "EMM-MSG   - Unexpected message type: 0x%x\n",
+          msg->header.message_type);
       decode_result = TLV_WRONG_MESSAGE_TYPE;
       /*
-     * TODO: Handle not standard layer 3 messages: SERVICE_REQUEST
-     */
+       * TODO: Handle not standard layer 3 messages: SERVICE_REQUEST
+       */
   }
 
   if (decode_result < 0) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "EMM-MSG   - Failed to decode L3 EMM message 0x%x "
-      "(%d)\n",
-      msg->header.message_type,
-      decode_result);
+        LOG_NAS_EMM,
+        "EMM-MSG   - Failed to decode L3 EMM message 0x%x "
+        "(%d)\n",
+        msg->header.message_type, decode_result);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, decode_result);
   }
 
@@ -279,8 +271,7 @@ int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
-{
+int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int header_result;
   int encode_result;
@@ -292,10 +283,10 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
   if (header_result < 0) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "EMM-MSG   - Failed to encode EMM message header "
-      "(%d)\n",
-      header_result);
+        LOG_NAS_EMM,
+        "EMM-MSG   - Failed to encode EMM message header "
+        "(%d)\n",
+        header_result);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, header_result);
   }
 
@@ -309,7 +300,7 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case ATTACH_COMPLETE:
       encode_result =
-        encode_attach_complete(&msg->attach_complete, buffer, len);
+          encode_attach_complete(&msg->attach_complete, buffer, len);
       break;
 
     case ATTACH_REJECT:
@@ -318,27 +309,27 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case AUTHENTICATION_FAILURE:
       encode_result = encode_authentication_failure(
-        &msg->authentication_failure, buffer, len);
+          &msg->authentication_failure, buffer, len);
       break;
 
     case AUTHENTICATION_REJECT:
-      encode_result =
-        encode_authentication_reject(&msg->authentication_reject, buffer, len);
+      encode_result = encode_authentication_reject(
+          &msg->authentication_reject, buffer, len);
       break;
 
     case AUTHENTICATION_REQUEST:
       encode_result = encode_authentication_request(
-        &msg->authentication_request, buffer, len);
+          &msg->authentication_request, buffer, len);
       break;
 
     case AUTHENTICATION_RESPONSE:
       encode_result = encode_authentication_response(
-        &msg->authentication_response, buffer, len);
+          &msg->authentication_response, buffer, len);
       break;
 
     case CS_SERVICE_NOTIFICATION:
       encode_result = encode_cs_service_notification(
-        &msg->cs_service_notification, buffer, len);
+          &msg->cs_service_notification, buffer, len);
       break;
 
     case DETACH_ACCEPT:
@@ -351,12 +342,12 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case DOWNLINK_NAS_TRANSPORT:
       encode_result = encode_downlink_nas_transport(
-        &msg->downlink_nas_transport, buffer, len);
+          &msg->downlink_nas_transport, buffer, len);
       break;
 
     case EMM_INFORMATION:
       encode_result =
-        encode_emm_information(&msg->emm_information, buffer, len);
+          encode_emm_information(&msg->emm_information, buffer, len);
       break;
 
     case EMM_STATUS:
@@ -365,42 +356,42 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case EXTENDED_SERVICE_REQUEST:
       encode_result = encode_extended_service_request(
-        &msg->extended_service_request, buffer, len);
+          &msg->extended_service_request, buffer, len);
       break;
 
     case GUTI_REALLOCATION_COMMAND:
       encode_result = encode_guti_reallocation_command(
-        &msg->guti_reallocation_command, buffer, len);
+          &msg->guti_reallocation_command, buffer, len);
       break;
 
     case GUTI_REALLOCATION_COMPLETE:
       encode_result = encode_guti_reallocation_complete(
-        &msg->guti_reallocation_complete, buffer, len);
+          &msg->guti_reallocation_complete, buffer, len);
       break;
 
     case IDENTITY_REQUEST:
       encode_result =
-        encode_identity_request(&msg->identity_request, buffer, len);
+          encode_identity_request(&msg->identity_request, buffer, len);
       break;
 
     case IDENTITY_RESPONSE:
       encode_result =
-        encode_identity_response(&msg->identity_response, buffer, len);
+          encode_identity_response(&msg->identity_response, buffer, len);
       break;
 
     case SECURITY_MODE_COMMAND:
-      encode_result =
-        encode_security_mode_command(&msg->security_mode_command, buffer, len);
+      encode_result = encode_security_mode_command(
+          &msg->security_mode_command, buffer, len);
       break;
 
     case SECURITY_MODE_COMPLETE:
       encode_result = encode_security_mode_complete(
-        &msg->security_mode_complete, buffer, len);
+          &msg->security_mode_complete, buffer, len);
       break;
 
     case SECURITY_MODE_REJECT:
       encode_result =
-        encode_security_mode_reject(&msg->security_mode_reject, buffer, len);
+          encode_security_mode_reject(&msg->security_mode_reject, buffer, len);
       break;
 
     case SERVICE_REJECT:
@@ -409,57 +400,55 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
 
     case SERVICE_REQUEST:
       encode_result =
-        encode_service_request(&msg->service_request, buffer, len);
+          encode_service_request(&msg->service_request, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_ACCEPT:
       encode_result = encode_tracking_area_update_accept(
-        &msg->tracking_area_update_accept, buffer, len);
+          &msg->tracking_area_update_accept, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_COMPLETE:
       encode_result = encode_tracking_area_update_complete(
-        &msg->tracking_area_update_complete, buffer, len);
+          &msg->tracking_area_update_complete, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_REJECT:
       encode_result = encode_tracking_area_update_reject(
-        &msg->tracking_area_update_reject, buffer, len);
+          &msg->tracking_area_update_reject, buffer, len);
       break;
 
     case TRACKING_AREA_UPDATE_REQUEST:
       encode_result = encode_tracking_area_update_request(
-        &msg->tracking_area_update_request, buffer, len);
+          &msg->tracking_area_update_request, buffer, len);
       break;
 
     case NW_DETACH_REQUEST:
       encode_result =
-        encode_nw_detach_request(&msg->nw_detach_request, buffer, len);
+          encode_nw_detach_request(&msg->nw_detach_request, buffer, len);
       break;
 
     case UPLINK_NAS_TRANSPORT:
       encode_result =
-        encode_uplink_nas_transport(&msg->uplink_nas_transport, buffer, len);
+          encode_uplink_nas_transport(&msg->uplink_nas_transport, buffer, len);
       break;
 
     default:
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMM-MSG   - Unexpected message type: 0x%x\n",
-        msg->header.message_type);
+          LOG_NAS_EMM, "EMM-MSG   - Unexpected message type: 0x%x\n",
+          msg->header.message_type);
       encode_result = TLV_WRONG_MESSAGE_TYPE;
       /*
-     * TODO: Handle not standard layer 3 messages: SERVICE_REQUEST
-     */
+       * TODO: Handle not standard layer 3 messages: SERVICE_REQUEST
+       */
   }
 
   if (encode_result < 0) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "EMM-MSG   - Failed to encode L3 EMM message 0x%x "
-      "(%d)\n",
-      msg->header.message_type,
-      encode_result);
+        LOG_NAS_EMM,
+        "EMM-MSG   - Failed to encode L3 EMM message 0x%x "
+        "(%d)\n",
+        msg->header.message_type, encode_result);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, header_result + encode_result);
@@ -490,10 +479,7 @@ int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len)
  **                                                                        **
  ***************************************************************************/
 int emm_msg_decode_header(
-  emm_msg_header_t *header,
-  const uint8_t *buffer,
-  uint32_t len)
-{
+    emm_msg_header_t* header, const uint8_t* buffer, uint32_t len) {
   int size = 0;
 
   /*
@@ -506,7 +492,7 @@ int emm_msg_decode_header(
   /*
    * Decode the security header type and the protocol discriminator
    */
-  DECODE_U8(buffer + size, *(uint8_t *) (header), size);
+  DECODE_U8(buffer + size, *(uint8_t*) (header), size);
   /*
    * Decode the message type
    */
@@ -517,9 +503,8 @@ int emm_msg_decode_header(
    */
   if (header->protocol_discriminator != EPS_MOBILITY_MANAGEMENT_MESSAGE) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
-      header->protocol_discriminator);
+        LOG_NAS_EMM, "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
+        header->protocol_discriminator);
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
@@ -545,10 +530,7 @@ int emm_msg_decode_header(
  **                                                                        **
  ***************************************************************************/
 int emm_msg_encode_header(
-  const emm_msg_header_t *header,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    const emm_msg_header_t* header, uint8_t* buffer, uint32_t len) {
   int size = 0;
 
   /*
@@ -563,16 +545,15 @@ int emm_msg_encode_header(
    */
   if (header->protocol_discriminator != EPS_MOBILITY_MANAGEMENT_MESSAGE) {
     OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
-      header->protocol_discriminator);
+        LOG_NAS_EMM, "ESM-MSG   - Unexpected protocol discriminator: 0x%x\n",
+        header->protocol_discriminator);
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
 
   /*
    * Encode the security header type and the protocol discriminator
    */
-  ENCODE_U8(buffer + size, *(uint8_t *) (header), size);
+  ENCODE_U8(buffer + size, *(uint8_t*) (header), size);
   /*
    * Encode the message type
    */

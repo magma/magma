@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -64,27 +60,20 @@ Description Defines EMM procedures executed by the Non-Access Stratum
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring *nas_msg);
-int lowerlayer_failure(mme_ue_s1ap_id_t ueid, STOLEN_REF bstring *nas_msg);
+int lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg);
+int lowerlayer_failure(mme_ue_s1ap_id_t ueid, STOLEN_REF bstring* nas_msg);
 int lowerlayer_non_delivery_indication(
-  mme_ue_s1ap_id_t ue_id,
-  STOLEN_REF bstring *nas_msg);
+    mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* nas_msg);
 int lowerlayer_establish(void);
 int lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause);
 
 int lowerlayer_data_ind(mme_ue_s1ap_id_t ueid, const_bstring data);
 int lowerlayer_data_req(mme_ue_s1ap_id_t ueid, bstring data);
 int lowerlayer_activate_bearer_req(
-  const mme_ue_s1ap_id_t ue_id,
-  const ebi_t ebi,
-  const bitrate_t mbr_dl,
-  const bitrate_t mbr_ul,
-  const bitrate_t gbr_dl,
-  const bitrate_t gbr_ul,
-  bstring data);
+    const mme_ue_s1ap_id_t ue_id, const ebi_t ebi, const bitrate_t mbr_dl,
+    const bitrate_t mbr_ul, const bitrate_t gbr_dl, const bitrate_t gbr_ul,
+    bstring data);
 int lowerlayer_deactivate_bearer_req(
-  const mme_ue_s1ap_id_t ue_id,
-  const ebi_t ebi,
-  bstring data);
+    const mme_ue_s1ap_id_t ue_id, const ebi_t ebi, bstring data);
 
 #endif /* __LOWERLAYER_H__*/

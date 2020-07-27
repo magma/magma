@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,15 +25,18 @@
 #define TRACKING_AREA_IDENTITY_MAX_NUM_OF_TAIS 16
 
 #define INVALID_TAC_0000                                                       \
-  (uint16_t) 0x0000 /*!< \brief  The following are reserved hexadecimal values of the TAC: 0000, and FFFE.   */
+  (uint16_t) 0x0000 /*!< \brief  The following are reserved hexadecimal values \
+                       of the TAC: 0000, and FFFE.   */
 #define INVALID_TAC_FFFE                                                       \
-  (uint16_t) 0xFFFE /*!< \brief  The following are reserved hexadecimal values of the TAC: 0000, and FFFE.   */
+  (uint16_t) 0xFFFE /*!< \brief  The following are reserved hexadecimal values \
+                       of the TAC: 0000, and FFFE.   */
 
-typedef uint16_t
-  tac_t; /*!< \brief  Tracking Area Code (TAC) is a fixed length code (of 2 octets) identifying
-                                                                        a Tracking Area within a PLMN. This part of the tracking area identification
-                                                                        shall be coded using a full hexadecimal representation. The following are
-                                                                        reserved hexadecimal values of the TAC: 0000, and FFFE.   */
+typedef uint16_t tac_t; /*!< \brief  Tracking Area Code (TAC) is a fixed length
+                           code (of 2 octets) identifying a Tracking Area within
+                           a PLMN. This part of the tracking area identification
+                           shall be coded using a full hexadecimal
+                           representation. The following are reserved
+                           hexadecimal values of the TAC: 0000, and FFFE.   */
 typedef struct tai_s {
   uint8_t mcc_digit2 : 4;
   uint8_t mcc_digit1 : 4;
@@ -72,19 +71,20 @@ typedef struct paging_tai_list_s {
 // MCC digit 2 MCC digit 1 octet 1
 // MNC digit 3 MCC digit 3 octet 2
 // MNC digit 2 MNC digit 1 octet 3
-// The coding of this field is the responsibility of each administration but BCD coding
-// shall be used. The MNC shall consist of 2 or 3 digits. If a network operator decides
-// to use only two digits in the MNC, bits 5 to 8 of octet 2 shall be coded as "1111".
+// The coding of this field is the responsibility of each administration but BCD
+// coding shall be used. The MNC shall consist of 2 or 3 digits. If a network
+// operator decides to use only two digits in the MNC, bits 5 to 8 of octet 2
+// shall be coded as "1111".
 #define PLMN_FMT "%c%c%c.%c%c%c"
 #define PLMN_ARG(PlMn_PtR)                                                     \
   (char) ((PlMn_PtR)->mcc_digit1 + 0x30),                                      \
-    (char) ((PlMn_PtR)->mcc_digit2 + 0x30),                                    \
-    (char) ((PlMn_PtR)->mcc_digit3 + 0x30),                                    \
-    (char) ((PlMn_PtR)->mnc_digit1 + 0x30),                                    \
-    (char) ((PlMn_PtR)->mnc_digit2 + 0x30),                                    \
-    (((PlMn_PtR)->mnc_digit3) == 0x0f) ?                                       \
-      ' ' :                                                                    \
-      (char) ((PlMn_PtR)->mnc_digit3 + 0x30)
+      (char) ((PlMn_PtR)->mcc_digit2 + 0x30),                                  \
+      (char) ((PlMn_PtR)->mcc_digit3 + 0x30),                                  \
+      (char) ((PlMn_PtR)->mnc_digit1 + 0x30),                                  \
+      (char) ((PlMn_PtR)->mnc_digit2 + 0x30),                                  \
+      (((PlMn_PtR)->mnc_digit3) == 0x0f) ?                                     \
+          ' ' :                                                                \
+          (char) ((PlMn_PtR)->mnc_digit3 + 0x30)
 
 /* Checks PLMN validity !?! */
 #define PLMN_IS_VALID(plmn)                                                    \
@@ -115,15 +115,9 @@ typedef struct paging_tai_list_s {
 #endif
 
 int encode_tracking_area_identity(
-  tai_t *tai,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    tai_t* tai, uint8_t iei, uint8_t* buffer, uint32_t len);
 int decode_tracking_area_identity(
-  tai_t *tai,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
-void clear_tai(tai_t *const tai);
+    tai_t* tai, uint8_t iei, uint8_t* buffer, uint32_t len);
+void clear_tai(tai_t* const tai);
 
 #endif /* TRACKING AREA IDENTITY_SEEN */

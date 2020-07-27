@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 // package interceptors implements all cloud service framework unary interceptors
@@ -77,7 +82,7 @@ func init() {
 // Certificate Serial Number (if present), makes sure that the found Identity
 // is of a Gateway & fills in all available Gateway Identity information
 // SetIdentityFromContext will bypass the Identity checks for local callers
-// (other services on the cloud) and whitelisted RPCs (methods in
+// (other services on the cloud) and allowlisted RPCs (methods in
 // identityDecoratorBypassList)
 func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.UnaryServerInfo) (newCtx context.Context, newReq interface{}, resp interface{}, err error) {
 	//
@@ -138,9 +143,9 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 	}
 
 	if info != nil {
-		// Check if the call is for a whitelisted method - anything is allowed
+		// Check if the call is for a allowlisted method - anything is allowed
 		// do this check past possible identity decoration to still allow to add
-		// valid identity even to whitelisted requests
+		// valid identity even to allowlisted requests
 		if _, ok := identityDecoratorBypassList[info.FullMethod]; ok {
 			// Bypass method (Bootstrapper & Co.), shortcut...
 			return newCtx, newReq, resp, nil

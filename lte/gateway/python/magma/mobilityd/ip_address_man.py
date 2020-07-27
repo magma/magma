@@ -1,11 +1,14 @@
 """
-Copyright (c) 2020-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 The IP allocator maintains the life cycle of assigned IP addresses.
 
@@ -134,6 +137,8 @@ class IPAddressManager:
         if not persist_to_redis:
             self._assigned_ip_blocks = set()  # {ip_block}
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
+            self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
+
         else:
             if not redis_port:
                 raise ValueError(
@@ -141,16 +146,18 @@ class IPAddressManager:
             client = get_default_client()
             self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
             self.sid_ips_map = store.IPDescDict(client)
+            self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
         logging.info("Using allocator: %s", self.allocator_type)
+
         if self.allocator_type == MobilityD.IP_POOL:
+            self._dhcp_gw_info.read_default_gw()
             self.ip_allocator = IpAllocatorStatic(self._assigned_ip_blocks,
                                                   self.ip_state_map,
                                                   self.sid_ips_map)
         elif self.allocator_type == MobilityD.DHCP:
             dhcp_store = store.MacToIP()  # mac => DHCP_State
-            dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
             self.ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
@@ -158,7 +165,7 @@ class IPAddressManager:
                                                 iface=iface,
                                                 retry_limit=retry_limit,
                                                 dhcp_store=dhcp_store,
-                                                gw_info=dhcp_gw_info)
+                                                gw_info=self._dhcp_gw_info)
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -358,6 +365,20 @@ class IPAddressManager:
             IP_RELEASED_TOTAL.inc()
 
             self._try_set_recycle_timer()  # start the timer to recycle
+
+    def get_gateway_ip_adress(self):
+        with self._lock:
+            return self._dhcp_gw_info.getIP()
+
+    def get_gateway_mac_adress(self):
+        with self._lock:
+            return self._dhcp_gw_info.getMac()
+
+    def set_gateway_ip_and_mac(self, ip: str, mac: str):
+        with self._lock:
+            logging.info("set ip %s mac: [%s]" % (ip, mac))
+            self._dhcp_gw_info.update_mac(mac)
+            self._dhcp_gw_info.update_ip(ip)
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs

@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,15 +24,11 @@
 #include "IdentityType2.h"
 
 int decode_identity_type_2(
-  IdentityType2 *identitytype2,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    IdentityType2* identitytype2, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-    buffer, IDENTITY_TYPE_2_MINIMUM_LENGTH, len);
+      buffer, IDENTITY_TYPE_2_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
@@ -51,13 +43,9 @@ int decode_identity_type_2(
 }
 
 int decode_u8_identity_type_2(
-  IdentityType2 *identitytype2,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len)
-{
-  int decoded = 0;
-  uint8_t *buffer = &value;
+    IdentityType2* identitytype2, uint8_t iei, uint8_t value, uint32_t len) {
+  int decoded     = 0;
+  uint8_t* buffer = &value;
 
   *identitytype2 = *buffer & 0x7;
   decoded++;
@@ -68,18 +56,14 @@ int decode_u8_identity_type_2(
 }
 
 int encode_identity_type_2(
-  IdentityType2 *identitytype2,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    IdentityType2* identitytype2, uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, IDENTITY_TYPE_2_MINIMUM_LENGTH, len);
+      buffer, IDENTITY_TYPE_2_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_identity_type_2_xml(identitytype2, iei);
 #endif
@@ -88,12 +72,11 @@ int encode_identity_type_2(
   return encoded;
 }
 
-uint8_t encode_u8_identity_type_2(IdentityType2 *identitytype2)
-{
+uint8_t encode_u8_identity_type_2(IdentityType2* identitytype2) {
   uint8_t bufferReturn;
-  uint8_t *buffer = &bufferReturn;
+  uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei = 0;
+  uint8_t iei     = 0;
 
 #if NAS_DEBUG
   dump_identity_type_2_xml(identitytype2, 0);
@@ -103,8 +86,7 @@ uint8_t encode_u8_identity_type_2(IdentityType2 *identitytype2)
   return bufferReturn;
 }
 
-void dump_identity_type_2_xml(IdentityType2 *identitytype2, uint8_t iei)
-{
+void dump_identity_type_2_xml(IdentityType2* identitytype2, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Identity Type 2>\n");
 
   if (iei > 0)
@@ -114,6 +96,6 @@ void dump_identity_type_2_xml(IdentityType2 *identitytype2, uint8_t iei)
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS, "    <Type of identity>%u</Type of identity>\n", *identitytype2);
+      LOG_NAS, "    <Type of identity>%u</Type of identity>\n", *identitytype2);
   OAILOG_DEBUG(LOG_NAS, "</Identity Type 2>\n");
 }

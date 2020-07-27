@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,7 +27,7 @@ extern "C" {
 
 namespace grpc {
 class ServerContext;
-} // namespace grpc
+}  // namespace grpc
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -49,10 +45,8 @@ SpgwServiceImpl::SpgwServiceImpl() {}
  * CreateBearer is called by North Bound to create dedicated bearers
  */
 Status SpgwServiceImpl::CreateBearer(
-  ServerContext* context,
-  const CreateBearerRequest* request,
-  CreateBearerResult* response)
-{
+    ServerContext* context, const CreateBearerRequest* request,
+    CreateBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received CreateBearer GRPC request\n");
   itti_gx_nw_init_actv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
@@ -77,15 +71,15 @@ Status SpgwServiceImpl::CreateBearer(
   // request.
   // (2) Refactor this code with functions to copy from
   // policy rules to itti message fields
-  bearer_qos_t* qos = &itti_msg.eps_bearer_qos;
+  bearer_qos_t* qos               = &itti_msg.eps_bearer_qos;
   traffic_flow_template_t* ul_tft = &itti_msg.ul_tft;
   traffic_flow_template_t* dl_tft = &itti_msg.dl_tft;
   for (const auto& policy_rule : request->policy_rules()) {
     // Copy the QoS vector specified in the policy rule
-    qos->pci = policy_rule.qos().arp().pre_capability();
-    qos->pl = policy_rule.qos().arp().priority_level();
-    qos->pvi = policy_rule.qos().arp().pre_vulnerability();
-    qos->qci = policy_rule.qos().qci();
+    qos->pci       = policy_rule.qos().arp().pre_capability();
+    qos->pl        = policy_rule.qos().arp().priority_level();
+    qos->pvi       = policy_rule.qos().arp().pre_vulnerability();
+    qos->qci       = policy_rule.qos().qci();
     qos->gbr.br_ul = policy_rule.qos().gbr_ul();
     qos->gbr.br_dl = policy_rule.qos().gbr_dl();
     qos->mbr.br_ul = policy_rule.qos().max_req_bw_ul();
@@ -108,79 +102,74 @@ Status SpgwServiceImpl::CreateBearer(
       }
       // There is flow rule to process, but already maxed out UL or DL PFs
       // handle this as error and cancel RPC call
-      if (
-        ((ul_count_packetfilters ==
-          TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX) &&
-         (flow.match().direction() == FlowMatch::UPLINK)) ||
-        ((dl_count_packetfilters ==
-          TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX) &&
-         (flow.match().direction() == FlowMatch::DOWNLINK))) {
+      if (((ul_count_packetfilters ==
+            TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX) &&
+           (flow.match().direction() == FlowMatch::UPLINK)) ||
+          ((dl_count_packetfilters ==
+            TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX) &&
+           (flow.match().direction() == FlowMatch::DOWNLINK))) {
         OAILOG_INFO(
-          LOG_UTIL,
-          "Received More UL or DL Flow Rules in Policy Rule (%d) than the"
-          " maximum packet filters allowed (%d), rejecting the request \n",
-          policy_rule.flow_list().size(),
-          TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX);
+            LOG_UTIL,
+            "Received More UL or DL Flow Rules in Policy Rule (%d) than the"
+            " maximum packet filters allowed (%d), rejecting the request \n",
+            policy_rule.flow_list().size(),
+            TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX);
         return Status::CANCELLED;
       }
 
-      if (
-        (flow.match().direction() == FlowMatch::UPLINK) &&
-        (ul_count_packetfilters <
-         TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
+      if ((flow.match().direction() == FlowMatch::UPLINK) &&
+          (ul_count_packetfilters <
+           TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
         ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-          .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
+            .direction = TRAFFIC_FLOW_TEMPLATE_UPLINK_ONLY;
         ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-          .eval_precedence = policy_rule.priority();
+            .eval_precedence = policy_rule.priority();
         if (!fillUpPacketFilterContents(
-              &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
-                 .packetfiltercontents,
-              &flow.match())) {
+                &ul_tft->packetfilterlist.createnewtft[ul_count_packetfilters]
+                     .packetfiltercontents,
+                &flow.match())) {
           OAILOG_ERROR(
-            LOG_UTIL,
-            "The uplink packet filter contents are not formatted correctly."
-            "Cancelling dedicated bearer request. \n");
+              LOG_UTIL,
+              "The uplink packet filter contents are not formatted correctly."
+              "Cancelling dedicated bearer request. \n");
           return Status::CANCELLED;
         }
         ++ul_count_packetfilters;
       } else if (
-        (flow.match().direction() == FlowMatch::DOWNLINK) &&
-        (dl_count_packetfilters <
-         TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
+          (flow.match().direction() == FlowMatch::DOWNLINK) &&
+          (dl_count_packetfilters <
+           TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX)) {
         dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
-          .direction = TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
+            .direction = TRAFFIC_FLOW_TEMPLATE_DOWNLINK_ONLY;
         dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
-          .eval_precedence = policy_rule.priority();
+            .eval_precedence = policy_rule.priority();
         if (!fillUpPacketFilterContents(
-              &dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
-                 .packetfiltercontents,
-              &flow.match())) {
+                &dl_tft->packetfilterlist.createnewtft[dl_count_packetfilters]
+                     .packetfiltercontents,
+                &flow.match())) {
           OAILOG_ERROR(
-            LOG_UTIL,
-            "The downlink packet filter contents are not formatted correctly."
-            "Cancelling dedicated bearer request. \n");
+              LOG_UTIL,
+              "The downlink packet filter contents are not formatted correctly."
+              "Cancelling dedicated bearer request. \n");
           return Status::CANCELLED;
         }
         ++dl_count_packetfilters;
       }
 
       OAILOG_DEBUG(
-        LOG_UTIL,
-        " Flow Tuple (0 or empty if field does not exist)"
-        " IP Protocol Number: %d"
-        " Source IP address: %s"
-        " Source TCP port: %d"
-        " Source UDP port: %d"
-        " Destination IP address: %s"
-        " Destination TCP port: %d"
-        " Destination UDP port: %d \n",
-        flow.match().ip_proto(),
-        flow.match().ipv4_src().c_str(),
-        flow.match().tcp_src(),
-        flow.match().udp_src(),
-        flow.match().ipv4_dst().c_str(),
-        flow.match().tcp_dst(),
-        flow.match().udp_dst());
+          LOG_UTIL,
+          " Flow Tuple (0 or empty if field does not exist)"
+          " IP Protocol Number: %d"
+          " Source IP address: %s"
+          " Source TCP port: %d"
+          " Source UDP port: %d"
+          " Destination IP address: %s"
+          " Destination TCP port: %d"
+          " Destination UDP port: %d \n",
+          flow.match().ip_proto(), flow.match().ipv4_src().c_str(),
+          flow.match().tcp_src(), flow.match().udp_src(),
+          flow.match().ipv4_dst().c_str(), flow.match().tcp_dst(),
+          flow.match().udp_dst());
     }
 
     ul_tft->numberofpacketfilters = ul_count_packetfilters;
@@ -189,18 +178,16 @@ Status SpgwServiceImpl::CreateBearer(
   }
 
   return Status::OK;
-} // namespace magma
+}  // namespace magma
 
 Status SpgwServiceImpl::DeleteBearer(
-  ServerContext* context,
-  const DeleteBearerRequest* request,
-  DeleteBearerResult* response)
-{
+    ServerContext* context, const DeleteBearerRequest* request,
+    DeleteBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
   itti_msg.imsi_length = request->sid().id().size();
   strcpy(itti_msg.imsi, request->sid().id().c_str());
-  itti_msg.lbi = request->link_bearer_id();
+  itti_msg.lbi           = request->link_bearer_id();
   itti_msg.no_of_bearers = request->eps_bearer_ids_size();
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
@@ -211,10 +198,8 @@ Status SpgwServiceImpl::DeleteBearer(
 }
 
 bool SpgwServiceImpl::fillUpPacketFilterContents(
-  packet_filter_contents_t* pf_content,
-  const FlowMatch* flow_match_rule)
-{
-  uint16_t flags = 0;
+    packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule) {
+  uint16_t flags                            = 0;
   pf_content->protocolidentifier_nextheader = flow_match_rule->ip_proto();
   if (pf_content->protocolidentifier_nextheader) {
     flags |= TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
@@ -275,9 +260,7 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
 bool SpgwServiceImpl::fillIpv4(
-  packet_filter_contents_t* pf_content,
-  const std::string ipv4addr)
-{
+    packet_filter_contents_t* pf_content, const std::string ipv4addr) {
   const auto cidrNetworkExpect = folly::IPAddress::tryCreateNetwork(ipv4addr);
   if (cidrNetworkExpect.hasError()) {
     OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv4addr.c_str());
@@ -287,33 +270,29 @@ bool SpgwServiceImpl::fillIpv4(
   uint32_t ipv4addrHBO = cidrNetworkExpect.value().first.asV4().toLongHBO();
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
     pf_content->ipv4remoteaddr[i].addr = (unsigned char) ipv4addrHBO & 0xFF;
-    ipv4addrHBO = ipv4addrHBO >> 8;
+    ipv4addrHBO                        = ipv4addrHBO >> 8;
   }
 
   // Get the mask length:
   // folly takes care of absence of mask_len by defaulting to 32
   // i.e., 255.255.255.255.
-  int mask_len = cidrNetworkExpect.value().second;
-  uint32_t mask = UINT32_MAX;       // all ones
-  mask = (mask << (32 - mask_len)); // first mask_len bits are 1s, rest 0s
+  int mask_len  = cidrNetworkExpect.value().second;
+  uint32_t mask = UINT32_MAX;        // all ones
+  mask = (mask << (32 - mask_len));  // first mask_len bits are 1s, rest 0s
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
     pf_content->ipv4remoteaddr[i].mask = (unsigned char) mask & 0xFF;
-    mask = mask >> 8;
+    mask                               = mask >> 8;
   }
 
   OAILOG_DEBUG(
-    LOG_UTIL,
-    "Network Address: %d.%d.%d.%d "
-    "Network Mask: %d.%d.%d.%d \n",
-    pf_content->ipv4remoteaddr[0].addr,
-    pf_content->ipv4remoteaddr[1].addr,
-    pf_content->ipv4remoteaddr[2].addr,
-    pf_content->ipv4remoteaddr[3].addr,
-    pf_content->ipv4remoteaddr[0].mask,
-    pf_content->ipv4remoteaddr[1].mask,
-    pf_content->ipv4remoteaddr[2].mask,
-    pf_content->ipv4remoteaddr[3].mask);
+      LOG_UTIL,
+      "Network Address: %d.%d.%d.%d "
+      "Network Mask: %d.%d.%d.%d \n",
+      pf_content->ipv4remoteaddr[0].addr, pf_content->ipv4remoteaddr[1].addr,
+      pf_content->ipv4remoteaddr[2].addr, pf_content->ipv4remoteaddr[3].addr,
+      pf_content->ipv4remoteaddr[0].mask, pf_content->ipv4remoteaddr[1].mask,
+      pf_content->ipv4remoteaddr[2].mask, pf_content->ipv4remoteaddr[3].mask);
   return true;
 }
 
-} // namespace magma
+}  // namespace magma

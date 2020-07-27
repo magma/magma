@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package handlers
@@ -13,10 +18,10 @@ import (
 	"net/http"
 	"sort"
 
+	"magma/fbinternal/cloud/go/services/testcontroller"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/cloud/go/obsidian"
-	"orc8r/fbinternal/cloud/go/services/testcontroller"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/storage"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -43,10 +48,23 @@ const (
 	CINodesManuallyReservePath = CINodesGetPath + obsidian.UrlSep + CIReserveBase
 	CINodesManuallyReleasePath = CINodesGetPath + obsidian.UrlSep + CIReleaseBase
 	CINodesReleasePath         = CINodesGetPath + obsidian.UrlSep + CIReleaseBase + obsidian.UrlSep + LeaseIDArg
+
+	tagParamName          = "tag"
+	listUntaggedParamName = "list_untagged"
 )
 
 func listCINodes(c echo.Context) error {
-	nodes, err := testcontroller.GetNodes(nil)
+	tagVal := c.QueryParam(tagParamName)
+	shouldListUntagged := len(c.QueryParam(listUntaggedParamName)) > 0
+	var tag *string
+	if tagVal != "" {
+		tag = &tagVal
+	}
+	if shouldListUntagged {
+		tag = strPtr("")
+	}
+
+	nodes, err := testcontroller.GetNodes(nil, tag)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -65,7 +83,7 @@ func getCINode(c echo.Context) error {
 		return nerr
 	}
 
-	nodes, err := testcontroller.GetNodes(idParam)
+	nodes, err := testcontroller.GetNodes(idParam, nil)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -85,7 +103,7 @@ func createCINode(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, VpnIP: string(*node.VpnIP)})
+	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -109,7 +127,7 @@ func updateCINode(c echo.Context) error {
 	if *node.ID != idParam[0] {
 		return obsidian.HttpError(errors.New("payload ID does not match path param"), http.StatusBadRequest)
 	}
-	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, VpnIP: string(*node.VpnIP)})
+	err := testcontroller.CreateOrUpdateNode(&storage.MutableCINode{Id: *node.ID, Tag: node.Tag, VpnIP: string(*node.VpnIP)})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -130,7 +148,7 @@ func deleteCINode(c echo.Context) error {
 }
 
 func leaseCINode(c echo.Context) error {
-	lease, err := testcontroller.LeaseNode()
+	lease, err := testcontroller.LeaseNode(c.QueryParam(tagParamName))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -212,6 +230,7 @@ func protoNodeToModel(n *storage.CINode) *models.CiNode {
 	return &models.CiNode{
 		Available:     swag.Bool(n.Available),
 		ID:            swag.String(n.Id),
+		Tag:           n.Tag,
 		LastLeaseTime: strfmt.DateTime(lastLeaseTime),
 		VpnIP:         ipv4Ptr(n.VpnIp),
 	}
@@ -220,4 +239,8 @@ func protoNodeToModel(n *storage.CINode) *models.CiNode {
 func ipv4Ptr(s string) *strfmt.IPv4 {
 	ip := strfmt.IPv4(s)
 	return &ip
+}
+
+func strPtr(s string) *string {
+	return &s
 }

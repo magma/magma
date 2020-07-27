@@ -26,12 +26,12 @@ declare module '@testing-library/react-hooks' {
     callback: () => void | ReactDOMTestUtilsThenable
   ) => ReactDOMTestUtilsThenable;
 
-  declare export type RenderResult = { 
-      result: { current: TResult  },
-      unmount:() => void,
-      waitForNextUpdate: (options?:{}) => Promise<void>,
-      rerender: (TProps) => void
-    }
+  declare export type RenderResult<TResult> = {
+    result: { current: TResult  },
+    unmount:() => void,
+    waitForNextUpdate: (options?:{}) => Promise<void>,
+    rerender: (TProps) => void
+  }
 
   declare export function renderHook<TProps, TResult>(
     hookFn:(props:TProps) => TResult,
@@ -39,10 +39,10 @@ declare module '@testing-library/react-hooks' {
       initialProps:TProps,
       wrapper:React.ComponentType<{children:React.Node}>,
     }>
-  ) : RenderResult
+  ) : RenderResult<TResult>
 
   declare export var act: ReactDOMTestUtilsAct
-  
+
 }
 
 /**

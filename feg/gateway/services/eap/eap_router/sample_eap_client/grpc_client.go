@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package main implements sample eap_router service client
@@ -15,6 +20,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
@@ -50,7 +56,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	log.Printf("Dailing EAP Router at: %s", *serverAddr)
+	glog.Errorf("Dailing EAP Router at: %s", *serverAddr)
 
 	conn, err := grpc.DialContext(ctx, *serverAddr,
 		grpc.WithBackoffMaxDelay(10*time.Second), grpc.WithBlock(), grpc.WithInsecure())
@@ -65,20 +71,20 @@ func main() {
 	methods, err := client.SupportedMethods(grpcCtx, &protos.Void{})
 
 	if err != nil {
-		log.Fatalf("SuportedMethods error: %v", err)
+		glog.Fatalf("SuportedMethods error: %v", err)
 	}
-	log.Printf("Supported EAP Methods: %v\n", methods.Methods)
+	glog.Infof("Supported EAP Methods: %v\n", methods.Methods)
 
-	log.Printf("Sending  EAP: %v\n", initResp)
+	glog.Infof("Sending  EAP: %v\n", initResp)
 	res, err := client.HandleIdentity(grpcCtx, &protos.EapIdentity{Payload: initResp, Method: 23})
 	if err != nil {
-		log.Fatalf("HandleIdentity error: %v", err)
+		glog.Fatalf("HandleIdentity error: %v", err)
 	}
 	if !reflect.DeepEqual(res.GetPayload(), expectedInitReq) {
-		log.Fatalf(
+		glog.Fatalf(
 			"Unexpected identity Request received\n\tReceived: %.3v\n\tExpected: %.3v",
 			res.GetPayload(), expectedInitReq)
 	}
-	log.Printf("Received EAP: %v\n", res.GetPayload())
+	glog.Infof("Received EAP: %v\n", res.GetPayload())
 	conn.Close()
 }

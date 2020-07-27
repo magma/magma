@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,53 +37,47 @@ extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
 static struct {
   int genl_id;
-  struct mnl_socket *nl;
+  struct mnl_socket* nl;
   bool is_enabled;
 } gtp_nl;
 
 #define GTP_DEVNAME "gtp0"
 
 int libgtpnl_init(
-  struct in_addr *ue_net,
-  uint32_t mask,
-  int mtu,
-  int *fd0,
-  int *fd1u,
-  bool persist_state)
-{
+    struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0, int* fd1u,
+    bool persist_state) {
   // we don't need GTP v0, but interface with kernel requires 2 file descriptors
-  *fd0 = socket(AF_INET, SOCK_DGRAM, 0);
-  *fd1u = socket(AF_INET, SOCK_DGRAM, 0);
+  *fd0                            = socket(AF_INET, SOCK_DGRAM, 0);
+  *fd1u                           = socket(AF_INET, SOCK_DGRAM, 0);
   struct sockaddr_in sockaddr_fd0 = {
-    .sin_family = AF_INET,
-    .sin_port = htons(3386),
-    .sin_addr =
-      {
-        .s_addr = INADDR_ANY,
-      },
+      .sin_family = AF_INET,
+      .sin_port   = htons(3386),
+      .sin_addr =
+          {
+              .s_addr = INADDR_ANY,
+          },
   };
   struct sockaddr_in sockaddr_fd1 = {
-    .sin_family = AF_INET,
-    .sin_port = htons(GTPV1U_UDP_PORT),
-    .sin_addr =
-      {
-        .s_addr = INADDR_ANY,
-      },
+      .sin_family = AF_INET,
+      .sin_port   = htons(GTPV1U_UDP_PORT),
+      .sin_addr =
+          {
+              .s_addr = INADDR_ANY,
+          },
   };
 
-  if (bind(*fd0, (struct sockaddr *) &sockaddr_fd0, sizeof(sockaddr_fd0)) < 0) {
+  if (bind(*fd0, (struct sockaddr*) &sockaddr_fd0, sizeof(sockaddr_fd0)) < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "bind GTPv0 port");
     return RETURNerror;
   }
-  if (
-    bind(*fd1u, (struct sockaddr *) &sockaddr_fd1, sizeof(sockaddr_fd1)) < 0) {
+  if (bind(*fd1u, (struct sockaddr*) &sockaddr_fd1, sizeof(sockaddr_fd1)) < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "bind S1U port");
     return RETURNerror;
   }
 
   if (gtp_dev_create(-1, GTP_DEVNAME, *fd0, *fd1u) < 0) {
     OAILOG_ERROR(
-      LOG_GTPV1U, "Cannot create GTP tunnel device: %s\n", strerror(errno));
+        LOG_GTPV1U, "Cannot create GTP tunnel device: %s\n", strerror(errno));
     return RETURNerror;
   }
   gtp_nl.is_enabled = true;
@@ -103,18 +93,15 @@ int libgtpnl_init(
     return RETURNerror;
   }
   OAILOG_NOTICE(
-    LOG_GTPV1U, "Using the GTP kernel mode (genl ID is %d)\n", gtp_nl.genl_id);
+      LOG_GTPV1U, "Using the GTP kernel mode (genl ID is %d)\n",
+      gtp_nl.genl_id);
 
   bstring system_cmd = bformat("ip link set dev %s mtu %u", GTP_DEVNAME, mtu);
-  int ret = system((const char *) system_cmd->data);
+  int ret            = system((const char*) system_cmd->data);
   if (ret) {
     OAILOG_ERROR(
-      LOG_GTPV1U,
-      "ERROR in system command %s: %d at %s:%u\n",
-      bdata(system_cmd),
-      ret,
-      __FILE__,
-      __LINE__);
+        LOG_GTPV1U, "ERROR in system command %s: %d at %s:%u\n",
+        bdata(system_cmd), ret, __FILE__, __LINE__);
     bdestroy(system_cmd);
     return RETURNerror;
   }
@@ -123,26 +110,20 @@ int libgtpnl_init(
   struct in_addr ue_gw;
   ue_gw.s_addr = ue_net->s_addr | htonl(1);
   system_cmd =
-    bformat("ip addr add %s/%u dev %s", inet_ntoa(ue_gw), mask, GTP_DEVNAME);
-  ret = system((const char *) system_cmd->data);
+      bformat("ip addr add %s/%u dev %s", inet_ntoa(ue_gw), mask, GTP_DEVNAME);
+  ret = system((const char*) system_cmd->data);
   if (ret) {
     OAILOG_ERROR(
-      LOG_GTPV1U,
-      "ERROR in system command %s: %d at %s:%u\n",
-      bdata(system_cmd),
-      ret,
-      __FILE__,
-      __LINE__);
+        LOG_GTPV1U, "ERROR in system command %s: %d at %s:%u\n",
+        bdata(system_cmd), ret, __FILE__, __LINE__);
     bdestroy(system_cmd);
     return RETURNerror;
   }
   bdestroy(system_cmd);
 
   OAILOG_DEBUG(
-    LOG_GTPV1U,
-    "Setting route to reach UE net %s via %s\n",
-    inet_ntoa(*ue_net),
-    GTP_DEVNAME);
+      LOG_GTPV1U, "Setting route to reach UE net %s via %s\n",
+      inet_ntoa(*ue_net), GTP_DEVNAME);
 
   if (gtp_dev_config(GTP_DEVNAME, ue_net, mask) < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "Cannot add route to reach network\n");
@@ -154,29 +135,23 @@ int libgtpnl_init(
   return RETURNok;
 }
 
-int libgtpnl_uninit(void)
-{
+int libgtpnl_uninit(void) {
   if (!gtp_nl.is_enabled) return -1;
 
   return gtp_dev_destroy(GTP_DEVNAME);
 }
 
-int libgtpnl_reset(void)
-{
+int libgtpnl_reset(void) {
   int rv = 0;
-  rv = system("rmmod gtp");
-  rv = system("modprobe gtp");
+  rv     = system("rmmod gtp");
+  rv     = system("modprobe gtp");
   return rv;
 }
 
 int libgtpnl_add_tunnel(
-  struct in_addr ue,
-  struct in_addr enb,
-  uint32_t i_tei,
-  uint32_t o_tei,
-  Imsi_t imsi)
-{
-  struct gtp_tunnel *t;
+    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    Imsi_t imsi, struct ipv4flow_dl* flow_dl) {
+  struct gtp_tunnel* t;
   int ret;
 
   if (!gtp_nl.is_enabled) return RETURNok;
@@ -198,11 +173,9 @@ int libgtpnl_add_tunnel(
 }
 
 int libgtpnl_del_tunnel(
-  __attribute__((unused)) struct in_addr ue,
-  uint32_t i_tei,
-  uint32_t o_tei)
-{
-  struct gtp_tunnel *t;
+    __attribute__((unused)) struct in_addr ue, uint32_t i_tei, uint32_t o_tei,
+    struct ipv4flow_dl* flow_dl) {
+  struct gtp_tunnel* t;
   int ret;
 
   if (!gtp_nl.is_enabled) return RETURNok;
@@ -212,8 +185,9 @@ int libgtpnl_del_tunnel(
 
   gtp_tunnel_set_ifidx(t, if_nametoindex(GTP_DEVNAME));
   gtp_tunnel_set_version(t, 1);
-  // looking at kernel/drivers/net/gtp.c: not needed gtp_tunnel_set_ms_ip4(t, &ue);
-  // looking at kernel/drivers/net/gtp.c: not needed gtp_tunnel_set_sgsn_ip4(t, &enb);
+  // looking at kernel/drivers/net/gtp.c: not needed gtp_tunnel_set_ms_ip4(t,
+  // &ue); looking at kernel/drivers/net/gtp.c: not needed
+  // gtp_tunnel_set_sgsn_ip4(t, &enb);
   gtp_tunnel_set_i_tei(t, i_tei);
   gtp_tunnel_set_o_tei(t, o_tei);
 
@@ -226,21 +200,24 @@ int libgtpnl_del_tunnel(
 /**
  * Send packet marker to enodeB @enb for tunnel @tei.
  */
-int libgtpnl_send_end_marker(struct in_addr enb, uint32_t tei)
-{
+int libgtpnl_send_end_marker(struct in_addr enb, uint32_t tei) {
   return -EOPNOTSUPP;
 }
 
+const char* libgtpnl_get_dev_name() {
+  return GTP_DEVNAME;
+}
+
 static const struct gtp_tunnel_ops libgtpnl_ops = {
-  .init = libgtpnl_init,
-  .uninit = libgtpnl_uninit,
-  .reset = libgtpnl_reset,
-  .add_tunnel = libgtpnl_add_tunnel,
-  .del_tunnel = libgtpnl_del_tunnel,
-  .send_end_marker = libgtpnl_send_end_marker,
+    .init            = libgtpnl_init,
+    .uninit          = libgtpnl_uninit,
+    .reset           = libgtpnl_reset,
+    .add_tunnel      = libgtpnl_add_tunnel,
+    .del_tunnel      = libgtpnl_del_tunnel,
+    .send_end_marker = libgtpnl_send_end_marker,
+    .get_dev_name    = libgtpnl_get_dev_name,
 };
 
-const struct gtp_tunnel_ops *gtp_tunnel_ops_init_libgtpnl(void)
-{
+const struct gtp_tunnel_ops* gtp_tunnel_ops_init_libgtpnl(void) {
   return &libgtpnl_ops;
 }

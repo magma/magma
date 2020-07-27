@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import ctypes
@@ -33,7 +37,10 @@ from lte.protos.session_manager_pb2 import (
     PolicyReAuthRequest,
     QoSInformation,
 )
-from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
+from lte.protos.spgw_service_pb2 import (
+    CreateBearerRequest,
+    DeleteBearerRequest,
+)
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
@@ -239,7 +246,10 @@ class S1ApUtil(object):
             response = self.get_response()
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
-            assert context_setup.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            assert (
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
 
         logging.debug(
             "s1ap response expected, received: %d, %d",
@@ -278,10 +288,16 @@ class S1ApUtil(object):
         detach_req = s1ap_types.uedetachReq_t()
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
-        assert self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req) == 0
+        assert (
+            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            == 0
+        )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
-            assert s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                == response.msg_type
+            )
 
         # Now wait for the context release response
         if wait_for_s1_ctxt_release:
@@ -370,7 +386,9 @@ class SubscriberUtil(object):
 
 
 class MagmadUtil(object):
-    stateless_cmds = Enum('stateless_cmds', 'CHECK DISABLE ENABLE')
+    stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
+    config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
+
     def __init__(self, magmad_client):
         """
         Init magmad util.
@@ -387,10 +405,12 @@ class MagmadUtil(object):
             "command": "test",
         }
 
-        self._command = "sshpass -p {password} ssh " \
-                        "-o UserKnownHostsFile=/dev/null " \
-                        "-o StrictHostKeyChecking=no " \
-                        "{user}@{host} {command}"
+        self._command = (
+            "sshpass -p {password} ssh "
+            "-o UserKnownHostsFile=/dev/null "
+            "-o StrictHostKeyChecking=no "
+            "{user}@{host} {command}"
+        )
 
     def exec_command(self, command):
         """
@@ -404,8 +424,12 @@ class MagmadUtil(object):
         data = self._data
         data["command"] = '"' + command + '"'
         param_list = shlex.split(self._command.format(**data))
-        return subprocess.call(param_list, shell=False,
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return subprocess.call(
+            param_list,
+            shell=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
 
     def config_stateless(self, cmd):
         """
@@ -420,11 +444,14 @@ class MagmadUtil(object):
 
         """
 
-        config_stateless_script = ("/home/vagrant/magma/lte/gateway/deploy/"
-            "roles/magma/files/config_stateless_agw.sh")
+        config_stateless_script = (
+            "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
+            "config_stateless_agw.sh"
+        )
 
-        ret_code = self.exec_command("sudo -E " + config_stateless_script + " "
-            + cmd.name.lower())
+        ret_code = self.exec_command(
+            "sudo -E " + config_stateless_script + " " + cmd.name.lower()
+        )
 
         if ret_code == 0:
             print("AGW is stateless")
@@ -439,8 +466,9 @@ class MagmadUtil(object):
         """
             Restart all magma services on magma_dev VM
             """
-        self.exec_command("sudo service magma@* stop ; "
-                          "sudo service magma@magmad start")
+        self.exec_command(
+            "sudo service magma@* stop ; sudo service magma@magmad start"
+        )
         time.sleep(10)
 
     def restart_services(self, services):
@@ -452,6 +480,46 @@ class MagmadUtil(object):
 
         """
         self._magmad_client.restart_services(services)
+
+    def update_mme_config_for_sanity(self, cmd):
+        mme_config_update_script = (
+            "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
+            "update_mme_config_for_sanity.sh"
+        )
+
+        action = cmd.name.lower()
+        ret_code = self.exec_command(
+            "sudo -E " + mme_config_update_script + " " + action
+        )
+
+        if ret_code == 0:
+            print("MME configuration is updated successfully")
+        elif ret_code == 1:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: Invalid command"
+            )
+        elif ret_code == 2:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration file is "
+                + "missing"
+            )
+        elif ret_code == 3:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration's backup file "
+                + "is missing"
+            )
+        else:
+            assert False, (
+                "Failed to "
+                + action
+                + " MME configuration. Error: Unknown error"
+            )
 
 
 class MobilityUtil(object):
@@ -540,7 +608,9 @@ class SpgwUtil(object):
                         max_req_bw_ul=10000000,
                         max_req_bw_dl=10000000,
                         arp=QosArp(
-                            priority_level=1, pre_capability=1, pre_vulnerability=0
+                            priority_level=1,
+                            pre_capability=1,
+                            pre_vulnerability=0,
                         ),
                     ),
                     flow_list=[

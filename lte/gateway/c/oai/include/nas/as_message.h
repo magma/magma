@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -114,41 +110,41 @@ Description Defines the messages supported by the Access Stratum sublayer
 
 /* Deactivate Bearer */
 #define AS_DEACTIVATE_BEARER_CONTEXT 0xa
-#define AS_DEACTIVATE_BEARER_CONTEXT_REQ \
+#define AS_DEACTIVATE_BEARER_CONTEXT_REQ                                       \
   (AS_DEACTIVATE_BEARER_CONTEXT | AS_REQUEST)
 
 /* NAS Cause */
 typedef enum nas_cause_s {
   NAS_CAUSE_IMSI_UNKNOWN_IN_HSS = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS,
-  NAS_CAUSE_ILLEGAL_UE = EMM_CAUSE_ILLEGAL_UE,
-  NAS_CAUSE_ILLEGAL_ME = EMM_CAUSE_ILLEGAL_ME,
+  NAS_CAUSE_ILLEGAL_UE          = EMM_CAUSE_ILLEGAL_UE,
+  NAS_CAUSE_ILLEGAL_ME          = EMM_CAUSE_ILLEGAL_ME,
   NAS_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW =
-    EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW,
-  NAS_CAUSE_IMPLICITLY_DETACHED = EMM_CAUSE_IMPLICITLY_DETACHED,
-  NAS_CAUSE_IMEI_NOT_ACCEPTED = EMM_CAUSE_IMEI_NOT_ACCEPTED,
+      EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW,
+  NAS_CAUSE_IMPLICITLY_DETACHED      = EMM_CAUSE_IMPLICITLY_DETACHED,
+  NAS_CAUSE_IMEI_NOT_ACCEPTED        = EMM_CAUSE_IMEI_NOT_ACCEPTED,
   NAS_CAUSE_EPS_SERVICES_NOT_ALLOWED = EMM_CAUSE_EPS_NOT_ALLOWED,
   NAS_CAUSE_EPS_SERVICES_AND_NON_EPS_SERVICES_NOT_ALLOWED =
-    EMM_CAUSE_BOTH_NOT_ALLOWED,
-  NAS_CAUSE_PLMN_NOT_ALLOWED = EMM_CAUSE_PLMN_NOT_ALLOWED,
+      EMM_CAUSE_BOTH_NOT_ALLOWED,
+  NAS_CAUSE_PLMN_NOT_ALLOWED          = EMM_CAUSE_PLMN_NOT_ALLOWED,
   NAS_CAUSE_TRACKING_AREA_NOT_ALLOWED = EMM_CAUSE_TA_NOT_ALLOWED,
   NAS_CAUSE_ROAMING_NOT_ALLOWED_IN_THIS_TRACKING_AREA =
-    EMM_CAUSE_ROAMING_NOT_ALLOWED,
+      EMM_CAUSE_ROAMING_NOT_ALLOWED,
   NAS_CAUSE_EPS_NOT_ALLOWED_IN_PLMN = EMM_CAUSE_EPS_NOT_ALLOWED_IN_PLMN,
   NAS_CAUSE_NO_SUITABLE_CELLS_IN_TRACKING_AREA = EMM_CAUSE_NO_SUITABLE_CELLS,
-  NAS_CAUSE_CSG_NOT_AUTHORIZED = EMM_CAUSE_CSG_NOT_AUTHORIZED,
-  NAS_CAUSE_NOT_AUTHORIZED_IN_PLMN = EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN,
-  NAS_CAUSE_NO_EPS_BEARER_CTX_ACTIVE = EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE,
-  NAS_CAUSE_MSC_NOT_REACHABLE = EMM_CAUSE_MSC_NOT_REACHABLE,
-  NAS_CAUSE_NETWORK_FAILURE = EMM_CAUSE_NETWORK_FAILURE,
-  NAS_CAUSE_CS_DOMAIN_NOT_AVAILABLE = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE,
-  NAS_CAUSE_ESM_FAILURE = EMM_CAUSE_ESM_FAILURE,
-  NAS_CAUSE__MAC_FAILURE = EMM_CAUSE_MAC_FAILURE,
-  NAS_CAUSE_SYNCH_FAILURE = EMM_CAUSE_SYNCH_FAILURE,
-  NAS_CAUSE_CONGESTION = EMM_CAUSE_CONGESTION,
-  NAS_CAUSE_SECURITY_MISMATCH = EMM_CAUSE_UE_SECURITY_MISMATCH,
-  NAS_CAUSE_SECURITY_MODE_REJECTED = EMM_CAUSE_SECURITY_MODE_REJECTED,
+  NAS_CAUSE_CSG_NOT_AUTHORIZED                 = EMM_CAUSE_CSG_NOT_AUTHORIZED,
+  NAS_CAUSE_NOT_AUTHORIZED_IN_PLMN    = EMM_CAUSE_NOT_AUTHORIZED_IN_PLMN,
+  NAS_CAUSE_NO_EPS_BEARER_CTX_ACTIVE  = EMM_CAUSE_NO_EPS_BEARER_CTX_ACTIVE,
+  NAS_CAUSE_MSC_NOT_REACHABLE         = EMM_CAUSE_MSC_NOT_REACHABLE,
+  NAS_CAUSE_NETWORK_FAILURE           = EMM_CAUSE_NETWORK_FAILURE,
+  NAS_CAUSE_CS_DOMAIN_NOT_AVAILABLE   = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE,
+  NAS_CAUSE_ESM_FAILURE               = EMM_CAUSE_ESM_FAILURE,
+  NAS_CAUSE__MAC_FAILURE              = EMM_CAUSE_MAC_FAILURE,
+  NAS_CAUSE_SYNCH_FAILURE             = EMM_CAUSE_SYNCH_FAILURE,
+  NAS_CAUSE_CONGESTION                = EMM_CAUSE_CONGESTION,
+  NAS_CAUSE_SECURITY_MISMATCH         = EMM_CAUSE_UE_SECURITY_MISMATCH,
+  NAS_CAUSE_SECURITY_MODE_REJECTED    = EMM_CAUSE_SECURITY_MODE_REJECTED,
   NAS_CAUSE_NON_EPS_AUTH_UNACCEPTABLE = EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE,
-  NAS_CAUSE_CS_SERVICE_NOT_AVAILABLE = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE
+  NAS_CAUSE_CS_SERVICE_NOT_AVAILABLE  = EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE
 } nas_cause_t;
 
 /*
@@ -263,7 +259,7 @@ typedef struct cell_info_ind_s {
 typedef enum paging_cause_s {
   AS_CONNECTION_ESTABLISH, /* Establish NAS signalling connection  */
   AS_EPS_ATTACH,           /* Perform local detach and initiate EPS
-                 * attach procedure         */
+                            * attach procedure         */
   AS_CS_FALLBACK           /* Inititate CS fallback procedure  */
 } paging_cause_t;
 
@@ -293,22 +289,22 @@ typedef struct paging_ind_s {
 
 /* Cause of RRC connection establishment */
 typedef enum as_cause_s {
-  AS_CAUSE_UNKNOWN = 0,
+  AS_CAUSE_UNKNOWN   = 0,
   AS_CAUSE_EMERGENCY = EMERGENCY,
   AS_CAUSE_HIGH_PRIO = HIGH_PRIORITY_ACCESS,
   AS_CAUSE_MT_ACCESS = MT_ACCESS,
   AS_CAUSE_MO_SIGNAL = MO_SIGNALLING,
-  AS_CAUSE_MO_DATA = MO_DATA,
-  AS_CAUSE_V1020 = DELAY_TOLERANT_ACCESS_V1020
+  AS_CAUSE_MO_DATA   = MO_DATA,
+  AS_CAUSE_V1020     = DELAY_TOLERANT_ACCESS_V1020
 } as_cause_t;
 
 /* Type of the call associated to the RRC connection establishment */
 typedef enum as_call_type_s {
   AS_TYPE_ORIGINATING_SIGNAL = NET_ESTABLISH_TYPE_ORIGINATING_SIGNAL,
-  AS_TYPE_EMERGENCY_CALLS = NET_ESTABLISH_TYPE_EMERGENCY_CALLS,
-  AS_TYPE_ORIGINATING_CALLS = NET_ESTABLISH_TYPE_ORIGINATING_CALLS,
-  AS_TYPE_TERMINATING_CALLS = NET_ESTABLISH_TYPE_TERMINATING_CALLS,
-  AS_TYPE_MO_CS_FALLBACK = NET_ESTABLISH_TYPE_MO_CS_FALLBACK
+  AS_TYPE_EMERGENCY_CALLS    = NET_ESTABLISH_TYPE_EMERGENCY_CALLS,
+  AS_TYPE_ORIGINATING_CALLS  = NET_ESTABLISH_TYPE_ORIGINATING_CALLS,
+  AS_TYPE_TERMINATING_CALLS  = NET_ESTABLISH_TYPE_TERMINATING_CALLS,
+  AS_TYPE_MO_CS_FALLBACK     = NET_ESTABLISH_TYPE_MO_CS_FALLBACK
 } as_call_type_t;
 
 /*
@@ -330,13 +326,13 @@ typedef struct nas_establish_req_s {
  */
 typedef struct nas_establish_ind_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier               */
-  tai_t
-    tai; /* Indicating the Tracking Area from which the UE has sent the NAS message.                         */
-  ecgi_t
-    ecgi; /* Indicating the cell from which the UE has sent the NAS message.                         */
+  tai_t tai; /* Indicating the Tracking Area from which the UE has sent the NAS
+                message.                         */
+  ecgi_t ecgi;         /* Indicating the cell from which the UE has sent the NAS
+                          message.                         */
   as_cause_t as_cause; /* Establishment cause                     */
-  s_tmsi_t
-    s_tmsi; /* UE identity optional field, if not present, value is NOT_A_S_TMSI */
+  s_tmsi_t s_tmsi;     /* UE identity optional field, if not present, value is
+                          NOT_A_S_TMSI */
   bstring initial_nas_msg; /* Initial NAS message to transfer         */
 } nas_establish_ind_t;
 
@@ -355,8 +351,8 @@ typedef struct nas_establish_rsp_s {
   uint16_t selected_integrity_algorithm;
   uint8_t csfb_response;
 #define SERVICE_TYPE_PRESENT (1 << 0)
-  uint8_t
-    presencemask; /* Indicates the presence of some params like service type */
+  uint8_t presencemask; /* Indicates the presence of some params like service
+                           type */
   uint8_t service_type;
 } nas_establish_rsp_t;
 
@@ -549,10 +545,8 @@ typedef struct rab_release_ind_s {
 typedef struct deactivate_bearer_context_req_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier        */
   ebi_t ebi;              /* EPS bearer id    */
-  bstring nas_msg; /* NAS message to transfer     */
+  bstring nas_msg;        /* NAS message to transfer     */
 } deactivate_bearer_context_req_t;
-
-
 
 /*
  * --------------------------------------------------------------------------
@@ -598,11 +592,11 @@ typedef struct as_message_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int as_message_decode(const char *buffer, as_message_t *msg, size_t length);
+int as_message_decode(const char* buffer, as_message_t* msg, size_t length);
 
-int as_message_encode(char *buffer, as_message_t *msg, size_t length);
+int as_message_encode(char* buffer, as_message_t* msg, size_t length);
 
 /* Implemented in the network_api.c body file */
-int as_message_send(as_message_t *as_msg);
+int as_message_send(as_message_t* as_msg);
 
 #endif /* FILE_AS_MESSAGE_H_SEEN*/

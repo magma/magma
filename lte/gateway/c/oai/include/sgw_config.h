@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,11 +16,11 @@
  */
 
 /*! \file sgw_config.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_SGW_CONFIG_SEEN
 #define FILE_SGW_CONFIG_SEEN
@@ -103,10 +99,10 @@ typedef struct sgw_config_s {
   ovs_config_t ovs_config;
 } sgw_config_t;
 
-void sgw_config_init(sgw_config_t *config_pP);
-int sgw_config_process(sgw_config_t *config_pP);
-int sgw_config_parse_file(sgw_config_t *config_pP);
-void sgw_config_display(sgw_config_t *config_p);
+void sgw_config_init(sgw_config_t* config_pP);
+int sgw_config_process(sgw_config_t* config_pP);
+int sgw_config_parse_file(sgw_config_t* config_pP);
+void sgw_config_display(sgw_config_t* config_p);
 
 #define sgw_config_read_lock(sGWcONFIG)                                        \
   do {                                                                         \
