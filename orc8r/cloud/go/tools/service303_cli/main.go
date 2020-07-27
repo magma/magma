@@ -43,6 +43,7 @@ var gatewayID string
 func main() {
 	flag.Parse()
 	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
+	registry.MustPopulateServices()
 
 	services = registry.ListAllServices()
 	gwServices = gateway_registry.ListAllGwServices()
