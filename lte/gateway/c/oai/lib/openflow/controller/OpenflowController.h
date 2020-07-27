@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,17 +32,14 @@ namespace openflow {
 class Application {
  public:
   virtual void event_callback(
-    const ControllerEvent &ev,
-    const OpenflowMessenger &messenger)
-  {
-  }
+      const ControllerEvent& ev, const OpenflowMessenger& messenger) {}
   virtual ~Application() {}
 };
 
 enum OF_MESSAGE_TYPES {
-  OFPT_ERROR = 1,
+  OFPT_ERROR               = 1,
   OFPT_FEATURES_REPLY_TYPE = 6,
-  OFPT_PACKET_IN_TYPE = 10
+  OFPT_PACKET_IN_TYPE      = 10
 };
 
 class OpenflowController : public fluid_base::OFServer {
@@ -55,45 +48,35 @@ class OpenflowController : public fluid_base::OFServer {
 
  public:
   OpenflowController(
-    const char *address,
-    const int port,
-    const int n_workers,
-    bool secure);
+      const char* address, const int port, const int n_workers, bool secure);
 
   /*
    * Used to specify the specific class to send openflow messages, for instance
    * during testing
    */
   OpenflowController(
-    const char *address,
-    const int port,
-    const int n_workers,
-    bool secure,
-    std::shared_ptr<OpenflowMessenger> messenger);
+      const char* address, const int port, const int n_workers, bool secure,
+      std::shared_ptr<OpenflowMessenger> messenger);
 
   /**
    * Remove all table 0 flows on connection. Right now, all applications
    * modify table 0, so this method is owned by the controller and not the app
    */
-  void initialize_on_connection(fluid_base::OFConnection *ofconn);
+  void initialize_on_connection(fluid_base::OFConnection* ofconn);
 
   /**
    * Callback for any messages like PACKET_IN. Parameters are set by super
    * class OFServer
    */
   void message_callback(
-    fluid_base::OFConnection *ofconn,
-    uint8_t type,
-    void *data,
-    size_t len);
+      fluid_base::OFConnection* ofconn, uint8_t type, void* data, size_t len);
 
   /**
    * Callback for any new/removed connections. Parameters are set by super
    * class OFServer
    */
   void connection_callback(
-    fluid_base::OFConnection *ofconn,
-    fluid_base::OFConnection::Event type);
+      fluid_base::OFConnection* ofconn, fluid_base::OFConnection::Event type);
 
   /**
    * Register an application to get called when an event type happens. For
@@ -104,7 +87,7 @@ class OpenflowController : public fluid_base::OFServer {
    * @param event_type - ControllerEventType representing what event it is.
    *                     Should be consistent across controller and application
    */
-  void register_for_event(Application *app, ControllerEventType event_type);
+  void register_for_event(Application* app, ControllerEventType event_type);
 
   /**
    * Stop the controller from running
@@ -117,7 +100,7 @@ class OpenflowController : public fluid_base::OFServer {
    *
    * @param ev - reference to ControllerEvent subclass that just occurred
    */
-  void dispatch_event(const ControllerEvent &ev);
+  void dispatch_event(const ControllerEvent& ev);
 
   /**
    * This function can be called by another thread to inject an external event
@@ -131,14 +114,13 @@ class OpenflowController : public fluid_base::OFServer {
    *
    */
   void inject_external_event(
-    std::shared_ptr<ExternalEvent> ev,
-    void *(*cb)(std::shared_ptr<void>) );
+      std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) );
 
  private:
   std::shared_ptr<OpenflowMessenger> messenger_;
-  std::unordered_map<uint32_t, std::vector<Application *>> event_listeners;
+  std::unordered_map<uint32_t, std::vector<Application*>> event_listeners;
   bool running_;
-  fluid_base::OFConnection *latest_ofconn_;
+  fluid_base::OFConnection* latest_ofconn_;
 };
 
-} // namespace openflow
+}  // namespace openflow

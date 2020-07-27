@@ -1,7 +1,8 @@
 syntax = "proto3";
 
-import "magma/orc8r/protos/common.proto";
+import "google/protobuf/wrappers.proto";
 
+import "magma/orc8r/protos/common.proto";
 import "magma/fbinternal/cloud/go/services/testcontroller/storage/storage.proto";
 
 package magma.fbinternal.testcontroller;
@@ -45,13 +46,14 @@ service NodeLeasor {
 
     rpc ReserveNode(ReserveNodeRequest) returns (LeaseNodeResponse) {}
 
-    rpc LeaseNode(magma.orc8r.Void) returns (LeaseNodeResponse) {}
+    rpc LeaseNode(LeaseNodeRequest) returns (LeaseNodeResponse) {}
 
     rpc ReleaseNode(ReleaseNodeRequest) returns (magma.orc8r.Void) {}
 }
 
 message GetNodesRequest {
     repeated string ids = 1;
+    google.protobuf.StringValue tag = 2;
 }
 
 message GetNodesResponse {
@@ -68,6 +70,11 @@ message DeleteNodeRequest {
 
 message ReserveNodeRequest {
     string id = 1;
+    string tag = 2;
+}
+
+message LeaseNodeRequest {
+    string tag = 1;
 }
 
 message LeaseNodeResponse {

@@ -72,7 +72,7 @@ Static services include mandatory services (such as OAI and inout) which are alw
     |- Forwards normal traffic    |
     |- Drops traffic with ip      |
     |  address that matches the   |
-    |  ip blacklist               |
+    |  ip blocklist               |
     -------------------------------
                   |
                   V

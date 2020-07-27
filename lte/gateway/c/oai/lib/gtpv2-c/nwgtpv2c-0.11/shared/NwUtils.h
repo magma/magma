@@ -39,11 +39,13 @@
 /**
  * @file NwUtils.h
  * @brief This header file contains utility macro and function definitions.
-*/
+ */
 
 #define NW_ASSERT assert /**< Assertion */
 
-#define NW_CHK_NULL_PTR(_ptr) NW_ASSERT(_ptr != NULL) /**< Null pointer check */
+#define NW_CHK_NULL_PTR(_ptr)                                                  \
+  NW_ASSERT(_ptr != NULL) /**< Null pointer check                              \
+                           */
 
 #define NW_HTONS(x) ((((x) &0xff00) >> 8) | (((x) &0x00ff) << 8))
 

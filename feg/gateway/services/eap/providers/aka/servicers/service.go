@@ -1,19 +1,25 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package servcers implements EAP-AKA GRPC service
 package servicers
 
 import (
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -145,7 +151,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 	return service, nil
 }
 
-// CheckPlmnId returns true either if there is no PLMN ID filters (whitelist) configured or
+// CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
 // one the configured PLMN IDs matches passed IMSI
 func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
 	if len(s.plmnIds) == 0 {
@@ -294,7 +300,7 @@ func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration
 func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *SessionCtx) {
 	metrics.SessionTimeouts.Inc()
 	if s == nil {
-		log.Printf("ERROR: Nil EAP-AKA Server for session ID: %s", sessionId)
+		glog.Errorf("nil EAP-AKA Server for session ID: %s", sessionId)
 		return
 	}
 	var (
@@ -322,7 +328,7 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 		state := uc.state
 		uc.mu.Unlock()
 		if state != aka.StateAuthenticated {
-			log.Printf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
+			glog.Warningf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
 		}
 	}
 }

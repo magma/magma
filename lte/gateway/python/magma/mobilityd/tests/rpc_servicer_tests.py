@@ -1,13 +1,19 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import ipaddress
+import shlex
+import subprocess
 import unittest
 import unittest.mock
 from concurrent import futures
@@ -16,7 +22,7 @@ import grpc
 from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, ReleaseIPRequest, \
     RemoveIPBlockRequest, RemoveIPBlockResponse, SubscriberIPTableEntry, \
-    IPLookupRequest
+    IPLookupRequest, GWInfo
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.mobilityd.rpc_servicer import IPVersionNotSupportedError, \
@@ -328,6 +334,37 @@ class RpcTests(unittest.TestCase):
             self._stub.GetIPForSubscriber(lookup_request0)
         self.assertEqual(err.exception.code(),
                          grpc.StatusCode.NOT_FOUND)
+
+    def test_get_gw_info(self):
+        gw_info = self._stub.GetGatewayInfo(Void())
+        gw_ip_get = str(ipaddress.ip_address(gw_info.ip.address))
+
+        def_gw_cmd = shlex.split("ip route show")
+        p = subprocess.Popen(def_gw_cmd, stdout=subprocess.PIPE)
+        output = p.stdout.read().decode("utf-8")
+        def_ip = None
+        for line in output.splitlines():
+            if 'default ' in line:
+                tokens = line.split()
+                def_ip = tokens[2]
+                break
+
+        self.assertEqual(def_ip, gw_ip_get)
+
+    def test_set_gw_info(self):
+        mac1 = "22:22:c6:d0:02:3c"
+        ipaddr1 = ipaddress.ip_address("10.1.1.11")
+        gwinfo_msg = GWInfo()
+        gwinfo_msg.ip.version = IPBlock.IPV4
+        gwinfo_msg.ip.address = ipaddr1.packed
+        gwinfo_msg.mac = mac1
+
+        self._stub.SetGatewayInfo(gwinfo_msg)
+        gw_info = self._stub.GetGatewayInfo(Void())
+        gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+
+        self.assertEqual(ipaddr1, gw_ip_get)
+        self.assertEqual(mac1, gw_info.mac)
 
     def test_get_subscriber_id_from_ip(self):
         """ test GetSubscriberIDFromIP """

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,11 +16,11 @@
  */
 
 /*! \file spgw_config.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_SPGW_CONFIG_SEEN
 #define FILE_SPGW_CONFIG_SEEN
@@ -49,11 +45,11 @@ typedef struct spgw_config_s {
 extern spgw_config_t spgw_config;
 #endif
 
-void spgw_config_init(spgw_config_t *);
+void spgw_config_init(spgw_config_t*);
 
-int spgw_config_parse_file(spgw_config_t *);
+int spgw_config_parse_file(spgw_config_t*);
 
-void spgw_config_display(spgw_config_t *);
+void spgw_config_display(spgw_config_t*);
 
 void free_spgw_config(spgw_config_t* spgw_config_p);
 

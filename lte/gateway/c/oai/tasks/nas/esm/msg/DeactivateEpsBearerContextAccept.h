@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -44,14 +40,15 @@
 
 typedef enum deactivate_eps_bearer_context_accept_iei_tag {
   DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } deactivate_eps_bearer_context_accept_iei;
 
 /*
  * Message name: Deactivate EPS bearer context accept
- * Description: This message is sent by the UE to acknowledge deactivation of the EPS bearer context requested in the corresponding Deactivate EPS bearer context request message. See table 8.3.11.1.
- * Significance: dual
- * Direction: UE to network
+ * Description: This message is sent by the UE to acknowledge deactivation of
+ * the EPS bearer context requested in the corresponding Deactivate EPS bearer
+ * context request message. See table 8.3.11.1. Significance: dual Direction: UE
+ * to network
  */
 
 typedef struct deactivate_eps_bearer_context_accept_msg_tag {
@@ -66,13 +63,11 @@ typedef struct deactivate_eps_bearer_context_accept_msg_tag {
 } deactivate_eps_bearer_context_accept_msg;
 
 int decode_deactivate_eps_bearer_context_accept(
-  deactivate_eps_bearer_context_accept_msg *deactivateepsbearercontextaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    deactivate_eps_bearer_context_accept_msg* deactivateepsbearercontextaccept,
+    uint8_t* buffer, uint32_t len);
 
 int encode_deactivate_eps_bearer_context_accept(
-  deactivate_eps_bearer_context_accept_msg *deactivateepsbearercontextaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    deactivate_eps_bearer_context_accept_msg* deactivateepsbearercontextaccept,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_H_) */

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,18 +16,18 @@
  */
 
 /*! \file pgw_config.h
-* \brief
-* \author Lionel Gauthier
-* \company Eurecom
-* \email: lionel.gauthier@eurecom.fr
-*/
+ * \brief
+ * \author Lionel Gauthier
+ * \company Eurecom
+ * \email: lionel.gauthier@eurecom.fr
+ */
 
 #ifndef FILE_PGW_CONFIG_SEEN
 #define FILE_PGW_CONFIG_SEEN
 
-#include <sys/socket.h> // inet_aton
-#include <netinet/in.h> // inet_aton
-#include <arpa/inet.h>  // inet_aton
+#include <sys/socket.h>  // inet_aton
+#include <netinet/in.h>  // inet_aton
+#include <arpa/inet.h>   // inet_aton
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -97,21 +93,20 @@ typedef struct pgw_config_s {
   struct {
     bstring if_name_S5_S8;
     struct in_addr S5_S8;
-    uint32_t mtu_S5_S8;        // read from system
-    struct in_addr addr_S5_S8; // read from system
-    uint8_t mask_S5_S8;        // read from system
+    uint32_t mtu_S5_S8;         // read from system
+    struct in_addr addr_S5_S8;  // read from system
+    uint8_t mask_S5_S8;         // read from system
 
     bstring if_name_SGI;
-    struct in_addr SGI;
-    uint32_t mtu_SGI;        // read from system
-    struct in_addr addr_sgi; // read from system
-    uint8_t mask_sgi;        // read from system
+    uint32_t mtu_SGI;         // read from system
+    struct in_addr addr_sgi;  // read from system
+    uint8_t mask_sgi;         // read from system
 
     struct in_addr default_dns;
     struct in_addr default_dns_sec;
   } ipv4;
 
-  bool ue_tcp_mss_clamp; // for UE TCP traffic
+  bool ue_tcp_mss_clamp;  // for UE TCP traffic
   bool masquerade_SGI;
 
   int num_ue_pool;
@@ -126,7 +121,7 @@ typedef struct pgw_config_s {
   struct {
     bool enabled;
     bool traffic_shaping_enabled;
-    bool tcp_ecn_enabled; // test for CoDel qdisc
+    bool tcp_ecn_enabled;  // test for CoDel qdisc
     sdf_id_t default_bearer_sdf_identifier;
     sdf_id_t automatic_push_dedicated_bearer_sdf_identifier;
     sdf_id_t preload_static_sdf_identifiers[SDF_ID_MAX - 1];
@@ -142,10 +137,10 @@ typedef struct pgw_config_s {
   STAILQ_HEAD(ipv4_pool_head_s, conf_ipv4_list_elm_s) ipv4_pool_list;
 } pgw_config_t;
 
-int pgw_config_process(pgw_config_t *config_pP);
-void pgw_config_init(pgw_config_t *config_pP);
-int pgw_config_parse_file(pgw_config_t *config_pP);
-void pgw_config_display(pgw_config_t *config_p);
+int pgw_config_process(pgw_config_t* config_pP);
+void pgw_config_init(pgw_config_t* config_pP);
+int pgw_config_parse_file(pgw_config_t* config_pP);
+void pgw_config_display(pgw_config_t* config_p);
 void free_pgw_config(pgw_config_t* pgw_config_p);
 
 #define pgw_config_read_lock(pGWcONFIG)                                        \

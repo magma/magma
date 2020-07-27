@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,8 +35,7 @@ static void grpc_service_exit(void);
 static grpc_service_data_t* grpc_service_config;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
-{
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
@@ -51,26 +46,20 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg)
       grpc_service_exit();
       break;
     default:
-        OAILOG_DEBUG(
-          LOG_UTIL,
-          "Unknown message ID %d: %s\n",
-          ITTI_MSG_ID(received_message_p),
-          ITTI_MSG_NAME(received_message_p));
-        break;
+      OAILOG_DEBUG(
+          LOG_UTIL, "Unknown message ID %d: %s\n",
+          ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
+      break;
   }
 
   zframe_destroy(&msg_frame);
   return 0;
 }
 
-static void* grpc_service_thread(__attribute__((unused)) void* args)
-{
+static void* grpc_service_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_GRPC_SERVICE);
   init_task_context(
-      TASK_GRPC_SERVICE,
-      (task_id_t []) {TASK_SPGW_APP},
-      1,
-      handle_message,
+      TASK_GRPC_SERVICE, (task_id_t[]){TASK_SPGW_APP}, 1, handle_message,
       &grpc_service_task_zmq_ctx);
 
   start_grpc_service(grpc_service_config->server_address);
@@ -79,23 +68,19 @@ static void* grpc_service_thread(__attribute__((unused)) void* args)
   return NULL;
 }
 
-int grpc_service_init(void)
-{
+int grpc_service_init(void) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
-  grpc_service_config = calloc(1, sizeof(grpc_service_config));
+  grpc_service_config                 = calloc(1, sizeof(grpc_service_config));
   grpc_service_config->server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);
 
-  if (
-    itti_create_task(
-      TASK_GRPC_SERVICE, &grpc_service_thread, NULL) < 0) {
+  if (itti_create_task(TASK_GRPC_SERVICE, &grpc_service_thread, NULL) < 0) {
     OAILOG_ALERT(LOG_UTIL, "Initializing grpc_service: ERROR\n");
     return RETURNerror;
   }
   return RETURNok;
 }
 
-static void grpc_service_exit(void)
-{
+static void grpc_service_exit(void) {
   bdestroy_wrapper(&grpc_service_config->server_address);
   free_wrapper((void**) &grpc_service_config);
   destroy_task_context(&grpc_service_task_zmq_ctx);

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,25 +34,22 @@ namespace {
  */
 class ControllerTest : public ::testing::Test {
  public:
-  void default_message_callback(uint8_t type)
-  {
+  void default_message_callback(uint8_t type) {
     controller->message_callback(
-      NULL, // no connection
-      type,
-      NULL, // no data
-      0);   // no length
+        NULL,  // no connection
+        type,
+        NULL,  // no data
+        0);    // no length
   }
 
-  void default_connection_callback(OFConnection::Event type)
-  {
+  void default_connection_callback(OFConnection::Event type) {
     controller->connection_callback(NULL, type);
   }
 
  protected:
-  virtual void SetUp()
-  {
+  virtual void SetUp() {
     controller = std::unique_ptr<OpenflowController>(
-      new OpenflowController("127.0.0.1", 6666, 2, false));
+        new OpenflowController("127.0.0.1", 6666, 2, false));
   }
 
   virtual void TearDown() { controller = NULL; }
@@ -65,28 +58,25 @@ class ControllerTest : public ::testing::Test {
 };
 
 // Test simple registration and see if application received event
-TEST_F(ControllerTest, TestRegistration)
-{
+TEST_F(ControllerTest, TestRegistration) {
   MockApplication app;
   EXPECT_CALL(app, event_callback(_, _)).Times(1);
 
-  controller->register_for_event((Application *) &app, EVENT_PACKET_IN);
+  controller->register_for_event((Application*) &app, EVENT_PACKET_IN);
   default_message_callback(OFPT_PACKET_IN_TYPE);
 }
 
 // Ensure controller can only handle events if it's running
-TEST_F(ControllerTest, TestRunningAssertion)
-{
+TEST_F(ControllerTest, TestRunningAssertion) {
   controller->stop();
   EXPECT_THROW(
-    controller->message_callback(NULL, OFPT_PACKET_IN_TYPE, NULL, 0),
-    std::runtime_error);
+      controller->message_callback(NULL, OFPT_PACKET_IN_TYPE, NULL, 0),
+      std::runtime_error);
 }
 
 // Test that with multiple apps registered, the correct apps receive the
 // correct events in order.
-TEST_F(ControllerTest, TestMultipleApplications)
-{
+TEST_F(ControllerTest, TestMultipleApplications) {
   MockApplication app1, app2, app3;
   controller->register_for_event(&app1, openflow::EVENT_PACKET_IN);
   controller->register_for_event(&app2, openflow::EVENT_SWITCH_UP);
@@ -103,11 +93,10 @@ TEST_F(ControllerTest, TestMultipleApplications)
   default_connection_callback(OFConnection::EVENT_CLOSED);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   ::testing::InitGoogleMock(&argc, argv);
   return RUN_ALL_TESTS();
 }
 
-} // namespace
+}  // namespace

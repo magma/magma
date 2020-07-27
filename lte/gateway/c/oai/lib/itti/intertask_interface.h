@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 
 /** @defgroup _intertask_interface_impl_ Intertask Interface Mechanisms
@@ -76,7 +77,7 @@ typedef struct message_info_s {
   /* Message payload size */
   MessageHeaderSize size;
   /* Printable name */
-  const char *const name;
+  const char* const name;
 } message_info_t;
 
 typedef struct task_info_s {
@@ -99,9 +100,8 @@ typedef enum timer_repeat_s {
  @returns -1 on failure, 0 otherwise
  **/
 int send_msg_to_task(
-  task_zmq_ctx_t* task_zmq_ctx_p,
-  task_id_t destination_task_id,
-  MessageDef* message);
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
+    MessageDef* message);
 
 /** \brief Start timer on the ZMQ loop
  \param task_zmq_ctx_p Pointer to task ZMQ context
@@ -121,6 +121,26 @@ int start_timer(
  **/
 void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id);
 
+/** \brief Add a new fd to monitor.
+ * NOTE: it is up to the user to read data associated with the fd
+ *  \param task_id Task ID of the receiving task
+ *  \param fd The file descriptor to monitor
+ **/
+void itti_subscribe_event_fd(task_id_t task_id, int fd);
+
+/** \brief Remove a fd from the list of fd to monitor
+ *  \param task_id Task ID of the task
+ *  \param fd The file descriptor to remove
+ **/
+void itti_unsubscribe_event_fd(task_id_t task_id, int fd);
+
+/** \brief Return the list of events excluding the fd associated with itti
+ *  \param task_id Task ID of the task
+ *  \param events events list
+ *  @returns number of events to handle
+ **/
+int itti_get_events(task_id_t task_id, struct epoll_event** events);
+
 /** \brief Initialize task ZMQ context
  \param task_id Task ID
  \param remote_task_ids Array of destination task IDs
@@ -129,10 +149,8 @@ void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id);
  \param task_zmq_ctx_p Pointer to task ZMQ context
  **/
 void init_task_context(
-    task_id_t task_id,
-    const task_id_t* remote_task_ids,
-    uint8_t remote_tasks_count,
-    zloop_reader_fn msg_handler,
+    task_id_t task_id, const task_id_t* remote_task_ids,
+    uint8_t remote_tasks_count, zloop_reader_fn msg_handler,
     task_zmq_ctx_t* task_zmq_ctx_p);
 
 /** \brief Destroy task ZMQ context
@@ -153,9 +171,7 @@ void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message);
  * @returns -1 on failure, 0 otherwise
  **/
 int itti_create_task(
-  task_id_t task_id,
-  void *(*start_routine)(void *),
-  void *args_p);
+    task_id_t task_id, void* (*start_routine)(void*), void* args_p);
 
 /** \brief Mark the task as in ready state
  * \param task_id task to mark as ready
@@ -169,21 +185,20 @@ void itti_exit_task(void);
 /** \brief Return the printable string associated with the message
  * \param message_id Id of the message
  **/
-const char *itti_get_message_name(MessagesIds message_id);
+const char* itti_get_message_name(MessagesIds message_id);
 
 /** \brief Return the printable string associated with a task id
  * \param thread_id Id of the task
  **/
-const char *itti_get_task_name(task_id_t task_id);
+const char* itti_get_task_name(task_id_t task_id);
 
 /** \brief Alloc and memset(0) a new itti message.
  * \param origin_task_id Task ID of the sending task
  * \param message_id Message ID
  * @returns NULL in case of failure or newly allocated mesage ref
  **/
-MessageDef *itti_alloc_new_message(
-  task_id_t origin_task_id,
-  MessagesIds message_id);
+MessageDef* itti_alloc_new_message(
+    task_id_t origin_task_id, MessagesIds message_id);
 
 /**
  * \brief Returns IMSI of ITTI task
@@ -192,8 +207,9 @@ MessageDef *itti_alloc_new_message(
  */
 imsi64_t itti_get_associated_imsi(MessageDef* msg);
 
-/** \brief handle signals and wait for all threads to join when the process complete.
- * This function should be called from the main thread after having created all ITTI tasks.
+/** \brief handle signals and wait for all threads to join when the process
+ *complete. This function should be called from the main thread after having
+ *created all ITTI tasks.
  **/
 void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 

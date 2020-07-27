@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -41,11 +37,10 @@
 #include "TrackingAreaIdentity.h"
 #include "s1ap_types.h"
 
-static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t *const plmn)
-{
-  int i = 0;
-  uint16_t mcc = 0;
-  uint16_t mnc = 0;
+static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
+  int i            = 0;
+  uint16_t mcc     = 0;
+  uint16_t mnc     = 0;
   uint16_t mnc_len = 0;
 
   DevAssert(plmn != NULL);
@@ -54,19 +49,15 @@ static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t *const plmn)
 
   for (i = 0; i < mme_config.served_tai.nb_tai; i++) {
     OAILOG_TRACE(
-      LOG_S1AP,
-      "Comparing plmn_mcc %d/%d, plmn_mnc %d/%d plmn_mnc_len %d/%d\n",
-      mme_config.served_tai.plmn_mcc[i],
-      mcc,
-      mme_config.served_tai.plmn_mnc[i],
-      mnc,
-      mme_config.served_tai.plmn_mnc_len[i],
-      mnc_len);
+        LOG_S1AP,
+        "Comparing plmn_mcc %d/%d, plmn_mnc %d/%d plmn_mnc_len %d/%d\n",
+        mme_config.served_tai.plmn_mcc[i], mcc,
+        mme_config.served_tai.plmn_mnc[i], mnc,
+        mme_config.served_tai.plmn_mnc_len[i], mnc_len);
 
-    if (
-      (mme_config.served_tai.plmn_mcc[i] == mcc) &&
-      (mme_config.served_tai.plmn_mnc[i] == mnc) &&
-      (mme_config.served_tai.plmn_mnc_len[i] == mnc_len))
+    if ((mme_config.served_tai.plmn_mcc[i] == mcc) &&
+        (mme_config.served_tai.plmn_mnc[i] == mnc) &&
+        (mme_config.served_tai.plmn_mnc_len[i] == mnc_len))
       /*
        * There is a matching plmn
        */
@@ -78,18 +69,16 @@ static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t *const plmn)
 }
 
 /* @brief compare a list of broadcasted plmns against the MME configured.
-*/
-static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t *b_plmns)
-{
-  int i = 0;
+ */
+static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t* b_plmns) {
+  int i                  = 0;
   int matching_occurence = 0;
 
   DevAssert(b_plmns != NULL);
 
   for (i = 0; i < b_plmns->list.count; i++) {
-    if (
-      s1ap_mme_compare_plmn(b_plmns->list.array[i]) ==
-      TA_LIST_AT_LEAST_ONE_MATCH)
+    if (s1ap_mme_compare_plmn(b_plmns->list.array[i]) ==
+        TA_LIST_AT_LEAST_ONE_MATCH)
       matching_occurence++;
   }
 
@@ -102,10 +91,9 @@ static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t *b_plmns)
 }
 
 /* @brief compare a TAC
-*/
-static int s1ap_mme_compare_tac(const S1ap_TAC_t *const tac)
-{
-  int i = 0;
+ */
+static int s1ap_mme_compare_tac(const S1ap_TAC_t* const tac) {
+  int i              = 0;
   uint16_t tac_value = 0;
 
   DevAssert(tac != NULL);
@@ -114,10 +102,8 @@ static int s1ap_mme_compare_tac(const S1ap_TAC_t *const tac)
 
   for (i = 0; i < mme_config.served_tai.nb_tai; i++) {
     OAILOG_TRACE(
-      LOG_S1AP,
-      "Comparing config tac %d, received tac = %d\n",
-      mme_config.served_tai.tac[i],
-      tac_value);
+        LOG_S1AP, "Comparing config tac %d, received tac = %d\n",
+        mme_config.served_tai.tac[i], tac_value);
 
     if (mme_config.served_tai.tac[i] == tac_value)
       return TA_LIST_AT_LEAST_ONE_MATCH;
@@ -133,8 +119,7 @@ static int s1ap_mme_compare_tac(const S1ap_TAC_t *const tac)
            - TA_LIST_UNKNOWN_TAC if at least one PLMN match and no TAC match
            - TA_LIST_RET_OK if both tac and plmn match at least one element
 */
-int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t *ta_list)
-{
+int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
   int i;
   int tac_ret, bplmn_ret;
 
@@ -144,11 +129,11 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t *ta_list)
    * Parse every item in the list and try to find matching parameters
    */
   for (i = 0; i < ta_list->list.count; i++) {
-    S1ap_SupportedTAs_Item_t *ta;
+    S1ap_SupportedTAs_Item_t* ta;
 
     ta = ta_list->list.array[i];
     DevAssert(ta != NULL);
-    tac_ret = s1ap_mme_compare_tac(&ta->tAC);
+    tac_ret   = s1ap_mme_compare_tac(&ta->tAC);
     bplmn_ret = s1ap_mme_compare_plmns(&ta->broadcastPLMNs);
 
     if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
@@ -166,17 +151,15 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t *ta_list)
 }
 
 /* @brief compare PLMNs
-*/
+ */
 static int s1ap_paging_compare_plmns(
-  plmn_t* enb_bplmns,
-  uint8_t enb_plmn_count,
-  const paging_tai_list_t* p_tai_list)
-{
+    plmn_t* enb_bplmns, uint8_t enb_plmn_count,
+    const paging_tai_list_t* p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
   for (plmn_idx = 0; plmn_idx < enb_plmn_count; plmn_idx++) {
     plmn_t* enb_plmn = NULL;
-    enb_plmn = &enb_bplmns[plmn_idx];
+    enb_plmn         = &enb_bplmns[plmn_idx];
     if (enb_plmn == NULL) {
       OAILOG_ERROR(LOG_S1AP, "PLMN Information not found in eNB tai list\n");
       return false;
@@ -187,13 +170,12 @@ static int s1ap_paging_compare_plmns(
       tai_t p_plmn;
       p_plmn = p_tai_list->tai_list[p_plmn_idx];
 
-      if (
-        (enb_plmn->mcc_digit1 == p_plmn.mcc_digit1) &&
-        (enb_plmn->mcc_digit2 == p_plmn.mcc_digit2) &&
-        (enb_plmn->mcc_digit3 == p_plmn.mcc_digit3) &&
-        (enb_plmn->mnc_digit1 == p_plmn.mnc_digit1) &&
-        (enb_plmn->mnc_digit2 == p_plmn.mnc_digit2) &&
-        (enb_plmn->mnc_digit3 == p_plmn.mnc_digit3)) {
+      if ((enb_plmn->mcc_digit1 == p_plmn.mcc_digit1) &&
+          (enb_plmn->mcc_digit2 == p_plmn.mcc_digit2) &&
+          (enb_plmn->mcc_digit3 == p_plmn.mcc_digit3) &&
+          (enb_plmn->mnc_digit1 == p_plmn.mnc_digit1) &&
+          (enb_plmn->mnc_digit2 == p_plmn.mnc_digit2) &&
+          (enb_plmn->mnc_digit3 == p_plmn.mnc_digit3)) {
         return true;
       }
     }
@@ -202,11 +184,9 @@ static int s1ap_paging_compare_plmns(
 }
 
 /* @brief compare a TAC
-*/
+ */
 static int s1ap_paging_compare_tac(
-  uint8_t enb_tac,
-  const paging_tai_list_t* p_tai_list)
-{
+    uint8_t enb_tac, const paging_tai_list_t* p_tai_list) {
   for (int p_tac_count = 0; p_tac_count < (p_tai_list->numoftac + 1);
        p_tac_count++) {
     if (enb_tac == p_tai_list->tai_list[p_tac_count].tac) {
@@ -218,14 +198,13 @@ static int s1ap_paging_compare_tac(
 
 /* @brief compare given tai list against the one stored in eNB structure.
    @param ta_list, paging_request, p_tai_list_count
-   @return - tai_matching=0 if both TAC and PLMN does not match with list of ENBs
+   @return - tai_matching=0 if both TAC and PLMN does not match with list of
+   ENBs
            - tai_matching=1 if both TAC and PLMN matches with list of ENBs
 */
 int s1ap_paging_compare_ta_lists(
-  supported_ta_list_t* enb_ta_list,
-  const paging_tai_list_t* p_tai_list,
-  uint8_t p_tai_list_count)
-{
+    supported_ta_list_t* enb_ta_list, const paging_tai_list_t* p_tai_list,
+    uint8_t p_tai_list_count) {
   bool tac_ret = false, bplmn_ret = false;
   int enb_tai_count, p_list_count;
 
@@ -239,7 +218,7 @@ int s1ap_paging_compare_ta_lists(
     }
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
       const paging_tai_list_t* tai = NULL;
-      tai = &p_tai_list[p_list_count];
+      tai                          = &p_tai_list[p_list_count];
       if (tai == NULL) {
         OAILOG_ERROR(LOG_S1AP, "Paging TAI list not found\n");
         return false;
@@ -250,7 +229,7 @@ int s1ap_paging_compare_ta_lists(
         return false;
       } else {
         bplmn_ret = s1ap_paging_compare_plmns(
-          enb_tai_item->bplmns, enb_tai_item->bplmnlist_count, tai);
+            enb_tai_item->bplmns, enb_tai_item->bplmnlist_count, tai);
       }
       // Returns TRUE only if both TAC and PLMN matches
       if (tac_ret && bplmn_ret) {

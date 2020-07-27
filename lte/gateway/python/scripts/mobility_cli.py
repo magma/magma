@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import argparse
@@ -17,7 +21,7 @@ from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
 from lte.protos.mobilityd_pb2 import AllocateIPRequest, \
-    IPAddress, IPBlock, ReleaseIPRequest, RemoveIPBlockRequest
+    IPAddress, IPBlock, ReleaseIPRequest, RemoveIPBlockRequest, GWInfo
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 
 
@@ -157,6 +161,34 @@ def get_subscriber_ip_table_handler(client, args):
         print("%s\t%s\t%s" % (SIDUtils.to_str(entry.sid), ip, entry.apn))
 
 
+@grpc_wrapper
+def get_gw_info_handler(client, args):
+    info = client.GetGatewayInfo(Void())
+    ip = ipaddress.ip_address(info.ip.address)
+    print("GW IP: %s" % ip)
+    print("GW MAC: %s" % info.mac)
+
+
+@grpc_wrapper
+def set_gw_ip_addressk_handler(client, args):
+    try:
+        ipaddr = ipaddress.ip_address(args.gwip)
+    except ValueError:
+        print("Error: invalid IP address format: %s" % args.gwip)
+        return
+
+    gwinfo_msg = GWInfo()
+    if ipaddr.version == 4:
+        gwinfo_msg.ip.version = IPBlock.IPV4
+    else:
+        print("Error: IP version %d is not supported yet" % ipaddr.version)
+        return
+
+    gwinfo_msg.ip.address = ipaddr.packed
+    gwinfo_msg.mac = ""
+    client.SetGatewayInfo(gwinfo_msg)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Management CLI for MobilityService',
@@ -215,6 +247,19 @@ def main():
     subparser = subparsers.add_parser(
         'get_subscriber_table', help='Get SubscriberID, IP table')
     subparser.set_defaults(func=get_subscriber_ip_table_handler)
+
+    # GW info CLI
+    # GetGatewayIPInfo
+    subparser = subparsers.add_parser(
+        'get_def_gw', help='Get default gw info')
+    subparser.set_defaults(func=get_gw_info_handler)
+
+    # SetGatewayIpAddress
+    subparser = subparsers.add_parser(
+        'set_def_gw', help='set default gw IP address')
+    subparser.add_argument('gwip', help='Default gw IP addresses,'
+                           ' e.g.  "10.0.0.1"')
+    subparser.set_defaults(func=set_gw_ip_addressk_handler)
 
     # Parse the args
     args = parser.parse_args()

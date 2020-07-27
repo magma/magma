@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,12 +26,9 @@
 
 //------------------------------------------------------------------------------
 int decode_ue_network_capability(
-  ue_network_capability_t *uenetworkcapability,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    ue_network_capability_t* uenetworkcapability, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -61,18 +54,18 @@ int decode_ue_network_capability(
 
     if (ielen > 3) {
       uenetworkcapability->ucs2 = (*(buffer + decoded) >> 7) & 0x1;
-      uenetworkcapability->uia = *(buffer + decoded) & 0x7f;
+      uenetworkcapability->uia  = *(buffer + decoded) & 0x7f;
       decoded++;
       uenetworkcapability->umts_present = 1;
       OAILOG_TRACE(LOG_NAS_EMM, "uenetworkcapability decoded UMTS\n");
 
       if (ielen > 4) {
         uenetworkcapability->spare = (*(buffer + decoded) >> 5) & 0x7;
-        uenetworkcapability->csfb = (*(buffer + decoded) >> 4) & 0x1;
-        uenetworkcapability->lpp = (*(buffer + decoded) >> 3) & 0x1;
-        uenetworkcapability->lcs = (*(buffer + decoded) >> 2) & 0x1;
+        uenetworkcapability->csfb  = (*(buffer + decoded) >> 4) & 0x1;
+        uenetworkcapability->lpp   = (*(buffer + decoded) >> 3) & 0x1;
+        uenetworkcapability->lcs   = (*(buffer + decoded) >> 2) & 0x1;
         uenetworkcapability->srvcc = (*(buffer + decoded) >> 1) & 0x1;
-        uenetworkcapability->nf = *(buffer + decoded) & 0x1;
+        uenetworkcapability->nf    = *(buffer + decoded) & 0x1;
         decoded++;
         uenetworkcapability->misc_present = 1;
         OAILOG_TRACE(LOG_NAS_EMM, "uenetworkcapability decoded misc flags\n");
@@ -91,19 +84,16 @@ int decode_ue_network_capability(
 
 //------------------------------------------------------------------------------
 int encode_ue_network_capability(
-  ue_network_capability_t *uenetworkcapability,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    ue_network_capability_t* uenetworkcapability, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, UE_NETWORK_CAPABILITY_MINIMUM_LENGTH, len);
+      buffer, UE_NETWORK_CAPABILITY_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     *buffer = iei;
@@ -129,15 +119,15 @@ int encode_ue_network_capability(
 
   if (uenetworkcapability->misc_present) {
     *(buffer + encoded) =
-      ((uenetworkcapability->spare & 0x7) << 5) | // spare coded as zero
-      ((uenetworkcapability->csfb & 0x1) << 4) |
-      ((uenetworkcapability->lpp & 0x1) << 3) |
-      ((uenetworkcapability->lcs & 0x1) << 2) |
-      ((uenetworkcapability->srvcc & 0x1) << 1) |
-      (uenetworkcapability->nf & 0x1);
+        ((uenetworkcapability->spare & 0x7) << 5) |  // spare coded as zero
+        ((uenetworkcapability->csfb & 0x1) << 4) |
+        ((uenetworkcapability->lpp & 0x1) << 3) |
+        ((uenetworkcapability->lcs & 0x1) << 2) |
+        ((uenetworkcapability->srvcc & 0x1) << 1) |
+        (uenetworkcapability->nf & 0x1);
     encoded++;
     OAILOG_TRACE(
-      LOG_NAS_EMM, "uenetworkcapability encoded misc flags %u\n", encoded);
+        LOG_NAS_EMM, "uenetworkcapability encoded misc flags %u\n", encoded);
   }
 
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);

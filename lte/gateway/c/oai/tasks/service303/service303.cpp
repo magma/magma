@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,48 +27,43 @@
 using magma::service303::MagmaService;
 using magma::service303::MetricsSingleton;
 
-static MagmaService *magma_service;
+static MagmaService* magma_service;
 
-void start_service303_server(bstring name, bstring version)
-{
+void start_service303_server(bstring name, bstring version) {
   magma_service = new MagmaService(bdata(name), bdata(version));
   magma_service->Start();
 }
 
-void stop_service303_server(void)
-{
+void stop_service303_server(void) {
   magma_service->Stop();
   magma_service->WaitForShutdown();
   delete magma_service;
   magma_service = NULL;
 }
 
-void increment_counter(const char *name, double increment, size_t n_labels, ...)
-{
+void increment_counter(
+    const char* name, double increment, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
   MetricsSingleton::Instance().IncrementCounter(name, increment, n_labels, ap);
   va_end(ap);
 }
 
-void increment_gauge(const char *name, double increment, size_t n_labels, ...)
-{
+void increment_gauge(const char* name, double increment, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
   MetricsSingleton::Instance().IncrementGauge(name, increment, n_labels, ap);
   va_end(ap);
 }
 
-void decrement_gauge(const char *name, double decrement, size_t n_labels, ...)
-{
+void decrement_gauge(const char* name, double decrement, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
   MetricsSingleton::Instance().DecrementGauge(name, decrement, n_labels, ap);
   va_end(ap);
 }
 
-void set_gauge(const char *name, double value, size_t n_labels, ...)
-{
+void set_gauge(const char* name, double value, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
   MetricsSingleton::Instance().SetGauge(name, value, n_labels, ap);
@@ -80,20 +71,15 @@ void set_gauge(const char *name, double value, size_t n_labels, ...)
 }
 
 void observe_histogram(
-  const char *name,
-  double observation,
-  size_t n_labels,
-  ...)
-{
+    const char* name, double observation, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
   MetricsSingleton::Instance().ObserveHistogram(
-    name, observation, n_labels, ap);
+      name, observation, n_labels, ap);
   va_end(ap);
 }
 
-void service303_set_application_health(application_health_t health)
-{
+void service303_set_application_health(application_health_t health) {
   ServiceInfo::ApplicationHealth appHealthEnum;
   switch (health) {
     case APP_UNKNOWN: {

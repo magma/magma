@@ -1,21 +1,24 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package storage
 
 import (
-	"database/sql"
 	"testing"
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/sqorc"
-	"magma/orc8r/lib/go/definitions"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -25,7 +28,9 @@ import (
 )
 
 func TestNewSQLTestcontrollerStorage_Integration(t *testing.T) {
-	db1, db2 := open(t), open(t)
+	const dbName = "testcontroller__storage__sql_integ_test"
+	db1 := sqorc.OpenCleanForTest(t, dbName, sqorc.PostgresDriver)
+	db2 := sqorc.OpenForTest(t, dbName, sqorc.PostgresDriver)
 	defer db1.Close()
 	defer db2.Close()
 	_, err := db1.Exec("DROP TABLE IF EXISTS testcontroller_tests")
@@ -316,14 +321,6 @@ func TestNewSQLTestcontrollerStorage_Integration(t *testing.T) {
 		},
 	}
 	assert.Equal(t, expectedCases, actualCases)
-}
-
-func open(t *testing.T) *sql.DB {
-	db, err := sqorc.Open("postgres", definitions.GetEnvWithDefault("DATABASE_SOURCE", "dbname=magma_test user=magma_test password=magma_test host=postgres_test sslmode=disable"))
-	if err != nil {
-		t.Fatalf("Could not initialize postgres DB connection: %s", err)
-	}
-	return db
 }
 
 func timestampProto(t *testing.T, unix int64) *timestamp.Timestamp {

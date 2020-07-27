@@ -1,10 +1,14 @@
 """"
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import os
@@ -17,7 +21,10 @@ from integ_tests.common.magmad_client import MagmadServiceGrpc
 # from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.common.mobility_service_client import MobilityServiceGrpc
 from integ_tests.common.service303_utils import GatewayServicesUtil
-from integ_tests.common.subscriber_db_client import SubscriberDbGrpc
+from integ_tests.common.subscriber_db_client import (
+    SubscriberDbGrpc,
+    SubscriberDbCassandra,
+)
 from integ_tests.s1aptests.s1ap_utils import (
     MagmadUtil,
     MobilityUtil,
@@ -54,7 +61,13 @@ class TestWrapper(object):
         self._s1_util = S1ApUtil()
         self._enBConfig()
 
-        subscriber_client = SubscriberDbGrpc()
+        if self._test_oai_upstream:
+            subscriber_client = SubscriberDbCassandra()
+            self.wait_gateway_healthy = False
+        else:
+            subscriber_client = SubscriberDbGrpc()
+            self.wait_gateway_healthy = True
+
         mobility_client = MobilityServiceGrpc()
         magmad_client = MagmadServiceGrpc()
         self._sub_util = SubscriberUtil(subscriber_client)
@@ -66,7 +79,6 @@ class TestWrapper(object):
         self._magmad_util.config_stateless(stateless_mode)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
-        self.wait_gateway_healthy = True
         if not self.wait_gateway_healthy:
             self.init_s1ap_tester()
 
@@ -174,16 +186,41 @@ class TestWrapper(object):
         print("************************* Waiting for IP changes to propagate")
         self._mobility_util.wait_for_changes()
 
-    def configUEDevice(self, num_ues):
+    def configUEDevice(self, num_ues, reqData=[]):
         """ Configure the device on the UE side """
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
-                "************************* UE device config for ue_id ", reqs[i].ue_id
+                "************************* UE device config for ue_id ",
+                reqs[i].ue_id,
             )
-            assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
+            if reqData and bool(reqData[i]):
+                if reqData[i].ueNwCap_pr.pres:
+                    reqs[i].ueNwCap_pr.pres = reqData[i].ueNwCap_pr.pres
+                    reqs[i].ueNwCap_pr.eea2_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eea2_128
+                    reqs[i].ueNwCap_pr.eea1_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eea1_128
+                    reqs[i].ueNwCap_pr.eea0 = reqData[i].ueNwCap_pr.eea0
+                    reqs[i].ueNwCap_pr.eia2_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eia2_128
+                    reqs[i].ueNwCap_pr.eia1_128 = reqData[
+                        i
+                    ].ueNwCap_pr.eia1_128
+                    reqs[i].ueNwCap_pr.eia0 = reqData[i].ueNwCap_pr.eia0
+
+            assert (
+                self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
+                == 0
+            )
             response = self._s1_util.get_response()
-            assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value
+                == response.msg_type
+            )
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(

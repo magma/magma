@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -68,7 +64,7 @@
 
 #if S1AP_DEBUG_LIST
 #define eNB_LIST_OUT(x, args...)                                               \
-  OAILOG_DEBUG(LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
+  (LOG_S1AP, "[eNB]%*s" x "\n", 4 * indent, "", ##args)
 #define UE_LIST_OUT(x, args...)                                                \
   OAILOG_DEBUG(LOG_S1AP, "[UE] %*s" x "\n", 4 * indent, "", ##args)
 #else
@@ -77,46 +73,40 @@
 #endif
 
 bool s1ap_dump_enb_hash_cb(
-  const hash_key_t keyP,
-  void* const enb_void,
-  void* unused_param,
-  void** unused_res);
+    const hash_key_t keyP, void* const enb_void, void* unused_param,
+    void** unused_res);
 bool s1ap_dump_ue_hash_cb(
-  const hash_key_t keyP,
-  void* const ue_void,
-  void* parameter,
-  void** unused_res);
+    const hash_key_t keyP, void* const ue_void, void* parameter,
+    void** unused_res);
 
 bool hss_associated = false;
-static int indent = 0;
+static int indent   = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
 
 //------------------------------------------------------------------------------
-static int s1ap_send_init_sctp(void)
-{
+static int s1ap_send_init_sctp(void) {
   // Create and alloc new message
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_INIT_MSG);
-  message_p->ittiMsg.sctpInit.port = S1AP_PORT_NUMBER;
-  message_p->ittiMsg.sctpInit.ppid = S1AP_SCTP_PPID;
-  message_p->ittiMsg.sctpInit.ipv4 = 1;
-  message_p->ittiMsg.sctpInit.ipv6 = 0;
+  message_p->ittiMsg.sctpInit.port         = S1AP_PORT_NUMBER;
+  message_p->ittiMsg.sctpInit.ppid         = S1AP_SCTP_PPID;
+  message_p->ittiMsg.sctpInit.ipv4         = 1;
+  message_p->ittiMsg.sctpInit.ipv6         = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
-    mme_config.ipv4.s1_mme.s_addr;
+      mme_config.ip.s1_mme_v4.s_addr;
+
   /*
    * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
    * * * * Disable it for now.
    */
-  message_p->ittiMsg.sctpInit.nb_ipv6_addr = 0;
+  message_p->ittiMsg.sctpInit.nb_ipv6_addr    = 0;
   message_p->ittiMsg.sctpInit.ipv6_address[0] = in6addr_loopback;
   return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
-
-static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
-{
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   s1ap_state_t* state;
   MessagesIds message_id = MESSAGES_ID_MAX;
 
@@ -125,7 +115,7 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
-  state = get_s1ap_state(false);
+  state           = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -179,7 +169,7 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
     case SCTP_NEW_ASSOCIATION: {
       increment_counter("mme_new_association", 1, NO_LABELS);
       if (s1ap_handle_new_association(
-            state, &received_message_p->ittiMsg.sctp_new_peer)) {
+              state, &received_message_p->ittiMsg.sctp_new_peer)) {
         increment_counter("mme_new_association", 1, 1, "result", "failure");
       } else {
         increment_counter("mme_new_association", 1, 1, "result", "success");
@@ -199,7 +189,7 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     case S1AP_E_RAB_SETUP_REQ: {
       s1ap_generate_s1ap_e_rab_setup_req(
-        state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
+          state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
     } break;
 
     // From MME_APP task
@@ -221,7 +211,7 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     case S1AP_ENB_INITIATED_RESET_ACK: {
       s1ap_handle_enb_initiated_reset_ack(
-        &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
+          &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
     } break;
 
     case S1AP_PAGING_REQUEST: {
@@ -251,9 +241,8 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
       s1ap_handle_path_switch_req_failure(
-        state,
-        &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
-        imsi64);
+          state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
+          imsi64);
     } break;
 
     case TIMER_HAS_EXPIRED: {
@@ -265,8 +254,8 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
       if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         // check whether timer is related to eNB procedure or UE procedure
         s1ap_timer_arg_t timer_arg =
-            *((s1ap_timer_arg_t*) (received_message_p->ittiMsg
-                                       .timer_has_expired.arg));
+            *((s1ap_timer_arg_t*) (received_message_p->ittiMsg.timer_has_expired
+                                       .arg));
         if (timer_arg.timer_class == S1AP_UE_TIMER) {
           mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
@@ -330,8 +319,7 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 }
 
 //------------------------------------------------------------------------------
-static void* s1ap_mme_thread(__attribute__((unused)) void* args)
-{
+static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_S1AP);
   init_task_context(
       TASK_S1AP, (task_id_t[]){TASK_MME_APP, TASK_SCTP}, 2, handle_message,
@@ -347,27 +335,22 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args)
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_init(const mme_config_t* mme_config_p)
-{
+int s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
 
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {
     OAILOG_ERROR(
-      LOG_S1AP,
-      "ASN1C version %d fount, expecting at least %d\n",
-      get_asn1c_environment_version(),
-      ASN1_MINIMUM_VERSION);
+        LOG_S1AP, "ASN1C version %d fount, expecting at least %d\n",
+        get_asn1c_environment_version(), ASN1_MINIMUM_VERSION);
     return RETURNerror;
   }
 
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
   OAILOG_DEBUG(LOG_S1AP, "S1AP Release v10.5\n");
 
-  if (
-    s1ap_state_init(
-      mme_config_p->max_ues,
-      mme_config_p->max_enbs,
-      mme_config_p->use_stateless) < 0) {
+  if (s1ap_state_init(
+          mme_config_p->max_ues, mme_config_p->max_enbs,
+          mme_config_p->use_stateless) < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while initing S1AP state\n");
     return RETURNerror;
   }
@@ -382,8 +365,7 @@ int s1ap_mme_init(const mme_config_t* mme_config_p)
 }
 
 //------------------------------------------------------------------------------
-void s1ap_mme_exit(void)
-{
+void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
 
   destroy_task_context(&s1ap_task_zmq_ctx);
@@ -399,19 +381,16 @@ void s1ap_mme_exit(void)
 }
 
 //------------------------------------------------------------------------------
-void s1ap_dump_enb_list(s1ap_state_t* state)
-{
+void s1ap_dump_enb_list(s1ap_state_t* state) {
   hashtable_ts_apply_callback_on_elements(
-    &state->enbs, s1ap_dump_enb_hash_cb, NULL, NULL);
+      &state->enbs, s1ap_dump_enb_hash_cb, NULL, NULL);
 }
 
 //------------------------------------------------------------------------------
 bool s1ap_dump_enb_hash_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void* const eNB_void,
-  void __attribute__((unused)) * unused_parameterP,
-  void __attribute__((unused)) * *unused_resultP)
-{
+    __attribute__((unused)) const hash_key_t keyP, void* const eNB_void,
+    void __attribute__((unused)) * unused_parameterP,
+    void __attribute__((unused)) * *unused_resultP) {
   const enb_description_t* const enb_ref = (const enb_description_t*) eNB_void;
   if (enb_ref == NULL) {
     return false;
@@ -421,10 +400,9 @@ bool s1ap_dump_enb_hash_cb(
 }
 
 //------------------------------------------------------------------------------
-void s1ap_dump_enb(const enb_description_t* const enb_ref)
-{
+void s1ap_dump_enb(const enb_description_t* const enb_ref) {
 #ifdef S1AP_DEBUG_LIST
-  //Reset indentation
+  // Reset indentation
   indent = 0;
 
   if (enb_ref == NULL) {
@@ -433,8 +411,8 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref)
 
   eNB_LIST_OUT("");
   eNB_LIST_OUT(
-    "eNB name:          %s",
-    enb_ref->enb_name == NULL ? "not present" : enb_ref->enb_name);
+      "eNB name:          %s",
+      enb_ref->enb_name == NULL ? "not present" : enb_ref->enb_name);
   eNB_LIST_OUT("eNB ID:            %07x", enb_ref->enb_id);
   eNB_LIST_OUT("SCTP assoc id:     %d", enb_ref->sctp_assoc_id);
   eNB_LIST_OUT("SCTP instreams:    %d", enb_ref->instreams);
@@ -445,10 +423,8 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref)
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_apply_callback_on_elements(
-    (hash_table_ts_t* const) state_ue_ht,
-    s1ap_dump_ue_hash_cb,
-    &sctp_assoc_id,
-    NULL);
+      (hash_table_ts_t* const) state_ue_ht, s1ap_dump_ue_hash_cb,
+      &sctp_assoc_id, NULL);
   indent--;
   eNB_LIST_OUT("");
 #else
@@ -458,26 +434,22 @@ void s1ap_dump_enb(const enb_description_t* const enb_ref)
 
 //------------------------------------------------------------------------------
 bool s1ap_dump_ue_hash_cb(
-  __attribute__((unused)) const hash_key_t keyP,
-  void* const ue_void,
-  void* parameter,
-  void __attribute__((unused)) * *unused_resultP)
-{
-  ue_description_t* ue_ref = (ue_description_t*) ue_void;
-  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t *) parameter;
+    __attribute__((unused)) const hash_key_t keyP, void* const ue_void,
+    void* parameter, void __attribute__((unused)) * *unused_resultP) {
+  ue_description_t* ue_ref       = (ue_description_t*) ue_void;
+  sctp_assoc_id_t* sctp_assoc_id = (sctp_assoc_id_t*) parameter;
   if (ue_ref == NULL) {
     return false;
   }
 
-  if(ue_ref->sctp_assoc_id == *sctp_assoc_id) {
+  if (ue_ref->sctp_assoc_id == *sctp_assoc_id) {
     s1ap_dump_ue(ue_ref);
   }
   return false;
 }
 
 //------------------------------------------------------------------------------
-void s1ap_dump_ue(const ue_description_t* const ue_ref)
-{
+void s1ap_dump_ue(const ue_description_t* const ue_ref) {
 #ifdef S1AP_DEBUG_LIST
 
   if (ue_ref == NULL) return;
@@ -511,12 +483,10 @@ enb_description_t* s1ap_new_enb(s1ap_state_t* state) {
 
 //------------------------------------------------------------------------------
 ue_description_t* s1ap_new_ue(
-  s1ap_state_t* state,
-  const sctp_assoc_id_t sctp_assoc_id,
-  enb_ue_s1ap_id_t enb_ue_s1ap_id)
-{
+    s1ap_state_t* state, const sctp_assoc_id_t sctp_assoc_id,
+    enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   enb_description_t* enb_ref = NULL;
-  ue_description_t* ue_ref = NULL;
+  ue_description_t* ue_ref   = NULL;
 
   enb_ref = s1ap_state_get_enb(state, sctp_assoc_id);
   DevAssert(enb_ref != NULL);
@@ -527,19 +497,18 @@ ue_description_t* s1ap_new_ue(
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
   DevAssert(ue_ref != NULL);
-  ue_ref->sctp_assoc_id = sctp_assoc_id;
+  ue_ref->sctp_assoc_id  = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
-  ue_ref->comp_s1ap_id = s1ap_get_comp_s1ap_id(sctp_assoc_id, enb_ue_s1ap_id);
+  ue_ref->comp_s1ap_id   = s1ap_get_comp_s1ap_id(sctp_assoc_id, enb_ue_s1ap_id);
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
-  hashtable_rc_t hashrc = hashtable_ts_insert(
-    state_ue_ht, (const hash_key_t) ue_ref->comp_s1ap_id, (void*) ue_ref);
+  hashtable_rc_t hashrc        = hashtable_ts_insert(
+      state_ue_ht, (const hash_key_t) ue_ref->comp_s1ap_id, (void*) ue_ref);
 
   if (HASH_TABLE_OK != hashrc) {
     OAILOG_ERROR(
-      LOG_S1AP,
-      "Could not insert UE descr in ue_coll: %s\n",
-      hashtable_rc_code2string(hashrc));
+        LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
+        hashtable_rc_code2string(hashrc));
     free_wrapper((void**) &ue_ref);
     return NULL;
   }

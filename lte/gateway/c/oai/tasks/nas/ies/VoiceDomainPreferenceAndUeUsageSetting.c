@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,13 +25,10 @@
 #include "VoiceDomainPreferenceAndUeUsageSetting.h"
 
 int decode_voice_domain_preference_and_ue_usage_setting(
-  VoiceDomainPreferenceAndUeUsageSetting
-    *voicedomainpreferenceandueusagesetting,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    VoiceDomainPreferenceAndUeUsageSetting*
+        voicedomainpreferenceandueusagesetting,
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -44,42 +37,38 @@ int decode_voice_domain_preference_and_ue_usage_setting(
   }
 
   memset(
-    voicedomainpreferenceandueusagesetting,
-    0,
-    sizeof(VoiceDomainPreferenceAndUeUsageSetting));
+      voicedomainpreferenceandueusagesetting, 0,
+      sizeof(VoiceDomainPreferenceAndUeUsageSetting));
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
   voicedomainpreferenceandueusagesetting->ue_usage_setting =
-    (*(buffer + decoded) >> 2) & 0x1;
+      (*(buffer + decoded) >> 2) & 0x1;
   voicedomainpreferenceandueusagesetting->voice_domain_for_eutran =
-    *(buffer + decoded) & 0x3;
+      *(buffer + decoded) & 0x3;
   decoded++;
 #if NAS_DEBUG
   dump_voice_domain_preference_and_ue_usage_setting_xml(
-    voicedomainpreferenceandueusagesetting, iei);
+      voicedomainpreferenceandueusagesetting, iei);
 #endif
   return decoded;
 }
 
 int encode_voice_domain_preference_and_ue_usage_setting(
-  VoiceDomainPreferenceAndUeUsageSetting
-    *voicedomainpreferenceandueusagesetting,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    VoiceDomainPreferenceAndUeUsageSetting*
+        voicedomainpreferenceandueusagesetting,
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_MINIMUM_LENGTH, len);
+      buffer, VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_voice_domain_preference_and_ue_usage_setting_xml(
-    voicedomainpreferenceandueusagesetting, iei);
+      voicedomainpreferenceandueusagesetting, iei);
 #endif
 
   if (iei > 0) {
@@ -90,18 +79,17 @@ int encode_voice_domain_preference_and_ue_usage_setting(
   lenPtr = (buffer + encoded);
   encoded++;
   *(buffer + encoded) =
-    0x00 | (voicedomainpreferenceandueusagesetting->ue_usage_setting << 2) |
-    voicedomainpreferenceandueusagesetting->voice_domain_for_eutran;
+      0x00 | (voicedomainpreferenceandueusagesetting->ue_usage_setting << 2) |
+      voicedomainpreferenceandueusagesetting->voice_domain_for_eutran;
   encoded++;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
   return encoded;
 }
 
 void dump_voice_domain_preference_and_ue_usage_setting_xml(
-  VoiceDomainPreferenceAndUeUsageSetting
-    *voicedomainpreferenceandueusagesetting,
-  uint8_t iei)
-{
+    VoiceDomainPreferenceAndUeUsageSetting*
+        voicedomainpreferenceandueusagesetting,
+    uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Voice domain preference and UE usage setting>\n");
 
   if (iei > 0)
@@ -111,12 +99,10 @@ void dump_voice_domain_preference_and_ue_usage_setting_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <UE_USAGE_SETTING>%u</UE_USAGE_SETTING>\n",
-    voicedomainpreferenceandueusagesetting->ue_usage_setting);
+      LOG_NAS, "    <UE_USAGE_SETTING>%u</UE_USAGE_SETTING>\n",
+      voicedomainpreferenceandueusagesetting->ue_usage_setting);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <VOICE_DOMAIN_FOR_EUTRAN>%u</VOICE_DOMAIN_FOR_EUTRAN>\n",
-    voicedomainpreferenceandueusagesetting->voice_domain_for_eutran);
+      LOG_NAS, "    <VOICE_DOMAIN_FOR_EUTRAN>%u</VOICE_DOMAIN_FOR_EUTRAN>\n",
+      voicedomainpreferenceandueusagesetting->voice_domain_for_eutran);
   OAILOG_DEBUG(LOG_NAS, "</Voice domain preference and UE usage setting>\n");
 }

@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package registry for Magma microservices
@@ -18,6 +23,7 @@ import (
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/keepalive"
 )
 
 type ServiceRegistry struct {
@@ -34,7 +40,13 @@ type cloudConnection struct {
 	expiration time.Time
 }
 
-// New creates and initializes a new registry.
+var localKeepaliveParams = keepalive.ClientParameters{
+	Time:                31 * time.Second,
+	Timeout:             10 * time.Second,
+	PermitWithoutStream: true,
+}
+
+// New creates and returns a new registry
 func New() *ServiceRegistry {
 	return &ServiceRegistry{
 		ServiceConnections: map[string]*grpc.ClientConn{},
@@ -209,12 +221,12 @@ func (r *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error
 
 	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
-	return r.GetConnectionImpl(
-		ctx,
-		service,
-		grpc.WithBackoffMaxDelay(GrpcMaxDelaySec*time.Second),
-		grpc.WithBlock(),
-	)
+
+	opts := []grpc.DialOption{grpc.WithBackoffMaxDelay(GrpcMaxDelaySec * time.Second), grpc.WithBlock()}
+	if *grpcKeepAlive {
+		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
+	}
+	return r.GetConnectionImpl(ctx, service, opts...)
 }
 
 func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {

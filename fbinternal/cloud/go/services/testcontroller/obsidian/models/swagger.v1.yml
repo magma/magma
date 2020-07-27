@@ -2,7 +2,7 @@
 swagger: '2.0'
 
 magma-gen-meta:
-  go-package: orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models
+  go-package: magma/fbinternal/cloud/go/services/testcontroller/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
     - 'lte/cloud/go/services/lte/obsidian/models/swagger.v1.yml'
@@ -136,6 +136,17 @@ paths:
       summary: List CI worker nodes
       tags:
         - baremetal
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          type: string
+          description: Optional tag to filter listed nodes by
+        - name: list_untagged
+          in: query
+          required: false
+          type: string
+          description: Set this to a non-empty value to filter for all untagged nodes
       responses:
         '200':
           description: All CI worker nodes
@@ -167,6 +178,12 @@ paths:
       summary: Reserve a CI worker node if available
       tags:
         - baremetal
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          type: string
+          description: Optional tag to restrict reservation pool to
       responses:
         '200':
           description: Lease information about the reserved node
@@ -443,6 +460,9 @@ definitions:
         type: string
         minLength: 1
         example: 'node1'
+      tag:
+        type: string
+        example: 'tagged'
       vpn_ip:
         type: string
         format: ipv4
@@ -465,6 +485,9 @@ definitions:
         type: string
         minLength: 1
         example: 'node1'
+      tag:
+        type: string
+        example: 'tagged'
       vpn_ip:
         type: string
         format: ipv4

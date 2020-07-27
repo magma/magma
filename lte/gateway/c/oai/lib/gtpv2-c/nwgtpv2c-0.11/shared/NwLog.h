@@ -30,7 +30,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF   *
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.          *
  *----------------------------------------------------------------------------*/
-
 #ifndef __NW_LOG_H__
 #define __NW_LOG_H__
 
@@ -41,7 +40,7 @@
 /**
  * @file NwLog.h
  * @brief This header file contains global shared logging definitions.
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -67,14 +66,14 @@ extern "C" {
 #define NW_IPV4_ADDR "%u.%u.%u.%u"
 #define NW_IPV4_ADDR_FORMAT(__addr)                                            \
   (uint8_t)((__addr) &0x000000ff), (uint8_t)(((__addr) &0x0000ff00) >> 8),     \
-    (uint8_t)(((__addr) &0x00ff0000) >> 16),                                   \
-    (uint8_t)(((__addr) &0xff000000) >> 24)
+      (uint8_t)(((__addr) &0x00ff0000) >> 16),                                 \
+      (uint8_t)(((__addr) &0xff000000) >> 24)
 
 #define NW_IPV4_ADDR_FORMATP(__paddr)                                          \
-  (uint8_t)(*((uint8_t *) (__paddr)) & 0x000000ff),                            \
-    (uint8_t)(*((uint8_t *) (__paddr + 1)) & 0x000000ff),                      \
-    (uint8_t)(*((uint8_t *) (__paddr + 2)) & 0x000000ff),                      \
-    (uint8_t)(*((uint8_t *) (__paddr + 3)) & 0x000000ff)
+  (uint8_t)(*((uint8_t*) (__paddr)) & 0x000000ff),                             \
+      (uint8_t)(*((uint8_t*) (__paddr + 1)) & 0x000000ff),                     \
+      (uint8_t)(*((uint8_t*) (__paddr + 2)) & 0x000000ff),                     \
+      (uint8_t)(*((uint8_t*) (__paddr + 3)) & 0x000000ff)
 
 #ifdef __cplusplus
 }

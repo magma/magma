@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package storage_test
@@ -14,9 +19,9 @@ import (
 	"testing"
 	"time"
 
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/sqorc"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/storage"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/pkg/errors"
@@ -24,7 +29,7 @@ import (
 )
 
 var expectedNodeCols = []string{
-	"pk", "vpn_ip", "available", "last_leased_sec",
+	"pk", "vpn_ip", "tag", "available", "last_leased_sec",
 }
 var nodeColsJoined = strings.Join(expectedNodeCols, ", ")
 var expectedNodeTable = "testcontroller_nodes"
@@ -36,13 +41,43 @@ func TestSqlNodeLeasorStorage_GetNodes(t *testing.T) {
 				WithArgs("foo", "bar").
 				WillReturnRows(
 					sqlmock.NewRows(expectedNodeCols).
-						AddRow("foo", "192.168.100.1", true, 0).
-						AddRow("bar", "10.0.2.1", false, 100),
+						AddRow("foo", "192.168.100.1", "", true, 0).
+						AddRow("bar", "10.0.2.1", "tag", false, 100),
 				)
 			m.ExpectCommit()
 		},
 		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
-			return s.GetNodes([]string{"foo", "bar"})
+			return s.GetNodes([]string{"foo", "bar"}, nil)
+		},
+		expectedResult: map[string]*storage.CINode{
+			"foo": {
+				Id:            "foo",
+				VpnIp:         "192.168.100.1",
+				Available:     true,
+				LastLeaseTime: timestampProto(t, 0),
+			},
+			"bar": {
+				Id:            "bar",
+				Tag:           "tag",
+				VpnIp:         "10.0.2.1",
+				Available:     false,
+				LastLeaseTime: timestampProto(t, 100),
+			},
+		},
+	}
+
+	loadAll := &nodeTestCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", nodeColsJoined, expectedNodeTable)).
+				WillReturnRows(
+					sqlmock.NewRows(expectedNodeCols).
+						AddRow("foo", "192.168.100.1", "", true, 0).
+						AddRow("bar", "10.0.2.1", "", false, 100),
+				)
+			m.ExpectCommit()
+		},
+		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
+			return s.GetNodes(nil, nil)
 		},
 		expectedResult: map[string]*storage.CINode{
 			"foo": {
@@ -60,28 +95,23 @@ func TestSqlNodeLeasorStorage_GetNodes(t *testing.T) {
 		},
 	}
 
-	loadAll := &nodeTestCase{
+	loadTag := &nodeTestCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", nodeColsJoined, expectedNodeTable)).
+				WithArgs("tag").
 				WillReturnRows(
 					sqlmock.NewRows(expectedNodeCols).
-						AddRow("foo", "192.168.100.1", true, 0).
-						AddRow("bar", "10.0.2.1", false, 100),
+						AddRow("bar", "10.0.2.1", "tag", false, 100),
 				)
 			m.ExpectCommit()
 		},
 		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
-			return s.GetNodes(nil)
+			return s.GetNodes(nil, strPtr("tag"))
 		},
 		expectedResult: map[string]*storage.CINode{
-			"foo": {
-				Id:            "foo",
-				VpnIp:         "192.168.100.1",
-				Available:     true,
-				LastLeaseTime: timestampProto(t, 0),
-			},
 			"bar": {
 				Id:            "bar",
+				Tag:           "tag",
 				VpnIp:         "10.0.2.1",
 				Available:     false,
 				LastLeaseTime: timestampProto(t, 100),
@@ -96,13 +126,14 @@ func TestSqlNodeLeasorStorage_GetNodes(t *testing.T) {
 			m.ExpectRollback()
 		},
 		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
-			return s.GetNodes(nil)
+			return s.GetNodes(nil, nil)
 		},
 		expectedError: errors.New("failed to retrieve nodes: mock query error"),
 	}
 
 	runNodeCase(t, happyPath)
 	runNodeCase(t, loadAll)
+	runNodeCase(t, loadTag)
 	runNodeCase(t, queryError)
 }
 
@@ -110,19 +141,19 @@ func TestSqlNodeLeasorStorage_CreateOrUpdateNode(t *testing.T) {
 	happyPath := &nodeTestCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectExec(fmt.Sprintf("INSERT INTO %s", expectedNodeTable)).
-				WithArgs("foo", "192.168.100.1", "192.168.100.1").
+				WithArgs("foo", "tag", "192.168.100.1", "tag", "192.168.100.1").
 				WillReturnResult(sqlmock.NewResult(1, 1))
 			m.ExpectCommit()
 		},
 		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
-			return nil, s.CreateOrUpdateNode(&storage.MutableCINode{Id: "foo", VpnIP: "192.168.100.1"})
+			return nil, s.CreateOrUpdateNode(&storage.MutableCINode{Id: "foo", Tag: "tag", VpnIP: "192.168.100.1"})
 		},
 	}
 
 	errorCase := &nodeTestCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectExec(fmt.Sprintf("INSERT INTO %s", expectedNodeTable)).
-				WithArgs("foo", "192.168.100.1", "192.168.100.1").
+				WithArgs("foo", "", "192.168.100.1", "", "192.168.100.1").
 				WillReturnError(errors.New("mock exec error"))
 			m.ExpectRollback()
 		},
@@ -175,14 +206,34 @@ func TestSqlNodeLeasorStorage_LeaseNode(t *testing.T) {
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", nodeColsJoined, expectedNodeTable)).
 				WithArgs(true, false, (frozenTime-2*time.Hour)/time.Second).
-				WillReturnRows(sqlmock.NewRows(expectedNodeCols).AddRow("foo", "192.168.100.1", true, 0))
+				WillReturnRows(sqlmock.NewRows(expectedNodeCols).AddRow("foo", "192.168.100.1", "", true, 0))
 			m.ExpectExec(fmt.Sprintf("UPDATE %s", expectedNodeTable)).
 				WithArgs(false, frozenTime/time.Second, "1", "foo").
 				WillReturnResult(sqlmock.NewResult(1, 1))
 			m.ExpectCommit()
 		},
 		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
-			return s.LeaseNode()
+			return s.LeaseNode(nil)
+		},
+		expectedResult: &storage.NodeLease{
+			Id:      "foo",
+			VpnIP:   "192.168.100.1",
+			LeaseID: "1",
+		},
+	}
+
+	withTag := &nodeTestCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", nodeColsJoined, expectedNodeTable)).
+				WithArgs(true, false, (frozenTime-2*time.Hour)/time.Second, "tag").
+				WillReturnRows(sqlmock.NewRows(expectedNodeCols).AddRow("foo", "192.168.100.1", "tag", true, 0))
+			m.ExpectExec(fmt.Sprintf("UPDATE %s", expectedNodeTable)).
+				WithArgs(false, frozenTime/time.Second, "1", "foo").
+				WillReturnResult(sqlmock.NewResult(1, 1))
+			m.ExpectCommit()
+		},
+		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
+			return s.LeaseNode(strPtr("tag"))
 		},
 		expectedResult: &storage.NodeLease{
 			Id:      "foo",
@@ -199,13 +250,14 @@ func TestSqlNodeLeasorStorage_LeaseNode(t *testing.T) {
 			m.ExpectCommit()
 		},
 		run: func(s storage.NodeLeasorStorage) (interface{}, error) {
-			return s.LeaseNode()
+			return s.LeaseNode(nil)
 		},
 	}
 
 	// add cases for select and update query errors later
 
 	runNodeCase(t, happyPath)
+	runNodeCase(t, withTag)
 	runNodeCase(t, emptySelect)
 }
 
@@ -218,7 +270,7 @@ func TestSqlNodeLeasor_ReserveNode(t *testing.T) {
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", nodeColsJoined, expectedNodeTable)).
 				WithArgs("foo").
-				WillReturnRows(sqlmock.NewRows(expectedNodeCols).AddRow("foo", "192.168.100.1", true, 0))
+				WillReturnRows(sqlmock.NewRows(expectedNodeCols).AddRow("foo", "192.168.100.1", "", true, 0))
 			m.ExpectExec(fmt.Sprintf("UPDATE %s", expectedNodeTable)).
 				WithArgs(false, frozenTime/time.Second, "manual", "foo").
 				WillReturnResult(sqlmock.NewResult(1, 1))

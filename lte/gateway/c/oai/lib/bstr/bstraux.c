@@ -37,8 +37,7 @@ struct bStream;
  *
  *  Return with a string of the last n characters of b.
  */
-bstring bTail(bstring b, int n)
-{
+bstring bTail(bstring b, int n) {
   if (b == NULL || n < 0 || (b->mlen < b->slen && b->mlen > 0)) return NULL;
   if (n >= b->slen) return bstrcpy(b);
   return bmidstr(b, b->slen - n, n);
@@ -48,8 +47,7 @@ bstring bTail(bstring b, int n)
  *
  *  Return with a string of the first n characters of b.
  */
-bstring bHead(bstring b, int n)
-{
+bstring bHead(bstring b, int n) {
   if (b == NULL || n < 0 || (b->mlen < b->slen && b->mlen > 0)) return NULL;
   if (n >= b->slen) return bstrcpy(b);
   return bmidstr(b, 0, n);
@@ -59,8 +57,7 @@ bstring bHead(bstring b, int n)
  *
  *  Fill a given bstring with the character in parameter c, for a length n.
  */
-int bFill(bstring b, char c, int len)
-{
+int bFill(bstring b, char c, int len) {
   if (b == NULL || len < 0 || (b->mlen < b->slen && b->mlen > 0))
     return -__LINE__;
   b->slen = 0;
@@ -71,8 +68,7 @@ int bFill(bstring b, char c, int len)
  *
  *  Replicate the contents of b end to end n times and replace it in b.
  */
-int bReplicate(bstring b, int n)
-{
+int bReplicate(bstring b, int n) {
   return bpattern(b, n * b->slen);
 }
 
@@ -80,8 +76,7 @@ int bReplicate(bstring b, int n)
  *
  *  Reverse the contents of b in place.
  */
-int bReverse(bstring b)
-{
+int bReverse(bstring b) {
   int i, n, m;
   unsigned char t;
 
@@ -91,26 +86,22 @@ int bReverse(bstring b)
     m = ((unsigned) n) >> 1;
     n--;
     for (i = 0; i < m; i++) {
-      t = b->data[n - i];
+      t              = b->data[n - i];
       b->data[n - i] = b->data[i];
-      b->data[i] = t;
+      b->data[i]     = t;
     }
   }
   return 0;
 }
 
-/*  int bInsertChrs (bstring b, int pos, int len, unsigned char c, unsigned char fill)
+/*  int bInsertChrs (bstring b, int pos, int len, unsigned char c, unsigned char
+ * fill)
  *
- *  Insert a repeated sequence of a given character into the string at 
+ *  Insert a repeated sequence of a given character into the string at
  *  position pos for a length len.
  */
 int bInsertChrs(
-  bstring b,
-  int pos,
-  int len,
-  unsigned char c,
-  unsigned char fill)
-{
+    bstring b, int pos, int len, unsigned char c, unsigned char fill) {
   if (b == NULL || b->slen < 0 || b->mlen < b->slen || pos < 0 || len <= 0)
     return -__LINE__;
 
@@ -128,8 +119,7 @@ int bInsertChrs(
  *
  *  Left justify a string.
  */
-int bJustifyLeft(bstring b, int space)
-{
+int bJustifyLeft(bstring b, int space) {
   int j, i, s, t;
   unsigned char c = (unsigned char) space;
 
@@ -144,7 +134,7 @@ int bJustifyLeft(bstring b, int space)
   if (j > 0 && b->data[j - 1] == c) j--;
 
   b->data[j] = (unsigned char) '\0';
-  b->slen = j;
+  b->slen    = j;
   return BSTR_OK;
 }
 
@@ -152,14 +142,13 @@ int bJustifyLeft(bstring b, int space)
  *
  *  Right justify a string to within a given width.
  */
-int bJustifyRight(bstring b, int width, int space)
-{
+int bJustifyRight(bstring b, int width, int space) {
   int ret;
   if (width <= 0) return -__LINE__;
   if (0 > (ret = bJustifyLeft(b, space))) return ret;
   if (b->slen <= width)
     return bInsertChrs(
-      b, 0, width - b->slen, (unsigned char) space, (unsigned char) space);
+        b, 0, width - b->slen, (unsigned char) space, (unsigned char) space);
   return BSTR_OK;
 }
 
@@ -168,18 +157,14 @@ int bJustifyRight(bstring b, int width, int space)
  *  Center a string's non-white space characters to within a given width by
  *  inserting whitespaces at the beginning.
  */
-int bJustifyCenter(bstring b, int width, int space)
-{
+int bJustifyCenter(bstring b, int width, int space) {
   int ret;
   if (width <= 0) return -__LINE__;
   if (0 > (ret = bJustifyLeft(b, space))) return ret;
   if (b->slen <= width)
     return bInsertChrs(
-      b,
-      0,
-      (width - b->slen + 1) >> 1,
-      (unsigned char) space,
-      (unsigned char) space);
+        b, 0, (width - b->slen + 1) >> 1, (unsigned char) space,
+        (unsigned char) space);
   return BSTR_OK;
 }
 
@@ -189,9 +174,8 @@ int bJustifyCenter(bstring b, int width, int space)
  *  distributing additional white space between words.  If the line is too
  *  long to be margin justified, it is left justified.
  */
-int bJustifyMargin(bstring b, int width, int space)
-{
-  struct bstrList *sl;
+int bJustifyMargin(bstring b, int width, int space) {
+  struct bstrList* sl;
   int i, l, c;
 
   if (b == NULL || b->slen < 0 || b->mlen == 0 || b->mlen < b->slen)
@@ -215,7 +199,7 @@ int bJustifyMargin(bstring b, int width, int space)
       if (b->slen > 0) {
         int s = (width - l + (c / 2)) / c;
         bInsertChrs(
-          b, b->slen, s, (unsigned char) space, (unsigned char) space);
+            b, b->slen, s, (unsigned char) space, (unsigned char) space);
         l += s;
       }
       bconcat(b, sl->entry[i]);
@@ -228,8 +212,7 @@ int bJustifyMargin(bstring b, int width, int space)
   return BSTR_OK;
 }
 
-static size_t readNothing(void *buff, size_t elsize, size_t nelem, void *parm)
-{
+static size_t readNothing(void* buff, size_t elsize, size_t nelem, void* parm) {
   UNUSED(buff);
   UNUSED(elsize);
   UNUSED(nelem);
@@ -242,17 +225,15 @@ static size_t readNothing(void *buff, size_t elsize, size_t nelem, void *parm)
  *  Create a bStream whose contents are a copy of the bstring passed in.
  *  This allows the use of all the bStream APIs with bstrings.
  */
-struct bStream *bsFromBstr(const_bstring b)
-{
-  struct bStream *s = bsopen((bNread) readNothing, NULL);
+struct bStream* bsFromBstr(const_bstring b) {
+  struct bStream* s = bsopen((bNread) readNothing, NULL);
   bsunread(s, b); /* Push the bstring data into the empty bStream. */
   return s;
 }
 
-static size_t readRef(void *buff, size_t elsize, size_t nelem, void *parm)
-{
-  struct tagbstring *t = (struct tagbstring *) parm;
-  size_t tsz = elsize * nelem;
+static size_t readRef(void* buff, size_t elsize, size_t nelem, void* parm) {
+  struct tagbstring* t = (struct tagbstring*) parm;
+  size_t tsz           = elsize * nelem;
 
   if (tsz > (size_t) t->slen) tsz = (size_t) t->slen;
   if (tsz > 0) {
@@ -265,55 +246,51 @@ static size_t readRef(void *buff, size_t elsize, size_t nelem, void *parm)
 }
 
 /*  The "by reference" version of the above function.  This function puts
- *  a number of restrictions on the call site (the passed in struct 
+ *  a number of restrictions on the call site (the passed in struct
  *  tagbstring *will* be modified by this function, and the source data
- *  must remain alive and constant for the lifetime of the bStream).  
+ *  must remain alive and constant for the lifetime of the bStream).
  *  Hence it is not presented as an extern.
  */
-static struct bStream *bsFromBstrRef(struct tagbstring *t)
-{
+static struct bStream* bsFromBstrRef(struct tagbstring* t) {
   if (!t) return NULL;
   return bsopen((bNread) readRef, t);
 }
 
 /*  char * bStr2NetStr (const_bstring b)
  *
- *  Convert a bstring to a netstring.  See 
+ *  Convert a bstring to a netstring.  See
  *  http://cr.yp.to/proto/netstrings.txt for a description of netstrings.
- *  Note: 1) The value returned should be freed with a call to bcstrfree() at 
- *           the point when it will no longer be referenced to avoid a memory 
+ *  Note: 1) The value returned should be freed with a call to bcstrfree() at
+ *           the point when it will no longer be referenced to avoid a memory
  *           leak.
  *        2) If the returned value is non-NULL, then it also '\0' terminated
  *           in the character position one past the "," terminator.
  */
-char *bStr2NetStr(const_bstring b)
-{
+char* bStr2NetStr(const_bstring b) {
   char strnum[sizeof(b->slen) * 3 + 1];
   bstring s;
-  unsigned char *buff;
+  unsigned char* buff;
 
   if (b == NULL || b->data == NULL || b->slen < 0) return NULL;
   sprintf(strnum, "%d:", b->slen);
-  if (
-    NULL == (s = bfromcstr(strnum)) || bconcat(s, b) == BSTR_ERR ||
-    bconchar(s, (char) ',') == BSTR_ERR) {
+  if (NULL == (s = bfromcstr(strnum)) || bconcat(s, b) == BSTR_ERR ||
+      bconchar(s, (char) ',') == BSTR_ERR) {
     bdestroy(s);
     return NULL;
   }
   buff = s->data;
-  bcstrfree((char *) s);
-  return (char *) buff;
+  bcstrfree((char*) s);
+  return (char*) buff;
 }
 
 /*  bstring bNetStr2Bstr (const char * buf)
  *
- *  Convert a netstring to a bstring.  See 
+ *  Convert a netstring to a bstring.  See
  *  http://cr.yp.to/proto/netstrings.txt for a description of netstrings.
  *  Note that the terminating "," *must* be present, however a following '\0'
  *  is *not* required.
  */
-bstring bNetStr2Bstr(const char *buff)
-{
+bstring bNetStr2Bstr(const char* buff) {
   int i, x;
   bstring b;
   if (buff == NULL) return NULL;
@@ -334,19 +311,18 @@ bstring bNetStr2Bstr(const char *buff)
   }
   memcpy(b->data, buff + i + 1, x);
   b->data[x] = (unsigned char) '\0';
-  b->slen = x;
+  b->slen    = x;
   return b;
 }
 
 static char b64ETable[] =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 /*  bstring bBase64Encode (const_bstring b)
  *
  *  Generate a base64 encoding.  See: RFC1341
  */
-bstring bBase64Encode(const_bstring b)
-{
+bstring bBase64Encode(const_bstring b) {
   int i, c0, c1, c2, c3;
   bstring out;
 
@@ -355,8 +331,8 @@ bstring bBase64Encode(const_bstring b)
   out = bfromcstr("");
   for (i = 0; i + 2 < b->slen; i += 3) {
     if (i && ((i % 57) == 0)) {
-      if (
-        bconchar(out, (char) '\015') < 0 || bconchar(out, (char) '\012') < 0) {
+      if (bconchar(out, (char) '\015') < 0 ||
+          bconchar(out, (char) '\012') < 0) {
         bdestroy(out);
         return NULL;
       }
@@ -365,9 +341,8 @@ bstring bBase64Encode(const_bstring b)
     c1 = ((b->data[i] << 4) | (b->data[i + 1] >> 4)) & 0x3F;
     c2 = ((b->data[i + 1] << 2) | (b->data[i + 2] >> 6)) & 0x3F;
     c3 = b->data[i + 2] & 0x3F;
-    if (
-      bconchar(out, b64ETable[c0]) < 0 || bconchar(out, b64ETable[c1]) < 0 ||
-      bconchar(out, b64ETable[c2]) < 0 || bconchar(out, b64ETable[c3]) < 0) {
+    if (bconchar(out, b64ETable[c0]) < 0 || bconchar(out, b64ETable[c1]) < 0 ||
+        bconchar(out, b64ETable[c2]) < 0 || bconchar(out, b64ETable[c3]) < 0) {
       bdestroy(out);
       return NULL;
     }
@@ -385,9 +360,9 @@ bstring bBase64Encode(const_bstring b)
       c0 = b->data[i] >> 2;
       c1 = ((b->data[i] << 4) | (b->data[i + 1] >> 4)) & 0x3F;
       c2 = (b->data[i + 1] << 2) & 0x3F;
-      if (
-        bconchar(out, b64ETable[c0]) < 0 || bconchar(out, b64ETable[c1]) < 0 ||
-        bconchar(out, b64ETable[c2]) < 0 || bconchar(out, (char) '=') < 0) {
+      if (bconchar(out, b64ETable[c0]) < 0 ||
+          bconchar(out, b64ETable[c1]) < 0 ||
+          bconchar(out, b64ETable[c2]) < 0 || bconchar(out, (char) '=') < 0) {
         bdestroy(out);
         return NULL;
       }
@@ -395,14 +370,15 @@ bstring bBase64Encode(const_bstring b)
     case 1:
       c0 = b->data[i] >> 2;
       c1 = (b->data[i] << 4) & 0x3F;
-      if (
-        bconchar(out, b64ETable[c0]) < 0 || bconchar(out, b64ETable[c1]) < 0 ||
-        bconchar(out, (char) '=') < 0 || bconchar(out, (char) '=') < 0) {
+      if (bconchar(out, b64ETable[c0]) < 0 ||
+          bconchar(out, b64ETable[c1]) < 0 || bconchar(out, (char) '=') < 0 ||
+          bconchar(out, (char) '=') < 0) {
         bdestroy(out);
         return NULL;
       }
       break;
-    case 2: break;
+    case 2:
+      break;
   }
 
   return out;
@@ -411,8 +387,7 @@ bstring bBase64Encode(const_bstring b)
 #define B64_PAD (-2)
 #define B64_ERR (-1)
 
-static int base64DecodeSymbol(unsigned char alpha)
-{
+static int base64DecodeSymbol(unsigned char alpha) {
   if ((alpha >= 'A') && (alpha <= 'Z'))
     return (int) (alpha - 'A');
   else if ((alpha >= 'a') && (alpha <= 'z'))
@@ -434,8 +409,7 @@ static int base64DecodeSymbol(unsigned char alpha)
  *  Decode a base64 block of data.  All MIME headers are assumed to have been
  *  removed.  See: RFC1341
  */
-bstring bBase64DecodeEx(const_bstring b, int *boolTruncError)
-{
+bstring bBase64DecodeEx(const_bstring b, int* boolTruncError) {
   int i, v;
   unsigned char c0, c1, c2;
   bstring out;
@@ -443,7 +417,7 @@ bstring bBase64DecodeEx(const_bstring b, int *boolTruncError)
   if (b == NULL || b->slen < 0 || b->data == NULL) return NULL;
   if (boolTruncError) *boolTruncError = 0;
   out = bfromcstr("");
-  i = 0;
+  i   = 0;
   for (;;) {
     do {
       if (i >= b->slen) return out;
@@ -524,8 +498,8 @@ bstring bBase64DecodeEx(const_bstring b, int *boolTruncError)
       i++;
     } while (v < 0);
     c2 |= (unsigned char) (v);
-    if (
-      bconchar(out, c0) < 0 || bconchar(out, c1) < 0 || bconchar(out, c2) < 0) {
+    if (bconchar(out, c0) < 0 || bconchar(out, c1) < 0 ||
+        bconchar(out, c2) < 0) {
       if (boolTruncError) {
         *boolTruncError = -1;
         return out;
@@ -541,21 +515,20 @@ bstring bBase64DecodeEx(const_bstring b, int *boolTruncError)
 
 struct bUuInOut {
   bstring src, dst;
-  int *badlines;
+  int* badlines;
 };
 
 #define UU_MAX_LINELEN 45
 
-static int bUuDecLine(void *parm, int ofs, int len)
-{
-  struct bUuInOut *io = (struct bUuInOut *) parm;
-  bstring s = io->src;
-  bstring t = io->dst;
+static int bUuDecLine(void* parm, int ofs, int len) {
+  struct bUuInOut* io = (struct bUuInOut*) parm;
+  bstring s           = io->src;
+  bstring t           = io->dst;
   int i, llen, otlen, ret, c0, c1, c2, c3, d0, d1, d2, d3;
 
   if (len == 0) return 0;
   llen = UU_DECODE_BYTE(s->data[ofs]);
-  ret = 0;
+  ret  = 0;
 
   otlen = t->slen;
 
@@ -575,9 +548,8 @@ static int bUuDecLine(void *parm, int ofs, int len)
 
     if (((unsigned) (c0 | c1) >= 0x40)) {
       if (!ret) ret = -__LINE__;
-      if (
-        d0 > 0x60 || (d0 < (' ' - 1) && !isspace(d0)) || d1 > 0x60 ||
-        (d1 < (' ' - 1) && !isspace(d1))) {
+      if (d0 > 0x60 || (d0 < (' ' - 1) && !isspace(d0)) || d1 > 0x60 ||
+          (d1 < (' ' - 1) && !isspace(d1))) {
         t->slen = otlen;
         goto bl;
       }
@@ -628,9 +600,9 @@ bl:;
  *
  *  Performs a UUDecode of a block of data.  If there are errors in the
  *  decoding, they are counted up and returned in "badlines", if badlines is
- *  not NULL. It is assumed that the "begin" and "end" lines have already 
- *  been stripped off.  The potential security problem of writing the 
- *  filename in the begin line is something that is beyond the scope of a 
+ *  not NULL. It is assumed that the "begin" and "end" lines have already
+ *  been stripped off.  The potential security problem of writing the
+ *  filename in the begin line is something that is beyond the scope of a
  *  portable library.
  */
 
@@ -638,11 +610,10 @@ bl:;
 #pragma warning(disable : 4204)
 #endif
 
-bstring bUuDecodeEx(const_bstring src, int *badlines)
-{
+bstring bUuDecodeEx(const_bstring src, int* badlines) {
   struct tagbstring t;
-  struct bStream *s;
-  struct bStream *d;
+  struct bStream* s;
+  struct bStream* d;
   bstring b;
 
   if (!src) return NULL;
@@ -662,14 +633,13 @@ bstring bUuDecodeEx(const_bstring src, int *badlines)
 
 struct bsUuCtx {
   struct bUuInOut io;
-  struct bStream *sInp;
+  struct bStream* sInp;
 };
 
-static size_t
-bsUuDecodePart(void *buff, size_t elsize, size_t nelem, void *parm)
-{
+static size_t bsUuDecodePart(
+    void* buff, size_t elsize, size_t nelem, void* parm) {
   static struct tagbstring eol = bsStatic("\r\n");
-  struct bsUuCtx *luuCtx = (struct bsUuCtx *) parm;
+  struct bsUuCtx* luuCtx       = (struct bsUuCtx*) parm;
   size_t tsz;
   int l, lret;
 
@@ -688,7 +658,7 @@ DecodeMore:;
   if (0 <= (l = binchr(luuCtx->io.src, 0, &eol))) {
     int ol = 0;
     struct tagbstring t;
-    bstring s = luuCtx->io.src;
+    bstring s      = luuCtx->io.src;
     luuCtx->io.src = &t;
 
     do {
@@ -709,11 +679,9 @@ DecodeMore:;
     goto CheckInternalBuffer;
   }
 
-  if (
-    BSTR_ERR != bsreada(
-                  luuCtx->io.src,
-                  luuCtx->sInp,
-                  bsbufflength(luuCtx->sInp, BSTR_BS_BUFF_LENGTH_GET))) {
+  if (BSTR_ERR != bsreada(
+                      luuCtx->io.src, luuCtx->sInp,
+                      bsbufflength(luuCtx->sInp, BSTR_BS_BUFF_LENGTH_GET))) {
     goto DecodeMore;
   }
 
@@ -724,7 +692,7 @@ Done:;
   if (((size_t) luuCtx->io.dst->slen) > 0) {
     if (((size_t) luuCtx->io.dst->slen) > tsz) goto CheckInternalBuffer;
     memcpy(buff, luuCtx->io.dst->data, luuCtx->io.dst->slen);
-    tsz = luuCtx->io.dst->slen / elsize;
+    tsz                  = luuCtx->io.dst->slen / elsize;
     luuCtx->io.dst->slen = 0;
     if (tsz > 0) return tsz;
   }
@@ -739,17 +707,16 @@ Done:;
 /*  bStream * bsUuDecode (struct bStream * sInp, int * badlines)
  *
  *  Creates a bStream which performs the UUDecode of an an input stream.  If
- *  there are errors in the decoding, they are counted up and returned in 
- *  "badlines", if badlines is not NULL. It is assumed that the "begin" and 
- *  "end" lines have already been stripped off.  The potential security 
- *  problem of writing the filename in the begin line is something that is 
+ *  there are errors in the decoding, they are counted up and returned in
+ *  "badlines", if badlines is not NULL. It is assumed that the "begin" and
+ *  "end" lines have already been stripped off.  The potential security
+ *  problem of writing the filename in the begin line is something that is
  *  beyond the scope of a portable library.
  */
 
-struct bStream *bsUuDecode(struct bStream *sInp, int *badlines)
-{
-  struct bsUuCtx *luuCtx = (struct bsUuCtx *) malloc(sizeof(struct bsUuCtx));
-  struct bStream *sOut;
+struct bStream* bsUuDecode(struct bStream* sInp, int* badlines) {
+  struct bsUuCtx* luuCtx = (struct bsUuCtx*) malloc(sizeof(struct bsUuCtx));
+  struct bStream* sOut;
 
   if (NULL == luuCtx) return NULL;
 
@@ -776,11 +743,10 @@ struct bStream *bsUuDecode(struct bStream *sInp, int *badlines)
 
 /*  bstring bUuEncode (const_bstring src)
  *
- *  Performs a UUEncode of a block of data.  The "begin" and "end" lines are 
+ *  Performs a UUEncode of a block of data.  The "begin" and "end" lines are
  *  not appended.
  */
-bstring bUuEncode(const_bstring src)
-{
+bstring bUuEncode(const_bstring src) {
   bstring out;
   int i, j, jm;
   unsigned int c0, c1, c2;
@@ -796,13 +762,14 @@ bstring bUuEncode(const_bstring src)
       c0 = (unsigned int) bchar(src, j);
       c1 = (unsigned int) bchar(src, j + 1);
       c2 = (unsigned int) bchar(src, j + 2);
-      if (
-        bconchar(out, UU_ENCODE_BYTE((c0 & 0xFC) >> 2)) < 0 ||
-        bconchar(out, UU_ENCODE_BYTE(((c0 & 0x03) << 4) | ((c1 & 0xF0) >> 4))) <
-          0 ||
-        bconchar(out, UU_ENCODE_BYTE(((c1 & 0x0F) << 2) | ((c2 & 0xC0) >> 6))) <
-          0 ||
-        bconchar(out, UU_ENCODE_BYTE((c2 & 0x3F))) < 0) {
+      if (bconchar(out, UU_ENCODE_BYTE((c0 & 0xFC) >> 2)) < 0 ||
+          bconchar(
+              out, UU_ENCODE_BYTE(((c0 & 0x03) << 4) | ((c1 & 0xF0) >> 4))) <
+              0 ||
+          bconchar(
+              out, UU_ENCODE_BYTE(((c1 & 0x0F) << 2) | ((c2 & 0xC0) >> 6))) <
+              0 ||
+          bconchar(out, UU_ENCODE_BYTE((c2 & 0x3F))) < 0) {
         bstrFree(out);
         goto End;
       }
@@ -818,12 +785,11 @@ End:;
 
 /*  bstring bYEncode (const_bstring src)
  *
- *  Performs a YEncode of a block of data.  No header or tail info is 
- *  appended.  See: http://www.yenc.org/whatis.htm and 
+ *  Performs a YEncode of a block of data.  No header or tail info is
+ *  appended.  See: http://www.yenc.org/whatis.htm and
  *  http://www.yenc.org/yenc-draft.1.3.txt
  */
-bstring bYEncode(const_bstring src)
-{
+bstring bYEncode(const_bstring src) {
   int i;
   bstring out;
   unsigned char c;
@@ -849,13 +815,12 @@ bstring bYEncode(const_bstring src)
 
 /*  bstring bYDecode (const_bstring src)
  *
- *  Performs a YDecode of a block of data.  See: 
+ *  Performs a YDecode of a block of data.  See:
  *  http://www.yenc.org/whatis.htm and http://www.yenc.org/yenc-draft.1.3.txt
  */
 #define MAX_OB_LEN (64)
 
-bstring bYDecode(const_bstring src)
-{
+bstring bYDecode(const_bstring src) {
   int i;
   bstring out;
   unsigned char c;
@@ -908,8 +873,7 @@ bstring bYDecode(const_bstring src)
  *
  *  Change the string into a version that is quotable in SGML (HTML, XML).
  */
-int bSGMLEncode(bstring b)
-{
+int bSGMLEncode(bstring b) {
   static struct tagbstring fr[4][2] = {{bsStatic("&"), bsStatic("&amp;")},
                                        {bsStatic("\""), bsStatic("&quot;")},
                                        {bsStatic("<"), bsStatic("&lt;")},
@@ -926,15 +890,14 @@ int bSGMLEncode(bstring b)
  *
  *  Takes a format string that is compatible with strftime and a struct tm
  *  pointer, formats the time according to the format string and outputs
- *  the bstring as a result. Note that if there is an early generation of a 
+ *  the bstring as a result. Note that if there is an early generation of a
  *  '\0' character, the bstring will be truncated to this end point.
  */
-bstring bStrfTime(const char *fmt, const struct tm *timeptr)
-{
+bstring bStrfTime(const char* fmt, const struct tm* timeptr) {
 #if defined(__TURBOC__) && !defined(__BORLANDC__)
   static struct tagbstring ns = bsStatic("bStrfTime Not supported");
-  fmt = fmt;
-  timeptr = timeptr;
+  fmt                         = fmt;
+  timeptr                     = timeptr;
   return &ns;
 #else
   bstring buff;
@@ -944,8 +907,8 @@ bstring bStrfTime(const char *fmt, const struct tm *timeptr)
   if (fmt == NULL) return NULL;
 
   /* Since the length is not determinable beforehand, a search is
-	   performed using the truncating "strftime" call on increasing 
-	   potential sizes for the output result. */
+           performed using the truncating "strftime" call on increasing
+           potential sizes for the output result. */
 
   if ((n = (int) (2 * strlen(fmt))) < 16) n = 16;
   buff = bfromcstralloc(n + 2, "");
@@ -956,7 +919,7 @@ bstring bStrfTime(const char *fmt, const struct tm *timeptr)
       return NULL;
     }
 
-    r = strftime((char *) buff->data, n + 1, fmt, timeptr);
+    r = strftime((char*) buff->data, n + 1, fmt, timeptr);
 
     if (r > 0) {
       buff->slen = (int) r;
@@ -975,11 +938,10 @@ bstring bStrfTime(const char *fmt, const struct tm *timeptr)
  *  Sets the character at position pos to the character c in the bstring a.
  *  If the character c is NUL ('\0') then the string is truncated at this
  *  point.  Note: this does not enable any other '\0' character in the bstring
- *  as terminator indicator for the string.  pos must be in the position 
+ *  as terminator indicator for the string.  pos must be in the position
  *  between 0 and b->slen inclusive, otherwise BSTR_ERR will be returned.
  */
-int bSetCstrChar(bstring b, int pos, char c)
-{
+int bSetCstrChar(bstring b, int pos, char c) {
   if (NULL == b || b->mlen <= 0 || b->slen < 0 || b->mlen < b->slen)
     return BSTR_ERR;
   if (pos < 0 || pos > b->slen) return BSTR_ERR;
@@ -1002,8 +964,7 @@ int bSetCstrChar(bstring b, int pos, char c)
  *  be in the position between 0 and b->slen inclusive, otherwise BSTR_ERR
  *  will be returned.
  */
-int bSetChar(bstring b, int pos, char c)
-{
+int bSetChar(bstring b, int pos, char c) {
   if (NULL == b || b->mlen <= 0 || b->slen < 0 || b->mlen < b->slen)
     return BSTR_ERR;
   if (pos < 0 || pos > b->slen) return BSTR_ERR;
@@ -1018,7 +979,7 @@ int bSetChar(bstring b, int pos, char c)
 
 #define INIT_SECURE_INPUT_LENGTH (256)
 
-/*  bstring bSecureInput (int maxlen, int termchar, 
+/*  bstring bSecureInput (int maxlen, int termchar,
  *                        bNgetc vgetchar, void * vgcCtx)
  *
  *  Read input from an abstracted input interface, for a length of at most
@@ -1027,8 +988,7 @@ int bSetChar(bstring b, int pos, char c)
  *  or the user specified value termchar.
  *
  */
-bstring bSecureInput(int maxlen, int termchar, bNgetc vgetchar, void *vgcCtx)
-{
+bstring bSecureInput(int maxlen, int termchar, bNgetc vgetchar, void* vgcCtx) {
   int i, m, c;
   bstring b, t;
 
@@ -1068,7 +1028,7 @@ bstring bSecureInput(int maxlen, int termchar, bNgetc vgetchar, void *vgcCtx)
     b->data[i] = (unsigned char) c;
   }
 
-  b->slen = i;
+  b->slen    = i;
   b->data[i] = (unsigned char) '\0';
   return b;
 }
@@ -1077,7 +1037,7 @@ bstring bSecureInput(int maxlen, int termchar, bNgetc vgetchar, void *vgcCtx)
 
 struct bwriteStream {
   bstring buff;    /* Buffer for underwrites                   */
-  void *parm;      /* The stream handle for core stream        */
+  void* parm;      /* The stream handle for core stream        */
   bNwrite writeFn; /* fwrite work-a-like fnptr for core stream */
   int isEOF;       /* track stream's EOF state                 */
   int minBuffSz;
@@ -1085,24 +1045,23 @@ struct bwriteStream {
 
 /*  struct bwriteStream * bwsOpen (bNwrite writeFn, void * parm)
  *
- *  Wrap a given open stream (described by a fwrite work-a-like function 
+ *  Wrap a given open stream (described by a fwrite work-a-like function
  *  pointer and stream handle) into an open bwriteStream suitable for write
  *  streaming functions.
  */
-struct bwriteStream *bwsOpen(bNwrite writeFn, void *parm)
-{
-  struct bwriteStream *ws;
+struct bwriteStream* bwsOpen(bNwrite writeFn, void* parm) {
+  struct bwriteStream* ws;
 
   if (NULL == writeFn) return NULL;
-  ws = (struct bwriteStream *) malloc(sizeof(struct bwriteStream));
+  ws = (struct bwriteStream*) malloc(sizeof(struct bwriteStream));
   if (ws) {
     if (NULL == (ws->buff = bfromcstr(""))) {
       free(ws);
       ws = NULL;
     } else {
-      ws->parm = parm;
-      ws->writeFn = writeFn;
-      ws->isEOF = 0;
+      ws->parm      = parm;
+      ws->writeFn   = writeFn;
+      ws->isEOF     = 0;
       ws->minBuffSz = BWS_BUFF_SZ;
     }
   }
@@ -1123,11 +1082,9 @@ struct bwriteStream *bwsOpen(bNwrite writeFn, void *parm)
  *
  *  Force any pending data to be written to the core stream.
  */
-int bwsWriteFlush(struct bwriteStream *ws)
-{
-  if (
-    NULL == ws || ws->isEOF || 0 >= ws->minBuffSz || NULL == ws->writeFn ||
-    NULL == ws->buff)
+int bwsWriteFlush(struct bwriteStream* ws) {
+  if (NULL == ws || ws->isEOF || 0 >= ws->minBuffSz || NULL == ws->writeFn ||
+      NULL == ws->buff)
     return BSTR_ERR;
   internal_bwswriteout(ws, ws->buff);
   ws->buff->slen = 0;
@@ -1140,14 +1097,12 @@ int bwsWriteFlush(struct bwriteStream *ws)
  *  returned.  Note that there is no deterministic way to determine the exact
  *  cut off point where the core stream stopped accepting data.
  */
-int bwsWriteBstr(struct bwriteStream *ws, const_bstring b)
-{
+int bwsWriteBstr(struct bwriteStream* ws, const_bstring b) {
   struct tagbstring t;
   int l;
 
-  if (
-    NULL == ws || NULL == b || NULL == ws->buff || ws->isEOF ||
-    0 >= ws->minBuffSz || NULL == ws->writeFn)
+  if (NULL == ws || NULL == b || NULL == ws->buff || ws->isEOF ||
+      0 >= ws->minBuffSz || NULL == ws->writeFn)
     return BSTR_ERR;
 
   /* Buffer prepacking optimization */
@@ -1160,7 +1115,7 @@ int bwsWriteBstr(struct bwriteStream *ws, const_bstring b)
   if (0 > (l = ws->minBuffSz - ws->buff->slen)) {
     internal_bwswriteout(ws, ws->buff);
     ws->buff->slen = 0;
-    l = ws->minBuffSz;
+    l              = ws->minBuffSz;
   }
 
   if (b->slen < l) return bconcat(ws->buff, b);
@@ -1181,11 +1136,10 @@ int bwsWriteBstr(struct bwriteStream *ws, const_bstring b)
 
 /*  int bwsWriteBlk (struct bwriteStream * ws, void * blk, int len)
  *
- *  Send a block of data a bwriteStream.  If the stream is at EOF BSTR_ERR is 
+ *  Send a block of data a bwriteStream.  If the stream is at EOF BSTR_ERR is
  *  returned.
  */
-int bwsWriteBlk(struct bwriteStream *ws, void *blk, int len)
-{
+int bwsWriteBlk(struct bwriteStream* ws, void* blk, int len) {
   struct tagbstring t;
   if (NULL == blk || len < 0) return BSTR_ERR;
   blk2tbstr(t, blk, len);
@@ -1194,24 +1148,22 @@ int bwsWriteBlk(struct bwriteStream *ws, void *blk, int len)
 
 /*  int bwsIsEOF (const struct bwriteStream * ws)
  *
- *  Returns 0 if the stream is currently writable, 1 if the core stream has 
+ *  Returns 0 if the stream is currently writable, 1 if the core stream has
  *  responded by not accepting the previous attempted write.
  */
-int bwsIsEOF(const struct bwriteStream *ws)
-{
-  if (
-    NULL == ws || NULL == ws->buff || 0 > ws->minBuffSz || NULL == ws->writeFn)
+int bwsIsEOF(const struct bwriteStream* ws) {
+  if (NULL == ws || NULL == ws->buff || 0 > ws->minBuffSz ||
+      NULL == ws->writeFn)
     return BSTR_ERR;
   return ws->isEOF;
 }
 
 /*  int bwsBuffLength (struct bwriteStream * ws, int sz)
  *
- *  Set the length of the buffer used by the bwsStream.  If sz is zero, the 
+ *  Set the length of the buffer used by the bwsStream.  If sz is zero, the
  *  length is not set.  This function returns with the previous length.
  */
-int bwsBuffLength(struct bwriteStream *ws, int sz)
-{
+int bwsBuffLength(struct bwriteStream* ws, int sz) {
   int oldSz;
   if (ws == NULL || sz < 0) return BSTR_ERR;
   oldSz = ws->minBuffSz;
@@ -1221,21 +1173,20 @@ int bwsBuffLength(struct bwriteStream *ws, int sz)
 
 /*  void * bwsClose (struct bwriteStream * s)
  *
- *  Close the bwriteStream, and return the handle to the stream that was 
+ *  Close the bwriteStream, and return the handle to the stream that was
  *  originally used to open the given stream.  Note that even if the stream
  *  is at EOF it still needs to be closed with a call to bwsClose.
  */
-void *bwsClose(struct bwriteStream *ws)
-{
-  void *parm;
-  if (
-    NULL == ws || NULL == ws->buff || 0 >= ws->minBuffSz || NULL == ws->writeFn)
+void* bwsClose(struct bwriteStream* ws) {
+  void* parm;
+  if (NULL == ws || NULL == ws->buff || 0 >= ws->minBuffSz ||
+      NULL == ws->writeFn)
     return NULL;
   bwsWriteFlush(ws);
-  parm = ws->parm;
-  ws->parm = NULL;
+  parm          = ws->parm;
+  ws->parm      = NULL;
   ws->minBuffSz = -1;
-  ws->writeFn = NULL;
+  ws->writeFn   = NULL;
   bstrFree(ws->buff);
   free(ws);
   return parm;

@@ -110,7 +110,7 @@
    "@type": "type.googleapis.com/magma.mconfig.PipelineD",
    "logLevel": "INFO",
    "ueIpBlock": "192.168.128.0/24",
-   "natEnabled": false,
+   "natEnabled": true,
    "defaultRuleId": "default_rule_1",
    "services": [
       "ENFORCEMENT"

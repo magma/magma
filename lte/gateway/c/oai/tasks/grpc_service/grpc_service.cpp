@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,10 +32,10 @@ extern "C" {
 using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
-using magma::SpgwServiceImpl;
+using magma::CSFBGatewayServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
-using magma::CSFBGatewayServiceImpl;
+using magma::SpgwServiceImpl;
 
 static SpgwServiceImpl spgw_service;
 static S6aServiceImpl s6a_service;
@@ -50,24 +46,22 @@ static std::unique_ptr<Server> server;
 // TODO Candidate: GRPC service may be evolved into a
 // MagmaService, which implements Service303::Service as the
 // base service and can add other services on top.
-void start_grpc_service(bstring server_address)
-{
+void start_grpc_service(bstring server_address) {
   OAILOG_INFO(
-    LOG_SPGW_APP,
-    "Starting service at : %s\n ",
-    bdata(server_address));
+      LOG_SPGW_APP, "Starting service at : %s\n ", bdata(server_address));
   ServerBuilder builder;
   builder.AddListeningPort(
-    bdata(server_address), grpc::InsecureServerCredentials());
+      bdata(server_address), grpc::InsecureServerCredentials());
+#if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
   builder.RegisterService(&spgw_service);
+#endif
   builder.RegisterService(&s6a_proxy);
   builder.RegisterService(&s6a_service);
   builder.RegisterService(&sgs_service);
   server = builder.BuildAndStart();
 }
 
-void stop_grpc_service(void)
-{
+void stop_grpc_service(void) {
   server->Shutdown();
-  server->Wait(); // Blocks until server finishes shutting down
+  server->Wait();  // Blocks until server finishes shutting down
 }

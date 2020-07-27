@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,15 +29,15 @@ extern "C" {
 
 namespace grpc {
 class ServerContext;
-} // namespace grpc
+}  // namespace grpc
 namespace magma {
 namespace lte {
 class CreateBearerRequest;
 class CreateBearerResult;
 class DeleteBearerRequest;
 class DeleteBearerResult;
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma
 
 using grpc::ServerContext;
 using magma::lte::CreateBearerRequest;
@@ -67,9 +63,8 @@ class SpgwServiceImpl final : public SpgwService::Service {
        * @return grpc Status instance
        */
   grpc::Status CreateBearer(
-    ServerContext* context,
-    const CreateBearerRequest* request,
-    CreateBearerResult* response) override;
+      ServerContext* context, const CreateBearerRequest* request,
+      CreateBearerResult* response) override;
 
   /*
        * DeleteBearerRequest.
@@ -81,30 +76,27 @@ class SpgwServiceImpl final : public SpgwService::Service {
        * @return grpc Status instance
        */
   grpc::Status DeleteBearer(
-    ServerContext* context,
-    const DeleteBearerRequest* request,
-    DeleteBearerResult* response) override;
+      ServerContext* context, const DeleteBearerRequest* request,
+      DeleteBearerResult* response) override;
 
  private:
   /*
-    * Fill up the packet filter contents such as flags and flow tuple fields
-    * @param pf_content: packet filter content to be filled
-    * @param flow_match_rule: pf_content is filled based on flow match rule
-    * @return bool: Return true if sueccessful, false if not
-    */
+   * Fill up the packet filter contents such as flags and flow tuple fields
+   * @param pf_content: packet filter content to be filled
+   * @param flow_match_rule: pf_content is filled based on flow match rule
+   * @return bool: Return true if sueccessful, false if not
+   */
   bool fillUpPacketFilterContents(
-    packet_filter_contents_t* pf_content,
-    const FlowMatch* flow_match_rule);
+      packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule);
 
   /*
-    * Fill up the ipv4 remote address field in packet filter
-    * @param pf_content: packet filter object to be filled
-    * @param ipv4addr: IPv4 address in string form (e.g, "172.12.0.1")
-    * @return bool: Return true if successful, false if not
-    */
+   * Fill up the ipv4 remote address field in packet filter
+   * @param pf_content: packet filter object to be filled
+   * @param ipv4addr: IPv4 address in string form (e.g, "172.12.0.1")
+   * @return bool: Return true if successful, false if not
+   */
   bool fillIpv4(
-    packet_filter_contents_t* pf_content,
-    const std::string ipv4addr);
+      packet_filter_contents_t* pf_content, const std::string ipv4addr);
 };
 
-} // namespace magma
+}  // namespace magma

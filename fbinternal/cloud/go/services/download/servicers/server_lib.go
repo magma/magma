@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"magma/fbinternal/cloud/go/services/download"
 	"magma/orc8r/lib/go/registry"
-	"orc8r/fbinternal/cloud/go/services/download"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"

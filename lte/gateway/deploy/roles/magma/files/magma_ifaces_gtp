@@ -1,8 +1,6 @@
 # Add L3 OVS switch gtp_br0 with gtp0, veth0_ovs, and int_nat_peer
 allow-ovs gtp_br0
-iface gtp_br0 inet static
-    address 192.168.128.1
-    netmask 255.255.255.0
+iface gtp_br0 inet manual
     up sysctl net.ipv4.ip_forward=1
     up iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     up iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400

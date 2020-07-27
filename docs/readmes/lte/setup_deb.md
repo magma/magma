@@ -63,3 +63,10 @@ When you see "AGW installation is done." It means that your AGW installation is 
 ```bash
 service magma@* status
 ```
+
+- Post Install Check
+
+``` bash
+cd ~/magma/lte/gateway/deploy
+./agw_post_install.sh
+```

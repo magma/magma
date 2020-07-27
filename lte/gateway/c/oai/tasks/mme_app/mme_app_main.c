@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -67,16 +63,15 @@ static bool _is_mme_app_healthy(void);
 static void mme_app_exit(void);
 
 bool mme_hss_associated = false;
-bool mme_sctp_bounded = false;
+bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
 
-static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
-{
+static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
 
-  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -86,89 +81,91 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     case MME_APP_INITIAL_CONTEXT_SETUP_RSP: {
       mme_app_handle_initial_context_setup_rsp(
-        &MME_APP_INITIAL_CONTEXT_SETUP_RSP(received_message_p));
+          &MME_APP_INITIAL_CONTEXT_SETUP_RSP(received_message_p));
     } break;
 
     case S6A_CANCEL_LOCATION_REQ: {
       /*
-        * Check cancellation-type and handle it if it is SUBSCRIPTION_WITHDRAWAL.
-        * For any other cancellation-type log it and ignore it.
-        */
-      mme_app_handle_s6a_cancel_location_req(mme_app_desc_p,
-        &received_message_p->ittiMsg.s6a_cancel_location_req);
+       * Check cancellation-type and handle it if it is SUBSCRIPTION_WITHDRAWAL.
+       * For any other cancellation-type log it and ignore it.
+       */
+      mme_app_handle_s6a_cancel_location_req(
+          mme_app_desc_p, &received_message_p->ittiMsg.s6a_cancel_location_req);
     } break;
 
     case MME_APP_UPLINK_DATA_IND: {
       nas_proc_ul_transfer_ind(
-        MME_APP_UL_DATA_IND(received_message_p).ue_id,
-        MME_APP_UL_DATA_IND(received_message_p).tai,
-        MME_APP_UL_DATA_IND(received_message_p).cgi,
-        &MME_APP_UL_DATA_IND(received_message_p).nas_msg);
+          MME_APP_UL_DATA_IND(received_message_p).ue_id,
+          MME_APP_UL_DATA_IND(received_message_p).tai,
+          MME_APP_UL_DATA_IND(received_message_p).cgi,
+          &MME_APP_UL_DATA_IND(received_message_p).nas_msg);
     } break;
 
     case S11_CREATE_BEARER_REQUEST: {
-      mme_app_handle_s11_create_bearer_req(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_create_bearer_request);
+      mme_app_handle_s11_create_bearer_req(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s11_create_bearer_request);
     } break;
 
     case S6A_RESET_REQ: {
-      mme_app_handle_s6a_reset_req(
-        &received_message_p->ittiMsg.s6a_reset_req);
+      mme_app_handle_s6a_reset_req(&received_message_p->ittiMsg.s6a_reset_req);
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
-      mme_app_handle_create_sess_resp(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_create_session_response);
+      mme_app_handle_create_sess_resp(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s11_create_session_response);
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
       ue_mm_context_t* ue_context_p = NULL;
       OAILOG_INFO(
-        LOG_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
+          LOG_MME_APP, "Received S11 MODIFY BEARER RESPONSE from SPGW\n");
       ue_context_p = mme_ue_context_exists_s11_teid(
-        &mme_app_desc_p->mme_ue_contexts,
-        received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+          &mme_app_desc_p->mme_ue_contexts,
+          received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
       if (ue_context_p == NULL) {
         OAILOG_WARNING(
-          LOG_MME_APP,
-          "We didn't find this teid in list of UE: %08x\n",
-          received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+            LOG_MME_APP, "We didn't find this teid in list of UE: %08x\n",
+            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
       } else {
         OAILOG_DEBUG(
-          LOG_MME_APP, "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT"\n",
-          received_message_p->ittiMsg.s11_modify_bearer_response.teid);
+            LOG_MME_APP,
+            "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
+            received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
         if (!ue_context_p->path_switch_req) {
           /* Updating statistics */
           update_mme_app_stats_s1u_bearer_add();
         } else {
           mme_app_handle_path_switch_req_ack(
-            &received_message_p->ittiMsg.s11_modify_bearer_response,
-            ue_context_p);
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
           ue_context_p->path_switch_req = false;
         }
       }
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE: {
-      mme_app_handle_release_access_bearers_resp(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_release_access_bearers_response);
+      mme_app_handle_release_access_bearers_resp(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s11_release_access_bearers_response);
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
-      mme_app_handle_delete_session_rsp(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_delete_session_response);
+      mme_app_handle_delete_session_rsp(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s11_delete_session_response);
     } break;
 
     case S11_SUSPEND_ACKNOWLEDGE: {
-      mme_app_handle_suspend_acknowledge(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_suspend_acknowledge);
+      mme_app_handle_suspend_acknowledge(
+          mme_app_desc_p, &received_message_p->ittiMsg.s11_suspend_acknowledge);
     } break;
 
     case S1AP_E_RAB_SETUP_RSP: {
-      mme_app_handle_e_rab_setup_rsp(
-        &S1AP_E_RAB_SETUP_RSP(received_message_p));
+      mme_app_handle_e_rab_setup_rsp(&S1AP_E_RAB_SETUP_RSP(received_message_p));
     } break;
 
     case S1AP_E_RAB_REL_RSP: {
@@ -176,95 +173,95 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
     } break;
 
     case S1AP_INITIAL_UE_MESSAGE: {
-      imsi64 = mme_app_handle_initial_ue_message(mme_app_desc_p,
-        &S1AP_INITIAL_UE_MESSAGE(received_message_p));
+      imsi64 = mme_app_handle_initial_ue_message(
+          mme_app_desc_p, &S1AP_INITIAL_UE_MESSAGE(received_message_p));
     } break;
 
     case S6A_UPDATE_LOCATION_ANS: {
       /*
-        * We received the update location answer message from HSS -> Handle it
-        */
-      OAILOG_INFO(LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
-      mme_app_handle_s6a_update_location_ans(mme_app_desc_p,
-        &received_message_p->ittiMsg.s6a_update_location_ans);
+       * We received the update location answer message from HSS -> Handle it
+       */
+      OAILOG_INFO(
+          LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
+      mme_app_handle_s6a_update_location_ans(
+          mme_app_desc_p, &received_message_p->ittiMsg.s6a_update_location_ans);
     } break;
 
     case S1AP_ENB_INITIATED_RESET_REQ: {
       mme_app_handle_enb_reset_req(
-        &S1AP_ENB_INITIATED_RESET_REQ(received_message_p));
+          &S1AP_ENB_INITIATED_RESET_REQ(received_message_p));
     } break;
 
     case S11_PAGING_REQUEST: {
-      const char *imsi = received_message_p->ittiMsg.s11_paging_request.imsi;
+      const char* imsi = received_message_p->ittiMsg.s11_paging_request.imsi;
       OAILOG_DEBUG(
-        LOG_MME_APP, "MME handling paging request for IMSI%s\n", imsi);
-      if (mme_app_handle_initial_paging_request(mme_app_desc_p, imsi)!=
+          LOG_MME_APP, "MME handling paging request for IMSI%s\n", imsi);
+      if (mme_app_handle_initial_paging_request(mme_app_desc_p, imsi) !=
           RETURNok) {
         OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to send paging request to S1AP for IMSI%s\n",
-          imsi);
+            LOG_MME_APP, "Failed to send paging request to S1AP for IMSI%s\n",
+            imsi);
       }
     } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
       mme_app_handle_initial_context_setup_failure(
-        &MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(received_message_p));
+          &MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(received_message_p));
     } break;
 
     case TIMER_HAS_EXPIRED: {
       /*
-        * Check statistic timer
-        */
+       * Check statistic timer
+       */
       if (!timer_exists(
-            received_message_p->ittiMsg.timer_has_expired.timer_id)) {
+              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
         OAILOG_WARNING(
-          LOG_MME_APP,
-          "Timer expiry signal received for timer \
+            LOG_MME_APP,
+            "Timer expiry signal received for timer \
           %lu, but it has already been deleted\n",
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
+            received_message_p->ittiMsg.timer_has_expired.timer_id);
         break;
       }
-      if (
-        received_message_p->ittiMsg.timer_has_expired.timer_id ==
-        mme_app_desc_p->statistic_timer_id) {
+      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
+          mme_app_desc_p->statistic_timer_id) {
         mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
-          TIMER_HAS_EXPIRED(received_message_p).timer_id,
-          TIMER_HAS_EXPIRED(received_message_p).arg);
+            TIMER_HAS_EXPIRED(received_message_p).timer_id,
+            TIMER_HAS_EXPIRED(received_message_p).arg);
       }
       timer_handle_expired(
-        received_message_p->ittiMsg.timer_has_expired.timer_id);
+          received_message_p->ittiMsg.timer_has_expired.timer_id);
     } break;
 
     case S1AP_UE_CAPABILITIES_IND: {
       mme_app_handle_s1ap_ue_capabilities_ind(
-        &received_message_p->ittiMsg.s1ap_ue_cap_ind);
+          &received_message_p->ittiMsg.s1ap_ue_cap_ind);
     } break;
 
     case S1AP_UE_CONTEXT_RELEASE_REQ: {
       mme_app_handle_s1ap_ue_context_release_req(
-        &received_message_p->ittiMsg.s1ap_ue_context_release_req);
+          &received_message_p->ittiMsg.s1ap_ue_context_release_req);
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_RESPONSE: {
       mme_app_handle_s1ap_ue_context_modification_resp(
-        &received_message_p->ittiMsg.s1ap_ue_context_mod_response);
+          &received_message_p->ittiMsg.s1ap_ue_context_mod_response);
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_FAILURE: {
       mme_app_handle_s1ap_ue_context_modification_fail(
-        &received_message_p->ittiMsg.s1ap_ue_context_mod_failure);
+          &received_message_p->ittiMsg.s1ap_ue_context_mod_failure);
     } break;
     case S1AP_UE_CONTEXT_RELEASE_COMPLETE: {
-      mme_app_handle_s1ap_ue_context_release_complete(mme_app_desc_p,
-        &received_message_p->ittiMsg.s1ap_ue_context_release_complete);
+      mme_app_handle_s1ap_ue_context_release_complete(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s1ap_ue_context_release_complete);
     } break;
 
     case S1AP_ENB_DEREGISTERED_IND: {
       mme_app_handle_enb_deregister_ind(
-        &received_message_p->ittiMsg.s1ap_eNB_deregistered_ind);
+          &received_message_p->ittiMsg.s1ap_eNB_deregistered_ind);
     } break;
 
     case ACTIVATE_MESSAGE: {
@@ -274,131 +271,133 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     case SCTP_MME_SERVER_INITIALIZED: {
       mme_sctp_bounded =
-        &received_message_p->ittiMsg.sctp_mme_server_initialized.successful;
+          &received_message_p->ittiMsg.sctp_mme_server_initialized.successful;
       _check_mme_healthy_and_notify_service();
     } break;
 
     case S6A_PURGE_UE_ANS: {
       mme_app_handle_s6a_purge_ue_ans(
-        &received_message_p->ittiMsg.s6a_purge_ue_ans);
+          &received_message_p->ittiMsg.s6a_purge_ue_ans);
     } break;
 
     case SGSAP_LOCATION_UPDATE_ACC: {
       /*Received SGSAP Location Update Accept message from SGS task*/
       OAILOG_INFO(
-        LOG_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
-      mme_app_handle_sgsap_location_update_acc(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_location_update_acc);
+          LOG_MME_APP, "Received SGSAP Location Update Accept from SGS\n");
+      mme_app_handle_sgsap_location_update_acc(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.sgsap_location_update_acc);
     } break;
 
     case SGSAP_LOCATION_UPDATE_REJ: {
       /*Received SGSAP Location Update Reject message from SGS task*/
-      mme_app_handle_sgsap_location_update_rej(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_location_update_rej);
+      mme_app_handle_sgsap_location_update_rej(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.sgsap_location_update_rej);
     } break;
 
     case SGSAP_ALERT_REQUEST: {
       /*Received SGSAP Alert Request message from SGS task*/
-      mme_app_handle_sgsap_alert_request(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_alert_request);
+      mme_app_handle_sgsap_alert_request(
+          mme_app_desc_p, &received_message_p->ittiMsg.sgsap_alert_request);
     } break;
 
     case SGSAP_VLR_RESET_INDICATION: {
       /*Received SGSAP Reset Indication from SGS task*/
       mme_app_handle_sgsap_reset_indication(
-        &received_message_p->ittiMsg.sgsap_vlr_reset_indication);
+          &received_message_p->ittiMsg.sgsap_vlr_reset_indication);
     } break;
 
     case SGSAP_PAGING_REQUEST: {
-      mme_app_handle_sgsap_paging_request(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_paging_request);
+      mme_app_handle_sgsap_paging_request(
+          mme_app_desc_p, &received_message_p->ittiMsg.sgsap_paging_request);
     } break;
 
     case SGSAP_SERVICE_ABORT_REQ: {
-      mme_app_handle_sgsap_service_abort_request(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_service_abort_req);
+      mme_app_handle_sgsap_service_abort_request(
+          mme_app_desc_p, &received_message_p->ittiMsg.sgsap_service_abort_req);
     } break;
 
     case SGSAP_EPS_DETACH_ACK: {
-      mme_app_handle_sgs_eps_detach_ack(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_eps_detach_ack);
+      mme_app_handle_sgs_eps_detach_ack(
+          mme_app_desc_p, &received_message_p->ittiMsg.sgsap_eps_detach_ack);
     } break;
 
     case SGSAP_IMSI_DETACH_ACK: {
-      mme_app_handle_sgs_imsi_detach_ack(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_imsi_detach_ack);
+      mme_app_handle_sgs_imsi_detach_ack(
+          mme_app_desc_p, &received_message_p->ittiMsg.sgsap_imsi_detach_ack);
     } break;
 
     case S11_MODIFY_UE_AMBR_REQUEST: {
-      mme_app_handle_modify_ue_ambr_request(mme_app_desc_p,
-        &S11_MODIFY_UE_AMBR_REQUEST(received_message_p));
+      mme_app_handle_modify_ue_ambr_request(
+          mme_app_desc_p, &S11_MODIFY_UE_AMBR_REQUEST(received_message_p));
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST: {
-      mme_app_handle_nw_init_ded_bearer_actv_req(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_nw_init_actv_bearer_request);
+      mme_app_handle_nw_init_ded_bearer_actv_req(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s11_nw_init_actv_bearer_request);
     } break;
 
     case SGSAP_STATUS: {
-      mme_app_handle_sgs_status_message(mme_app_desc_p,
-        &received_message_p->ittiMsg.sgsap_status);
+      mme_app_handle_sgs_status_message(
+          mme_app_desc_p, &received_message_p->ittiMsg.sgsap_status);
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST: {
-      mme_app_handle_nw_init_bearer_deactv_req(mme_app_desc_p,
-        &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_request);
+      mme_app_handle_nw_init_bearer_deactv_req(
+          mme_app_desc_p,
+          &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_request);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {
-      mme_app_handle_path_switch_request(mme_app_desc_p,
-        &S1AP_PATH_SWITCH_REQUEST(received_message_p));
+      mme_app_handle_path_switch_request(
+          mme_app_desc_p, &S1AP_PATH_SWITCH_REQUEST(received_message_p));
     } break;
 
     case S6A_AUTH_INFO_ANS: {
       /*
-        * We received the authentication vectors from HSS,
-        * Normally should trigger an authentication procedure towards UE.
-        */
+       * We received the authentication vectors from HSS,
+       * Normally should trigger an authentication procedure towards UE.
+       */
       nas_proc_authentication_info_answer(
-        mme_app_desc_p, &S6A_AUTH_INFO_ANS(received_message_p));
+          mme_app_desc_p, &S6A_AUTH_INFO_ANS(received_message_p));
     } break;
 
     case MME_APP_DOWNLINK_DATA_CNF: {
       bstring nas_msg = NULL;
       nas_proc_dl_transfer_cnf(
-        MME_APP_DL_DATA_CNF(received_message_p).ue_id,
-        MME_APP_DL_DATA_CNF(received_message_p).err_code,
-        &nas_msg);
+          MME_APP_DL_DATA_CNF(received_message_p).ue_id,
+          MME_APP_DL_DATA_CNF(received_message_p).err_code, &nas_msg);
     } break;
 
     case MME_APP_DOWNLINK_DATA_REJ: {
       nas_proc_dl_transfer_rej(
-        MME_APP_DL_DATA_REJ(received_message_p).ue_id,
-        MME_APP_DL_DATA_REJ(received_message_p).err_code,
-        &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
+          MME_APP_DL_DATA_REJ(received_message_p).ue_id,
+          MME_APP_DL_DATA_REJ(received_message_p).err_code,
+          &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
     } break;
 
     case SGSAP_DOWNLINK_UNITDATA: {
       /* We received the Downlink Unitdata from MSC, trigger a
-        * Downlink Nas Transport message to UE.
-        */
-      nas_proc_downlink_unitdata(
-        &SGSAP_DOWNLINK_UNITDATA(received_message_p));
+       * Downlink Nas Transport message to UE.
+       */
+      nas_proc_downlink_unitdata(&SGSAP_DOWNLINK_UNITDATA(received_message_p));
     } break;
 
     case SGSAP_RELEASE_REQ: {
       /* We received the SGS Release request from MSC,to indicate that there
-        * are no more NAS messages to be exchanged between the VLR and the UE,
-        * or when a further exchange of NAS messages for the specified UE is
-        * not possible due to an error.
-        */
+       * are no more NAS messages to be exchanged between the VLR and the UE,
+       * or when a further exchange of NAS messages for the specified UE is
+       * not possible due to an error.
+       */
       nas_proc_sgs_release_req(&SGSAP_RELEASE_REQ(received_message_p));
     } break;
 
     case SGSAP_MM_INFORMATION_REQ: {
       // Received SGSAP MM Information Request message from SGS task
       nas_proc_cs_domain_mm_information_request(
-        &SGSAP_MM_INFORMATION_REQ(received_message_p));
+          &SGSAP_MM_INFORMATION_REQ(received_message_p));
     } break;
 
     case TERMINATE_MESSAGE: {
@@ -414,10 +413,8 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 
     default: {
       OAILOG_ERROR(
-        LOG_MME_APP,
-        "Unknown message (%s) received with message Id: %d\n",
-        ITTI_MSG_NAME(received_message_p),
-        ITTI_MSG_ID(received_message_p));
+          LOG_MME_APP, "Unknown message (%s) received with message Id: %d\n",
+          ITTI_MSG_NAME(received_message_p), ITTI_MSG_ID(received_message_p));
     } break;
   }
 
@@ -430,16 +427,13 @@ static int handle_message (zloop_t* loop, zsock_t* reader, void* arg)
 }
 
 //------------------------------------------------------------------------------
-static void* mme_app_thread(__attribute__((unused)) void* args)
-{
+static void* mme_app_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_MME_APP);
   init_task_context(
       TASK_MME_APP,
       (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_S11, TASK_S6A, TASK_S1AP,
                     TASK_SERVICE303},
-      6,
-      handle_message,
-      &mme_app_task_zmq_ctx);
+      6, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);
@@ -450,8 +444,7 @@ static void* mme_app_thread(__attribute__((unused)) void* args)
 }
 
 //------------------------------------------------------------------------------
-int mme_app_init(const mme_config_t *mme_config_p)
-{
+int mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_nas_state_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -474,21 +467,18 @@ int mme_app_init(const mme_config_t *mme_config_p)
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-static void _check_mme_healthy_and_notify_service(void)
-{
+static void _check_mme_healthy_and_notify_service(void) {
   if (_is_mme_app_healthy()) {
     send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, true);
   }
 }
 
-static bool _is_mme_app_healthy(void)
-{
+static bool _is_mme_app_healthy(void) {
   return mme_hss_associated && mme_sctp_bounded;
 }
 
 //------------------------------------------------------------------------------
-static void mme_app_exit(void)
-{
+static void mme_app_exit(void) {
   destroy_task_context(&mme_app_task_zmq_ctx);
   put_mme_nas_state();
   mme_app_edns_exit();

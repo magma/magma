@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"orc8r/fbinternal/cloud/go/services/download/servicers"
+	"magma/fbinternal/cloud/go/services/download/servicers"
 
 	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"

@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import ipaddress
@@ -13,7 +17,7 @@ import logging
 import grpc
 from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, RemoveIPBlockResponse, \
-    SubscriberIPTable
+    SubscriberIPTable, GWInfo
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
@@ -259,6 +263,20 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             ip_msg = IPAddress(version=version, address=ip.packed)
             resp.entries.add(sid=sid_pb, ip=ip_msg, apn=apn)
         return resp
+
+    def GetGatewayInfo(self, void, context):
+        ip = ipaddress.ip_address(self._ipv4_allocator.get_gateway_ip_adress())
+        gw_ip = IPAddress(version=IPAddress.IPV4,
+                          address=ip.packed)
+        gw_mac = self._ipv4_allocator.get_gateway_mac_adress()
+        return GWInfo(ip=gw_ip, mac=gw_mac)
+
+    @return_void
+    def SetGatewayInfo(self, info: GWInfo, context):
+        ip = ipaddress.ip_address(info.ip.address)
+        gw_ip = str(ip)
+        gw_mac = info.mac
+        self._ipv4_allocator.set_gateway_ip_and_mac(gw_ip, gw_mac)
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):
         """ convert IPBlock to ipaddress.ip_network """

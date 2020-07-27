@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package storage
@@ -64,7 +69,10 @@ type NodeLeasorStorage interface {
 
 	// GetNodes returns the requested CI nodes keyed by ID>
 	// If the ids parameter is empty, this will return all nodes.
-	GetNodes(ids []string) (map[string]*CINode, error)
+	// The tag parameter, if non-nil, will filter the returned nodes to only
+	// those which match the tag. Tags can be 0-length so a pointer to an
+	// empty string will result in a different query than a nil tag.
+	GetNodes(ids []string, tag *string) (map[string]*CINode, error)
 
 	// CreateOrUpdateNode updates the configuration of a node or creates it
 	// if it doesn't exist.
@@ -75,7 +83,9 @@ type NodeLeasorStorage interface {
 
 	// LeaseNode obtains a lease on the next available worker node if one
 	// exists, otherwise returns a nil NodeLease.
-	LeaseNode() (*NodeLease, error)
+	// The tag parameter, if non-nil, will lease a node with the specified
+	// tag. Otherwise, any node in the available pool will be returned.
+	LeaseNode(tag *string) (*NodeLease, error)
 
 	// ReserveNode obtains a lease on a specific node if it hasn't already been
 	// leased (e.g. taking a node out of the pool for manual troubleshooting).

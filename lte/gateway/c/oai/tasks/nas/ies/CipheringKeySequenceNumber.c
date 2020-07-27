@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,15 +24,12 @@
 #include "CipheringKeySequenceNumber.h"
 
 int decode_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-    buffer, CIPHERING_KEY_SEQUENCE_NUMBER_MINIMUM_LENGTH, len);
+      buffer, CIPHERING_KEY_SEQUENCE_NUMBER_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
@@ -48,13 +41,10 @@ int decode_ciphering_key_sequence_number(
 }
 
 int decode_u8_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len)
-{
-  int decoded = 0;
-  uint8_t *buffer = &value;
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    uint8_t value, uint32_t len) {
+  int decoded     = 0;
+  uint8_t* buffer = &value;
 
   *cipheringkeysequencenumber = *buffer & 0x7;
   decoded++;
@@ -62,43 +52,37 @@ int decode_u8_ciphering_key_sequence_number(
 }
 
 int encode_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
    * Checking length and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, CIPHERING_KEY_SEQUENCE_NUMBER_MINIMUM_LENGTH, len);
+      buffer, CIPHERING_KEY_SEQUENCE_NUMBER_MINIMUM_LENGTH, len);
   *(buffer + encoded) =
-    0x00 | (iei & 0xf0) | (*cipheringkeysequencenumber & 0x7);
+      0x00 | (iei & 0xf0) | (*cipheringkeysequencenumber & 0x7);
   encoded++;
   return encoded;
 }
 
 uint8_t encode_u8_ciphering_key_sequence_number(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber)
-{
+    CipheringKeySequenceNumber* cipheringkeysequencenumber) {
   uint8_t bufferReturn;
-  uint8_t *buffer = &bufferReturn;
+  uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei = 0;
+  uint8_t iei     = 0;
 
   dump_ciphering_key_sequence_number_xml(cipheringkeysequencenumber, 0);
   *(buffer + encoded) =
-    0x00 | (iei & 0xf0) | (*cipheringkeysequencenumber & 0x7);
+      0x00 | (iei & 0xf0) | (*cipheringkeysequencenumber & 0x7);
   encoded++;
   return bufferReturn;
 }
 
 void dump_ciphering_key_sequence_number_xml(
-  CipheringKeySequenceNumber *cipheringkeysequencenumber,
-  uint8_t iei)
-{
+    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Ciphering Key Sequence Number>\n");
 
   if (iei > 0)
@@ -108,8 +92,7 @@ void dump_ciphering_key_sequence_number_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <Key sequence>%u</Key sequence>\n",
-    *cipheringkeysequencenumber);
+      LOG_NAS, "    <Key sequence>%u</Key sequence>\n",
+      *cipheringkeysequencenumber);
   OAILOG_DEBUG(LOG_NAS, "</Ciphering Key Sequence Number>\n");
 }

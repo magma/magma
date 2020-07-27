@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -59,11 +55,11 @@ typedef struct nas_timer_s {
 } nas_timer_t;
 
 /* Type of the callback executed when the timer expired */
-typedef void (*nas_timer_callback_t)(void *);
+typedef void (*nas_timer_callback_t)(void*);
 
 typedef struct nas_itti_timer_arg_s {
   nas_timer_callback_t nas_timer_callback;
-  void *nas_timer_callback_arg;
+  void* nas_timer_callback_arg;
 } nas_itti_timer_arg_t;
 
 /****************************************************************************/
@@ -77,13 +73,10 @@ typedef struct nas_itti_timer_arg_s {
 int nas_timer_init(void);
 void nas_timer_cleanup(void);
 long int nas_timer_start(
-  long sec,
-  long usec,
-  nas_timer_callback_t nas_timer_callback,
-  void *nas_timer_callback_args);
-long int nas_timer_stop(long int timer_id, void **nas_timer_callback_arg);
+    long sec, long usec, nas_timer_callback_t nas_timer_callback,
+    void* nas_timer_callback_args);
+long int nas_timer_stop(long int timer_id, void** nas_timer_callback_arg);
 void mme_app_nas_timer_handle_signal_expiry(
-  long timer_id,
-  nas_itti_timer_arg_t *nas_itti_timer_arg);
+    long timer_id, nas_itti_timer_arg_t* nas_itti_timer_arg);
 
 #endif /* FILE_NAS_TIMER_SEEN */

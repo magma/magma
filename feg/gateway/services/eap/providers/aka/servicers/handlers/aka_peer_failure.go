@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package handlers provided AKA Response handlers for supported AKA subtypes
@@ -11,7 +16,8 @@ package handlers
 
 import (
 	"fmt"
-	"log"
+
+	"github.com/golang/glog"
 
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
@@ -33,7 +39,7 @@ func authRejectResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Pac
 	metrics.PeerAuthReject.Inc()
 
 	if ctx == nil || len(ctx.SessionId) == 0 {
-		log.Printf("WARNING: Missing CTX/Empty Session ID in AKA-Authentication-Reject")
+		glog.Warningf("Missing CTX/Empty Session ID in AKA-Authentication-Reject")
 	} else {
 		sid = ctx.SessionId
 	}
@@ -61,7 +67,7 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Pa
 					cb := a.Value()
 					if len(cb) >= 2 {
 						errorCode = (int(cb[1]) << 8) + int(cb[0])
-						log.Printf("AKA-Client-Error for Session ID: %s, code: %d", sid, errorCode)
+						glog.Errorf("AKA-Client-Error for Session ID: %s, code: %d", sid, errorCode)
 					}
 					break
 				}
@@ -75,7 +81,7 @@ func clientErrorResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Pa
 		resultErr = fmt.Errorf("Missing CTX/Empty Session ID in AKA-Client-Error")
 	}
 	if resultErr != nil {
-		log.Printf("WARNING: %v", resultErr)
+		glog.Warning(resultErr)
 	}
 	return peerFailure(s, sid, req.Identifier(), errorCode), nil
 }
@@ -90,7 +96,7 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.P
 	)
 	metrics.PeerNotification.Inc()
 	if ctx == nil || len(ctx.SessionId) == 0 {
-		log.Printf("WARNING: Missing CTX/Empty Session ID in AKA-Notification")
+		glog.Warning("Missing CTX/Empty Session ID in AKA-Notification")
 	} else {
 		sid = ctx.SessionId
 	}
@@ -120,7 +126,7 @@ func notificationResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.P
 		}
 	}
 	if resultErr != nil {
-		log.Printf("WARNING: %v", resultErr)
+		glog.Warning(resultErr)
 	}
 	return peerFailure(s, sid, req.Identifier(), errorCode), nil
 }
@@ -130,7 +136,7 @@ func peerFailure(s *servicers.EapAkaSrv, sessionId string, identifier uint8, err
 	if s != nil {
 		imsi := s.RemoveSession(sessionId)
 		if len(imsi) > 0 {
-			log.Printf("EAP-AKA Peer failure for Session ID: %s, IMSI: %s, Error Code: %d",
+			glog.Errorf("EAP-AKA Peer failure for Session ID: %s, IMSI: %s, Error Code: %d",
 				sessionId, imsi, errorCode)
 		}
 	}
