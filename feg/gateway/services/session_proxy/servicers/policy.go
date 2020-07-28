@@ -104,7 +104,6 @@ func getGxAnswerOrError(
 
 func getUsageMonitorsFromCCA_I(
 	imsi, sessionID, gyOriginHost string, gxCCAInit *gx.CreditControlAnswer) []*protos.UsageMonitoringUpdateResponse {
-
 	monitors := make([]*protos.UsageMonitoringUpdateResponse, 0, len(gxCCAInit.UsageMonitors))
 	// If there is a message wide revalidation time, apply it to every Usage Monitor
 	triggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
