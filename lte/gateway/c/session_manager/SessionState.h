@@ -190,8 +190,6 @@ class SessionState {
 
   bool is_radius_cwf_session() const;
 
-  bool is_same_config(const SessionConfig& new_config) const;
-
   void get_session_info(SessionState::SessionInfo& info);
 
   void set_tgpp_context(
