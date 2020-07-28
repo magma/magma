@@ -838,7 +838,8 @@ workflows:
       - cwag-precommit
       - cwf-integ-test:
           <<: *only_master
-      - xwfm-test
+      - xwfm-test:
+          <<: *only_master
       - cwag-deploy:
           <<: *only_master
           requires:
