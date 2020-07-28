@@ -550,7 +550,7 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway/docker
             docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
-      -run:
+      - run:
           name: Build xwf go radius
           command: |
             cd ${MAGMA_ROOT}/feg
@@ -838,6 +838,7 @@ workflows:
       - cwag-precommit
       - cwf-integ-test:
           <<: *only_master
+      - xwfm-test
       - cwag-deploy:
           <<: *only_master
           requires:
