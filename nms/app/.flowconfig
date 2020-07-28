@@ -47,6 +47,8 @@
 .*/node_modules/express-graphql/.*
 .*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
+// TODO - fix flow error in core packages
+.*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
 
 [options]
 esproposal.optional_chaining=enable

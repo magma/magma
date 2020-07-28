@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+import type {subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';

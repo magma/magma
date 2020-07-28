@@ -19,7 +19,7 @@ import type {
   lte_gateway,
   rule_id,
   subscriber,
-} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+} from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import KPITray from '../../components/KPITray';

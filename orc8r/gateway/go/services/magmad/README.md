@@ -2,7 +2,7 @@
 
 [![facebookincubator](https://circleci.com/gh/facebookincubator/magma.svg?style=shield)](https://circleci.com/gh/facebookincubator/magma)
 
-**magmad** service is a core part of [magma](https://facebookincubator.github.io/magma) gateway platform, it is required on every gateway and facilitates the following gateway functionality:
+**magmad** service is a core part of [magma](https://magma.github.io/magma) gateway platform, it is required on every gateway and facilitates the following gateway functionality:
 
 * Maintaining and displaying unique gateway identity information necessary for the gateway register on and join a network
 * Bootstraping gateway on the network and maintaining gateway's client certificates
@@ -21,8 +21,8 @@
 ## Implementation
 
 This is Go native implementation of magmad service, it is intended as a 'drop in' replacement of python based magmad service
-on systems with limited resources or lack of full python support. 
-It'll work with all existing *magmad.yml*, *service_registry.yml* and *control_proxy.yml* configurations located in 
+on systems with limited resources or lack of full python support.
+It'll work with all existing *magmad.yml*, *service_registry.yml* and *control_proxy.yml* configurations located in
 */etc/magma/configs* or legacy */etc/magma* directories.
 
 Current implementation requires at least 15MB of RAM and 3MB of storage (compressed) on most supported systems/architectures.
@@ -41,7 +41,7 @@ To build:
 * To reduce magmad binary size, you may use the following options:
   * *GOOS=linux GOARCH=arm go build -o ~/bin/arm/magmad.prod -ldflags="-s -w" magma/gateway/services/magmad*
   * You can also use [upx](https://upx.github.io/) to compress the binary:
-    * *upx --brute -o ~/bin/arm/magmad ~/bin/arm/magmad.prod* 
+    * *upx --brute -o ~/bin/arm/magmad ~/bin/arm/magmad.prod*
 
 ## Supported Architectures & Systems
 
