@@ -17,6 +17,7 @@ import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
+import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
@@ -240,6 +241,9 @@ function EquipmentDashboardInternal({
                 </Button>
               </Grid>
               <Grid item>
+                {tabPos == 0 && (
+                  <AddEditGatewayButton title="Add New" isLink={false} />
+                )}
                 {tabPos == 1 && (
                   <AddEditEnodeButton title="Add New" isLink={false} />
                 )}

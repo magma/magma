@@ -48,6 +48,7 @@ import {colors, typography} from '../../theme/default';
 import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -109,7 +110,7 @@ export function GatewayDetail({
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const gwInfo = lteGateways[gatewayId];
+  const [gwInfo, setGwInfo] = useState(lteGateways[gatewayId]);
   const gwEnbs =
     gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
@@ -204,7 +205,15 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/config')}
-          render={() => <GatewayConfig gwInfo={gwInfo} enbInfo={gwEnbs} />}
+          render={() => (
+            <GatewayConfig
+              gwInfo={gwInfo}
+              enbInfo={gwEnbs}
+              onSave={gateway => {
+                setGwInfo(gateway);
+              }}
+            />
+          )}
         />
         <Route
           path={relativePath('/event')}

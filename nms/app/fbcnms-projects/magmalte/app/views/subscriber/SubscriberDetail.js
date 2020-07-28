@@ -14,7 +14,7 @@
  * @format
  */
 import type {KPIRows} from '../../components/KPIGrid';
-import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+import type {subscriber} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';

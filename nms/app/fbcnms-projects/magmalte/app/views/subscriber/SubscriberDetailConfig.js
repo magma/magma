@@ -14,7 +14,7 @@
  * @format
  */
 import type {KPIRows} from '../../components/KPIGrid';
-import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+import type {subscriber} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import CardHeader from '@material-ui/core/CardHeader';
