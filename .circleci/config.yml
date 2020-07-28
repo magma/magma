@@ -550,9 +550,14 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway/docker
             docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
+      -run:
+          name: Build xwf go radius
+          command: |
+            cd ${MAGMA_ROOT}/feg
+            docker build --tag goradius -f radius/src/Dockerfile ./
       - tag-push-docker:
           project: cwf
-          images: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+          images: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined|goradius'
           registry: $DOCKER_MAGMA_REGISTRY
       - persist-githash-version:
           file_prefix: cwag
@@ -838,6 +843,7 @@ workflows:
           requires:
             - cwag-precommit
             - cwf-integ-test
+            - xwfm-test
 
   cwf_operator:
     jobs:
