@@ -40,7 +40,7 @@ const (
 	verCol  = "version"
 )
 
-// migrateNetworkAgnosticServiceToBlobstore migrates a network-agnostic service's data
+// MigrateNetworkAgnosticServiceToBlobstore migrates a network-agnostic service's data
 // from datastore to blobstore formats.
 //
 // Schema migration:

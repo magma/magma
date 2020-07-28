@@ -41,7 +41,7 @@ var (
 )
 
 // main runs the accessd_to_blobstore migration.
-// Migration without SQL error will result in `SUCCESS` printed to sderr.
+// Migration without SQL error will result in `SUCCESS` printed to stderr.
 //
 // Optional `-verify` flag logs values from accessd service, post-migration,
 // allowing manual evaluation.
