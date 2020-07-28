@@ -1,0 +1,49 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+# Listening interfaces
+frontend=0.0.0.0,9443
+frontend=::,9443
+# TODO: remove 443 after migrating the existing load balancers
+frontend=0.0.0.0,443
+frontend=::,443
+
+# Disable OCSP for the controller for now
+no-ocsp=yes
+
+# Enable access gateway cert verification
+verify-client=yes
+verify-client-cacert=/var/opt/magma/certs/certifier.pem
+
+# Header injection for client certs
+mruby-file=/etc/nghttpx/magma_headers.rb
+
+# Magma services
+{% for backend in proxy_backends.split(',') -%}
+
+# Send gRPC requests to individual services
+{% for service, value in service_registry.items() -%}
+{% if value['proxy_type'] == "clientcert" -%}
+backend={{ backend }},{{ value.port }};{{ service }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ value.port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endif %}
+{% if "proxy_aliases" in value -%}
+{% for alias, map in value["proxy_aliases"].items() -%}
+backend={{ backend }},{{ map.port }};{{ alias }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ map.port }};{{ alias }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endfor -%}
+{% endif -%}
+{% endfor -%}
+
+# Send API requests to obsidian. By default, any other requests would also
+# be sent to obsidian.
+backend={{ backend }},{{obsidian_port}};;no-tls;dns
+{% endfor -%}
+
+# Proxy configs
+{% include './nghttpx_common.conf.j2' %}
