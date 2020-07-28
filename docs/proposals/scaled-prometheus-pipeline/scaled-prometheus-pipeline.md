@@ -107,7 +107,6 @@ With the goal of handling 10 million datapoints per minute, the [prometheus-edge
 
 In the end if we can't get enough performance out of a single edge-hub, we will have to investigate scaling this horizontally.
 
-
 ## Development Plan
 
 |Step	|Est. Time	|
@@ -119,5 +118,3 @@ In the end if we can't get enough performance out of a single edge-hub, we will 
 |Investigate performance improvements in prometheus-edge-hub | 2 wk |
 |Configure helm chart |2 wk	|
 |Deploy to staging/prod	|1 wk	|
-
-
