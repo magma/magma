@@ -45,6 +45,8 @@ struct SessionConfig {
   std::string radius_session_id;
   uint32_t bearer_id;
   QoSInfo qos_info;
+
+  bool operator== (const SessionConfig& config) const;
 };
 
 // Session Credit

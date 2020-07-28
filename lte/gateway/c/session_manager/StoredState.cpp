@@ -17,6 +17,20 @@
 
 namespace magma {
 
+bool SessionConfig::operator==(const SessionConfig& config) const {
+  return ue_ipv4.compare(config.ue_ipv4) == 0 &&
+         spgw_ipv4.compare(config.spgw_ipv4) == 0 &&
+         msisdn.compare(config.msisdn) == 0 && apn.compare(config.apn) == 0 &&
+         imei.compare(config.imei) == 0 &&
+         plmn_id.compare(config.plmn_id) == 0 &&
+         imsi_plmn_id.compare(config.imsi_plmn_id) == 0 &&
+         user_location.compare(config.user_location) == 0 &&
+         rat_type == config.rat_type &&
+         hardware_addr.compare(config.hardware_addr) == 0 &&
+         radius_session_id.compare(config.radius_session_id) == 0 &&
+         bearer_id == config.bearer_id;
+}
+
 SessionStateUpdateCriteria get_default_update_criteria() {
   SessionStateUpdateCriteria uc{};
   uc.is_fsm_updated             = false;

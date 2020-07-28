@@ -1745,14 +1745,6 @@ void LocalEnforcer::create_bearer(
   return;
 }
 
-bool LocalEnforcer::session_with_imsi_exists(
-    SessionMap& session_map, const std::string& imsi) const {
-  if (session_map.find(imsi) != session_map.end()) {
-    return session_map[imsi].size() > 0;
-  }
-  return false;
-}
-
 bool LocalEnforcer::session_with_apn_exists(
     SessionMap& session_map, const std::string& imsi,
     const std::string& apn) const {
@@ -1763,52 +1755,6 @@ bool LocalEnforcer::session_with_apn_exists(
   for (const auto& session : it->second) {
     if (session->get_config().apn == apn) {
       return true;
-    }
-  }
-  return false;
-}
-
-bool LocalEnforcer::is_session_active(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& core_session_id) const {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    return false;
-  }
-  for (const auto& session : it->second) {
-    if (session->get_core_session_id() == core_session_id) {
-      return session->is_active();
-    }
-  }
-  return false;
-}
-
-bool LocalEnforcer::get_core_sid_of_active_session(
-    SessionMap& session_map, const std::string& imsi,
-    std::string* core_session_id) const {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    return false;
-  }
-  for (const auto& session : it->second) {
-    if (session->is_active()) {
-      *core_session_id = session->get_core_session_id();
-      return true;
-    }
-  }
-  return false;
-}
-
-bool LocalEnforcer::get_core_sid_of_session_with_same_config(
-    SessionMap& session_map, const std::string& imsi,
-    const SessionConfig& config, std::string* core_session_id) const {
-  auto it = session_map.find(imsi);
-  if (it != session_map.end()) {
-    for (const auto& session : it->second) {
-      if (session->is_same_config(config)) {
-        *core_session_id = session->get_core_session_id();
-        return true;
-      }
     }
   }
   return false;

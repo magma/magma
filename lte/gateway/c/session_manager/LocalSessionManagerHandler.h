@@ -122,6 +122,44 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       const std::string& imsi, const std::string& session_id);
 
   /**
+   * handle_create_session_cwf handles a sequence of actions needed for the
+   * RATType=WLAN case. It is responsible for responding to the original
+   * LocalCreateSession request
+   * @param session_map - SessionMap that contains all sessions with IMSI
+   * @param request - the original request coming in from AAA
+   * @param sid - newly created SessionID
+   * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
+   * @param cb - callback needed to respond to the original
+   * LocalCreateSessionRequest
+   *
+   * TODO once we migrate the proto messages to Common/RatSpecific bundled
+   * fields, we should be able to simplify the parameters a bit more.
+   */
+  void handle_create_session_cwf(
+      SessionMap& session_map, const LocalCreateSessionRequest& request,
+      const std::string& sid, SessionConfig cfg,
+      std::function<void(Status, LocalCreateSessionResponse)> cb);
+
+  /**
+   * handle_create_session_lte handles a sequence of actions needed for the
+   * RATType=LTE case. It is responsible for responding to the original
+   * LocalCreateSession request
+   * @param session_map - SessionMap that contains all sessions with IMSI
+   * @param request - the original request coming in from MMS
+   * @param sid - newly created SessionID
+   * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
+   * @param cb - callback needed to respond to the original
+   * LocalCreateSessionRequest
+   *
+   * TODO once we migrate the proto messages to Common/RatSpecific bundled
+   * fields, we should be able to simplify the parameters a bit more.
+   */
+  void handle_create_session_lte(
+      SessionMap& session_map, const LocalCreateSessionRequest& request,
+      const std::string& sid, SessionConfig cfg,
+      std::function<void(Status, LocalCreateSessionResponse)> cb);
+
+  /**
    * Send session creation request to the CentralSessionController.
    * If it is successful, create a session in session_map, and respond to
    * gRPC caller.
@@ -137,13 +175,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
   SessionConfig build_session_config(const LocalCreateSessionRequest& request);
 
-  void recycle_session(
-      SessionMap& session_map, const LocalCreateSessionRequest& request,
-      const std::string& imsi, const std::string& sid,
-      const std::string& core_sid, SessionConfig cfg, const bool is_wifi,
-      std::function<void(Status, LocalCreateSessionResponse)>
-          response_callback);
-
   /**
    * Get the most recently written state of sessions for Creation
    * Does not get any other sessions.
@@ -151,8 +182,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_creation(
-      const LocalCreateSessionRequest& request);
+  SessionMap get_sessions_for_creation(const std::string& imsi);
 
   /**
    * Get the most recently written state of sessions for reporting usage.
@@ -178,6 +208,11 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void report_session_update_event_failure(
       SessionMap& session_map, SessionUpdate& session_update,
       const std::string& failure_reason);
+
+  void send_local_create_session_response(
+      Status status, const std::string& sid,
+      std::function<void(Status, LocalCreateSessionResponse)>
+          response_callback);
 };
 
 }  // namespace magma

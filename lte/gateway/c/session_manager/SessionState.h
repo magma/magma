@@ -184,13 +184,9 @@ class SessionState {
 
   std::string get_session_id() const;
 
-  std::string get_core_session_id() const { return core_session_id_; };
-
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
   bool is_radius_cwf_session() const;
-
-  bool is_same_config(const SessionConfig& new_config) const;
 
   void get_session_info(SessionState::SessionInfo& info);
 
