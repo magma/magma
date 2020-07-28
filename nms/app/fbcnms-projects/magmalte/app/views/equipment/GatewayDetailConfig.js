@@ -26,17 +26,22 @@ import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
 import KPIGrid from '../../components/KPIGrid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
-import {colors} from '../../theme/default';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -86,7 +91,55 @@ const useStyles = makeStyles(theme => ({
   itemValue: {
     color: colors.primary.brightGray,
   },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
 }));
+
+type Props = {
+  gwInfo: lte_gateway,
+  onSave?: lte_gateway => void,
+};
+
+export function GatewayJsonConfig(props: Props) {
+  const {match} = useRouter();
+  const [error, setError] = useState('');
+  const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  return (
+    <JsonEditor
+      content={props.gwInfo}
+      error={error}
+      onSave={async gateway => {
+        try {
+          await MagmaV1API.putLteByNetworkIdGatewaysByGatewayId({
+            networkId: networkId,
+            gatewayId: props.gwInfo.id,
+            gateway: (gateway: lte_gateway),
+          });
+          enqueueSnackbar('Gateway saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+          props.onSave?.(gateway);
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
 
 export default function GatewayConfig({
   gwInfo,
@@ -98,6 +151,7 @@ export default function GatewayConfig({
   onSave: lte_gateway => void,
 }) {
   const classes = useStyles();
+  const {history, relativeUrl} = useRouter();
 
   const editProps = {
     gateway: gwInfo,
@@ -105,9 +159,16 @@ export default function GatewayConfig({
   };
 
   function ConfigFilter() {
-    return <Button variant="contained">Edit JSON</Button>;
+    return (
+      <Button
+        className={classes.appBarBtn}
+        onClick={() => {
+          history.push(relativeUrl('/json'));
+        }}>
+        Edit JSON
+      </Button>
+    );
   }
-
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
