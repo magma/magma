@@ -99,16 +99,16 @@ If you see a stacktrace like the following, simply <code>terraform apply</code> 
 and the stack provisioning should succeed</p>
 <pre><code class="hljs"><span class="hljs-attribute">Error</span>: Provider produced inconsistent final plan
 
-<span class="reasonml">When expanding the plan for <span class="hljs-keyword">module</span>.eks.aws_autoscaling_group.workers<span class="hljs-literal">[<span class="hljs-number">0</span>]</span> <span class="hljs-keyword">to</span>
-<span class="hljs-keyword">include</span> <span class="hljs-keyword">new</span> values learned so far during apply, provider <span class="hljs-string">"aws"</span> produced an
-invalid <span class="hljs-keyword">new</span> value for .initial_lifecycle_hook: planned set element
-cty.<span class="hljs-constructor">ObjectVal(<span class="hljs-params">map</span>[<span class="hljs-params">string</span>]<span class="hljs-params">cty</span>.Value{<span class="hljs-string">"default_result"</span>:<span class="hljs-params">cty</span>.UnknownVal(<span class="hljs-params">cty</span>.String)</span>,
-<span class="hljs-string">"heartbeat_timeout"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.Number)</span>,
-<span class="hljs-string">"lifecycle_transition"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.String)</span>,
-<span class="hljs-string">"name"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.String)</span>,
-<span class="hljs-string">"notification_metadata"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.String)</span>,
-<span class="hljs-string">"notification_target_arn"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.String)</span>,
-<span class="hljs-string">"role_arn"</span>:cty.<span class="hljs-constructor">UnknownVal(<span class="hljs-params">cty</span>.String)</span>}) does not correlate <span class="hljs-keyword">with</span> any element <span class="hljs-keyword">in</span>
+<span class="sql">When expanding the plan for module.eks.aws_autoscaling_group.workers[0] to
+include new <span class="hljs-keyword">values</span> learned so <span class="hljs-keyword">far</span> during <span class="hljs-keyword">apply</span>, provider <span class="hljs-string">"aws"</span> produced an
+invalid <span class="hljs-keyword">new</span> <span class="hljs-keyword">value</span> <span class="hljs-keyword">for</span> .initial_lifecycle_hook: planned <span class="hljs-keyword">set</span> <span class="hljs-keyword">element</span>
+cty.ObjectVal(<span class="hljs-keyword">map</span>[<span class="hljs-keyword">string</span>]cty.Value{<span class="hljs-string">"default_result"</span>:cty.UnknownVal(cty.String),
+<span class="hljs-string">"heartbeat_timeout"</span>:cty.UnknownVal(cty.Number),
+<span class="hljs-string">"lifecycle_transition"</span>:cty.UnknownVal(cty.String),
+<span class="hljs-string">"name"</span>:cty.UnknownVal(cty.String),
+<span class="hljs-string">"notification_metadata"</span>:cty.UnknownVal(cty.String),
+<span class="hljs-string">"notification_target_arn"</span>:cty.UnknownVal(cty.String),
+<span class="hljs-string">"role_arn"</span>:cty.UnknownVal(cty.String)}) does <span class="hljs-keyword">not</span> correlate <span class="hljs-keyword">with</span> <span class="hljs-keyword">any</span> <span class="hljs-keyword">element</span> <span class="hljs-keyword">in</span>
 actual.
 </span></code></pre>
 <p>Once <code>terraform apply -var-file=vars.tfvars</code> finishes, there is some additional

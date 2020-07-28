@@ -18,79 +18,79 @@
 <h2><a class="anchor" aria-hidden="true" id="services"></a><a href="#services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Services</h2>
 <h3><a class="anchor" aria-hidden="true" id="static-services"></a><a href="#static-services" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Static Services</h3>
 <p>Static services include mandatory services (such as OAI and inout) which are always enabled, and services with a set table number. Static services can be configured in the YAML config.</p>
-<pre><code class="hljs">    GTP<span class="hljs-built_in"> port </span>           Local<span class="hljs-built_in"> Port
-</span>     Uplink              Downlink
-        |                   |
-        |                   |
+<pre><code class="hljs">    GTP port            Local Port
+     Uplink              Downlink
+        <span class="hljs-params">|                   |</span>
+        <span class="hljs-params">|                   |</span>
         V                   V
     -------------------------------
-    |       Table 0 (SPECIAL)     |
-    |         GTP APP (OAI)       |
-    |- sets IMSI metadata         |
-    |- sets tunnel id on downlink |
-    |- sets eth src/dst on uplink |
+    <span class="hljs-params">|       Table 0 (SPECIAL)     |</span>
+    <span class="hljs-params">|         GTP APP (OAI)       |</span>
+    <span class="hljs-params">|- sets IMSI metadata         |</span>
+    <span class="hljs-params">|- sets tunnel id on downlink |</span>
+    <span class="hljs-params">|- sets eth src/dst on uplink |</span>
     -------------------------------
-                  |
+                  <span class="hljs-params">|
                   V
     -------------------------------
-    |      Table 1 (PHYSICAL)     |
-    |           inout             |
-    |- sets direction bit         |
+    |</span>      Table <span class="hljs-number">1</span> (PHYSICAL)     <span class="hljs-params">|
+    |</span>           inout             <span class="hljs-params">|
+    |</span>- sets direction bit         <span class="hljs-params">|
     -------------------------------
-                  |
+                  |</span>
                   V
     -------------------------------
-    |      Table 2 (PHYSICAL)     |
-    |            ARP              |
-    |- Forwards non-ARP traffic   |
-    |- Responds <span class="hljs-keyword">to</span> ARP requests w/| ---&gt; Arp traffic - LOCAL
-    |  ovs<span class="hljs-built_in"> bridge </span>MAC             |
+    <span class="hljs-params">|      Table 2 (PHYSICAL)     |</span>
+    <span class="hljs-params">|            ARP              |</span>
+    <span class="hljs-params">|- Forwards non-ARP traffic   |</span>
+    <span class="hljs-params">|- Responds to ARP requests w/|</span> ---&gt; Arp traffic - LOCAL
+    <span class="hljs-params">|  ovs bridge MAC             |</span>
     -------------------------------
-                  |
+                  <span class="hljs-params">|
                   V
     -------------------------------
-    |      Table 3 (PHYSICAL)     |
-    |       access control        |
-    |- Forwards normal traffic    |
-    |- Drops traffic with<span class="hljs-built_in"> ip </span>     |
-    | <span class="hljs-built_in"> address </span>that matches the   |
-    | <span class="hljs-built_in"> ip </span>blocklist               |
+    |</span>      Table <span class="hljs-number">3</span> (PHYSICAL)     <span class="hljs-params">|
+    |</span>       access control        <span class="hljs-params">|
+    |</span>- Forwards normal traffic    <span class="hljs-params">|
+    |</span>- Drops traffic with ip      <span class="hljs-params">|
+    |</span>  address that matches the   <span class="hljs-params">|
+    |</span>  ip blocklist               <span class="hljs-params">|
     -------------------------------
-                  |
+                  |</span>
                   V
    Configurable PHYSICAL apps managed by cloud &lt;---&gt; Scratch tables
-            (Tables 4-9)                            (Tables 21 - 254)
-                  |
+            (Tables <span class="hljs-number">4</span>-<span class="hljs-number">9</span>)                            (Tables <span class="hljs-number">21</span> - <span class="hljs-number">254</span>)
+                  <span class="hljs-params">|
                   V
     -------------------------------
-    |      Table 10 (SPECIAL)     |
-    |           inout             |
-    |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
-    |  LOCAL<span class="hljs-built_in"> port </span>                |
-    |- Forwards downlink traffic  |
-    |  <span class="hljs-keyword">to</span> GTP<span class="hljs-built_in"> port </span>               |
+    |</span>      Table <span class="hljs-number">10</span> (SPECIAL)     <span class="hljs-params">|
+    |</span>           inout             <span class="hljs-params">|
+    |</span>- Forwards uplink traffic to <span class="hljs-params">|
+    |</span>  LOCAL port                 <span class="hljs-params">|
+    |</span>- Forwards downlink traffic  <span class="hljs-params">|
+    |</span>  to GTP port                <span class="hljs-params">|
     -------------------------------
-                  |
+                  |</span>
                   V
    Configurable LOGICAL apps managed by cloud &lt;---&gt; Scratch tables
-            (Tables 11-19)                         (Tables 21 - 254)
-                  |
+            (Tables <span class="hljs-number">11</span>-<span class="hljs-number">19</span>)                         (Tables <span class="hljs-number">21</span> - <span class="hljs-number">254</span>)
+                  <span class="hljs-params">|
                   V
     -------------------------------
-    |      Table 20 (SPECIAL)     |
-    |           inout             |
-    |- Forwards uplink traffic <span class="hljs-keyword">to</span> |
-    |  LOCAL<span class="hljs-built_in"> port </span>                |
-    |- Forwards downlink traffic  |
-    |  <span class="hljs-keyword">to</span> GTP<span class="hljs-built_in"> port </span>               |
+    |</span>      Table <span class="hljs-number">20</span> (SPECIAL)     <span class="hljs-params">|
+    |</span>           inout             <span class="hljs-params">|
+    |</span>- Forwards uplink traffic to <span class="hljs-params">|
+    |</span>  LOCAL port                 <span class="hljs-params">|
+    |</span>- Forwards downlink traffic  <span class="hljs-params">|
+    |</span>  to GTP port                <span class="hljs-params">|
     -------------------------------
-        |                   |
-        |                   |
+        |</span>                   <span class="hljs-params">|
+        |</span>                   <span class="hljs-params">|
         V                   V
-    GTP<span class="hljs-built_in"> port </span>           Local<span class="hljs-built_in"> Port
-</span>    downlink              uplink
+    GTP port            Local Port
+    downlink              uplink
 
-</code></pre>
+</span></code></pre>
 <h3><a class="anchor" aria-hidden="true" id="service-types"></a><a href="#service-types" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service types</h3>
 <p>Services(controllers) are split into two: Physical and Logical.
 Physical controllers: arpd, access_control.
@@ -99,30 +99,30 @@ Logical controllers: dpi, enforcement.</p>
 <p>These services can be enabled and ordered from orchestrator cloud. <code>mconfig</code> is used to stream the list of enabled service to gateway.</p>
 <p>Table numbers are dynamically assigned to these services and depenedent on the order.</p>
 <pre><code class="hljs">    -------------------------------
-    |<span class="hljs-string">          Table X            </span>|
-    |<span class="hljs-string">            DPI              </span>|
-    |<span class="hljs-string">- Assigns App ID to each new </span>|
-    |<span class="hljs-string">  IP tuple encountered       </span>|
-    |<span class="hljs-string">- Optional, requires separate</span>|
-    |<span class="hljs-string">  DPI engine                 </span>|
+    <span class="hljs-params">|          Table X            |</span>
+    <span class="hljs-params">|            DPI              |</span>
+    <span class="hljs-params">|- Assigns App ID to each new |</span>
+    <span class="hljs-params">|  IP tuple encountered       |</span>
+    <span class="hljs-params">|- Optional, requires separate|</span>
+    <span class="hljs-params">|  DPI engine                 |</span>
     -------------------------------
 
     -------------------------------     -------------------------------
-    |<span class="hljs-string">          Table X            </span>|<span class="hljs-string">     </span>|<span class="hljs-string">       Scratch Table 1       </span>|
-    |<span class="hljs-string">        enforcement          </span>|<span class="hljs-string"> ---&gt;</span>|<span class="hljs-string">           redirect          </span>|
-    |<span class="hljs-string">- Activates/deactivates rules</span>|<span class="hljs-string">     </span>|<span class="hljs-string">- Drop all non-HTTP traffic  </span>|
-    |<span class="hljs-string">  for a subscriber           </span>|<span class="hljs-string">     </span>|<span class="hljs-string">  for redirected subscribers </span>|
-    |<span class="hljs-string">                             </span>|<span class="hljs-string">&lt;--- </span>|<span class="hljs-string">                             </span>|
-    |<span class="hljs-string">                             </span>|<span class="hljs-string">     </span>|<span class="hljs-string">                             </span>|
+    <span class="hljs-params">|          Table X            |</span>     <span class="hljs-params">|       Scratch Table 1       |</span>
+    <span class="hljs-params">|        enforcement          |</span> ---&gt;<span class="hljs-params">|           redirect          |</span>
+    <span class="hljs-params">|- Activates/deactivates rules|</span>     <span class="hljs-params">|- Drop all non-HTTP traffic  |</span>
+    <span class="hljs-params">|  <span class="hljs-keyword">for</span> a subscriber           |</span>     <span class="hljs-params">|  <span class="hljs-keyword">for</span> redirected subscribers |</span>
+    <span class="hljs-params">|                             |</span>&lt;--- <span class="hljs-params">|                             |</span>
+    <span class="hljs-params">|                             |</span>     <span class="hljs-params">|                             |</span>
     -------------------------------     -------------------------------
-                  |<span class="hljs-string">
-                  </span>|<span class="hljs-string">                     -------------------------------
-                  ---------------------&gt;</span>|<span class="hljs-string">       Scratch Table 2       </span>|
-                                        |<span class="hljs-string">      enforcement stats      </span>|
-                                        |<span class="hljs-string">- Keeps track of flow stats  </span>|
-                                        |<span class="hljs-string">  and sends to sessiond      </span>|
-                                        |<span class="hljs-string">                             </span>|
-                                        |<span class="hljs-string">                             </span>|
+                  <span class="hljs-params">|
+                  |</span>                     -------------------------------
+                  ---------------------&gt;<span class="hljs-params">|       Scratch Table 2       |</span>
+                                        <span class="hljs-params">|      enforcement stats      |</span>
+                                        <span class="hljs-params">|- Keeps track of flow stats  |</span>
+                                        <span class="hljs-params">|  <span class="hljs-keyword">and</span> sends to sessiond      |</span>
+                                        <span class="hljs-params">|                             |</span>
+                                        <span class="hljs-params">|                             |</span>
                                         -------------------------------
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="reserved-registers"></a><a href="#reserved-registers" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Reserved registers</h3>
