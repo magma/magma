@@ -13,20 +13,22 @@
  * @flow strict-local
  * @format
  */
+import type {policy_rule} from '@fbcnms/magma-api';
+
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
@@ -103,27 +105,17 @@ type PolicyRowType = {
   trackingType: string,
 };
 
-export default function PolicyOverview() {
+type policiesType = {
+  policies: {[string]: policy_rule},
+};
+export default function PolicyOverview(props: policiesType) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-
   // this for enabling edit, deactivate actions
-  const [_, setCurrRow] = useState<PolicyRowType>({});
-
-  const {response, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull,
-    {
-      networkId: networkId,
-    },
-  );
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  const policyRows: Array<PolicyRowType> = response
-    ? Object.keys(response).map((policyID: string) => {
-        const policyRule = response[policyID];
+  const [currRow, setCurrRow] = useState<PolicyRowType>({});
+  const {history, relativeUrl} = useRouter();
+  const policyRows: Array<PolicyRowType> = props.policies
+    ? Object.keys(props.policies).map((policyID: string) => {
+        const policyRule = props.policies[policyID];
         return {
           policyID: policyRule.id,
           numFlows: policyRule.flow_list.length,
@@ -195,7 +187,17 @@ export default function PolicyOverview() {
               {title: 'Tracking Type', field: 'trackingType'},
             ]}
             handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
-            menuItems={[{name: 'Edit'}, {name: 'Deactivate'}, {name: 'Remove'}]}
+            menuItems={[
+              {name: 'Edit'},
+              {
+                name: 'Edit JSON',
+                handleFunc: () => {
+                  history.push(relativeUrl('/' + currRow.policyID + '/json'));
+                },
+              },
+              {name: 'Deactivate'},
+              {name: 'Remove'},
+            ]}
             options={{
               actionsColumnIndex: -1,
               pageSizeOptions: [5, 10],
@@ -204,5 +206,39 @@ export default function PolicyOverview() {
         </Grid>
       </Grid>
     </div>
+  );
+}
+
+type Props = {
+  policies: {[string]: policy_rule},
+  onSave?: policy_rule => void,
+};
+export function PolicyJsonConfig(props: Props) {
+  const {match} = useRouter();
+  const [error, setError] = useState('');
+  const networkId: string = nullthrows(match.params.networkId);
+  const policyID: string = nullthrows(match.params.policyId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  return (
+    <JsonEditor
+      content={props.policies[policyID]}
+      error={error}
+      onSave={async policy => {
+        try {
+          await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+            networkId: networkId,
+            ruleId: policyID,
+            policyRule: (policy: policy_rule),
+          });
+          enqueueSnackbar('eNodeb saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+          props.onSave?.(policy);
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
   );
 }
