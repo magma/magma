@@ -517,12 +517,16 @@ export type gx = {
     server ? : diameter_client_configs,
     servers ? : Array < diameter_client_configs >
         ,
+    virtual_apn_rules ? : Array < virtual_apn_rule >
+        ,
 };
 export type gy = {
     init_method ? : 1 | 2,
     overwrite_apn ? : string,
     server ? : diameter_client_configs,
     servers ? : Array < diameter_client_configs >
+        ,
+    virtual_apn_rules ? : Array < virtual_apn_rule >
         ,
 };
 export type health = {
@@ -1214,6 +1218,10 @@ export type tier_images = Array < tier_image >
 export type tier_name = string;
 export type tier_version = string;
 export type untyped_mme_state = {};
+export type virtual_apn_rule = {
+    apn_filter ? : string,
+    apn_overwrite ? : string,
+};
 export type webhook_receiver = {
     http_config ? : http_config,
     send_resolved ? : boolean,

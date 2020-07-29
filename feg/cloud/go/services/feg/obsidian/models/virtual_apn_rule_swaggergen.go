@@ -15,10 +15,10 @@ import (
 // swagger:model virtual_apn_rule
 type VirtualApnRule struct {
 
-	// apn filter
+	// Regex to match APN values
 	ApnFilter string `json:"apn_filter,omitempty"`
 
-	// apn overwrite
+	// New APN to overwrite when filter matches
 	ApnOverwrite string `json:"apn_overwrite,omitempty"`
 }
 

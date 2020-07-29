@@ -32,6 +32,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
+import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -40,7 +41,6 @@ import Select from '@material-ui/core/Select';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import TextField from '@material-ui/core/TextField';
-import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
@@ -123,13 +123,14 @@ function getDiameterServerConfig(
   };
 }
 
-function getVirtualApnRules(rules: ?virtual_apn_rules): 
-  ?Array<[string, string]> {
+function getVirtualApnRules(
+  rules: ?virtual_apn_rules,
+): ?Array<[string, string]> {
   if (!rules || rules.length == 0) {
     return null;
   }
-  return rules.map((pair) => {
-    return  [ pair.apn_filter, pair.apn_overwrite ];
+  return rules.map(entry => {
+    return [entry.apn_filter, entry.apn_overwrite];
   });
 }
 
@@ -140,9 +141,11 @@ function virtualApnRulesToObject(
     return null;
   }
 
-  const results = props.filter(p => p[0]).map(pair => {
-    return {apn_filter: pair[0], apn_overwrite: pair[1]};
-  });
+  const results = props
+    .filter(p => p[0])
+    .map(pair => {
+      return {apn_filter: pair[0], apn_overwrite: pair[1]};
+    });
   return results;
 }
 
@@ -171,13 +174,13 @@ export default function FEGGatewayDialog(props: Props) {
     getInitialSCTPConfigs(editingGateway?.federation?.csfb),
   );
 
-  const [gxVirtualApnRules, setGxVirtualApnRules] = useState<?Array<[string, string]>>(
-    getVirtualApnRules(editingGateway?.federation?.gx?.virtual_apn_rules),
-  );
+  const [gxVirtualApnRules, setGxVirtualApnRules] = useState<?Array<
+    [string, string],
+  >>(getVirtualApnRules(editingGateway?.federation?.gx?.virtual_apn_rules));
 
-  const [gyVirtualApnRules, setGyVirtualApnRules] = useState<?Array<[string, string]>>(
-    getVirtualApnRules(editingGateway?.federation?.gy?.virtual_apn_rules),
-   );
+  const [gyVirtualApnRules, setGyVirtualApnRules] = useState<?Array<
+    [string, string],
+  >>(getVirtualApnRules(editingGateway?.federation?.gy?.virtual_apn_rules));
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
@@ -192,7 +195,6 @@ export default function FEGGatewayDialog(props: Props) {
 
   const getFederationConfigs = (): gateway_federation_configs => ({
     aaa_server: {},
-    csfb: {},
     eap_aka: {},
     gx: {
       server: getDiameterConfigs(gx).server,
