@@ -125,7 +125,10 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 		},
 	})
 
-	reportEnodebState(t, ctx, "1202000038269KP0037", ltemodels.NewDefaultEnodebStatus())
+	mockStatus := ltemodels.NewDefaultEnodebStatus()
+	mockStatus.RfTxOn = swag.Bool(true)
+	mockStatus.RfTxDesired = swag.Bool(true)
+	reportEnodebState(t, ctx, "1202000038269KP0037", mockStatus)
 
 	actualState, actualDuration, err = sm.Run("verify_upgrade_1", testConfig, nil)
 	assert.NoError(t, err)
@@ -302,6 +305,12 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
 
 	mockMagmad.On("RebootEnodeb", "n1", "g1", "1202000038269KP0037").Return(mockGenericCommandResp, errors.New("")).Twice()
+	mockStatus := ltemodels.NewDefaultEnodebStatus()
+	mockStatus.RfTxOn = swag.Bool(false)
+	mockStatus.RfTxDesired = swag.Bool(false)
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	reportEnodebState(t, ctx, "1202000038269KP0037", mockStatus)
+
 	// ---
 	// reboot_enodeb_1 transition to reboot_enodeb_2
 	// --
@@ -318,9 +327,19 @@ func Test_EnodebdE2ETestStateMachine_VerifyConnection(t *testing.T) {
 	assert.Equal(t, "check_for_upgrade", actualState)
 	assert.Equal(t, 15*time.Minute, actualDuration)
 
+	// ---
+	// Verify enodeb connectivity unsuccessful due to RfTx mismatch
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_conn", testConfig, nil)
+	assert.EqualError(t, err, "Error RF TX on/desired are not both set to true")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, 5*time.Minute, actualDuration)
+
 	mockMagmad.On("RebootEnodeb", "n1", "g1", "1202000038269KP0037").Return(mockGenericCommandResp, nil)
-	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	reportEnodebState(t, ctx, "1202000038269KP0037", ltemodels.NewDefaultEnodebStatus())
+	mockStatus.RfTxOn = swag.Bool(true)
+	mockStatus.RfTxDesired = swag.Bool(true)
+	reportEnodebState(t, ctx, "1202000038269KP0037", mockStatus)
+
 	// ---
 	// Reboot enodeb
 	// ---
@@ -694,7 +713,7 @@ func Test_EnodebdE2ETestStateMachine_SubscriberState(t *testing.T) {
 	// Traffic test should not succeed due to inactive subscriber. This special case does not return an error
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test5_1", testConfig, nil)
-	assert.NoError(t, err, "")
+	assert.NoError(t, err)
 	assert.Equal(t, "subscriber_active", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
