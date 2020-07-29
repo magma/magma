@@ -19,17 +19,19 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
+class TestAttachImplicitDetachTimerExpiry(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_mobile_reachability_timer_expiry(self):
-        """ Test Mobile Reachability timer expiry handling """
+    def test_attach_implicit_detach_timer_expiry(self):
+        """ Test Implicit Detach timer expiry handling """
 
-        """ Note: Before execution of this test case,
+        """ Note: Implicit Detach Timer value is calculated based on Mobile
+        Rechability Timer value. Therefore, before execution of this test case,
+
         Run the test script s1aptests/test_modify_mme_config_for_sanity.py
         to reduce mobile reachability timer value to 1 minute (default is 54
         minutes) in MME configuration and
@@ -41,7 +43,6 @@ class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
         Manually update the mme.conf.template file to make sure that the value
         of T3412 timer is set to 1 minute (default is 54 minutes)
         """
-
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
@@ -81,14 +82,16 @@ class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
 
-        # Delay by 6 minutes to ensure Mobile reachability timer expires.
-        # MOBILE REACHABILITY TIMER VALUE = 1 minute (conf file) + delta value
+        # For implicit detach timer to expire, first ensure that
+        # mobile reachability timer is expired or not and then
+        # delay sending initial ue message (service req) by detach timer value.
+        # DETACH TIMER VALUE = mobile reachability timer value + delta value
         print(
-            "************************* Waiting for Mobile Reachability Timer"
-            " to expire. Sleeping for 360 seconds.."
+            "************************* Waiting for Implicit Detach Timer"
+            " to expire. Sleeping for 740 seconds.."
         )
         timeSlept = 0
-        while timeSlept < 360:
+        while timeSlept < 740:
             time.sleep(5)
             timeSlept += 5
             print("*********** Slept for " + str(timeSlept) + " seconds")
@@ -108,14 +111,14 @@ class TestAttachMobileReachabilityTimerExpiry(unittest.TestCase):
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
+        )
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
 
-        print("************************* Running UE detach for UE id ", ue_id)
-        # Now detach the UE
-        self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True
-        )
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
