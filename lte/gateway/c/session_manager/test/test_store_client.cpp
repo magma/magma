@@ -52,7 +52,6 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto sid                    = id_gen_.gen_session_id(imsi);
   auto sid2                   = id_gen_.gen_session_id(imsi2);
   auto sid3                   = id_gen_.gen_session_id(imsi3);
-  std::string core_session_id = "asdf";
   SessionConfig cfg           = {.ue_ipv4           = "",
                        .spgw_ipv4         = "",
                        .msisdn            = msisdn,
@@ -76,11 +75,11 @@ TEST_F(StoreClientTest, test_read_and_write) {
 
   auto uc      = get_default_update_criteria();
   auto session = std::make_unique<SessionState>(
-      imsi, sid, core_session_id, cfg, *rule_store, tgpp_context);
+      imsi, sid, cfg, *rule_store, tgpp_context);
   auto session2 = std::make_unique<SessionState>(
-      imsi2, sid2, core_session_id, cfg, *rule_store, tgpp_context);
+      imsi2, sid2, cfg, *rule_store, tgpp_context);
   auto session3 = std::make_unique<SessionState>(
-      imsi3, sid3, core_session_id, cfg, *rule_store, tgpp_context);
+      imsi3, sid3, cfg, *rule_store, tgpp_context);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session2->get_session_id(), sid2);
 

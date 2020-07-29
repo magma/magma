@@ -40,7 +40,6 @@ StoredSessionState SessionState::marshal() {
   marshaled.config                 = config_;
   marshaled.imsi                   = imsi_;
   marshaled.session_id             = session_id_;
-  marshaled.core_session_id        = core_session_id_;
   marshaled.subscriber_quota_state = subscriber_quota_state_;
   marshaled.tgpp_context           = tgpp_context_;
   marshaled.request_number         = request_number_;
@@ -97,7 +96,6 @@ SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
-      core_session_id_(marshaled.core_session_id),
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
@@ -145,11 +143,10 @@ SessionState::SessionState(
 
 SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
-    const std::string& core_session_id, const SessionConfig& cfg,
-    StaticRuleStore& rule_store, const magma::lte::TgppContext& tgpp_context)
+    const SessionConfig& cfg, StaticRuleStore& rule_store,
+    const magma::lte::TgppContext& tgpp_context)
     : imsi_(imsi),
       session_id_(session_id),
-      core_session_id_(core_session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),

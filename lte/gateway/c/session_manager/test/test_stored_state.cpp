@@ -125,7 +125,6 @@ class StoredStateTest : public ::testing::Test {
     stored.session_level_key      = "session_level_key";
     stored.imsi                   = "IMSI1";
     stored.session_id             = "session_id";
-    stored.core_session_id        = "core_session_id";
     stored.subscriber_quota_state = SubscriberQuotaUpdate_Type_VALID_QUOTA;
     stored.fsm_state              = SESSION_TERMINATING_FLOW_DELETED;
 
@@ -329,7 +328,6 @@ TEST_F(StoredStateTest, test_stored_session) {
 
   EXPECT_EQ(stored.imsi, "IMSI1");
   EXPECT_EQ(stored.session_id, "session_id");
-  EXPECT_EQ(stored.core_session_id, "core_session_id");
   EXPECT_EQ(
       stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
   EXPECT_EQ(stored.fsm_state, SESSION_TERMINATING_FLOW_DELETED);
