@@ -5,26 +5,27 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice,
  *    this list of conditions and the following disclaimer in the documentation
  *    and/or other materials provided with the distribution.
  *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *
- * The views and conclusions contained in the software and documentation are those
- * of the authors and should not be interpreted as representing official policies,
- * either expressed or implied, of the FreeBSD Project.
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of the FreeBSD Project.
  */
 /*! \file mme_config.h
   \brief
@@ -121,6 +122,9 @@
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME                             \
   "MME_IPV4_ADDRESS_FOR_S11_MME"
 #define MME_CONFIG_STRING_MME_PORT_FOR_S11 "MME_PORT_FOR_S11_MME"
+#define MME_CONFIG_STRING_SGW_INTERFACE_NAME_FOR_S11                           \
+  "SGW_INTERFACE_NAME_FOR_S11"
+#define MME_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11 "SGW_IPV4_ADDRESS_FOR_S11"
 
 #define MME_CONFIG_STRING_NAS_CONFIG "NAS"
 #define MME_CONFIG_STRING_NAS_SUPPORTED_INTEGRITY_ALGORITHM_LIST               \
@@ -145,6 +149,8 @@
 #define MME_CONFIG_STRING_NAS_FORCE_PUSH_DEDICATED_BEARER                      \
   "FORCE_PUSH_DEDICATED_BEARER"
 
+#define MME_CONFIG_STRING_SGW_CONFIG "S-GW"
+
 #define MME_CONFIG_STRING_SGS_CONFIG "SGS"
 #define MME_CONFIG_STRING_SGS_TS6_1_TIMER "TS6_1"
 #define MME_CONFIG_STRING_SGS_TS8_TIMER "TS8"
@@ -162,7 +168,7 @@
 #define MAGMA_CONFIG_STRING "MAGMA"
 #define MME_CONFIG_STRING_SERVICE303_CONFIG "SERVICE303"
 #define MME_CONFIG_STRING_SERVICE303_CONF_SERVER_ADDRESS "SERVER_ADDRESS"
-//CSFB
+// CSFB
 #define MME_CONFIG_STRING_CSFB_MCC "CSFB_MCC"
 #define MME_CONFIG_STRING_CSFB_MNC "CSFB_MNC"
 #define MME_CONFIG_STRING_LAC "LAC"
@@ -182,10 +188,10 @@ typedef struct eps_network_feature_config_s {
 typedef struct served_tai_s {
   uint8_t list_type;
   uint8_t nb_tai;
-  uint16_t *plmn_mcc;
-  uint16_t *plmn_mnc;
-  uint16_t *plmn_mnc_len;
-  uint16_t *tac;
+  uint16_t* plmn_mcc;
+  uint16_t* plmn_mnc;
+  uint16_t* plmn_mnc_len;
+  uint16_t* tac;
 } served_tai_t;
 
 typedef struct sctp_config_s {
@@ -198,16 +204,18 @@ typedef struct s1ap_config_s {
   uint8_t outcome_drop_timer_sec;
 } s1ap_config_t;
 
-typedef struct ipv4_s {
+typedef struct ip_s {
   bstring if_name_s1_mme;
-  struct in_addr s1_mme;
+  struct in_addr s1_mme_v4;
+  struct in6_addr s1_mme_v6;
   int netmask_s1_mme;
 
   bstring if_name_s11;
-  struct in_addr s11;
+  struct in_addr s11_mme_v4;
+  struct in6_addr s11_mme_v6;
   int netmask_s11;
   uint16_t port_s11;
-} ipv4_t;
+} ip_t;
 
 typedef struct s6a_config_s {
   bstring conf_file;
@@ -299,7 +307,7 @@ typedef struct mme_config_s {
   log_config_t log_config;
   e_dns_config_t e_dns_emulation;
 
-  ipv4_t ipv4;
+  ip_t ip;
 
   lai_t lai;
 
@@ -309,17 +317,13 @@ typedef struct mme_config_s {
 extern mme_config_t mme_config;
 
 int mme_config_find_mnc_length(
-  const char mcc_digit1P,
-  const char mcc_digit2P,
-  const char mcc_digit3P,
-  const char mnc_digit1P,
-  const char mnc_digit2P,
-  const char mnc_digit3P);
+    const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,
+    const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);
 
-void mme_config_init(mme_config_t *);
-int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *mme_config);
-int mme_config_parse_file(mme_config_t *);
-void mme_config_display(mme_config_t *);
+void mme_config_init(mme_config_t*);
+int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
+int mme_config_parse_file(mme_config_t*);
+void mme_config_display(mme_config_t*);
 
 void mme_config_exit(void);
 

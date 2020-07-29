@@ -19,10 +19,6 @@
 .*/node_modules/rxjs/.*
 .*/node_modules/vis/.*
 
-.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModels/.*
-.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/Sidemenu/.*
-.*/fbcnms-projects/hub/app/components/workflow/pages/diagramBuilder/NodeModal/.*
-
 ; Mapbox disables these because of flow errors
 ; See https://github.com/mapbox/mapbox-gl-js/blob/master/.flowconfig
 .*/node_modules/jsonlint-lines/.*
@@ -51,6 +47,8 @@
 .*/node_modules/express-graphql/.*
 .*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
+// TODO - fix flow error in core packages
+.*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
 
 [options]
 esproposal.optional_chaining=enable

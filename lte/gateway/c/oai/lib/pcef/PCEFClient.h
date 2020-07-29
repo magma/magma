@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -58,25 +54,25 @@ class PCEFClient : public GRPCReceiver {
    * Proxy a CreateSession gRPC call to sessiond
    */
   static void create_session(
-    const LocalCreateSessionRequest &request,
-    std::function<void(Status, LocalCreateSessionResponse)> callback);
+      const LocalCreateSessionRequest& request,
+      std::function<void(Status, LocalCreateSessionResponse)> callback);
 
   /**
    * Proxy a EndSession gRPC call to sessiond
    */
   static void end_session(
-    const LocalEndSessionRequest &request,
-    std::function<void(Status, LocalEndSessionResponse)> callback);
+      const LocalEndSessionRequest& request,
+      std::function<void(Status, LocalEndSessionResponse)> callback);
 
  public:
-  PCEFClient(PCEFClient const &) = delete;
-  void operator=(PCEFClient const &) = delete;
+  PCEFClient(PCEFClient const&) = delete;
+  void operator=(PCEFClient const&) = delete;
 
  private:
   PCEFClient();
-  static PCEFClient &get_instance();
+  static PCEFClient& get_instance();
   std::unique_ptr<LocalSessionManager::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 10; // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
 };
 
-} // namespace magma
+}  // namespace magma

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,26 +41,18 @@ typedef struct {
 } EpsQualityOfService;
 
 int encode_eps_quality_of_service(
-  EpsQualityOfService *epsqualityofservice,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int decode_eps_quality_of_service(
-  EpsQualityOfService *epsqualityofservice,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int eps_qos_bit_rate_value(uint8_t br);
 int eps_qos_bit_rate_ext_value(uint8_t br);
 int qos_params_to_eps_qos(
-  const qci_t qci,
-  const bitrate_t mbr_dl,
-  const bitrate_t mbr_ul,
-  const bitrate_t gbr_dl,
-  const bitrate_t gbr_ul,
-  EpsQualityOfService *const eps_qos,
-  bool is_default_bearer);
+    const qci_t qci, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
+    const bitrate_t gbr_dl, const bitrate_t gbr_ul,
+    EpsQualityOfService* const eps_qos, bool is_default_bearer);
 
 #endif /* EPS_QUALITY_OF_SERVICE_SEEN */

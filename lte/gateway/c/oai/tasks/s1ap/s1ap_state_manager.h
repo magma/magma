@@ -4,11 +4,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -38,8 +34,8 @@ extern "C" {
 
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
-constexpr char S1AP_TASK_NAME[] = "S1AP";
-}
+constexpr char S1AP_TASK_NAME[]   = "S1AP";
+}  // namespace
 
 namespace magma {
 namespace lte {
@@ -48,13 +44,10 @@ namespace lte {
  * S1apStateManager is a thread safe singleton class that contains functions
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
-class S1apStateManager :
-  public StateManager<
-    s1ap_state_t,
-    ue_description_t,
-    magma::lte::oai::S1apState,
-    magma::lte::oai::UeDescription,
-    S1apStateConverter> {
+class S1apStateManager
+    : public StateManager<
+          s1ap_state_t, ue_description_t, magma::lte::oai::S1apState,
+          magma::lte::oai::UeDescription, S1apStateConverter> {
  public:
   /**
    * Returns an instance of S1apStateManager, guaranteed to be thread safe and
@@ -110,5 +103,5 @@ class S1apStateManager :
   uint32_t max_enbs_;
   s1ap_imsi_map_t* s1ap_imsi_map_;
 };
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

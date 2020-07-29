@@ -632,6 +632,7 @@ declare module "@material-ui/core/SwipeableDrawer" {
   >;
 }
 
+
 declare module "@material-ui/core/ExpansionPanel/ExpansionPanel" {
   import type {ComponentType, Node} from "react";
 
@@ -666,7 +667,7 @@ declare module "@material-ui/core/ExpansionPanelDetails/ExpansionPanelDetails" {
     classes?: Object
   }>;
 }
-
+// DEPRECATED
 declare module "@material-ui/core/ExpansionPanelSummary/ExpansionPanelSummary" {
   import type {ComponentType, Node} from "react";
 
@@ -681,28 +682,63 @@ declare module "@material-ui/core/ExpansionPanelSummary/ExpansionPanelSummary" {
     onClick?: Function
   }>;
 }
-
+// DEPRECATED
 declare module "@material-ui/core/ExpansionPanel" {
   declare export default $Exports<
     "@material-ui/core/ExpansionPanel/ExpansionPanel"
   >;
 }
-
+// DEPRECATED
 declare module "@material-ui/core/ExpansionPanelActions" {
   declare export default $Exports<
     "@material-ui/core/ExpansionPanelActions/ExpansionPanelActions"
   >;
 }
-
+// DEPRECATED
 declare module "@material-ui/core/ExpansionPanelDetails" {
   declare export default $Exports<
     "@material-ui/core/ExpansionPanelDetails/ExpansionPanelDetails"
   >;
 }
-
+// DEPRECATED
 declare module "@material-ui/core/ExpansionPanelSummary" {
   declare export default $Exports<
     "@material-ui/core/ExpansionPanelSummary/ExpansionPanelSummary"
+  >;
+}
+
+declare module "@material-ui/core/AccordionSummary/AccordionSummary" {
+  import type {ComponentType, Node} from "react";
+
+  declare module.exports: ComponentType<{
+    children?: Node,
+    className?: string,
+    classes?: Object,
+    disabled?: boolean,
+    expanded?: boolean,
+    expandIcon?: Node,
+    onChange?: Function,
+    onClick?: Function
+  }>;
+}
+declare module "@material-ui/core/Accordion" {
+  declare export default $Exports<
+    "@material-ui/core/Accordion/Accordion"
+  >;
+}
+declare module "@material-ui/core/AccordionActions" {
+  declare export default $Exports<
+    "@material-ui/core/AccordionActions/AccordionActions"
+  >;
+}
+declare module "@material-ui/core/AccordionDetails" {
+  declare export default $Exports<
+    "@material-ui/core/AccordionDetails/AccordionDetails"
+  >;
+}
+declare module "@material-ui/core/AccordionSummary" {
+  declare export default $Exports<
+    "@material-ui/core/AccordionSummary/AccordionSummary"
   >;
 }
 
@@ -3450,38 +3486,81 @@ declare module "@material-ui/core/Drawer/Drawer.js" {
 declare module "@material-ui/core/Drawer/index.js" {
   declare module.exports: $Exports<"@material-ui/core/Drawer">;
 }
+
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanel/ExpansionPanel.js" {
   declare module.exports: $Exports<
     "@material-ui/core/ExpansionPanel/ExpansionPanel"
   >;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanel/index.js" {
   declare module.exports: $Exports<"@material-ui/core/ExpansionPanel">;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanel/ExpansionPanelActions.js" {
   declare module.exports: $Exports<
     "@material-ui/core/ExpansionPanelActions/ExpansionPanelActions"
   >;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanelActions/index.js" {
   declare module.exports: $Exports<"@material-ui/core/ExpansionPanelActions">;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanel/ExpansionPanelDetails.js" {
   declare module.exports: $Exports<
     "@material-ui/core/ExpansionPanelDetails/ExpansionPanelDetails"
   >;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanelDetails/index.js" {
   declare module.exports: $Exports<"@material-ui/core/ExpansionPanelDetails">;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanel/ExpansionPanelSummary.js" {
   declare module.exports: $Exports<
     "@material-ui/core/ExpansionPanelSummary/ExpansionPanelSummary"
   >;
 }
+//DEPRECATED
 declare module "@material-ui/core/ExpansionPanelSummary/index.js" {
   declare module.exports: $Exports<"@material-ui/core/ExpansionPanelSummary">;
 }
+
+declare module "@material-ui/core/Accordion/Accordion.js" {
+  declare module.exports: $Exports<
+    "@material-ui/core/Accordion/Accordion"
+  >;
+}
+declare module "@material-ui/core/Accordion/index.js" {
+  declare module.exports: $Exports<"@material-ui/core/Accordion">;
+}
+declare module "@material-ui/core/Accordion/AccordionActions.js" {
+  declare module.exports: $Exports<
+    "@material-ui/core/AccordionActions/AccordionActions"
+  >;
+}
+declare module "@material-ui/core/AccordionActions/index.js" {
+  declare module.exports: $Exports<"@material-ui/core/AccordionActions">;
+}
+declare module "@material-ui/core/Accordion/AccordionDetails.js" {
+  declare module.exports: $Exports<
+    "@material-ui/core/AccordionDetails/AccordionDetails"
+  >;
+}
+declare module "@material-ui/core/AccordionDetails/index.js" {
+  declare module.exports: $Exports<"@material-ui/core/AccordionDetails">;
+}
+declare module "@material-ui/core/Accordion/AccordionSummary.js" {
+  declare module.exports: $Exports<
+    "@material-ui/core/AccordionSummary/AccordionSummary"
+  >;
+}
+declare module "@material-ui/core/AccordionSummary/index.js" {
+  declare module.exports: $Exports<"@material-ui/core/AccordionSummary">;
+}
+
 declare module "@material-ui/core/Fab/Fab.js" {
   declare module.exports: $Exports<"@material-ui/core/Fab/Fab">;
 }

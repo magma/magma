@@ -1,17 +1,22 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
+import ipaddress
 import threading
 
 from collections import namedtuple
+from ipaddress import IPv4Address
 
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from threading import Thread
 
 from scapy.arch import get_if_hwaddr
 from scapy.data import ETHER_BROADCAST, ETH_P_ARP
@@ -20,8 +25,8 @@ from scapy.layers.l2 import ARP, Ether
 from scapy.sendrecv import srp1
 
 from .base import MagmaController
-from magma.mobilityd import mobility_store as store
-from magma.mobilityd.uplink_gw import UplinkGatewayInfo
+from magma.pipelined.mobilityd_client import get_mobilityd_gw_info, \
+    set_mobilityd_gw_info
 
 from magma.pipelined.app.li_mirror import LIMirrorController
 from magma.pipelined.openflow import flows
@@ -30,6 +35,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import load_direction, Direction, \
     PASSTHROUGH_REG_VAL
 
+from ryu.lib import hub
 from ryu.lib.packet import ether_types
 
 # ingress and egress service names -- used by other controllers
@@ -57,8 +63,7 @@ class InOutController(MagmaController):
          'setup_type'],
     )
     ARP_PROBE_FREQUENCY = 300
-    UPLINK_DPCP_PORT_NAME = 'dhcp0'
-    UPLINK_PORT_NAME = 'patch-up'
+    NON_NAT_ARP_EGRESS_PORT = 'uplink_br0'
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
@@ -70,9 +75,9 @@ class InOutController(MagmaController):
         else:
             self._mtr_service_enabled = False
 
-        if self.config.enable_nat is True:
-            self._uplink_port = OFPP_LOCAL
-        else:
+        self._uplink_port = OFPP_LOCAL
+        if self.config.enable_nat is False and \
+                self.config.uplink_port_name is not None:
             self._uplink_port = BridgeTools.get_ofport(self.config.uplink_port_name)
 
         if (self._service_manager.is_app_enabled(LIMirrorController.APP_NAME)
@@ -85,16 +90,15 @@ class InOutController(MagmaController):
             self._service_manager.get_table_num(PHYSICAL_TO_LOGICAL)
         self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
         # following fields are only used in Non Nat config
-        self._dhcp_gw_info = None
         self._gw_mac_monitor = None
+        self._current_upstream_mac = ""
+        self._datapath = None
 
     def _get_config(self, config_dict):
-        port_name = None
         mtr_ip = None
         mtr_port = None
         li_port_name = None
-        port_name = config_dict.get('ovs_uplink_port_name',
-                                    self.UPLINK_PORT_NAME)
+        port_name = config_dict.get('ovs_uplink_port_name', None)
         setup_type = config_dict.get('setup_type', None)
 
         if 'mtr_ip' in config_dict:
@@ -108,7 +112,7 @@ class InOutController(MagmaController):
         non_mat_gw_probe_freq = config_dict.get('non_mat_gw_probe_frequency',
                                                 self.ARP_PROBE_FREQUENCY)
         non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
-                                                  self.UPLINK_DPCP_PORT_NAME)
+                                                  self.NON_NAT_ARP_EGRESS_PORT)
 
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
@@ -167,7 +171,7 @@ class InOutController(MagmaController):
                                   [], priority=flows.UE_FLOW_PRIORITY,
                                   output_port=self.config.mtr_port)
 
-    def _install_default_egress_flows(self, dp, mac_addr: str = None):
+    def _install_default_egress_flows(self, dp, mac_addr: str = ""):
         """
         Egress table is the last table that a packet touches in the pipeline.
         Output downlink traffic to gtp port, uplink trafic to LOCAL
@@ -181,12 +185,19 @@ class InOutController(MagmaController):
 
         uplink_match = MagmaMatch(direction=Direction.OUT)
         actions = []
-        if mac_addr is not None:
-            parser = dp.ofproto_parser
-            actions.append(parser.OFPActionSetField(eth_dst=mac_addr))
-            self.logger.info("Using GW: %s actions: %s", mac_addr, str(actions))
+        # avoid resetting mac address on switch connect event.
+        if mac_addr == "":
+            mac_addr = self._current_upstream_mac
 
-        flows.add_output_flow(dp, self._egress_tbl_num, uplink_match, actions,
+        if mac_addr != "":
+            parser = dp.ofproto_parser
+            actions.append(parser.NXActionRegLoad2(dst='eth_dst', value=mac_addr))
+
+            self.logger.info("Using GW: %s actions: %s", mac_addr, str(actions))
+            self._current_upstream_mac = mac_addr
+
+        flows.add_output_flow(dp, self._egress_tbl_num, uplink_match,
+                              actions=actions,
                               output_port=self._uplink_port)
 
     def _install_default_ingress_flows(self, dp):
@@ -251,15 +262,16 @@ class InOutController(MagmaController):
                                                  match, actions=actions, priority=flows.DEFAULT_PRIORITY,
                                                  resubmit_table=next_table)
 
-    def _get_gw_mac_address(self, gw_ip: str) -> str:
+    def _get_gw_mac_address(self, ip: IPv4Address) -> str:
         try:
-            self.logger.debug("sending arp for IP: %s ovs egress: %s",
-                              gw_ip, self.config.non_nat_arp_egress_port)
+            gw_ip = ipaddress.ip_address(ip.address)
+            self.logger.debug("sending arp via egress: %s",
+                              self.config.non_nat_arp_egress_port)
             eth_mac_src = get_if_hwaddr(self.config.non_nat_arp_egress_port)
 
             pkt = Ether(dst=ETHER_BROADCAST, src=eth_mac_src)
             pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc="0.0.0.0")
-            self.logger.debug("pkt: %s", pkt.summary())
+            self.logger.debug("ARP Req pkt %s", pkt.show(dump=True))
 
             res = srp1(pkt,
                        type=ETH_P_ARP,
@@ -270,50 +282,42 @@ class InOutController(MagmaController):
                        promisc=0)
 
             if res is not None:
-                self.logger.debug("resp: %s ", res.summary())
+                self.logger.debug("ARP Res pkt %s", res.show(dump=True))
                 mac = res[ARP].hwsrc
                 return mac
             else:
                 self.logger.debug("Got Null response")
+                return ""
 
         except Scapy_Exception as ex:
             self.logger.warning("Error in probing Mac address: err %s", ex)
-            return None
+            return ""
+        except ValueError:
+            self.logger.warning("Invalid GW Ip address: [%s]", ip)
+            return ""
 
-    def _monitor_and_update(self, datapath):
-        current_feq = self.config.non_mat_gw_probe_frequency
-        current_mac = None
-        if self._dhcp_gw_info.getMac() is not None:
-            current_mac = self._dhcp_gw_info.getMac()
-            self._install_default_egress_flows(datapath, current_mac)
-            flows.set_barrier(datapath)
-
+    def _monitor_and_update(self):
         while True:
-            ip = self._dhcp_gw_info.getIP()
-            if ip is not None:
-                self.logger.info("GW found: %s", ip)
-                latest_mac_addr = self._get_gw_mac_address(ip)
-                if latest_mac_addr is not None:
-                    # got back to configured frequency.
-                    current_feq = self.config.non_mat_gw_probe_frequency
-                    if current_mac != latest_mac_addr:
-                        self.logger.info("Current mac %s updated gw mac: %s",
-                                         current_mac, latest_mac_addr)
-                        current_mac = latest_mac_addr
-
-                        self._install_default_egress_flows(datapath, current_mac)
-                        flows.set_barrier(datapath)
-                        self._dhcp_gw_info.update_mac(current_mac)
+            updated_info = get_mobilityd_gw_info()
+            if updated_info:
+                cached_gw_info = updated_info
+            if cached_gw_info and cached_gw_info.ip:
+                latest_mac_addr = self._get_gw_mac_address(cached_gw_info.ip)
+                if len(latest_mac_addr) == 17 and \
+                        self._current_upstream_mac != latest_mac_addr:
+                    self._install_default_egress_flows(self._datapath, latest_mac_addr)
+                    cached_gw_info.mac = latest_mac_addr
+                    set_gw_info = cached_gw_info
+                    set_mobilityd_gw_info(set_gw_info)
+                elif latest_mac_addr != "":
+                    self.logger.warning("invalid mac: %s", latest_mac_addr)
             else:
                 self.logger.warning("No default GW found.")
-                # increase frequency.
-                current_feq = 1
 
-            e = threading.Event()
-            self.logger.debug("non_mat_gw_probe_frequency: %s ip: %s mac: %s",
-                              current_feq,
-                              ip, current_mac)
-            e.wait(timeout=current_feq)
+            self.logger.info("non_mat_gw_probe_frequency: %s mac: [%s]",
+                             self.config.non_mat_gw_probe_frequency,
+                             self._current_upstream_mac)
+            hub.sleep(self.config.non_mat_gw_probe_frequency)
 
     def _setup_non_nat_monitoring(self, datapath):
         """
@@ -323,6 +327,9 @@ class InOutController(MagmaController):
         :param datapath: datapath to install flows.
         :return: None
         """
+        if self._gw_mac_monitor is not None:
+            # No need to multiple probes here.
+            return
         if self.config.enable_nat is True:
             self.logger.info("Nat is on")
             return
@@ -330,14 +337,11 @@ class InOutController(MagmaController):
             self.logger.info("No GW MAC probe for %s", self.config.setup_type)
             return
         else:
-            self.logger.info("Non nat conf: Frequency:%s, egress port: %s, uplink: %s",
-                             self.config.non_mat_gw_probe_frequency,
+            self.logger.info("Non nat conf: egress port: %s, uplink: %s",
                              self.config.non_nat_arp_egress_port,
                              self._uplink_port)
 
-        self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
-        self._gw_mac_monitor = Thread(target=self._monitor_and_update,
-                                      args=(datapath,))
-        self._gw_mac_monitor.setDaemon(True)
-        self._gw_mac_monitor.start()
+        self._datapath = datapath
+        self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
+
         threading.Event().wait(1)

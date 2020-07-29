@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package handlers
@@ -15,8 +20,8 @@ import (
 	neturl "net/url"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/alertmanager/config"
 
+	"github.com/facebookincubator/prometheus-configmanager/alertmanager/config"
 	"github.com/labstack/echo"
 )
 
@@ -137,7 +142,7 @@ func deleteAlertReceiver(c echo.Context, url string) error {
 	if receiverName == "" {
 		return obsidian.HttpError(fmt.Errorf("receiver name not provided"), http.StatusBadRequest)
 	}
-	url += fmt.Sprintf("?%s=%s", ReceiverNameQueryParam, neturl.QueryEscape(receiverName))
+	url += fmt.Sprintf("/%s", neturl.PathEscape(receiverName))
 
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
@@ -214,5 +219,5 @@ func makeNetworkReceiverPath(configManagerURL, networkID string) string {
 }
 
 func makeNetworkRoutePath(configManagerURL, networkID string) string {
-	return configManagerURL + "/" + networkID + "/receiver/route"
+	return configManagerURL + "/" + networkID + "/route"
 }

@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package service implements the core of bootstrapper
@@ -43,6 +48,7 @@ const (
 	MinRetryInterval      = time.Millisecond * 500
 	MaxRetryInterval      = time.Second * 30
 	RetryBackoffIncrement = MinRetryInterval
+	SuccessStartInterval  = time.Second * 5
 
 	DefaultSyncRpcHeartbeatInterval = time.Second * 30
 	DefaultGatewayKeepaliveInterval = time.Second * 10
@@ -115,7 +121,7 @@ func NewClient(reg service_registry.GatewayRegistry) *SyncRpcClient {
 	return client
 }
 
-// Run starts SyncRPC worker loop and blocks forever
+// Run starts SyncRPC worker loop and block forever
 func (c *SyncRpcClient) Run() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -130,14 +136,18 @@ func (c *SyncRpcClient) Run() {
 			time.Sleep(currentBackoffInterval)
 			continue
 		} else {
-			currentBackoffInterval = MinRetryInterval // reset backoff interval
 			glog.Infof("[SyncRpc] successfully connected to cloud '%s' service", definitions.DispatcherServiceName)
 		}
 
 		// this should simply wait here for requests and process responses
 		// in case we see any error we will retry connecting to the dispatcher
+		resetBackoffTime := time.Now().Add(SuccessStartInterval) // make sure, run lasts at least SuccessStartInterval
 		c.runSyncRpcClient(ctx, protos.NewSyncRPCServiceClient(conn))
+		if time.Now().After(resetBackoffTime) {
+			currentBackoffInterval = MinRetryInterval // reset backoff interval
+		}
 		conn.Close()
+		time.Sleep(currentBackoffInterval)
 		// exit loop if context is done
 		select {
 		case <-ctx.Done():
@@ -176,7 +186,7 @@ func (c *SyncRpcClient) runSyncRpcClient(ctx context.Context, client protos.Sync
 				timer.Reset(c.cfg.SyncRpcHeartbeatInterval)
 				glog.V(3).Infof("[SyncRpc] sent resp: %s", resp)
 			} else {
-				glog.Errorf("[SyncRpc] request canceled for ID: %d", resp.ReqId)
+				glog.Errorf("[SyncRpc] request canceled for Id: %d", resp.ReqId)
 			}
 		case err := <-errChan:
 			// error recd handling processStream
@@ -246,6 +256,8 @@ func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.
 		glog.V(3).Info("[SyncRpc] received heartbeat")
 		return
 	}
+	gatewayReq := req.GetReqBody()
+
 	if req.GetConnClosed() {
 		glog.V(1).Infof("[SyncRpc] connection closed handling ReqId: %d", req.ReqId)
 		cancelFn := c.updateTerminatedReqs(req.ReqId)
@@ -258,17 +270,17 @@ func (c *SyncRpcClient) handleSyncRpcRequest(inCtx context.Context, req *protos.
 	}
 	if glog.V(2) {
 		glog.Infof("[SyncRpc] request ID %d from GW %s, for service: %s, path: %s",
-			req.ReqId, req.GetReqBody().GetGwId(), req.GetReqBody().GetAuthority(), req.GetReqBody().GetPath())
+			req.ReqId, gatewayReq.GetGwId(), gatewayReq.GetAuthority(), gatewayReq.GetPath())
 	}
 	// get the cancellation fn of the request if present
-
 	// return early if request is outstanding
 	if cancelFn := c.getOutstandingReqCancelFn(req.ReqId); cancelFn != nil {
+		glog.Warningf("[SyncRpc] duplicate request to %s, %s with Id: %d",
+			gatewayReq.GetAuthority(), gatewayReq.GetPath(), req.ReqId)
 		c.respCh <- buildSyncRpcErrorResponse(
 			req.ReqId, fmt.Sprintf("request ID %d is already being handled", req.ReqId))
 		return
 	}
-	gatewayReq := req.GetReqBody()
 	serviceAddr, err := c.serviceRegistry.GetServiceAddress(gatewayReq.GetAuthority())
 	if err != nil {
 		glog.Errorf("[SyncRpc] error getting service address: %v", err)

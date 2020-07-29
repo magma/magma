@@ -66,11 +66,10 @@ namespace Bstrlib {
 
 // Constructors.
 
-CBString::CBString()
-{
+CBString::CBString() {
   slen = 0;
   mlen = 8;
-  data = (unsigned char *) bstr__alloc(mlen);
+  data = (unsigned char*) bstr__alloc(mlen);
   if (!data) {
     mlen = 0;
     bstringThrow("Failure in default constructor");
@@ -79,13 +78,12 @@ CBString::CBString()
   }
 }
 
-CBString::CBString(const void *blk, int len)
-{
+CBString::CBString(const void* blk, int len) {
   data = NULL;
   if (len >= 0) {
     mlen = len + 1;
     slen = len;
-    data = (unsigned char *) bstr__alloc(mlen);
+    data = (unsigned char*) bstr__alloc(mlen);
   }
   if (!data) {
     mlen = slen = 0;
@@ -96,13 +94,12 @@ CBString::CBString(const void *blk, int len)
   }
 }
 
-CBString::CBString(char c, int len)
-{
+CBString::CBString(char c, int len) {
   data = NULL;
   if (len >= 0) {
     mlen = len + 1;
     slen = len;
-    data = (unsigned char *) bstr__alloc(mlen);
+    data = (unsigned char*) bstr__alloc(mlen);
   }
   if (!data) {
     mlen = slen = 0;
@@ -113,11 +110,10 @@ CBString::CBString(char c, int len)
   }
 }
 
-CBString::CBString(char c)
-{
+CBString::CBString(char c) {
   mlen = 2;
   slen = 1;
-  if (NULL == (data = (unsigned char *) bstr__alloc(mlen))) {
+  if (NULL == (data = (unsigned char*) bstr__alloc(mlen))) {
     mlen = slen = 0;
     bstringThrow("Failure in (char) constructor");
   } else {
@@ -126,11 +122,10 @@ CBString::CBString(char c)
   }
 }
 
-CBString::CBString(unsigned char c)
-{
+CBString::CBString(unsigned char c) {
   mlen = 2;
   slen = 1;
-  if (NULL == (data = (unsigned char *) bstr__alloc(mlen))) {
+  if (NULL == (data = (unsigned char*) bstr__alloc(mlen))) {
     mlen = slen = 0;
     bstringThrow("Failure in (char) constructor");
   } else {
@@ -139,15 +134,14 @@ CBString::CBString(unsigned char c)
   }
 }
 
-CBString::CBString(const char *s)
-{
+CBString::CBString(const char* s) {
   if (s) {
     size_t sslen = strlen(s);
     if (sslen >= INT_MAX)
       bstringThrow("Failure in (char *) constructor, string too large") slen =
-        (int) sslen;
+          (int) sslen;
     mlen = slen + 1;
-    if (NULL != (data = (unsigned char *) bstr__alloc(mlen))) {
+    if (NULL != (data = (unsigned char*) bstr__alloc(mlen))) {
       bstr__memcpy(data, s, mlen);
       return;
     }
@@ -156,16 +150,15 @@ CBString::CBString(const char *s)
   bstringThrow("Failure in (char *) constructor");
 }
 
-CBString::CBString(int len, const char *s)
-{
+CBString::CBString(int len, const char* s) {
   if (s) {
     size_t sslen = strlen(s);
     if (sslen >= INT_MAX)
       bstringThrow("Failure in (char *) constructor, string too large") slen =
-        (int) sslen;
+          (int) sslen;
     mlen = slen + 1;
     if (mlen < len) mlen = len;
-    if (NULL != (data = (unsigned char *) bstr__alloc(mlen))) {
+    if (NULL != (data = (unsigned char*) bstr__alloc(mlen))) {
       bstr__memcpy(data, s, slen + 1);
       return;
     }
@@ -174,12 +167,11 @@ CBString::CBString(int len, const char *s)
   bstringThrow("Failure in (int len, char *) constructor");
 }
 
-CBString::CBString(const CBString &b)
-{
+CBString::CBString(const CBString& b) {
   slen = b.slen;
   mlen = slen + 1;
   data = NULL;
-  if (mlen > 0) data = (unsigned char *) bstr__alloc(mlen);
+  if (mlen > 0) data = (unsigned char*) bstr__alloc(mlen);
   if (!data) {
     bstringThrow("Failure in (CBString) constructor");
   } else {
@@ -188,12 +180,11 @@ CBString::CBString(const CBString &b)
   }
 }
 
-CBString::CBString(const tagbstring &x)
-{
+CBString::CBString(const tagbstring& x) {
   slen = x.slen;
   mlen = slen + 1;
   data = NULL;
-  if (slen >= 0 && x.data != NULL) data = (unsigned char *) bstr__alloc(mlen);
+  if (slen >= 0 && x.data != NULL) data = (unsigned char*) bstr__alloc(mlen);
   if (!data) {
     bstringThrow("Failure in (tagbstring) constructor");
   } else {
@@ -204,8 +195,7 @@ CBString::CBString(const tagbstring &x)
 
 // Destructor.
 
-CBString::~CBString()
-{
+CBString::~CBString() {
   if (data != NULL) {
     bstr__free(data);
     data = NULL;
@@ -216,38 +206,35 @@ CBString::~CBString()
 
 // = operator.
 
-const CBString &CBString::operator=(char c)
-{
+const CBString& CBString::operator=(char c) {
   if (mlen <= 0) bstringThrow("Write protection error");
   if (2 >= mlen) alloc(2);
   if (!data) {
     mlen = slen = 0;
     bstringThrow("Failure in =(char) operator");
   } else {
-    slen = 1;
+    slen    = 1;
     data[0] = (unsigned char) c;
     data[1] = '\0';
   }
   return *this;
 }
 
-const CBString &CBString::operator=(unsigned char c)
-{
+const CBString& CBString::operator=(unsigned char c) {
   if (mlen <= 0) bstringThrow("Write protection error");
   if (2 >= mlen) alloc(2);
   if (!data) {
     mlen = slen = 0;
     bstringThrow("Failure in =(char) operator");
   } else {
-    slen = 1;
+    slen    = 1;
     data[0] = c;
     data[1] = '\0';
   }
   return *this;
 }
 
-const CBString &CBString::operator=(const char *s)
-{
+const CBString& CBString::operator=(const char* s) {
   size_t tmpSlen;
 
   if (mlen <= 0) bstringThrow("Write protection error");
@@ -268,8 +255,7 @@ const CBString &CBString::operator=(const char *s)
   return *this;
 }
 
-const CBString &CBString::operator=(const CBString &b)
-{
+const CBString& CBString::operator=(const CBString& b) {
   if (mlen <= 0) bstringThrow("Write protection error");
   if (b.slen >= mlen) alloc(b.slen);
 
@@ -284,8 +270,7 @@ const CBString &CBString::operator=(const CBString &b)
   return *this;
 }
 
-const CBString &CBString::operator=(const tagbstring &x)
-{
+const CBString& CBString::operator=(const tagbstring& x) {
   if (mlen <= 0) bstringThrow("Write protection error");
   if (x.slen < 0)
     bstringThrow("Failure in =(tagbstring) operator, badly formed tagbstring");
@@ -302,24 +287,22 @@ const CBString &CBString::operator=(const tagbstring &x)
   return *this;
 }
 
-const CBString &CBString::operator+=(const CBString &b)
-{
+const CBString& CBString::operator+=(const CBString& b) {
   if (BSTR_ERR == bconcat(this, (bstring) &b)) {
     bstringThrow("Failure in concatenate");
   }
   return *this;
 }
 
-const CBString &CBString::operator+=(const char *s)
-{
-  char *d;
+const CBString& CBString::operator+=(const char* s) {
+  char* d;
   int i, l;
 
   if (mlen <= 0) bstringThrow("Write protection error");
 
   /* Optimistically concatenate directly */
   l = mlen - slen;
-  d = (char *) &data[slen];
+  d = (char*) &data[slen];
   for (i = 0; i < l; i++) {
     if ((*d++ = *s++) == '\0') {
       slen += i;
@@ -334,24 +317,21 @@ const CBString &CBString::operator+=(const char *s)
   return *this;
 }
 
-const CBString &CBString::operator+=(char c)
-{
+const CBString& CBString::operator+=(char c) {
   if (BSTR_ERR == bconchar(this, c)) {
     bstringThrow("Failure in concatenate");
   }
   return *this;
 }
 
-const CBString &CBString::operator+=(unsigned char c)
-{
+const CBString& CBString::operator+=(unsigned char c) {
   if (BSTR_ERR == bconchar(this, (char) c)) {
     bstringThrow("Failure in concatenate");
   }
   return *this;
 }
 
-const CBString &CBString::operator+=(const tagbstring &x)
-{
+const CBString& CBString::operator+=(const tagbstring& x) {
   if (mlen <= 0) bstringThrow("Write protection error");
   if (x.slen < 0)
     bstringThrow("Failure in +=(tagbstring) operator, badly formed tagbstring");
@@ -368,45 +348,39 @@ const CBString &CBString::operator+=(const tagbstring &x)
   return *this;
 }
 
-const CBString CBString::operator+(char c) const
-{
+const CBString CBString::operator+(char c) const {
   CBString retval(*this);
   retval += c;
   return retval;
 }
 
-const CBString CBString::operator+(unsigned char c) const
-{
+const CBString CBString::operator+(unsigned char c) const {
   CBString retval(*this);
   retval += c;
   return retval;
 }
 
-const CBString CBString::operator+(const CBString &b) const
-{
+const CBString CBString::operator+(const CBString& b) const {
   CBString retval(*this);
   retval += b;
   return retval;
 }
 
-const CBString CBString::operator+(const char *s) const
-{
+const CBString CBString::operator+(const char* s) const {
   if (s == NULL) bstringThrow("Failure in + (char *) operator, NULL");
   CBString retval(*this);
   retval += s;
   return retval;
 }
 
-const CBString CBString::operator+(const unsigned char *s) const
-{
+const CBString CBString::operator+(const unsigned char* s) const {
   if (s == NULL) bstringThrow("Failure in + (unsigned char *) operator, NULL");
   CBString retval(*this);
-  retval += (const char *) s;
+  retval += (const char*) s;
   return retval;
 }
 
-const CBString CBString::operator+(const tagbstring &x) const
-{
+const CBString CBString::operator+(const tagbstring& x) const {
   if (x.slen < 0)
     bstringThrow("Failure in + (tagbstring) operator, badly formed tagbstring");
   CBString retval(*this);
@@ -414,8 +388,7 @@ const CBString CBString::operator+(const tagbstring &x) const
   return retval;
 }
 
-bool CBString::operator==(const CBString &b) const
-{
+bool CBString::operator==(const CBString& b) const {
   int retval;
   if (BSTR_ERR == (retval = biseq((bstring) this, (bstring) &b))) {
     bstringThrow("Failure in compare (==)");
@@ -423,8 +396,7 @@ bool CBString::operator==(const CBString &b) const
   return retval > 0;
 }
 
-bool CBString::operator==(const char *s) const
-{
+bool CBString::operator==(const char* s) const {
   int retval;
   if (NULL == s) {
     bstringThrow("Failure in compare (== NULL)");
@@ -435,35 +407,30 @@ bool CBString::operator==(const char *s) const
   return retval > 0;
 }
 
-bool CBString::operator==(const unsigned char *s) const
-{
+bool CBString::operator==(const unsigned char* s) const {
   int retval;
   if (NULL == s) {
     bstringThrow("Failure in compare (== NULL)");
   }
-  if (BSTR_ERR == (retval = biseqcstr((bstring) this, (const char *) s))) {
+  if (BSTR_ERR == (retval = biseqcstr((bstring) this, (const char*) s))) {
     bstringThrow("Failure in compare (==)");
   }
   return retval > 0;
 }
 
-bool CBString::operator!=(const CBString &b) const
-{
+bool CBString::operator!=(const CBString& b) const {
   return !((*this) == b);
 }
 
-bool CBString::operator!=(const char *s) const
-{
+bool CBString::operator!=(const char* s) const {
   return !((*this) == s);
 }
 
-bool CBString::operator!=(const unsigned char *s) const
-{
+bool CBString::operator!=(const unsigned char* s) const {
   return !((*this) == s);
 }
 
-bool CBString::operator<(const CBString &b) const
-{
+bool CBString::operator<(const CBString& b) const {
   int retval;
   if (SHRT_MIN == (retval = bstrcmp((bstring) this, (bstring) &b))) {
     bstringThrow("Failure in compare (<)");
@@ -471,24 +438,21 @@ bool CBString::operator<(const CBString &b) const
   return retval < 0;
 }
 
-bool CBString::operator<(const char *s) const
-{
+bool CBString::operator<(const char* s) const {
   if (s == NULL) {
     bstringThrow("Failure in compare (<)");
   }
-  return strcmp((const char *) this->data, s) < 0;
+  return strcmp((const char*) this->data, s) < 0;
 }
 
-bool CBString::operator<(const unsigned char *s) const
-{
+bool CBString::operator<(const unsigned char* s) const {
   if (s == NULL) {
     bstringThrow("Failure in compare (<)");
   }
-  return strcmp((const char *) this->data, (const char *) s) < 0;
+  return strcmp((const char*) this->data, (const char*) s) < 0;
 }
 
-bool CBString::operator<=(const CBString &b) const
-{
+bool CBString::operator<=(const CBString& b) const {
   int retval;
   if (SHRT_MIN == (retval = bstrcmp((bstring) this, (bstring) &b))) {
     bstringThrow("Failure in compare (<=)");
@@ -496,83 +460,71 @@ bool CBString::operator<=(const CBString &b) const
   return retval <= 0;
 }
 
-bool CBString::operator<=(const char *s) const
-{
+bool CBString::operator<=(const char* s) const {
   if (s == NULL) {
     bstringThrow("Failure in compare (<=)");
   }
-  return strcmp((const char *) this->data, s) <= 0;
+  return strcmp((const char*) this->data, s) <= 0;
 }
 
-bool CBString::operator<=(const unsigned char *s) const
-{
+bool CBString::operator<=(const unsigned char* s) const {
   if (s == NULL) {
     bstringThrow("Failure in compare (<=)");
   }
-  return strcmp((const char *) this->data, (const char *) s) <= 0;
+  return strcmp((const char*) this->data, (const char*) s) <= 0;
 }
 
-bool CBString::operator>(const CBString &b) const
-{
+bool CBString::operator>(const CBString& b) const {
   return !((*this) <= b);
 }
 
-bool CBString::operator>(const char *s) const
-{
+bool CBString::operator>(const char* s) const {
   return !((*this) <= s);
 }
 
-bool CBString::operator>(const unsigned char *s) const
-{
+bool CBString::operator>(const unsigned char* s) const {
   return !((*this) <= s);
 }
 
-bool CBString::operator>=(const CBString &b) const
-{
+bool CBString::operator>=(const CBString& b) const {
   return !((*this) < b);
 }
 
-bool CBString::operator>=(const char *s) const
-{
+bool CBString::operator>=(const char* s) const {
   return !((*this) < s);
 }
 
-bool CBString::operator>=(const unsigned char *s) const
-{
+bool CBString::operator>=(const unsigned char* s) const {
   return !((*this) < s);
 }
 
-CBString::operator double() const
-{
+CBString::operator double() const {
   double d = 0;
-  if (1 != sscanf((const char *) this->data, "%lf", &d)) {
+  if (1 != sscanf((const char*) this->data, "%lf", &d)) {
     bstringThrow("Unable to convert to a double");
   }
   return d;
 }
 
-CBString::operator float() const
-{
+CBString::operator float() const {
   float d = 0;
-  if (1 != sscanf((const char *) this->data, "%f", &d)) {
+  if (1 != sscanf((const char*) this->data, "%f", &d)) {
     bstringThrow("Unable to convert to a float");
   }
   return d;
 }
 
-CBString::operator int() const
-{
+CBString::operator int() const {
   int d = 0;
-  if (1 != sscanf((const char *) this->data, "%d", &d)) {
+  if (1 != sscanf((const char*) this->data, "%d", &d)) {
     bstringThrow("Unable to convert to an int");
   }
   return d;
 }
 
-CBString::operator unsigned int() const
-{
+CBString::operator unsigned int() const {
   unsigned int d = 0;
-  if (1 != sscanf((const char *) this->data, "%u", &d)) {
+  if (1 != sscanf((const char*) this->data, "%u", &d)) {
     bstringThrow("Unable to convert to an unsigned int");
   }
   return d;
@@ -587,12 +539,10 @@ CBString::operator unsigned int() const
 /* Give WATCOM C/C++, MSVC some latitude for their non-support of vsnprintf */
 #if defined(__WATCOMC__) || defined(_MSC_VER)
 #define exvsnprintf(r, b, n, f, a)                                             \
-  {                                                                            \
-    r = _vsnprintf(b, n, f, a);                                                \
-  }
+  { r = _vsnprintf(b, n, f, a); }
 #else
 #ifdef BSTRLIB_NOVSNP
-/* This is just a hack.  If you are using a system without a vsnprintf, it is 
+/* This is just a hack.  If you are using a system without a vsnprintf, it is
    not recommended that bformat be used at all. */
 #define exvsnprintf(r, b, n, f, a)                                             \
   {                                                                            \
@@ -603,17 +553,15 @@ CBString::operator unsigned int() const
 #else
 
 #if defined(__GNUC__) && !defined(__PPC__)
-/* Something is making gcc complain about this prototype not being here, so 
+/* Something is making gcc complain about this prototype not being here, so
    I've just gone ahead and put it in. */
 extern "C" {
-extern int vsnprintf(char *buf, size_t count, const char *format, va_list arg);
+extern int vsnprintf(char* buf, size_t count, const char* format, va_list arg);
 }
 #endif
 
 #define exvsnprintf(r, b, n, f, a)                                             \
-  {                                                                            \
-    r = vsnprintf(b, n, f, a);                                                 \
-  }
+  { r = vsnprintf(b, n, f, a); }
 #endif
 #endif
 
@@ -623,12 +571,11 @@ extern int vsnprintf(char *buf, size_t count, const char *format, va_list arg);
 
 /*
  * Yeah I'd like to just call a vformat function or something, but because of
- * the ANSI specified brokeness of the va_* macros, it is actually not 
+ * the ANSI specified brokeness of the va_* macros, it is actually not
  * possible to do this correctly.
  */
 
-void CBString::format(const char *fmt, ...)
-{
+void CBString::format(const char* fmt, ...) {
   bstring b;
   va_list arglist;
   int r, n;
@@ -657,11 +604,11 @@ void CBString::format(const char *fmt, ...)
         }
 
         va_start(arglist, fmt);
-        exvsnprintf(r, (char *) b->data, n + 1, fmt, arglist);
+        exvsnprintf(r, (char*) b->data, n + 1, fmt, arglist);
         va_end(arglist);
 
         b->data[n] = '\0';
-        b->slen = (int) (strlen)((char *) b->data);
+        b->slen    = (int) (strlen)((char*) b->data);
 
         if (b->slen < n) break;
         if (r > n)
@@ -675,8 +622,7 @@ void CBString::format(const char *fmt, ...)
   }
 }
 
-void CBString::formata(const char *fmt, ...)
-{
+void CBString::formata(const char* fmt, ...) {
   bstring b;
   va_list arglist;
   int r, n;
@@ -705,11 +651,11 @@ void CBString::formata(const char *fmt, ...)
         }
 
         va_start(arglist, fmt);
-        exvsnprintf(r, (char *) b->data, n + 1, fmt, arglist);
+        exvsnprintf(r, (char*) b->data, n + 1, fmt, arglist);
         va_end(arglist);
 
         b->data[n] = '\0';
-        b->slen = (int) (strlen)((char *) b->data);
+        b->slen    = (int) (strlen)((char*) b->data);
 
         if (b->slen < n) break;
         if (r > n)
@@ -723,8 +669,7 @@ void CBString::formata(const char *fmt, ...)
   }
 }
 
-int CBString::caselessEqual(const CBString &b) const
-{
+int CBString::caselessEqual(const CBString& b) const {
   int ret;
   if (BSTR_ERR == (ret = biseqcaseless((bstring) this, (bstring) &b))) {
     bstringThrow("CBString::caselessEqual Unable to compare");
@@ -732,8 +677,7 @@ int CBString::caselessEqual(const CBString &b) const
   return ret;
 }
 
-int CBString::caselessCmp(const CBString &b) const
-{
+int CBString::caselessCmp(const CBString& b) const {
   int ret;
   if (SHRT_MIN == (ret = bstricmp((bstring) this, (bstring) &b))) {
     bstringThrow("CBString::caselessCmp Unable to compare");
@@ -741,39 +685,37 @@ int CBString::caselessCmp(const CBString &b) const
   return ret;
 }
 
-int CBString::find(const CBString &b, int pos) const
-{
+int CBString::find(const CBString& b, int pos) const {
   return binstr((bstring) this, pos, (bstring) &b);
 }
 
 /*
     int CBString::find (const char * b, int pos) const;
 
-    Uses and unrolling and sliding paired indexes character matching.  Since 
-    the unrolling is the primary real world impact the true purpose of this 
-    algorithm choice is maximize the effectiveness of the unrolling.  The 
-    idea is to scan until at least one match of the current indexed character 
-    from each string, and then shift indexes of both down by and repeat until 
-    the last character form b matches.  When the last character from b 
-    matches if the were no mismatches in previous strlen(b) characters then 
+    Uses and unrolling and sliding paired indexes character matching.  Since
+    the unrolling is the primary real world impact the true purpose of this
+    algorithm choice is maximize the effectiveness of the unrolling.  The
+    idea is to scan until at least one match of the current indexed character
+    from each string, and then shift indexes of both down by and repeat until
+    the last character form b matches.  When the last character from b
+    matches if the were no mismatches in previous strlen(b) characters then
     we know we have a full match, otherwise shift both indexes back strlen(b)
     characters and continue.
 
     In general, if there is any character in b that is not at all in this
     CBString, then this algorithm is O(slen).  The algorithm does not easily
     degenerate into O(slen * strlen(b)) performance except in very uncommon
-    situations.  Thus from a real world perspective, the overhead of 
+    situations.  Thus from a real world perspective, the overhead of
     precomputing suffix shifts in the Boyer-Moore algorithm is avoided, while
     delivering an unrolled matching inner loop most of the time.
  */
 
-int CBString::find(const char *b, int pos) const
-{
+int CBString::find(const char* b, int pos) const {
   int ii, j;
   unsigned char c0;
   register int i, l;
   register unsigned char cx;
-  register unsigned char *pdata;
+  register unsigned char* pdata;
 
   if (NULL == b) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -789,7 +731,7 @@ int CBString::find(const char *b, int pos) const
   if ('\0' == b[1]) return find(b[0], pos);
 
   cx = c0 = (unsigned char) b[0];
-  l = slen - 1;
+  l       = slen - 1;
 
   pdata = data;
   for (ii = -1, i = pos, j = 0; i < l;) {
@@ -819,7 +761,7 @@ int CBString::find(const char *b, int pos) const
 
     /* Shift back to the beginning */
     i -= j;
-    j = 0;
+    j  = 0;
     cx = c0;
   }
 
@@ -829,13 +771,11 @@ int CBString::find(const char *b, int pos) const
   return BSTR_ERR;
 }
 
-int CBString::caselessfind(const CBString &b, int pos) const
-{
+int CBString::caselessfind(const CBString& b, int pos) const {
   return binstrcaseless((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::caselessfind(const char *b, int pos) const
-{
+int CBString::caselessfind(const char* b, int pos) const {
   struct tagbstring t;
 
   if (NULL == b) {
@@ -854,8 +794,7 @@ int CBString::caselessfind(const char *b, int pos) const
   return binstrcaseless((bstring) this, pos, (bstring) &t);
 }
 
-int CBString::find(char c, int pos) const
-{
+int CBString::find(char c, int pos) const {
   if (pos < 0) return BSTR_ERR;
   for (; pos < slen; pos++) {
     if (data[pos] == (unsigned char) c) return pos;
@@ -863,13 +802,11 @@ int CBString::find(char c, int pos) const
   return BSTR_ERR;
 }
 
-int CBString::reversefind(const CBString &b, int pos) const
-{
+int CBString::reversefind(const CBString& b, int pos) const {
   return binstrr((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::reversefind(const char *b, int pos) const
-{
+int CBString::reversefind(const char* b, int pos) const {
   struct tagbstring t;
   if (NULL == b) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -882,13 +819,11 @@ int CBString::reversefind(const char *b, int pos) const
   return binstrr((bstring) this, pos, &t);
 }
 
-int CBString::caselessreversefind(const CBString &b, int pos) const
-{
+int CBString::caselessreversefind(const CBString& b, int pos) const {
   return binstrrcaseless((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::caselessreversefind(const char *b, int pos) const
-{
+int CBString::caselessreversefind(const char* b, int pos) const {
   struct tagbstring t;
 
   if (NULL == b) {
@@ -907,8 +842,7 @@ int CBString::caselessreversefind(const char *b, int pos) const
   return binstrrcaseless((bstring) this, pos, (bstring) &t);
 }
 
-int CBString::reversefind(char c, int pos) const
-{
+int CBString::reversefind(char c, int pos) const {
   if (pos > slen) return BSTR_ERR;
   if (pos == slen) pos--;
   for (; pos >= 0; pos--) {
@@ -917,13 +851,11 @@ int CBString::reversefind(char c, int pos) const
   return BSTR_ERR;
 }
 
-int CBString::findchr(const CBString &b, int pos) const
-{
+int CBString::findchr(const CBString& b, int pos) const {
   return binchr((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::findchr(const char *s, int pos) const
-{
+int CBString::findchr(const char* s, int pos) const {
   struct tagbstring t;
   if (NULL == s) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -936,13 +868,11 @@ int CBString::findchr(const char *s, int pos) const
   return binchr((bstring) this, pos, (bstring) &t);
 }
 
-int CBString::nfindchr(const CBString &b, int pos) const
-{
+int CBString::nfindchr(const CBString& b, int pos) const {
   return bninchr((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::nfindchr(const char *s, int pos) const
-{
+int CBString::nfindchr(const char* s, int pos) const {
   struct tagbstring t;
   if (NULL == s) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -955,13 +885,11 @@ int CBString::nfindchr(const char *s, int pos) const
   return bninchr((bstring) this, pos, &t);
 }
 
-int CBString::reversefindchr(const CBString &b, int pos) const
-{
+int CBString::reversefindchr(const CBString& b, int pos) const {
   return binchrr((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::reversefindchr(const char *s, int pos) const
-{
+int CBString::reversefindchr(const char* s, int pos) const {
   struct tagbstring t;
   if (NULL == s) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -974,13 +902,11 @@ int CBString::reversefindchr(const char *s, int pos) const
   return binchrr((bstring) this, pos, &t);
 }
 
-int CBString::nreversefindchr(const CBString &b, int pos) const
-{
+int CBString::nreversefindchr(const CBString& b, int pos) const {
   return bninchrr((bstring) this, pos, (bstring) &b);
 }
 
-int CBString::nreversefindchr(const char *s, int pos) const
-{
+int CBString::nreversefindchr(const char* s, int pos) const {
   struct tagbstring t;
   if (NULL == s) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -993,8 +919,7 @@ int CBString::nreversefindchr(const char *s, int pos) const
   return bninchrr((bstring) this, pos, &t);
 }
 
-const CBString CBString::midstr(int left, int len) const
-{
+const CBString CBString::midstr(int left, int len) const {
   struct tagbstring t;
   if (left < 0) {
     len += left;
@@ -1006,30 +931,26 @@ const CBString CBString::midstr(int left, int len) const
   return CBString(t);
 }
 
-void CBString::alloc(int len)
-{
+void CBString::alloc(int len) {
   if (BSTR_ERR == balloc((bstring) this, len)) {
     bstringThrow("Failure in alloc");
   }
 }
 
-void CBString::fill(int len, unsigned char cfill)
-{
+void CBString::fill(int len, unsigned char cfill) {
   slen = 0;
   if (BSTR_ERR == bsetstr(this, len, NULL, cfill)) {
     bstringThrow("Failure in fill");
   }
 }
 
-void CBString::setsubstr(int pos, const CBString &b, unsigned char cfill)
-{
+void CBString::setsubstr(int pos, const CBString& b, unsigned char cfill) {
   if (BSTR_ERR == bsetstr(this, pos, (bstring) &b, cfill)) {
     bstringThrow("Failure in setsubstr");
   }
 }
 
-void CBString::setsubstr(int pos, const char *s, unsigned char cfill)
-{
+void CBString::setsubstr(int pos, const char* s, unsigned char cfill) {
   struct tagbstring t;
   if (NULL == s) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1044,15 +965,13 @@ void CBString::setsubstr(int pos, const char *s, unsigned char cfill)
   }
 }
 
-void CBString::insert(int pos, const CBString &b, unsigned char cfill)
-{
+void CBString::insert(int pos, const CBString& b, unsigned char cfill) {
   if (BSTR_ERR == binsert(this, pos, (bstring) &b, cfill)) {
     bstringThrow("Failure in insert");
   }
 }
 
-void CBString::insert(int pos, const char *s, unsigned char cfill)
-{
+void CBString::insert(int pos, const char* s, unsigned char cfill) {
   struct tagbstring t;
   if (NULL == s) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1067,22 +986,20 @@ void CBString::insert(int pos, const char *s, unsigned char cfill)
   }
 }
 
-void CBString::insertchrs(int pos, int len, unsigned char cfill)
-{
+void CBString::insertchrs(int pos, int len, unsigned char cfill) {
   if (BSTR_ERR == binsertch(this, pos, len, cfill)) {
     bstringThrow("Failure in insertchrs");
   }
 }
 
-void CBString::replace(int pos, int len, const CBString &b, unsigned char cfill)
-{
+void CBString::replace(
+    int pos, int len, const CBString& b, unsigned char cfill) {
   if (BSTR_ERR == breplace(this, pos, len, (bstring) &b, cfill)) {
     bstringThrow("Failure in replace");
   }
 }
 
-void CBString::replace(int pos, int len, const char *s, unsigned char cfill)
-{
+void CBString::replace(int pos, int len, const char* s, unsigned char cfill) {
   struct tagbstring t;
   size_t q;
 
@@ -1095,12 +1012,12 @@ void CBString::replace(int pos, int len, const char *s, unsigned char cfill)
       if (BSTR_ERR == bsetstr(this, pos, &t, cfill)) {
         bstringThrow("Failure in replace");
       } else if (pos + t.slen < slen) {
-        slen = pos + t.slen;
+        slen       = pos + t.slen;
         data[slen] = '\0';
       }
     } else {
       /* Aliasing case */
-      if ((unsigned int) (data - (unsigned char *) s) < (unsigned int) slen) {
+      if ((unsigned int) (data - (unsigned char*) s) < (unsigned int) slen) {
         replace(pos, len, CBString(s), cfill);
         return;
       }
@@ -1120,15 +1037,14 @@ void CBString::replace(int pos, int len, const char *s, unsigned char cfill)
   }
 }
 
-void CBString::findreplace(const CBString &sfind, const CBString &repl, int pos)
-{
+void CBString::findreplace(
+    const CBString& sfind, const CBString& repl, int pos) {
   if (BSTR_ERR == bfindreplace(this, (bstring) &sfind, (bstring) &repl, pos)) {
     bstringThrow("Failure in findreplace");
   }
 }
 
-void CBString::findreplace(const CBString &sfind, const char *repl, int pos)
-{
+void CBString::findreplace(const CBString& sfind, const char* repl, int pos) {
   struct tagbstring t;
   if (NULL == repl) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1143,8 +1059,7 @@ void CBString::findreplace(const CBString &sfind, const char *repl, int pos)
   }
 }
 
-void CBString::findreplace(const char *sfind, const CBString &repl, int pos)
-{
+void CBString::findreplace(const char* sfind, const CBString& repl, int pos) {
   struct tagbstring t;
   if (NULL == sfind) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1159,8 +1074,7 @@ void CBString::findreplace(const char *sfind, const CBString &repl, int pos)
   }
 }
 
-void CBString::findreplace(const char *sfind, const char *repl, int pos)
-{
+void CBString::findreplace(const char* sfind, const char* repl, int pos) {
   struct tagbstring t, u;
   if (NULL == repl || NULL == sfind) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1177,22 +1091,15 @@ void CBString::findreplace(const char *sfind, const char *repl, int pos)
 }
 
 void CBString::findreplacecaseless(
-  const CBString &sfind,
-  const CBString &repl,
-  int pos)
-{
-  if (
-    BSTR_ERR ==
-    bfindreplacecaseless(this, (bstring) &sfind, (bstring) &repl, pos)) {
+    const CBString& sfind, const CBString& repl, int pos) {
+  if (BSTR_ERR ==
+      bfindreplacecaseless(this, (bstring) &sfind, (bstring) &repl, pos)) {
     bstringThrow("Failure in findreplacecaseless");
   }
 }
 
 void CBString::findreplacecaseless(
-  const CBString &sfind,
-  const char *repl,
-  int pos)
-{
+    const CBString& sfind, const char* repl, int pos) {
   struct tagbstring t;
   if (NULL == repl) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1202,18 +1109,14 @@ void CBString::findreplacecaseless(
 #endif
   }
   cstr2tbstr(t, repl);
-  if (
-    BSTR_ERR ==
-    bfindreplacecaseless(this, (bstring) &sfind, (bstring) &t, pos)) {
+  if (BSTR_ERR ==
+      bfindreplacecaseless(this, (bstring) &sfind, (bstring) &t, pos)) {
     bstringThrow("Failure in findreplacecaseless");
   }
 }
 
 void CBString::findreplacecaseless(
-  const char *sfind,
-  const CBString &repl,
-  int pos)
-{
+    const char* sfind, const CBString& repl, int pos) {
   struct tagbstring t;
   if (NULL == sfind) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1223,15 +1126,14 @@ void CBString::findreplacecaseless(
 #endif
   }
   cstr2tbstr(t, sfind);
-  if (
-    BSTR_ERR ==
-    bfindreplacecaseless(this, (bstring) &t, (bstring) &repl, pos)) {
+  if (BSTR_ERR ==
+      bfindreplacecaseless(this, (bstring) &t, (bstring) &repl, pos)) {
     bstringThrow("Failure in findreplacecaseless");
   }
 }
 
-void CBString::findreplacecaseless(const char *sfind, const char *repl, int pos)
-{
+void CBString::findreplacecaseless(
+    const char* sfind, const char* repl, int pos) {
   struct tagbstring t, u;
   if (NULL == repl || NULL == sfind) {
 #ifdef BSTRLIB_THROWS_EXCEPTIONS
@@ -1247,33 +1149,29 @@ void CBString::findreplacecaseless(const char *sfind, const char *repl, int pos)
   }
 }
 
-void CBString::remove(int pos, int len)
-{
+void CBString::remove(int pos, int len) {
   if (BSTR_ERR == bdelete(this, pos, len)) {
     bstringThrow("Failure in remove");
   }
 }
 
-void CBString::trunc(int len)
-{
+void CBString::trunc(int len) {
   if (len < 0) {
     bstringThrow("Failure in trunc");
   }
   if (len < slen) {
-    slen = len;
+    slen      = len;
     data[len] = '\0';
   }
 }
 
-void CBString::ltrim(const CBString &b)
-{
+void CBString::ltrim(const CBString& b) {
   int l = nfindchr(b, 0);
   if (l == BSTR_ERR) l = slen;
   remove(0, l);
 }
 
-void CBString::rtrim(const CBString &b)
-{
+void CBString::rtrim(const CBString& b) {
   int l = nreversefindchr(b, slen - 1);
 #if BSTR_ERR != -1
   if (l == BSTR_ERR) l = -1;
@@ -1282,22 +1180,19 @@ void CBString::rtrim(const CBString &b)
   if (mlen > slen) data[slen] = '\0';
 }
 
-void CBString::toupper()
-{
+void CBString::toupper() {
   if (BSTR_ERR == btoupper((bstring) this)) {
     bstringThrow("Failure in toupper");
   }
 }
 
-void CBString::tolower()
-{
+void CBString::tolower() {
   if (BSTR_ERR == btolower((bstring) this)) {
     bstringThrow("Failure in tolower");
   }
 }
 
-void CBString::repeat(int count)
-{
+void CBString::repeat(int count) {
   count *= slen;
   if (count == 0) {
     trunc(0);
@@ -1308,8 +1203,7 @@ void CBString::repeat(int count)
   }
 }
 
-int CBString::gets(bNgetc getcPtr, void *parm, char terminator)
-{
+int CBString::gets(bNgetc getcPtr, void* parm, char terminator) {
   if (mlen <= 0) bstringThrow("Write protection error");
   bstring b = bgets(getcPtr, parm, terminator);
   if (b == NULL) {
@@ -1321,8 +1215,7 @@ int CBString::gets(bNgetc getcPtr, void *parm, char terminator)
   return 0;
 }
 
-int CBString::read(bNread readPtr, void *parm)
-{
+int CBString::read(bNread readPtr, void* parm) {
   if (mlen <= 0) bstringThrow("Write protection error");
   bstring b = bread(readPtr, parm);
   if (b == NULL) {
@@ -1334,38 +1227,31 @@ int CBString::read(bNread readPtr, void *parm)
   return 0;
 }
 
-const CBString operator+(const char *a, const CBString &b)
-{
+const CBString operator+(const char* a, const CBString& b) {
   return CBString(a) + b;
 }
 
-const CBString operator+(const unsigned char *a, const CBString &b)
-{
-  return CBString((const char *) a) + b;
+const CBString operator+(const unsigned char* a, const CBString& b) {
+  return CBString((const char*) a) + b;
 }
 
-const CBString operator+(char c, const CBString &b)
-{
+const CBString operator+(char c, const CBString& b) {
   return CBString(c) + b;
 }
 
-const CBString operator+(unsigned char c, const CBString &b)
-{
+const CBString operator+(unsigned char c, const CBString& b) {
   return CBString(c) + b;
 }
 
-const CBString operator+(const tagbstring &x, const CBString &b)
-{
+const CBString operator+(const tagbstring& x, const CBString& b) {
   return CBString(x) + b;
 }
 
-void CBString::writeprotect()
-{
+void CBString::writeprotect() {
   if (mlen >= 0) mlen = -1;
 }
 
-void CBString::writeallow()
-{
+void CBString::writeallow() {
   if (mlen == -1)
     mlen = slen + (slen == 0);
   else if (mlen < 0) {
@@ -1377,8 +1263,7 @@ void CBString::writeallow()
 
 // Constructors.
 
-CBString::CBString(const CBStringList &l)
-{
+CBString::CBString(const CBStringList& l) {
   int c;
   size_t i;
 
@@ -1388,7 +1273,7 @@ CBString::CBString(const CBStringList &l)
 
   mlen = c;
   slen = 0;
-  data = (unsigned char *) bstr__alloc(c);
+  data = (unsigned char*) bstr__alloc(c);
   if (!data) {
     mlen = slen = 0;
     bstringThrow("Failure in (CBStringList) constructor");
@@ -1399,8 +1284,7 @@ CBString::CBString(const CBStringList &l)
   }
 }
 
-CBString::CBString(const struct CBStringList &l, const CBString &sep)
-{
+CBString::CBString(const struct CBStringList& l, const CBString& sep) {
   int c, sl = sep.length();
   size_t i;
 
@@ -1410,7 +1294,7 @@ CBString::CBString(const struct CBStringList &l, const CBString &sep)
 
   mlen = c;
   slen = 0;
-  data = (unsigned char *) bstr__alloc(mlen);
+  data = (unsigned char*) bstr__alloc(mlen);
   if (!data) {
     mlen = slen = 0;
     bstringThrow("Failure in (CBStringList) constructor");
@@ -1422,8 +1306,7 @@ CBString::CBString(const struct CBStringList &l, const CBString &sep)
   }
 }
 
-CBString::CBString(const struct CBStringList &l, char sep)
-{
+CBString::CBString(const struct CBStringList& l, char sep) {
   int c;
   size_t i;
 
@@ -1433,7 +1316,7 @@ CBString::CBString(const struct CBStringList &l, char sep)
 
   mlen = c;
   slen = 0;
-  data = (unsigned char *) bstr__alloc(mlen);
+  data = (unsigned char*) bstr__alloc(mlen);
   if (!data) {
     mlen = slen = 0;
     bstringThrow("Failure in (CBStringList) constructor");
@@ -1445,8 +1328,7 @@ CBString::CBString(const struct CBStringList &l, char sep)
   }
 }
 
-CBString::CBString(const struct CBStringList &l, unsigned char sep)
-{
+CBString::CBString(const struct CBStringList& l, unsigned char sep) {
   int c;
   size_t i;
 
@@ -1456,7 +1338,7 @@ CBString::CBString(const struct CBStringList &l, unsigned char sep)
 
   mlen = c;
   slen = 0;
-  data = (unsigned char *) bstr__alloc(mlen);
+  data = (unsigned char*) bstr__alloc(mlen);
   if (!data) {
     mlen = slen = 0;
     bstringThrow("Failure in (CBStringList) constructor");
@@ -1468,8 +1350,7 @@ CBString::CBString(const struct CBStringList &l, unsigned char sep)
   }
 }
 
-void CBString::join(const struct CBStringList &l)
-{
+void CBString::join(const struct CBStringList& l) {
   int c;
   size_t i;
 
@@ -1494,8 +1375,7 @@ void CBString::join(const struct CBStringList &l)
   }
 }
 
-void CBString::join(const struct CBStringList &l, const CBString &sep)
-{
+void CBString::join(const struct CBStringList& l, const CBString& sep) {
   int c, sl = sep.length();
   size_t i;
 
@@ -1521,8 +1401,7 @@ void CBString::join(const struct CBStringList &l, const CBString &sep)
   }
 }
 
-void CBString::join(const struct CBStringList &l, char sep)
-{
+void CBString::join(const struct CBStringList& l, char sep) {
   int c;
   size_t i;
 
@@ -1548,8 +1427,7 @@ void CBString::join(const struct CBStringList &l, char sep)
   }
 }
 
-void CBString::join(const struct CBStringList &l, unsigned char sep)
-{
+void CBString::join(const struct CBStringList& l, unsigned char sep) {
   int c;
   size_t i;
 
@@ -1577,8 +1455,7 @@ void CBString::join(const struct CBStringList &l, unsigned char sep)
 
 // Split functions.
 
-void CBStringList::split(const CBString &b, unsigned char splitChar)
-{
+void CBStringList::split(const CBString& b, unsigned char splitChar) {
   int p, i;
 
   p = 0;
@@ -1591,8 +1468,7 @@ void CBStringList::split(const CBString &b, unsigned char splitChar)
   } while (p <= b.length());
 }
 
-void CBStringList::split(const CBString &b, const CBString &s)
-{
+void CBStringList::split(const CBString& b, const CBString& s) {
   struct {
     unsigned long content[(1 << CHAR_BIT) / 32];
   } chrs;
@@ -1621,8 +1497,7 @@ void CBStringList::split(const CBString &b, const CBString &s)
   }
 }
 
-void CBStringList::splitstr(const CBString &b, const CBString &s)
-{
+void CBStringList::splitstr(const CBString& b, const CBString& s) {
   int p, i;
 
   if (s.length() == 1) {
@@ -1641,33 +1516,29 @@ void CBStringList::splitstr(const CBString &b, const CBString &s)
   }
 }
 
-static int streamSplitCb(void *parm, int ofs, const_bstring entry)
-{
-  CBStringList *r = (CBStringList *) parm;
+static int streamSplitCb(void* parm, int ofs, const_bstring entry) {
+  CBStringList* r = (CBStringList*) parm;
 
   ofs = ofs;
   r->push_back(CBString(*entry));
   return 0;
 }
 
-void CBStringList::split(const CBStream &b, const CBString &s)
-{
-  if (0 > bssplitscb(b.m_s, (bstring) &s, streamSplitCb, (void *) this)) {
+void CBStringList::split(const CBStream& b, const CBString& s) {
+  if (0 > bssplitscb(b.m_s, (bstring) &s, streamSplitCb, (void*) this)) {
     bstringThrow("Split bstream failure");
   }
 }
 
-void CBStringList::split(const CBStream &b, unsigned char splitChar)
-{
+void CBStringList::split(const CBStream& b, unsigned char splitChar) {
   CBString sc(splitChar);
-  if (0 > bssplitscb(b.m_s, (bstring) &sc, streamSplitCb, (void *) this)) {
+  if (0 > bssplitscb(b.m_s, (bstring) &sc, streamSplitCb, (void*) this)) {
     bstringThrow("Split bstream failure");
   }
 }
 
-void CBStringList::splitstr(const CBStream &b, const CBString &s)
-{
-  if (0 > bssplitstrcb(b.m_s, (bstring) &s, streamSplitCb, (void *) this)) {
+void CBStringList::splitstr(const CBStream& b, const CBString& s) {
+  if (0 > bssplitstrcb(b.m_s, (bstring) &s, streamSplitCb, (void*) this)) {
     bstringThrow("Split bstream failure");
   }
 }
@@ -1676,23 +1547,20 @@ void CBStringList::splitstr(const CBStream &b, const CBString &s)
 
 #if defined(BSTRLIB_CAN_USE_IOSTREAM)
 
-std::ostream &operator<<(std::ostream &sout, CBString b)
-{
-  return sout.write((const char *) b, b.length());
+std::ostream& operator<<(std::ostream& sout, CBString b) {
+  return sout.write((const char*) b, b.length());
 }
 
 #include <ctype.h>
 
-static int istreamGets(void *parm)
-{
+static int istreamGets(void* parm) {
   char c = '\n';
-  ((std::istream *) parm)->get(c);
+  ((std::istream*) parm)->get(c);
   if (isspace(c)) c = '\n';
   return c;
 }
 
-std::istream &operator>>(std::istream &sin, CBString &b)
-{
+std::istream& operator>>(std::istream& sin, CBString& b) {
   do {
     b.gets((bNgetc) istreamGets, &sin, '\n');
     if (b.slen > 0 && b.data[b.slen - 1] == '\n') b.slen--;
@@ -1701,21 +1569,19 @@ std::istream &operator>>(std::istream &sin, CBString &b)
 }
 
 struct sgetc {
-  std::istream *sin;
+  std::istream* sin;
   char terminator;
 };
 
-static int istreamGetc(void *parm)
-{
-  char c = ((struct sgetc *) parm)->terminator;
-  ((struct sgetc *) parm)->sin->get(c);
+static int istreamGetc(void* parm) {
+  char c = ((struct sgetc*) parm)->terminator;
+  ((struct sgetc*) parm)->sin->get(c);
   return c;
 }
 
-std::istream &getline(std::istream &sin, CBString &b, char terminator)
-{
+std::istream& getline(std::istream& sin, CBString& b, char terminator) {
   struct sgetc parm;
-  parm.sin = &sin;
+  parm.sin        = &sin;
   parm.terminator = terminator;
   b.gets((bNgetc) istreamGetc, &parm, terminator);
   if (b.slen > 0 && b.data[b.slen - 1] == terminator) b.slen--;
@@ -1724,31 +1590,26 @@ std::istream &getline(std::istream &sin, CBString &b, char terminator)
 
 #endif
 
-CBStream::CBStream(bNread readPtr, void *parm)
-{
+CBStream::CBStream(bNread readPtr, void* parm) {
   m_s = bsopen(readPtr, parm);
 }
 
-CBStream::~CBStream()
-{
+CBStream::~CBStream() {
   bsclose(m_s);
 }
 
-int CBStream::buffLengthSet(int sz)
-{
+int CBStream::buffLengthSet(int sz) {
   if (sz <= 0) {
     bstringThrow("buffLengthSet parameter failure");
   }
   return bsbufflength(m_s, sz);
 }
 
-int CBStream::buffLengthGet()
-{
+int CBStream::buffLengthGet() {
   return bsbufflength(m_s, 0);
 }
 
-CBString CBStream::readLine(char terminator)
-{
+CBString CBStream::readLine(char terminator) {
   CBString ret("");
   if (0 > bsreadln((bstring) &ret, m_s, terminator) && eof() < 0) {
     bstringThrow("Failed readLine");
@@ -1756,8 +1617,7 @@ CBString CBStream::readLine(char terminator)
   return ret;
 }
 
-CBString CBStream::readLine(const CBString &terminator)
-{
+CBString CBStream::readLine(const CBString& terminator) {
   CBString ret("");
   if (0 > bsreadlns((bstring) &ret, m_s, (bstring) &terminator) && eof() < 0) {
     bstringThrow("Failed readLine");
@@ -1765,29 +1625,25 @@ CBString CBStream::readLine(const CBString &terminator)
   return ret;
 }
 
-void CBStream::readLine(CBString &s, char terminator)
-{
+void CBStream::readLine(CBString& s, char terminator) {
   if (0 > bsreadln((bstring) &s, m_s, terminator) && eof() < 0) {
     bstringThrow("Failed readLine");
   }
 }
 
-void CBStream::readLine(CBString &s, const CBString &terminator)
-{
+void CBStream::readLine(CBString& s, const CBString& terminator) {
   if (0 > bsreadlns((bstring) &s, m_s, (bstring) &terminator) && eof() < 0) {
     bstringThrow("Failed readLine");
   }
 }
 
-void CBStream::readLineAppend(CBString &s, char terminator)
-{
+void CBStream::readLineAppend(CBString& s, char terminator) {
   if (0 > bsreadlna((bstring) &s, m_s, terminator) && eof() < 0) {
     bstringThrow("Failed readLineAppend");
   }
 }
 
-void CBStream::readLineAppend(CBString &s, const CBString &terminator)
-{
+void CBStream::readLineAppend(CBString& s, const CBString& terminator) {
   if (0 > bsreadlnsa((bstring) &s, m_s, (bstring) &terminator) && eof() < 0) {
     bstringThrow("Failed readLineAppend");
   }
@@ -1795,8 +1651,7 @@ void CBStream::readLineAppend(CBString &s, const CBString &terminator)
 
 #define BS_BUFF_SZ (1024)
 
-CBString CBStream::read()
-{
+CBString CBStream::read() {
   CBString ret("");
   while (!bseof(m_s)) {
     if (0 > bsreada((bstring) &ret, m_s, BS_BUFF_SZ) && eof() < 0) {
@@ -1806,8 +1661,7 @@ CBString CBStream::read()
   return ret;
 }
 
-CBString &CBStream::operator>>(CBString &s)
-{
+CBString& CBStream::operator>>(CBString& s) {
   while (!bseof(m_s)) {
     if (0 > bsreada((bstring) &s, m_s, BS_BUFF_SZ) && eof() < 0) {
       bstringThrow("Failed read");
@@ -1816,8 +1670,7 @@ CBString &CBStream::operator>>(CBString &s)
   return s;
 }
 
-CBString CBStream::read(int n)
-{
+CBString CBStream::read(int n) {
   CBString ret("");
   if (0 > bsread((bstring) &ret, m_s, n) && eof() < 0) {
     bstringThrow("Failed read");
@@ -1825,8 +1678,7 @@ CBString CBStream::read(int n)
   return ret;
 }
 
-void CBStream::read(CBString &s)
-{
+void CBStream::read(CBString& s) {
   s.slen = 0;
   while (!bseof(m_s)) {
     if (0 > bsreada((bstring) &s, m_s, BS_BUFF_SZ)) {
@@ -1835,15 +1687,13 @@ void CBStream::read(CBString &s)
   }
 }
 
-void CBStream::read(CBString &s, int n)
-{
+void CBStream::read(CBString& s, int n) {
   if (0 > bsread((bstring) &s, m_s, n)) {
     bstringThrow("Failed read");
   }
 }
 
-void CBStream::readAppend(CBString &s)
-{
+void CBStream::readAppend(CBString& s) {
   while (!bseof(m_s)) {
     if (0 > bsreada((bstring) &s, m_s, BS_BUFF_SZ)) {
       bstringThrow("Failed readAppend");
@@ -1851,22 +1701,19 @@ void CBStream::readAppend(CBString &s)
   }
 }
 
-void CBStream::readAppend(CBString &s, int n)
-{
+void CBStream::readAppend(CBString& s, int n) {
   if (0 > bsreada((bstring) &s, m_s, n)) {
     bstringThrow("Failed readAppend");
   }
 }
 
-void CBStream::unread(const CBString &s)
-{
+void CBStream::unread(const CBString& s) {
   if (0 > bsunread(m_s, (bstring) &s)) {
     bstringThrow("Failed unread");
   }
 }
 
-CBString CBStream::peek() const
-{
+CBString CBStream::peek() const {
   CBString ret("");
   if (0 > bspeek((bstring) &ret, m_s)) {
     bstringThrow("Failed peek");
@@ -1874,23 +1721,20 @@ CBString CBStream::peek() const
   return ret;
 }
 
-void CBStream::peek(CBString &s) const
-{
+void CBStream::peek(CBString& s) const {
   s.slen = 0;
   if (0 > bspeek((bstring) &s, m_s)) {
     bstringThrow("Failed peek");
   }
 }
 
-void CBStream::peekAppend(CBString &s) const
-{
+void CBStream::peekAppend(CBString& s) const {
   if (0 > bspeek((bstring) &s, m_s)) {
     bstringThrow("Failed peekAppend");
   }
 }
 
-int CBStream::eof() const
-{
+int CBStream::eof() const {
   int ret = bseof(m_s);
   if (0 > ret) {
     bstringThrow("Failed eof");
@@ -1898,4 +1742,4 @@ int CBStream::eof() const
   return ret;
 }
 
-} // namespace Bstrlib
+}  // namespace Bstrlib

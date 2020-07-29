@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -56,16 +52,16 @@ Description Implements the API used by the NAS layer to send/receive
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int network_api_initialize(const char *host, const char *port);
+int network_api_initialize(const char* host, const char* port);
 
 int network_api_get_fd(void);
-const void *network_api_get_data(void);
+const void* network_api_get_data(void);
 
 int network_api_read_data(int fd);
 int network_api_send_data(int fd, size_t length);
 void network_api_close(int fd);
 
 int network_api_decode_data(size_t length);
-int network_api_encode_data(void *data);
+int network_api_encode_data(void* data);
 
 #endif /* FILE_NETWORK_API_SEEN*/

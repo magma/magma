@@ -1,8 +1,14 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
@@ -17,7 +23,7 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import Link from '@material-ui/core/Link';
@@ -26,12 +32,10 @@ import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {
   EnodebBandwidthOption,
@@ -62,12 +66,6 @@ const DEFAULT_ENB_CONFIG = {
 };
 
 const useStyles = makeStyles(_ => ({
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -81,10 +79,9 @@ const useStyles = makeStyles(_ => ({
       background: colors.primary.mirage,
     },
   },
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '80%',
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
+    color: colors.primary.white,
   },
 }));
 
@@ -190,17 +187,15 @@ function EnodeEditDialog({open, onClose, editProps}: DialogProps) {
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
-      <DialogTitle className={classes.topBar}>
-        <Text color="light" weight="medium">
-          {editProps ? 'Edit eNodeB' : 'Add New eNodeB'}
-        </Text>
-      </DialogTitle>
+      <DialogTitle
+        label={editProps ? 'Edit eNodeB' : 'Add New eNodeB'}
+        onClose={onClose}
+      />
       <Tabs
         value={tabPos}
         onChange={(_, v) => setTabPos(v)}
         indicatorColor="primary"
-        textColor="primary"
-        variant="fullWidth">
+        className={classes.tabBar}>
         <Tab key="config" data-testid="configTab" label={CONFIG_TITLE} />; ;
         <Tab
           key="ran"
@@ -266,7 +261,6 @@ type OptConfig = {
 type OptKey = $Keys<OptConfig>;
 
 export function RanEdit(props: Props) {
-  const classes = useStyles();
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
 
@@ -316,10 +310,14 @@ export function RanEdit(props: Props) {
   return (
     <>
       <DialogContent data-testid="ranEdit">
-        {error !== '' && <FormLabel error>{error}</FormLabel>}
-        <List component={Paper}>
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel error>{error}</FormLabel>
+            </AltFormField>
+          )}
           <AltFormField label={'Device Class'}>
-            <FormControl className={classes.input}>
+            <FormControl>
               <Select
                 value={config.device_class}
                 onChange={({target}) =>
@@ -345,7 +343,6 @@ export function RanEdit(props: Props) {
               type="number"
               min={0}
               max={Math.pow(2, 28) - 1}
-              className={classes.input}
               fullWidth={true}
               value={config.cell_id}
               onChange={({target}) =>
@@ -354,7 +351,7 @@ export function RanEdit(props: Props) {
             />
           </AltFormField>
           <AltFormField label={'Bandwidth'}>
-            <FormControl className={classes.input}>
+            <FormControl>
               <Select
                 value={optConfig.bandwidthMhz}
                 onChange={({target}) =>
@@ -398,7 +395,6 @@ export function RanEdit(props: Props) {
           <AltFormField label={'PCI'}>
             <OutlinedInput
               data-testid="pci"
-              className={classes.input}
               fullWidth={true}
               value={optConfig.pci}
               onChange={({target}) => handleOptChange('pci', target.value)}
@@ -408,7 +404,6 @@ export function RanEdit(props: Props) {
           <AltFormField label={'TAC'}>
             <OutlinedInput
               data-testid="tac"
-              className={classes.input}
               fullWidth={true}
               value={optConfig.tac}
               onChange={({target}) => handleOptChange('tac', target.value)}
@@ -416,7 +411,7 @@ export function RanEdit(props: Props) {
           </AltFormField>
 
           <AltFormField label={'Transmit'}>
-            <FormControl variant={'outlined'} className={classes.input}>
+            <FormControl variant={'outlined'}>
               <Select
                 value={config.transmit_enabled ? 1 : 0}
                 onChange={({target}) =>
@@ -434,14 +429,15 @@ export function RanEdit(props: Props) {
         <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave}>{props.saveButtonTitle}</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          {props.saveButtonTitle}
+        </Button>
       </DialogActions>
     </>
   );
 }
 
 export function ConfigEdit(props: Props) {
-  const classes = useStyles();
   const [error, setError] = useState('');
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
@@ -478,13 +474,16 @@ export function ConfigEdit(props: Props) {
   return (
     <>
       <DialogContent data-testid="configEdit">
-        {error !== '' && <FormLabel error>{error}</FormLabel>}
-        <List component={Paper}>
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel error>{error}</FormLabel>
+            </AltFormField>
+          )}
           <AltFormField label={'Name'}>
             <OutlinedInput
               data-testid="name"
               fullWidth={true}
-              className={classes.input}
               value={enb.name}
               onChange={({target}) => setEnb({...enb, name: target.value})}
             />
@@ -493,7 +492,6 @@ export function ConfigEdit(props: Props) {
             <OutlinedInput
               data-testid="serial"
               fullWidth={true}
-              className={classes.input}
               value={enb.serial}
               readOnly={props.enb ? true : false}
               onChange={({target}) => setEnb({...enb, serial: target.value})}
@@ -504,7 +502,6 @@ export function ConfigEdit(props: Props) {
               data-testid="description"
               fullWidth={true}
               multiline
-              className={classes.input}
               rows={4}
               value={enb.description}
               onChange={({target}) =>
@@ -518,7 +515,9 @@ export function ConfigEdit(props: Props) {
         <Button onClick={props.onClose} skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave}>{props.saveButtonTitle}</Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          {props.saveButtonTitle}
+        </Button>
       </DialogActions>
     </>
   );

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -33,8 +29,7 @@ using namespace fluid_base;
 class MockApplication : public Application {
  public:
   MOCK_METHOD2(
-    event_callback,
-    void(const ControllerEvent &, const OpenflowMessenger &));
+      event_callback, void(const ControllerEvent&, const OpenflowMessenger&));
 };
 
 /**
@@ -43,16 +38,14 @@ class MockApplication : public Application {
 class MockMessenger : public OpenflowMessenger {
  public:
   inline fluid_msg::of13::FlowMod create_default_flow_mod(
-    uint8_t table_id,
-    fluid_msg::of13::ofp_flow_mod_command command,
-    uint16_t priority) const
-  {
+      uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
+      uint16_t priority) const {
     // Use DefaultMessenger
     DefaultMessenger messenger;
     return messenger.create_default_flow_mod(table_id, command, priority);
   }
 
   MOCK_CONST_METHOD2(
-    send_of_msg,
-    void(fluid_msg::OFMsg &of_msg, fluid_base::OFConnection *ofconn));
+      send_of_msg,
+      void(fluid_msg::OFMsg& of_msg, fluid_base::OFConnection* ofconn));
 };

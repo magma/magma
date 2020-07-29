@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -43,12 +39,13 @@
 
 typedef enum modify_eps_bearer_context_accept_iei_tag {
   MODIFY_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
-    SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+      SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
 } modify_eps_bearer_context_accept_iei;
 
 /*
  * Message name: Modify EPS bearer context accept
- * Description: This message is sent by the UE to the network to acknowledge the modification of an active EPS bearer context. See table 8.3.16.1.
+ * Description: This message is sent by the UE to the network to acknowledge the
+ * modification of an active EPS bearer context. See table 8.3.16.1.
  * Significance: dual
  * Direction: UE to network
  */
@@ -65,13 +62,11 @@ typedef struct modify_eps_bearer_context_accept_msg_tag {
 } modify_eps_bearer_context_accept_msg;
 
 int decode_modify_eps_bearer_context_accept(
-  modify_eps_bearer_context_accept_msg *modifyepsbearercontextaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    modify_eps_bearer_context_accept_msg* modifyepsbearercontextaccept,
+    uint8_t* buffer, uint32_t len);
 
 int encode_modify_eps_bearer_context_accept(
-  modify_eps_bearer_context_accept_msg *modifyepsbearercontextaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    modify_eps_bearer_context_accept_msg* modifyepsbearercontextaccept,
+    uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(MODIFY_EPS_BEARER_CONTEXT_ACCEPT_H_) */

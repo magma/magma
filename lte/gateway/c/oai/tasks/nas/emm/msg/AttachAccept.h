@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -72,20 +68,21 @@
 typedef enum attach_accept_iei_tag {
   ATTACH_ACCEPT_GUTI_IEI = 0x50, /* 0x50 = 80 */
   ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI =
-    C_LOCATION_AREA_IDENTIFICATION_IEI,
-  ATTACH_ACCEPT_MS_IDENTITY_IEI = C_MOBILE_IDENTITY_IEI,
-  ATTACH_ACCEPT_EMM_CAUSE_IEI = 0x53, /* 0x53 = 83 */
-  ATTACH_ACCEPT_T3402_VALUE_IEI = GPRS_C_TIMER_3402_VALUE_IEI,
-  ATTACH_ACCEPT_T3423_VALUE_IEI = GPRS_C_TIMER_3423_VALUE_IEI,
-  ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI = C_PLMN_LIST_IEI,
-  ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI = MM_EMERGENCY_NUMBER_LIST_IEI,
+      C_LOCATION_AREA_IDENTIFICATION_IEI,
+  ATTACH_ACCEPT_MS_IDENTITY_IEI                 = C_MOBILE_IDENTITY_IEI,
+  ATTACH_ACCEPT_EMM_CAUSE_IEI                   = 0x53, /* 0x53 = 83 */
+  ATTACH_ACCEPT_T3402_VALUE_IEI                 = GPRS_C_TIMER_3402_VALUE_IEI,
+  ATTACH_ACCEPT_T3423_VALUE_IEI                 = GPRS_C_TIMER_3423_VALUE_IEI,
+  ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI            = C_PLMN_LIST_IEI,
+  ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI       = MM_EMERGENCY_NUMBER_LIST_IEI,
   ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI = 0x64, /* 0x64 = 100 */
-  ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI = 0xF0,    /* 0xF0 = 240 */
+  ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI    = 0xF0, /* 0xF0 = 240 */
 } attach_accept_iei;
 
 /*
  * Message name: Attach accept
- * Description: This message is sent by the network to the UE to indicate that the corresponding attach request has been accepted. See table 8.2.1.1.
+ * Description: This message is sent by the network to the UE to indicate that
+ * the corresponding attach request has been accepted. See table 8.2.1.1.
  * Significance: dual
  * Direction: network to UE
  */
@@ -114,13 +111,9 @@ typedef struct attach_accept_msg_tag {
 } attach_accept_msg;
 
 int decode_attach_accept(
-  attach_accept_msg *attachaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    attach_accept_msg* attachaccept, uint8_t* buffer, uint32_t len);
 
 int encode_attach_accept(
-  attach_accept_msg *attachaccept,
-  uint8_t *buffer,
-  uint32_t len);
+    attach_accept_msg* attachaccept, uint8_t* buffer, uint32_t len);
 
 #endif /* ! defined(FILE_ATTACH_ACCEPT_SEEN) */

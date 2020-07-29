@@ -1,8 +1,14 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @format
  */
@@ -32,7 +38,6 @@ module.exports = {
         '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
         '<rootDir>/fbcnms-packages/fbcnms-platform-server/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/platform-server/**/__tests__/*.js',
-        '<rootDir>/fbcnms-projects/workflows/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
         '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
         '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
@@ -40,6 +45,7 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
+      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
     },
     {
       moduleNameMapper: {
@@ -48,9 +54,7 @@ module.exports = {
         '\\.(css|less)$': 'identity-obj-proxy',
       },
       name: 'app',
-      setupFiles: [
-        '<rootDir>/fbcnms-packages/fbcnms-babel-register/polyfill.js',
-      ],
+      setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
       testEnvironment: 'jsdom',
       testMatch: [
         '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',
@@ -64,6 +68,7 @@ module.exports = {
       transform: {
         '^.+\\.js$': 'babel-jest',
       },
+      transformIgnorePatterns: ['/node_modules/(?!@fbcnms)'],
     },
   ],
   testEnvironment: 'jsdom',

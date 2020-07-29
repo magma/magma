@@ -1,0 +1,22 @@
+.circleci/ @xjtian @tmdzk
+circleci/ @xjtian @tmdzk
+
+*/cloud/ @xjtian @mpgermano @hcgatewood
+
+orc8r/ @xjtian @mpgermano @hcgatewood @emakeev
+
+feg/ @themarwhal @mpgermano @uri200 @emakeev
+
+openwrt/ @emakeev @uri200
+
+# More specific mappings for lte/gateway will override this top-level one
+lte/gateway @xjtian @ardzoht
+lte/gateway/c/session_manager @themarwhal @uri200
+lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo
+lte/gateway/c/sctpd @ssanadhya @ulaskozat
+lte/gateway/release @kkahrs
+lte/gateway/python/magma/pipelined @koolzz @pshelar
+
+nms/ @karthiksubraveti @andreilee @xjtian
+
+CODEOWNERS @xjtian @amarpad

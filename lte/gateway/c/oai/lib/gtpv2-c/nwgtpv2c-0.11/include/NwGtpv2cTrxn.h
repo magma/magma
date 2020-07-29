@@ -40,7 +40,6 @@
  * prototypes used by gtpv2c transactions.
  *
  **/
-
 #ifndef __NW_GTPV2C_TRXN_H__
 #define __NW_GTPV2C_TRXN_H__
 
@@ -51,14 +50,13 @@ extern "C" {
 /**
  * Constructotr
  */
-nw_gtpv2c_trxn_t *nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t *pStack);
+nw_gtpv2c_trxn_t* nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t* pStack);
 
 /**
  * Overloaded Constructotr
  */
-nw_gtpv2c_trxn_t *nwGtpv2cTrxnWithSeqNumNew(
-  NW_IN nw_gtpv2c_stack_t *pStack,
-  NW_IN uint32_t seqNum);
+nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(
+    NW_IN nw_gtpv2c_stack_t* pStack, NW_IN uint32_t seqNum);
 
 /**
  * Another overloaded constructor. Create transaction as outstanding
@@ -72,23 +70,22 @@ nw_gtpv2c_trxn_t *nwGtpv2cTrxnWithSeqNumNew(
  * @return NW_OK on success.
  */
 
-nw_gtpv2c_trxn_t *nwGtpv2cTrxnOutstandingRxNew(
-  NW_IN nw_gtpv2c_stack_t *pStack,
-  NW_IN uint32_t teidLocal,
-  NW_IN struct in_addr *peerIp,
-  NW_IN uint32_t peerPort,
-  NW_IN uint32_t seqNum);
+nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(
+    NW_IN nw_gtpv2c_stack_t* pStack, NW_IN uint32_t teidLocal,
+    NW_IN struct sockaddr* peerIp, NW_IN uint32_t peerPort,
+    NW_IN uint32_t seqNum);
 
-nw_rc_t nwGtpv2cTrxnDelete(NW_INOUT nw_gtpv2c_trxn_t **ppTrxn);
+nw_rc_t nwGtpv2cTrxnDelete(NW_INOUT nw_gtpv2c_trxn_t** ppTrxn);
 
 /**
- * Start timer to wait before pruginf a req tran for which response has been sent
+ * Start timer to wait before pruginf a req tran for which response has been
+ * sent
  *
  * @param[in] thiz : Pointer to transaction
  * @return NW_OK on success.
  */
 
-nw_rc_t nwGtpv2cTrxnStartDulpicateRequestWaitTimer(nw_gtpv2c_trxn_t *thiz);
+nw_rc_t nwGtpv2cTrxnStartDulpicateRequestWaitTimer(nw_gtpv2c_trxn_t* thiz);
 
 /**
  * Start timer to wait for rsp of a req message
@@ -98,7 +95,7 @@ nw_rc_t nwGtpv2cTrxnStartDulpicateRequestWaitTimer(nw_gtpv2c_trxn_t *thiz);
  * @return NW_OK on success.
  */
 
-nw_rc_t nwGtpv2cTrxnStartPeerRspWaitTimer(nw_gtpv2c_trxn_t *thiz);
+nw_rc_t nwGtpv2cTrxnStartPeerRspWaitTimer(nw_gtpv2c_trxn_t* thiz);
 
 #ifdef __cplusplus
 }

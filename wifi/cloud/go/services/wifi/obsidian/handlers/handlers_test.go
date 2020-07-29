@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package handlers_test
@@ -25,14 +30,14 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/storage"
-	"orc8r/wifi/cloud/go/services/wifi/obsidian/handlers"
+	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 
-	plugin2 "orc8r/wifi/cloud/go/plugin"
-	models2 "orc8r/wifi/cloud/go/services/wifi/obsidian/models"
-	"orc8r/wifi/cloud/go/wifi"
+	plugin2 "magma/wifi/cloud/go/plugin"
+	models2 "magma/wifi/cloud/go/services/wifi/obsidian/models"
+	"magma/wifi/cloud/go/wifi"
 
 	"github.com/go-openapi/swag"
 )

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -63,26 +59,21 @@
 /*
    Timer handlers
 */
-static void _eps_bearer_deactivate_t3495_handler(void *);
+static void _eps_bearer_deactivate_t3495_handler(void*);
 
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
 #define EPS_BEARER_DEACTIVATE_COUNTER_MAX 5
 
 static int _eps_bearer_deactivate(
-  emm_context_t* emm_context_p,
-  ebi_t ebi,
-  STOLEN_REF bstring* msg);
+    emm_context_t* emm_context_p, ebi_t ebi, STOLEN_REF bstring* msg);
 static int _eps_bearer_release(
-  emm_context_t* emm_context_p,
-  ebi_t ebi,
-  pdn_cid_t* pid,
-  int* bidx);
+    emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-extern int _pdn_connectivity_delete(emm_context_t *emm_context, pdn_cid_t pid);
+extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 /*
    --------------------------------------------------------------------------
@@ -118,17 +109,12 @@ extern int _pdn_connectivity_delete(emm_context_t *emm_context, pdn_cid_t pid);
  **                                                                        **
  ***************************************************************************/
 int esm_proc_eps_bearer_context_deactivate(
-  emm_context_t* const emm_context_p,
-  const bool is_local,
-  const ebi_t ebi,
-  pdn_cid_t* pid,
-  int* const bidx,
-  esm_cause_t* const esm_cause)
-{
+    emm_context_t* const emm_context_p, const bool is_local, const ebi_t ebi,
+    pdn_cid_t* pid, int* const bidx, esm_cause_t* const esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
   ue_mm_context_t* ue_mm_context =
-    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
 
   if (is_local) {
     if (ebi != ESM_SAP_ALL_EBI) {
@@ -143,8 +129,9 @@ int esm_proc_eps_bearer_context_deactivate(
       for (int bix = 0; bix < BEARERS_PER_UE; bix++) {
         if (ue_mm_context->bearer_contexts[bix]) {
           *pid = ue_mm_context->bearer_contexts[bix]->pdn_cx_id;
-          rc = _eps_bearer_release(
-            emm_context_p, ue_mm_context->bearer_contexts[bix]->ebi, pid, bidx);
+          rc   = _eps_bearer_release(
+              emm_context_p, ue_mm_context->bearer_contexts[bix]->ebi, pid,
+              bidx);
 
           if (rc != RETURNok) {
             break;
@@ -157,19 +144,18 @@ int esm_proc_eps_bearer_context_deactivate(
   }
 
   OAILOG_INFO(
-    LOG_NAS_ESM,
-    "ESM-PROC  - EPS bearer context deactivation "
-    "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
-    ue_mm_context->mme_ue_s1ap_id,
-    ebi);
+      LOG_NAS_ESM,
+      "ESM-PROC  - EPS bearer context deactivation "
+      "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+      ue_mm_context->mme_ue_s1ap_id, ebi);
 
   if ((ue_mm_context) && (*pid < MAX_APN_PER_UE)) {
     if (ue_mm_context->pdn_contexts[*pid] == NULL) {
       OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "ESM-PROC  - PDN connection %d has not been "
-        "allocated\n",
-        *pid);
+          LOG_NAS_ESM,
+          "ESM-PROC  - PDN connection %d has not been "
+          "allocated\n",
+          *pid);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     } else {
       int i;
@@ -177,9 +163,8 @@ int esm_proc_eps_bearer_context_deactivate(
       *esm_cause = ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY;
 
       for (i = 0; i < BEARERS_PER_UE; i++) {
-        if (
-          (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i] <= 0) ||
-          (ue_mm_context->bearer_contexts[i]->pdn_cx_id != *pid)) {
+        if ((ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i] <= 0) ||
+            (ue_mm_context->bearer_contexts[i]->pdn_cx_id != *pid)) {
           continue;
         }
 
@@ -192,7 +177,7 @@ int esm_proc_eps_bearer_context_deactivate(
          * The EPS bearer context to be released is valid
          */
         *esm_cause = ESM_CAUSE_SUCCESS;
-        rc = RETURNok;
+        rc         = RETURNok;
       }
     }
   }
@@ -226,30 +211,25 @@ int esm_proc_eps_bearer_context_deactivate(
  **                                                                        **
  ***************************************************************************/
 int esm_proc_eps_bearer_context_deactivate_request(
-  const bool is_standalone,
-  emm_context_t *const emm_context_p,
-  const ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  const bool ue_triggered)
-{
+    const bool is_standalone, emm_context_t* const emm_context_p,
+    const ebi_t ebi, STOLEN_REF bstring* msg, const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
   mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
-      ->mme_ue_s1ap_id;
+      PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
+          ->mme_ue_s1ap_id;
 
   OAILOG_INFO(
-    LOG_NAS_ESM,
-    "ESM-PROC  - Initiate EPS bearer context deactivation "
-    "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
-    ue_id,
-    ebi);
+      LOG_NAS_ESM,
+      "ESM-PROC  - Initiate EPS bearer context deactivation "
+      "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+      ue_id, ebi);
   /*
    * Send deactivate EPS bearer context request message and
    * * * * start timer T3495
    */
   /*Currently we only support single bearear deactivation at NAS*/
-  rc = _eps_bearer_deactivate(emm_context_p, ebi, msg);
+  rc  = _eps_bearer_deactivate(emm_context_p, ebi, msg);
   msg = NULL;
 
   if (rc != RETURNerror) {
@@ -257,14 +237,15 @@ int esm_proc_eps_bearer_context_deactivate_request(
      * Set the EPS bearer context state to ACTIVE PENDING
      */
     rc = esm_ebr_set_status(
-      emm_context_p, ebi, ESM_EBR_INACTIVE_PENDING, ue_triggered);
+        emm_context_p, ebi, ESM_EBR_INACTIVE_PENDING, ue_triggered);
 
     if (rc != RETURNok) {
       /*
        * The EPS bearer context was already in ACTIVE state
        */
       OAILOG_WARNING(
-        LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE PENDING\n", ebi);
+          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE PENDING\n",
+          ebi);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -295,26 +276,22 @@ int esm_proc_eps_bearer_context_deactivate_request(
  **                                                                        **
  ***************************************************************************/
 pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
-  emm_context_t* emm_context_p,
-  ebi_t ebi,
-  esm_cause_t* esm_cause)
-{
+    emm_context_t* emm_context_p, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNerror;
-  pdn_cid_t pid = MAX_APN_PER_UE;
+  int rc                        = RETURNerror;
+  pdn_cid_t pid                 = MAX_APN_PER_UE;
   ue_mm_context_t* ue_context_p = NULL;
-  bool delete_default_bearer = false;
-  int bid = BEARERS_PER_UE;
-  teid_t s_gw_teid_s11_s4 = 0;
+  bool delete_default_bearer    = false;
+  int bid                       = BEARERS_PER_UE;
+  teid_t s_gw_teid_s11_s4       = 0;
 
   ue_context_p =
-    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
+      PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context);
   OAILOG_INFO(
-    LOG_NAS_ESM,
-    "ESM-PROC  - EPS bearer context deactivation "
-    "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
-    ue_context_p->mme_ue_s1ap_id,
-    ebi);
+      LOG_NAS_ESM,
+      "ESM-PROC  - EPS bearer context deactivation "
+      "accepted by the UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+      ue_context_p->mme_ue_s1ap_id, ebi);
   /*
    * Stop T3495 timer if running
    */
@@ -331,7 +308,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
        * Failed to release the EPS bearer context
        */
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
-      pid = RETURNerror;
+      pid        = RETURNerror;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, pid);
     }
   }
@@ -360,11 +337,10 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     }
   } else {
     OAILOG_INFO(
-      LOG_NAS_ESM,
-      "ESM-PROC  - Removing dedicated bearer context "
-      "for UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
-      ue_context_p->mme_ue_s1ap_id,
-      ebi);
+        LOG_NAS_ESM,
+        "ESM-PROC  - Removing dedicated bearer context "
+        "for UE (ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d)\n",
+        ue_context_p->mme_ue_s1ap_id, ebi);
     // Remove dedicated bearer context
     free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
   }
@@ -374,12 +350,8 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
   if (!emm_context_p->esm_ctx.is_pdn_disconnect) {
     // Send delete dedicated bearer response to SPGW
     send_delete_dedicated_bearer_rsp(
-      ue_context_p,
-      delete_default_bearer,
-      &ebi,
-      1,
-      s_gw_teid_s11_s4,
-      REQUEST_ACCEPTED);
+        ue_context_p, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
+        REQUEST_ACCEPTED);
   }
 
   // Reset is_pdn_disconnect flag
@@ -420,19 +392,18 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _eps_bearer_deactivate_t3495_handler(void *args)
-{
+static void _eps_bearer_deactivate_t3495_handler(void* args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
   bool delete_default_bearer = false;
-  ebi_t ebi = 0;
-  mme_ue_s1ap_id_t ue_id = 0;
-  int bid = BEARERS_PER_UE;
+  ebi_t ebi                  = 0;
+  mme_ue_s1ap_id_t ue_id     = 0;
+  int bid                    = BEARERS_PER_UE;
 
   /*
    * Get retransmission timer parameters data
    */
-  esm_ebr_timer_data_t *esm_ebr_timer_data = (esm_ebr_timer_data_t *) (args);
+  esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
   if (esm_ebr_timer_data) {
     /*
@@ -440,21 +411,20 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
      */
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING(
-      LOG_NAS_ESM,
-      "ESM-PROC  - T3495 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
-      ", ebi=%d), "
-      "retransmission counter = %d\n",
-      esm_ebr_timer_data->ue_id,
-      esm_ebr_timer_data->ebi,
-      esm_ebr_timer_data->count);
+        LOG_NAS_ESM,
+        "ESM-PROC  - T3495 timer expired (ue_id=" MME_UE_S1AP_ID_FMT
+        ", ebi=%d), "
+        "retransmission counter = %d\n",
+        esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
+        esm_ebr_timer_data->count);
 
     if (esm_ebr_timer_data->count < EPS_BEARER_DEACTIVATE_COUNTER_MAX) {
       /*
        * Re-send deactivate EPS bearer context request message to the UE
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
-      rc = _eps_bearer_deactivate(
-        esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
+      rc        = _eps_bearer_deactivate(
+          esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       bdestroy_wrapper(&b);
     } else {
       /*
@@ -462,9 +432,9 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
        * message retransmission has exceed
        */
       ue_mm_context_t* ue_mm_context =
-        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
+          mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
 
-      ebi = esm_ebr_timer_data->ebi;
+      ebi   = esm_ebr_timer_data->ebi;
       ue_id = esm_ebr_timer_data->ue_id;
       // Find the index in which the bearer id is stored
       for (bid = 0; bid < BEARERS_PER_UE; bid++) {
@@ -477,11 +447,10 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 
       if (bid >= BEARERS_PER_UE) {
         OAILOG_WARNING(
-          LOG_NAS_ESM,
-          "ESM-PROC  - Did not find bearer context for "
-          "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d), \n",
-          ue_id,
-          ebi);
+            LOG_NAS_ESM,
+            "ESM-PROC  - Did not find bearer context for "
+            "(ue_id=" MME_UE_S1AP_ID_FMT ", ebi=%d), \n",
+            ue_id, ebi);
         OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
       // Fetch pdn id using bearer index
@@ -489,7 +458,7 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 
       // Send bearer_deactivation_reject to MME
       teid_t s_gw_teid_s11_s4 =
-        ue_mm_context->pdn_contexts[pdn_id]->s_gw_teid_s11_s4;
+          ue_mm_context->pdn_contexts[pdn_id]->s_gw_teid_s11_s4;
 
       if (ue_mm_context->pdn_contexts[pdn_id]->default_ebi == ebi) {
         delete_default_bearer = true;
@@ -500,17 +469,13 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
         _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pdn_id);
       }
       /* In case of PDN disconnect, no need to inform MME/SPGW as the session
-      * would have been already released
-      */
+       * would have been already released
+       */
       if (!ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
-        //Send delete_dedicated_bearer_rsp to SPGW
+        // Send delete_dedicated_bearer_rsp to SPGW
         send_delete_dedicated_bearer_rsp(
-          ue_mm_context,
-          delete_default_bearer,
-          &ebi,
-          1,
-          s_gw_teid_s11_s4,
-          UE_NOT_RESPONDING);
+            ue_mm_context, delete_default_bearer, &ebi, 1, s_gw_teid_s11_s4,
+            UE_NOT_RESPONDING);
       }
       // Reset is_pdn_disconnect flag
       if (ue_mm_context->emm_context.esm_ctx.is_pdn_disconnect) {
@@ -525,11 +490,10 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
 
       if (rc == RETURNerror) {
         OAILOG_WARNING(
-          LOG_NAS_ESM,
-          "ESM-PROC  - Could not release bearer(ue_id=" MME_UE_S1AP_ID_FMT
-          ", ebi=%d), \n",
-          ue_id,
-          ebi);
+            LOG_NAS_ESM,
+            "ESM-PROC  - Could not release bearer(ue_id=" MME_UE_S1AP_ID_FMT
+            ", ebi=%d), \n",
+            ue_id, ebi);
       }
     }
   }
@@ -560,40 +524,34 @@ static void _eps_bearer_deactivate_t3495_handler(void *args)
  **                                                                        **
  ***************************************************************************/
 static int _eps_bearer_deactivate(
-  emm_context_t* emm_context_p,
-  ebi_t ebi,
-  STOLEN_REF bstring* msg)
-{
+    emm_context_t* emm_context_p, ebi_t ebi, STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
   int rc;
   mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
-      ->mme_ue_s1ap_id;
+      PARENT_STRUCT(emm_context_p, struct ue_mm_context_s, emm_context)
+          ->mme_ue_s1ap_id;
 
   /*
    * Notify EMM that a deactivate EPS bearer context request message
    * has to be sent to the UE
    */
 
-  emm_sap.primitive = EMMESM_DEACTIVATE_BEARER_REQ;
-  emm_sap.u.emm_esm.ue_id = ue_id;
-  emm_sap.u.emm_esm.ctx = emm_context_p;
+  emm_sap.primitive                         = EMMESM_DEACTIVATE_BEARER_REQ;
+  emm_sap.u.emm_esm.ue_id                   = ue_id;
+  emm_sap.u.emm_esm.ctx                     = emm_context_p;
   emm_sap.u.emm_esm.u.deactivate_bearer.ebi = ebi;
   emm_sap.u.emm_esm.u.deactivate_bearer.msg = *msg;
-  bstring msg_dup = bstrcpy(*msg);
-  rc = emm_sap_send(&emm_sap);
+  bstring msg_dup                           = bstrcpy(*msg);
+  rc                                        = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
     /*
      * Start T3495 retransmission timer
      */
     rc = esm_ebr_start_timer(
-      emm_context_p,
-      ebi,
-      msg_dup,
-      mme_config.nas_config.t3495_sec,
-      _eps_bearer_deactivate_t3495_handler);
+        emm_context_p, ebi, msg_dup, mme_config.nas_config.t3495_sec,
+        _eps_bearer_deactivate_t3495_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -619,11 +577,7 @@ static int _eps_bearer_deactivate(
  **                                                                        **
  ***************************************************************************/
 static int _eps_bearer_release(
-  emm_context_t* emm_context_p,
-  ebi_t ebi,
-  pdn_cid_t* pid,
-  int* bidx)
-{
+    emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
 
@@ -634,7 +588,7 @@ static int _eps_bearer_release(
 
   if (ebi == ESM_EBI_UNASSIGNED) {
     OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-PROC  - Failed to release EPS bearer context\n");
+        LOG_NAS_ESM, "ESM-PROC  - Failed to release EPS bearer context\n");
   } else {
     /*
      * Set the EPS bearer context state to INACTIVE
@@ -646,7 +600,7 @@ static int _eps_bearer_release(
        * The EPS bearer context was already in INACTIVE state
        */
       OAILOG_WARNING(
-        LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE\n", ebi);
+          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE\n", ebi);
     }
     /*
      * Release EPS bearer data
@@ -655,7 +609,7 @@ static int _eps_bearer_release(
 
     if (rc != RETURNok) {
       OAILOG_WARNING(
-        LOG_NAS_ESM, "ESM-PROC  - Failed to release EPS bearer data\n");
+          LOG_NAS_ESM, "ESM-PROC  - Failed to release EPS bearer data\n");
     }
   }
 

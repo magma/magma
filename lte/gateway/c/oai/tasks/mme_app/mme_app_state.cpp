@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,10 +25,8 @@ using magma::lte::MmeNasStateManager;
  * persist state flag is set, load it from the data store.
  * This is only done by the mme_app task.
  */
-int mme_nas_state_init(const mme_config_t* mme_config_p)
-{
-  return MmeNasStateManager::getInstance().initialize_state(
-    mme_config_p);
+int mme_nas_state_init(const mme_config_t* mme_config_p) {
+  return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
 }
 
 /**
@@ -41,8 +35,7 @@ int mme_nas_state_init(const mme_config_t* mme_config_p)
  * If the read_from_db flag is set to true, the state is loaded from data store
  * before returning the pointer.
  */
-mme_app_desc_t* get_mme_nas_state(bool read_from_db)
-{
+mme_app_desc_t* get_mme_nas_state(bool read_from_db) {
   return MmeNasStateManager::getInstance().get_state(read_from_db);
 }
 
@@ -50,8 +43,7 @@ mme_app_desc_t* get_mme_nas_state(bool read_from_db)
  * Write the MME/NAS state to data store after processing any message. This is
  * a thread safe call
  */
-void put_mme_nas_state()
-{
+void put_mme_nas_state() {
   MmeNasStateManager::getInstance().write_state_to_db();
 }
 
@@ -59,19 +51,16 @@ void put_mme_nas_state()
  * Release the memory allocated for the MME NAS state, this does not clean the
  * state persisted in data store
  */
-void clear_mme_nas_state()
-{
+void clear_mme_nas_state() {
   MmeNasStateManager::getInstance().free_state();
 }
 
-hash_table_ts_t* get_mme_ue_state()
-{
+hash_table_ts_t* get_mme_ue_state() {
   return MmeNasStateManager::getInstance().get_ue_state_ht();
 }
 
-void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64)
-{
-  if(MmeNasStateManager::getInstance().is_persist_state_enabled()) {
+void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64) {
+  if (MmeNasStateManager::getInstance().is_persist_state_enabled()) {
     if (imsi64 != INVALID_IMSI64) {
       ue_mm_context_t* ue_context = NULL;
       ue_context =
@@ -85,8 +74,7 @@ void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64)
   }
 }
 
-void delete_mme_ue_state(imsi64_t imsi64)
-{
+void delete_mme_ue_state(imsi64_t imsi64) {
   auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
   MmeNasStateManager::getInstance().clear_ue_state_db(imsi_str);
 }

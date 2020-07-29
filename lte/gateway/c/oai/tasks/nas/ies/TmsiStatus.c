@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,11 +24,7 @@
 #include "TmsiStatus.h"
 
 int decode_tmsi_status(
-  TmsiStatus *tmsistatus,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    TmsiStatus* tmsistatus, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, TMSI_STATUS_MINIMUM_LENGTH, len);
@@ -50,13 +42,9 @@ int decode_tmsi_status(
 }
 
 int decode_u8_tmsi_status(
-  TmsiStatus *tmsistatus,
-  uint8_t iei,
-  uint8_t value,
-  uint32_t len)
-{
-  int decoded = 0;
-  uint8_t *buffer = &value;
+    TmsiStatus* tmsistatus, uint8_t iei, uint8_t value, uint32_t len) {
+  int decoded     = 0;
+  uint8_t* buffer = &value;
 
   *tmsistatus = *buffer & 0x1;
   decoded++;
@@ -67,11 +55,7 @@ int decode_u8_tmsi_status(
 }
 
 int encode_tmsi_status(
-  TmsiStatus *tmsistatus,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
+    TmsiStatus* tmsistatus, uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -86,12 +70,11 @@ int encode_tmsi_status(
   return encoded;
 }
 
-uint8_t encode_u8_tmsi_status(TmsiStatus *tmsistatus)
-{
+uint8_t encode_u8_tmsi_status(TmsiStatus* tmsistatus) {
   uint8_t bufferReturn;
-  uint8_t *buffer = &bufferReturn;
+  uint8_t* buffer = &bufferReturn;
   uint8_t encoded = 0;
-  uint8_t iei = 0;
+  uint8_t iei     = 0;
 
   dump_tmsi_status_xml(tmsistatus, 0);
   *(buffer + encoded) = 0x00 | (iei & 0xf0) | (*tmsistatus & 0x1);
@@ -99,8 +82,7 @@ uint8_t encode_u8_tmsi_status(TmsiStatus *tmsistatus)
   return bufferReturn;
 }
 
-void dump_tmsi_status_xml(TmsiStatus *tmsistatus, uint8_t iei)
-{
+void dump_tmsi_status_xml(TmsiStatus* tmsistatus, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Tmsi Status>\n");
 
   if (iei > 0)

@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -28,12 +24,9 @@
 #include "MobileStationClassmark2.h"
 
 int decode_mobile_station_classmark_2(
-  MobileStationClassmark2 *mobilestationclassmark2,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  int decoded = 0;
+    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
@@ -44,25 +37,25 @@ int decode_mobile_station_classmark_2(
   ielen = *(buffer + decoded);
   decoded++;
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  mobilestationclassmark2->revisionlevel = (*(buffer + decoded) >> 5) & 0x3;
-  mobilestationclassmark2->esind = (*(buffer + decoded) >> 4) & 0x1;
-  mobilestationclassmark2->a51 = (*(buffer + decoded) >> 3) & 0x1;
+  mobilestationclassmark2->revisionlevel     = (*(buffer + decoded) >> 5) & 0x3;
+  mobilestationclassmark2->esind             = (*(buffer + decoded) >> 4) & 0x1;
+  mobilestationclassmark2->a51               = (*(buffer + decoded) >> 3) & 0x1;
   mobilestationclassmark2->rfpowercapability = *(buffer + decoded) & 0x7;
   decoded++;
-  mobilestationclassmark2->pscapability = (*(buffer + decoded) >> 6) & 0x1;
+  mobilestationclassmark2->pscapability      = (*(buffer + decoded) >> 6) & 0x1;
   mobilestationclassmark2->ssscreenindicator = (*(buffer + decoded) >> 4) & 0x3;
-  mobilestationclassmark2->smcapability = (*(buffer + decoded) >> 3) & 0x1;
-  mobilestationclassmark2->vbs = (*(buffer + decoded) >> 2) & 0x1;
-  mobilestationclassmark2->vgcs = (*(buffer + decoded) >> 1) & 0x1;
-  mobilestationclassmark2->fc = *(buffer + decoded) & 0x1;
+  mobilestationclassmark2->smcapability      = (*(buffer + decoded) >> 3) & 0x1;
+  mobilestationclassmark2->vbs               = (*(buffer + decoded) >> 2) & 0x1;
+  mobilestationclassmark2->vgcs              = (*(buffer + decoded) >> 1) & 0x1;
+  mobilestationclassmark2->fc                = *(buffer + decoded) & 0x1;
   decoded++;
-  mobilestationclassmark2->cm3 = (*(buffer + decoded) >> 7) & 0x1;
+  mobilestationclassmark2->cm3      = (*(buffer + decoded) >> 7) & 0x1;
   mobilestationclassmark2->lcsvacap = (*(buffer + decoded) >> 5) & 0x1;
-  mobilestationclassmark2->ucs2 = (*(buffer + decoded) >> 4) & 0x1;
-  mobilestationclassmark2->solsa = (*(buffer + decoded) >> 3) & 0x1;
-  mobilestationclassmark2->cmsp = (*(buffer + decoded) >> 2) & 0x1;
-  mobilestationclassmark2->a53 = (*(buffer + decoded) >> 1) & 0x1;
-  mobilestationclassmark2->a52 = *(buffer + decoded) & 0x1;
+  mobilestationclassmark2->ucs2     = (*(buffer + decoded) >> 4) & 0x1;
+  mobilestationclassmark2->solsa    = (*(buffer + decoded) >> 3) & 0x1;
+  mobilestationclassmark2->cmsp     = (*(buffer + decoded) >> 2) & 0x1;
+  mobilestationclassmark2->a53      = (*(buffer + decoded) >> 1) & 0x1;
+  mobilestationclassmark2->a52      = *(buffer + decoded) & 0x1;
   decoded++;
 #if NAS_DEBUG
   dump_mobile_station_classmark_2_xml(mobilestationclassmark2, iei);
@@ -71,19 +64,16 @@ int decode_mobile_station_classmark_2(
 }
 
 int encode_mobile_station_classmark_2(
-  MobileStationClassmark2 *mobilestationclassmark2,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len)
-{
-  uint8_t *lenPtr;
+    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   /*
    * Checking IEI and pointer
    */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-    buffer, MOBILE_STATION_CLASSMARK_2_MINIMUM_LENGTH, len);
+      buffer, MOBILE_STATION_CLASSMARK_2_MINIMUM_LENGTH, len);
 #if NAS_DEBUG
   dump_mobile_station_classmark_2_xml(mobilestationclassmark2, iei);
 #endif
@@ -102,12 +92,12 @@ int encode_mobile_station_classmark_2(
                         (mobilestationclassmark2->rfpowercapability & 0x7);
   encoded++;
   *(buffer + encoded) =
-    0x00 | ((mobilestationclassmark2->pscapability & 0x1) << 6) |
-    ((mobilestationclassmark2->ssscreenindicator & 0x3) << 4) |
-    ((mobilestationclassmark2->smcapability & 0x1) << 3) |
-    ((mobilestationclassmark2->vbs & 0x1) << 2) |
-    ((mobilestationclassmark2->vgcs & 0x1) << 1) |
-    (mobilestationclassmark2->fc & 0x1);
+      0x00 | ((mobilestationclassmark2->pscapability & 0x1) << 6) |
+      ((mobilestationclassmark2->ssscreenindicator & 0x3) << 4) |
+      ((mobilestationclassmark2->smcapability & 0x1) << 3) |
+      ((mobilestationclassmark2->vbs & 0x1) << 2) |
+      ((mobilestationclassmark2->vgcs & 0x1) << 1) |
+      (mobilestationclassmark2->fc & 0x1);
   encoded++;
   *(buffer + encoded) = 0x00 | ((mobilestationclassmark2->cm3 & 0x1) << 7) |
                         ((mobilestationclassmark2->lcsvacap & 0x1) << 5) |
@@ -122,9 +112,7 @@ int encode_mobile_station_classmark_2(
 }
 
 void dump_mobile_station_classmark_2_xml(
-  MobileStationClassmark2 *mobilestationclassmark2,
-  uint8_t iei)
-{
+    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Mobile Station Classmark 2>\n");
 
   if (iei > 0)
@@ -134,39 +122,33 @@ void dump_mobile_station_classmark_2_xml(
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <Revision level>%u</Revision level>\n",
-    mobilestationclassmark2->revisionlevel);
+      LOG_NAS, "    <Revision level>%u</Revision level>\n",
+      mobilestationclassmark2->revisionlevel);
   OAILOG_DEBUG(
-    LOG_NAS, "    <ES IND>%u</ES IND>\n", mobilestationclassmark2->esind);
+      LOG_NAS, "    <ES IND>%u</ES IND>\n", mobilestationclassmark2->esind);
   OAILOG_DEBUG(LOG_NAS, "    <A51>%u</A51>\n", mobilestationclassmark2->a51);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <RF power capability>%u</RF power capability>\n",
-    mobilestationclassmark2->rfpowercapability);
+      LOG_NAS, "    <RF power capability>%u</RF power capability>\n",
+      mobilestationclassmark2->rfpowercapability);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <PS capability>%u</PS capability>\n",
-    mobilestationclassmark2->pscapability);
+      LOG_NAS, "    <PS capability>%u</PS capability>\n",
+      mobilestationclassmark2->pscapability);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <SS Screen indicator>%u</SS Screen indicator>\n",
-    mobilestationclassmark2->ssscreenindicator);
+      LOG_NAS, "    <SS Screen indicator>%u</SS Screen indicator>\n",
+      mobilestationclassmark2->ssscreenindicator);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <SM capability>%u</SM capability>\n",
-    mobilestationclassmark2->smcapability);
+      LOG_NAS, "    <SM capability>%u</SM capability>\n",
+      mobilestationclassmark2->smcapability);
   OAILOG_DEBUG(LOG_NAS, "    <VBS>%u</VBS>\n", mobilestationclassmark2->vbs);
   OAILOG_DEBUG(LOG_NAS, "    <VGCS>%u</VGCS>\n", mobilestationclassmark2->vgcs);
   OAILOG_DEBUG(LOG_NAS, "    <FC>%u</FC>\n", mobilestationclassmark2->fc);
   OAILOG_DEBUG(LOG_NAS, "    <CM3>%u</CM3>\n", mobilestationclassmark2->cm3);
   OAILOG_DEBUG(
-    LOG_NAS,
-    "    <LCSVA CAP>%u</LCSVA CAP>\n",
-    mobilestationclassmark2->lcsvacap);
+      LOG_NAS, "    <LCSVA CAP>%u</LCSVA CAP>\n",
+      mobilestationclassmark2->lcsvacap);
   OAILOG_DEBUG(LOG_NAS, "    <UCS2>%u</UCS2>\n", mobilestationclassmark2->ucs2);
   OAILOG_DEBUG(
-    LOG_NAS, "    <SoLSA>%u</SoLSA>\n", mobilestationclassmark2->solsa);
+      LOG_NAS, "    <SoLSA>%u</SoLSA>\n", mobilestationclassmark2->solsa);
   OAILOG_DEBUG(LOG_NAS, "    <CMSP>%u</CMSP>\n", mobilestationclassmark2->cmsp);
   OAILOG_DEBUG(LOG_NAS, "    <A53>%u</A53>\n", mobilestationclassmark2->a53);
   OAILOG_DEBUG(LOG_NAS, "    <A52>%u</A52>\n", mobilestationclassmark2->a52);

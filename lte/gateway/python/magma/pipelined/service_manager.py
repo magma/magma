@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
 
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
 ServiceManager manages the lifecycle and chaining of network services,
 which are cloud managed and provide discrete network functions.
@@ -24,6 +27,7 @@ Apps can also optionally claim additional scratch tables, which may be
 required for complex flow matching and aggregation use cases. Scratch tables
 should not be accessible to apps from other services.
 """
+
 # pylint: skip-file
 # pylint does not play well with aioeventlet, as it uses asyncio.async which
 # produces a parse error

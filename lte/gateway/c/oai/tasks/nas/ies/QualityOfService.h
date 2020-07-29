@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -49,19 +45,14 @@ typedef struct QualityOfService_tag {
 } QualityOfService;
 
 int encode_quality_of_service(
-  QualityOfService *qualityofservice,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    QualityOfService* qualityofservice, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 int decode_quality_of_service(
-  QualityOfService *qualityofservice,
-  uint8_t iei,
-  uint8_t *buffer,
-  uint32_t len);
+    QualityOfService* qualityofservice, uint8_t iei, uint8_t* buffer,
+    uint32_t len);
 
 void dump_quality_of_service_xml(
-  QualityOfService *qualityofservice,
-  uint8_t iei);
+    QualityOfService* qualityofservice, uint8_t iei);
 
 #endif /* QUALITY OF SERVICE_H_ */

@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -39,14 +35,13 @@
 #include "conversions.h"
 
 int sgs_send_service_request(
-  itti_sgsap_service_request_t *const sgs_service_request_p)
-{
+    itti_sgsap_service_request_t* const sgs_service_request_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
   IMSI_TO_IMSI64(&(sgs_service_request_p->imsi), imsi64);
   OAILOG_DEBUG(
-    LOG_SGS,
-    "Received SGS_SERVICE_REQUEST from task MME_APP for (IMSI = " IMSI_64_FMT
-    ") \n",
-    imsi64);
+      LOG_SGS,
+      "Received SGS_SERVICE_REQUEST from task MME_APP for (IMSI = " IMSI_64_FMT
+      ") \n",
+      imsi64);
   return 0;
 }

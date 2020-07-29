@@ -60,7 +60,7 @@ extern "C" {
 #endif
 
 /* Unusual functions */
-extern struct bStream *bsFromBstr(const_bstring b);
+extern struct bStream* bsFromBstr(const_bstring b);
 extern bstring bTail(bstring b, int n);
 extern bstring bHead(bstring b, int n);
 extern int bSetCstrChar(bstring a, int pos, char c);
@@ -68,9 +68,9 @@ extern int bSetChar(bstring b, int pos, char c);
 extern int bFill(bstring a, char c, int len);
 extern int bReplicate(bstring b, int n);
 extern int bReverse(bstring b);
-extern int
-bInsertChrs(bstring b, int pos, int len, unsigned char c, unsigned char fill);
-extern bstring bStrfTime(const char *fmt, const struct tm *timeptr);
+extern int bInsertChrs(
+    bstring b, int pos, int len, unsigned char c, unsigned char fill);
+extern bstring bStrfTime(const char* fmt, const struct tm* timeptr);
 #define bAscTime(t) (bStrfTime("%c\n", (t)))
 #define bCTime(t) ((t) ? bAscTime(localtime(t)) : NULL)
 
@@ -81,28 +81,28 @@ extern int bJustifyMargin(bstring b, int width, int space);
 extern int bJustifyCenter(bstring b, int width, int space);
 
 /* Esoteric standards specific functions */
-extern char *bStr2NetStr(const_bstring b);
-extern bstring bNetStr2Bstr(const char *buf);
+extern char* bStr2NetStr(const_bstring b);
+extern bstring bNetStr2Bstr(const char* buf);
 extern bstring bBase64Encode(const_bstring b);
-extern bstring bBase64DecodeEx(const_bstring b, int *boolTruncError);
-extern struct bStream *bsUuDecode(struct bStream *sInp, int *badlines);
-extern bstring bUuDecodeEx(const_bstring src, int *badlines);
+extern bstring bBase64DecodeEx(const_bstring b, int* boolTruncError);
+extern struct bStream* bsUuDecode(struct bStream* sInp, int* badlines);
+extern bstring bUuDecodeEx(const_bstring src, int* badlines);
 extern bstring bUuEncode(const_bstring src);
 extern bstring bYEncode(const_bstring src);
 extern bstring bYDecode(const_bstring src);
 extern int bSGMLEncode(bstring b);
 
 /* Writable stream */
-typedef int (
-  *bNwrite)(const void *buf, size_t elsize, size_t nelem, void *parm);
+typedef int (*bNwrite)(
+    const void* buf, size_t elsize, size_t nelem, void* parm);
 
-struct bwriteStream *bwsOpen(bNwrite writeFn, void *parm);
-int bwsWriteBstr(struct bwriteStream *stream, const_bstring b);
-int bwsWriteBlk(struct bwriteStream *stream, void *blk, int len);
-int bwsWriteFlush(struct bwriteStream *stream);
-int bwsIsEOF(const struct bwriteStream *stream);
-int bwsBuffLength(struct bwriteStream *stream, int sz);
-void *bwsClose(struct bwriteStream *stream);
+struct bwriteStream* bwsOpen(bNwrite writeFn, void* parm);
+int bwsWriteBstr(struct bwriteStream* stream, const_bstring b);
+int bwsWriteBlk(struct bwriteStream* stream, void* blk, int len);
+int bwsWriteFlush(struct bwriteStream* stream);
+int bwsIsEOF(const struct bwriteStream* stream);
+int bwsBuffLength(struct bwriteStream* stream, int sz);
+void* bwsClose(struct bwriteStream* stream);
 
 /* Security functions */
 #define bSecureDestroy(b)                                                      \
@@ -123,8 +123,8 @@ void *bwsClose(struct bwriteStream *stream);
       (t).mlen = -1;                                                           \
     }                                                                          \
   }
-extern bstring
-bSecureInput(int maxlen, int termchar, bNgetc vgetchar, void *vgcCtx);
+extern bstring bSecureInput(
+    int maxlen, int termchar, bNgetc vgetchar, void* vgcCtx);
 
 #ifdef __cplusplus
 }

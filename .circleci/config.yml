@@ -1,14 +1,12 @@
 version: 2.1
 
-refs:
-  only_master: &only_master
-    filters:
-      branches:
-        only: master
-
 aliases:
   - &appdir
     working_directory: "nms/app"
+  - &only_master
+    filters:
+      branches:
+        only: master
 
 executors:
   node:
@@ -17,6 +15,23 @@ executors:
 
 orbs:
   artifactory: circleci/artifactory@0.0.7
+
+  docker:
+    commands:
+      install-dc:
+        parameters:
+          compose_version:
+            description: Docker-compose version to install
+            type: string
+            default: '1.25.4'
+        steps:
+          - run:
+              name: Install Docker Compose
+              command: |
+                sudo curl -L https://github.com/docker/compose/releases/download/<<parameters.compose_version>>/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+                sudo chmod +x ~/docker-compose
+                sudo mv ~/docker-compose /usr/local/bin/docker-compose
+
   build:
     commands:
       determinator:
@@ -92,10 +107,81 @@ commands:
           paths:
             - ~/.cache/yarn
 
-jobs:
-  integ-test:
-    machine:
-      image: ubuntu-1604:201903-01
+  tag-push-docker:
+    description: Tag docker image and push it
+    parameters:
+      tag:
+        description: Containers to tag and push
+        type: string
+        default: ${CIRCLE_SHA1:0:8}
+      registry:
+        description: Registry to push to
+        type: string
+        default: ${DOCKER_REGISTRY}
+      username:
+        description: Username to log in as
+        type: string
+        default: ${DOCKER_USERNAME}
+      password:
+        description: Password to log in using
+        type: string
+        default: ${DOCKER_PASSWORD}
+      project:
+        description: Project images are linked to
+        type: string
+        default: ""
+      images:
+        description: Images you want to tag and push separated by |
+        type: string
+      tag-latest:
+        default: false
+        type: boolean
+    steps:
+      - run: |
+          if [ "${CIRCLE_BRANCH}" != "master" ]; then
+            echo "Push only happens for master branch"
+            exit 0
+          fi
+
+          DOCKER_REGISTRY="<< parameters.registry >>"
+          DOCKER_USERNAME="<< parameters.username >>"
+          DOCKER_PASSWORD="<< parameters.password >>"
+
+          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+
+          IMAGES="<< parameters.images >>"
+          IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
+          PROJECT=<< parameters.project >>
+          TAG=<< parameters.tag >>
+          TAG_LATEST=<< parameters.tag-latest >>
+          for IMAGE in "${IMAGES_ARRAY[@]}"; do
+            IMAGE_TOSEARCH=$IMAGE
+            if [ ! -z $PROJECT ]; then
+              IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+            fi
+            IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
+            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$TAG"
+            if [ "$TAG_LATEST" = true ]; then
+              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:latest"
+            fi
+            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$TAG"
+            docker push "${DOCKER_REGISTRY}/$IMAGE:$TAG"
+          done
+
+  magma_integ_test:
+    parameters:
+      stack:
+        description: Which stack to run integ tests for (cwf, lte)
+        type: string
+      test:
+        description: Should run tests (True, False)
+        type: string
+      build:
+        description: Should build deployment artifacts (True, False)
+        type: string
+      deploy:
+        description: Should deploy artifacts (True, False)
+        type: string
     steps:
       - checkout
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
@@ -107,25 +193,25 @@ jobs:
       - run:
           name: Configure and start VPN client
           command: |
-            echo $OVPN_CONF | base64 -d - > ciworker.conf
+            echo $MAGMA_OVPN_CONF | base64 -d - > ciworker.conf
             sudo mv ciworker.conf /etc/openvpn/client.conf
             sudo service openvpn@client restart
       - run:
           name: Decode and set secrets
           command: |
             cd ${MAGMA_ROOT}/circleci
-            echo $NODE_PKEY | base64 -d - > ci_node.pem
+            echo $MAGMA_NODE_PKEY | base64 -d - > ci_node.pem
             chmod 0400 ci_node.pem
-            echo $API_CERT | base64 -d - > ci_operator.pfx
+            echo $MAGMA_API_CERT | base64 -d - > ci_operator.pfx
             openssl pkcs12 -in ci_operator.pfx -nocerts -out ci_operator.key.pem -nodes -passin pass:
             openssl pkcs12 -in ci_operator.pfx -nokeys -out ci_operator.pem -passin pass:
 
-            echo $PROD_ROOTCA | base64 -d - > rootCA.pem
-            echo $PROD_CONTROL_PROXY | base64 -d - > control_proxy.yml
+            echo $MAGMA_ROOTCA | base64 -d - > rootCA.pem
+            echo $MAGMA_CONTROL_PROXY | base64 -d - > control_proxy.yml
 
             echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
-            echo export AWS_ACCESS_KEY_ID="$(printenv DEPLOY_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
-            echo export AWS_SECRET_ACCESS_KEY="$(printenv DEPLOY_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
+            echo export AWS_ACCESS_KEY_ID="$(printenv MAGMA_DEPLOY_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
+            echo export AWS_SECRET_ACCESS_KEY="$(printenv MAGMA_DEPLOY_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
       - run:
           name: Select python 3.7.0
           command: pyenv global 3.7.0
@@ -138,7 +224,245 @@ jobs:
           command: |
             sleep 10
             cd ${MAGMA_ROOT}/circleci
-            fab lte integ_test:branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1}
+            fab <<parameters.stack>> integ_test:repo=${CIRCLE_REPOSITORY_URL},branch=${CIRCLE_BRANCH},sha1=${CIRCLE_SHA1},run_integ_test=<<parameters.test>>,build_package=<<parameters.build>>,deploy_artifacts=<<parameters.deploy>>
+
+            mkdir -p versions
+            cp *_version versions || true
+      - store_artifacts:
+          path: /tmp/logs
+      - run:
+          name: Double-check that the node is freed
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            lease_id=$(cat lease_id.out)
+            lease_node=$(cat lease_node.out)
+            curl -X POST "https://api-staging.magma.etagecom.io/magma/v1/ci/nodes/${lease_node}/release/${lease_id}" -k --key ci_operator.key.pem --cert ci_operator.pem || true
+          when: always
+      - magma_slack_notify
+
+  magma_slack_notify:
+    description: Notify Slack on magma job failure
+    steps:
+      - run:
+          command: |
+            echo 'export SLACK_BUILD_STATUS="fail"' >> $BASH_ENV
+          name: Slack - Setting Failure Condition
+          when: on_fail
+      - run:
+          command: |
+            echo 'export SLACK_BUILD_STATUS="success"' >> $BASH_ENV
+          name: Slack - Setting Success Condition
+          when: on_success
+      - run:
+          name: Send message to Slack
+          command: |
+            if [ "$SLACK_BUILD_STATUS" != "fail" ] || [ "$CIRCLE_BRANCH" != "master" ]; then
+              echo "This command will only execute on failure on master."
+              exit 0
+            fi
+
+            author=$(git show -s --format='%an')
+            email=$(git show -s --format='%ae')
+            rel_time=$(git show -s --format='%cr')
+            abs_time=$(git show -s --format='%cd')
+            gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
+
+            pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
+            color="#8b0902"
+
+            slack_data=$(cat \<<EOF
+            {
+              "text": "*CircleCI Job Failure*",
+              "attachments": [
+                {
+                  "color": "${color}",
+                  "pretext": "${pretext}",
+                  "fallback": "CircleCI job failure notification",
+                  "fields": [
+                    {
+                      "title": "Revision",
+                      "value": "${gh_text}",
+                      "short": false
+                    }
+                  ]
+                }
+              ]
+            }
+            EOF
+            )
+            echo $slack_data
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+          when: always
+
+  persist-githash-version:
+    parameters:
+      file_prefix:
+        type: string
+    steps:
+      - run:
+          name: Create version file
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            mkdir -p versions
+            echo "${CIRCLE_SHA1:0:8}" > versions/<< parameters.file_prefix >>_version
+
+  notify-magma:
+    description: Notify Slack when an artifact is published
+    parameters:
+      artifact_name:
+        description: Name of the artifact to include in the message
+        type: string
+      version_path:
+        description: Path to file that will contain the artifact version
+        type: string
+    steps:
+      - run:
+          name: Send slack message
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+              exit 0
+            fi
+
+            author=$(git show -s --format='%an')
+            email=$(git show -s --format='%ae')
+            rel_time=$(git show -s --format='%cr')
+            abs_time=$(git show -s --format='%cd')
+            gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
+
+            if [ -f ${MAGMA_ROOT}/circleci/<< parameters.version_path >> ]; then
+              ver=$(cat ${MAGMA_ROOT}/circleci/<< parameters.version_path >>)
+            else
+              ver="Unknown artifact version (this should never happen!)"
+            fi
+
+            pretext="Production artifact has been published. Promote or deploy it by following the appropriate oncall procedures."
+
+            slack_data=$(cat \<<EOF
+            {
+              "channel": "#ci-publish",
+              "text": "*<< parameters.artifact_name >> Artifact Has Been Published*",
+              "attachments": [
+                {
+                  "color": "#36a64f",
+                  "pretext": "${pretext}",
+                  "fallback": "CircleCI workflow success notification",
+                  "fields": [
+                    {
+                      "title": "Artifact Version",
+                      "value": "\`${ver}\`",
+                      "short": false
+                    },
+                    {
+                      "title": "Revision",
+                      "value": "${gh_text}",
+                      "short": false
+                    }
+                  ]
+                }
+              ]
+            }
+            EOF
+            )
+            curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK}"
+
+jobs:
+  ### CLOUD
+
+  cloud-test:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
+    steps:
+      - checkout
+      - docker/install-dc
+      - run:
+          name: "Set Python Version"
+          command: pyenv global 3.7.0
+      - run: pip3 install PyYAML
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py -t
+      - magma_slack_notify
+
+  insync-checkin:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
+    steps:
+      - checkout
+      - docker/install-dc
+      - run: sudo apt-get update
+      - run:
+          name: "Set Python Version"
+          command: pyenv global 3.7.0
+      - run: pip3 install PyYAML
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py -g
+      - run: sudo chown -R circleci $MAGMA_ROOT/*
+      - run: git add .
+      - run: git status
+      - run: git diff-index --quiet HEAD
+      - magma_slack_notify
+
+  orc8r-build:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MODULE_DIR=/home/circleci/project
+      - MAGMA_ROOT=/home/circleci/project
+      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
+    steps:
+      - checkout
+      - docker/install-dc
+      - run: sudo apt-get update
+      - run:
+          name: "Set Python Version"
+          command: pyenv global 3.7.0
+      - run: pip3 install PyYAML
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/docker
+            python3 build.py -a --nocache --parallel
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+      - persist-githash-version:
+          file_prefix: orc8r
+      - notify-magma:
+          artifact_name: Orchestrator Images
+          version_path: versions/orc8r_version
+      - magma_slack_notify
+
+  ### GATEWAY
+
+  orc8r-gateway-test:
+    docker:
+      - image: circleci/golang:1.13-buster-node-browsers-legacy
+    environment:
+      - GO111MODULE=on
+      - GOPROXY=https://proxy.golang.org
+    steps:
+      - checkout
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run-with-retry:
+          command: go mod download
+          workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/gateway/go
+            go test ./...
+            go vet ./...
+      - magma_slack_notify
 
   feg-precommit:
     docker:
@@ -157,6 +481,30 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
             make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - magma_slack_notify
+
+  feg-build:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+    steps:
+      - checkout
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway/docker
+            DOCKER_REGISTRY=feg_ docker-compose build --parallel
+      - tag-push-docker:
+          project: feg
+          images: "gateway_go|gateway_python"
+          registry: $DOCKER_FEG_REGISTRY
+      - persist-githash-version:
+          file_prefix: feg
+      - notify-magma:
+          artifact_name: FeG
+          version_path: versions/feg_version
+      - magma_slack_notify
 
   cwag-precommit:
     docker:
@@ -175,6 +523,98 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway precommit
+      - magma_slack_notify
+
+  cwf-integ-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - magma_integ_test:
+          stack: cwf
+          test: 'True'
+          build: 'False'
+          deploy: 'False'
+
+  cwag-deploy:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+      - DOCKER_REGISTRY=cwf_
+    steps:
+      - checkout
+      - docker/install-dc
+      - run:
+          name: Build CWAG containers
+          command: |
+            cd ${MAGMA_ROOT}/cwf/gateway/docker
+            docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
+      - tag-push-docker:
+          project: cwf
+          images: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+          registry: $DOCKER_MAGMA_REGISTRY
+      - persist-githash-version:
+          file_prefix: cwag
+      - notify-magma:
+          artifact_name: CWAG
+          version_path: versions/cwag_version
+      - magma_slack_notify
+
+  lte-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+      - PYTHON_BUILD=${MAGMA_ROOT}/build
+      - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
+      - MAGMA_DEV_MODE=1
+      - SKIP_SUDO_TESTS=1
+      - CODEGEN_ROOT=/home/circleci/project/.codegen
+      - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
+    steps:
+      - checkout
+      - run: sudo apt-get update -y
+      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
+      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      - run:
+          command: |
+            sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+            sudo unzip protoc3.zip -d protoc3
+            sudo mv protoc3/bin/protoc /bin/protoc
+            sudo chmod a+rx /bin/protoc
+            sudo mv protoc3/include/google /usr/include/
+            sudo chmod -R a+Xr /usr/include/google
+            sudo rm -rf protoc3.zip protoc3
+            mkdir ${CODEGEN_ROOT}
+            wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
+            make -C $MAGMA_ROOT/lte/gateway/python test_all
+      - magma_slack_notify
+
+  lte-integ-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - magma_integ_test:
+          stack: lte
+          test: 'True'
+          build: 'False'
+          deploy: 'False'
+
+  lte-agw-deploy:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - magma_integ_test:
+          stack: lte
+          test: 'False'
+          build: 'True'
+          deploy: 'True'
+      - notify-magma:
+          artifact_name: LTE AGW
+          version_path: versions/magma_version
+
+  ## CWF OPERATOR
 
   cwf-operator-precommit:
     docker:
@@ -193,218 +633,34 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
             make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
+      - magma_slack_notify
 
-  cloud-test:
+  cwf-operator-build:
     machine:
       image: ubuntu-1604:201903-01
-    steps:
-      - checkout
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.03.0-ce"
-            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
-            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            sudo mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            sudo chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
-      - run: pip3 install PyYAML
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -t
-
-  orc8r-gateway-test:
-    docker:
-      - image: circleci/golang:1.13-buster-node-browsers-legacy
+      docker_layer_caching: true
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
+      - MAGMA_ROOT=/home/circleci/project
     steps:
       - checkout
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run-with-retry:
-         command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - docker/install-dc
       - run:
           command: |
-            cd ${MAGMA_ROOT}/orc8r/gateway/go
-            go test ./...
-            go vet ./...
+            cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
+            DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+      - tag-push-docker:
+          project: cwf
+          images: "operator"
+          registry: $DOCKER_MAGMA_REGISTRY
+      - persist-githash-version:
+          file_prefix: cwf_operator
+      - notify-magma:
+          artifact_name: CWF Operator
+          version_path: versions/cwf_operator_version
+      - magma_slack_notify
 
-  lte-test:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      - PYTHON_BUILD=${MAGMA_ROOT}/build
-      - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
-      - MAGMA_DEV_MODE=1
-      - SKIP_SUDO_TESTS=1
-      - CODEGEN_ROOT=/home/circleci/project/.codegen
-      - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
-    steps:
-      - checkout
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: echo $MAGMA_ROOT
-      - run: sudo apt-get update -y
-      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
-      - run:
-          command: |
-            sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
-            sudo unzip protoc3.zip -d protoc3
-            sudo mv protoc3/bin/protoc /bin/protoc
-            sudo chmod a+rx /bin/protoc
-            sudo mv protoc3/include/google /usr/include/
-            sudo chmod -R a+Xr /usr/include/google
-            sudo rm -rf protoc3.zip protoc3
-            mkdir ${CODEGEN_ROOT}
-            wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
-            make -C $MAGMA_ROOT/lte/gateway/python test_all
-
-  insync-checkin:
-    machine:
-      image: ubuntu-1604:201903-01
-    working_directory: /tmp/magma
-    environment:
-      - MAGMA_ROOT=/tmp/magma
-      - MAGMA_MODULES_FILE=/tmp/magma/circleci/modules.yml
-    steps:
-      - checkout
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.03.0-ce"
-            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
-            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            sudo mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            sudo chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
-      - run: pip3 install PyYAML
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -g
-      - run: sudo chown -R circleci $MAGMA_ROOT/*
-      - run: git add .
-      - run: git status
-      - run: git diff-index --quiet HEAD
-
-  orc8r-core-build:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - checkout
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.03.0-ce"
-            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
-            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            sudo mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            sudo chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            pip3 install PyYAML
-            python3 build.py -nc
-
-  orc8r-noncore-build:
-    machine:
-      image: ubuntu-1604:201903-01
-    steps:
-      - checkout
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.03.0-ce"
-            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
-            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            sudo mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            sudo chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run: sudo apt-get update
-      - run:
-          name: "Set Python Version"
-          command: pyenv global 3.7.0
-      - run: pip3 install PyYAML
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -nc
-
-  nms-build:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
-    steps:
-      - checkout
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.03.0-ce"
-            sudo curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
-            sudo tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            sudo mv /tmp/docker/* /usr/bin
-      - run:
-          name: Install Docker Compose
-          command: |
-            sudo curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
-            sudo chmod +x ~/docker-compose
-            sudo mv ~/docker-compose /usr/local/bin/docker-compose
-      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/symphony/app/fbcnms-projects/magmalte
-            docker-compose build magmalte
-
-  nms-yarn-test:
-    executor: node
-    steps:
-      - checkout
-      - yarn-install
-      - run:
-          name: yarn test
-          <<: *appdir
-          command: yarn test:ci
+  ### NMS
 
   nms-flow-test:
     executor: node
@@ -420,6 +676,7 @@ jobs:
           name: flow typecheck
           <<: *appdir
           command: yarn run flow
+      - magma_slack_notify
 
   eslint:
     executor: node
@@ -430,23 +687,61 @@ jobs:
           name: eslint
           <<: *appdir
           command: yarn run eslint ./
+      - magma_slack_notify
+
+  nms-yarn-test:
+    executor: node
+    steps:
+      - checkout
+      - yarn-install
+      - run:
+          name: yarn test
+          <<: *appdir
+          command: yarn test:ci
+      - magma_slack_notify
+
+  nms-build:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+    steps:
+      - checkout
+      - docker/install-dc
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+            docker-compose build magmalte
+      - tag-push-docker:
+          project: magmalte
+          images: "magmalte"
+      - persist-githash-version:
+          file_prefix: nms
+      - notify-magma:
+          artifact_name: NMS
+          version_path: versions/nms_version
+      - magma_slack_notify
+
+  ### FOSSA
 
   fossa-analyze:
     docker:
-      - image: ubuntu:xenial
+      - image: circleci/buildpack-deps:xenial
     working_directory: /tmp/magma
     environment:
       - MAGMA_ROOT=/tmp/magma
     steps:
       - checkout
-      - run: apt update
-      - run: apt install -y wget
       - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
       - run: bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
       - run: rm -f /tmp/magma/fossa
       - run: tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: cp /tmp/magma/fossa /usr/local/bin/
-      - run: ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+      - run: sudo cp /tmp/magma/fossa /usr/local/bin/
+      - run: sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+      - magma_slack_notify
+
+  ### DOCUSAURUS
 
   docusaurus_build_and_deploy:
     docker:
@@ -460,196 +755,116 @@ jobs:
             mv docs/readmes readmes/
             rm -rf docs/
             mv readmes/ docs/
+      # Yeah I fucked up and created mamga-... instead of magma-... oops
       - run:
           name: Deploying to GitHub Pages
           command: |
-            git config --global user.email "docusaurus-bot@users.noreply.github.com"
-            git config --global user.name "docusaurus-bot"
-            echo "machine github.com login docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
+            git config --global user.email "mamga-docusaurus-bot@users.noreply.github.com"
+            git config --global user.name "mamga-docusaurus-bot"
+            echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=docusaurus-bot yarn run publish-gh-pages
+            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
 
-  southpoll_lint:
-    docker:
-      - image: fedora:latest
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "devmand"
-      - run:
-          name: Running lints on the devmand image
-          command: |
-            sudo dnf update -y
-            sudo dnf install -y clang-format
-            cd ./devmand/gateway/
-            ./format
-            if [[ $(git diff HEAD --name-only) ]]; then
-               echo "############################"
-               echo "Changes required!"
-               git diff HEAD | less
-               echo "Please run the format script"
-               echo "############################"
-               exit 1
-            fi
+  ### XWF
 
-  southpoll_test:
+  xwfm-test:
     machine:
-      image: circleci/classic:latest
-      docker_layer_caching: false
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
     steps:
       - checkout
-      - build/determinator:
-          paths: "devmand"
+      - docker/install-dc
       - run:
-          name: Testing the Devmand Image
-          command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            sudo apt-get update -y
-            sudo apt-get install -y realpath
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
-            cd ./devmand/gateway/docker
-            ./scripts/build_cached_firstparty
-            ./scripts/build
-            ./scripts/test
-
-  southpoll_publish_dev:
-    machine:
-      docker_layer_caching: false
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "devmand"
+          name: Loading openvswitch kernel module
+          command: sudo modprobe openvswitch
       - run:
-          name: Publishing all southpoll images to southpoll-dev
+          name: Setup Environment Variables
           command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            sudo apt-get update -y
-            sudo apt-get install -y realpath
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-dev-docker.jfrog.io
-            cd ./devmand/gateway/docker
-            ./scripts/build_cached_firstparty
-            ./scripts/build
-            ./scripts/push
-
-  southpoll_publish_prod:
-    machine:
-      docker_layer_caching: false
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "devmand"
+            echo export MAGMA_ROOT=$(pwd) >> $BASH_ENV
+            echo export AWS_ACCESS_KEY_ID="$(printenv XWF_AWS_ACCESS_KEY_ID)" >> $BASH_ENV
+            echo export AWS_SECRET_ACCESS_KEY="$(printenv XWF_AWS_SECRET_ACCESS_KEY)" >> $BASH_ENV
       - run:
-          name: Publishing all southpoll images to southpoll-prod
           command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            sudo apt-get update -y
-            sudo apt-get install -y realpath
-            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
-            cd ./devmand/gateway/docker
-            ./scripts/build_cached_firstparty
-            ./scripts/build
-            ./scripts/push_prod
-
-  southpoll_firstparty:
-    machine:
-      docker_layer_caching: false
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "orc8r/gateway/c/common"
-      - run:
-          name: Building southpoll firstparty image
-          command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            sudo apt-get update -y
-            sudo apt-get install -y realpath
-            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
-            cd ./devmand/gateway/docker
-            ./scripts/build_cached_firstparty
-            ./scripts/build
-
-  southpoll_thirdparty:
-    machine:
-      docker_layer_caching: false
-    steps:
-      - checkout
-      - build/determinator:
-          paths: "devmand/gateway/docker/thirdparty"
-      - run:
-          name: Building southpoll thirdparty image
-          command: |
-            : "${ARTIFACTORY_USER?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            : "${ARTIFACTORY_API_KEY?Artifactory USER and API Key must be set as Environment variables before running this command.}"
-            sudo apt-get update -y
-            sudo apt-get install -y realpath
-            export SYMPHONY_DOCKER_REGISTRY=facebookconnectivity-southpoll-prod-docker.jfrog.io
-            docker login -u ${ARTIFACTORY_USER} -p ${ARTIFACTORY_API_KEY} facebookconnectivity-southpoll-prod-docker.jfrog.io
-            cd ./devmand/gateway/docker
-            ./scripts/build_cached
-            ./scripts/build
+            env
+            docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
+            cd ${MAGMA_ROOT}/xwf/docker/
+            docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
 
 workflows:
   version: 2.1
 
-  # Disabling this job until we spin up more worker capacity
-  #magma-lte:
-#    jobs:
-#      - integ-test:
-#          <<: *only_master
+  xwfm:
+    jobs:
+      - xwfm-test:
+          <<: *only_master
 
-  magma:
+  cloud:
+    jobs:
+      - cloud-test
+      - insync-checkin
+      - orc8r-build:
+          requires:
+            - cloud-test
+            - insync-checkin
+
+  lib_gateway:
+    jobs:
+      - orc8r-gateway-test
+
+  agw:
+    jobs:
+      - lte-test
+      - lte-integ-test:
+          <<: *only_master
+      - lte-agw-deploy:
+          <<: *only_master
+          requires:
+            - lte-integ-test
+
+  feg:
     jobs:
       - feg-precommit
+      - feg-build:
+          requires:
+            - feg-precommit
+
+  cwag:
+    jobs:
       - cwag-precommit
+      - cwf-integ-test:
+          <<: *only_master
+      - cwag-deploy:
+          <<: *only_master
+          requires:
+            - cwag-precommit
+            - cwf-integ-test
+
+  cwf_operator:
+    jobs:
       - cwf-operator-precommit
-      - cloud-test
-      - orc8r-gateway-test
-      - lte-test
-      - insync-checkin
+      - cwf-operator-build:
+          requires:
+            - cwf-operator-precommit
+
+  nms:
+    jobs:
       - nms-flow-test
-      - fossa-analyze
       - eslint
       - nms-yarn-test:
           requires:
             - nms-flow-test
-      - orc8r-core-build:
-          requires:
-            - cloud-test
-            - orc8r-gateway-test
-            - insync-checkin
-      - orc8r-noncore-build:
-          requires:
-            - cloud-test
-            - orc8r-gateway-test
-            - insync-checkin
       - nms-build:
           requires:
-              - cloud-test
-              - orc8r-gateway-test
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
 
-  docusaurus_build_and_deploy:
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
+
+  fossa:
     jobs:
-      - docusaurus_build_and_deploy:
+      - fossa-analyze:
           <<: *only_master
-
-  southpoll_test_and_publish:
-    jobs:
-      # - southpoll_thirdparty
-      # - southpoll_firstparty
-      - southpoll_lint
-      # - southpoll_test
-      # - southpoll_publish_dev:
-      #     requires:
-      #       - southpoll_lint
-      #       - southpoll_test
-      # - southpoll_publish_prod:
-      #     requires:
-      #       - southpoll_lint
-      #       - southpoll_test
-      #     <<: *only_master

@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package servicers
@@ -103,6 +108,17 @@ func TestGetHealthStatus(t *testing.T) {
 	mockService.On("GetUnhealthyServices").Return([]string{"sessiond"}, nil).Once()
 	expectedStatus.Health = protos.HealthStatus_UNHEALTHY
 	expectedStatus.HealthMessage = "GRE status: All GRE peers are detected as unreachable; unreachable: [127.0.0.1]; Service status: The following services were unhealthy: [sessiond]"
+	health, err = servicer.GetHealthStatus(context.Background(), req)
+	assert.NoError(t, err)
+	assert.Equal(t, expectedStatus, health)
+	assertMocks(t, mockGREProbe, mockSystem, mockService)
+
+	// Simulate disabled, healthy
+	mockGREProbe.On("GetStatus").Return(healthyGRE).Once()
+	mockSystem.On("GetSystemStats").Return(&system_health.SystemStats{CpuUtilPct: 0.1, MemUtilPct: 0.1}, nil).Once()
+	mockService.On("GetUnhealthyServices").Return([]string{"radius"}, nil).Once()
+	expectedStatus.Health = protos.HealthStatus_HEALTHY
+	expectedStatus.HealthMessage = "gateway status appears healthy"
 	health, err = servicer.GetHealthStatus(context.Background(), req)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedStatus, health)

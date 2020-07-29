@@ -1,11 +1,15 @@
 ---
 #
-# Copyright (c) 2016-present, Facebook, Inc.
-# All rights reserved.
-#
+# Copyright 2020 The Magma Authors.
+
 # This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree. An additional grant
-# of patent rights can be found in the PATENTS file in the same directory.
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 # This configuration represents an access gateway with a local internal OVS
 # device as the "default route", with a single "uplink" port acting as an L2
@@ -40,19 +44,19 @@ default_rule_tag: 0x1
 
 # Pipeline application level configs
 access_control:
-  # Traffic to ip blocks in the specified direction in the blacklist will be
-  # dropped. Each entry in the blacklist should consist of an ip and a
+  # Traffic to ip blocks in the specified direction in the blocklist will be
+  # dropped. Each entry in the blocklist should consist of an ip and a
   # direction('inbound' or 'outbound'). If direction is not specified, then
   # both inbound traffic to and outbound traffic from the ip will be blocked.
   # The ip block can be simply an address or an address with a netmask.
   # Examples:
-  # ip_blacklist:
+  # ip_blocklist:
   #   - ip: '127.0.0.1'
   #     direction: 'inbound'
   #   - ip: '127.0.0.1/24'
   #     direction: 'outbound
   #   - ip: '127.0.0.1/255.255.255.0'
-  ip_blacklist: []
+  ip_blocklist: []
 
 meter:
   enabled: true
@@ -133,3 +137,4 @@ non_nat_arp_egress_port: dhcp0
 ovs_uplink_port_name: patch-up
 virtual_mac: '02:ff:bb:cc:dd:ee'
 uplink_bridge: uplink_br0
+uplink_eth_port_name: eth0

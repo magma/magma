@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 package main
 
@@ -143,12 +148,15 @@ func mainEventLoop(eventChan <-chan interface{}, freeMemChan <-chan time.Time) {
 					glog.Errorf("bootstrap failure: %v for Gateway ID: %s", e.Result, e.HardwareId)
 				} else {
 					glog.Infof("bootstrapped GW %s", e.HardwareId)
+					controller := service_manager.Get()
 					if config.GetControlProxyConfigs().ProxyCloudConnection {
-						// TODO: restart control proxy only
+						glog.Info("restarting control_proxy")
+						if err := controller.Restart("control_proxy"); err != nil {
+							glog.Errorf("failed to restart control_proxy: %v", err)
+						}
 					} else {
 						// Restart all magma services
 						go func() {
-							controller := service_manager.Get()
 							for _, service := range config.GetMagmadConfigs().MagmaServices {
 								controller.Restart(service)
 							}

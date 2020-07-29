@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -40,15 +36,13 @@ extern "C" {
 #define DEFAULT_MME_CODE 1
 #define DEFAULT_MME_GID 1
 
-std::string int_to_hex_string(int input, int num_of_digit)
-{
+std::string int_to_hex_string(int input, int num_of_digit) {
   std::stringstream stream;
   stream << std::setfill('0') << std::setw(num_of_digit) << std::hex << input;
   return stream.str();
 }
 
-static magma::mconfig::MME get_default_mconfig()
-{
+static magma::mconfig::MME get_default_mconfig() {
   magma::mconfig::MME mconfig;
   mconfig.set_csfb_mnc(DEFAULT_CSFB_MNC);
   mconfig.set_csfb_mcc(DEFAULT_CSFB_MCC);
@@ -57,8 +51,7 @@ static magma::mconfig::MME get_default_mconfig()
   return mconfig;
 }
 
-static magma::mconfig::MME load_mconfig()
-{
+static magma::mconfig::MME load_mconfig() {
   magma::mconfig::MME mconfig;
   magma::MConfigLoader loader;
   if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
@@ -68,8 +61,7 @@ static magma::mconfig::MME load_mconfig()
   return mconfig;
 }
 
-static std::string make_mme_name()
-{
+static std::string make_mme_name() {
   auto mme_mconfig = load_mconfig();
 
   std::string mnc = mme_mconfig.csfb_mnc();
@@ -78,9 +70,9 @@ static std::string make_mme_name()
     mnc = "0" + mnc;
   }
   std::string mme_code =
-    int_to_hex_string(mme_mconfig.mme_code(), NUM_OF_MMEC_DIGITS);
+      int_to_hex_string(mme_mconfig.mme_code(), NUM_OF_MMEC_DIGITS);
   std::string mme_gid =
-    int_to_hex_string(mme_mconfig.mme_gid(), NUM_OF_MMEGID_DIGITS);
+      int_to_hex_string(mme_mconfig.mme_gid(), NUM_OF_MMEGID_DIGITS);
 
   std::string mme_name = ".mmec" + mme_code + ".mmegi" + mme_gid +
                          ".mme.epc.mnc" + mnc + ".mcc" + mcc +
@@ -89,8 +81,7 @@ static std::string make_mme_name()
   return mme_name;
 }
 
-static std::string get_mme_name()
-{
+static std::string get_mme_name() {
   static std::string mme_name = make_mme_name();
 
   return mme_name;
@@ -100,8 +91,7 @@ namespace magma {
 using namespace feg;
 
 AlertAck convert_itti_sgsap_alert_ack_to_proto_msg(
-  const itti_sgsap_alert_ack_t *msg)
-{
+    const itti_sgsap_alert_ack_t* msg) {
   AlertAck ret;
   ret.Clear();
 
@@ -111,8 +101,7 @@ AlertAck convert_itti_sgsap_alert_ack_to_proto_msg(
 }
 
 AlertReject convert_itti_sgsap_alert_reject_to_proto_msg(
-  const itti_sgsap_alert_reject_t *msg)
-{
+    const itti_sgsap_alert_reject_t* msg) {
   AlertReject ret;
   ret.Clear();
 
@@ -125,8 +114,7 @@ AlertReject convert_itti_sgsap_alert_reject_to_proto_msg(
 }
 
 LocationUpdateRequest convert_itti_sgsap_location_update_req_to_proto_msg(
-  const itti_sgsap_location_update_req_t *msg)
-{
+    const itti_sgsap_location_update_req_t* msg) {
   LocationUpdateRequest ret;
   ret.Clear();
 
@@ -140,14 +128,13 @@ LocationUpdateRequest convert_itti_sgsap_location_update_req_to_proto_msg(
 
   char location_update_type = static_cast<char>(msg->locationupdatetype);
   ret.set_eps_location_update_type(
-    &location_update_type, IE_LENGTH_EPS_LOCATION_UPDATE_TYPE);
+      &location_update_type, IE_LENGTH_EPS_LOCATION_UPDATE_TYPE);
 
   return ret;
 }
 
 TMSIReallocationComplete convert_itti_sgsap_tmsi_reallocation_comp_to_proto_msg(
-  const itti_sgsap_tmsi_reallocation_comp_t *msg)
-{
+    const itti_sgsap_tmsi_reallocation_comp_t* msg) {
   TMSIReallocationComplete ret;
   ret.Clear();
 
@@ -157,8 +144,7 @@ TMSIReallocationComplete convert_itti_sgsap_tmsi_reallocation_comp_to_proto_msg(
 }
 
 EPSDetachIndication convert_itti_sgsap_eps_detach_ind_to_proto_msg(
-  const itti_sgsap_eps_detach_ind_t *msg)
-{
+    const itti_sgsap_eps_detach_ind_t* msg) {
   EPSDetachIndication ret;
   ret.Clear();
 
@@ -166,7 +152,7 @@ EPSDetachIndication convert_itti_sgsap_eps_detach_ind_to_proto_msg(
 
   char service_type = static_cast<char>(msg->eps_detach_type);
   ret.set_imsi_detach_from_eps_service_type(
-    &service_type, IE_LENGTH_IMSI_DETACH_FROM_EPS_SERVICE_TYPE);
+      &service_type, IE_LENGTH_IMSI_DETACH_FROM_EPS_SERVICE_TYPE);
 
   ret.set_mme_name(get_mme_name());
 
@@ -174,8 +160,7 @@ EPSDetachIndication convert_itti_sgsap_eps_detach_ind_to_proto_msg(
 }
 
 IMSIDetachIndication convert_itti_sgsap_imsi_detach_ind_to_proto_msg(
-  const itti_sgsap_imsi_detach_ind_t *msg)
-{
+    const itti_sgsap_imsi_detach_ind_t* msg) {
   IMSIDetachIndication ret;
   ret.Clear();
 
@@ -183,7 +168,7 @@ IMSIDetachIndication convert_itti_sgsap_imsi_detach_ind_to_proto_msg(
 
   char service_type = static_cast<char>(msg->noneps_detach_type);
   ret.set_imsi_detach_from_non_eps_service_type(
-    &service_type, IE_LENGTH_IMSI_DETACH_FROM_NON_EPS_SERVICE_TYPE);
+      &service_type, IE_LENGTH_IMSI_DETACH_FROM_NON_EPS_SERVICE_TYPE);
 
   ret.set_mme_name(get_mme_name());
 
@@ -191,8 +176,7 @@ IMSIDetachIndication convert_itti_sgsap_imsi_detach_ind_to_proto_msg(
 }
 
 PagingReject convert_itti_sgsap_paging_reject_to_proto_msg(
-  const itti_sgsap_paging_reject_t *msg)
-{
+    const itti_sgsap_paging_reject_t* msg) {
   PagingReject ret;
   ret.Clear();
 
@@ -205,8 +189,7 @@ PagingReject convert_itti_sgsap_paging_reject_to_proto_msg(
 }
 
 ServiceRequest convert_itti_sgsap_service_request_to_proto_msg(
-  const itti_sgsap_service_request_t *msg)
-{
+    const itti_sgsap_service_request_t* msg) {
   ServiceRequest ret;
   ret.Clear();
 
@@ -223,14 +206,13 @@ ServiceRequest convert_itti_sgsap_service_request_to_proto_msg(
     char ue_time_zone = static_cast<char>(msg->opt_ue_time_zone);
     ret.set_ue_time_zone(&ue_time_zone, IE_LENGTH_UE_TIMEZONE);
   }
-  if (
-    msg->presencemask &
-    SERVICE_REQUEST_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT) {
+  if (msg->presencemask &
+      SERVICE_REQUEST_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT) {
     char mobile_station_classmark2[IE_LENGTH_MOBILE_STATION_CLASSMARK2];
     mobile_station_classmark2_to_bytes(
-      &msg->opt_mobilestationclassmark2, mobile_station_classmark2);
+        &msg->opt_mobilestationclassmark2, mobile_station_classmark2);
     ret.set_mobile_station_classmark2(
-      mobile_station_classmark2, IE_LENGTH_MOBILE_STATION_CLASSMARK2);
+        mobile_station_classmark2, IE_LENGTH_MOBILE_STATION_CLASSMARK2);
   }
   if (msg->presencemask & SERVICE_REQUEST_TAI_PARAMETER_PRESENT) {
     char tai[IE_LENGTH_TAI];
@@ -251,8 +233,7 @@ ServiceRequest convert_itti_sgsap_service_request_to_proto_msg(
 }
 
 UEActivityIndication convert_itti_sgsap_ue_activity_indication_to_proto_msg(
-  const itti_sgsap_ue_activity_ind_t *msg)
-{
+    const itti_sgsap_ue_activity_ind_t* msg) {
   UEActivityIndication ret;
   ret.Clear();
 
@@ -262,8 +243,7 @@ UEActivityIndication convert_itti_sgsap_ue_activity_indication_to_proto_msg(
 }
 
 UEUnreachable convert_itti_sgsap_ue_unreachable_to_proto_msg(
-  const itti_sgsap_ue_unreachable_t *msg)
-{
+    const itti_sgsap_ue_unreachable_t* msg) {
   UEUnreachable ret;
   ret.Clear();
 
@@ -276,15 +256,14 @@ UEUnreachable convert_itti_sgsap_ue_unreachable_to_proto_msg(
 }
 
 UplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
-  const itti_sgsap_uplink_unitdata_t *msg)
-{
+    const itti_sgsap_uplink_unitdata_t* msg) {
   UplinkUnitdata ret;
   ret.Clear();
 
   ret.set_imsi(msg->imsi, msg->imsi_length);
 
   ret.set_nas_message_container(
-    bdata(msg->nas_msg_container), blength(msg->nas_msg_container));
+      bdata(msg->nas_msg_container), blength(msg->nas_msg_container));
 
   // optional fields
   if (msg->presencemask & UPLINK_UNITDATA_IMEISV_PARAMETER_PRESENT) {
@@ -294,14 +273,13 @@ UplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
     char ue_time_zone = static_cast<char>(msg->opt_ue_time_zone);
     ret.set_ue_time_zone(&ue_time_zone, IE_LENGTH_UE_TIMEZONE);
   }
-  if (
-    msg->presencemask &
-    UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT) {
+  if (msg->presencemask &
+      UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT) {
     char mobile_station_classmark2[IE_LENGTH_MOBILE_STATION_CLASSMARK2];
     mobile_station_classmark2_to_bytes(
-      &msg->opt_mobilestationclassmark2, mobile_station_classmark2);
+        &msg->opt_mobilestationclassmark2, mobile_station_classmark2);
     ret.set_mobile_station_classmark2(
-      mobile_station_classmark2, IE_LENGTH_MOBILE_STATION_CLASSMARK2);
+        mobile_station_classmark2, IE_LENGTH_MOBILE_STATION_CLASSMARK2);
   }
   if (msg->presencemask & UPLINK_UNITDATA_TAI_PARAMETER_PRESENT) {
     char tai[IE_LENGTH_TAI];
@@ -317,4 +295,4 @@ UplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
   return ret;
 }
 
-} // namespace magma
+}  // namespace magma

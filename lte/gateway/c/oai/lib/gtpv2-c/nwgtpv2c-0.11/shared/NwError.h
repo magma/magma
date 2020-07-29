@@ -37,7 +37,7 @@
 /**
  * @file NwError.h
  * @brief This header file contains return error code type definitions.
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {

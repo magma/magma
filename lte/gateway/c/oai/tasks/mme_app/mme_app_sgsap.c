@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -60,66 +56,59 @@
  **                                                                        **
  ***************************************************************************/
 int mme_app_handle_sgsap_paging_request(
-  mme_app_desc_t* mme_app_desc_p,
-  itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
-{
+    mme_app_desc_t* mme_app_desc_p,
+    itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
   struct ue_mm_context_s* ue_context_p = NULL;
-  int rc = RETURNok;
+  int rc                               = RETURNok;
   sgs_fsm_t sgs_fsm;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (sgsap_paging_req_pP == NULL) {
     OAILOG_ERROR(
-      LOG_MME_APP, "Invalid SGSAP Paging Request ITTI message received\n");
+        LOG_MME_APP, "Invalid SGSAP Paging Request ITTI message received\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   IMSI_STRING_TO_IMSI64(sgsap_paging_req_pP->imsi, &imsi64);
 
   OAILOG_INFO(
-    LOG_MME_APP,
-    "Received SGS-PAGING REQUEST for IMSI " IMSI_64_FMT "\n",
-    imsi64);
-  if (
-    (ue_context_p = mme_ue_context_exists_imsi(
-       &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
-    OAILOG_ERROR(
-      LOG_MME_APP,
-      "SGS-PAGING REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT
-      "\n",
+      LOG_MME_APP, "Received SGS-PAGING REQUEST for IMSI " IMSI_64_FMT "\n",
       imsi64);
+  if ((ue_context_p = mme_ue_context_exists_imsi(
+           &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "SGS-PAGING REQUEST: Failed to find UE context for IMSI " IMSI_64_FMT
+        "\n",
+        imsi64);
     mme_app_send_sgsap_paging_reject(
-      NULL, imsi64, sgsap_paging_req_pP->imsi_length, SGS_CAUSE_IMSI_UNKNOWN);
+        NULL, imsi64, sgsap_paging_req_pP->imsi_length, SGS_CAUSE_IMSI_UNKNOWN);
     increment_counter("sgsap_paging_reject", 1, 1, "cause", "imsi_unknown");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
-      LOG_MME_APP,
-      "SGS context not created for IMSI " IMSI_64_FMT "\n",
-      imsi64);
+        LOG_MME_APP, "SGS context not created for IMSI " IMSI_64_FMT "\n",
+        imsi64);
     mme_app_send_sgsap_paging_reject(
-      NULL,
-      imsi64,
-      sgsap_paging_req_pP->imsi_length,
-      SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE);
+        NULL, imsi64, sgsap_paging_req_pP->imsi_length,
+        SGS_CAUSE_IMSI_DETACHED_FOR_NONEPS_SERVICE);
     increment_counter(
-      "sgsap_paging_reject", 1, 1, "cause", "SGS context not created");
+        "sgsap_paging_reject", 1, 1, "cause", "SGS context not created");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   ue_context_p->sgs_context->sgsap_msg = (void*) sgsap_paging_req_pP;
-  sgs_fsm.primitive = _SGS_PAGING_REQUEST;
-  sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx = (void*) ue_context_p->sgs_context;
+  sgs_fsm.primitive                    = _SGS_PAGING_REQUEST;
+  sgs_fsm.ue_id                        = ue_context_p->mme_ue_s1ap_id;
+  sgs_fsm.ctx                          = (void*) ue_context_p->sgs_context;
 
   // Invoke SGS FSM
   rc = sgs_fsm_process(&sgs_fsm);
   if (rc != RETURNok) {
     OAILOG_WARNING(
-      LOG_MME_APP,
-      "Failed  to execute SGS State machine for ue_id :%u \n",
-      ue_context_p->mme_ue_s1ap_id);
+        LOG_MME_APP, "Failed  to execute SGS State machine for ue_id :%u \n",
+        ue_context_p->mme_ue_s1ap_id);
   }
   ue_context_p->sgs_context->sgsap_msg = NULL;
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);

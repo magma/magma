@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 // package registry provides Registry interface for Go based gateways
 // as well as cloud connection routines
@@ -12,6 +17,7 @@ package registry
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"strings"
@@ -23,6 +29,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/keepalive"
 
 	"magma/orc8r/lib/go/service/config"
 )
@@ -34,10 +41,23 @@ const (
 	grpcMaxDelaySec   = 20
 )
 
-// control proxy config map
-// it'll be initialized on demand and used thereafter
-// any changed to the control proxy service config file would require process restart to take effect
-var controlProxyConfig atomic.Value
+var (
+	// control proxy config map
+	// it'll be initialized on demand and used thereafter
+	// any changed to the control proxy service config file would require process restart to take effect
+	controlProxyConfig atomic.Value
+	keepaliveParams    = keepalive.ClientParameters{
+		Time:                59 * time.Second,
+		Timeout:             20 * time.Second,
+		PermitWithoutStream: true,
+	}
+	proxiedKeepaliveParams = keepalive.ClientParameters{
+		Time:                47 * time.Second,
+		Timeout:             10 * time.Second,
+		PermitWithoutStream: true,
+	}
+	grpcKeepAlive = flag.Bool("grpc_keepalive", false, "Use keepalive option for all GRPC connections")
+)
 
 // GetCloudConnection Creates and returns a new GRPC service connection to the service in the cloud for a gateway
 // either directly or via control proxy
@@ -93,6 +113,7 @@ func (r *ServiceRegistry) GetCloudConnectionFromServiceConfig(
 	if err != nil {
 		return nil, err
 	}
+	glog.V(2).Infof("connecting to: %s, authority: %s", addr, authority)
 	conn, err := grpc.DialContext(ctx, addr, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("Address: %s GRPC Dial error: %s", addr, err)
@@ -158,6 +179,9 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 	}
 	if useProxy {
 		opts = append(opts, grpc.WithInsecure(), grpc.WithAuthority(authority))
+		if *grpcKeepAlive {
+			opts = append(opts, grpc.WithKeepaliveParams(proxiedKeepaliveParams))
+		}
 	} else {
 		// always try to add OS certs
 		certPool, err := x509.SystemCertPool()
@@ -198,6 +222,9 @@ func getDialOptions(serviceConfig *config.ConfigMap, authority string, useProxy 
 			glog.Errorf("failed to get gateway certificate location: %v", err)
 		}
 		opts = append(opts, grpc.WithTransportCredentials(credentials.NewTLS(tlsCfg)))
+		if *grpcKeepAlive {
+			opts = append(opts, grpc.WithKeepaliveParams(keepaliveParams))
+		}
 	}
 	return opts, nil
 }

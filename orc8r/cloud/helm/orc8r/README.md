@@ -1,7 +1,7 @@
 # Orchestrator Helm Deployment
 
 The contents of this README have been moved to the "Deploying Orchestrator"
-section of the docs: https://facebookincubator.github.io/magma.
+section of the docs: https://magma.github.io/magma.
 
 If you're running locally in Minikube, see the section below.
 
@@ -99,7 +99,7 @@ mkdir -p charts/secrets/.secrets/certs
 # You need to add the following files to the certs directory:
 #   bootstrapper.key certifier.key certifier.pem vpn_ca.crt vpn_ca.key
 #   admin_operator.pem admin_operator.key.pem nms_nginx.pem nms_nginx.key.pem
-#   controller.crt controller.key rootCA.pem 
+#   controller.crt controller.key rootCA.pem
 # The controller.crt, controller.key and rootCA.pem are the certificate info
 # for your public domain name.
 # For local testing, you can do the following after running Orc8r using docker:

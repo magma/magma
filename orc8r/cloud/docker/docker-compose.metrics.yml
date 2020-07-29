@@ -14,7 +14,7 @@ services:
     ports:
       - 9090:9090/tcp
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/prometheus-configurer/configs:/etc/prometheus:ro
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs:/etc/prometheus:ro
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -26,18 +26,16 @@ services:
     ports:
       - 9093:9093/tcp
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/alertmanager-configurer/configs:/etc/alertmanager:ro
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs:/etc/alertmanager:ro
     restart: always
 
   prometheus-configurer:
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/prometheus-configurer/configs:/etc/configs
-    build:
-      context: $PWD/../../../orc8r
-      dockerfile: $PWD/prometheus-configurer/Dockerfile
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs:/etc/configs
+    image: facebookincubator/prometheus-configurer:1.0.0
     command:
       - '-port=9100'
-      - '-rules-dir=/etc/configs/alert_rules'
+      - '-rules-dir=/etc/configs/alert_rules/'
       - '-prometheusURL=prometheus:9090'
       - '-multitenant-label=networkID'
       - '-restrict-queries'
@@ -45,10 +43,8 @@ services:
 
   alertmanager-configurer:
     volumes:
-      - $PWD/../../../orc8r/cloud/docker/alertmanager-configurer/configs:/etc/configs
-    build:
-      context: $PWD/../../../orc8r
-      dockerfile: $PWD/alertmanager-configurer/Dockerfile
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs:/etc/configs
+    image: facebookincubator/alertmanager-configurer:1.0.0
     command:
       - '-port=9101'
       - '-alertmanager-conf=/etc/configs/alertmanager.yml'

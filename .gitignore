@@ -31,6 +31,7 @@ dist/
 eggs/
 lib/
 lib64/
+!orc8r/lib/
 !feg/radius/lib/
 parts/
 sdist/
@@ -75,3 +76,23 @@ orc8r/cloud/helm/**/.secrets/
 # Clion config
 devmand/gateway/.idea/
 devmand/gateway/cmake-build-debug/
+
+# Log files
+*.log
+
+# Cscope and tags
+cscope.*
+tags
+
+#CI files
+archives/
+test_results_magma_converged_mme.html
+
+#intellij
+.idea/
+
+# Internal
+fb
+
+#MacOS artifacts
+.DS_Store

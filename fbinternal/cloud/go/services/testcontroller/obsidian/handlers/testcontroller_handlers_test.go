@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package handlers_test
@@ -11,17 +16,17 @@ package handlers_test
 import (
 	"testing"
 
+	fbinternalplugin "magma/fbinternal/cloud/go/plugin"
+	"magma/fbinternal/cloud/go/services/testcontroller"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/handlers"
+	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
+	"magma/fbinternal/cloud/go/services/testcontroller/storage"
+	"magma/fbinternal/cloud/go/services/testcontroller/test_init"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/serde"
-	fbinternalplugin "orc8r/fbinternal/cloud/go/plugin"
-	"orc8r/fbinternal/cloud/go/services/testcontroller"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/handlers"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/obsidian/models"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/storage"
-	"orc8r/fbinternal/cloud/go/services/testcontroller/test_init"
 
 	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
@@ -30,7 +35,7 @@ import (
 
 func Test_ListTestCases(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_list_tests")
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/tests/e2e"
@@ -96,7 +101,7 @@ func Test_ListTestCases(t *testing.T) {
 
 func Test_ListEnodebdTestCases(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_list_enodeb_tests")
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/tests/e2e/enodebd"
@@ -146,7 +151,7 @@ func Test_ListEnodebdTestCases(t *testing.T) {
 
 func Test_CreateEnodebdTestCase(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_create_tests")
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/tests/e2e/enodebd"
@@ -187,7 +192,7 @@ func Test_CreateEnodebdTestCase(t *testing.T) {
 
 func Test_GetEnodebdTestCase(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_get_tests")
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/tests/e2e/enodebd"
@@ -245,7 +250,7 @@ func Test_GetEnodebdTestCase(t *testing.T) {
 
 func Test_UpdateEnodebdTestCase(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_update_tests")
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/tests/e2e/enodebd"
@@ -291,7 +296,7 @@ func Test_UpdateEnodebdTestCase(t *testing.T) {
 
 func Test_DeleteEnodebdTestCase(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &fbinternalplugin.FbinternalOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	test_init.StartTestServiceWithDB(t, "testcontroller__obisidan__handlers_delete_tests")
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/tests/e2e/enodebd"

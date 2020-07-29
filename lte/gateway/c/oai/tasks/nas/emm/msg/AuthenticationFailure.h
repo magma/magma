@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -45,14 +41,14 @@
 
 typedef enum authentication_failure_iei_tag {
   AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI =
-    0x30, /* 0x30 = 48 */
+      0x30, /* 0x30 = 48 */
 } authentication_failure_iei;
 
 /*
  * Message name: Authentication failure
- * Description: This message is sent by the UE to the network to indicate that authentication of the network has failed. See table 8.2.5.1.
- * Significance: dual
- * Direction: UE to network
+ * Description: This message is sent by the UE to the network to indicate that
+ * authentication of the network has failed. See table 8.2.5.1. Significance:
+ * dual Direction: UE to network
  */
 
 typedef struct authentication_failure_msg_tag {
@@ -67,13 +63,11 @@ typedef struct authentication_failure_msg_tag {
 } authentication_failure_msg;
 
 int decode_authentication_failure(
-  authentication_failure_msg *authenticationfailure,
-  uint8_t *buffer,
-  uint32_t len);
+    authentication_failure_msg* authenticationfailure, uint8_t* buffer,
+    uint32_t len);
 
 int encode_authentication_failure(
-  authentication_failure_msg *authenticationfailure,
-  uint8_t *buffer,
-  uint32_t len);
+    authentication_failure_msg* authenticationfailure, uint8_t* buffer,
+    uint32_t len);
 
 #endif /* ! defined(FILE_AUTHENTICATION_FAILURE_SEEN) */

@@ -31,7 +31,7 @@ services:
       dockerfile: fbcnms-projects/magmalte/Dockerfile
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 mariadb:3306 -- yarn run start:dev"
     volumes:
-      - ../../fbcnms-packages:/usr/src/fbcnms-packages
+      - ../../fbcnms-packages:/usr/src/fbcnms-packages      
       - ../../fbcnms-projects/magmalte/app:/usr/src/fbcnms-projects/magmalte/app
       - ../../fbcnms-projects/magmalte/scripts:/usr/src/fbcnms-projects/magmalte/scripts
       - ../../fbcnms-projects/magmalte/server:/usr/src/fbcnms-projects/magmalte/server
@@ -45,7 +45,7 @@ services:
     environment:
       API_CERT_FILENAME: /run/secrets/api_cert
       API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
-      API_HOST: ${API_HOST:-proxy:9443}
+      API_HOST: ${API_HOST:-nginx:9443}
       PORT: 8081
       HOST: 0.0.0.0
       MYSQL_HOST: mariadb

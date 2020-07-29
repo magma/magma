@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -66,31 +62,26 @@ Description Defines functions used to handle state of EPS bearer contexts
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-const char *esm_ebr_state2string(esm_ebr_state esm_ebr_state);
+const char* esm_ebr_state2string(esm_ebr_state esm_ebr_state);
 
 bool esm_ebr_is_reserved(ebi_t ebi);
 
 void esm_ebr_initialize(void);
-int esm_ebr_assign(emm_context_t *emm_context);
-int esm_ebr_release(emm_context_t *emm_context, ebi_t ebi);
+int esm_ebr_assign(emm_context_t* emm_context);
+int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi);
 
 int esm_ebr_start_timer(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  CLONE_REF const_bstring msg,
-  long sec,
-  nas_timer_callback_t cb);
-int esm_ebr_stop_timer(emm_context_t *emm_context, ebi_t ebi);
+    emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
+    long sec, nas_timer_callback_t cb);
+int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi);
 
-ebi_t esm_ebr_get_pending_ebi(emm_context_t *emm_context, esm_ebr_state status);
+ebi_t esm_ebr_get_pending_ebi(emm_context_t* emm_context, esm_ebr_state status);
 
 int esm_ebr_set_status(
-  emm_context_t *emm_context,
-  ebi_t ebi,
-  esm_ebr_state status,
-  bool ue_requested);
-esm_ebr_state esm_ebr_get_status(emm_context_t *emm_context, ebi_t ebi);
+    emm_context_t* emm_context, ebi_t ebi, esm_ebr_state status,
+    bool ue_requested);
+esm_ebr_state esm_ebr_get_status(emm_context_t* emm_context, ebi_t ebi);
 
-bool esm_ebr_is_not_in_use(emm_context_t *emm_context, ebi_t ebi);
+bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi);
 
 #endif /* ESM_EBR_SEEN*/

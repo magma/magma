@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -97,15 +93,13 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_status(const emm_as_status_t *msg, emm_status_msg *emm_msg)
-{
+int emm_send_status(const emm_as_status_t* msg, emm_status_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_WARNING(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - Send EMM Status message (cause=%d)\n",
-    msg->emm_cause);
+      LOG_NAS_EMM, "EMMAS-SAP - Send EMM Status message (cause=%d)\n",
+      msg->emm_cause);
   /*
    * Mandatory - Message type
    */
@@ -136,8 +130,8 @@ int emm_send_status(const emm_as_status_t *msg, emm_status_msg *emm_msg)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_detach_accept(const emm_as_data_t *msg, detach_accept_msg *emm_msg)
-{
+int emm_send_detach_accept(
+    const emm_as_data_t* msg, detach_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -166,9 +160,7 @@ int emm_send_detach_accept(const emm_as_data_t *msg, detach_accept_msg *emm_msg)
  **                                                                        **
  ***************************************************************************/
 int emm_send_nw_detach_request(
-  const emm_as_data_t *msg,
-  nw_detach_request_msg *emm_msg)
-{
+    const emm_as_data_t* msg, nw_detach_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -215,24 +207,23 @@ int emm_send_nw_detach_request(
  **                                                                        **
  ***************************************************************************/
 int emm_send_attach_accept(
-  const emm_as_establish_t *msg,
-  attach_accept_msg *emm_msg)
-{
+    const emm_as_establish_t* msg, attach_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   // Get the UE context
-  emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
+  emm_context_t* emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  ue_mm_context_t *ue_mm_context_p =
-    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+  ue_mm_context_t* ue_mm_context_p =
+      PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message, ue_id = (%u)\n",
-    msg->ue_id);
+  OAILOG_INFO(
+      LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message, ue_id = (%u)\n",
+      msg->ue_id);
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMMAS-SAP - size = EMM_HEADER_MAXIMUM_LENGTH(%d)\n", size);
+      LOG_NAS_EMM, "EMMAS-SAP - size = EMM_HEADER_MAXIMUM_LENGTH(%d)\n", size);
   /*
    * Mandatory - Message type
    */
@@ -242,39 +233,44 @@ int emm_send_attach_accept(
    */
   size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH;
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
-    EPS_ATTACH_RESULT_MAXIMUM_LENGTH,
-    size);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
+      EPS_ATTACH_RESULT_MAXIMUM_LENGTH, size);
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - EMM Context Attach Type (%d) for (ue_id = %u)\n",
-    emm_ctx->attach_type,
-    ue_id);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - EMM Context Attach Type (%d) for (ue_id = %u)\n",
+      emm_ctx->attach_type, ue_id);
   switch (emm_ctx->attach_type) {
     case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Combined EPS/IMSI attach for (ue_id = %u)\n",
-        ue_id);
-      /* It is observed that UE/Handest (with usage setting = voice centric and voice domain preference = CS voice only) sends detach after
-     * successful attach .UEs with such settings sends attach type = combined EPS and IMSI attach as attach_type in
-     * attach request message. At present, EPC does not support interface with MSC /CS domain and it supports only LTE data service, hence it
-     * is supposed to send attach_result as EPS-only and add emm_cause = "CS domain not available" for such cases.
-     * Ideally in data service only n/w ,UE's usage setting should be set to data centric mode and should send attach type as EPS attach only.
-     * However UE settings may not be in our control. To take care of this as a workaround in this patch we modified MME
-     * implementation to set EPS result to Combined attach if attach type is combined attach to prevent such UEs from
-     * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
-     */
+      OAILOG_DEBUG(
+          LOG_NAS_EMM,
+          "EMMAS-SAP - Combined EPS/IMSI attach for (ue_id = %u)\n", ue_id);
+      /* It is observed that UE/Handest (with usage setting = voice centric and
+       * voice domain preference = CS voice only) sends detach after successful
+       * attach .UEs with such settings sends attach type = combined EPS and
+       * IMSI attach as attach_type in attach request message. At present, EPC
+       * does not support interface with MSC /CS domain and it supports only LTE
+       * data service, hence it is supposed to send attach_result as EPS-only
+       * and add emm_cause = "CS domain not available" for such cases. Ideally
+       * in data service only n/w ,UE's usage setting should be set to data
+       * centric mode and should send attach type as EPS attach only. However UE
+       * settings may not be in our control. To take care of this as a
+       * workaround in this patch we modified MME implementation to set EPS
+       * result to Combined attach if attach type is combined attach to prevent
+       * such UEs from sending detach so that such UEs can remain attached in
+       * the n/w and should be able to get data service from the n/w.
+       */
 
-     /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails
-     *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
-     *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
-     *  to EPS_ATTACH_RESULT_EPS_IMSI
-     */
-      if (
-        ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
-         (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
+      /* Added check for CSFB. If Location Update procedure towards MSC/VLR
+       * fails or Network Access mode received as PACKET_ONLY from HSS in ULS
+       * message send epsattachresult to EPS_ATTACH_RESULT_EPS. If is it
+       * successful set epsattachresult to EPS_ATTACH_RESULT_EPS_IMSI
+       */
+      if (((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
+           (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
+          ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+           is_mme_ue_context_network_access_mode_packet_only(
+               ue_mm_context_p))) {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -283,19 +279,22 @@ int emm_send_attach_accept(
     case EMM_ATTACH_TYPE_RESERVED:
     default:
       OAILOG_DEBUG(
-        LOG_NAS_EMM, "EMMAS-SAP - Unused attach type defaults to EPS attach for (ue_id = %u)\n",
-        ue_id);
+          LOG_NAS_EMM,
+          "EMMAS-SAP - Unused attach type defaults to EPS attach for (ue_id = "
+          "%u)\n",
+          ue_id);
     case EMM_ATTACH_TYPE_EPS:
       emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach for (ue_id = %u)\n",
-      ue_id);
+      OAILOG_DEBUG(
+          LOG_NAS_EMM, "EMMAS-SAP - EPS attach for (ue_id = %u)\n", ue_id);
       break;
-    case EMM_ATTACH_TYPE_EMERGENCY: // We should not reach here
+    case EMM_ATTACH_TYPE_EMERGENCY:  // We should not reach here
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id = %u)\n",
-        ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
+          LOG_NAS_EMM,
+          "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id "
+          "= %u)\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);  // TODO: fix once supported
       break;
   }
   /*
@@ -304,63 +303,55 @@ int emm_send_attach_accept(
   size += GPRS_TIMER_IE_MAX_LENGTH;
   // Check whether Periodic TAU timer is disabled
   if (mme_config.nas_config.t3412_min == 0) {
-    emm_msg->t3412value.unit = GPRS_TIMER_UNIT_0S;
+    emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_0S;
     emm_msg->t3412value.timervalue = mme_config.nas_config.t3412_min;
   } else if (mme_config.nas_config.t3412_min <= 31) {
-    emm_msg->t3412value.unit = GPRS_TIMER_UNIT_60S;
+    emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_60S;
     emm_msg->t3412value.timervalue = mme_config.nas_config.t3412_min;
   } else {
-    emm_msg->t3412value.unit = GPRS_TIMER_UNIT_360S;
+    emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_360S;
     emm_msg->t3412value.timervalue = mme_config.nas_config.t3412_min / 6;
   }
-  //emm_msg->t3412value.unit = GPRS_TIMER_UNIT_0S;
+  // emm_msg->t3412value.unit = GPRS_TIMER_UNIT_0S;
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d) for (ue_id = %u)\n",
-    GPRS_TIMER_IE_MAX_LENGTH,
-    size,
-    ue_id);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d) for (ue_id = "
+      "%u)\n",
+      GPRS_TIMER_IE_MAX_LENGTH, size, ue_id);
   /*
    * Mandatory - Tracking area identity list
    */
   size +=
-    TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH * msg->tai_list.numberoflists;
+      TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH * msg->tai_list.numberoflists;
   memcpy(&emm_msg->tailist, &msg->tai_list, sizeof(msg->tai_list));
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += "
-    "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
-    TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
-    emm_msg->tailist.numberoflists,
-    size,
-    ue_id);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += "
+      "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
+      TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
+      emm_msg->tailist.numberoflists, size, ue_id);
   AssertFatal(
-    emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
+      emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
   for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
-    if (
-      TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
-      emm_msg->tailist.partial_tai_list[p].typeoflist) {
+    if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
+        emm_msg->tailist.partial_tai_list[p].typeoflist) {
       size = size + (2 * emm_msg->tailist.partial_tai_list[p].numberofelements);
       OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - size += "
-        "TRACKING AREA CODE LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
-        2,
-        emm_msg->tailist.partial_tai_list[p].numberofelements,
-        size,
-        ue_id);
+          LOG_NAS_EMM,
+          "EMMAS-SAP - size += "
+          "TRACKING AREA CODE LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
+          2, emm_msg->tailist.partial_tai_list[p].numberofelements, size,
+          ue_id);
     } else if (
-      TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
-      emm_msg->tailist.partial_tai_list[p].typeoflist) {
+        TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
+        emm_msg->tailist.partial_tai_list[p].typeoflist) {
       size = size + (5 * emm_msg->tailist.partial_tai_list[p].numberofelements);
       OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - size += "
-        "TRACKING AREA CODE LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
-        5,
-        emm_msg->tailist.partial_tai_list[p].numberofelements,
-        size,
-        ue_id);
+          LOG_NAS_EMM,
+          "EMMAS-SAP - size += "
+          "TRACKING AREA CODE LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
+          5, emm_msg->tailist.partial_tai_list[p].numberofelements, size,
+          ue_id);
     }
   }
   /*
@@ -369,12 +360,10 @@ int emm_send_attach_accept(
   size += ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH + blength(msg->nas_msg);
   emm_msg->esmmessagecontainer = bstrcpy(msg->nas_msg);
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += "
-    "ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH(%d)  (%d) for (ue_id = %u)\n",
-    ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH,
-    size,
-    ue_id);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += "
+      "ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH(%d)  (%d) for (ue_id = %u)\n",
+      ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH, size, ue_id);
 
   /*
    * Optional - GUTI
@@ -383,26 +372,25 @@ int emm_send_attach_accept(
     size += EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_GUTI_PRESENT;
     emm_msg->guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI;
-    emm_msg->guti.guti.oddeven = EPS_MOBILE_IDENTITY_EVEN;
-    emm_msg->guti.guti.mme_group_id = msg->new_guti->gummei.mme_gid;
-    emm_msg->guti.guti.mme_code = msg->new_guti->gummei.mme_code;
-    emm_msg->guti.guti.m_tmsi = msg->new_guti->m_tmsi;
-    emm_msg->guti.guti.mcc_digit1 = msg->new_guti->gummei.plmn.mcc_digit1;
-    emm_msg->guti.guti.mcc_digit2 = msg->new_guti->gummei.plmn.mcc_digit2;
-    emm_msg->guti.guti.mcc_digit3 = msg->new_guti->gummei.plmn.mcc_digit3;
-    emm_msg->guti.guti.mnc_digit1 = msg->new_guti->gummei.plmn.mnc_digit1;
-    emm_msg->guti.guti.mnc_digit2 = msg->new_guti->gummei.plmn.mnc_digit2;
-    emm_msg->guti.guti.mnc_digit3 = msg->new_guti->gummei.plmn.mnc_digit3;
+    emm_msg->guti.guti.oddeven        = EPS_MOBILE_IDENTITY_EVEN;
+    emm_msg->guti.guti.mme_group_id   = msg->new_guti->gummei.mme_gid;
+    emm_msg->guti.guti.mme_code       = msg->new_guti->gummei.mme_code;
+    emm_msg->guti.guti.m_tmsi         = msg->new_guti->m_tmsi;
+    emm_msg->guti.guti.mcc_digit1     = msg->new_guti->gummei.plmn.mcc_digit1;
+    emm_msg->guti.guti.mcc_digit2     = msg->new_guti->gummei.plmn.mcc_digit2;
+    emm_msg->guti.guti.mcc_digit3     = msg->new_guti->gummei.plmn.mcc_digit3;
+    emm_msg->guti.guti.mnc_digit1     = msg->new_guti->gummei.plmn.mnc_digit1;
+    emm_msg->guti.guti.mnc_digit2     = msg->new_guti->gummei.plmn.mnc_digit2;
+    emm_msg->guti.guti.mnc_digit3     = msg->new_guti->gummei.plmn.mnc_digit3;
     OAILOG_DEBUG(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH(%d)  (%d) for (ue_id = %u)\n",
-      EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH,
-      size,
-      ue_id);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH(%d)  (%d) for (ue_id = %u)\n",
+        EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH, size, ue_id);
   }
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of GUTI for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+      LOG_NAS_EMM, "EMMAS-SAP - Out of GUTI for (ue_id = %u)\n", ue_id);
   /*
    * Optional - LAI
    */
@@ -410,19 +398,19 @@ int emm_send_attach_accept(
     size += LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
     emm_msg->locationareaidentification.mccdigit2 =
-      msg->location_area_identification->mccdigit2;
+        msg->location_area_identification->mccdigit2;
     emm_msg->locationareaidentification.mccdigit1 =
-      msg->location_area_identification->mccdigit1;
+        msg->location_area_identification->mccdigit1;
     emm_msg->locationareaidentification.mncdigit3 =
-      msg->location_area_identification->mncdigit3;
+        msg->location_area_identification->mncdigit3;
     emm_msg->locationareaidentification.mccdigit3 =
-      msg->location_area_identification->mccdigit3;
+        msg->location_area_identification->mccdigit3;
     emm_msg->locationareaidentification.mncdigit2 =
-      msg->location_area_identification->mncdigit2;
+        msg->location_area_identification->mncdigit2;
     emm_msg->locationareaidentification.mncdigit1 =
-      msg->location_area_identification->mncdigit1;
+        msg->location_area_identification->mncdigit1;
     emm_msg->locationareaidentification.lac =
-      msg->location_area_identification->lac;
+        msg->location_area_identification->lac;
   }
 
   OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of LAI for (ue_id = %u)\n", ue_id);
@@ -434,23 +422,20 @@ int emm_send_attach_accept(
     emm_msg->presencemask |= ATTACH_ACCEPT_MS_IDENTITY_PRESENT;
     if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_IMSI) {
       memcpy(
-        &emm_msg->msidentity.imsi,
-        &msg->ms_identity->imsi,
-        sizeof(emm_msg->msidentity.imsi));
+          &emm_msg->msidentity.imsi, &msg->ms_identity->imsi,
+          sizeof(emm_msg->msidentity.imsi));
     } else if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_TMSI) {
       memcpy(
-        &emm_msg->msidentity.tmsi,
-        &msg->ms_identity->tmsi,
-        sizeof(emm_msg->msidentity.tmsi));
+          &emm_msg->msidentity.tmsi, &msg->ms_identity->tmsi,
+          sizeof(emm_msg->msidentity.tmsi));
       OAILOG_DEBUG(
-        LOG_NAS_EMM, "TMSI  digit1 %d\n"
-        "TMSI  digit2 %d\n"
-        "TMSI  digit3 %d\n"
-        "TMSI  digit4 %d\n",
-        emm_msg->msidentity.tmsi.tmsi[0],
-        emm_msg->msidentity.tmsi.tmsi[1],
-        emm_msg->msidentity.tmsi.tmsi[2],
-        emm_msg->msidentity.tmsi.tmsi[3]);
+          LOG_NAS_EMM,
+          "TMSI  digit1 %d\n"
+          "TMSI  digit2 %d\n"
+          "TMSI  digit3 %d\n"
+          "TMSI  digit4 %d\n",
+          emm_msg->msidentity.tmsi.tmsi[0], emm_msg->msidentity.tmsi.tmsi[1],
+          emm_msg->msidentity.tmsi.tmsi[2], emm_msg->msidentity.tmsi.tmsi[3]);
     }
   }
   /*
@@ -461,7 +446,9 @@ int emm_send_attach_accept(
     emm_msg->emmcause = emm_ctx->emm_cause;
   }
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of Mobile Identity for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+      LOG_NAS_EMM, "EMMAS-SAP - Out of Mobile Identity for (ue_id = %u)\n",
+      ue_id);
   /*
    * Optional - Additional Update Result
    */
@@ -471,18 +458,22 @@ int emm_send_attach_accept(
     emm_msg->additionalupdateresult = *msg->additional_update_result;
   }
 
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of Additional Update Result for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Out of Additional Update Result for (ue_id = %u)\n", ue_id);
   /*
    * CSFB -Optional - Send failure cause
    */
 
   if ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-     (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
+      (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = emm_ctx->emm_cause;
   }
-  OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Out of Send failure cause for (ue_id = %u)\n", ue_id);
+  OAILOG_DEBUG(
+      LOG_NAS_EMM, "EMMAS-SAP - Out of Send failure cause for (ue_id = %u)\n",
+      ue_id);
 
   /*
    * Optional - T3402
@@ -491,10 +482,10 @@ int emm_send_attach_accept(
     size += GPRS_TIMER_IE_MAX_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_T3402_VALUE_PRESENT;
     if (mme_config.nas_config.t3402_min <= 31) {
-      emm_msg->t3402value.unit = GPRS_TIMER_UNIT_60S;
+      emm_msg->t3402value.unit       = GPRS_TIMER_UNIT_60S;
       emm_msg->t3402value.timervalue = mme_config.nas_config.t3402_min;
     } else {
-      emm_msg->t3402value.unit = GPRS_TIMER_UNIT_360S;
+      emm_msg->t3402value.unit       = GPRS_TIMER_UNIT_360S;
       emm_msg->t3402value.timervalue = mme_config.nas_config.t3402_min / 6;
     }
   }
@@ -528,23 +519,21 @@ int emm_send_attach_accept(
  **                                                                        **
  ***************************************************************************/
 int emm_send_attach_accept_dl_nas(
-  const emm_as_data_t *msg,
-  attach_accept_msg *emm_msg)
-{
+    const emm_as_data_t* msg, attach_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   // Get the UE context
-  emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
+  emm_context_t* emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  ue_mm_context_t *ue_mm_context_p =
-    PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
+  ue_mm_context_t* ue_mm_context_p =
+      PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
 
   OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message\n");
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMMAS-SAP - size = EMM_HEADER_MAXIMUM_LENGTH(%d)\n", size);
+      LOG_NAS_EMM, "EMMAS-SAP - size = EMM_HEADER_MAXIMUM_LENGTH(%d)\n", size);
   /*
    * Mandatory - Message type
    */
@@ -554,33 +543,38 @@ int emm_send_attach_accept_dl_nas(
    */
   size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH;
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
-    EPS_ATTACH_RESULT_MAXIMUM_LENGTH,
-    size);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
+      EPS_ATTACH_RESULT_MAXIMUM_LENGTH, size);
   switch (emm_ctx->attach_type) {
     case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
       OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Combined EPS/IMSI attach\n");
-      /* It is observed that UE/Handest (with usage setting = voice centric and voice domain preference = CS voice only) sends detach after
-     * successful attach. UEs with such settings sends attach type = combined EPS and IMSI attach as attach_type in
-     * attach request message. At present, EPC does not support interface with MSC /CS domain and it supports only LTE data service, hence it
-     * is supposed to send attach_result as EPS-only and add emm_cause = "CS domain not available" for such cases.
-     * Ideally in data service only n/w ,UE's usage setting should be set to data centric mode and should send attach type as EPS attach only.
-     * However UE settings may not be in our control. To take care of this as a workaround in this patch we modified MME
-     * implementation to set EPS result to Combined attach if attach type is combined attach to prevent such UEs from
-     * sending detach so that such UEs can remain attached in the n/w and should be able to get data service from the n/w.
-     */
+      /* It is observed that UE/Handest (with usage setting = voice centric and
+       * voice domain preference = CS voice only) sends detach after successful
+       * attach. UEs with such settings sends attach type = combined EPS and
+       * IMSI attach as attach_type in attach request message. At present, EPC
+       * does not support interface with MSC /CS domain and it supports only LTE
+       * data service, hence it is supposed to send attach_result as EPS-only
+       * and add emm_cause = "CS domain not available" for such cases. Ideally
+       * in data service only n/w ,UE's usage setting should be set to data
+       * centric mode and should send attach type as EPS attach only. However UE
+       * settings may not be in our control. To take care of this as a
+       * workaround in this patch we modified MME implementation to set EPS
+       * result to Combined attach if attach type is combined attach to prevent
+       * such UEs from sending detach so that such UEs can remain attached in
+       * the n/w and should be able to get data service from the n/w.
+       */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR fails
-     *  or Network Access mode received as PACKET_ONLY from HSS in ULS message send
-     *  epsattachresult to EPS_ATTACH_RESULT_EPS. If is it successful set epsattachresult
-     *  to EPS_ATTACH_RESULT_EPS_IMSI
-     */
-      if (
-        ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
-         (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-        is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))){
+      /* Added check for CSFB. If Location Update procedure towards MSC/VLR
+       * fails or Network Access mode received as PACKET_ONLY from HSS in ULS
+       * message send epsattachresult to EPS_ATTACH_RESULT_EPS. If is it
+       * successful set epsattachresult to EPS_ATTACH_RESULT_EPS_IMSI
+       */
+      if (((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
+           (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
+          ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+           is_mme_ue_context_network_access_mode_packet_only(
+               ue_mm_context_p))) {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       } else {
         emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
@@ -590,16 +584,17 @@ int emm_send_attach_accept_dl_nas(
     case EMM_ATTACH_TYPE_RESERVED:
     default:
       OAILOG_DEBUG(
-        LOG_NAS_EMM, "EMMAS-SAP - Unused attach type defaults to EPS attach\n");
+          LOG_NAS_EMM,
+          "EMMAS-SAP - Unused attach type defaults to EPS attach\n");
     case EMM_ATTACH_TYPE_EPS:
       emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
       OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach\n");
       break;
-    case EMM_ATTACH_TYPE_EMERGENCY: // We should not reach here
+    case EMM_ATTACH_TYPE_EMERGENCY:  // We should not reach here
       OAILOG_ERROR(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - EPS emergency attach, currently unsupported\n");
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
+          LOG_NAS_EMM,
+          "EMMAS-SAP - EPS emergency attach, currently unsupported\n");
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);  // TODO: fix once supported
       break;
   }
   /*
@@ -608,59 +603,51 @@ int emm_send_attach_accept_dl_nas(
   size += GPRS_TIMER_IE_MAX_LENGTH;
   // Check whether Periodic TAU timer is disabled
   if (mme_config.nas_config.t3412_min == 0) {
-    emm_msg->t3412value.unit = GPRS_TIMER_UNIT_0S;
+    emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_0S;
     emm_msg->t3412value.timervalue = mme_config.nas_config.t3412_min;
   } else if (mme_config.nas_config.t3412_min <= 31) {
-    emm_msg->t3412value.unit = GPRS_TIMER_UNIT_60S;
+    emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_60S;
     emm_msg->t3412value.timervalue = mme_config.nas_config.t3412_min;
   } else {
-    emm_msg->t3412value.unit = GPRS_TIMER_UNIT_360S;
+    emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_360S;
     emm_msg->t3412value.timervalue = mme_config.nas_config.t3412_min / 6;
   }
-  //emm_msg->t3412value.unit = GPRS_TIMER_UNIT_0S;
+  // emm_msg->t3412value.unit = GPRS_TIMER_UNIT_0S;
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += GPRS_TIMER_MAXIMUM_LENGTH(%d)  (%d)\n",
-    GPRS_TIMER_IE_MAX_LENGTH,
-    size);
+      LOG_NAS_EMM, "EMMAS-SAP - size += GPRS_TIMER_MAXIMUM_LENGTH(%d)  (%d)\n",
+      GPRS_TIMER_IE_MAX_LENGTH, size);
   /*
    * Mandatory - Tracking area identity list
    */
   size +=
-    TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH * msg->tai_list.numberoflists;
+      TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH * msg->tai_list.numberoflists;
   memcpy(&emm_msg->tailist, &msg->tai_list, sizeof(msg->tai_list));
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += "
-    "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d)\n",
-    TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
-    emm_msg->tailist.numberoflists,
-    size);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += "
+      "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d)\n",
+      TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
+      emm_msg->tailist.numberoflists, size);
   AssertFatal(
-    emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
+      emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
   for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
-    if (
-      TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
-      emm_msg->tailist.partial_tai_list[p].typeoflist) {
+    if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
+        emm_msg->tailist.partial_tai_list[p].typeoflist) {
       size = size + (2 * emm_msg->tailist.partial_tai_list[p].numberofelements);
       OAILOG_INFO(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - size += "
-        "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
-        2,
-        emm_msg->tailist.partial_tai_list[p].numberofelements,
-        size);
+          LOG_NAS_EMM,
+          "EMMAS-SAP - size += "
+          "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
+          2, emm_msg->tailist.partial_tai_list[p].numberofelements, size);
     } else if (
-      TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
-      emm_msg->tailist.partial_tai_list[p].typeoflist) {
+        TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
+        emm_msg->tailist.partial_tai_list[p].typeoflist) {
       size = size + (5 * emm_msg->tailist.partial_tai_list[p].numberofelements);
       OAILOG_INFO(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - size += "
-        "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
-        5,
-        emm_msg->tailist.partial_tai_list[p].numberofelements,
-        size);
+          LOG_NAS_EMM,
+          "EMMAS-SAP - size += "
+          "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
+          5, emm_msg->tailist.partial_tai_list[p].numberofelements, size);
     }
   }
   /*
@@ -669,11 +656,10 @@ int emm_send_attach_accept_dl_nas(
   size += ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH + blength(msg->nas_msg);
   emm_msg->esmmessagecontainer = bstrcpy(msg->nas_msg);
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += "
-    "ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH(%d)  (%d)\n",
-    ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH,
-    size);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += "
+      "ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH(%d)  (%d)\n",
+      ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH, size);
 
   /*
    * Optional - GUTI
@@ -682,22 +668,21 @@ int emm_send_attach_accept_dl_nas(
     size += EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_GUTI_PRESENT;
     emm_msg->guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI;
-    emm_msg->guti.guti.oddeven = EPS_MOBILE_IDENTITY_EVEN;
-    emm_msg->guti.guti.mme_group_id = msg->new_guti->gummei.mme_gid;
-    emm_msg->guti.guti.mme_code = msg->new_guti->gummei.mme_code;
-    emm_msg->guti.guti.m_tmsi = msg->new_guti->m_tmsi;
-    emm_msg->guti.guti.mcc_digit1 = msg->new_guti->gummei.plmn.mcc_digit1;
-    emm_msg->guti.guti.mcc_digit2 = msg->new_guti->gummei.plmn.mcc_digit2;
-    emm_msg->guti.guti.mcc_digit3 = msg->new_guti->gummei.plmn.mcc_digit3;
-    emm_msg->guti.guti.mnc_digit1 = msg->new_guti->gummei.plmn.mnc_digit1;
-    emm_msg->guti.guti.mnc_digit2 = msg->new_guti->gummei.plmn.mnc_digit2;
-    emm_msg->guti.guti.mnc_digit3 = msg->new_guti->gummei.plmn.mnc_digit3;
+    emm_msg->guti.guti.oddeven        = EPS_MOBILE_IDENTITY_EVEN;
+    emm_msg->guti.guti.mme_group_id   = msg->new_guti->gummei.mme_gid;
+    emm_msg->guti.guti.mme_code       = msg->new_guti->gummei.mme_code;
+    emm_msg->guti.guti.m_tmsi         = msg->new_guti->m_tmsi;
+    emm_msg->guti.guti.mcc_digit1     = msg->new_guti->gummei.plmn.mcc_digit1;
+    emm_msg->guti.guti.mcc_digit2     = msg->new_guti->gummei.plmn.mcc_digit2;
+    emm_msg->guti.guti.mcc_digit3     = msg->new_guti->gummei.plmn.mcc_digit3;
+    emm_msg->guti.guti.mnc_digit1     = msg->new_guti->gummei.plmn.mnc_digit1;
+    emm_msg->guti.guti.mnc_digit2     = msg->new_guti->gummei.plmn.mnc_digit2;
+    emm_msg->guti.guti.mnc_digit3     = msg->new_guti->gummei.plmn.mnc_digit3;
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH(%d)  (%d)\n",
-      EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH(%d)  (%d)\n",
+        EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH, size);
   }
 
   /*
@@ -707,19 +692,19 @@ int emm_send_attach_accept_dl_nas(
     size += LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
     emm_msg->locationareaidentification.mccdigit2 =
-      msg->location_area_identification->mccdigit2;
+        msg->location_area_identification->mccdigit2;
     emm_msg->locationareaidentification.mccdigit1 =
-      msg->location_area_identification->mccdigit1;
+        msg->location_area_identification->mccdigit1;
     emm_msg->locationareaidentification.mncdigit3 =
-      msg->location_area_identification->mncdigit3;
+        msg->location_area_identification->mncdigit3;
     emm_msg->locationareaidentification.mccdigit3 =
-      msg->location_area_identification->mccdigit3;
+        msg->location_area_identification->mccdigit3;
     emm_msg->locationareaidentification.mncdigit2 =
-      msg->location_area_identification->mncdigit2;
+        msg->location_area_identification->mncdigit2;
     emm_msg->locationareaidentification.mncdigit1 =
-      msg->location_area_identification->mncdigit1;
+        msg->location_area_identification->mncdigit1;
     emm_msg->locationareaidentification.lac =
-      msg->location_area_identification->lac;
+        msg->location_area_identification->lac;
   }
 
   /*
@@ -730,14 +715,12 @@ int emm_send_attach_accept_dl_nas(
     emm_msg->presencemask |= ATTACH_ACCEPT_MS_IDENTITY_PRESENT;
     if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_IMSI) {
       memcpy(
-        &emm_msg->msidentity.imsi,
-        &msg->ms_identity->imsi,
-        sizeof(emm_msg->msidentity.imsi));
+          &emm_msg->msidentity.imsi, &msg->ms_identity->imsi,
+          sizeof(emm_msg->msidentity.imsi));
     } else if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_TMSI) {
       memcpy(
-        &emm_msg->msidentity.tmsi,
-        &msg->ms_identity->tmsi,
-        sizeof(emm_msg->msidentity.tmsi));
+          &emm_msg->msidentity.tmsi, &msg->ms_identity->tmsi,
+          sizeof(emm_msg->msidentity.tmsi));
     }
   }
 
@@ -753,10 +736,9 @@ int emm_send_attach_accept_dl_nas(
    * CSFB -Optional - Send failure cause
    */
 
-  if (
-     ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-     is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) &&
-    (msg->emm_cause)) {
+  if (((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+       is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) &&
+      (msg->emm_cause)) {
     size += EMM_CAUSE_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = *msg->emm_cause;
@@ -791,16 +773,13 @@ int emm_send_attach_accept_dl_nas(
  **                                                                        **
  ***************************************************************************/
 int emm_send_attach_reject(
-  const emm_as_establish_t *msg,
-  attach_reject_msg *emm_msg)
-{
+    const emm_as_establish_t* msg, attach_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - Send Attach Reject message (cause=%d)\n",
-    msg->emm_cause);
+      LOG_NAS_EMM, "EMMAS-SAP - Send Attach Reject message (cause=%d)\n",
+      msg->emm_cause);
   /*
    * Mandatory - Message type
    */
@@ -816,8 +795,8 @@ int emm_send_attach_reject(
    */
   if (msg->nas_msg) {
     size +=
-      ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH + blength(msg->nas_msg) +
-      1; // Adding 1 byte since ESM Container is optional IE in Attach Reject
+        ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH + blength(msg->nas_msg) +
+        1;  // Adding 1 byte since ESM Container is optional IE in Attach Reject
     emm_msg->presencemask |= ATTACH_REJECT_ESM_MESSAGE_CONTAINER_PRESENT;
     emm_msg->esmmessagecontainer = msg->nas_msg;
   }
@@ -847,16 +826,14 @@ int emm_send_attach_reject(
  **                                                                        **
  ***************************************************************************/
 int emm_send_tracking_area_update_accept(
-  const emm_as_establish_t *msg,
-  tracking_area_update_accept_msg *emm_msg)
-{
+    const emm_as_establish_t* msg, tracking_area_update_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - Send Tracking Area Update Accept message (cause=%d)\n",
-    msg->emm_cause);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Send Tracking Area Update Accept message (cause=%d)\n",
+      msg->emm_cause);
   /*
    * Mandatory - Message type
    */
@@ -867,54 +844,50 @@ int emm_send_tracking_area_update_accept(
   size += EPS_UPDATE_RESULT_MAXIMUM_LENGTH;
   emm_msg->epsupdateresult = msg->eps_update_result;
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - epsupdateresult (%d)\n",
-    emm_msg->epsupdateresult);
+      LOG_NAS_EMM, "EMMAS-SAP - epsupdateresult (%d)\n",
+      emm_msg->epsupdateresult);
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - size += EPS_UPDATE_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
-    EPS_UPDATE_RESULT_MAXIMUM_LENGTH,
-    size);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - size += EPS_UPDATE_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
+      EPS_UPDATE_RESULT_MAXIMUM_LENGTH, size);
 
   // Optional - GPRS Timer T3412
   if (msg->t3412) {
     size += GPRS_TIMER_IE_MAX_LENGTH;
     emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_PRESENT;
     if (*msg->t3412 <= 31) {
-      emm_msg->t3412value.unit = GPRS_TIMER_UNIT_60S;
+      emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_60S;
       emm_msg->t3412value.timervalue = *msg->t3412;
     } else {
-      emm_msg->t3412value.unit = GPRS_TIMER_UNIT_360S;
+      emm_msg->t3412value.unit       = GPRS_TIMER_UNIT_360S;
       emm_msg->t3412value.timervalue = *msg->t3412 / 6;
     }
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d)\n",
-      GPRS_TIMER_IE_MAX_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d)\n",
+        GPRS_TIMER_IE_MAX_LENGTH, size);
   }
   // Optional - GUTI
   if (msg->new_guti) {
     size += EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH;
     emm_msg->presencemask |= ATTACH_ACCEPT_GUTI_PRESENT;
     emm_msg->guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI;
-    emm_msg->guti.guti.oddeven = EPS_MOBILE_IDENTITY_EVEN;
-    emm_msg->guti.guti.mme_group_id = msg->guti->gummei.mme_gid;
-    emm_msg->guti.guti.mme_code = msg->guti->gummei.mme_code;
-    emm_msg->guti.guti.m_tmsi = msg->guti->m_tmsi;
-    emm_msg->guti.guti.mcc_digit1 = msg->guti->gummei.plmn.mcc_digit1;
-    emm_msg->guti.guti.mcc_digit2 = msg->guti->gummei.plmn.mcc_digit2;
-    emm_msg->guti.guti.mcc_digit3 = msg->guti->gummei.plmn.mcc_digit3;
-    emm_msg->guti.guti.mnc_digit1 = msg->guti->gummei.plmn.mnc_digit1;
-    emm_msg->guti.guti.mnc_digit2 = msg->guti->gummei.plmn.mnc_digit2;
-    emm_msg->guti.guti.mnc_digit3 = msg->guti->gummei.plmn.mnc_digit3;
+    emm_msg->guti.guti.oddeven        = EPS_MOBILE_IDENTITY_EVEN;
+    emm_msg->guti.guti.mme_group_id   = msg->guti->gummei.mme_gid;
+    emm_msg->guti.guti.mme_code       = msg->guti->gummei.mme_code;
+    emm_msg->guti.guti.m_tmsi         = msg->guti->m_tmsi;
+    emm_msg->guti.guti.mcc_digit1     = msg->guti->gummei.plmn.mcc_digit1;
+    emm_msg->guti.guti.mcc_digit2     = msg->guti->gummei.plmn.mcc_digit2;
+    emm_msg->guti.guti.mcc_digit3     = msg->guti->gummei.plmn.mcc_digit3;
+    emm_msg->guti.guti.mnc_digit1     = msg->guti->gummei.plmn.mnc_digit1;
+    emm_msg->guti.guti.mnc_digit2     = msg->guti->gummei.plmn.mnc_digit2;
+    emm_msg->guti.guti.mnc_digit3     = msg->guti->gummei.plmn.mnc_digit3;
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH(%d)  (%d)\n",
-      EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH(%d)  (%d)\n",
+        EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH, size);
   }
   /* Optional - TAI list
    * This IE may be included to assign a TAI list to a UE.
@@ -922,43 +895,37 @@ int emm_send_tracking_area_update_accept(
   if (msg->tai_list.numberoflists > 0) {
     emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_PRESENT;
 
-    size +=
-      TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH * msg->tai_list.numberoflists;
+    size += TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH *
+            msg->tai_list.numberoflists;
     memcpy(&emm_msg->tailist, &msg->tai_list, sizeof(msg->tai_list));
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d)\n",
-      TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
-      emm_msg->tailist.numberoflists,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d)\n",
+        TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
+        emm_msg->tailist.numberoflists, size);
     AssertFatal(
-      emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
+        emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
     for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
-      if (
-        TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
-        emm_msg->tailist.partial_tai_list[p].typeoflist) {
+      if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
+          emm_msg->tailist.partial_tai_list[p].typeoflist) {
         size =
-          size + (2 * emm_msg->tailist.partial_tai_list[p].numberofelements);
+            size + (2 * emm_msg->tailist.partial_tai_list[p].numberofelements);
         OAILOG_INFO(
-          LOG_NAS_EMM,
-          "EMMAS-SAP - size += "
-          "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
-          2,
-          emm_msg->tailist.partial_tai_list[p].numberofelements,
-          size);
+            LOG_NAS_EMM,
+            "EMMAS-SAP - size += "
+            "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
+            2, emm_msg->tailist.partial_tai_list[p].numberofelements, size);
       } else if (
-        TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
-        emm_msg->tailist.partial_tai_list[p].typeoflist) {
+          TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS ==
+          emm_msg->tailist.partial_tai_list[p].typeoflist) {
         size =
-          size + (5 * emm_msg->tailist.partial_tai_list[p].numberofelements);
+            size + (5 * emm_msg->tailist.partial_tai_list[p].numberofelements);
         OAILOG_INFO(
-          LOG_NAS_EMM,
-          "EMMAS-SAP - size += "
-          "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
-          5,
-          emm_msg->tailist.partial_tai_list[p].numberofelements,
-          size);
+            LOG_NAS_EMM,
+            "EMMAS-SAP - size += "
+            "TRACKING AREA CODE LENGTH(%d*%d)  (%d)\n",
+            5, emm_msg->tailist.partial_tai_list[p].numberofelements, size);
       }
     }
   }
@@ -966,61 +933,57 @@ int emm_send_tracking_area_update_accept(
   if (msg->eps_bearer_context_status) {
     size += EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH;
     emm_msg->presencemask |=
-      TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
+        TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
     emm_msg->epsbearercontextstatus = *(msg->eps_bearer_context_status);
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH(%d)  (%d)\n",
-      EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH(%d)  (%d)\n",
+        EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH, size);
   }
-  // Optional - Location Area Identification, should be sent if CSFB feature is enabled
+  // Optional - Location Area Identification, should be sent if CSFB feature is
+  // enabled
   if (msg->location_area_identification) {
     size += LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH;
     emm_msg->presencemask |=
-      TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
+        TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
     emm_msg->locationareaidentification.mccdigit2 =
-      msg->location_area_identification->mccdigit2;
+        msg->location_area_identification->mccdigit2;
     emm_msg->locationareaidentification.mccdigit1 =
-      msg->location_area_identification->mccdigit1;
+        msg->location_area_identification->mccdigit1;
     emm_msg->locationareaidentification.mncdigit3 =
-      msg->location_area_identification->mncdigit3;
+        msg->location_area_identification->mncdigit3;
     emm_msg->locationareaidentification.mccdigit3 =
-      msg->location_area_identification->mccdigit3;
+        msg->location_area_identification->mccdigit3;
     emm_msg->locationareaidentification.mncdigit2 =
-      msg->location_area_identification->mncdigit2;
+        msg->location_area_identification->mncdigit2;
     emm_msg->locationareaidentification.mncdigit1 =
-      msg->location_area_identification->mncdigit1;
+        msg->location_area_identification->mncdigit1;
     emm_msg->locationareaidentification.lac =
-      msg->location_area_identification->lac;
+        msg->location_area_identification->lac;
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH(%d)  (%d)",
-      LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH(%d)  (%d)",
+        LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH, size);
   }
-  //Optional - Mobile Identity,should be sent if CSFB feature is enabled
+  // Optional - Mobile Identity,should be sent if CSFB feature is enabled
   if (msg->ms_identity) {
     size += EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH;
     emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT;
     if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_IMSI) {
       memcpy(
-        &emm_msg->msidentity.imsi,
-        &msg->ms_identity->imsi,
-        sizeof(msg->ms_identity->imsi));
+          &emm_msg->msidentity.imsi, &msg->ms_identity->imsi,
+          sizeof(msg->ms_identity->imsi));
     } else if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_TMSI) {
       memcpy(
-        &emm_msg->msidentity.tmsi,
-        &msg->ms_identity->tmsi,
-        sizeof(msg->ms_identity->tmsi));
+          &emm_msg->msidentity.tmsi, &msg->ms_identity->tmsi,
+          sizeof(msg->ms_identity->tmsi));
       OAILOG_INFO(
-        LOG_NAS_EMM,
-        "EMMAS-SAP - size += "
-        "MOBILE_IDENTITY_MINIMUM_LENGTH(%d)  (%d)",
-        MOBILE_IDENTITY_MINIMUM_LENGTH,
-        size);
+          LOG_NAS_EMM,
+          "EMMAS-SAP - size += "
+          "MOBILE_IDENTITY_MINIMUM_LENGTH(%d)  (%d)",
+          MOBILE_IDENTITY_MINIMUM_LENGTH, size);
     }
   }
   // Optional - EMM cause
@@ -1029,87 +992,88 @@ int emm_send_tracking_area_update_accept(
     emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_PRESENT;
     emm_msg->emmcause = msg->emm_cause;
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "MOBILE_IDENTITY_MINIMUM_LENGTH(%d)  (%d)\n",
-      EMM_CAUSE_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "MOBILE_IDENTITY_MINIMUM_LENGTH(%d)  (%d)\n",
+        EMM_CAUSE_MAXIMUM_LENGTH, size);
   }
   // Optional - GPRS Timer T3402
   if (msg->t3402) {
     size += GPRS_TIMER_IE_MAX_LENGTH;
     emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_PRESENT;
     if (*msg->t3402 <= 31) {
-      emm_msg->t3402value.unit = GPRS_TIMER_UNIT_60S;
+      emm_msg->t3402value.unit       = GPRS_TIMER_UNIT_60S;
       emm_msg->t3402value.timervalue = *msg->t3402;
     } else {
-      emm_msg->t3402value.unit = GPRS_TIMER_UNIT_360S;
+      emm_msg->t3402value.unit       = GPRS_TIMER_UNIT_360S;
       emm_msg->t3402value.timervalue = *msg->t3402 / 6;
     }
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d)\n",
-      GPRS_TIMER_IE_MAX_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d)\n",
+        GPRS_TIMER_IE_MAX_LENGTH, size);
   }
   // Optional - GPRS Timer T3423
   if (msg->t3423) {
     size += GPRS_TIMER_IE_MAX_LENGTH;
     emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_PRESENT;
     if (*msg->t3423 <= 31) {
-      emm_msg->t3423value.unit = GPRS_TIMER_UNIT_60S;
+      emm_msg->t3423value.unit       = GPRS_TIMER_UNIT_60S;
       emm_msg->t3423value.timervalue = *msg->t3423;
     } else {
-      emm_msg->t3423value.unit = GPRS_TIMER_UNIT_360S;
+      emm_msg->t3423value.unit       = GPRS_TIMER_UNIT_360S;
       emm_msg->t3423value.timervalue = *msg->t3423 / 6;
     }
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d)\n",
-      GPRS_TIMER_IE_MAX_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "GPRS_TIMER_IE_MAX_LENGTH(%d)  (%d)\n",
+        GPRS_TIMER_IE_MAX_LENGTH, size);
   }
   // Useless actually, Optional - Equivalent PLMNs
   /*if (msg->equivalent_plmns) {
     size += PLMN_LIST_MINIMUM_LENGTH;
-    emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_PRESENT;
+    emm_msg->presencemask |=
+  TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_PRESENT;
     emm_msg->equivalentplmns.       = msg->;
-    OAILOG_INFO (LOG_NAS_EMM, "EMMAS-SAP - size += " "PLMN_LIST_MINIMUM_LENGTH(%d)  (%d)", PLMN_LIST_MINIMUM_LENGTH, size);
+    OAILOG_INFO (LOG_NAS_EMM, "EMMAS-SAP - size += "
+  "PLMN_LIST_MINIMUM_LENGTH(%d)  (%d)", PLMN_LIST_MINIMUM_LENGTH, size);
   }*/
   /* Useless actually, Optional - Emergency number list
   if (msg->emergency_number_list) {
     size += EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH;
-    emm_msg->presencemask |= TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT;
+    emm_msg->presencemask |=
+  TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT;
     emm_msg->emergencynumberlist.       = msg->;
-    OAILOG_INFO (LOG_NAS_EMM, "EMMAS-SAP - size += " "EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH(%d)  (%d)", EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH, size);
+    OAILOG_INFO (LOG_NAS_EMM, "EMMAS-SAP - size += "
+  "EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH(%d)  (%d)",
+  EMERGENCY_NUMBER_LIST_MINIMUM_LENGTH, size);
   }*/
   // Optional - EPS network feature support
   if (msg->eps_network_feature_support) {
     size += EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH;
     emm_msg->presencemask |=
-      TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+        TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
     emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH(%d)  (%d)\n",
-      EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH(%d)  (%d)\n",
+        EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH, size);
   }
-  // Useless actually, Optional - Additional update result to be sent in case of CSFB SMS
+  // Useless actually, Optional - Additional update result to be sent in case of
+  // CSFB SMS
   if (msg->additional_update_result) {
     size += ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH;
     emm_msg->presencemask |=
-      TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
+        TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
     emm_msg->additionalupdateresult = *msg->additional_update_result;
     OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH(%d)  (%d)",
-      ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH(%d)  (%d)",
+        ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH, size);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, size);
 }
@@ -1135,9 +1099,7 @@ int emm_send_tracking_area_update_accept(
  ***************************************************************************/
 
 int emm_send_tracking_area_update_accept_dl_nas(
-  const emm_as_data_t *msg,
-  tracking_area_update_accept_msg *emm_msg)
-{
+    const emm_as_data_t* msg, tracking_area_update_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
   /*
@@ -1152,7 +1114,7 @@ int emm_send_tracking_area_update_accept_dl_nas(
 
   if (msg->eps_bearer_context_status) {
     emm_msg->presencemask |=
-      TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
+        TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
     emm_msg->epsbearercontextstatus = *msg->eps_bearer_context_status;
     size += EPS_BEARER_CONTEXT_STATUS_MAXIMUM_LENGTH;
   }
@@ -1161,67 +1123,63 @@ int emm_send_tracking_area_update_accept_dl_nas(
   if (msg->eps_network_feature_support) {
     size += EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH;
     emm_msg->presencemask |=
-      TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+        TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
     emm_msg->epsnetworkfeaturesupport = *msg->eps_network_feature_support;
     OAILOG_DEBUG(
-      LOG_NAS_EMM,
-      "EMMAS-SAP - size += "
-      "EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH(%d)  (%d)\n",
-      EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH,
-      size);
+        LOG_NAS_EMM,
+        "EMMAS-SAP - size += "
+        "EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH(%d)  (%d)\n",
+        EPS_NETWORK_FEATURE_SUPPORT_MAXIMUM_LENGTH, size);
   }
 
   /* If CSFB is enabled send LAI,Mobile Identity
-  *  and Additional Update type
-  */
-  if (
-    (_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
-    (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) {
+   *  and Additional Update type
+   */
+  if ((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
+      (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) {
     if (msg->sgs_loc_updt_status == SUCCESS) {
-      //LAI
+      // LAI
       if (msg->location_area_identification) {
         emm_msg->presencemask |=
-          TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
+            TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
         emm_msg->locationareaidentification.mccdigit2 =
-          msg->location_area_identification->mccdigit2;
+            msg->location_area_identification->mccdigit2;
         emm_msg->locationareaidentification.mccdigit1 =
-          msg->location_area_identification->mccdigit1;
+            msg->location_area_identification->mccdigit1;
         emm_msg->locationareaidentification.mncdigit3 =
-          msg->location_area_identification->mncdigit3;
+            msg->location_area_identification->mncdigit3;
         emm_msg->locationareaidentification.mccdigit3 =
-          msg->location_area_identification->mccdigit3;
+            msg->location_area_identification->mccdigit3;
         emm_msg->locationareaidentification.mncdigit2 =
-          msg->location_area_identification->mncdigit2;
+            msg->location_area_identification->mncdigit2;
         emm_msg->locationareaidentification.mncdigit1 =
-          msg->location_area_identification->mncdigit1;
+            msg->location_area_identification->mncdigit1;
         emm_msg->locationareaidentification.lac =
-          msg->location_area_identification->lac;
+            msg->location_area_identification->lac;
         size += LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH;
       }
-      //Mobile Identity
+      // Mobile Identity
       if (msg->ms_identity) {
         emm_msg->presencemask |=
-          TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT;
+            TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT;
         if (msg->ms_identity->imsi.typeofidentity == MOBILE_IDENTITY_IMSI) {
           memcpy(
-            &emm_msg->msidentity.imsi,
-            &msg->ms_identity->imsi,
-            sizeof(msg->ms_identity->imsi));
+              &emm_msg->msidentity.imsi, &msg->ms_identity->imsi,
+              sizeof(msg->ms_identity->imsi));
           memcpy(
-            &emm_msg->msidentity.tmsi,
-            &msg->ms_identity->tmsi,
-            sizeof(msg->ms_identity->tmsi));
+              &emm_msg->msidentity.tmsi, &msg->ms_identity->tmsi,
+              sizeof(msg->ms_identity->tmsi));
         }
         size += MOBILE_IDENTITY_MAXIMUM_LENGTH;
       }
       // Additional Update Type
       if (msg->additional_update_result) {
         emm_msg->presencemask |=
-          TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
+            TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
         emm_msg->additionalupdateresult = *(msg->additional_update_result);
         size += ADDITIONAL_UPDATE_RESULT_MAXIMUM_LENGTH;
       }
-      //Overwrite Update type as EPS_UPDATE_RESULT_COMBINED_TA_LA_UPDATED
+      // Overwrite Update type as EPS_UPDATE_RESULT_COMBINED_TA_LA_UPDATED
       emm_msg->epsupdateresult = EPS_UPDATE_RESULT_COMBINED_TA_LA_UPDATED;
     } else {
       emm_msg->emmcause = (emm_cause_t) *msg->sgs_reject_cause;
@@ -1251,16 +1209,14 @@ int emm_send_tracking_area_update_accept_dl_nas(
  **                                                                        **
  ***************************************************************************/
 int emm_send_tracking_area_update_reject(
-  const emm_as_establish_t *msg,
-  tracking_area_update_reject_msg *emm_msg)
-{
+    const emm_as_establish_t* msg, tracking_area_update_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - Send Tracking Area Update Reject message (cause=%d)\n",
-    msg->emm_cause);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Send Tracking Area Update Reject message (cause=%d)\n",
+      msg->emm_cause);
   /*
    * Mandatory - Message type
    */
@@ -1292,16 +1248,13 @@ int emm_send_tracking_area_update_reject(
  **                                                                        **
  ***************************************************************************/
 int emm_send_service_reject(
-  const uint8_t emm_cause,
-  service_reject_msg *emm_msg)
-{
+    const uint8_t emm_cause, service_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   OAILOG_INFO(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - Send Service Reject message (cause=%d)\n",
-    emm_cause);
+      LOG_NAS_EMM, "EMMAS-SAP - Send Service Reject message (cause=%d)\n",
+      emm_cause);
   /*
    * Mandatory - Message type
    */
@@ -1333,14 +1286,14 @@ int emm_send_service_reject(
  **                                                                        **
  ***************************************************************************/
 int emm_send_identity_request(
-  const emm_as_security_t *msg,
-  identity_request_msg *emm_msg)
-{
+    const emm_as_security_t* msg, identity_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Identity Request message for ue_id = (%u)\n",
-    msg->ue_id);
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Send Identity Request message for ue_id = (%u)\n",
+      msg->ue_id);
   /*
    * Mandatory - Message type
    */
@@ -1384,14 +1337,14 @@ int emm_send_identity_request(
  **                                                                        **
  ***************************************************************************/
 int emm_send_authentication_request(
-  const emm_as_security_t *msg,
-  authentication_request_msg *emm_msg)
-{
+    const emm_as_security_t* msg, authentication_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Authentication Request message for ue_id = (%u)\n",
-    msg->ue_id);
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Send Authentication Request message for ue_id = (%u)\n",
+      msg->ue_id);
   /*
    * Mandatory - Message type
    */
@@ -1407,7 +1360,7 @@ int emm_send_authentication_request(
    */
   size += AUTHENTICATION_PARAMETER_RAND_IE_MAX_LENGTH;
   emm_msg->authenticationparameterrand =
-    blk2bstr((const void *) msg->rand, AUTH_RAND_SIZE);
+      blk2bstr((const void*) msg->rand, AUTH_RAND_SIZE);
   if (!emm_msg->authenticationparameterrand) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -1416,7 +1369,7 @@ int emm_send_authentication_request(
    */
   size += AUTHENTICATION_PARAMETER_AUTN_IE_MAX_LENGTH;
   emm_msg->authenticationparameterautn =
-    blk2bstr((const void *) msg->autn, AUTH_AUTN_SIZE);
+      blk2bstr((const void*) msg->autn, AUTH_AUTN_SIZE);
   if (!emm_msg->authenticationparameterautn) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -1440,12 +1393,11 @@ int emm_send_authentication_request(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_authentication_request(authentication_request_msg *emm_msg)
-{
+void emm_free_send_authentication_request(authentication_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMMAS-SAP - Freeing Send Authentication Request message\n");
+      LOG_NAS_EMM, "EMMAS-SAP - Freeing Send Authentication Request message\n");
   bdestroy(emm_msg->authenticationparameterrand);
   bdestroy(emm_msg->authenticationparameterautn);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
@@ -1469,8 +1421,7 @@ void emm_free_send_authentication_request(authentication_request_msg *emm_msg)
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_authentication_reject(authentication_reject_msg *emm_msg)
-{
+int emm_send_authentication_reject(authentication_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1500,14 +1451,14 @@ int emm_send_authentication_reject(authentication_reject_msg *emm_msg)
  **                                                                        **
  ***************************************************************************/
 int emm_send_security_mode_command(
-  const emm_as_security_t *msg,
-  security_mode_command_msg *emm_msg)
-{
+    const emm_as_security_t* msg, security_mode_command_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send Security Mode Command message for ue_id = (%u)\n",
-    msg->ue_id);
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Send Security Mode Command message for ue_id = (%u)\n",
+      msg->ue_id);
   /*
    * Mandatory - Message type
    */
@@ -1517,9 +1468,9 @@ int emm_send_security_mode_command(
    */
   size += NAS_SECURITY_ALGORITHMS_MAXIMUM_LENGTH;
   emm_msg->selectednassecurityalgorithms.typeofcipheringalgorithm =
-    msg->selected_eea;
+      msg->selected_eea;
   emm_msg->selectednassecurityalgorithms.typeofintegrityalgorithm =
-    msg->selected_eia;
+      msg->selected_eia;
   /*
    * NAS key set identifier
    */
@@ -1530,14 +1481,14 @@ int emm_send_security_mode_command(
    * Replayed UE security capabilities
    */
   size += UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH;
-  emm_msg->replayeduesecuritycapabilities.eea = msg->eea;
-  emm_msg->replayeduesecuritycapabilities.eia = msg->eia;
+  emm_msg->replayeduesecuritycapabilities.eea          = msg->eea;
+  emm_msg->replayeduesecuritycapabilities.eia          = msg->eia;
   emm_msg->replayeduesecuritycapabilities.umts_present = msg->umts_present;
   emm_msg->replayeduesecuritycapabilities.gprs_present = msg->gprs_present;
-  emm_msg->replayeduesecuritycapabilities.uea = msg->uea;
-  emm_msg->replayeduesecuritycapabilities.uia = msg->uia;
-  emm_msg->replayeduesecuritycapabilities.gea = msg->gea;
-  emm_msg->presencemask = 0;
+  emm_msg->replayeduesecuritycapabilities.uea          = msg->uea;
+  emm_msg->replayeduesecuritycapabilities.uia          = msg->uia;
+  emm_msg->replayeduesecuritycapabilities.gea          = msg->gea;
+  emm_msg->presencemask                                = 0;
 
   /*
    *  Setting the IMEISV Request
@@ -1549,13 +1500,11 @@ int emm_send_security_mode_command(
     OAILOG_DEBUG(LOG_NAS_EMM, "imeisv flag :%d\n", emm_msg->imeisvrequest);
   }
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "replayeduesecuritycapabilities.gprs_present %d\n",
-    emm_msg->replayeduesecuritycapabilities.gprs_present);
+      LOG_NAS_EMM, "replayeduesecuritycapabilities.gprs_present %d\n",
+      emm_msg->replayeduesecuritycapabilities.gprs_present);
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "replayeduesecuritycapabilities.gea          %d\n",
-    emm_msg->replayeduesecuritycapabilities.gea);
+      LOG_NAS_EMM, "replayeduesecuritycapabilities.gea          %d\n",
+      emm_msg->replayeduesecuritycapabilities.gea);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, size);
 }
@@ -1580,15 +1529,13 @@ int emm_send_security_mode_command(
  **                                                                        **
  ***************************************************************************/
 int emm_send_emm_information(
-  const emm_as_data_t *msg,
-  emm_information_msg *emm_msg)
-{
+    const emm_as_data_t* msg, emm_information_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  int size = EMM_HEADER_MAXIMUM_LENGTH;
-  int addci = 0;
+  int size     = EMM_HEADER_MAXIMUM_LENGTH;
+  int addci    = 0;
   int noOfBits = 0;
   time_t t;
-  struct tm *tmp;
+  struct tm* tmp;
   struct tm updateTime;
 
   /*
@@ -1602,14 +1549,14 @@ int emm_send_emm_information(
   size += NETWORK_NAME_IE_MAX_LENGTH;
   emm_msg->presencemask |= EMM_INFORMATION_FULL_NAME_FOR_NETWORK_PRESENT;
   emm_msg->fullnamefornetwork.codingscheme = 0x00;
-  emm_msg->fullnamefornetwork.addci = addci;
+  emm_msg->fullnamefornetwork.addci        = addci;
 
   noOfBits = blength(msg->full_network_name) * 7;
 
   /* Check if there are any spare bits */
   if (noOfBits % 8 != 0) {
     emm_msg->fullnamefornetwork.numberofsparebitsinlastoctet =
-      8 - (noOfBits % 8);
+        8 - (noOfBits % 8);
   } else {
     emm_msg->fullnamefornetwork.numberofsparebitsinlastoctet = 0;
   }
@@ -1621,14 +1568,14 @@ int emm_send_emm_information(
   size += NETWORK_NAME_IE_MAX_LENGTH;
   emm_msg->presencemask |= EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_PRESENT;
   emm_msg->shortnamefornetwork.codingscheme = 0x00;
-  emm_msg->shortnamefornetwork.addci = addci;
+  emm_msg->shortnamefornetwork.addci        = addci;
 
   noOfBits = blength(msg->short_network_name) * 7;
 
   /* Check if there are any spare bits */
   if (noOfBits % 8 != 0) {
     emm_msg->shortnamefornetwork.numberofsparebitsinlastoctet =
-      8 - (noOfBits % 8);
+        8 - (noOfBits % 8);
   } else {
     emm_msg->shortnamefornetwork.numberofsparebitsinlastoctet = 0;
   }
@@ -1645,7 +1592,7 @@ int emm_send_emm_information(
   /*
    * optional - Universal time and Local Time Zone
    */
-  t = time(NULL);
+  t   = time(NULL);
   tmp = localtime_r(&t, &updateTime);
   if (tmp == NULL) {
     OAILOG_ERROR(LOG_NAS_EMM, "localtime() failed to get local timer info");
@@ -1653,12 +1600,12 @@ int emm_send_emm_information(
   }
   size += TIME_ZONE_AND_TIME_MAX_LENGTH;
   emm_msg->presencemask |=
-    EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_PRESENT;
+      EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_PRESENT;
 
-  emm_msg->universaltimeandlocaltimezone.year = updateTime.tm_year;
-  emm_msg->universaltimeandlocaltimezone.month = updateTime.tm_mon;
-  emm_msg->universaltimeandlocaltimezone.day = updateTime.tm_mday;
-  emm_msg->universaltimeandlocaltimezone.hour = updateTime.tm_hour;
+  emm_msg->universaltimeandlocaltimezone.year   = updateTime.tm_year;
+  emm_msg->universaltimeandlocaltimezone.month  = updateTime.tm_mon;
+  emm_msg->universaltimeandlocaltimezone.day    = updateTime.tm_mday;
+  emm_msg->universaltimeandlocaltimezone.hour   = updateTime.tm_hour;
   emm_msg->universaltimeandlocaltimezone.minute = updateTime.tm_min;
   emm_msg->universaltimeandlocaltimezone.second = updateTime.tm_sec;
   if (emm_msg->localtimezone != RETURNerror) {
@@ -1695,9 +1642,7 @@ int emm_send_emm_information(
  ***************************************************************************/
 
 int emm_send_dl_nas_transport(
-  const emm_as_data_t *msg,
-  downlink_nas_transport_msg *emm_msg)
-{
+    const emm_as_data_t* msg, downlink_nas_transport_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
   /*
@@ -1729,11 +1674,10 @@ int emm_send_dl_nas_transport(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_emm_information(emm_information_msg *emm_msg)
-{
+void emm_free_send_emm_information(emm_information_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMMAS-SAP - Freeing send EMM information message\n");
+      LOG_NAS_EMM, "EMMAS-SAP - Freeing send EMM information message\n");
   bdestroy(emm_msg->fullnamefornetwork.textstring);
   bdestroy(emm_msg->shortnamefornetwork.textstring);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
@@ -1749,17 +1693,16 @@ void emm_free_send_emm_information(emm_information_msg *emm_msg)
  ** Outputs:            Returns the Timezone numerical format              **
  **                                                                        **
  ***************************************************************************/
-int get_time_zone(void)
-{
-  char timestr[20] = {0};
+int get_time_zone(void) {
+  char timestr[20]               = {0};
   char string[MAX_MINUTE_DIGITS] = {0};
   time_t t;
-  struct tm *tmp;
+  struct tm* tmp;
   struct tm updateTime;
   int hour = 0, minute = 0, timezone = 0;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  t = time(NULL);
+  t   = time(NULL);
   tmp = localtime_r(&t, &updateTime);
   if (tmp == NULL) {
     OAILOG_ERROR(LOG_NAS_EMM, "localtime_r() failed to get local timer info ");
@@ -1774,7 +1717,7 @@ int get_time_zone(void)
   if (timestr[0] == '-') {
     timezone = 0x08;
   }
-  hour = (10 * (timestr[1] - '0')) | (timestr[2] - '0');
+  hour   = (10 * (timestr[1] - '0')) | (timestr[2] - '0');
   minute = ((10 * (timestr[3] - '0')) | (timestr[4] - '0')) + (hour * 60);
   minute /= 15;
 
@@ -1805,9 +1748,7 @@ int get_time_zone(void)
  **                                                                        **
  ***************************************************************************/
 int emm_send_cs_service_notification(
-  const emm_as_data_t *msg,
-  cs_service_notification_msg *emm_msg)
-{
+    const emm_as_data_t* msg, cs_service_notification_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1848,11 +1789,10 @@ int emm_send_cs_service_notification(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_dl_nas_transport(downlink_nas_transport_msg *emm_msg)
-{
+void emm_free_send_dl_nas_transport(downlink_nas_transport_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(
-    LOG_NAS_EMM, "EMMAS-SAP - Freeing send DL NAS Transport message\n");
+      LOG_NAS_EMM, "EMMAS-SAP - Freeing send DL NAS Transport message\n");
   bdestroy(emm_msg->nasmessagecontainer);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
@@ -1874,15 +1814,14 @@ void emm_free_send_dl_nas_transport(downlink_nas_transport_msg *emm_msg)
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_cs_service_notification(cs_service_notification_msg *emm_msg)
-{
+void emm_free_send_cs_service_notification(
+    cs_service_notification_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(
-    LOG_NAS_EMM,
-    "EMMAS-SAP - Freeing CLI sent in CS Service Notification message\n");
-  if (
-    (emm_msg->presencemask & CS_SERVICE_NOTIFICATION_CLI_PRESENT) ==
-    CS_SERVICE_NOTIFICATION_CLI_PRESENT) {
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Freeing CLI sent in CS Service Notification message\n");
+  if ((emm_msg->presencemask & CS_SERVICE_NOTIFICATION_CLI_PRESENT) ==
+      CS_SERVICE_NOTIFICATION_CLI_PRESENT) {
     if (emm_msg->cli != NULL) {
       bdestroy(emm_msg->cli);
     }

@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package service_health
@@ -11,6 +16,7 @@ package service_health
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -20,7 +26,6 @@ import (
 
 const (
 	dockerRequestTimeout = 3 * time.Second
-	radiusServiceName    = "/radius"
 )
 
 // DockerServiceHealthProvider provides service health for
@@ -58,13 +63,11 @@ func (d *DockerServiceHealthProvider) GetUnhealthyServices() ([]string, error) {
 		if len(container.Names) == 0 {
 			continue
 		}
-		// Since we purposely stop the RADIUS server on Disable
-		// don't include in the check
-		// TODO: Remove once transport failover is implemented
-		if container.Names[0] == radiusServiceName {
-			continue
+		serviceName := container.Names[0]
+		if strings.HasPrefix(serviceName, "/") {
+			serviceName = strings.ReplaceAll(serviceName, "/", "")
 		}
-		unhealthyServices = append(unhealthyServices, container.Names[0])
+		unhealthyServices = append(unhealthyServices, serviceName)
 	}
 	return unhealthyServices, nil
 }

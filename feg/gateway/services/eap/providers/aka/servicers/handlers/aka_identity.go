@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // Package handlers provided AKA Response handlers for supported AKA subtypes
@@ -12,9 +17,9 @@ package handlers
 import (
 	"fmt"
 	"io"
-	"log"
 	"strings"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/gateway/services/aaa/protos"
@@ -43,7 +48,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packe
 	}
 	if len(ctx.SessionId) == 0 {
 		ctx.SessionId = eap.CreateSessionId()
-		log.Printf("Missing Session ID for EAP: %x; Generated new SID: %s", req, ctx.SessionId)
+		glog.Warningf("Missing Session ID for EAP: %x; Generated new SID: %s", req, ctx.SessionId)
 	}
 	scanner, err := eap.NewAttributeScanner(req)
 	if err != nil {
@@ -58,7 +63,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packe
 			identity, imsi, err := getIMSIIdentity(a)
 			if err == nil {
 				if imsi[0] != '0' {
-					log.Printf("AKA AT_IDENTITY '%s' (IMSI: %s) is non-permanent type", identity, imsi)
+					glog.Warningf("AKA AT_IDENTITY '%s' (IMSI: %s) is non-permanent type", identity, imsi)
 				} else {
 					imsi = imsi[1:]
 				}
@@ -68,13 +73,13 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packe
 						identifier,
 						aka.NOTIFICATION_FAILURE,
 						codes.PermissionDenied,
-						"PLMN ID of IMSI: %s is not whitelisted", imsi)
+						"PLMN ID of IMSI: %s is not allowlisted", imsi)
 				}
 				ctx.Imsi = string(imsi)                  // set IMSI
 				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call
 				state, t := uc.State()
 				if state > aka.StateCreated {
-					log.Printf(
+					glog.Errorf(
 						"EAP AKA IdentityResponse: Unexpected user state: %d,%s for IMSI: %s, CTX Identity: %s",
 						state, t, imsi, uc.Identity)
 				}

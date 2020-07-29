@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,7 +17,7 @@
 
 #pragma once
 
-#include <gmp.h> // gross but necessary to link spgw_config.h
+#include <gmp.h>  // gross but necessary to link spgw_config.h
 
 #include "OpenflowController.h"
 
@@ -34,10 +30,8 @@ namespace openflow {
 class GTPApplication : public Application {
  public:
   GTPApplication(
-    const std::string& uplink_mac,
-    uint32_t gtp_port_num,
-    uint32_t mtr_port_num,
-    uint32_t uplink_port_num);
+      const std::string& uplink_mac, uint32_t gtp_port_num,
+      uint32_t mtr_port_num, uint32_t uplink_port_num);
 
  private:
   /**
@@ -48,74 +42,65 @@ class GTPApplication : public Application {
    * @param ev (in) - pointer to some subclass of ControllerEvent that occurred
    */
   virtual void event_callback(
-    const ControllerEvent &ev,
-    const OpenflowMessenger &messenger);
+      const ControllerEvent& ev, const OpenflowMessenger& messenger);
 
   /*
    * Add uplink flow from UE to internet
    * @param ev - AddGTPTunnelEvent containing ue ip, enb ip, and tunnel id's
    */
   void add_uplink_tunnel_flow(
-    const AddGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
 
   /*
    * Add downlink flow from internet to UE
    * @param ev - AddGTPTunnelEvent containing ue ip, enb ip, and tunnel id's
    */
   void add_downlink_tunnel_flow(
-    const AddGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger,
-    uint32_t port_number);
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
 
   /*
    * Remove uplink tunnel flow on disconnect
    * @param ev - DeleteGTPTunnelEvent containing ue ip, and inbound tei
    */
   void delete_uplink_tunnel_flow(
-    const DeleteGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
 
   /*
    * Remove downlink tunnel flow on disconnect
    * @param ev - DeleteGTPTunnelEvent containing ue ip, and inbound tei
    */
   void delete_downlink_tunnel_flow(
-    const DeleteGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger,
-    uint32_t port_number);
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
   /*
    * Discard downlink data received for UE IP during UE suspended state
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void discard_downlink_tunnel_flow(
-    const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger,
-    uint32_t port_number);
+      const HandleDataOnGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
   /*
    * Discard uplink data received for sgw-S1U-teid during UE suspended state
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void discard_uplink_tunnel_flow(
-    const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+      const HandleDataOnGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
   /*
    * Remove the rule inserted to discard data for UE IP  UE suspended state
    * And Forward data existing rule
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void forward_downlink_tunnel_flow(
-    const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger,
-    uint32_t port_number);
+      const HandleDataOnGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
   /*
    * Remove the rule inserted to discard data for UE in suspended state
    * And Forward data existing rule
    * @param ev - HandleDataOnGTPTunnelEvent containing ue ip, and inbound tei
    */
   void forward_uplink_tunnel_flow(
-    const HandleDataOnGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger);
+      const HandleDataOnGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
   /*
    * Convert flow rule precedence to OF flow priority
    * @param precedence - can be between 0 and DEFAULT_PRECEDENCE
@@ -129,18 +114,16 @@ class GTPApplication : public Application {
    * @param ev - AddGTPTunnelEvent containing ue ip
    */
   void add_downlink_arp_flow(
-    const AddGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger,
-    uint32_t port_number);
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
 
   /**
    * Delete arp flow of the UE.
    * @param ev - AddGTPTunnelEvent containing ue ip
    */
   void delete_downlink_arp_flow(
-    const DeleteGTPTunnelEvent &ev,
-    const OpenflowMessenger &messenger,
-    uint32_t port_number);
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
 
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
@@ -159,4 +142,4 @@ class GTPApplication : public Application {
   const uint32_t uplink_port_num_;
 };
 
-} // namespace openflow
+}  // namespace openflow

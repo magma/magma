@@ -2,12 +2,8 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -73,63 +69,59 @@
  **                                                                        **
  ***************************************************************************/
 int esm_proc_status_ind(
-  emm_context_t *emm_context,
-  proc_tid_t pti,
-  ebi_t ebi,
-  esm_cause_t *esm_cause)
-{
+    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
+    esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
 
   OAILOG_INFO(
-    LOG_NAS_ESM,
-    "ESM-PROC  - ESM status procedure requested (cause=%d)\n",
-    *esm_cause);
+      LOG_NAS_ESM, "ESM-PROC  - ESM status procedure requested (cause=%d)\n",
+      *esm_cause);
   OAILOG_DEBUG(LOG_NAS_ESM, "ESM-PROC  - To be implemented\n");
 
   switch (*esm_cause) {
     case ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY:
       /*
-     * Abort any ongoing ESM procedure related to the received EPS
-     * bearer identity, stop any related timer, and deactivate the
-     * corresponding EPS bearer context locally
-     */
+       * Abort any ongoing ESM procedure related to the received EPS
+       * bearer identity, stop any related timer, and deactivate the
+       * corresponding EPS bearer context locally
+       */
       /*
-     * TODO
-     */
+       * TODO
+       */
       rc = RETURNok;
       break;
 
     case ESM_CAUSE_INVALID_PTI_VALUE:
       /*
-     * Abort any ongoing ESM procedure related to the received PTI
-     * value and stop any related timer
-     */
+       * Abort any ongoing ESM procedure related to the received PTI
+       * value and stop any related timer
+       */
       /*
-     * TODO
-     */
+       * TODO
+       */
       rc = RETURNok;
       break;
 
     case ESM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED:
       /*
-     * Abort any ongoing ESM procedure related to the PTI or
-     * EPS bearer identity and stop any related timer
-     */
+       * Abort any ongoing ESM procedure related to the PTI or
+       * EPS bearer identity and stop any related timer
+       */
       /*
-     * TODO
-     */
+       * TODO
+       */
       rc = RETURNok;
       break;
 
     default:
       /*
-     * No state transition and no specific action shall be taken;
-     * local actions are possible
-     */
+       * No state transition and no specific action shall be taken;
+       * local actions are possible
+       */
       /*
-     * TODO
-     */
+       * TODO
+       */
       rc = RETURNok;
       break;
   }
@@ -156,29 +148,25 @@ int esm_proc_status_ind(
  **                                                                        **
  ***************************************************************************/
 int esm_proc_status(
-  const bool is_standalone,
-  emm_context_t *const emm_context,
-  const ebi_t ebi,
-  STOLEN_REF bstring *msg,
-  const bool ue_triggered)
-{
+    const bool is_standalone, emm_context_t* const emm_context, const ebi_t ebi,
+    STOLEN_REF bstring* msg, const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc = RETURNerror;
+  int rc            = RETURNerror;
   emm_sap_t emm_sap = {0};
   mme_ue_s1ap_id_t ue_id =
-    PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-      ->mme_ue_s1ap_id;
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
+          ->mme_ue_s1ap_id;
 
   OAILOG_INFO(LOG_NAS_ESM, "ESM-PROC  - ESM status procedure requested\n");
   /*
    * Notity EMM that ESM PDU has to be forwarded to lower layers
    */
-  emm_sap.primitive = EMMESM_UNITDATA_REQ;
-  emm_sap.u.emm_esm.ue_id = ue_id;
-  emm_sap.u.emm_esm.ctx = emm_context;
+  emm_sap.primitive            = EMMESM_UNITDATA_REQ;
+  emm_sap.u.emm_esm.ue_id      = ue_id;
+  emm_sap.u.emm_esm.ctx        = emm_context;
   emm_sap.u.emm_esm.u.data.msg = *msg;
-  *msg = NULL;
-  rc = emm_sap_send(&emm_sap);
+  *msg                         = NULL;
+  rc                           = emm_sap_send(&emm_sap);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 

@@ -1,26 +1,30 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
  */
 import type {KPIRows} from '../../components/KPIGrid';
-import type {subscriber} from '../../../../../fbcnms-packages/fbcnms-magma-api';
+import type {subscriber} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
-import GpsFixed from '@material-ui/icons/GpsFixed';
+import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import KPIGrid from '../../components/KPIGrid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -31,8 +35,10 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
+import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -94,7 +100,6 @@ export default function SubscriberDetail(props: {
   subscriberMap: ?{[string]: subscriber},
 }) {
   const classes = useStyles();
-  const [tabPos, setTabPos] = React.useState(0);
   const {relativePath, relativeUrl, match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
   const subscriberInfo = props.subscriberMap?.[subscriberId];
@@ -112,8 +117,7 @@ export default function SubscriberDetail(props: {
         <Grid container direction="row" justify="flex-end" alignItems="center">
           <Grid item xs={12}>
             <Tabs
-              value={tabPos}
-              onChange={(event, v) => setTabPos(v)}
+              value={GetCurrentTabPos(match.url, DetailTabItems)}
               indicatorColor="primary"
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
@@ -154,6 +158,12 @@ export default function SubscriberDetail(props: {
           path={relativePath('/overview')}
           render={() => <Overview subscriberInfo={subscriberInfo} />}
         />
+        <Route
+          path={relativePath('/event')}
+          render={() => (
+            <EventsTable sz="lg" eventTypes={magmaEventTypes.SUBSCRIBER} />
+          )}
+        />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
@@ -189,12 +199,11 @@ function Overview(props: {subscriberInfo: subscriber}) {
           />
         </Grid>
         <Grid item xs={12}>
-          <Grid item xs={12}>
-            <CardTitleRow icon={GpsFixed} label="Events" />
-            <Paper className={classes.paper} elevation={0}>
-              <Text variant="body2">Event Table Goes Here</Text>
-            </Paper>
-          </Grid>
+          <EventsTable
+            eventTypes={magmaEventTypes.SUBSCRIBER}
+            eventKey={props.subscriberInfo.id}
+            sz="md"
+          />
         </Grid>
       </Grid>
     </div>

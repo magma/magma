@@ -1,8 +1,14 @@
 /**
- * Copyright 2004-present Facebook. All Rights Reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
@@ -214,10 +220,20 @@ export default createMuiTheme({
   typography: {
     ...typography,
   },
+  props: {
+    MuiDialogTitle: {
+      disableTypography: true, // No more wrapping children in typography component for dialog title
+    },
+  },
   overrides: {
     MuiAppBar: {
       colorPrimary: {
         color: colors.primary.white,
+      },
+    },
+    MuiBackdrop: {
+      root: {
+        backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
       },
     },
     MuiButton: {
@@ -241,10 +257,52 @@ export default createMuiTheme({
         },
       },
     },
+    MuiDivider: {
+      root: {
+        backgroundColor: colors.primary.concrete,
+        height: '2px',
+      },
+    },
+    MuiDialog: {
+      paper: {
+        backgroundColor: colors.primary.concrete,
+      },
+    },
+    MuiDialogActions: {
+      root: {
+        backgroundColor: colors.primary.white,
+        boxShadow: shadows.DP3,
+        padding: '20px',
+      },
+    },
+    MuiDialogContent: {
+      root: {
+        padding: '32px',
+      },
+    },
+    MuiDialogTitle: {
+      root: {
+        backgroundColor: colors.primary.mirage,
+        padding: '16px 24px',
+        color: colors.primary.white,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+      },
+    },
     MuiFormControl: {
       marginDense: {
         marginTop: '0px',
         marginBottom: '0px',
+      },
+    },
+    MuiFormLabel: {
+      root: {
+        '&$error': {
+          ...typography.overline,
+          color: colors.state.error,
+        },
       },
     },
     MuiToggleButtonGroup: {
@@ -277,6 +335,18 @@ export default createMuiTheme({
         backgroundColor: colors.button.fill,
       },
     },
+    MuiTabs: {
+      indicator: {
+        height: '4px',
+      },
+    },
+    MuiTab: {
+      root: {
+        textTransform: 'none',
+        ...typography.body1,
+        padding: '12px 24px',
+      },
+    },
     MuiTableRow: {
       root: {
         backgroundColor: 'white',
@@ -300,16 +370,21 @@ export default createMuiTheme({
     },
     MuiOutlinedInput: {
       root: {
+        borderRadius: '2px',
         height: '36px',
         '&$notchedOutline': {
-          borderColor: '#CCD0D5',
+          borderColor: colors.primary.gullGray,
         },
-        '&$focused $notchedOutline': {
-          borderColor: 'rgba(0, 0, 0, 0.87)',
+        '&$hovered $notchedOutline': {
+          borderColor: colors.secondary.malibu,
           borderWidth: '1px',
         },
+        '&$focused $notchedOutline': {
+          borderColor: colors.secondary.dodgerBlue,
+          borderWidth: '2px',
+        },
         '&$disabled': {
-          // background: gray0,
+          borderColor: colors.button.lightOutline,
         },
       },
       input: {

@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package handlers
@@ -20,8 +25,7 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/lib/go/metrics"
 
-	"magma/orc8r/cloud/go/services/metricsd/prometheus/configmanager/prometheus/alert"
-
+	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 	"github.com/labstack/echo"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
@@ -161,7 +165,7 @@ func sendConfig(payload interface{}, url string, method string) *echo.HTTPError 
 func retrieveAlertRule(c echo.Context, url string) error {
 	alertName := c.QueryParam(AlertNameQueryParam)
 	if alertName != "" {
-		url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, neturl.QueryEscape(alertName))
+		url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 	}
 
 	client := &http.Client{}
@@ -190,7 +194,7 @@ func deleteAlertRule(c echo.Context, url string) error {
 	if alertName == "" {
 		return obsidian.HttpError(fmt.Errorf("alert name not provided"), http.StatusBadRequest)
 	}
-	url += fmt.Sprintf("?%s=%s", AlertNameQueryParam, neturl.QueryEscape(alertName))
+	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
 	req, err := http.NewRequest(http.MethodDelete, url, nil)
 	if err != nil {
