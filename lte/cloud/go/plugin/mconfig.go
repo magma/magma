@@ -131,6 +131,7 @@ func (s *LteMconfigBuilderServicer) Build(
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 			DnsPrimary:               gwEpc.DNSPrimary,
 			DnsSecondary:             gwEpc.DNSSecondary,
+			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
 		"pipelined": &mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,

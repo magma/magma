@@ -10,18 +10,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-import logging
+import ipaddress
 import subprocess
 import threading
 import unittest
 import warnings
 from concurrent.futures import Future
-from unittest import mock
-from magma.common.redis.mocks.mock_redis import MockRedis
 
-from magma.mobilityd.uplink_gw import DHCP_Router_key, DHCP_Router_Mac_key
-from magma.mobilityd import mobility_store as store
+from lte.protos.mobilityd_pb2 import IPAddress, GWInfo, IPBlock
 
 from magma.pipelined.tests.app.start_pipelined import (
     TestSetup,
@@ -35,38 +31,44 @@ from magma.pipelined.tests.pipelined_test_util import (
     assert_bridge_snapshot_match,
 )
 
+from magma.pipelined.app import inout
+
+gw_info = GWInfo()
+
+
+def mocked_get_mobilityd_gw_info() -> GWInfo:
+    global gw_info
+    return gw_info
+
+
+def mocked_set_mobilityd_gw_info(updated_gw_info: GWInfo) -> GWInfo:
+    global gw_info
+    gw_info = updated_gw_info
+
 
 class InOutNonNatTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
-    script_path = "/home/vagrant/magma/lte/gateway/python/magma/mobilityd/"
-    uplink_br = "t_up_br0"
-    setup_done = False
+    SCRIPT_PATH = "/home/vagrant/magma/lte/gateway/python/magma/mobilityd/"
+    UPLINK_BR = "t_up_br0"
+    NON_NAT_ARP_EGRESS_PORT = "t1uplink_p0"
 
     @classmethod
     def setup_uplink_br(cls):
-        subprocess.check_call(["redis-cli", "flushall"])
-
-        setup_dhcp_server = cls.script_path + "scripts/setup-test-dhcp-srv.sh"
+        setup_dhcp_server = cls.SCRIPT_PATH + "scripts/setup-test-dhcp-srv.sh"
         subprocess.check_call([setup_dhcp_server, "t1"])
 
-        BridgeTools.destroy_bridge(cls.uplink_br)
-        setup_uplink_br = [cls.script_path + "scripts/setup-uplink-br.sh",
-                           cls.uplink_br,
-                           "t1uplink_p0",
-                           "8A:00:00:00:00:01"]
+        BridgeTools.destroy_bridge(cls.UPLINK_BR)
+        setup_uplink_br = [cls.SCRIPT_PATH + "scripts/setup-uplink-br.sh",
+                           cls.UPLINK_BR,
+                           cls.NON_NAT_ARP_EGRESS_PORT]
         subprocess.check_call(setup_uplink_br)
-        cls.setup_done = True
+        inout.get_mobilityd_gw_info = mocked_get_mobilityd_gw_info
+        inout.set_mobilityd_gw_info = mocked_set_mobilityd_gw_info
 
-    @mock.patch("redis.Redis", MockRedis)
     def setUp(self):
-        self._dhcp_gw_info_mock = store.GatewayInfoMap()
-
-        self._dhcp_gw_info_mock[DHCP_Router_key] = '192.168.128.211'
-        logging.info("set router key [{}]".format(self._dhcp_gw_info_mock[DHCP_Router_key]))
-
         """
         Starts the thread which launches ryu apps
 
@@ -74,6 +76,7 @@ class InOutNonNatTest(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
+
         cls = self.__class__
         super(InOutNonNatTest, cls).setUpClass()
         warnings.simplefilter('ignore')
@@ -103,7 +106,7 @@ class InOutNonNatTest(unittest.TestCase):
                 'clean_restart': True,
                 'enable_nat': False,
                 'non_mat_gw_probe_frequency': .2,
-                'non_nat_arp_egress_port': 't_dhcp0',
+                'non_nat_arp_egress_port': cls.UPLINK_BR,
                 'ovs_uplink_port_name': 'patch-up'
             },
             mconfig=None,
@@ -123,15 +126,17 @@ class InOutNonNatTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    @mock.patch("redis.Redis", MockRedis)
     def testFlowSnapshotMatch(self):
         # wait for atleast one iteration of the ARP probe.
-        while DHCP_Router_Mac_key not in self._dhcp_gw_info_mock:
-            threading.Event().wait(0.01)
+        global gw_info
+        ip_addr = ipaddress.ip_address("192.168.128.211")
+        gw_info.ip.version = IPBlock.IPV4
+        gw_info.ip.address = ip_addr.packed
 
-        threading.Event().wait(0.5)
+        while gw_info.mac is None or gw_info.mac == '':
+            threading.Event().wait(0.1)
         assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
-        print("done")
+        assert gw_info.mac == 'b2:a0:cc:85:80:7a'
 
 
 if __name__ == "__main__":

@@ -12,5 +12,6 @@ ovs-vsctl --may-exist add-port "$br" "$uplink"
 
 ovs-vsctl --may-exist add-port "$br" "$DHCP_PORT" -- set interface "$DHCP_PORT" type=internal
 ifconfig "$DHCP_PORT"  up
+ifconfig "$br"  up
 
 logger "uplink bridge setup done"
