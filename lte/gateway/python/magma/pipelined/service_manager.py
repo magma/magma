@@ -71,6 +71,7 @@ from ryu.base.app_manager import AppManager
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
+from magma.pipelined.app.gtp_flows import GtpFlows
 
 # Type is either Physical or Logical, highest order_priority is at zero
 App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
@@ -390,6 +391,12 @@ class ServiceManager:
                           module=InOutController.__module__,
                           type=None,
                           order_priority=0)]
+        app = [App(name=GtpFlows.APP_NAME,
+                   module=GtpFlows.__module__,
+                   type=None,
+                   order_priority=0)]
+        self._apps.extend(app)
+
         self._table_manager = _TableManager()
 
         self.rule_id_mapper = RuleIDToNumMapper()

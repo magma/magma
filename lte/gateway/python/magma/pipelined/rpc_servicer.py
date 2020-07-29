@@ -43,7 +43,7 @@ from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
-
+from magma.pipelined.app.gtp_flows import GtpFlows
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
@@ -52,7 +52,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
                  ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-                 tunnel_learn_app, service_manager):
+                 tunnel_learn_app, gtp_flows_app, service_manager):
         self._loop = loop
         self._gy_app = gy_app
         self._enforcer_app = enforcer_app
@@ -64,6 +64,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._vlan_learn_app = vlan_learn_app
         self._tunnel_learn_app = tunnel_learn_app
         self._service_manager = service_manager
+        self._gtp_flows_app = gtp_flows_app
 
     def add_to_server(self, server):
         """
@@ -210,6 +211,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, ip_addr, static_rule_ids, dynamic_rules)
         _report_enforcement_failures(enforcement_res, imsi)
+        self._gtp_flows_app._add_gtp_tunnel_flows(ip_addr)
         return enforcement_res
 
     def _activate_rules_in_gy(self, imsi: str, ip_addr: str,
@@ -250,6 +252,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id)
         self._enforcer_app.deactivate_rules(request.sid.id, request.rule_ids)
+        self._gtp_flows_app._delete_gtp_tunnel_flows()
 
     def _deactivate_flows_gy(self, request):
         logging.debug('Deactivating GY flows for %s', request.sid.id)

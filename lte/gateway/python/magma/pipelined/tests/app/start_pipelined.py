@@ -109,6 +109,9 @@ class PipelinedController(Enum):
     UplinkBridge = Controller(
         'magma.pipelined.app.uplink_bridge', 'uplink_bridge'
     )
+    GtpFlows = Controller(
+        'magma.pipelined.app.gtp_flows', 'gtp_flows'
+    )
 
 
 def assert_pipelined_not_running():

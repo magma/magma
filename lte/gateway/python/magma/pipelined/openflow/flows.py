@@ -563,3 +563,71 @@ def _check_resubmit_action(actions, parser):
         raise Exception(
             'Actions list should not contain NXActionResubmitTable',
         )
+
+def add_flow(datapath, match, actions=None, instructions=None,
+             priority=MINIMUM_PRIORITY, table_id=None,
+             goto_table=None, retries=3):
+    """
+    Add a flow from the given table
+
+    Args:
+        datapath (ryu.controller.controller.Datapath): Datapath to configure.
+        match (MagmaMatch): match for the flow
+        actions ([OFPAction]):
+            Actions for the flow. Ignored if `instructions` is set.
+        instructions ([OFPInstruction]):
+            Instructions for the flow. This will default to a single
+            OFPInstructionsActions for `actions`.
+        priority (int): Flow priority.
+        table (int): table to add the flow from.
+        goto_table (int): Go to the next table.
+        retries (int): retry attempts on failure.
+
+    Raises:
+        MagmaOFError: if the flow can't be deleted
+    """
+
+    ofproto = datapath.ofproto
+    parser = datapath.ofproto_parser
+
+    inst = __get_instructions_for_actions(ofproto, parser,
+                                        actions, instructions)
+
+    inst.append(parser.OFPInstructionGotoTable(goto_table))
+
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                             match=ryu_match, instructions=inst, table_id=table_id)
+    messages.send_msg(datapath, mod, retries)
+
+
+def add_flow_data_gtp(datapath, match, priority=MINIMUM_PRIORITY, table_id=None,
+                      cookie=0x0, cookie_mask=0x0,retries=3):
+
+    """
+    Add a flow for data forward/discard from the given table
+
+    Args:
+        datapath (ryu.controller.controller.Datapath): Datapath to configure.
+        match (MagmaMatch): match for the flow
+        priority (int): Flow priority.
+        table (int): table to add the flow from.
+        goto_table (int): Go to the next table.
+        cookie (hex): cookie value for the flow.
+        cookie_mask (hex): cookie_mask value for the flow.
+        retries (int): retry attempts on failure.
+
+    Raises:
+        MagmaOFError: if the flow can't be deleted
+    """
+    ofproto = datapath.ofproto
+    parser = datapath.ofproto_parser
+
+    ryu_match = parser.OFPMatch(**match.ryu_match)
+
+    mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                            match=ryu_match,table_id=table_id,
+                            out_group=ofproto.OFPG_ANY, out_port=ofproto.OFPP_ANY,
+                            cookie=cookie, cookie_mask=cookie_mask)
+    messages.send_msg(datapath, mod, retries)
