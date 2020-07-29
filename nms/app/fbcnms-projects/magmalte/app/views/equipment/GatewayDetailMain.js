@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
@@ -16,6 +21,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
@@ -36,11 +42,14 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
+import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -102,7 +111,7 @@ export function GatewayDetail({
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const gwInfo = lteGateways[gatewayId];
+  const [gwInfo, setGwInfo] = useState(lteGateways[gatewayId]);
   const gwEnbs =
     gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
@@ -196,8 +205,37 @@ export function GatewayDetail({
 
       <Switch>
         <Route
+          path={relativePath('/config/json')}
+          render={() => (
+            <GatewayJsonConfig
+              gwInfo={gwInfo}
+              onSave={gateway => {
+                setGwInfo(gateway);
+              }}
+            />
+          )}
+        />
+        <Route
           path={relativePath('/config')}
-          render={() => <GatewayConfig gwInfo={gwInfo} enbInfo={gwEnbs} />}
+          render={() => (
+            <GatewayConfig
+              gwInfo={gwInfo}
+              enbInfo={gwEnbs}
+              onSave={gateway => {
+                setGwInfo(gateway);
+              }}
+            />
+          )}
+        />
+        <Route
+          path={relativePath('/event')}
+          render={() => (
+            <EventsTable
+              eventTypes={magmaEventTypes.GATEWAY}
+              eventKey={gwInfo.device.hardware_id}
+              sz="lg"
+            />
+          )}
         />
         <Route
           path={relativePath('/overview')}
@@ -226,9 +264,11 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             </Grid>
             <Grid item xs={12} alignItems="center">
               <CardTitleRow icon={MyLocationIcon} label="Events" />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Event Information</Text>
-              </Paper>
+              <EventsTable
+                eventTypes={magmaEventTypes.GATEWAY}
+                eventKey={gwInfo.device.hardware_id}
+                sz="sm"
+              />
             </Grid>
           </Grid>
         </Grid>

@@ -1,9 +1,14 @@
 /*
- * Copyright (c) Facebook, Inc. and its affiliates.
- * All rights reserved.
+ * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  * @flow strict-local
  * @format
@@ -13,6 +18,7 @@ import type {KPIRows} from '../../components/KPIGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
 import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
@@ -20,17 +26,22 @@ import Divider from '@material-ui/core/Divider';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
 import KPIGrid from '../../components/KPIGrid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
-import {colors} from '../../theme/default';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
@@ -80,37 +91,84 @@ const useStyles = makeStyles(theme => ({
   itemValue: {
     color: colors.primary.brightGray,
   },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
 }));
+
+type Props = {
+  gwInfo: lte_gateway,
+  onSave?: lte_gateway => void,
+};
+
+export function GatewayJsonConfig(props: Props) {
+  const {match} = useRouter();
+  const [error, setError] = useState('');
+  const networkId: string = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  return (
+    <JsonEditor
+      content={props.gwInfo}
+      error={error}
+      onSave={async gateway => {
+        try {
+          await MagmaV1API.putLteByNetworkIdGatewaysByGatewayId({
+            networkId: networkId,
+            gatewayId: props.gwInfo.id,
+            gateway: (gateway: lte_gateway),
+          });
+          enqueueSnackbar('Gateway saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+          props.onSave?.(gateway);
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
 
 export default function GatewayConfig({
   gwInfo,
   enbInfo,
+  onSave,
 }: {
   gwInfo: lte_gateway,
   enbInfo: {[string]: EnodebInfo},
+  onSave: lte_gateway => void,
 }) {
   const classes = useStyles();
+  const {history, relativeUrl} = useRouter();
+
+  const editProps = {
+    gateway: gwInfo,
+    onSave: onSave,
+  };
 
   function ConfigFilter() {
-    return <Button variant="contained">Edit JSON</Button>;
+    return (
+      <Button
+        className={classes.appBarBtn}
+        onClick={() => {
+          history.push(relativeUrl('/json'));
+        }}>
+        Edit JSON
+      </Button>
+    );
   }
-
-  function GatewayFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
-  function AggregationsFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
-  function EpcFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
-  function RanFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -126,13 +184,28 @@ export default function GatewayConfig({
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Gateway" filter={GatewayFilter} />
+                  <CardTitleFilterRow label="Gateway" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'info',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
+                  />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow
-                    label="Aggregations"
-                    filter={AggregationsFilter}
+                  <CardTitleFilterRow label="Aggregations" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'aggregation',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
                   />
                   <GatewayAggregation gwInfo={gwInfo} />
                 </Grid>
@@ -141,11 +214,29 @@ export default function GatewayConfig({
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="EPC" filter={EpcFilter} />
+                  <CardTitleFilterRow label="EPC" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'epc',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
+                  />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Ran" filter={RanFilter} />
+                  <CardTitleFilterRow label="Ran" />
+                  <AddEditGatewayButton
+                    title={'Edit'}
+                    isLink={true}
+                    editProps={{
+                      ...editProps,
+                      editTable: 'ran',
+                      onSave: gateway => editProps.onSave?.(gateway),
+                    }}
+                  />
                   <GatewayRAN gwInfo={gwInfo} enbInfo={enbInfo} />
                 </Grid>
               </Grid>
@@ -169,7 +260,7 @@ function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
     [
       {
         category: 'Gateway ID',
-        value: gwInfo.device.hardware_id,
+        value: gwInfo.id,
         statusCircle: false,
       },
     ],

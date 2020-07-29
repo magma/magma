@@ -1,17 +1,20 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 import asyncio
 import logging
 
 import aioh2
 import h2.events
-from h2.exceptions import ProtocolError
 
 from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
 
@@ -96,15 +99,19 @@ class ControlProxyHttpClient(object):
                 SyncRPCResponse(heartBeat=False, reqId=req_id,
                                 respBody=GatewayResponse(err=str(e))))
         finally:
-            client.close_connection()
             del self._connection_table[req_id]
+            try:
+                client.close_connection()
+            except AttributeError as e:
+                logging.error('[SyncRPC] Error while trying to close conn: %s',
+                              str(e))
 
     def close_all_connections(self):
         connections = list(self._connection_table.values())
         for client in connections:
             try:
                 client.close_connection()
-            except (ConnectionAbortedError, ProtocolError) as e:
+            except (ConnectionAbortedError, AttributeError) as e:
                 logging.error('[SyncRPC] Error while trying to close conn: %s',
                               str(e))
         self._connection_table.clear()
