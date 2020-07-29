@@ -1610,17 +1610,17 @@ nw_rc_t nwGtpv2cInitialize(
   memset(thiz, 0, sizeof(nw_gtpv2c_stack_t));
 
   if (thiz) {
-    OAI_GCC_DIAG_OFF(pointer - to - int - cast);
+    OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
     thiz->id     = (uint32_t) thiz;
     thiz->seqNum = ((uint32_t) thiz) & 0x0000FFFF;
-    OAI_GCC_DIAG_ON(pointer - to - int - cast);
+    OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
     RB_INIT(&(thiz->tunnelMap));
     RB_INIT(&(thiz->outstandingTxSeqNumMap));
     RB_INIT(&(thiz->outstandingRxSeqNumMap));
     RB_INIT(&(thiz->activeTimerList));
-    OAI_GCC_DIAG_OFF(pointer - to - int - cast);
+    OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
     thiz->hTmrMinHeap = (NwPtrT) nwGtpv2cTmrMinHeapNew(10000);
-    OAI_GCC_DIAG_ON(pointer - to - int - cast);
+    OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
     NW_GTPV2C_INIT_MSG_IE_PARSE_INFO(thiz, NW_GTP_ECHO_RSP);
 
     // For S11 interface
@@ -1793,11 +1793,11 @@ nw_rc_t nwGtpv2cFinalize(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle) {
       ((nw_gtpv2c_stack_t*) hGtpcStackHandle)
           ->pGtpv2cMsgIeParseInfo[NW_GTP_IDENTIFICATION_RSP]);
 
-  OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+  OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
   nwGtpv2cTmrMinHeapDelete(
       (NwGtpv2cTmrMinHeapT*) ((nw_gtpv2c_stack_t*) hGtpcStackHandle)
           ->hTmrMinHeap);
-  OAI_GCC_DIAG_ON(int - to - pointer - cast);
+  OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
   free_wrapper((void**) &hGtpcStackHandle);
   return NW_OK;
 }
@@ -2180,11 +2180,11 @@ nw_rc_t nwGtpv2cProcessTimeout(void* arg) {
 
   if (thiz->activeTimerInfo == timeoutInfo) {
     thiz->activeTimerInfo = NULL;
-    OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+    OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
     rc = nwGtpv2cTmrMinHeapRemove(
         (NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap,
         timeoutInfo->timerMinHeapIndex);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
     timeoutInfo->next       = gpGtpv2cTimeoutInfoPool;
     gpGtpv2cTimeoutInfoPool = timeoutInfo;
     rc = ((timeoutInfo)->timeoutCallbackFunc)(timeoutInfo->timeoutArg);
@@ -2198,34 +2198,34 @@ nw_rc_t nwGtpv2cProcessTimeout(void* arg) {
   }
 
   NW_ASSERT(gettimeofday(&tv, NULL) == 0);
-  OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+  OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
   timeoutInfo =
       nwGtpv2cTmrMinHeapPeek((NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap);
-  OAI_GCC_DIAG_ON(int - to - pointer - cast);
+  OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
 
   while ((timeoutInfo) != NULL) {
     if (NW_GTPV2C_TIMER_CMP_P(&timeoutInfo->tvTimeout, &tv, >)) break;
 
-    OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+    OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
     rc = nwGtpv2cTmrMinHeapRemove(
         (NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap,
         timeoutInfo->timerMinHeapIndex);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON(int-to-pointer-cast);
     timeoutInfo->next       = gpGtpv2cTimeoutInfoPool;
     gpGtpv2cTimeoutInfoPool = timeoutInfo;
     rc = ((timeoutInfo)->timeoutCallbackFunc)(timeoutInfo->timeoutArg);
-    OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+    OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
     timeoutInfo =
         nwGtpv2cTmrMinHeapPeek((NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
   }
 
   // activeTimerInfo may be reset by the timeoutCallbackFunc call above
   if (thiz->activeTimerInfo == NULL) {
-    OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+    OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
     timeoutInfo =
         nwGtpv2cTmrMinHeapPeek((NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
 
     if (timeoutInfo) {
       NW_GTPV2C_TIMER_SUB(&timeoutInfo->tvTimeout, &tv, &tv);
@@ -2273,10 +2273,10 @@ nw_rc_t nwGtpv2cStartTimer(
     timeoutInfo->tvTimeout.tv_sec  = timeoutSec;
     timeoutInfo->tvTimeout.tv_usec = timeoutUsec;
     NW_GTPV2C_TIMER_ADD(&tv, &timeoutInfo->tvTimeout, &timeoutInfo->tvTimeout);
-    OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+    OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
     rc = nwGtpv2cTmrMinHeapInsert(
         (NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap, timeoutInfo);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
 #if 0
 
       do {
@@ -2422,10 +2422,10 @@ nw_rc_t nwGtpv2cStopTimer(
   NW_ASSERT(thiz != NULL);
   OAILOG_FUNC_IN(LOG_GTPV2C);
   timeoutInfo = (nw_gtpv2c_timeout_info_t*) hTimer;
-  OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+  OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
   rc = nwGtpv2cTmrMinHeapRemove(
       (NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap, timeoutInfo->timerMinHeapIndex);
-  OAI_GCC_DIAG_ON(int - to - pointer - cast);
+  OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
   timeoutInfo->next       = gpGtpv2cTimeoutInfoPool;
   gpGtpv2cTimeoutInfoPool = timeoutInfo;
   //    OAILOG_DEBUG (LOG_GTPV2C, "Stopping active timer 0x%" PRIxPTR " for info
@@ -2447,10 +2447,10 @@ nw_rc_t nwGtpv2cStopTimer(
       OAILOG_INFO(
           LOG_GTPV2C, "Stopped active timer 0x%" PRIxPTR " for info 0x%p!\n",
           timeoutInfo->hTimer, timeoutInfo);
-    OAI_GCC_DIAG_OFF(int - to - pointer - cast);
+    OAI_GCC_DIAG_OFF("-Wint-to-pointer-cast");
     timeoutInfo =
         nwGtpv2cTmrMinHeapPeek((NwGtpv2cTmrMinHeapT*) thiz->hTmrMinHeap);
-    OAI_GCC_DIAG_ON(int - to - pointer - cast);
+    OAI_GCC_DIAG_ON("-Wint-to-pointer-cast");
 
     if (timeoutInfo) {
       NW_ASSERT(gettimeofday(&tv, NULL) == 0);
