@@ -160,13 +160,13 @@ func main() {
 
 		return nil, nil
 	}
-	_, err = sqorc.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	_, err = migrations.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
 	if err != nil {
 		glog.Fatal(err)
 	}
 
 	if verify {
-		err := verifyMigration()
+		err := verifyMigration(db, builder)
 		if err != nil {
 			glog.Fatalf("configurator verification failed: %s", err)
 		}
@@ -382,20 +382,7 @@ func mergeGraphs(tx *sql.Tx, builder sqorc.StatementBuilder, network string, gid
 	sort.Strings(gids)
 	mergedGID, oldGIDs := gids[0], gids[1:]
 
-	isOldGID := squirrel.Or{}
-	for _, gid := range oldGIDs {
-		isOldGID = append(isOldGID, squirrel.Eq{entGidCol: gid})
-	}
-
-	b := builder.
-		Update(entityTable).
-		Set(entGidCol, mergedGID).
-		Where(
-			squirrel.And{
-				squirrel.Eq{entNidCol: network},
-				isOldGID,
-			},
-		)
+	b := builder.Update(entityTable).Set(entGidCol, mergedGID).Where(squirrel.Eq{entGidCol: oldGIDs})
 	sqlStr, args, _ := b.ToSql()
 	glog.Infof("[RUN] %s %v", sqlStr, args)
 	_, err := b.RunWith(tx).Exec()
@@ -406,9 +393,10 @@ func mergeGraphs(tx *sql.Tx, builder sqorc.StatementBuilder, network string, gid
 	return nil
 }
 
-// verifyMigration loads all subscribers into memory, and checks that they
-// each have an APN assoc.
-func verifyMigration() error {
+// verifyMigration checks invariants reported by the configurator service.
+//	- Ensures all subscribers have an APN assoc
+//	- Ensure default APN and its subscribers have same graph ID
+func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 	registry.MustPopulateServices()
 
 	nids, err := configurator.ListNetworkIDs()
@@ -417,14 +405,18 @@ func verifyMigration() error {
 	}
 
 	for _, nid := range nids {
-		subs, err := configurator.LoadAllEntitiesInNetwork(nid, subscriberEntType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+
+		// All subscribers have an APN
+
+		allSubs, err := configurator.LoadAllEntitiesInNetwork(nid, subscriberEntType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 		if err != nil {
 			return err
 		}
 
 		i := 0
-		for _, sub := range subs {
-			apns := funk.Chain(sub.Associations).
+		for _, sub := range allSubs {
+			apns := funk.
+				Chain(sub.Associations).
 				Filter(func(tk storage.TypeAndKey) bool { return tk.Type == apnEntType }).
 				Map(func(tk storage.TypeAndKey) string { return tk.Key }).
 				Value().([]string)
@@ -434,13 +426,81 @@ func verifyMigration() error {
 			}
 
 			if i < numManualVerificationsToLog {
-				glog.Infof("Subscriber %v has APN assocs %v", sub, apns)
+				glog.Infof("Subscriber %+v has APN assocs %+v", sub, apns)
 			}
 			i += 1
+		}
+
+		// Default APN and its subscribers have same graph ID
+
+		defaultAPN, err := configurator.LoadEntity(nid, apnEntType, types.DefaultAPNName, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+		if err != nil {
+			return err
+		}
+		subsFromAssocs := defaultAPN.ParentAssociations
+
+		subsFromGraphID, err := getSubscribersInDefaultAPNGraph(db, builder, nid)
+		if err != nil {
+			return err
+		}
+
+		// The default APN's subscribers should be a subset of the subscribers
+		// in the default APN's full graph
+		for _, sub := range subsFromAssocs {
+			if !funk.Contains(subsFromGraphID, sub.Key) {
+				return fmt.Errorf("network %s has graph ID error: subscriber %v not in default APN's graph", nid, sub)
+			}
 		}
 	}
 
 	return nil
+}
+
+// getSubscribersInDefaultAPNGraph lists keys for all subscribers with the same
+// graph ID as the default APN.
+func getSubscribersInDefaultAPNGraph(db *sql.DB, builder sqorc.StatementBuilder, network string) ([]string, error) {
+	txFn := func(tx *sql.Tx) (interface{}, error) {
+		defaultAPN, err := getDefaultAPN(tx, builder, network)
+		if err != nil {
+			return nil, err
+		}
+
+		rows, err := builder.
+			Select(entKeyCol).From(entityTable).
+			Where(
+				squirrel.And{
+					squirrel.Eq{entTypeCol: subscriberEntType},
+					squirrel.Eq{entGidCol: defaultAPN.graphID},
+				},
+			).
+			RunWith(tx).Query()
+		if err != nil {
+			return nil, errors.Wrap(err, "getSubscribersInDefaultAPNGraph: select subscribers")
+		}
+
+		var subs []string
+		for rows.Next() {
+			key := ""
+			err = rows.Scan(&key)
+			if err != nil {
+				return nil, errors.Wrap(err, "getSubscribersInDefaultAPNGraph: scan subscriber PK")
+			}
+			subs = append(subs, key)
+		}
+		err = rows.Err()
+		if err != nil {
+			return nil, errors.Wrap(err, "getSubscribersInDefaultAPNGraph: SQL rows error")
+		}
+
+		return subs, nil
+	}
+	ret, err := migrations.ExecInTx(db, &sql.TxOptions{Isolation: sql.LevelSerializable}, nil, txFn)
+	if err != nil {
+		return nil, err
+	}
+	subs := ret.([]string)
+
+	return subs, nil
 }
 
 func newUUID() string {
