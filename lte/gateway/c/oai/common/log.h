@@ -439,12 +439,10 @@ const char* const get_short_file_name(const char* const source_file_nameP);
                  n*LOG_MESSAGE_ADD() (n=0..N) */
 #define OAILOG_STREAM_HEX(lOgLeVeL, pRoTo, mEsSaGe, sTrEaM, sIzE)              \
   do {                                                                         \
-    /* clang-format off */ \
-                                                                   OAI_GCC_DIAG_OFF(pointer-sign);                                                   \
-    /* clang-format on */                                                      \
+    OAI_GCC_DIAG_OFF("-Wpointer-sign");                                        \
     log_stream_hex(                                                            \
         lOgLeVeL, pRoTo, __FILE__, __LINE__, mEsSaGe, sTrEaM, sIzE);           \
-    OAI_GCC_DIAG_ON(pointer - sign);                                           \
+    OAI_GCC_DIAG_ON("-Wpointer-sign");                                         \
   } while (0); /*!< \brief trace buffer content */
 #if DEBUG_IS_ON
 #define OAILOG_DEBUG(pRoTo, ...)                                               \
