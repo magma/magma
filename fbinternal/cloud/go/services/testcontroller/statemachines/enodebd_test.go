@@ -36,6 +36,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
+	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -68,7 +69,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	mockMagmad, mockGenericCommandResp := GetMockObjects()
 
 	mockMagmad.On("RebootEnodeb", "n1", "g1", "1202000038269KP0037").Return(mockGenericCommandResp, nil)
-	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil).Times(4)
 
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
@@ -136,7 +137,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// ---
 	mockResp = &http.Response{Status: "200", StatusCode: 200}
 	// Should test for the payload eventually
-	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil).Times(6)
+	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil)
 	test_utils.ReportGatewayStatus(t, ctx, &models2.GatewayStatus{
 		HardwareID: "hw1",
 		PlatformInfo: &models2.PlatformInfo{
@@ -157,7 +158,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test1_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reboot_enodeb_1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	// ---
 	// Reboot enodeb
@@ -181,7 +182,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test2_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reconfig_enodeb1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	// ---
 	// Reconfig Enodeb
@@ -205,7 +206,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test3_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "restore_enodeb1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	// ---
 	// Restore Enodeb config
@@ -228,8 +229,42 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test4_1", testConfig, nil)
 	assert.NoError(t, err)
+	assert.Equal(t, "subscriber_inactive", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	// ---
+	// Detach subscriber
+	// ---
+	actualState, actualDuration, err = sm.Run("subscriber_inactive", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test5_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, errors.New("")).Once()
+	// ---
+	// Traffic Test 5
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test5_1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "subscriber_active", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	// ---
+	// Attach subscriber
+	// ---
+	actualState, actualDuration, err = sm.Run("subscriber_active", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test6_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	// ---
+	// Traffic Test 6
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test6_1", testConfig, nil)
+	assert.NoError(t, err)
 	assert.Equal(t, "check_for_upgrade", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil)
 	// ---
@@ -322,39 +357,75 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 
 	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, errors.New("")).Times(4)
 	// ---
-	// Unsuccessful traffic test 1
+	// Traffic test 1 fails, cannot connect to AGW
 	// ---
 	actualState, actualDuration, err := sm.Run("traffic_test1_1", testConfig, nil)
 	assert.EqualError(t, err, "")
 	assert.Equal(t, "traffic_test1_2", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	actualState, actualDuration, err = sm.Run("traffic_test1_3", testConfig, nil)
 	assert.EqualError(t, err, "Traffic test number 1 failed on gwID g2 after 3 tries")
 	assert.Equal(t, "check_for_upgrade", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	// ---
-	// Unsuccessful traffic test 2
+	// Traffic test 2 fails, cannot connect to AGW
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test2_1", testConfig, nil)
 	assert.EqualError(t, err, "")
 	assert.Equal(t, "traffic_test2_2", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	actualState, actualDuration, err = sm.Run("traffic_test2_3", testConfig, nil)
 	assert.EqualError(t, err, "Traffic test number 2 failed on gwID g2 after 3 tries")
 	assert.Equal(t, "check_for_upgrade", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
+		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
+		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+	}
+	// ---
+	// Traffic test 1 fails, traffic script failing
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test1_1", testConfig, nil)
+	assert.EqualError(t, err, "Traffic script failed")
+	assert.Equal(t, "traffic_test1_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test1_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 1 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	// ---
+	// Traffic test 2 fails, traffic script failing
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test2_1", testConfig, nil)
+	assert.EqualError(t, err, "Traffic script failed")
+	assert.Equal(t, "traffic_test2_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test2_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 2 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
+		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+	}
 	// ---
 	// Traffic Test 1
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test1_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reboot_enodeb_1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	// ---
 	// Traffic Test 2
@@ -362,7 +433,7 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test2_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reconfig_enodeb1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	// ---
 	// Successful traffic test in state 3
@@ -370,12 +441,12 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test1_3", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reboot_enodeb_1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	actualState, actualDuration, err = sm.Run("traffic_test2_3", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "reconfig_enodeb1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	cli.AssertExpectations(t)
 	mockMagmad.AssertExpectations(t)
@@ -387,11 +458,15 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	cli := &mockClient{}
 	testConfig := GetEnodebTestConfig()
 	mockMagmad, mockGenericCommandResp := GetMockObjects()
-
-	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, errors.New("")).Times(4)
 	mockResp := &http.Response{Status: "200", StatusCode: 200}
 	// Should test for the payload eventually
 	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil)
+
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	mockStatus := ltemodels.NewDefaultEnodebStatus()
+	mockStatus.EnodebConfigured = swag.Bool(false)
+	reportEnodebState(t, ctx, "1202000038269KP0037", mockStatus)
 
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
@@ -405,10 +480,109 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, "verify_config1", actualState)
 	assert.Equal(t, 10*time.Minute, actualDuration)
 
-	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	reportEnodebState(t, ctx, "1202000038269KP0037", ltemodels.NewDefaultEnodebStatus())
 	// ---
-	// Verify Enb Config from original to new config
+	// Verify Enb Config failing
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_config1", testConfig, nil)
+	assert.EqualError(t, err, "error enodeb 1202000038269KP0037 is not configured")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic Test 3 fails, cannot connect to AGW
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test3_1", testConfig, nil)
+	assert.EqualError(t, err, "")
+	assert.Equal(t, "traffic_test3_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test3_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 3 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.EnodebConfig.Pci = 260
+	// ---
+	// Restore Enodeb config
+	// ---
+	actualState, actualDuration, err = sm.Run("restore_enodeb1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "verify_config2", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Verify Enb Config 2 failing
+	// ---
+	actualState, actualDuration, err = sm.Run("verify_config2", testConfig, nil)
+	assert.EqualError(t, err, "error enodeb 1202000038269KP0037 is not configured")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic Test 4 fails, cannot connect to AGW
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test4_1", testConfig, nil)
+	assert.EqualError(t, err, "")
+	assert.Equal(t, "traffic_test4_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test4_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 4 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	mockStatus.EnodebConfigured = swag.Bool(true)
+	reportEnodebState(t, ctx, "1202000038269KP0037", mockStatus)
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	testConfig.EnodebConfig.Pci = 261
+	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
+		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
+		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+	}
+
+	// ---
+	// Traffic Test 3 fails, traffic script failing
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test3_1", testConfig, nil)
+	assert.EqualError(t, err, "Traffic script failed")
+	assert.Equal(t, "traffic_test3_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test3_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 3 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	// ---
+	// Traffic Test 4 fails, traffic script failing
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test4_1", testConfig, nil)
+	assert.EqualError(t, err, "Traffic script failed")
+	assert.Equal(t, "traffic_test4_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test4_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 4 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
+		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+	}
+
+	// ---
+	// Reconfig Enodeb
+	// ---
+	actualState, actualDuration, err = sm.Run("reconfig_enodeb1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "verify_config1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Verify Enb Config from original to new config succeeding
 	// ---
 	actualState, actualDuration, err = sm.Run("verify_config1", testConfig, nil)
 	assert.NoError(t, err)
@@ -421,7 +595,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	actualState, actualDuration, err = sm.Run("traffic_test3_1", testConfig, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "restore_enodeb1", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	testConfig.EnodebConfig.Pci = 260
 	// ---
@@ -433,7 +607,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, 10*time.Minute, actualDuration)
 
 	// ---
-	// Verify Enb Config from new config to original config
+	// Verify Enb Config 2 succeeding
 	// ---
 	actualState, actualDuration, err = sm.Run("verify_config2", testConfig, nil)
 	assert.NoError(t, err)
@@ -445,8 +619,119 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test4_1", testConfig, nil)
 	assert.NoError(t, err)
+	assert.Equal(t, "subscriber_inactive", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	cli.AssertExpectations(t)
+	mockMagmad.AssertExpectations(t)
+}
+
+func Test_EnodebdE2ETestStateMachine_SubscriberState(t *testing.T) {
+	SetupTests(t, "testcontroller__statemachines__enodebd_subscriber_state")
+	RegisterAGW(t)
+	testConfig := GetEnodebTestConfig()
+	cli := &mockClient{}
+	mockMagmad, mockGenericCommandResp := GetMockObjects()
+
+	mockResp := &http.Response{Status: "200", StatusCode: 200}
+	// Should test for the payload eventually
+	cli.On("Post", mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.Anything).Return(mockResp, nil)
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil).Once()
+
+	// New test
+	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
+
+	testConfig.SubscriberID = swag.String("IMSI0987654321")
+	// ---
+	// Subscriber state set to inactive fail
+	// ---
+	actualState, actualDuration, err := sm.Run("subscriber_inactive", testConfig, nil)
+	assert.EqualError(t, err, "Not found")
 	assert.Equal(t, "check_for_upgrade", actualState)
-	assert.Equal(t, 1*time.Minute, actualDuration)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic test 5 fail, traffic test ran when it should not have
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test5_1", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 5 should not have succeeded on gwID g2")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	// ---
+	// Subscriber state set to active fail
+	// ---
+	actualState, actualDuration, err = sm.Run("subscriber_active", testConfig, nil)
+	assert.EqualError(t, err, "Not found")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	testConfig.SubscriberID = swag.String("IMSI1234567890")
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, errors.New("")).Times(3)
+
+	// ---
+	// Traffic test 6 fail, cannot connect to AGW
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test6_1", testConfig, nil)
+	assert.EqualError(t, err, "")
+	assert.Equal(t, "traffic_test6_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test6_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 6 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	// ---
+	// Subscriber state set to inactive success
+	// ---
+	actualState, actualDuration, err = sm.Run("subscriber_inactive", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test5_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic test should not succeed due to inactive subscriber. This special case does not return an error
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test5_1", testConfig, nil)
+	assert.NoError(t, err, "")
+	assert.Equal(t, "subscriber_active", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
+	// ---
+	// Subscriber state set to active success
+	// ---
+	actualState, actualDuration, err = sm.Run("subscriber_active", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "traffic_test6_1", actualState)
+	assert.Equal(t, 10*time.Minute, actualDuration)
+
+	// ---
+	// Traffic test should succeed after flipping subscriber to active
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test6_1", testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
+		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
+		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+	}
+	// ---
+	// Traffic test 6 fail, traffic script failing
+	// ---
+	actualState, actualDuration, err = sm.Run("traffic_test6_1", testConfig, nil)
+	assert.EqualError(t, err, "Traffic script failed")
+	assert.Equal(t, "traffic_test6_2", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	actualState, actualDuration, err = sm.Run("traffic_test6_3", testConfig, nil)
+	assert.EqualError(t, err, "Traffic test number 6 failed on gwID g2 after 3 tries")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
 
 	cli.AssertExpectations(t)
 	mockMagmad.AssertExpectations(t)
@@ -501,6 +786,19 @@ func RegisterAGW(t *testing.T) {
 					TransmitEnabled:        swag.Bool(true),
 				},
 			},
+			{
+				Type:        lte.SubscriberEntityType,
+				Key:         "IMSI1234567890",
+				Name:        "subscriber1",
+				Description: "mock subscriber",
+				Config: &subscribermodels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:      "ACTIVE",
+					SubProfile: "default",
+				},
+			},
 		},
 	)
 	assert.NoError(t, err)
@@ -531,6 +829,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 			Tac:                    1,
 			TransmitEnabled:        swag.Bool(true),
 		},
+		SubscriberID: swag.String("IMSI1234567890"),
 	}
 	return testConfig
 }
@@ -539,7 +838,9 @@ func GetMockObjects() (*mockMagmadClient, *protos.GenericCommandResponse) {
 	mockMagmad := &mockMagmadClient{}
 	mockResponse := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"response": &structpb.Value{Kind: &structpb.Value_StringValue{StringValue: "200"}},
+			"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+			"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+			"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
 		},
 	}
 	mockGenericCommandResp := &protos.GenericCommandResponse{

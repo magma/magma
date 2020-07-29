@@ -48,6 +48,11 @@ type EnodebdTestConfig struct {
 	// Min Length: 1
 	SsidPw string `json:"ssid_pw,omitempty"`
 
+	// SubscriberID that will be used to fetch subscriber state
+	// Required: true
+	// Min Length: 1
+	SubscriberID *string `json:"subscriberID"`
+
 	// NUC gateway ID
 	// Required: true
 	// Min Length: 1
@@ -83,6 +88,10 @@ func (m *EnodebdTestConfig) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSsidPw(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubscriberID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -187,6 +196,19 @@ func (m *EnodebdTestConfig) validateSsidPw(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinLength("ssid_pw", "body", string(m.SsidPw), 1); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebdTestConfig) validateSubscriberID(formats strfmt.Registry) error {
+
+	if err := validate.Required("subscriberID", "body", m.SubscriberID); err != nil {
+		return err
+	}
+
+	if err := validate.MinLength("subscriberID", "body", string(*m.SubscriberID), 1); err != nil {
 		return err
 	}
 
