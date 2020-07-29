@@ -20,7 +20,7 @@ import type {
   federation_gateway,
   gateway_federation_configs,
   gx,
-  virtual_apn_rules,
+  virtual_apn_rule,
 } from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -124,19 +124,19 @@ function getDiameterServerConfig(
 }
 
 function getVirtualApnRules(
-  rules: ?virtual_apn_rules,
+  rules: ?Array<virtual_apn_rule>,
 ): ?Array<[string, string]> {
   if (!rules || rules.length == 0) {
     return null;
   }
   return rules.map(entry => {
-    return [entry.apn_filter, entry.apn_overwrite];
+    return [entry.apn_filter || '', entry.apn_overwrite || ''];
   });
 }
 
 function virtualApnRulesToObject(
   props: ?Array<[string, string]>,
-): ?virtual_apn_rules {
+): ?Array<virtual_apn_rule> {
   if (!props) {
     return null;
   }
@@ -181,6 +181,7 @@ export default function FEGGatewayDialog(props: Props) {
   const [gyVirtualApnRules, setGyVirtualApnRules] = useState<?Array<
     [string, string],
   >>(getVirtualApnRules(editingGateway?.federation?.gy?.virtual_apn_rules));
+
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdTiers,
@@ -198,12 +199,12 @@ export default function FEGGatewayDialog(props: Props) {
     eap_aka: {},
     gx: {
       server: getDiameterConfigs(gx).server,
-      virtual_apn_rules: virtualApnRulesToObject(gxVirtualApnRules),
+      virtual_apn_rules: virtualApnRulesToObject(gxVirtualApnRules) || [],
     },
     gy: {
       server: getDiameterConfigs(gy).server,
       init_method: 2,
-      virtual_apn_rules: virtualApnRulesToObject(gyVirtualApnRules),
+      virtual_apn_rules: virtualApnRulesToObject(gyVirtualApnRules) || [],
     },
     health: {},
     hss: {},
