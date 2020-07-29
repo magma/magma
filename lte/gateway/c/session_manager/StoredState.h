@@ -191,7 +191,6 @@ struct StoredSessionState {
   std::string session_level_key; // "" maps to nullptr
   std::string imsi;
   std::string session_id;
-  std::string core_session_id;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;

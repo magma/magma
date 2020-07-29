@@ -834,8 +834,7 @@ bool LocalEnforcer::init_session_credit(
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
   auto session_state = std::make_unique<SessionState>(
-      imsi, session_id, response.session_id(), cfg, *rule_store_,
-      response.tgpp_ctx());
+      imsi, session_id, cfg, *rule_store_, response.tgpp_ctx());
 
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {

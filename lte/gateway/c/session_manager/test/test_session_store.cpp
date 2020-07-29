@@ -64,7 +64,6 @@ class SessionStoreTest : public ::testing::Test {
     std::string radius_session_id =
         "AA-AA-AA-AA-AA-AA:TESTAP__"
         "0F-10-2E-12-3A-55";
-    std::string core_session_id = "asdf";
     SessionConfig cfg           = {.ue_ipv4           = "",
                          .spgw_ipv4         = "",
                          .msisdn            = msisdn,
@@ -79,7 +78,7 @@ class SessionStoreTest : public ::testing::Test {
                          .radius_session_id = radius_session_id};
     auto tgpp_context           = TgppContext{};
     auto session                = std::make_unique<SessionState>(
-        imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
+        imsi, session_id, cfg, *rule_store, tgpp_context);
     return std::move(session);
   }
 
