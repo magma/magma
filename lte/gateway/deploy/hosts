@@ -15,6 +15,3 @@ magma_prod ansible_ssh_host=192.168.60.151 ansible_ssh_port=22 ansible_user=vagr
 
 [atom-box]
 10.0.4.1 ansible_user=magma ansible_ssh_pass=magma ansible_become_pass=magma
-
-[oai]
-magma_oai ansible_ssh_host=192.168.60.145 ansible_ssh_port=22 ansible_user=vagrant

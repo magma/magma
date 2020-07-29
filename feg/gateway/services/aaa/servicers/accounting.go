@@ -1,9 +1,14 @@
 /*
-Copyright (c) Facebook, Inc. and its affiliates.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
-This source code is licensed under the BSDstyle license found in the
+This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
 
 // package servcers implements WiFi AAA GRPC services
@@ -308,6 +313,7 @@ func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {
 func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_protos.SubscriberID,
 	aaaCtx *protos.Context) (*lte_protos.LocalCreateSessionResponse, error) {
 	req := &lte_protos.LocalCreateSessionRequest{
+		// TODO deprecate the fields below
 		Sid:             subscriberId,
 		UeIpv4:          aaaCtx.GetIpAddr(),
 		Apn:             aaaCtx.GetApn(),
@@ -315,6 +321,23 @@ func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_proto
 		RatType:         lte_protos.RATType_TGPP_WLAN,
 		HardwareAddr:    mac,
 		RadiusSessionId: aaaCtx.GetSessionId(),
+		// TODO the fields above will be replaced by CommonContext and
+		// RatSpecificContext below.
+		CommonContext: &lte_protos.CommonSessionContext{
+			Sid:     subscriberId,
+			UeIpv4:  aaaCtx.GetIpAddr(),
+			Apn:     aaaCtx.GetApn(),
+			Msisdn:  ([]byte)(aaaCtx.GetMsisdn()),
+			RatType: lte_protos.RATType_TGPP_WLAN,
+		},
+		RatSpecificContext: &lte_protos.RatSpecificContext{
+			Context: &lte_protos.RatSpecificContext_WlanContext{
+				WlanContext: &lte_protos.WLANSessionContext{
+					HardwareAddr:    mac,
+					RadiusSessionId: aaaCtx.GetSessionId(),
+				},
+			},
+		},
 	}
 	return session_manager.CreateSession(req)
 }

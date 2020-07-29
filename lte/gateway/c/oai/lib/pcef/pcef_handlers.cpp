@@ -56,9 +56,18 @@ static void create_session_response(
   handle_s5_create_session_response(state, ctx_p, s5_response);
 }
 
+// TODO Clean up pcef_create_session_data structure to include
+// imsi/ip/bearer_id etc.
 static void pcef_fill_create_session_req(
+    std::string& imsi, std::string& ip, ebi_t eps_bearer_id,
     const struct pcef_create_session_data* session_data,
     magma::LocalCreateSessionRequest* sreq) {
+  // TODO Remove once we migrate all fields to be handled by
+  // CommonSessionContext and LTESessionContext
+  sreq->mutable_sid()->set_id("IMSI" + imsi);
+  sreq->set_rat_type(magma::RATType::TGPP_LTE);
+  sreq->set_ue_ipv4(ip);
+  sreq->set_bearer_id(eps_bearer_id);
   sreq->set_apn(session_data->apn);
   sreq->set_msisdn(session_data->msisdn, session_data->msisdn_len);
   sreq->set_spgw_ipv4(session_data->sgw_ip);
@@ -74,12 +83,38 @@ static void pcef_fill_create_session_req(
   }
 
   // QoS Info
-  sreq->mutable_qos_info()->set_apn_ambr_dl(session_data->ambr_dl);
-  sreq->mutable_qos_info()->set_apn_ambr_ul(session_data->ambr_ul);
-  sreq->mutable_qos_info()->set_priority_level(session_data->pl);
-  sreq->mutable_qos_info()->set_preemption_capability(session_data->pci);
-  sreq->mutable_qos_info()->set_preemption_vulnerability(session_data->pvi);
-  sreq->mutable_qos_info()->set_qos_class_id(session_data->qci);
+  magma::QosInformationRequest qos_info;
+  qos_info.set_apn_ambr_dl(session_data->ambr_dl);
+  qos_info.set_apn_ambr_ul(session_data->ambr_ul);
+  qos_info.set_priority_level(session_data->pl);
+  qos_info.set_preemption_capability(session_data->pci);
+  qos_info.set_preemption_vulnerability(session_data->pvi);
+  qos_info.set_qos_class_id(session_data->qci);
+  sreq->mutable_qos_info()->CopyFrom(qos_info);
+
+  // Common Context
+  auto common_context = sreq->mutable_common_context();
+  common_context->mutable_sid()->set_id("IMSI" + imsi);
+  common_context->set_ue_ipv4(ip);
+  common_context->set_apn(session_data->apn);
+  common_context->set_msisdn(session_data->msisdn, session_data->msisdn_len);
+  common_context->set_rat_type(magma::RATType::TGPP_LTE);
+
+  // LTE Context
+  auto lte_context =
+      sreq->mutable_rat_specific_context()->mutable_lte_context();
+  lte_context->set_spgw_ipv4(session_data->sgw_ip);
+  lte_context->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
+  lte_context->set_imsi_plmn_id(
+      session_data->imsi_mcc_mnc, session_data->imsi_mcc_mnc_len);
+
+  if (session_data->imeisv_exists) {
+    lte_context->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
+  }
+  if (session_data->uli_exists) {
+    lte_context->set_user_location(session_data->uli, ULI_DATA_SIZE);
+  }
+  lte_context->mutable_qos_info()->CopyFrom(qos_info);
 }
 
 void pcef_create_session(
@@ -92,12 +127,8 @@ void pcef_create_session(
   auto ip_str   = std::string(ip);
   // Change ip to spgw_ip. Get it from sgw_app_t sgw_app;
   magma::LocalCreateSessionRequest sreq;
-
-  sreq.mutable_sid()->set_id("IMSI" + imsi_str);
-  sreq.set_rat_type(magma::RATType::TGPP_LTE);
-  sreq.set_ue_ipv4(ip_str);
-  sreq.set_bearer_id(session_request.eps_bearer_id);
-  pcef_fill_create_session_req(session_data, &sreq);
+  pcef_fill_create_session_req(
+      imsi_str, ip_str, session_request.eps_bearer_id, session_data, &sreq);
 
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
