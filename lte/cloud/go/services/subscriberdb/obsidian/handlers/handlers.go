@@ -133,13 +133,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
-		Type:         lte.SubscriberEntityType,
-		Key:          string(payload.ID),
-		Name:         payload.Name,
-		Config:       payload.Lte,
-		Associations: payload.ActiveApns.ToAssocs(),
-	})
+	_, err := configurator.CreateEntity(networkID, payload.ToNetworkEntity())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -197,14 +191,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	updateCriteria := configurator.EntityUpdateCriteria{
-		Key:               subscriberID,
-		Type:              lte.SubscriberEntityType,
-		NewName:           swag.String(payload.Name),
-		NewConfig:         payload.Lte,
-		AssociationsToSet: payload.ActiveApns.ToAssocs(),
-	}
-	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateCriteria})
+	_, err = configurator.UpdateEntities(networkID, payload.ToUpdateCriteria(subscriberID))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -246,9 +233,9 @@ func updateSubscriberProfile(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "could not load subscriber"), http.StatusInternalServerError)
 	}
 
-	desiredCfg := currentCfg.(*subscribermodels.LteSubscription)
-	desiredCfg.SubProfile = *payload
-	if nerr := validateSubscriberProfile(networkID, desiredCfg); nerr != nil {
+	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
+	desiredCfg.Lte.SubProfile = *payload
+	if nerr := validateSubscriberProfile(networkID, desiredCfg.Lte); nerr != nil {
 		return nerr
 	}
 
@@ -274,8 +261,8 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 			return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
 		}
 
-		newConfig := cfg.(*subscribermodels.LteSubscription)
-		newConfig.State = desiredState
+		newConfig := cfg.(*subscribermodels.SubscriberConfig)
+		newConfig.Lte.State = desiredState
 		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)

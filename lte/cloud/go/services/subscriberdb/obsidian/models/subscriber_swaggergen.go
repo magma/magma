@@ -29,6 +29,10 @@ type Subscriber struct {
 	// Policies which are active for this subscriber
 	ActivePolicies []models1.PolicyID `json:"active_policies,omitempty"`
 
+	// config
+	// Required: true
+	Config *SubscriberConfig `json:"config"`
+
 	// id
 	// Required: true
 	ID models1.SubscriberID `json:"id"`
@@ -60,6 +64,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateActivePolicies(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -136,6 +144,24 @@ func (m *Subscriber) validateActivePolicies(formats strfmt.Registry) error {
 			return err
 		}
 
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateConfig(formats strfmt.Registry) error {
+
+	if err := validate.Required("config", "body", m.Config); err != nil {
+		return err
+	}
+
+	if m.Config != nil {
+		if err := m.Config.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("config")
+			}
+			return err
+		}
 	}
 
 	return nil
