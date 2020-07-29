@@ -32,7 +32,7 @@
       <span class="hljs-attr">allow_params:</span> <span class="hljs-literal">True</span>
 </code></pre>
 <p>We can then use the API endpoint to execute the command. For example:</p>
-<pre><code class="hljs">POST `/networks/{network_id}/gateways/{gateway_id}/<span class="hljs-built_in">command</span>/generic
+<pre><code class="hljs">POST `<span class="hljs-regexp">/networks/</span>{network_id}<span class="hljs-regexp">/gateways/</span>{gateway_id}<span class="hljs-regexp">/command/g</span>eneric
 
 {
     <span class="hljs-string">"command"</span>: <span class="hljs-string">"echo"</span>,
@@ -86,24 +86,24 @@
         <span class="hljs-keyword">pass</span>
 </code></pre>
 <p>Command executors must provide a method <code>get_command_dispatch</code>, which returns the dispatch table of commands. We can then add our own commands to the dispatch table. Command functions are coroutines that take in a dictionary of parameters as arguments and return a dictionary as a response.</p>
-<pre><code class="hljs"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomCommandExecutor</span><span class="hljs-params">(CommandExecutor)</span>:</span>
+<pre><code class="hljs"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">CustomCommandExecutor</span>(<span class="hljs-title">CommandExecutor</span>):</span>
     <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__init__</span><span class="hljs-params">(
-            self,
-            config: Dict[str, Any],
-            loop: asyncio.AbstractEventLoop,
-    )</span> -&gt; <span class="hljs-keyword">None</span>:</span>
+            <span class="hljs-keyword">self</span>,
+            <span class="hljs-symbol">config:</span> Dict[str, Any],
+            <span class="hljs-symbol">loop:</span> asyncio.AbstractEventLoop,
+    )</span></span> -&gt; <span class="hljs-symbol">None:</span>
         ...
-        self._dispatch_table = {
-            <span class="hljs-string">"hello_world"</span>: self._handle_hello_world
+        <span class="hljs-keyword">self</span>._dispatch_table = {
+            <span class="hljs-string">"hello_world"</span>: <span class="hljs-keyword">self</span>._handle_hello_world
         }
 
-    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_command_dispatch</span><span class="hljs-params">(self)</span> -&gt; Dict[str, ExecutorFuncT]:</span>
-        <span class="hljs-keyword">return</span> self._dispatch_table
+    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">get_command_dispatch</span><span class="hljs-params">(<span class="hljs-keyword">self</span>)</span></span> -&gt; Dict[str, ExecutorFuncT]:
+        <span class="hljs-keyword">return</span> <span class="hljs-keyword">self</span>._dispatch_table
         
-    <span class="hljs-keyword">async</span> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_handle_hello_world</span><span class="hljs-params">(
-            self,
-            params: Dict[str, ParamValueT]
-    )</span> -&gt; Dict[str, Any]:</span>
+    async <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">_handle_hello_world</span><span class="hljs-params">(
+            <span class="hljs-keyword">self</span>,
+            <span class="hljs-symbol">params:</span> Dict[str, ParamValueT]
+    )</span></span> -&gt; Dict[str, Any]:
         <span class="hljs-keyword">return</span> {
             <span class="hljs-string">"hello"</span>: <span class="hljs-string">"world!"</span>
         }

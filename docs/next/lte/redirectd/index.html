@@ -23,16 +23,16 @@ information in redis using subcriber_ip as the key(mobilityd is used for
 getting the subcriber ip from imsi).
 All this is only done when subscriber PolicyRule has redirection enabled.
 Example PolicyRule with enabled redirection:</p>
-<pre><code class="hljs"><span class="hljs-attr">policy</span> = <span class="hljs-string">PolicyRule(</span>
-    <span class="hljs-attr">id</span>=<span class="hljs-string">'redirect_test',</span>
-    <span class="hljs-attr">priority</span>=<span class="hljs-string">3,</span>
-    <span class="hljs-attr">flow_list</span>=<span class="hljs-string">flow_list,</span>
-    <span class="hljs-attr">redirect</span>=<span class="hljs-string">RedirectInformation(</span>
-        <span class="hljs-attr">support</span>=<span class="hljs-string">1,</span>
-        <span class="hljs-attr">address_type</span>=<span class="hljs-string">2,</span>
-        <span class="hljs-attr">server_address</span>=<span class="hljs-string">"http://about.sha.ddih.org/"</span>
-    <span class="hljs-attr">)</span>
-<span class="hljs-attr">)</span>
+<pre><code class="hljs">policy = PolicyRule(
+    <span class="hljs-attribute">id</span>=<span class="hljs-string">'redirect_test'</span>,
+    <span class="hljs-attribute">priority</span>=3,
+    <span class="hljs-attribute">flow_list</span>=flow_list,
+    <span class="hljs-attribute">redirect</span>=RedirectInformation(
+        <span class="hljs-attribute">support</span>=1,
+        <span class="hljs-attribute">address_type</span>=2,
+        <span class="hljs-attribute">server_address</span>=<span class="hljs-string">"http://about.sha.ddih.org/"</span>
+    )
+)
 </code></pre>
 <p><em>Description of added flows:</em></p>
 <ul>
@@ -61,49 +61,49 @@ server with the UE ip_addr/tcp_sport, modify&amp;send packets back to UE</li>
 <li>Drop other traffic (default for all subscribers)</li>
 </ul>
 <h3><a class="anchor" aria-hidden="true" id="packet-path-breakdown"></a><a href="#packet-path-breakdown" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Packet path breakdown</h3>
-<pre><code class="hljs"><span class="hljs-string">Packet</span> <span class="hljs-string">protocol</span> <span class="hljs-string">diagram</span> <span class="hljs-string">(only</span> <span class="hljs-string">includes</span> <span class="hljs-string">fields</span> <span class="hljs-string">that</span> <span class="hljs-string">are</span> <span class="hljs-string">being</span> <span class="hljs-string">checked):</span>
-<span class="hljs-string">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
-<span class="hljs-string">|</span>       <span class="hljs-string">Source</span> <span class="hljs-string">IP</span> <span class="hljs-string">Address</span>       <span class="hljs-string">|</span>     <span class="hljs-string">Destination</span> <span class="hljs-string">IP</span> <span class="hljs-string">Address</span>    <span class="hljs-string">|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|        TCP Source Port        |      TCP Destination Port     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</span>
-<span class="hljs-attr">UE ip:</span> <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.9</span>
-<span class="hljs-attr">Remote url ip:</span> <span class="hljs-number">185.199</span><span class="hljs-number">.110</span><span class="hljs-number">.8</span>
-<span class="hljs-attr">Redirect server ip:</span> <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.1</span>
+<pre><code class="hljs"><span class="hljs-section">Packet protocol diagram (only includes fields that are being checked):
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|       Source IP Address       |     Destination IP Address    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|        TCP Source Port        |      TCP Destination Port     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
 
-<span class="hljs-string">For</span> <span class="hljs-string">the</span> <span class="hljs-string">tcp</span> <span class="hljs-string">handshake,</span> <span class="hljs-attr">initial HTTP request the traffic flow looks like this:</span>
+UE ip: 192.168.128.9
+Remote url ip: 185.199.110.8
+Redirect server ip: 192.168.128.1
 
-<span class="hljs-string">UE</span> <span class="hljs-string">sends</span> <span class="hljs-string">a</span> <span class="hljs-string">packet</span> <span class="hljs-string">to</span> <span class="hljs-string">remote</span> <span class="hljs-string">url</span>
-<span class="hljs-string">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
-<span class="hljs-string">|</span>         <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.9</span>         <span class="hljs-string">|</span>         <span class="hljs-number">185.199</span><span class="hljs-number">.110</span><span class="hljs-number">.8</span>         <span class="hljs-string">|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             43040             |               80              |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</span>
-<span class="hljs-string">Packet</span> <span class="hljs-string">gets</span> <span class="hljs-string">modified</span> <span class="hljs-string">in</span> <span class="hljs-string">EnforcementController,</span> <span class="hljs-string">sent</span> <span class="hljs-string">to</span> <span class="hljs-string">the</span> <span class="hljs-string">Redirection</span> <span class="hljs-string">server</span>
-<span class="hljs-string">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
-<span class="hljs-string">|</span>         <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.9</span>         <span class="hljs-string">|</span>        <span class="hljs-string">*192.168.128.1*</span>        <span class="hljs-string">|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             43040             |               80              |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</span>
-<span class="hljs-string">Redirection</span> <span class="hljs-string">server</span> <span class="hljs-string">responds,</span> <span class="hljs-string">packet</span> <span class="hljs-string">is</span> <span class="hljs-string">sent</span> <span class="hljs-string">back</span> <span class="hljs-string">into</span> <span class="hljs-string">OVS</span>
-<span class="hljs-string">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
-<span class="hljs-string">|</span>         <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.1</span>         <span class="hljs-string">|</span>         <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.9</span>         <span class="hljs-string">|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               80              |             43040             |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</span>
-<span class="hljs-string">Packet</span> <span class="hljs-string">gets</span> <span class="hljs-string">modified</span> <span class="hljs-string">in</span> <span class="hljs-string">EnforcementController,</span> <span class="hljs-string">sent</span> <span class="hljs-string">back</span> <span class="hljs-string">to</span> <span class="hljs-string">the</span> <span class="hljs-string">UE</span>
-<span class="hljs-string">+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
-<span class="hljs-string">|</span>        <span class="hljs-string">*185.199.110.8*</span>        <span class="hljs-string">|</span>         <span class="hljs-number">192.168</span><span class="hljs-number">.128</span><span class="hljs-number">.9</span>         <span class="hljs-string">|
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               80              |             43040             |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-</span>
-<span class="hljs-string">After</span> <span class="hljs-string">getting</span> <span class="hljs-string">a</span> <span class="hljs-number">302</span> <span class="hljs-string">response</span> <span class="hljs-string">from</span> <span class="hljs-string">the</span> <span class="hljs-string">redirect</span> <span class="hljs-string">server</span> <span class="hljs-string">the</span> <span class="hljs-string">traffic</span> <span class="hljs-string">can</span> <span class="hljs-string">go</span>
-<span class="hljs-string">straight</span> <span class="hljs-string">to</span> <span class="hljs-string">the</span> <span class="hljs-string">redirected</span> <span class="hljs-string">address</span> <span class="hljs-string">without</span> <span class="hljs-string">being</span> <span class="hljs-string">changed</span> <span class="hljs-string">in</span> <span class="hljs-string">pipelined</span>
+For the tcp handshake, initial HTTP request the traffic flow looks like this:
+
+<span class="hljs-section">UE sends a packet to remote url
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|         192.168.128.9         |         185.199.110.8         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|             43040             |               80              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+<span class="hljs-section">Packet gets modified in EnforcementController, sent to the Redirection server
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|         192.168.128.9         |        *192.168.128.1*        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|             43040             |               80              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+<span class="hljs-section">Redirection server responds, packet is sent back into OVS
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|         192.168.128.1         |         192.168.128.9         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|               80              |             43040             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+<span class="hljs-section">Packet gets modified in EnforcementController, sent back to the UE
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|        *185.199.110.8*        |         192.168.128.9         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+<span class="hljs-section">|               80              |             43040             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+</span>
+
+After getting a 302 response from the redirect server the traffic can go
+straight to the redirected address without being changed in pipelined
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="redirection-for-cwf"></a><a href="#redirection-for-cwf" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Redirection for CWF</h3>
 <p>In CWF networks there are a few alterations to make redirection logic work.

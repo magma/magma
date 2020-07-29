@@ -5,12 +5,12 @@
 <p>Create a new RPC method in the service protobuf that you want the method to live in.</p>
 <pre><code class="hljs"><span class="hljs-comment">// magma/orc8r/protos/magmad.proto</span>
 
-service Magmad {
+<span class="hljs-class"><span class="hljs-keyword">service</span> <span class="hljs-title">Magmad</span> </span>{
   ...
-  rpc Reboot (<span class="hljs-built_in">Void</span>) returns (<span class="hljs-built_in">Void</span>) {}
+  <span class="hljs-function"><span class="hljs-keyword">rpc</span> Reboot (Void) <span class="hljs-keyword">returns</span> (Void) {}
   ...
 }
-</code></pre>
+</span></code></pre>
 <h3><a class="anchor" aria-hidden="true" id="implement-in-gateway"></a><a href="#implement-in-gateway" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Implement in gateway</h3>
 <p>Gateway services should have a gRPC server implementation located in <code>rpc_servicer.py</code>. Within the servicer, create a function that implements this RPC method.</p>
 <pre><code class="hljs"><span class="hljs-comment"># magma/orc8r/gateway/python/magma/magmad/rpc_servicer.py</span>
@@ -49,24 +49,24 @@ service Magmad {
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="define-rest-api-endpoint"></a><a href="#define-rest-api-endpoint" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Define REST API endpoint</h3>
 <p>Each cloud service should have a <code>swagger</code> folder that documents service paths and definitions in <code>swagger.yml</code>. Add your path (and parameters or definitions, if necessary) to this file:</p>
-<pre><code class="hljs"><span class="hljs-comment"># magma/orc8r/cloud/go/services/magmad/swagger/swagger.yml</span>
+<pre><code class="hljs"># magma/orc8r/cloud/<span class="hljs-keyword">go</span>/services/magmad/swagger/swagger.yml
 
-<span class="hljs-string">...</span>
-<span class="hljs-attr">paths:</span>
-  <span class="hljs-string">...</span>
-  <span class="hljs-string">/networks/{network_id}/gateways/{gateway_id}/command/reboot:</span>
-    <span class="hljs-attr">post:</span>
-      <span class="hljs-attr">summary:</span> <span class="hljs-string">Reboot</span> <span class="hljs-string">gateway</span> <span class="hljs-string">device</span>
-      <span class="hljs-attr">tags:</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-string">Commands</span>
-      <span class="hljs-attr">parameters:</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-string">$ref:</span> <span class="hljs-string">'./swagger-common.yml#/parameters/network_id'</span>
-      <span class="hljs-bullet">-</span> <span class="hljs-string">$ref:</span> <span class="hljs-string">'./swagger-common.yml#/parameters/gateway_id'</span>
-      <span class="hljs-attr">responses:</span>
-        <span class="hljs-attr">'200':</span>
-          <span class="hljs-attr">description:</span> <span class="hljs-string">Success</span>
-        <span class="hljs-attr">default:</span>
-          <span class="hljs-string">$ref:</span> <span class="hljs-string">'./swagger-common.yml#/responses/UnexpectedError'</span>
+...
+path<span class="hljs-variable">s:</span>
+  ...
+  /networks/{network_id}/gateways/{gateway_id}/<span class="hljs-keyword">command</span>/reboo<span class="hljs-variable">t:</span>
+    pos<span class="hljs-variable">t:</span>
+      summary: Reboot gateway device
+      <span class="hljs-keyword">tag</span><span class="hljs-variable">s:</span>
+      - Commands
+      parameter<span class="hljs-variable">s:</span>
+      - $ref: <span class="hljs-string">'./swagger-common.yml#/parameters/network_id'</span>
+      - $ref: <span class="hljs-string">'./swagger-common.yml#/parameters/gateway_id'</span>
+      response<span class="hljs-variable">s:</span>
+        <span class="hljs-string">'200'</span>:
+          description: Success
+        defaul<span class="hljs-variable">t:</span>
+          $ref: <span class="hljs-string">'./swagger-common.yml#/responses/UnexpectedError'</span>
 </code></pre>
 <h3><a class="anchor" aria-hidden="true" id="handler-implementation"></a><a href="#handler-implementation" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Handler implementation</h3>
 <p>Each cloud service should have an <code>obsidian</code> folder, which contains handlers in <code>obsidian/handlers</code> and generated models in <code>obsidian/models</code>.</p>
