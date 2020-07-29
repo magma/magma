@@ -175,26 +175,11 @@ func GetGxGlobalConfig() *GxGlobalConfig {
 		log.Printf("%s Managed Gx Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return &GxGlobalConfig{}
 	}
-
-	virtualApnConfigs := []*credit_control.VirtualApnRule{}
-	for _, virtualApnlCfg := range configsPtr.GetGx().GetVirtualApnRules() {
-		apnRule := credit_control.GetVirtualApnRule(
-			virtualApnlCfg.GetApnFilter(),
-			virtualApnlCfg.GetApnOverwrite(),
-		)
-		if apnRule == nil {
-			log.Printf("%s Managed Gx Virtual APN Rule Config Load Error", virtualApnlCfg.GetApnFilter())
-			continue
-		}
-		virtualApnConfigs = append(virtualApnConfigs, apnRule)
-		log.Printf("Virtual APN Rule Activated filter: %s, Overwrite: %s", virtualApnlCfg.GetApnFilter(), virtualApnlCfg.GetApnOverwrite())
-	}
 	return &GxGlobalConfig{
 		PCFROverwriteApn: configsPtr.GetGx().GetOverwriteApn(),
 		DisableGx:        configsPtr.GetGx().GetDisableGx(),
-		VirtualApnRules:  virtualApnConfigs,
+		VirtualApnRules:  credit_control.GenerateVirtualApnRules(configsPtr.GetGx().GetVirtualApnRules()),
 	}
-
 }
 
 // validGxConfig check if required fields related to Gx are valid in the config

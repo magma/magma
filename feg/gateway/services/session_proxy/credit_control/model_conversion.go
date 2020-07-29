@@ -14,7 +14,6 @@ limitations under the License.
 package credit_control
 
 import (
-	"regexp"
 	"strings"
 
 	"magma/lte/cloud/go/protos"
@@ -44,17 +43,6 @@ func getCreditUnit(volume *uint64) *protos.CreditUnit {
 		return &protos.CreditUnit{IsValid: false}
 	}
 	return &protos.CreditUnit{IsValid: true, Volume: *volume}
-}
-
-func GetVirtualApnRule(apnFilter, apnOverwrite string) *VirtualApnRule {
-	reg, err := regexp.Compile(apnFilter)
-	if err != nil {
-		return nil
-	}
-	return &VirtualApnRule{
-		ApnFilter:    reg,
-		ApnOverwrite: apnOverwrite,
-	}
 }
 
 func RemoveIMSIPrefix(imsi string) string {

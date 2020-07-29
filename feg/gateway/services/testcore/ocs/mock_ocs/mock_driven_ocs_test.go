@@ -200,8 +200,10 @@ func getExpectedCreditByKey(credits []*fegprotos.QuotaGrant) map[uint32]*fegprot
 
 func getGyGlobalConfig(matchApn, overwriteApn string) *gy.GyGlobalConfig {
 	rules := []*credit_control.VirtualApnRule{}
-	rules = append(rules,
-		credit_control.GetVirtualApnRule(matchApn, overwriteApn))
+	rule, err := credit_control.GetVirtualApnRule(matchApn, overwriteApn)
+	if err == nil {
+		rules = append(rules, rule)
+	}
 	return &gy.GyGlobalConfig{
 		VirtualApnRules: rules,
 	}

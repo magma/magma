@@ -254,19 +254,14 @@ func (gxClient *GxClient) createCreditControlMessage(
 	apn := datatype.UTF8String(request.Apn)
 	if globalConfig != nil {
 		if len(globalConfig.VirtualApnRules) > 0 {
-			for _, rule := range globalConfig.VirtualApnRules {
-				if rule.ApnFilter.MatchString(request.Apn) && len(rule.ApnOverwrite) > 0 {
-					apn = datatype.UTF8String(rule.ApnOverwrite)
-					break
-				}
-			}
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request.Apn, globalConfig.VirtualApnRules))
 		} else if len(globalConfig.PCFROverwriteApn) > 0 {
 			// OverwriteApn is deprected transition to VirtualApnRules
 			apn = datatype.UTF8String(globalConfig.PCFROverwriteApn)
 		}
 	}
 	if len(apn) > 0 {
-		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn)
+		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, datatype.UTF8String(apn))
 	}
 
 	if request.Type == credit_control.CRTInit {

@@ -324,15 +324,11 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPSGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
+
 	apn := datatype.UTF8String(request.Apn)
 	if gyGlobalConfig != nil {
 		if len(gyGlobalConfig.VirtualApnRules) > 0 {
-			for _, rule := range gyGlobalConfig.VirtualApnRules {
-				if rule.ApnFilter.MatchString(request.Apn) && len(rule.ApnOverwrite) > 0 {
-					apn = datatype.UTF8String(rule.ApnOverwrite)
-					break
-				}
-			}
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request.Apn, gyGlobalConfig.VirtualApnRules))
 		} else if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
 			// OverwriteApn is deprected transition to VirtualApnRules
 			apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)

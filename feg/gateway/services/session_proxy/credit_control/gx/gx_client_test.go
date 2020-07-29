@@ -426,9 +426,10 @@ func getClientConfig() *diameter.DiameterClientConfig {
 
 func getGxGlobalConfig(apnFilter, apnOverwrite string) *gx.GxGlobalConfig {
 	rules := []*credit_control.VirtualApnRule{}
-	rules = append(rules,
-		credit_control.GetVirtualApnRule(apnFilter, apnOverwrite))
-
+	rule, err := credit_control.GetVirtualApnRule(apnFilter, apnOverwrite)
+	if err == nil {
+		rules = append(rules, rule)
+	}
 	return &gx.GxGlobalConfig{
 		VirtualApnRules: rules,
 	}
