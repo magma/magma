@@ -38,7 +38,6 @@ namespace magma {
 
 class LocalEnforcerTest : public ::testing::Test {
  protected:
- protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
     reporter          = std::make_shared<MockSessionReporter>();
     rule_store        = std::make_shared<StaticRuleStore>();

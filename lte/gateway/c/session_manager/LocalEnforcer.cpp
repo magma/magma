@@ -90,7 +90,7 @@ LocalEnforcer::LocalEnforcer(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms),
-      retry_timeout_(1),
+      retry_timeout_(2),
       mconfig_(mconfig) {}
 
 void LocalEnforcer::notify_new_report_for_sessions(
@@ -1679,9 +1679,12 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
         std::move([=] {
           pipelined_client_->activate_flows_for_rules(
               imsi, ip_addr, static_rules, dynamic_rules,
-              std::bind(
-                  &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
-                  ip_addr, static_rules, dynamic_rules, _1, _2));
+              [imsi](Status status, ActivateFlowsResult resp) {
+                  if (!status.ok()) {
+                    MLOG(MERROR) << "Could not activate flows for UE "
+                                 << imsi << ": " << status.error_message();
+                  }
+              });
         }),
         retry_timeout_);
   });
@@ -1711,9 +1714,13 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
                        << ", retrying...";
           pipelined_client_->add_ue_mac_flow(
               sid, ue_mac_addr, msisdn, apn_mac_addr, apn_name,
-              std::bind(
-                  &LocalEnforcer::handle_add_ue_mac_flow_callback, this, sid,
-                  ue_mac_addr, msisdn, apn_mac_addr, apn_name, _1, _2));
+              [ue_mac_addr](Status status, FlowResponse resp) {
+                  if (!status.ok()) {
+                    MLOG(MERROR) << "Could not activate flows for UE "
+                                 << ue_mac_addr << ": "
+                                 << status.error_message();
+                  }
+              });
         }),
         retry_timeout_);
   });

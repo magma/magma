@@ -24,8 +24,6 @@ import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import Paper from '@material-ui/core/Paper';
-import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
@@ -192,7 +190,6 @@ export function EnodebDetail(props: Props) {
 
 function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
   const classes = useStyles();
-  const perEnbMetricSupportAvailable = false;
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   return (
@@ -215,32 +212,14 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
           </Grid>
         </Grid>
         <Grid item xs={12}>
-          {perEnbMetricSupportAvailable ? (
-            <DateTimeMetricChart
-              title={CHART_TITLE}
-              queries={[
-                `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
-                `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,
-              ]}
-              legendLabels={['Download', 'Upload']}
-            />
-          ) : (
-            <Paper className={classes.paper} elevation={0}>
-              <Text variant="body2">
-                Enodeb Throughput Chart Currently Unavailable
-              </Text>
-            </Paper>
-          )}
-        </Grid>
-        <Grid item xs={12}>
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <CardTitleRow icon={PeopleIcon} label="Subscribers" />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Subscribers data</Text>
-              </Paper>
-            </Grid>
-          </Grid>
+          <DateTimeMetricChart
+            title={CHART_TITLE}
+            queries={[
+              `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
+              `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,
+            ]}
+            legendLabels={['Download', 'Upload']}
+          />
         </Grid>
       </Grid>
     </div>

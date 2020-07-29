@@ -120,6 +120,9 @@ message APNConfiguration {
   }
   PDNType pdn = 5;
 
+  // Optional static IP to allocate for this subscriber on this APN
+  string assigned_static_ip = 6;
+
   // For details about values see 29.212
   message QoSProfile {
     int32 class_id = 1;
