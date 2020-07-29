@@ -96,13 +96,14 @@ func (srv *CentralSessionController) CreateSession(
 	metrics.PcrfCcrInitRequests.Inc()
 
 	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
-	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
 	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 
 	// These rules should not be tracked by OCS or PCRF, they come directly from the orc8r
 	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
 	omnipresentRuleIDs = append(omnipresentRuleIDs, srv.dbClient.GetRuleIDsForBaseNames(omnipresentBaseNames)...)
 	staticRuleInstalls = append(staticRuleInstalls, gx.RuleIDsToProtosRuleInstalls(omnipresentRuleIDs)...)
+
+	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
 
 	var gxOriginHost, gyOriginHost string = gxCCAInit.OriginHost, ""
 	if srv.cfg.UseGyForAuthOnly {

@@ -38,6 +38,7 @@ class SubTests(Enum):
     GX = "gx"
     GY = "gy"
     QOS = "qos"
+    OMNI = "omnipresent"
     MULTISESSIONPROXY = "multi_session_proxy"
 
     @staticmethod
@@ -47,8 +48,8 @@ class SubTests(Enum):
 
 def integ_test(gateway_host=None, test_host=None, trf_host=None,
                gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
-               transfer_images=False, destroy_vm=False, no_build=False,
-               tests_to_run="all", skip_unit_tests=False, test_re=None,
+               transfer_images=False, destroy_vm=False, no_build=True,
+               tests_to_run="omnipresent", skip_unit_tests=False, test_re=None,
                run_tests=True):
     """
     Run the integration tests. This defaults to running on local vagrant

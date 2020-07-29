@@ -12,6 +12,7 @@ AUTH=Authenticate
 GX=Gx
 GY=Gy
 MULTISP=MultiSessionProxy
+OMNI=Omnipresent
 
 define execute_test
  	echo "Running test: $(1)"
@@ -42,6 +43,10 @@ gy:
 multi_session_proxy:
 	echo "Running Multi Session Proxy Tests..."
 	go test -run $(MULTISP)
+
+omnipresent:
+	echo "Running Omni Tests..."
+	$(foreach test,$(OMNI),$(call execute_test,$(test));)
 
 restart:
 	echo "Running restart tests..."

@@ -1,4 +1,4 @@
-// +build all
+// +build all omnipresent
 
 /*
  * Copyright 2020 The Magma Authors.
@@ -21,6 +21,8 @@ import (
 	"time"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
+	fegprotos "magma/feg/cloud/go/protos"
+
 	"magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
@@ -118,6 +120,94 @@ func TestOmnipresentRules(t *testing.T) {
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
 	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)])
+
+	// trigger disconnection
+	tr.DisconnectAndAssertSuccess(imsi)
+	fmt.Println("wait for flows to get deactivated")
+	time.Sleep(3 * time.Second)
+}
+
+func TestOmnipresentRulesWithOCS(t *testing.T) {
+	fmt.Println("\nRunning TestOmnipresentRulesWithOCS...")
+	tr := NewTestRunner(t)
+	ruleManager, err := NewRuleManager()
+	assert.NoError(t, err)
+	assert.NoError(t, usePCRFMockDriver())
+	defer func() {
+		// Delete omni rules
+		assert.NoError(t, ruleManager.RemoveOmniPresentRulesFromDB("omni"))
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearPCRFMockDriver())
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	ues, err := tr.ConfigUEs(1)
+	assert.NoError(t, err)
+	setNewOCSConfig(
+		&fegprotos.OCSConfig{
+			MaxUsageOctets: &fegprotos.Octets{TotalOctets: GyMaxUsageBytes},
+			MaxUsageTime:   GyMaxUsageTime,
+			ValidityTime:   GyValidityTime,
+			UseMockDriver:  true,
+		},
+	)
+	imsi := ues[0].GetImsi()
+
+	// Set a block all rule to be installed by the PCRF
+	err = ruleManager.AddStaticRuleToDB(getStaticDenyAll("static-block-all", "mkey1", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 30))
+	assert.NoError(t, err)
+	// Override with an omni pass all static rule with a higher priority with  a monitoring key so that we go to OCS
+	err = ruleManager.AddStaticPassAllToDB("omni-pass-all-1", "", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 20)
+	assert.NoError(t, err)
+	// Apply a network wide rule that points to the static rule above
+	err = ruleManager.AddOmniPresentRulesToDB("omni", []string{"omni-pass-all-1"}, []string{""})
+	assert.NoError(t, err)
+	tr.WaitForPoliciesToSync()
+
+	usageMonitorInfo := getUsageInformation("mkey1", 1*MegaBytes)
+	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGxCCAnswer(diam.Success).
+		SetStaticRuleInstalls([]string{"static-block-all"}, []string{}).
+		SetUsageMonitorInfo(usageMonitorInfo)
+	initExpectation := protos.NewGxCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+	expectations := []*protos.GxCreditControlExpectation{initExpectation}
+	assert.NoError(t, setPCRFExpectations(expectations, nil)) // we don't expect any update requests
+
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 5 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    2001,
+	}
+	initRequestGy := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
+	initAnswerGy := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectationGy := protos.NewGyCreditControlExpectation().Expect(initRequestGy).Return(initAnswerGy)
+
+	expectationsGy := []*protos.GyCreditControlExpectation{initExpectationGy, nil}
+
+	// On unexpected requests, just return the default update answer
+	assert.NoError(t, setOCSExpectations(expectationsGy, nil))
+
+	tr.AuthenticateAndAssertSuccessWithRetries(imsi, 1)
+
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200k")}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	omniRecord := recordsBySubID["IMSI"+imsi]["omni-pass-all-1"]
+	blockAllRecord := recordsBySubID["IMSI"+imsi]["static-block-all"]
+	assert.NotNil(t, omniRecord, fmt.Sprintf("No policy usage omniRecord for imsi: %v", imsi))
+	assert.NotNil(t, blockAllRecord, fmt.Sprintf("Block all record was not installed for imsi %v", imsi))
+
+	assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
+	assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
