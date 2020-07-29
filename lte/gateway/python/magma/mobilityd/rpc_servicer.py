@@ -64,6 +64,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         ip_block = _get_ip_block(mconfig.ip_block)
         if ip_block is not None:
             try:
+                #forcefully remove the existing ip blocks
+                self._ipv4_allocator.remove_ip_blocks(
+                    *self._ipv4_allocator.list_added_ip_blocks(),
+                    force=True)
                 self.add_ip_block(ip_block)
             except OverlappedIPBlocksError:
                 logging.error("Overlapped IP block: %s", ip_block)
