@@ -29,18 +29,21 @@ public:
     uint64_t bytes_rx;
   };
 
-  static SessionCredit unmarshal(const StoredSessionCredit &marshaled);
-
-  StoredSessionCredit marshal();
-
-  SessionCreditUpdateCriteria get_update_criteria();
-
   SessionCredit();
 
   SessionCredit(ServiceState start_state);
 
-  SessionCredit(ServiceState start_state,
-                CreditLimitType credit_limit_type);
+  SessionCredit(ServiceState start_state, CreditLimitType limit_type);
+
+  static SessionCredit unmarshal(const StoredSessionCredit &marshaled);
+
+  StoredSessionCredit marshal();
+
+  /**
+   * get_update_criteria constructs a SessionCreditUpdateCriteria with default
+   * values.
+   */
+  SessionCreditUpdateCriteria get_update_criteria();
 
   /**
    * add_used_credit increments USED_TX and USED_RX

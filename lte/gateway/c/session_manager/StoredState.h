@@ -203,6 +203,8 @@ struct SessionCreditUpdateCriteria {
   GrantTrackingType grant_tracking_type;
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
+
+  bool deleted;
 };
 
 struct SessionStateUpdateCriteria {

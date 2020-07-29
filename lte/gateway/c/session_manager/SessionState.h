@@ -360,6 +360,12 @@ class SessionState {
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,
                        SessionStateUpdateCriteria &uc);
 
+  /**
+   * Apply SessionCreditUpdateCriteria, a per-credit diff of an update, into
+   * the SessionState object
+   * @param key : monitoring key for the update
+   * @param update : the diff that needs to be applied
+   */
   void merge_monitor_updates(
     const std::string &key, SessionCreditUpdateCriteria &update);
 

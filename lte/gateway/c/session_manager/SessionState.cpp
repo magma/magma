@@ -910,6 +910,10 @@ void SessionState::merge_charging_credit_update(
   }
   auto& charging_grant = it->second;
   auto& credit         = charging_grant->credit;
+  if (credit_update.deleted) {
+    credit_map_.erase(key);
+    return;
+  }
 
   // Credit merging
   credit.set_grant_tracking_type(
@@ -1031,24 +1035,26 @@ bool SessionState::receive_monitor(
       update.credit().level() == MonitoringLevel::SESSION_LEVEL) {
     update_session_level_key(update, update_criteria);
   }
-  auto it = monitor_map_.find(update.credit().monitoring_key());
+  auto mkey = update.credit().monitoring_key();
+  auto it = monitor_map_.find(mkey);
   if (it == monitor_map_.end()) {
     // new credit
     return init_new_monitor(update, update_criteria);
   }
-  auto credit_uc =
-      get_monitor_uc(update.credit().monitoring_key(), update_criteria);
+  auto credit_uc = get_monitor_uc(mkey, update_criteria);
   if (!update.success()) {
     it->second->credit.mark_failure(update.result_code(), credit_uc);
     return false;
   }
-  const auto& gsu = update.credit().granted_units();
-  MLOG(MINFO) << session_id_ << " Received monitor credit for "
-              << update.credit().monitoring_key();
-  FinalActionInfo final_action_info;
-  it->second->credit.receive_credit(gsu, credit_uc);
+
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    monitor_map_.erase(update.credit().monitoring_key());
+    MLOG(MINFO) << "Erasing monitor " << mkey << " from DISABLE instruction";
+    monitor_map_.erase(mkey);
+    credit_uc->deleted = true;
+  } else {
+    MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
+    const auto& gsu = update.credit().granted_units();
+    it->second->credit.receive_credit(gsu, credit_uc);
   }
   return true;
 }
@@ -1057,6 +1063,10 @@ void SessionState::merge_monitor_updates(
     const std::string& key, SessionCreditUpdateCriteria& update) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
+    return;
+  }
+  if (update.deleted) {
+    monitor_map_.erase(key);
     return;
   }
   for (int i = USED_TX; i != MAX_VALUES; i++) {

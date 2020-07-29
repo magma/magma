@@ -43,7 +43,6 @@ const SessionConfig test_cfg = {.ue_ipv4   = "127.0.0.1",
 
 class LocalEnforcerTest : public ::testing::Test {
  protected:
- protected:
   virtual void SetUp() {
     reporter             = std::make_shared<MockSessionReporter>();
     rule_store           = std::make_shared<StaticRuleStore>();
@@ -1348,6 +1347,66 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
+}
+
+// Test an insertion of a usage monitor and then a deletion. Additionally, test
+// that a rule update from PipelineD for a deleted usage monitor should NOT
+// trigger an update request.
+TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
+  // insert key rule mapping
+  insert_static_rule(0, "1", "pcrf_only_active");
+  insert_static_rule(0, "3", "pcrf_only_to_be_disabled");
+
+  // insert initial session credit
+  CreateSessionResponse response;
+  create_monitor_update_response(
+      "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      response.mutable_usage_monitors()->Add());
+  create_monitor_update_response(
+      "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      response.mutable_usage_monitors()->Add());
+  local_enforcer->init_session_credit(
+      session_map, "IMSI1", "1234", test_cfg, response);
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 2048}});
+
+  // Receive an update with DISABLE for mkey=3, CONTINUE for mkey=1
+  UpdateSessionResponse update_response;
+  auto monitors = update_response.mutable_usage_monitor_responses();
+  create_monitor_update_response(
+      "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitors->Add());
+  create_monitor_update_response(
+      "IMSI1", "3", MonitoringLevel::SESSION_LEVEL, 0, monitors->Add());
+  // Apply the updates
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
+  // Check the UC's deleted field, as that will be applied to SessionStore
+  auto monitor_updates = update["IMSI1"]["1234"].monitor_credit_map;
+  EXPECT_FALSE(monitor_updates["1"].deleted);
+  EXPECT_TRUE(monitor_updates["3"].deleted);
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 2048}, {"3", 0}});
+
+  // IMPORTANT: this step will sync the updates into session store and re-read
+  // the session_map.
+  bool success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+
+  // Assert that we don't send usage reports for deleted monitors
+  // receive usages from pipelined
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      "IMSI1", "pcrf_only_to_be_disabled", 5000, 5000, record_list->Add());
+  update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  // Collect updates, should only have NO updates
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto update_request =
+      local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(update_request.updates_size(), 0);
+  EXPECT_EQ(update_request.usage_monitors_size(), 0);
 }
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
