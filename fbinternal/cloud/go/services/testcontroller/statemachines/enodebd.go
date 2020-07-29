@@ -450,15 +450,15 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	helper := &protos.GenericCommandResponse{
 		Response: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
-					"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
-					"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-					"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-				},
+				"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+				"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+				"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+			},
 		},
 	}
 	resp, err := gatewayClient.GenerateTraffic(*config.NetworkID, trafficGWID, config.Ssid, config.SsidPw)
 	// Any result that is not 0 is considered a failure on the traffic script's part
-	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]){
+	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
 		if successState == subscriberActiveState {
 			pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
 			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
@@ -522,6 +522,14 @@ func verifyConnectivity(successState string, machine *enodebdE2ETestStateMachine
 	if resp == nil || err != nil {
 		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
+	}
+	if !*resp.EnodebConnected {
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error Enodeb is not connected")
+	}
+	if !*resp.RfTxDesired || !*resp.RfTxOn {
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error RF TX on/desired are not both set to true")
 	}
 
 	pretext = fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "SUCCEEDED")
