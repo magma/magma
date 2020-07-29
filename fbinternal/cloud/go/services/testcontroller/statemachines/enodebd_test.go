@@ -756,6 +756,44 @@ func Test_EnodebdE2ETestStateMachine_SubscriberState(t *testing.T) {
 	mockMagmad.AssertExpectations(t)
 }
 
+func Test_EnodebdE2ETestStateMachine_DynamicStartState(t *testing.T) {
+	SetupTests(t, "testcontroller__statemachines__enodebd_dynamic_start_state")
+	RegisterAGW(t)
+	testConfig := GetEnodebTestConfig()
+	testConfig.StartState = "reboot_enodeb_1"
+	cli := &mockClient{}
+	mockMagmad, _:= GetMockObjects()
+
+	// New test
+	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
+	actualState, actualDuration, err := sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "reboot_enodeb_1", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.StartState = "reconfig_enodeb1"
+	actualState, actualDuration, err = sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "reconfig_enodeb1", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.StartState = "subscriber_inactive"
+	actualState, actualDuration, err = sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "subscriber_inactive", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.StartState = "INVALID STATE"
+	// Invalid state should default to check_for_upgrade
+	actualState, actualDuration, err = sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.EqualError(t, err, "Invalid starting state. Defaulting to check_for_upgrade")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+
+	cli.AssertExpectations(t)
+	mockMagmad.AssertExpectations(t)
+}
 func SetupTests(t *testing.T, dbName string) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
@@ -849,6 +887,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
+		StartState: "check_for_upgrade",
 	}
 	return testConfig
 }
