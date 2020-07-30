@@ -126,7 +126,7 @@ func (srv *CentralSessionController) CreateSession(
 		metrics.OcsCcrInitRequests.Inc()
 	}
 
-	usageMonitors := getUsageMonitorsFromCCA_I(imsi, gyOriginHost, request.SessionId, gxCCAInit)
+	usageMonitors := getUsageMonitorsFromCCA_I(imsi, request.SessionId, gyOriginHost, gxCCAInit)
 
 	return &protos.CreateSessionResponse{
 		Credits:          credits,

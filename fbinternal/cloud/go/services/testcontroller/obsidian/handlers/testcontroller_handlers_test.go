@@ -345,6 +345,7 @@ func defaultEnodebdTestConfig() *models.EnodebdTestConfig {
 			Tac:                    1,
 			TransmitEnabled:        swag.Bool(true),
 		},
+		SubscriberID: swag.String("IMSI1234567890"),
 	}
 }
 
@@ -372,6 +373,7 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 			Tac:                    1,
 			TransmitEnabled:        swag.Bool(true),
 		},
+		SubscriberID: swag.String("IMSI1234567890"),
 	}
 }
 

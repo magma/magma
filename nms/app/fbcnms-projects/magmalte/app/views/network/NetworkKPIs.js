@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {KPIRows} from '../../components/KPIGrid';
 import type {
   apn,
   enodeb,
@@ -22,7 +23,7 @@ import type {
 } from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import KPITray from '../../components/KPITray';
+import KPIGrid from '../../components/KPIGrid';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -38,37 +39,37 @@ type Props = {
 };
 
 export default function NetworkKPI(props: Props) {
-  return (
-    <KPITray
-      data={[
-        {
-          icon: CellWifiIcon,
-          category: 'Gateways',
-          value: props.lteGatwayResp
-            ? Object.keys(props.lteGatwayResp).length
-            : 0,
-        },
-        {
-          icon: SettingsInputAntennaIcon,
-          category: 'eNodeBs',
-          value: props.enb ? Object.keys(props.enb).length : 0,
-        },
-        {
-          icon: PeopleIcon,
-          category: 'Subscribers',
-          value: props.subscriber ? Object.keys(props.subscriber).length : 0,
-        },
-        {
-          icon: LibraryBooksIcon,
-          category: 'Policies',
-          value: props.policyRules ? props.policyRules.length : 0,
-        },
-        {
-          icon: RssFeedIcon,
-          category: 'APNs',
-          value: props.apns ? Object.keys(props.apns).length : 0,
-        },
-      ]}
-    />
-  );
+  const kpiData: KPIRows[] = [
+    [
+      {
+        icon: CellWifiIcon,
+        category: 'Gateways',
+        value: props.lteGatwayResp
+          ? Object.keys(props.lteGatwayResp).length
+          : 0,
+      },
+      {
+        icon: SettingsInputAntennaIcon,
+        category: 'eNodeBs',
+        value: props.enb ? Object.keys(props.enb).length : 0,
+      },
+      {
+        icon: PeopleIcon,
+        category: 'Subscribers',
+        value: props.subscriber ? Object.keys(props.subscriber).length : 0,
+      },
+      {
+        icon: LibraryBooksIcon,
+        category: 'Policies',
+        value: props.policyRules ? props.policyRules.length : 0,
+      },
+      {
+        icon: RssFeedIcon,
+        category: 'APNs',
+        value: props.apns ? Object.keys(props.apns).length : 0,
+      },
+    ],
+  ];
+
+  return <KPIGrid data={kpiData} />;
 }

@@ -42,6 +42,7 @@ import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CardTitleRow} from '../../components/layout/CardTitleRow';
+import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
@@ -203,6 +204,17 @@ export function GatewayDetail({
       </AppBar>
 
       <Switch>
+        <Route
+          path={relativePath('/config/json')}
+          render={() => (
+            <GatewayJsonConfig
+              gwInfo={gwInfo}
+              onSave={gateway => {
+                setGwInfo(gateway);
+              }}
+            />
+          )}
+        />
         <Route
           path={relativePath('/config')}
           render={() => (

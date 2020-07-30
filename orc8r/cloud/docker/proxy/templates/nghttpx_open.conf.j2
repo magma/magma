@@ -1,0 +1,58 @@
+# Copyright (c) 2016-present, Facebook, Inc.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree. An additional grant
+# of patent rights can be found in the PATENTS file in the same directory.
+#
+
+# Listening interfaces
+frontend=0.0.0.0,9444
+frontend=::,9444
+# TODO: remove 8443 after migrating the existing load balancers
+frontend=0.0.0.0,8443
+frontend=::,8443
+
+# Disable OCSP for the controller for now
+no-ocsp=yes
+
+# Enable access gateway cert verification
+verify-client=no
+
+{% if 'HTTP_PROXY_HOSTNAME' in env and env['HTTP_PROXY_HOSTNAME']|length > 0 -%}
+# HTTP proxy config to forward HTTP requests
+backend={{ env['HTTP_PROXY_BACKEND'] }},443;{{ env['HTTP_PROXY_HOSTNAME'] }};tls
+host-rewrite=yes
+# TODO: Look into IPv6 support in Docker-Compose and Kubernetes
+backend-address-family=IPv4
+{% endif -%}
+
+{% if 'HTTP_PROXY_DOCKER_HOSTNAME' in env and env['HTTP_PROXY_DOCKER_HOSTNAME']|length > 0 -%}
+# HTTP proxy config to forward HTTP requests for docker images
+backend=localhost,3128;{{ env['HTTP_PROXY_DOCKER_HOSTNAME'] }}
+host-rewrite=yes
+backend-address-family=IPv4
+{% endif -%}
+
+{% if 'HTTP_PROXY_GITHUB_HOSTNAME' in env and env['HTTP_PROXY_GITHUB_HOSTNAME']|length > 0 -%}
+# HTTP proxy config to forward HTTP requests for github
+backend=localhost,3128;{{ env['HTTP_PROXY_GITHUB_HOSTNAME'] }}
+host-rewrite=yes
+backend-address-family=IPv4
+{% endif -%}
+
+# Magma services
+{% for backend in proxy_backends.split(',') -%}
+{% for service, value in service_registry.items() -%}
+{% if value['proxy_type'] == "open" -%}
+backend={{ backend }},{{ value.port }};{{ service }}.cloud;proto=h2;no-tls;dns
+backend={{ backend }},{{ value.port }};{{ service }}-{{ controller_hostname }};proto=h2;no-tls;dns
+{% endif %}
+{% endfor -%}
+# Nghttp can't send a direct error for other unknown requests.
+# Blackhole all other requests to port 9070, which is not used by any service.
+backend={{ backend }},9070;;no-tls;dns
+{% endfor -%}
+
+# Proxy configs
+{% include './nghttpx_common.conf.j2' %}

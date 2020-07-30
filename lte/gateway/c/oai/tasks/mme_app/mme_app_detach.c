@@ -84,12 +84,10 @@ void mme_app_send_delete_session_request(
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family =
       AF_INET;
-  /* clang-format off */
-  OAI_GCC_DIAG_OFF(pointer-to-int-cast);
-  /* clang-format on */
+  OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.teid =
       (teid_t) ue_context_p;
-  OAI_GCC_DIAG_ON(pointer - to - int - cast);
+  OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
   S11_DELETE_SESSION_REQUEST(message_p).sender_fteid_for_cp.interface_type =
       S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);

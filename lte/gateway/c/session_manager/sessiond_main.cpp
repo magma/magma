@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
 
   auto directoryd_client = std::make_shared<magma::AsyncDirectorydClient>();
   std::thread directoryd_thread([&]() {
-    MLOG(MINFO) << "Started pipelined response thread";
+    MLOG(MINFO) << "Started directoryd response thread";
     directoryd_client->rpc_response_loop();
   });
 
