@@ -14,6 +14,7 @@
  * @format
  */
 
+import Divider from '@material-ui/core/Divider';
 import Grid from '@material-ui/core/Grid';
 import HelpIcon from '@material-ui/icons/Help';
 import IconButton from '@material-ui/core/IconButton';
@@ -27,10 +28,11 @@ import Typography from '@material-ui/core/Typography';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
+import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
-const useStyles = makeStyles(_ => ({
+const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
     marginBottom: '5px',
@@ -49,6 +51,12 @@ const useStyles = makeStyles(_ => ({
     paddingTop: '4px',
     verticalAlign: 'bottom',
     width: '15px',
+  },
+  formDivider: {
+    margin: `${theme.spacing(3)}px 0 ${theme.spacing(2)}px`,
+    backgroundColor: colors.primary.gullGray,
+    opacity: 0.4,
+    height: '1px',
   },
 }));
 
@@ -100,6 +108,11 @@ type PasswordProps = {
   value: string,
   onChange: string => void,
 };
+
+export function FormDivider() {
+  const classes = useStyles();
+  return <Divider className={classes.formDivider} />;
+}
 
 export function PasswordInput(props: PasswordProps) {
   const [showPassword, setShowPassword] = useState(false);
