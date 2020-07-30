@@ -17,7 +17,6 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/streamer"
-	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/lib/go/protos"
 
@@ -32,7 +31,6 @@ func main() {
 
 	servicer := servicers.NewStreamerServicer()
 	protos.RegisterStreamerServer(srv.GrpcServer, servicer)
-	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewBaseOrchestratorStreamProviderServicer())
 
 	err = srv.Run()
 	if err != nil {

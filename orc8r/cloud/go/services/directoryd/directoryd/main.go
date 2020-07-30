@@ -38,7 +38,6 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/directoryd/servicers"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
-	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
@@ -75,7 +74,6 @@ func main() {
 	}
 	protos.RegisterDirectoryLookupServer(srv.GrpcServer, servicer)
 	protos.RegisterGatewayDirectoryServiceServer(srv.GrpcServer, servicers.NewDirectoryUpdateServicer())
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewDirectoryIndexer())
 
 	// Run service
 	err = srv.Run()
