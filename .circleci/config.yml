@@ -536,6 +536,15 @@ jobs:
           deploy: 'False'
 
   cwag-deploy:
+    parameters:
+      tag:
+        description: Containers tag
+        type: string
+        default: ${CIRCLE_SHA1:0:8}
+      images:
+        description: Images to deploy
+        type: string
+        default: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -552,7 +561,8 @@ jobs:
             docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
       - tag-push-docker:
           project: cwf
-          images: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
       - persist-githash-version:
           file_prefix: cwag
@@ -791,6 +801,11 @@ jobs:
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
 
   xwfm-deploy:
+    parameters:
+      tag:
+        description: Containers tag
+        type: string
+        default: ${CIRCLE_SHA1:0:8}
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -806,6 +821,7 @@ jobs:
             docker build --tag goradius -f radius/src/Dockerfile ./
       - tag-push-docker:
           images: 'goradius'
+          tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
       - magma_slack_notify
 
@@ -867,6 +883,23 @@ workflows:
       - cwf-operator-build:
           requires:
             - cwf-operator-precommit
+
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test
+      - xwfm-deploy:
+          requires:
+            - xwfm-test
+          tag: 'hourly'
+      - cwag-deploy:
+          requires:
+            - xwfm-test
+          images: 'gateway_python|gateway_pipelined'
+          tag: 'hourly'
 
   nms:
     jobs:
