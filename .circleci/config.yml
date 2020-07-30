@@ -790,13 +790,27 @@ jobs:
             cd ${MAGMA_ROOT}/xwf/docker/
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
 
+  xwfm-deploy:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+    steps:
+      - checkout
+      - docker/install-dc
+      - run:
+          name: Build xwf go radius
+          command: |
+            cd ${MAGMA_ROOT}/feg
+            docker build --tag goradius -f radius/src/Dockerfile ./
+      - tag-push-docker:
+          images: 'goradius'
+          registry: $DOCKER_MAGMA_REGISTRY
+      - magma_slack_notify
+
 workflows:
   version: 2.1
-
-  xwfm:
-    jobs:
-      - xwfm-test:
-          <<: *only_master
 
   cloud:
     jobs:
@@ -833,11 +847,19 @@ workflows:
       - cwag-precommit
       - cwf-integ-test:
           <<: *only_master
+      - xwfm-test:
+          <<: *only_master
       - cwag-deploy:
           <<: *only_master
           requires:
             - cwag-precommit
             - cwf-integ-test
+      - xwfm-deploy:
+          <<: *only_master
+          requires:
+            - xwfm-test
+            - cwag-deploy
+
 
   cwf_operator:
     jobs:

@@ -54,6 +54,7 @@ StoredSessionCredit SessionCredit::marshal() {
 
 SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   SessionCreditUpdateCriteria uc{};
+  uc.deleted = false;
   uc.grant_tracking_type = grant_tracking_type_;
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket            = static_cast<Bucket>(bucket_int);
