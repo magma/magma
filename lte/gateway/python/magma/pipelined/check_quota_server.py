@@ -16,9 +16,12 @@ from flask import Flask, jsonify
 
 def check_quota_response(**kwargs):
     response = kwargs['response']
-    return jsonify(
-        hasQuota=response
-    )
+    return jsonify({
+        'version': 1,
+        'payload': {
+            'emptyWallet': not response
+        }
+    })
 
 
 def setup_flask_server(json_response):

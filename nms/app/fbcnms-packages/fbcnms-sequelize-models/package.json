@@ -1,7 +1,0 @@
-{
-  "name": "@fbcnms/sequelize-models",
-  "version": "0.1.0",
-  "dependencies": {
-    "sequelize": "^5.8.5"
-  }
-}

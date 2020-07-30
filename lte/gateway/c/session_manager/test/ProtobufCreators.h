@@ -54,6 +54,8 @@ void create_monitor_credit(
   uint64_t volume,
   UsageMonitoringCredit* response);
 
+// When volume = 0, the action for the monitoring credit will be set to DISABLE.
+// It is CONTINUE otherwise.
 void create_monitor_update_response(
   const std::string& imsi,
   const std::string& m_key,

@@ -3,9 +3,11 @@ circleci/ @xjtian @tmdzk
 
 */cloud/ @xjtian @mpgermano @hcgatewood
 
-orc8r/ @xjtian @mpgermano @hcgatewood
+orc8r/ @xjtian @mpgermano @hcgatewood @emakeev
 
-feg/ @themarwhal @mpgermano @uri200
+feg/ @themarwhal @mpgermano @uri200 @emakeev
+
+openwrt/ @emakeev @uri200
 
 # More specific mappings for lte/gateway will override this top-level one
 lte/gateway @xjtian @ardzoht

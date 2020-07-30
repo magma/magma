@@ -187,7 +187,7 @@ services:
     network_mode: host
     restart: always
     command: >
-      /bin/bash -c "envsubst < /etc/magma/templates/radius.conf.template > /var/opt/magma/tmp/radius.config.json &&
+      /bin/bash -c "envsubst < /etc/magma/templates/radius.analytics_disabled.conf.template > /var/opt/magma/tmp/radius.config.json &&
              envdir /var/opt/magma/envdir /var/opt/magma/bin/radius -config /var/opt/magma/tmp/radius.config.json"
 
   radiusd:

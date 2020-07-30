@@ -23,6 +23,7 @@
 #include <glog/logging.h>
 
 #define MLOG(VERBOSITY) VLOG(VERBOSITY)
+#define MLOG_IF(VERBOSITY, CONDITION) VLOG_IF(VERBOSITY, CONDITION)
 
 namespace magma {
 

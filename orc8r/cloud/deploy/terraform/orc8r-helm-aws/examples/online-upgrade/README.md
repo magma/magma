@@ -19,7 +19,7 @@ unexpected planned step in the output of `terraform apply` before it asks
 for confirmation.
 
 Detailed upgrade steps can be found in the Orchestrator documentation at
-https://facebookincubator.github.io/magma.
+https://magma.github.io/magma.
 
 ## Providers
 
