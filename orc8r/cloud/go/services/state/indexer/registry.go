@@ -18,7 +18,6 @@ package indexer
 
 import (
 	"strconv"
-	"strings"
 	"testing"
 
 	"github.com/pkg/errors"
@@ -33,7 +32,7 @@ import (
 func GetIndexer(serviceName string) (Indexer, error) {
 	x, err := getIndexer(serviceName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get indexer for service %s", err)
+		return nil, errors.Wrapf(err, "get indexer for service %s", serviceName)
 	}
 	return x, nil
 }
@@ -87,14 +86,9 @@ func getIndexer(serviceName string) (Indexer, error) {
 		return nil, err
 	}
 
-	typesVal, err := registry.GetAnnotation(serviceName, orc8r.StateIndexerTypesAnnotation)
+	types, err := registry.GetAnnotationFields(serviceName, orc8r.StateIndexerTypesAnnotation, orc8r.AnnotationFieldSeparator)
 	if err != nil {
 		return nil, err
-	}
-	types := strings.Split(typesVal, orc8r.AnnotationListSeparator)
-	// Splitting an empty string returns len(types) = 1, which we don't want
-	if len(typesVal) == 0 {
-		types = nil
 	}
 
 	return NewRemoteIndexer(serviceName, version, types...), nil

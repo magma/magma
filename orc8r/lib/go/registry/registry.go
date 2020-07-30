@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -206,12 +207,32 @@ func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string,
 	if !ok {
 		return "", fmt.Errorf("service %s not registered", service)
 	}
-	labelValue, ok := location.Annotations[annotationName]
+	annotationValue, ok := location.Annotations[annotationName]
 	if !ok {
 		return "", fmt.Errorf("service %s doesn't have annotation values for %s", service, annotationName)
 	}
 
-	return labelValue, nil
+	return annotationValue, nil
+}
+
+// GetAnnotationFields returns the split fields of the value for the passed
+// annotation name.
+// First splits by field separator, then strips all whitespace
+// (including newlines). Empty fields are removed.
+func (r *ServiceRegistry) GetAnnotationFields(service, annotationName, fieldSeparator string) ([]string, error) {
+	annotationValue, err := r.GetAnnotation(service, annotationName)
+	if err != nil {
+		return nil, err
+	}
+
+	split := strings.Split(annotationValue, fieldSeparator)
+	values := funk.
+		Chain(split).
+		Map(func(s string) string { return strings.Join(strings.Fields(s), "") }).
+		Filter(func(s string) bool { return s != "" }).
+		Value().([]string)
+
+	return values, nil
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.
