@@ -127,6 +127,7 @@ ENV MAGMA_ROOT /magma
 COPY --from=builder /var/opt/magma/bin /var/opt/magma/bin
 COPY --from=builder $MAGMA_ROOT/feg/radius/src/radius /var/opt/magma/bin/radius
 COPY --from=builder $MAGMA_ROOT/feg/radius/src/config/samples/radius.cwf.config.json.template /etc/magma/templates/radius.conf.template
+COPY --from=builder $MAGMA_ROOT/feg/radius/src/config/samples/radius.cwf_analytics_disabled.config.json.template /etc/magma/templates/radius.analytics_disabled.conf.template
 
 # Copy the configs.
 COPY feg/gateway/configs /etc/magma
