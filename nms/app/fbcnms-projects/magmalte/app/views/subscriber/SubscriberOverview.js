@@ -270,7 +270,12 @@ function SubscriberDashboardInternal({
                       history.push(relativeUrl('/' + currRow.imsi));
                     },
                   },
-                  {name: 'Edit'},
+                  {
+                    name: 'Edit',
+                    handleFunc: () => {
+                      history.push(relativeUrl('/' + currRow.imsi + '/config'));
+                    },
+                  },
                   {name: 'Remove'},
                 ]}
                 options={{

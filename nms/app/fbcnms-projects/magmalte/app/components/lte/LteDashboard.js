@@ -103,13 +103,6 @@ function LteDashboard() {
                 to="/network"
                 className={classes.tab}
               />
-              <Tab
-                key="Subscribers"
-                component={NestedRouteLink}
-                label={<DashboardTabLabel label="Subscribers" />}
-                to="#"
-                className={classes.tab}
-              />
             </Tabs>
           </Grid>
           <Grid item xs={6}>

@@ -159,7 +159,12 @@ function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
             history.push(relativeUrl('/' + currRow.id));
           },
         },
-        {name: 'Edit'},
+        {
+          name: 'Edit',
+          handleFunc: () => {
+            history.push(relativeUrl('/' + currRow.id + '/config'));
+          },
+        },
         {name: 'Remove'},
         {name: 'Deactivate'},
         {name: 'Reboot'},
