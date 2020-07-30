@@ -136,6 +136,9 @@ void MmeNasStateManager::mme_nas_state_init_local_state() {
         mme_statistic_timer_);
     state_cache_p->statistic_timer_id = 0;
   }
+  if (is_initialized) {
+    mme_app_recover_timers_for_all_ues();
+  }
 }
 
 // Create the hashtables for MME NAS state
