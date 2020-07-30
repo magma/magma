@@ -114,35 +114,7 @@ static struct udp_socket_desc_s* udp_server_get_socket_desc_by_sd(int sdP) {
   return udp_sock_p;
 }
 
-static void udp_server_flush_sockets(
-    struct epoll_event* events, int nb_events) {
-  int event;
-  struct udp_socket_desc_s* udp_sock_p = NULL;
-
-  OAILOG_DEBUG(LOG_UDP, "Received %d events\n", nb_events);
-
-  for (event = 0; event < nb_events; event++) {
-    if (events[event].events != 0) {
-      /*
-       * If the event has not been yet been processed (not an itti message)
-       */
-      pthread_mutex_lock(&udp_socket_list_mutex);
-      udp_sock_p = udp_server_get_socket_desc_by_sd(events[event].data.fd);
-
-      if (udp_sock_p != NULL) {
-        udp_server_receive_and_process(udp_sock_p);
-      } else {
-        OAILOG_ERROR(
-            LOG_UDP, "Failed to retrieve the udp socket descriptor %d",
-            events[event].data.fd);
-      }
-
-      pthread_mutex_unlock(&udp_socket_list_mutex);
-    }
-  }
-}
-
-static void udp_server_receive_and_process(
+ static void udp_server_receive_and_process(
     struct udp_socket_desc_s* udp_sock_pP) {
   OAILOG_DEBUG(
       LOG_UDP, "Inserting new descriptor for task %d, sd %d\n",
@@ -202,6 +174,26 @@ static void udp_server_receive_and_process(
       }
     }
   }
+}
+
+static int
+udp_socket_handler(zloop_t* loop, zmq_pollitem_t* item, void* arg) {
+  struct udp_socket_desc_s* udp_sock_p = NULL;
+
+  pthread_mutex_lock(&udp_socket_list_mutex);
+  udp_sock_p = udp_server_get_socket_desc_by_sd(item->fd);
+
+  if (udp_sock_p != NULL) {
+    udp_server_receive_and_process(udp_sock_p);
+  } else {
+    OAILOG_ERROR(
+        LOG_UDP, "Failed to retrieve the udp socket descriptor %d",
+        item->fd);
+  }
+
+  pthread_mutex_unlock(&udp_socket_list_mutex);
+
+  return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -281,7 +273,10 @@ static int udp_server_create_socket_v4(
   pthread_mutex_lock(&udp_socket_list_mutex);
   STAILQ_INSERT_TAIL(&udp_socket_list, socket_desc_p, entries);
   pthread_mutex_unlock(&udp_socket_list_mutex);
-  itti_subscribe_event_fd(TASK_UDP, sd);
+
+  zmq_pollitem_t item = { 0, sd, ZMQ_POLLIN, 0 };
+  zloop_poller (udp_task_zmq_ctx.event_loop, &item, udp_socket_handler, NULL);
+
   return sd;
 }
 
@@ -360,7 +355,10 @@ static int udp_server_create_socket_v6(
   pthread_mutex_lock(&udp_socket_list_mutex);
   STAILQ_INSERT_TAIL(&udp_socket_list, socket_desc_p, entries);
   pthread_mutex_unlock(&udp_socket_list_mutex);
-  itti_subscribe_event_fd(TASK_UDP, sd);
+
+  zmq_pollitem_t item = { 0, sd, ZMQ_POLLIN, 0 };
+  zloop_poller (udp_task_zmq_ctx.event_loop, &item, udp_socket_handler, NULL);
+
   return sd;
 }
 
@@ -504,16 +502,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   itti_free_msg_content(received_message_p);
   zframe_destroy(&msg_frame);
-
-  struct epoll_event* events = NULL;
-  int nb_events              = itti_get_events(TASK_UDP, &events);
-  // OAILOG_DEBUG ("Number of events %d  \n" , nb_events );
-  if ((nb_events > 0) && (events != NULL)) {
-    /*
-     * Now handle notifications for other sockets
-     */
-    udp_server_flush_sockets(events, nb_events);
-  }
   return 0;
 }
 
@@ -521,7 +509,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* udp_thread(void* args) {
   itti_mark_task_ready(TASK_UDP);
   init_task_context(
-      TASK_UDP, (task_id_t[]){TASK_MME_APP, TASK_S1AP}, 2, handle_message,
+      TASK_UDP, (task_id_t[]){TASK_MME_APP, TASK_S11}, 2, handle_message,
       &udp_task_zmq_ctx);
 
   zloop_start(udp_task_zmq_ctx.event_loop);
