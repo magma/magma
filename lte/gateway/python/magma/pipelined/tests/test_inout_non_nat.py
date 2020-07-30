@@ -28,7 +28,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
     create_service_manager,
-    assert_bridge_snapshot_match,
+    SnapshotVerifier
 )
 
 from magma.pipelined.app import inout
@@ -135,7 +135,11 @@ class InOutNonNatTest(unittest.TestCase):
 
         while gw_info.mac is None or gw_info.mac == '':
             threading.Event().wait(0.1)
-        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
         assert gw_info.mac == 'b2:a0:cc:85:80:7a'
 
 
