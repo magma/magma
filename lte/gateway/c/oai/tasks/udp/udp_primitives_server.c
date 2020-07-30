@@ -535,7 +535,6 @@ int udp_init(void) {
 void udp_exit(void) {
   struct udp_socket_desc_s* socket_desc_p = NULL;
   while ((socket_desc_p = STAILQ_FIRST(&udp_socket_list))) {
-    itti_unsubscribe_event_fd(TASK_UDP, socket_desc_p->sd);
     close(socket_desc_p->sd);
     pthread_mutex_destroy(&udp_socket_list_mutex);
     STAILQ_REMOVE_HEAD(&udp_socket_list, entries);
