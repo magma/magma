@@ -61,7 +61,7 @@ func getEchoServerAddressToPathPrefixes() (map[*url.URL][]string, error) {
 	pathPrefixesByAddr := map[*url.URL][]string{}
 	services := registry.FindServices(orc8r.ObsidianHandlersLabel)
 	for _, srv := range services {
-		pathPrefixes, err := registry.GetAnnotationFields(srv, orc8r.ObsidianHandlersPathPrefixesAnnotation, orc8r.AnnotationFieldSeparator)
+		pathPrefixes, err := registry.GetAnnotationList(srv, orc8r.ObsidianHandlersPathPrefixesAnnotation)
 		if err != nil {
 			return map[*url.URL][]string{}, err
 		}

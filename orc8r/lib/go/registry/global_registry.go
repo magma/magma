@@ -120,11 +120,11 @@ func GetAnnotation(service, annotationName string) (string, error) {
 	return globalRegistry.GetAnnotation(service, annotationName)
 }
 
-// GetAnnotationFields returns the split fields of the value for the passed
+// GetAnnotationList returns the comma-split fields of the value for the passed
 // annotation name.
 // The service needs to be added to the registry before this.
-func GetAnnotationFields(service, annotationName, fieldSeparator string) ([]string, error) {
-	return globalRegistry.GetAnnotationFields(service, annotationName, fieldSeparator)
+func GetAnnotationList(service, annotationName string) ([]string, error) {
+	return globalRegistry.GetAnnotationList(service, annotationName)
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.

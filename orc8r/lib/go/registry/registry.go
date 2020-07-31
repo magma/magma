@@ -21,10 +21,13 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
+)
+
+const (
+	annotationFieldSeparator = ","
 )
 
 type ServiceRegistry struct {
@@ -215,22 +218,23 @@ func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string,
 	return annotationValue, nil
 }
 
-// GetAnnotationFields returns the split fields of the value for the passed
+// GetAnnotationList returns the comma-split fields of the value for the passed
 // annotation name.
 // First splits by field separator, then strips all whitespace
 // (including newlines). Empty fields are removed.
-func (r *ServiceRegistry) GetAnnotationFields(service, annotationName, fieldSeparator string) ([]string, error) {
+func (r *ServiceRegistry) GetAnnotationList(service, annotationName string) ([]string, error) {
 	annotationValue, err := r.GetAnnotation(service, annotationName)
 	if err != nil {
 		return nil, err
 	}
 
-	split := strings.Split(annotationValue, fieldSeparator)
-	values := funk.
-		Chain(split).
-		Map(func(s string) string { return strings.Join(strings.Fields(s), "") }).
-		Filter(func(s string) bool { return s != "" }).
-		Value().([]string)
+	var values []string
+	for _, s := range strings.Split(annotationValue, annotationFieldSeparator) {
+		s = strings.Join(strings.Fields(s), "")
+		if s != "" {
+			values = append(values, s)
+		}
+	}
 
 	return values, nil
 }

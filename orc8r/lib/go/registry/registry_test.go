@@ -18,56 +18,37 @@ func TestServiceRegistry_GetAnnotationFields(t *testing.T) {
 	tests := []struct {
 		name            string
 		annotationValue string
-		separator       string
 		want            []string
 	}{
 		{
 			name:            "empty",
 			annotationValue: "",
-			separator:       ",",
-			want:            []string{},
+			want:            nil,
 		},
 		{
 			name:            "all whitespace",
 			annotationValue: "  \n\n  ",
-			separator:       ",",
-			want:            []string{},
+			want:            nil,
 		},
 		{
 			name:            "single element",
 			annotationValue: "42",
-			separator:       ",",
 			want:            []string{"42"},
 		},
 		{
 			name:            "multiple elements",
 			annotationValue: "42,foo",
-			separator:       ",",
 			want:            []string{"42", "foo"},
 		},
 		{
 			name:            "multiple elements with whitespace",
 			annotationValue: "  42 ,\n  foo  ",
-			separator:       ",",
 			want:            []string{"42", "foo"},
 		},
 		{
 			name:            "trailing separator",
 			annotationValue: "  a,       b, c,\n\nd,    e,\n\n  f,  \n  ",
-			separator:       ",",
 			want:            []string{"a", "b", "c", "d", "e", "f"},
-		},
-		{
-			name:            "space separator",
-			annotationValue: "  a,       b, c,\n\nd,    e,\n\n  f,  \n  ",
-			separator:       " ",
-			want:            []string{"a,", "b,", "c,d,", "e,", "f,"},
-		},
-		{
-			name:            "newline separator",
-			annotationValue: "  a,       b, c,\n\nd,    e,\n\n  f,  \n  ",
-			separator:       "\n",
-			want:            []string{"a,b,c,", "d,e,", "f,"},
 		},
 	}
 	for _, tt := range tests {
@@ -77,7 +58,7 @@ func TestServiceRegistry_GetAnnotationFields(t *testing.T) {
 					"srv": {Annotations: map[string]string{"annotationName": tt.annotationValue}},
 				},
 			}
-			got, err := r.GetAnnotationFields("srv", "annotationName", tt.separator)
+			got, err := r.GetAnnotationList("srv", "annotationName")
 			assert.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})

@@ -52,7 +52,7 @@ func getServicesForStream(streamName string) []string {
 
 	var ret []string
 	for _, s := range services {
-		streams, err := registry.GetAnnotationFields(s, orc8r.StreamProviderStreamsAnnotation, orc8r.AnnotationFieldSeparator)
+		streams, err := registry.GetAnnotationList(s, orc8r.StreamProviderStreamsAnnotation)
 		// Ignore annotation errors, since they indicate either
 		//	- service registry contents were recently updated
 		//	- this service has incorrect annotations given its label

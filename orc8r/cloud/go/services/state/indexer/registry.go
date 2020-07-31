@@ -86,7 +86,7 @@ func getIndexer(serviceName string) (Indexer, error) {
 		return nil, err
 	}
 
-	types, err := registry.GetAnnotationFields(serviceName, orc8r.StateIndexerTypesAnnotation, orc8r.AnnotationFieldSeparator)
+	types, err := registry.GetAnnotationList(serviceName, orc8r.StateIndexerTypesAnnotation)
 	if err != nil {
 		return nil, err
 	}
