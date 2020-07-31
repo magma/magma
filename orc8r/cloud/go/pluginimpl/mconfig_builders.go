@@ -16,7 +16,7 @@ package pluginimpl
 import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	cfg_protos "magma/orc8r/cloud/go/services/configurator/protos"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -39,10 +39,8 @@ type DnsdMconfigBuilderServicer struct{}
 
 // Build builds the mconfig for a given networkID and gatewayID. It returns
 // the mconfig as a map of config keys to mconfig messages.
-func (s *BaseOrchestratorMconfigBuilderServicer) Build(
-	request *configuratorprotos.BuildMconfigRequest,
-) (*configuratorprotos.BuildMconfigResponse, error) {
-	ret := &configuratorprotos.BuildMconfigResponse{
+func (s *BaseOrchestratorMconfigBuilderServicer) Build(request *cfg_protos.BuildMconfigRequest) (*cfg_protos.BuildMconfigResponse, error) {
+	ret := &cfg_protos.BuildMconfigResponse{
 		ConfigsByKey: map[string]*any.Any{},
 	}
 	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
@@ -115,7 +113,9 @@ func (s *BaseOrchestratorMconfigBuilderServicer) Build(
 	return ret, nil
 }
 
-func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+func (*BaseOrchestratorMconfigBuilder) Build(
+	networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message,
+) error {
 	servicer := &BaseOrchestratorMconfigBuilderServicer{}
 	networkProto, err := network.ToStorageProto()
 	if err != nil {
@@ -125,7 +125,7 @@ func (*BaseOrchestratorMconfigBuilder) Build(networkID string, gatewayID string,
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	request := &configuratorprotos.BuildMconfigRequest{
+	request := &cfg_protos.BuildMconfigRequest{
 		NetworkId:   networkID,
 		GatewayId:   gatewayID,
 		EntityGraph: graphProto,
@@ -222,10 +222,8 @@ func getFluentBitMconfig(networkID string, gatewayID string, mdGw *models.Magmad
 
 // Build builds the dnsd mconfig for a given networkID and gatewayID.
 // It returns the mconfig as a map of config keys to mconfig messages.
-func (s *DnsdMconfigBuilderServicer) Build(
-	request *configuratorprotos.BuildMconfigRequest,
-) (*configuratorprotos.BuildMconfigResponse, error) {
-	ret := &configuratorprotos.BuildMconfigResponse{
+func (s *DnsdMconfigBuilderServicer) Build(request *cfg_protos.BuildMconfigRequest) (*cfg_protos.BuildMconfigResponse, error) {
+	ret := &cfg_protos.BuildMconfigResponse{
 		ConfigsByKey: map[string]*any.Any{},
 	}
 	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
@@ -258,7 +256,9 @@ func (s *DnsdMconfigBuilderServicer) Build(
 	return ret, err
 }
 
-func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
+func (*DnsdMconfigBuilder) Build(
+	networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message,
+) error {
 	servicer := &DnsdMconfigBuilderServicer{}
 	networkProto, err := network.ToStorageProto()
 	if err != nil {
@@ -268,7 +268,7 @@ func (*DnsdMconfigBuilder) Build(networkID string, gatewayID string, graph confi
 	if err != nil {
 		return errors.WithStack(err)
 	}
-	request := &configuratorprotos.BuildMconfigRequest{
+	request := &cfg_protos.BuildMconfigRequest{
 		NetworkId:   networkID,
 		GatewayId:   gatewayID,
 		EntityGraph: graphProto,
