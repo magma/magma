@@ -64,8 +64,10 @@ export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
   return (
     <Grid container alignItems="center" className={classes.cardTitleRow}>
       <Grid item xs>
-        {Icon ? <Icon className={classes.cardTitleIcon} /> : null}
-        <Text variant="body1">{props.label}</Text>
+        <Grid container alignItems="center">
+          {Icon ? <Icon className={classes.cardTitleIcon} /> : null}
+          <Text variant="body1">{props.label}</Text>
+        </Grid>
       </Grid>
       <Grid item>{Filters ? <Filters /> : null}</Grid>
     </Grid>

@@ -420,20 +420,6 @@ export default createMuiTheme({
         padding: '8px 16px',
         color: colors.primary.brightGray,
         backgroundColor: colors.primary.white,
-        '&$notchedOutline': {
-          borderColor: colors.primary.gullGray,
-        },
-        '&$hovered $notchedOutline': {
-          borderColor: colors.secondary.malibu,
-          borderWidth: '1px',
-        },
-        '&$focused $notchedOutline': {
-          borderColor: colors.secondary.dodgerBlue,
-          borderWidth: '2px',
-        },
-        '&$disabled': {
-          borderColor: colors.button.lightOutline,
-        },
       },
       multiline: {
         padding: '8px 16px',
@@ -441,9 +427,6 @@ export default createMuiTheme({
       input: {
         padding: 0,
         ...typography.button,
-        '&:read-only': {
-          opacity: 0.5,
-        },
         '&::-webkit-input-placeholder': {
           opacity: 1,
         },
