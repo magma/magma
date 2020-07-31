@@ -42,9 +42,7 @@ The main problem with long query times is less responsive dashboards.
 
 Time to load grafana dashboard on prod NMS: **>15s **from click until all graphs are populated. Most of this time is spent looking at all series in order to determine the set of available `networkID`s and `gatewayID`s. 
 
-## Options
-
-Several scaling solutions exist for prometheus, as this is a well-known limitation and prometheus itself does not have any built in way of horizontal scaling.
+# Proposed Solution
 
 ### Thanos
 
@@ -53,44 +51,41 @@ Several scaling solutions exist for prometheus, as this is a well-known limitati
 
 With this setup, we only need to deploy the Thanos `sidecar` and multiple `Querier` components, along with Object storage to achieve faster queries.
 
-### Cortex
+### Deploying Thanos in Orchestrator
 
-Another option for scaling prometheus is [Cortex](https://cortexmetrics.io/). Similar to Thanos, but more complicated. In a Cortex deployment, we would deploy multiple prometheus servers and configure them to write to Cortex, and deploy the Cortex querier. 
+Our solution will consist of:
+* A single prometheus server with an attached Thanos sidecar
+* Multiple Thanos querier components behind a load balancer
+* Object storage to store metrics that are older than a couple of hours to remove query responsibility from the prometheus server
+* A Thanos compactor component to periodically compact the metrics in object storage to reduce storage requirements.
+
+In this solution, the flow of metrics is not changed until it gets to the prometheus server. Metrics still begin on the AGWs and are sent to the controller where they are processed in the `metricsd` service. `metricsd` then pushes the metrics to a pushgateway, where they are scraped by the prometheus server. Now instead of ending here, they are sent to object storage (described below) and remain for long term storage.
 
 
-![cortex](./cortex.png)
-While cortex offers similar options for scaling as Thanos, it appears that Thanos will be easier to deploy and work with our existing architecture, while also providing more options for scaling out in different ways in the future.
-
-## A note on multi-tenancy
-
-Both of these projects support some form of multi-tenancy, however I don’t believe they are useful for our situation since they tie the tenancy to a specific prometheus server. This means we would have to have a 1:1 mapping from servers to tenants, which may not match up with our scaling needs. For example there could be a deployment with one massive network, and several smaller ones. Queries on the big network would not be improved this way.
-
-## Configmanager and multiple prometheus servers
-
-One problem that arises with multiple prometheus servers is handling alerting configurations. Alerting rules are used by the prometheus server to evaluate rules against incoming metrics, but in a model with multiple servers this requires a lot of careful planning and tradeoffs due to metrics being split across servers, but rules only applying to a single server at a time.
-
-Thanos provides a solution to this problem in the [Ruler](https://thanos.io/components/rule.md/) component. It accepts rules files in the same format as prometheus, and evaluates the rules using a Thanos Querier which has access to all servers. Feature parity not documented (POST request to reload configuration files) validated by investigating [source code](https://github.com/thanos-io/thanos/blob/master/cmd/thanos/rule.go#L567).
-
-There are several [community helm charts](https://hub.helm.sh/charts?q=thanos) available for deploying Thanos, and they show that the Ruler component is easily deployed with an existing PVC, meaning it will be essentially "plug and play" for configmanager with no additional work required.
-
-To keep our alerting system all we have to do is configure the Thanos Ruler to use the alerting rules files managed by prometheus-configmanager, and remove the rules files from the individual prometheus servers.
-
-Note: Alertmanager is not affected by the switch to Thanos, and there will still only be a single alertmanager instance.
-
-## Deploying Thanos in Orchestrator
-
-### Improving query times with Object Storage
-
-All metrics go through the controller (which is already scalable and placed behind a load balancer), where they are pushed to the `prometheus-edge-hub` (or pushgateway). The single prometheus server then scrapes from this pushgateway. 
 Current metrics pipeline diagram:
 
 ![currentMetricsPipeline.png](./currentMetricsPipeline.png)
 
+Proposed pipeline:
+
+![newMetricsPipeline.png](./proposedMetricsPipeline.png)
+
+### Improving query times with Object Storage
+
+All metrics go through the controller (which is already scalable and placed behind a load balancer), where they are pushed to the `prometheus-edge-hub` (or pushgateway). The single prometheus server then scrapes from this pushgateway. 
+
 All metrics are stored for 30 days in the Prometheus TSDB storage. This means that all queries have to go through the prometheus server itself, which is the main cause of slow queries.
 
-Object storage will allow us to only store a few hours of metrics on the server itself (potentially keeping everything in-memory) and then exporting older metrics to object storage elsewhere. For example on an AWS deployment metrics would be stored in S3.
+[Object storage](https://thanos.io/storage.md/) will allow us to only store a few hours of metrics on the server itself (potentially keeping everything in-memory) and then exporting older metrics to object storage elsewhere. For example on an AWS deployment metrics would be stored in S3.
 
-We will then deploy multiple Querier components behind a load balancer which are configured to talk to both the prometheus server and the Object storage. This will distribute the compute and I/O load away from the prometheus server to the stateless querier components which can be trivially scaled horizontally to handle increase query loads.
+*Options for Object Storage*
+* Deployed on AWS: S3
+* Deployed with openstack: Openstack Swift
+* Neither: Use prometheus server and forgo object storage
+
+### Query-side Implementation
+
+We will deploy multiple Querier components behind a load balancer which are configured to talk to both the prometheus server and the Object storage. This will distribute the compute and I/O load away from the prometheus server to the stateless querier components which can be trivially scaled horizontally to handle increased query loads. Currently, the orchestrator API reaches out directly to the Prometheus server to query metrics data, but now the API will point to the Thanos querier components. Nothing else will change in terms of the API.
 
 ### Configuration
 
@@ -114,7 +109,6 @@ In the end if we can't get enough performance out of a single edge-hub, we will 
 |---	|---	|
 |Deploy Thanos locally and experiment with loads to validate query time improvements	|2 wk	|
 |Deploy Thanos with a single prometheus server in Orchestrator to test that the Querier and sidecar don’t cause any unexpected side effects.	|1 wk	|
-|Integrate configmanager with Thanos and validate alerting/configuration	|1 wk	|
 |Add Object storage |2 wk	|
 |Investigate performance improvements in prometheus-edge-hub | 2 wk |
 |Configure helm chart |2 wk	|
