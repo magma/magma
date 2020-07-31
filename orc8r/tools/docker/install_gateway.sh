@@ -89,7 +89,7 @@ if [ "$GW_TYPE" == "$CWAG" ] || [ "$GW_TYPE" == "$XWF" ]; then
   apt-add-repository -y ppa:ansible/ansible
   apt-get update -y
   apt-get -y install ansible
-  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v -e ingress_port="eth1" -e uplink_ports="eth2 eth3" -e li_port="eth4"
+  ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg ansible-playbook "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/cwag.yml -i "localhost," -c local -v -e ingress_port="${INGRESS_PORT:-eth1}" -e uplink_ports="${UPLINK_PORTS:-eth2 eth3}" -e li_port="${LI_PORT:-eth4}"
 fi
 
 if [ "$GW_TYPE" == "$XWF" ]; then
