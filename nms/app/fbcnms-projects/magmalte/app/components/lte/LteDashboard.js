@@ -63,11 +63,6 @@ const useStyles = makeStyles(theme => ({
   tabIconLabel: {
     marginRight: '8px',
   },
-  input: {
-    color: colors.primary.white,
-    backgroundColor: colors.primary.comet,
-    borderRadius: '4px',
-  },
   dateTimeText: {
     color: colors.primary.selago,
   },
@@ -126,7 +121,6 @@ function LteDashboard() {
                 maxDate={endDate}
                 disableFuture
                 value={startDate}
-                inputProps={{className: classes.input}}
                 onChange={setStartDate}
               />
               <Grid item>
@@ -140,7 +134,6 @@ function LteDashboard() {
                 inputVariant="outlined"
                 disableFuture
                 value={endDate}
-                inputProps={{className: classes.input}}
                 onChange={setEndDate}
               />
             </Grid>

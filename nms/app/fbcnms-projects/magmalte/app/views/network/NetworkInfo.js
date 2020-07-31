@@ -170,7 +170,7 @@ export function NetworkInfoEdit(props: EditProps) {
               onChange={({target}) =>
                 setNetworkInfo({...networkInfo, id: target.value})
               }
-              readOnly={props.networkInfo ? true : false}
+              disabled={props.networkInfo ? true : false}
             />
           </AltFormField>
           <AltFormField label={'Network Name'}>

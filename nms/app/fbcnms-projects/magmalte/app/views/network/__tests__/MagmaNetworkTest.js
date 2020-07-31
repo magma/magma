@@ -367,7 +367,7 @@ describe('<NetworkDashboard />', () => {
     ) {
       expect(netIdField.value).toBe('testNetworkID');
       // networkID shouldn't be editable
-      expect(netIdField.readOnly).toBe(true);
+      expect(netIdField.disabled).toBe(true);
       expect(netNameField.value).toBe('Test LTE Network');
       expect(netDescField.value).toBe('LTE test network description');
 
@@ -490,7 +490,7 @@ describe('<NetworkDashboard />', () => {
       expect(netIdField.value).toBe('test_network');
 
       // networkID shouldn't be editable
-      expect(netIdField.readOnly).toBe(true);
+      expect(netIdField.disabled).toBe(true);
       expect(netNameField.value).toBe('Test Network');
       expect(netDescField.value).toBe('Test Network Description');
 
