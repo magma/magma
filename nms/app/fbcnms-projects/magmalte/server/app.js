@@ -45,6 +45,8 @@ const session = require('express-session');
 const {sequelize} = require('@fbcnms/sequelize-models');
 const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationLocalStrategy')
   .default;
+const OrganizationSamlStrategy = require('@fbcnms/auth/strategies/OrganizationSamlStrategy')
+  .default;
 
 const {access, configureAccess} = require('@fbcnms/auth/access');
 const {
@@ -78,6 +80,12 @@ app.use(passport.session()); // must be after sessionMiddleware
 
 fbcPassport.use();
 passport.use('local', OrganizationLocalStrategy());
+passport.use(
+  'saml',
+  OrganizationSamlStrategy({
+    urlPrefix: '/user',
+  }),
+);
 
 // Views
 app.set('views', path.join(__dirname, '..', 'views'));
