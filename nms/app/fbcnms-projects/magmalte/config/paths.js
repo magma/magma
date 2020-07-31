@@ -14,8 +14,6 @@
  * @format
  */
 
-'use strict';
-
 const fs = require('fs');
 const path = require('path');
 
@@ -27,9 +25,12 @@ const resolveApp = (relativePath: string) =>
 module.exports = {
   appIndexJs: resolveApp('app/main.js'),
   loginJs: resolveApp('app/login.js'),
+  masterJs: resolveApp('app/master.js'),
   appSrc: resolveApp('app'),
   distPath: resolveApp('static/dist'),
   packagesDir: resolveApp('../../fbcnms-packages'),
-  nodeModulesDir: resolveApp('../../node_modules'),
+  fbcnmsDir: path.dirname(
+    path.dirname(require.resolve('@fbcnms/babel-register')),
+  ),
   resolveApp,
 };

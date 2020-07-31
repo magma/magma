@@ -1429,6 +1429,13 @@
     passport-local "^1.0.0"
     passport-saml "^1.0.0"
 
+"@fbcnms/babel-register@^0.1.0", "@fbcnms/babel-register@^0.1.2":
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/@fbcnms/babel-register/-/babel-register-0.1.2.tgz#fcc88f563d188af91238981dba2440a146729393"
+  integrity sha512-5blEua7xwPv9Jp+wip2hUV88Vj48Znz2dsI9qMG4ecM8d6+VOlj31A34VJeTDMpsIVtScq311KkOOS7ZfoIbWQ==
+  dependencies:
+    core-js "^3.2.1"
+
 "@fbcnms/express-middleware@^0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.0.tgz#fe56f89d6a81f657bc6fbd884ae9ea309e85a807"
@@ -1538,6 +1545,13 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@fbcnms/util/-/util-0.1.0.tgz#e41dc1bc4c56458577f4636886f623f60e552fa7"
   integrity sha512-eRbrhOfHHDilmYRWHTfkvIxWo42TGsCPsJ4hIPZkxDwnT4YQyjBxRAJUGhlh5COXWkKgHrg+W84npFGn1H0OQw==
+
+"@fbcnms/webpack-config@^0.1.0":
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/@fbcnms/webpack-config/-/webpack-config-0.1.0.tgz#bf90304db260fc541849a1d095fc2c981b7347ce"
+  integrity sha512-bMMvufdNp51yudWGo8Dvn0aFYomO6h5i6lzc6MXD/C1/zCWLZQW0313SY8+KPSbseAUAjif+dBUvdTI35IG+mQ==
+  dependencies:
+    webpack-manifest-plugin "^2.0.4"
 
 "@jest/console@^24.7.1", "@jest/console@^24.9.0":
   version "24.9.0"
@@ -3792,9 +3806,9 @@ can-use-dom@^0.1.0:
   integrity sha1-IsxKNKCrxDlQ9CxkEQJKP2NmtFo=
 
 caniuse-lite@^1.0.30000792, caniuse-lite@^1.0.30000805:
-  version "1.0.30001105"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001105.tgz#d2cb0b31e5cf2f3ce845033b61c5c01566549abf"
-  integrity sha512-JupOe6+dGMr7E20siZHIZQwYqrllxotAhiaej96y6x00b/48rPt42o+SzOSCPbrpsDWvRja40Hwrj0g0q6LZJg==
+  version "1.0.30001109"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001109.tgz#a9f3f26a0c3753b063d7acbb48dfb9c0e46f2b19"
+  integrity sha512-4JIXRodHzdS3HdK8nSgIqXYLExOvG+D2/EenSvcub2Kp3QEADjo2v2oUn5g0n0D+UNwG9BtwKOyGcSq2qvQXvQ==
 
 caniuse-lite@^1.0.30001088:
   version "1.0.30001091"
@@ -5114,9 +5128,9 @@ ejs@^2.6.1:
   integrity sha512-7vmuyh5+kuUyJKePhQfRQBhXV5Ce+RnaeeQArKu1EAMpL3WbgMt5WG6uQZpEVvYSSsxMXRKOewtDk9RaTKXRlA==
 
 electron-to-chromium@^1.3.30:
-  version "1.3.509"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.509.tgz#830fcb89cd66dc2984d18d794973b99e3f00584c"
-  integrity sha512-cN4lkjNRuTG8rtAqTOVgwpecEC2kbKA04PG6YijcKGHK/kD0xLjiqExcAOmLUwtXZRF8cBeam2I0VZcih919Ug==
+  version "1.3.517"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.517.tgz#891995c711f748db14946b86661db7a5c87a16c3"
+  integrity sha512-8wucrMsmXxeBxaM3TPg+YiwIJwPd1IZMudOj1XytmkP3UPXRagMhO9vo4nzzbSWeq91N1zhfUhJW2u9/MVhPxw==
 
 electron-to-chromium@^1.3.483:
   version "1.3.483"
