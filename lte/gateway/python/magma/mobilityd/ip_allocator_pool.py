@@ -198,10 +198,13 @@ class IpAllocatorPool(IPAllocator):
         """
         # if an IP is not yet allocated for the UE, allocate a new IP
         if self._ip_state_map.get_ip_count(IPState.FREE):
-            return self._ip_state_map.pop_ip_from_state(IPState.FREE)
+            ip_desc = self._ip_state_map.pop_ip_from_state(IPState.FREE)
+            ip_desc.sid = sid
+            ip_desc.state = IPState.ALLOCATED
+            return ip_desc
         else:
             logging.error("Run out of available IP addresses")
             raise NoAvailableIPError("No available IP addresses")
 
-    def release_ip(self, sid, ip, ip_block):
+    def release_ip(self, ip_desc: IPDesc):
         pass

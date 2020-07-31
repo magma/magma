@@ -23,13 +23,13 @@ from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-
 from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
 
 from .ip_allocator_pool import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
 
 from .ip_allocator_base import DuplicatedIPAllocationError
+
 
 def _get_ip_block(ip_block_str):
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
@@ -52,11 +52,12 @@ def _get_ip_block(ip_block_str):
 class MobilityServiceRpcServicer(MobilityServiceServicer):
     """ gRPC based server for the IPAllocator. """
 
-    def __init__(self, mconfig, config):
+    def __init__(self, mconfig, config, subscriberdb_rpc_stub=None):
         # TODO: consider adding gateway mconfig to decide whether to
         # persist to Redis
 
         self._ipv4_allocator = IPAddressManager(config=config,
+                                                subscriberdb_rpc_stub=subscriberdb_rpc_stub,
                                                 allocator_type=mconfig.ip_allocator_type)
 
         # Load IP block from the configurable mconfig file
