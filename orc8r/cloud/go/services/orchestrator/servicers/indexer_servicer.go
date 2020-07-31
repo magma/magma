@@ -17,16 +17,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/glog"
-	"github.com/pkg/errors"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
+
+	"github.com/golang/glog"
+	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -39,7 +39,9 @@ var (
 
 type indexerServicer struct{}
 
-// NewDirectoryIndexer returns the state indexer for directoryd.
+// NewIndexerServicer returns the state indexer for directoryd.
+//
+// TODO(7/30/20): move this indexer to the directoryd service
 //
 // The directoryd indexer performs the following indexing functions:
 //	- sidToIMSI: map session ID to IMSI
@@ -51,7 +53,7 @@ type indexerServicer struct{}
 // NOTE: the indexer provides a best-effort generation of the session ID -> IMSI mapping, meaning
 //	- a {session ID -> IMSI} mapping may be missing even though the IMSI has a session ID record
 //	- a {session ID -> IMSI} mapping may be stale
-func NewDirectoryIndexer() protos.IndexerServer {
+func NewIndexerServicer() protos.IndexerServer {
 	return &indexerServicer{}
 }
 

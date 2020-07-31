@@ -37,8 +37,8 @@ func main() {
 
 	exporterServicer := servicers.NewPushExporterServicer(srv.Config.MustGetStrings(orchestrator.PrometheusPushAddresses))
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewDirectoryIndexer())
-	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewOrchestratorStreamProviderServicer())
+	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	err = srv.Run()
 	if err != nil {

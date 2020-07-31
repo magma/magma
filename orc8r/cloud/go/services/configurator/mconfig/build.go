@@ -36,17 +36,19 @@ func CreateMconfig(network *storage.Network, graph *storage.EntityGraph, gateway
 				return nil, fmt.Errorf("received partial config for key %v from multiple mconfig builders", key)
 			}
 			configs[key] = config
-
 		}
 	}
 
 	mconfig := &protos.GatewayConfigs{
-		Metadata:     &protos.GatewayConfigsMetadata{CreatedAt: uint64(time.Now().Unix())},
+		Metadata: &protos.GatewayConfigsMetadata{
+			CreatedAt: uint64(time.Now().Unix()),
+			Digest:    &protos.GatewayConfigsDigest{},
+		},
 		ConfigsByKey: configs,
 	}
 	mconfig.Metadata.Digest.Md5HexDigest, err = mconfig.GetMconfigDigest()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate mconfig digest")
+		return nil, errors.Wrap(err, "generate mconfig digest")
 	}
 
 	return mconfig, nil

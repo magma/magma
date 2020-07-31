@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
@@ -31,18 +32,35 @@ func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream prot
 }
 
 func StartTestService(t *testing.T) {
-	labels := map[string]string{
-		orc8r.StreamProviderLabel: "true",
-	}
-	annotations := map[string]string{
-		orc8r.StreamProviderStreamsAnnotation: definitions.MconfigStreamName,
-	}
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, orchestrator.ServiceName, labels, annotations)
+	StartTestServiceInternal(t, servicers.NewBuilderServicer(), servicers.NewIndexerServicer(), servicers.NewProviderServicer())
+}
 
+func StartTestServiceInternal(
+	t *testing.T, builder builder_protos.BuilderServer, indexer indexer_protos.IndexerServer, provider streamer_protos.StreamProviderServer,
+) {
+	labels := map[string]string{}
+	annotations := map[string]string{}
+
+	if builder != nil {
+		labels[orc8r.MconfigBuilderLabel] = "true"
+	}
+	if provider != nil {
+		labels[orc8r.StreamProviderLabel] = "true"
+		annotations[orc8r.StreamProviderStreamsAnnotation] = definitions.MconfigStreamName
+	}
+
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, orchestrator.ServiceName, labels, annotations)
 	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
 
-	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewDirectoryIndexer())
-	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewOrchestratorStreamProviderServicer())
+	if builder != nil {
+		builder_protos.RegisterBuilderServer(srv.GrpcServer, builder)
+	}
+	if indexer != nil {
+		indexer_protos.RegisterIndexerServer(srv.GrpcServer, indexer)
+	}
+	if provider != nil {
+		streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, provider)
+	}
 
 	go srv.RunTest(lis)
 }

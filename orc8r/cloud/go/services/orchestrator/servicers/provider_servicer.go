@@ -23,13 +23,13 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type orchestratorStreamProviderServicer struct{}
+type providerServicer struct{}
 
-func NewOrchestratorStreamProviderServicer() streamer_protos.StreamProviderServer {
-	return &orchestratorStreamProviderServicer{}
+func NewProviderServicer() streamer_protos.StreamProviderServer {
+	return &providerServicer{}
 }
 
-func (s *orchestratorStreamProviderServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
+func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
 	var streamer providers.StreamProvider
 	switch req.GetStreamName() {
 	case definitions.MconfigStreamName:
