@@ -15,6 +15,7 @@ package plugin
 
 import (
 	"magma/devmand/cloud/go/devmand"
+	devmand_service "magma/devmand/cloud/go/services/devmand"
 	"magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
@@ -55,7 +56,7 @@ func (*DevmandOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 func (*DevmandOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 	return []mconfig.Builder{
-		&Builder{},
+		mconfig.NewRemoteBuilder(devmand_service.ServiceName),
 	}
 }
 
