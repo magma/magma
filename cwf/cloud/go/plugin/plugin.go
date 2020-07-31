@@ -15,6 +15,7 @@ package plugin
 
 import (
 	"magma/cwf/cloud/go/cwf"
+	cwf_service "magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
@@ -55,7 +56,7 @@ func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 func (*CwfOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 	return []mconfig.Builder{
-		&Builder{},
+		mconfig.NewRemoteBuilder(cwf_service.ServiceName),
 	}
 }
 
