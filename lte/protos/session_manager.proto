@@ -87,7 +87,7 @@ message LTESessionContext {
 }
 
 message WLANSessionContext {
-  bytes hardware_addr = 1;
+  bytes mac_addr_binary = 1;
   string mac_addr = 2;
   string radius_session_id = 3;
 }
