@@ -47,11 +47,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	// Only build an mconfig if cellular network and gateway configs exist
@@ -66,7 +66,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return ret, nil
 	}
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	if cellGW.Config == nil {
 		return ret, nil
@@ -74,12 +74,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	cellularGwConfig := cellGW.Config.(*lte_models.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	enodebs, err := graph.GetAllChildrenOfType(cellGW, lte.CellularEnodebType)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	gwRan := cellularGwConfig.Ran
@@ -91,7 +91,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	pipelineDServices, err := getPipelineDServicesConfig(nwEpc.NetworkServices)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
@@ -164,7 +164,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	for k, v := range vals {
 		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
 		if err != nil {
-			return ret, err
+			return nil, err
 		}
 	}
 

@@ -25,6 +25,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/pkg/errors"
 )
 
 type builderServicer struct{}
@@ -38,19 +39,19 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	devmandAgent, err := graph.GetEntity(devmand.SymphonyAgentType, request.GatewayId)
 	if err == merrors.ErrNotFound {
 		return ret, nil
 	}
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	devices, err := graph.GetAllChildrenOfType(devmandAgent, devmand.SymphonyDeviceType)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	managedDevices := map[string]*mconfig.ManagedDevice{}
@@ -122,5 +123,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	devmandMconfig := &mconfig.DevmandGatewayConfig{ManagedDevices: managedDevices}
 	ret.ConfigsByKey["devmand"], err = ptypes.MarshalAny(devmandMconfig)
-	return ret, err
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return ret, nil
 }

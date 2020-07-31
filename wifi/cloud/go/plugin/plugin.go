@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
+	wifi_service "magma/wifi/cloud/go/services/wifi"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
 )
@@ -51,7 +52,7 @@ func (*WifiOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 func (*WifiOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 	return []mconfig.Builder{
-		&Builder{},
+		mconfig.NewRemoteBuilder(wifi_service.ServiceName),
 	}
 }
 

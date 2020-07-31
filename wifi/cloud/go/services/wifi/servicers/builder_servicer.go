@@ -1,21 +1,23 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package plugin
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package servicers
 
 import (
+	"context"
+
 	"magma/orc8r/cloud/go/services/configurator"
-	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/wifi/cloud/go/protos/mconfig"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
@@ -24,31 +26,28 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
 )
 
-type Builder struct{}
-type WifiMconfigBuilderServicer struct{}
+type builderServicer struct{}
 
-// Build builds the wifi mconfig for a given networkID and gatewayID. It returns
-// the mconfig as a map of config keys to mconfig messages.
-func (s *WifiMconfigBuilderServicer) Build(
-	request *configuratorprotos.BuildMconfigRequest,
-) (*configuratorprotos.BuildMconfigResponse, error) {
-	ret := &configuratorprotos.BuildMconfigResponse{
-		ConfigsByKey: map[string]*any.Any{},
-	}
-	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+func NewBuilderServicer() builder_protos.MconfigBuilderServer {
+	return &builderServicer{}
+}
+
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}}
+
+	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
-	gatewayID := request.GetGatewayId()
-	networkID := request.GetNetworkId()
-	// We need a valid wifi nw config, wifi gw config, and mesh config to
+	gatewayID := request.GatewayId
+
+	// Need a valid wifi nw config, wifi gw config, and mesh config to
 	// construct the mconfig
 	iwifiNwConfig, found := network.Configs[wifi.WifiNetworkType]
 	if !found {
@@ -61,7 +60,7 @@ func (s *WifiMconfigBuilderServicer) Build(
 		return ret, nil
 	}
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	if wifiGw.Config == nil {
 		return ret, nil
@@ -73,20 +72,18 @@ func (s *WifiMconfigBuilderServicer) Build(
 		return ret, nil
 	}
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	if mesh.Config == nil {
 		return ret, nil
 	}
 	meshConfig := mesh.Config.(*models.MeshWifiConfigs)
 
-	// process gwconfig ssid/password override
 	apConfig := mergeOverrideSsid(meshConfig, wifiGwConfig)
-	// process xwf config override
 	xwfConfig := mergeOverrideXwf(wifiNwConfig, meshConfig, wifiGwConfig)
 	meshPeerGatewayIds := getMeshPeerIDs(mesh)
 
-	newConfigs := map[string]proto.Message{
+	vals := map[string]proto.Message{
 		"hostapd": &mconfig.Hostapd{
 			Ssid:                     apConfig.ssid,
 			Password:                 apConfig.password,
@@ -121,7 +118,7 @@ func (s *WifiMconfigBuilderServicer) Build(
 			Info:               wifiGwConfig.Info,
 			Latitude:           wifiGwConfig.Latitude,
 			Longitude:          wifiGwConfig.Longitude,
-			NetworkId:          networkID,
+			NetworkId:          network.ID,
 			MeshId:             mesh.Key,
 			GatewayId:          gatewayID,
 			MeshPeerGatewayIds: meshPeerGatewayIds,
@@ -138,13 +135,13 @@ func (s *WifiMconfigBuilderServicer) Build(
 			XwfRadiusAcctPort:     xwfConfig.xwfRadiusAcctPort,
 			XwfUamSecret:          xwfConfig.xwfUamSecret,
 			XwfPartnerName:        xwfConfig.xwfPartnerName,
-			NetworkId:             networkID,
+			NetworkId:             network.ID,
 			MeshId:                mesh.Key,
 			GatewayId:             gatewayID,
 		},
 		"wifiproperties": &mconfig.WifiProperties{
 			Info:               wifiGwConfig.Info,
-			NetworkId:          networkID,
+			NetworkId:          network.ID,
 			MeshId:             mesh.Key,
 			GatewayId:          gatewayID,
 			MeshPeerGatewayIds: meshPeerGatewayIds,
@@ -153,47 +150,15 @@ func (s *WifiMconfigBuilderServicer) Build(
 			GatewayProps:       wifiGwConfig.AdditionalProps,
 		},
 	}
-	for k, v := range newConfigs {
+
+	for k, v := range vals {
 		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
 		if err != nil {
-			return ret, err
+			return nil, err
 		}
 	}
-	return ret, nil
-}
 
-func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
-	servicer := &WifiMconfigBuilderServicer{}
-	networkProto, err := network.ToStorageProto()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	graphProto, err := graph.ToStorageProto()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	request := &configuratorprotos.BuildMconfigRequest{
-		NetworkId:   networkID,
-		GatewayId:   gatewayID,
-		EntityGraph: graphProto,
-		Network:     networkProto,
-	}
-	res, err := servicer.Build(request)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	for k, v := range res.GetConfigsByKey() {
-		mconfigMessage, err := ptypes.Empty(v)
-		if err != nil {
-			return err
-		}
-		err = ptypes.UnmarshalAny(v, mconfigMessage)
-		if err != nil {
-			return err
-		}
-		mconfigOut[k] = mconfigMessage
-	}
-	return nil
+	return ret, nil
 }
 
 type apConfig struct {

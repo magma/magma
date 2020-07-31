@@ -43,18 +43,18 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	gwConfig, err := getFegConfig(request.GatewayId, network, graph)
 	if err == merrors.ErrNotFound {
 		return ret, nil
 	}
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	// Network health config takes priority. Only use gw health config
 	// if network health config is nil
@@ -160,7 +160,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	for k, v := range vals {
 		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
 		if err != nil {
-			return ret, err
+			return nil, err
 		}
 	}
 

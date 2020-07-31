@@ -57,11 +57,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	// Only build an mconfig if carrier_wifi network configs exist
@@ -75,7 +75,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return ret, nil
 	}
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	if gwConfig.Config == nil {
 		return ret, nil
@@ -83,12 +83,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs))
 	if err != nil {
-		return ret, errors.WithStack(err)
+		return nil, errors.WithStack(err)
 	}
 	for k, v := range vals {
 		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
 		if err != nil {
-			return ret, err
+			return nil, err
 		}
 	}
 	return ret, nil
@@ -101,15 +101,15 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	}
 	pipelineDServices, err := getPipelineDServicesConfig(nwConfig.NetworkServices)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	allowedGrePeers, err := getPipelineDAllowedGrePeers(gwConfig.AllowedGrePeers)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
 	if err != nil {
-		return ret, err
+		return nil, err
 	}
 
 	eapAka := nwConfig.EapAka
@@ -165,7 +165,8 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		}
 		ret["health"] = mc
 	}
-	return ret, err
+
+	return ret, nil
 }
 
 func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*lte_mconfig.PipelineD_AllowedGrePeer, error) {
