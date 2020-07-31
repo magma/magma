@@ -21,7 +21,7 @@ import (
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
-	"magma/cwf/cloud/go/services/cwf/test_init"
+	cwf_test_init "magma/cwf/cloud/go/services/cwf/test_init"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
@@ -38,42 +38,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
-	EapAka: &models.EapAka{
-		Timeout: &models.EapAkaTimeout{
-			ChallengeMs:            20000,
-			ErrorNotificationMs:    10000,
-			SessionMs:              43200000,
-			SessionAuthenticatedMs: 5000,
-		},
-		PlmnIds: nil,
-	},
-	AaaServer: &models.AaaServer{
-		IDLESessionTimeoutMs: 21600000,
-		AccountingEnabled:    false,
-		CreateSessionOnAuth:  false,
-	},
-	NetworkServices: []string{"dpi", "policy_enforcement"},
-	DefaultRuleID:   swag.String(""),
-}
-
-var defaultgwConfig = &models.GatewayCwfConfigs{
-	AllowedGrePeers: models.AllowedGrePeers{
-		{IP: "1.2.3.4/24"},
-		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
-	},
-	LiImsis: []string{
-		"IMSI001010000000013",
-	},
-	IPDRExportDst: &models.IPDRExportDst{
-		IP:   "192.168.128.88",
-		Port: 2040,
-	},
-}
-
 func TestBuilder_Build(t *testing.T) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &cwf_plugin.CwfOrchestratorPlugin{}))
-	test_init.StartTestService(t)
+	cwf_test_init.StartTestService(t)
 
 	t.Run("empty network config", func(t *testing.T) {
 		// empty case: no cwf associated to magmad gateway
@@ -90,7 +57,7 @@ func TestBuilder_Build(t *testing.T) {
 
 		expected := map[string]proto.Message{}
 
-		actual, err := Build(&nw, &graph, "gw1")
+		actual, err := build(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -182,13 +149,13 @@ func TestBuilder_Build(t *testing.T) {
 			},
 		}
 
-		actual, err := Build(&nw, &graph, "gw1")
+		actual, err := build(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
 }
 
-func Build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	networkProto, err := network.ToStorageProto()
 	if err != nil {
 		return nil, err
@@ -218,4 +185,37 @@ func Build(network *configurator.Network, graph *configurator.EntityGraph, gatew
 	}
 
 	return configs, nil
+}
+
+var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
+	EapAka: &models.EapAka{
+		Timeout: &models.EapAkaTimeout{
+			ChallengeMs:            20000,
+			ErrorNotificationMs:    10000,
+			SessionMs:              43200000,
+			SessionAuthenticatedMs: 5000,
+		},
+		PlmnIds: nil,
+	},
+	AaaServer: &models.AaaServer{
+		IDLESessionTimeoutMs: 21600000,
+		AccountingEnabled:    false,
+		CreateSessionOnAuth:  false,
+	},
+	NetworkServices: []string{"dpi", "policy_enforcement"},
+	DefaultRuleID:   swag.String(""),
+}
+
+var defaultgwConfig = &models.GatewayCwfConfigs{
+	AllowedGrePeers: models.AllowedGrePeers{
+		{IP: "1.2.3.4/24"},
+		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
+	},
+	LiImsis: []string{
+		"IMSI001010000000013",
+	},
+	IPDRExportDst: &models.IPDRExportDst{
+		IP:   "192.168.128.88",
+		Port: 2040,
+	},
 }

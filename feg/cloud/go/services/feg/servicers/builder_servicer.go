@@ -1,26 +1,27 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package plugin
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package servicers
 
 import (
+	"context"
 	"fmt"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
-	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
@@ -31,24 +32,24 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-type Builder struct{}
-type FegMconfigBuilderServicer struct{}
+type builderServicer struct{}
 
-func (s *FegMconfigBuilderServicer) Build(
-	request *configuratorprotos.BuildMconfigRequest,
-) (*configuratorprotos.BuildMconfigResponse, error) {
-	ret := &configuratorprotos.BuildMconfigResponse{
-		ConfigsByKey: map[string]*any.Any{},
-	}
-	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+func NewBuilderServicer() builder_protos.MconfigBuilderServer {
+	return &builderServicer{}
+}
+
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}}
+
+	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
 		return ret, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
 		return ret, err
 	}
-	gwConfig, err := getFegConfig(request.GetGatewayId(), network, graph)
+	gwConfig, err := getFegConfig(request.GatewayId, network, graph)
 	if err == merrors.ErrNotFound {
 		return ret, nil
 	}
@@ -73,6 +74,7 @@ func (s *FegMconfigBuilderServicer) Build(
 	healthc := protos.SafeInit(healthConfig).(*models.Health)
 
 	vals := map[string]proto.Message{}
+
 	if s6ac != nil {
 		vals["s6a_proxy"] = &mconfig.S6AConfig{
 			LogLevel:                protos.LogLevel_INFO,
@@ -154,51 +156,15 @@ func (s *FegMconfigBuilderServicer) Build(
 		protos.FillIn(csfb, mc)
 		vals["csfb"] = mc
 	}
+
 	for k, v := range vals {
 		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
 		if err != nil {
 			return ret, err
 		}
 	}
+
 	return ret, nil
-}
-func (*Builder) Build(
-	networkID string,
-	gatewayID string,
-	graph configurator.EntityGraph,
-	network configurator.Network,
-	mconfigOut map[string]proto.Message) error {
-	servicer := &FegMconfigBuilderServicer{}
-	networkProto, err := network.ToStorageProto()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	graphProto, err := graph.ToStorageProto()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	request := &configuratorprotos.BuildMconfigRequest{
-		NetworkId:   networkID,
-		GatewayId:   gatewayID,
-		EntityGraph: graphProto,
-		Network:     networkProto,
-	}
-	res, err := servicer.Build(request)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	for k, v := range res.GetConfigsByKey() {
-		mconfigMessage, err := ptypes.Empty(v)
-		if err != nil {
-			return err
-		}
-		err = ptypes.UnmarshalAny(v, mconfigMessage)
-		if err != nil {
-			return err
-		}
-		mconfigOut[k] = mconfigMessage
-	}
-	return nil
 }
 
 func getFegConfig(

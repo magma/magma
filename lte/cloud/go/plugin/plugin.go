@@ -76,7 +76,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 func (*LteOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 	return []mconfig.Builder{
-		&Builder{},
+		mconfig.NewRemoteBuilder(lte_service.ServiceName),
 	}
 }
 

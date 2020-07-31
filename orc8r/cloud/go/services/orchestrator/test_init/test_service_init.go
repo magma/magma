@@ -41,7 +41,10 @@ func StartTestService(t *testing.T) {
 }
 
 func StartTestServiceInternal(
-	t *testing.T, builder builder_protos.BuilderServer, indexer indexer_protos.IndexerServer, provider streamer_protos.StreamProviderServer,
+	t *testing.T,
+	builder builder_protos.MconfigBuilderServer,
+	indexer indexer_protos.IndexerServer,
+	provider streamer_protos.StreamProviderServer,
 ) {
 	labels := map[string]string{}
 	annotations := map[string]string{}
@@ -58,7 +61,7 @@ func StartTestServiceInternal(
 	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
 
 	if builder != nil {
-		builder_protos.RegisterBuilderServer(srv.GrpcServer, builder)
+		builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder)
 	}
 	if indexer != nil {
 		indexer_protos.RegisterIndexerServer(srv.GrpcServer, indexer)

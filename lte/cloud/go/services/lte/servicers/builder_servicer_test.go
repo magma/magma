@@ -1,47 +1,52 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package plugin_test
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package servicers_test
 
 import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/plugin"
-	"magma/lte/cloud/go/protos/mconfig"
-	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
+	lte_plugin "magma/lte/cloud/go/plugin"
+	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
+	lte_service "magma/lte/cloud/go/services/lte"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/orc8r/cloud/go/orc8r"
-	orc8rplugin "magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestBuilder_Build(t *testing.T) {
-	_ = orc8rplugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = orc8rplugin.RegisterPluginForTests(t, &plugin.LteOrchestratorPlugin{})
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
+	lte_test_init.StartTestService(t)
 
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
@@ -74,12 +79,11 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"enodebd": &mconfig.EnodebD{
+		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel: protos.LogLevel_INFO,
 			Pci:      260,
-			TddConfig: &mconfig.EnodebD_TDDConfig{
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
@@ -88,9 +92,9 @@ func TestBuilder_Build(t *testing.T) {
 			AllowEnodebTransmit: true,
 			Tac:                 1,
 			PlmnidList:          "00101",
-			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            nil,
-			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
+			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					Earfcndl:               39150,
 					SubframeAssignment:     2,
@@ -104,18 +108,18 @@ func TestBuilder_Build(t *testing.T) {
 				},
 			},
 		},
-		"mobilityd": &mconfig.MobilityD{
+		"mobilityd": &lte_mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
 			IpBlock:  "192.168.128.0/24",
 		},
-		"mme": &mconfig.MME{
+		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
 			Mcc:                      "001",
 			Mnc:                      "01",
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
-			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
@@ -125,68 +129,71 @@ func TestBuilder_Build(t *testing.T) {
 			AttachedEnodebTacs:       []int32{15000},
 			NatEnabled:               true,
 		},
-		"pipelined": &mconfig.PipelineD{
+		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24",
 			NatEnabled:    true,
 			DefaultRuleId: "",
-			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_ENFORCEMENT,
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
-		"subscriberdb": &mconfig.SubscriberDB{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
 			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
-		"policydb": &mconfig.PolicyDB{
+		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
-		"sessiond": &mconfig.SessionD{
+		"sessiond": &lte_mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
-			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
 		},
 	}
 
 	// Happy path
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	// Do break with non-allowed network service
+	// Break with non-allowed network service
 	setEPCNetworkServices([]string{"0xdeadbeef"}, &nw)
-	err = builder.Build("n1", "gw1", graph, nw, actual)
-	assert.EqualError(t, err, "unknown network service name 0xdeadbeef")
+	actual, err = build(&nw, &graph, "gw1")
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "unknown network service name 0xdeadbeef")
 
 	// Don't break with deprecated network services
 	setEPCNetworkServices([]string{"metering"}, &nw)
-	expected["pipelined"] = &mconfig.PipelineD{
+	expected["pipelined"] = &lte_mconfig.PipelineD{
 		LogLevel:      protos.LogLevel_INFO,
 		UeIpBlock:     "192.168.128.0/24",
 		NatEnabled:    true,
 		DefaultRuleId: "",
-		Services: []mconfig.PipelineD_NetworkServices{
-			mconfig.PipelineD_METERING,
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_METERING,
 		},
 	}
-	err = builder.Build("n1", "gw1", graph, nw, actual)
+	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_NonNat(t *testing.T) {
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
+	lte_test_init.StartTestService(t)
 
-	// no dnsd config, no enodebs
+	// No dnsd config, no enodebs
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
@@ -207,12 +214,11 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"enodebd": &mconfig.EnodebD{
+		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel: protos.LogLevel_INFO,
 			Pci:      260,
-			TddConfig: &mconfig.EnodebD_TDDConfig{
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
@@ -221,24 +227,24 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			AllowEnodebTransmit: true,
 			Tac:                 1,
 			PlmnidList:          "00101",
-			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            nil,
 			EnbConfigsBySerial:  nil,
 		},
-		"mobilityd": &mconfig.MobilityD{
+		"mobilityd": &lte_mconfig.MobilityD{
 			LogLevel:        protos.LogLevel_INFO,
 			IpBlock:         "192.168.128.0/24",
-			IpAllocatorType: mconfig.MobilityD_IP_POOL,
+			IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 			StaticIpEnabled: false,
 		},
-		"mme": &mconfig.MME{
+		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
 			Mcc:                      "001",
 			Mnc:                      "01",
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
-			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
@@ -247,34 +253,35 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               false,
 		},
-		"pipelined": &mconfig.PipelineD{
+		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24",
 			NatEnabled:    false,
 			DefaultRuleId: "",
-			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_ENFORCEMENT,
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
-		"subscriberdb": &mconfig.SubscriberDB{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
 			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
-		"policydb": &mconfig.PolicyDB{
+		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
-		"sessiond": &mconfig.SessionD{
+		"sessiond": &lte_mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
-			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
 		},
 	}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -333,13 +340,15 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
+	lte_test_init.StartTestService(t)
 
-	// no dnsd config, no enodebs
+	// No dnsd config, no enodebs
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
@@ -360,12 +369,11 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"enodebd": &mconfig.EnodebD{
+		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel: protos.LogLevel_INFO,
 			Pci:      260,
-			TddConfig: &mconfig.EnodebD_TDDConfig{
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
@@ -374,22 +382,22 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			AllowEnodebTransmit: true,
 			Tac:                 1,
 			PlmnidList:          "00101",
-			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            nil,
 			EnbConfigsBySerial:  nil,
 		},
-		"mobilityd": &mconfig.MobilityD{
+		"mobilityd": &lte_mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
 			IpBlock:  "192.168.128.0/24",
 		},
-		"mme": &mconfig.MME{
+		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
 			Mcc:                      "001",
 			Mnc:                      "01",
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
-			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
@@ -398,46 +406,49 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
 		},
-		"pipelined": &mconfig.PipelineD{
+		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24",
 			NatEnabled:    true,
 			DefaultRuleId: "",
-			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_ENFORCEMENT,
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
-		"subscriberdb": &mconfig.SubscriberDB{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
 			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
-		"policydb": &mconfig.PolicyDB{
+		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
-		"sessiond": &mconfig.SessionD{
+		"sessiond": &lte_mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
-			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
 		},
 	}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-// minimal configuration of enodeB, inherit rest of props from nw/gw configs
+// Minimal configuration of enodeB, inherit rest of props from nw/gw configs
 func TestBuilder_BuildInheritedProperties(t *testing.T) {
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
+	lte_test_init.StartTestService(t)
 
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: models2.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
@@ -459,7 +470,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebType, Key: "enb1",
-		Config: &models2.EnodebConfiguration{
+		Config: &lte_models.EnodebConfiguration{
 			CellID:          swag.Uint32(42),
 			DeviceClass:     "Baicells ID TDD/FDD",
 			TransmitEnabled: swag.Bool(true),
@@ -474,12 +485,11 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"enodebd": &mconfig.EnodebD{
+		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel: protos.LogLevel_INFO,
 			Pci:      260,
-			TddConfig: &mconfig.EnodebD_TDDConfig{
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
 				Earfcndl:               44590,
 				SubframeAssignment:     2,
 				SpecialSubframePattern: 7,
@@ -488,9 +498,9 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			AllowEnodebTransmit: true,
 			Tac:                 1,
 			PlmnidList:          "00101",
-			CsfbRat:             mconfig.EnodebD_CSFBRAT_2G,
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
 			Arfcn_2G:            nil,
-			EnbConfigsBySerial: map[string]*mconfig.EnodebD_EnodebConfig{
+			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					Earfcndl:               44590,
 					SubframeAssignment:     2,
@@ -504,18 +514,18 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 				},
 			},
 		},
-		"mobilityd": &mconfig.MobilityD{
+		"mobilityd": &lte_mconfig.MobilityD{
 			LogLevel: protos.LogLevel_INFO,
 			IpBlock:  "192.168.128.0/24",
 		},
-		"mme": &mconfig.MME{
+		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
 			Mcc:                      "001",
 			Mnc:                      "01",
 			Tac:                      1,
 			MmeCode:                  1,
 			MmeGid:                   1,
-			NonEpsServiceControl:     mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
@@ -525,49 +535,82 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 		},
-		"pipelined": &mconfig.PipelineD{
+		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     "192.168.128.0/24",
 			NatEnabled:    true,
 			DefaultRuleId: "",
-			Services: []mconfig.PipelineD_NetworkServices{
-				mconfig.PipelineD_ENFORCEMENT,
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 		},
-		"subscriberdb": &mconfig.SubscriberDB{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:   []byte("\x80\x00"),
 			SubProfiles:  nil,
 			RelayEnabled: false,
 		},
-		"policydb": &mconfig.PolicyDB{
+		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
-		"sessiond": &mconfig.SessionD{
+		"sessiond": &lte_mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: false,
-			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
 		},
 	}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
-	return &models2.GatewayCellularConfigs{
-		Ran: &models2.GatewayRanConfigs{
+func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return nil, err
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return nil, err
+	}
+	builder := mconfig.NewRemoteBuilder(lte_service.ServiceName)
+	res, err := builder.Build(networkProto, graphProto, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+
+	configs := map[string]proto.Message{}
+
+	for k, v := range res {
+		mconfigProto, err := ptypes.Empty(v)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		err = ptypes.UnmarshalAny(v, mconfigProto)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		configs[k] = mconfigProto
+	}
+
+	return configs, nil
+}
+
+func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
+	return &lte_models.GatewayCellularConfigs{
+		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &models2.GatewayEpcConfigs{
+		Epc: &lte_models.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(true),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models2.GatewayNonEpsConfigs{
+		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),
@@ -578,17 +621,17 @@ func newDefaultGatewayConfig() *models2.GatewayCellularConfigs {
 	}
 }
 
-func newGatewayConfigNonNat() *models2.GatewayCellularConfigs {
-	return &models2.GatewayCellularConfigs{
-		Ran: &models2.GatewayRanConfigs{
+func newGatewayConfigNonNat() *lte_models.GatewayCellularConfigs {
+	return &lte_models.GatewayCellularConfigs{
+		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
-		Epc: &models2.GatewayEpcConfigs{
+		Epc: &lte_models.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(false),
 			IPBlock:    "192.168.128.0/24",
 		},
-		NonEpsService: &models2.GatewayNonEpsConfigs{
+		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
 			CsfbMnc:              "01",
 			Lac:                  swag.Uint32(1),
@@ -598,8 +641,9 @@ func newGatewayConfigNonNat() *models2.GatewayCellularConfigs {
 		},
 	}
 }
-func newDefaultEnodebConfig() *models2.EnodebConfiguration {
-	return &models2.EnodebConfiguration{
+
+func newDefaultEnodebConfig() *lte_models.EnodebConfiguration {
+	return &lte_models.EnodebConfiguration{
 		Earfcndl:               39150,
 		SubframeAssignment:     2,
 		SpecialSubframePattern: 7,
@@ -614,7 +658,7 @@ func newDefaultEnodebConfig() *models2.EnodebConfiguration {
 
 func setEPCNetworkServices(services []string, nw *configurator.Network) {
 	inwConfig := nw.Configs[lte.CellularNetworkType]
-	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
+	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.NetworkServices = services
 
 	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
@@ -624,7 +668,7 @@ func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip b
 	inwConfig := nw.Configs[lte.CellularNetworkType]
 	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
 	cellularNwConfig.Epc.Mobility = &models2.NetworkEpcConfigsMobility{
-		IPAllocationMode:        mode,
+		IPAllocationMode:          mode,
 		EnableStaticIPAssignments: static_ip,
 	}
 

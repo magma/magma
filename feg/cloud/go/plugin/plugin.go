@@ -18,6 +18,7 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
+	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
@@ -57,7 +58,7 @@ func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 func (*FegOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 	return []mconfig.Builder{
-		&Builder{},
+		mconfig.NewRemoteBuilder(feg_service.ServiceName),
 	}
 }
 

@@ -1,28 +1,29 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package plugin
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package servicers
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos/mconfig"
-	models2 "magma/lte/cloud/go/services/lte/obsidian/models"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	configuratorprotos "magma/orc8r/cloud/go/services/configurator/protos"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -35,33 +36,32 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Builder struct{}
-type LteMconfigBuilderServicer struct{}
+type builderServicer struct{}
 
-// Build builds the lte mconfig for a given networkID and gatewayID. It returns
-// the mconfig as a map of config keys to mconfig messages.
-func (s *LteMconfigBuilderServicer) Build(
-	request *configuratorprotos.BuildMconfigRequest,
-) (*configuratorprotos.BuildMconfigResponse, error) {
-	ret := &configuratorprotos.BuildMconfigResponse{
-		ConfigsByKey: map[string]*any.Any{},
-	}
-	network, err := (configurator.Network{}).FromStorageProto(request.GetNetwork())
+func NewBuilderServicer() builder_protos.MconfigBuilderServer {
+	return &builderServicer{}
+}
+
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}}
+
+	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
 		return ret, err
 	}
-	// we only build an mconfig if cellular network and gateway configs exist
+	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	if err != nil {
+		return ret, err
+	}
+
+	// Only build an mconfig if cellular network and gateway configs exist
 	inwConfig, found := network.Configs[lte.CellularNetworkType]
 	if !found || inwConfig == nil {
 		return ret, nil
 	}
-	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
+	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.GetEntityGraph())
-	if err != nil {
-		return ret, err
-	}
-	cellGW, err := graph.GetEntity(lte.CellularGatewayType, request.GetGatewayId())
+	cellGW, err := graph.GetEntity(lte.CellularGatewayType, request.GatewayId)
 	if err == merrors.ErrNotFound {
 		return ret, nil
 	}
@@ -71,7 +71,7 @@ func (s *LteMconfigBuilderServicer) Build(
 	if cellGW.Config == nil {
 		return ret, nil
 	}
-	cellularGwConfig := cellGW.Config.(*models2.GatewayCellularConfigs)
+	cellularGwConfig := cellGW.Config.(*lte_models.GatewayCellularConfigs)
 
 	if err := validateConfigs(cellularNwConfig, cellularGwConfig); err != nil {
 		return ret, err
@@ -160,53 +160,17 @@ func (s *LteMconfigBuilderServicer) Build(
 			},
 		},
 	}
+
 	for k, v := range vals {
 		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
 		if err != nil {
 			return ret, err
 		}
 	}
+
 	return ret, nil
 }
-
-// Build builds the lte mconfig for a given networkID and gatewayID. It returns
-// the mconfig as a map of config keys to mconfig messages by calling the
-// MconfigBuilder RPC Build implementation.
-func (*Builder) Build(networkID string, gatewayID string, graph configurator.EntityGraph, network configurator.Network, mconfigOut map[string]proto.Message) error {
-	servicer := &LteMconfigBuilderServicer{}
-	networkProto, err := network.ToStorageProto()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	graphProto, err := graph.ToStorageProto()
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	request := &configuratorprotos.BuildMconfigRequest{
-		NetworkId:   networkID,
-		GatewayId:   gatewayID,
-		EntityGraph: graphProto,
-		Network:     networkProto,
-	}
-	res, err := servicer.Build(request)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	for k, v := range res.GetConfigsByKey() {
-		mconfigMessage, err := ptypes.Empty(v)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		err = ptypes.UnmarshalAny(v, mconfigMessage)
-		if err != nil {
-			return errors.WithStack(err)
-		}
-		mconfigOut[k] = mconfigMessage
-	}
-	return nil
-}
-
-func validateConfigs(nwConfig *models2.NetworkCellularConfigs, gwConfig *models2.GatewayCellularConfigs) error {
+func validateConfigs(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs) error {
 	if nwConfig == nil {
 		return errors.New("Cellular network config is nil")
 	}
@@ -246,7 +210,7 @@ type nonEPSServiceMconfigFields struct {
 	lac                  int32
 }
 
-func getNonEPSServiceMconfigFields(gwNonEpsService *models2.GatewayNonEpsConfigs) nonEPSServiceMconfigFields {
+func getNonEPSServiceMconfigFields(gwNonEpsService *lte_models.GatewayNonEpsConfigs) nonEPSServiceMconfigFields {
 	if gwNonEpsService == nil {
 		return nonEPSServiceMconfigFields{
 			csfbRat:              mconfig.EnodebD_CSFBRAT_2G,
@@ -297,7 +261,7 @@ func getPipelineDServicesConfig(networkServices []string) ([]mconfig.PipelineD_N
 	return apps, nil
 }
 
-func getFddConfig(fddConfig *models2.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
+func getFddConfig(fddConfig *lte_models.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
 	if fddConfig == nil {
 		return nil
 	}
@@ -307,7 +271,7 @@ func getFddConfig(fddConfig *models2.NetworkRanConfigsFddConfig) *mconfig.Enodeb
 	}
 }
 
-func getTddConfig(tddConfig *models2.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
+func getTddConfig(tddConfig *lte_models.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
 	if tddConfig == nil {
 		return nil
 	}
@@ -319,7 +283,7 @@ func getTddConfig(tddConfig *models2.NetworkRanConfigsTddConfig) *mconfig.Enodeb
 	}
 }
 
-func getEnodebConfigsBySerial(nwConfig *models2.NetworkCellularConfigs, gwConfig *models2.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*mconfig.EnodebD_EnodebConfig {
+func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*mconfig.EnodebD_EnodebConfig {
 	ret := make(map[string]*mconfig.EnodebD_EnodebConfig, len(enodebs))
 	for _, ent := range enodebs {
 		serial := ent.Key
@@ -328,7 +292,7 @@ func getEnodebConfigsBySerial(nwConfig *models2.NetworkCellularConfigs, gwConfig
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*models2.EnodebConfiguration)
+		cellularEnbConfig := ienbConfig.(*lte_models.EnodebConfiguration)
 		enbMconfig := &mconfig.EnodebD_EnodebConfig{
 			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
 			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
@@ -379,7 +343,7 @@ func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) 
 	return ret
 }
 
-func getSubProfiles(epc *models2.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
+func getSubProfiles(epc *lte_models.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
 	if epc.SubProfiles == nil {
 		return map[string]*mconfig.SubscriberDB_SubscriptionProfile{}
 	}

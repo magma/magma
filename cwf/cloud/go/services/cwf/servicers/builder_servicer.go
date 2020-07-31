@@ -48,7 +48,7 @@ var networkServicesByName = map[string]lte_mconfig.PipelineD_NetworkServices{
 
 type builderServicer struct{}
 
-func NewBuilderServicer() builder_protos.BuilderServer {
+func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 

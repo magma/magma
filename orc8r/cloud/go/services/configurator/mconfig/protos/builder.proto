@@ -19,8 +19,8 @@ import "magma/orc8r/cloud/go/services/configurator/storage/storage.proto";
 
 option go_package = "protos";
 
-// Builder servicer creates a partial mconfig for a gateway within a network.
-service Builder {
+// MconfigBuilder creates a partial mconfig for a gateway within a network.
+service MconfigBuilder {
   // Build returns a partial mconfig containing the gateway configs for which
   // this builder is responsible.
   rpc Build(BuildRequest) returns (BuildResponse) {}

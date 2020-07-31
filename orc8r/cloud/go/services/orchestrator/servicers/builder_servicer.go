@@ -17,6 +17,8 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/golang/protobuf/proto"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -41,7 +43,7 @@ var builders = []mconfig.Builder{
 
 type builderServicer struct{}
 
-func NewBuilderServicer() builder_protos.BuilderServer {
+func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
@@ -83,68 +85,55 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 		return nil, err
 	}
 
-	version, images, err := getPackageVersionAndImages(gateway, &nativeGraph)
-	if err != nil {
-		return nil, err
-	}
-
-	configs := mconfig.ConfigsByKey{}
-
+	vals := map[string]proto.Message{}
 	if gateway.Config != nil {
 		gatewayConfig := gateway.Config.(*models.MagmadGatewayConfigs)
-
-		magmadMconfig := &mconfig_protos.MagmaD{
-			LogLevel:                protos.LogLevel_INFO,
-			CheckinInterval:         int32(gatewayConfig.CheckinInterval),
-			CheckinTimeout:          int32(gatewayConfig.CheckinTimeout),
-			AutoupgradeEnabled:      swag.BoolValue(gatewayConfig.AutoupgradeEnabled),
-			AutoupgradePollInterval: gatewayConfig.AutoupgradePollInterval,
-			PackageVersion:          version,
-			Images:                  images,
-			DynamicServices:         gatewayConfig.DynamicServices,
-			FeatureFlags:            gatewayConfig.FeatureFlags,
-		}
-		configs["magmad"], err = ptypes.MarshalAny(magmadMconfig)
+		vals["magmad"], err = getMagmadMconfig(&gateway, &nativeGraph, gatewayConfig)
 		if err != nil {
 			return nil, err
 		}
-
-		fluentBitMconfig := getFluentBitMconfig(networkID, gatewayID, gatewayConfig)
-		configs["td-agent-bit"], err = ptypes.MarshalAny(fluentBitMconfig)
-		if err != nil {
-			return nil, err
-		}
-
-		eventdMconfig := &mconfig_protos.EventD{
-			LogLevel:       protos.LogLevel_INFO,
-			EventVerbosity: -1,
-		}
-		if gatewayConfig.Logging != nil && gatewayConfig.Logging.EventVerbosity != nil {
-			eventdMconfig.EventVerbosity = *gatewayConfig.Logging.EventVerbosity
-		}
-		configs["eventd"], err = ptypes.MarshalAny(eventdMconfig)
-		if err != nil {
-			return nil, err
-		}
+		vals["td-agent-bit"] = getFluentBitMconfig(networkID, gatewayID, gatewayConfig)
+		vals["eventd"] = getEventdMconfig(gatewayConfig)
 	}
+	vals["control_proxy"] = &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
+	vals["metricsd"] = &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
 
-	controlProxyMconfig := &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
-	configs["control_proxy"], err = ptypes.MarshalAny(controlProxyMconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	metricsdMconfig := &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
-	configs["metricsd"], err = ptypes.MarshalAny(metricsdMconfig)
-	if err != nil {
-		return nil, err
+	configs := mconfig.ConfigsByKey{}
+	for k, v := range vals {
+		configs[k], err = ptypes.MarshalAny(v)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return configs, nil
 }
 
-func getPackageVersionAndImages(magmadGateway configurator.NetworkEntity, graph *configurator.EntityGraph) (string, []*mconfig_protos.ImageSpec, error) {
-	tier, err := graph.GetFirstAncestorOfType(magmadGateway, orc8r.UpgradeTierEntityType)
+func getMagmadMconfig(
+	gateway *configurator.NetworkEntity, graph *configurator.EntityGraph, gatewayConfig *models.MagmadGatewayConfigs,
+) (*mconfig_protos.MagmaD, error) {
+	version, images, err := getPackageVersionAndImages(gateway, graph)
+	if err != nil {
+		return nil, err
+	}
+
+	ret := &mconfig_protos.MagmaD{
+		LogLevel:                protos.LogLevel_INFO,
+		CheckinInterval:         int32(gatewayConfig.CheckinInterval),
+		CheckinTimeout:          int32(gatewayConfig.CheckinTimeout),
+		AutoupgradeEnabled:      swag.BoolValue(gatewayConfig.AutoupgradeEnabled),
+		AutoupgradePollInterval: gatewayConfig.AutoupgradePollInterval,
+		PackageVersion:          version,
+		Images:                  images,
+		DynamicServices:         gatewayConfig.DynamicServices,
+		FeatureFlags:            gatewayConfig.FeatureFlags,
+	}
+
+	return ret, nil
+}
+
+func getPackageVersionAndImages(magmadGateway *configurator.NetworkEntity, graph *configurator.EntityGraph) (string, []*mconfig_protos.ImageSpec, error) {
+	tier, err := graph.GetFirstAncestorOfType(*magmadGateway, orc8r.UpgradeTierEntityType)
 	if err == merrors.ErrNotFound {
 		return "0.0.0-0", []*mconfig_protos.ImageSpec{}, nil
 	}
@@ -184,6 +173,17 @@ func getFluentBitMconfig(networkID string, gatewayID string, mdGw *models.Magmad
 		}
 	}
 
+	return ret
+}
+
+func getEventdMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_protos.EventD {
+	ret := &mconfig_protos.EventD{
+		LogLevel:       protos.LogLevel_INFO,
+		EventVerbosity: -1,
+	}
+	if gatewayConfig.Logging != nil && gatewayConfig.Logging.EventVerbosity != nil {
+		ret.EventVerbosity = *gatewayConfig.Logging.EventVerbosity
+	}
 	return ret
 }
 

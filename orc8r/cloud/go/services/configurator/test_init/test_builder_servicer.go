@@ -35,7 +35,7 @@ func StartNewTestBuilder(t *testing.T, builder mconfig.Builder) {
 	}
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_mconfig_builder_service", labels, nil)
 	servicer := &builderServicer{builder: builder}
-	protos.RegisterBuilderServer(srv.GrpcServer, servicer)
+	protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicer)
 	go srv.RunTest(lis)
 }
 

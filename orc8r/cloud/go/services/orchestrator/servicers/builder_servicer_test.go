@@ -83,7 +83,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			},
 		}
 
-		actual, err := BuildBaseOrchestrator(&nw, &graph, "gw1")
+		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -151,7 +151,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			},
 		}
 
-		actual, err := BuildBaseOrchestrator(&nw, &graph, "gw1")
+		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -238,7 +238,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			},
 		}
 
-		actual, err := BuildBaseOrchestrator(&nw, &graph, "gw1")
+		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -318,7 +318,7 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 			},
 		}
 
-		actual, err := BuildBaseOrchestrator(&nw, &graph, "gw1")
+		actual, err := buildBaseOrchestrator(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -350,7 +350,7 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 			"dnsd": &mconfig_protos.DnsD{},
 		}
 
-		actual, err := BuildDnsd(&nw, &graph, "gw1")
+		actual, err := buildDnsd(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual)
 	})
@@ -367,7 +367,7 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 							ARecord:     []strfmt.IPv4{"127.0.0.1", "127.0.0.2"},
 							AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334", "1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
 							CnameRecord: []string{"baz"},
-							Domain:      "facebook.com",
+							Domain:      "example.com",
 						},
 						{
 							ARecord: []strfmt.IPv4{"quz"},
@@ -402,7 +402,7 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 						ARecord:     []string{"127.0.0.1", "127.0.0.2"},
 						AaaaRecord:  []string{"2001:0db8:85a3:0000:0000:8a2e:0370:7334", "1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
 						CnameRecord: []string{"baz"},
-						Domain:      "facebook.com",
+						Domain:      "example.com",
 					},
 					{
 						ARecord: []string{"quz"},
@@ -411,13 +411,13 @@ func TestDnsdMconfigBuilder_Build(t *testing.T) {
 			},
 		}
 
-		actual, err := BuildDnsd(&nw, &graph, "gw1")
+		actual, err := buildDnsd(&nw, &graph, "gw1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected["dnsd"].String(), actual["dnsd"].String())
 	})
 }
 
-func BuildBaseOrchestrator(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+func buildBaseOrchestrator(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	networkProto, err := network.ToStorageProto()
 	if err != nil {
 		return nil, err
@@ -475,7 +475,7 @@ func BuildBaseOrchestrator(network *configurator.Network, graph *configurator.En
 	return configs, nil
 }
 
-func BuildDnsd(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+func buildDnsd(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	networkProto, err := network.ToStorageProto()
 	if err != nil {
 		return nil, err

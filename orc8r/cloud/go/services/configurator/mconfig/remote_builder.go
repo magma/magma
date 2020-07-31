@@ -50,12 +50,12 @@ func (r *remoteBuilder) Build(network *storage.Network, graph *storage.EntityGra
 	return ret.ConfigsByKey, nil
 }
 
-func (r *remoteBuilder) getBuilderClient() (protos.BuilderClient, error) {
+func (r *remoteBuilder) getBuilderClient() (protos.MconfigBuilderClient, error) {
 	conn, err := registry.GetConnection(r.service)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)
 		glog.Error(initErr)
 		return nil, initErr
 	}
-	return protos.NewBuilderClient(conn), nil
+	return protos.NewMconfigBuilderClient(conn), nil
 }

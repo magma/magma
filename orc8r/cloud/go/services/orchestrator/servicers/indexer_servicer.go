@@ -30,7 +30,7 @@ import (
 )
 
 const (
-	version indexer.Version = 1
+	indexerVersion indexer.Version = 1
 )
 
 var (
@@ -59,7 +59,7 @@ func NewIndexerServicer() protos.IndexerServer {
 
 func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetIndexerInfoRequest) (*protos.GetIndexerInfoResponse, error) {
 	res := &protos.GetIndexerInfoResponse{
-		Version:    uint32(version),
+		Version:    uint32(indexerVersion),
 		StateTypes: indexerTypes,
 	}
 	return res, nil

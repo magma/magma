@@ -16,30 +16,21 @@ package test_init
 import (
 	"testing"
 
-	"magma/cwf/cloud/go/services/cwf"
-	"magma/cwf/cloud/go/services/cwf/servicers"
+	"magma/feg/cloud/go/feg"
+	feg_service "magma/feg/cloud/go/services/feg"
+	"magma/feg/cloud/go/services/feg/servicers"
 	"magma/orc8r/cloud/go/orc8r"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
 func StartTestService(t *testing.T) {
-	StartTestServiceInternal(t, servicers.NewBuilderServicer())
-}
-
-func StartTestServiceInternal(t *testing.T, builder builder_protos.MconfigBuilderServer) {
-	labels := map[string]string{}
-	annotations := map[string]string{}
-
-	if builder != nil {
-		labels[orc8r.MconfigBuilderLabel] = "true"
+	labels := map[string]string{
+		orc8r.MconfigBuilderLabel: "true",
 	}
 
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, cwf.ServiceName, labels, annotations)
-
-	if builder != nil {
-		builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, builder)
-	}
+	srv, lis := test_utils.NewTestOrchestratorService(t, feg.ModuleName, feg_service.ServiceName, labels, nil)
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 
 	go srv.RunTest(lis)
 }
