@@ -13,12 +13,14 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
+import GatewayContext from '../../components/context/GatewayContext';
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
@@ -27,9 +29,10 @@ import React, {useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import isGatewayHealthy from '../../components/GatewayUtils';
-import {SelectEditComponent} from '../../components/ActionTable';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
+import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
@@ -81,11 +84,7 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function Gateway({
-  lteGateways,
-}: {
-  lteGateways: {[string]: lte_gateway},
-}) {
+export default function Gateway() {
   const classes = useStyles();
 
   return (
@@ -96,11 +95,11 @@ export default function Gateway({
         </Grid>
         <Grid item xs={12}>
           <Paper elevation={0}>
-            <EquipmentGatewayKPIs lteGateways={lteGateways} />
+            <EquipmentGatewayKPIs />
           </Paper>
         </Grid>
         <Grid item xs={12}>
-          <GatewayTable lteGateways={lteGateways} />
+          <GatewayTable />
         </Grid>
       </Grid>
     </div>
@@ -129,9 +128,11 @@ const ViewTypes = {
   UPGRADE: 'Upgrade',
 };
 
-function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
+function GatewayTableRaw(props: WithAlert) {
   const classes = useStyles();
   const ctx = useContext(GatewayTierContext);
+  const gwCtx = useContext(GatewayContext);
+  const lteGateways = gwCtx.state;
   const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
   const [currentView, setCurrentView] = useState<$Keys<typeof ViewTypes>>(
@@ -228,7 +229,7 @@ function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
                   {...props}
                   defaultValue={props.value}
                   value={props.value}
-                  content={Object.keys(ctx.tiers)}
+                  content={Object.keys(ctx.state.tiers)}
                   onChange={value => props.onChange(value)}
                 />
               ),
@@ -239,10 +240,13 @@ function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
             pageSizeOptions: [5, 10],
           }}
           editable={{
-            onRowUpdate: (newData, oldData) =>
-              new Promise((resolve, reject) => {
+            onRowUpdate: async (newData, oldData) =>
+              new Promise(async (resolve, reject) => {
                 try {
-                  ctx.updateGatewayTier(newData.id, newData.tier);
+                  await gwCtx.updateGateway({
+                    gatewayId: newData.id,
+                    tierId: newData.tier,
+                  });
                   const dataUpdate = [...lteGatewayUpgradeRows];
                   const index = oldData.tableData.id;
                   dataUpdate[index] = newData;
@@ -282,7 +286,27 @@ function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
                 history.push(relativeUrl('/' + currRow.id + '/config'));
               },
             },
-            {name: 'Remove'},
+            {
+              name: 'Remove',
+              handleFunc: () => {
+                props
+                  .confirm(`Are you sure you want to delete ${currRow.id}?`)
+                  .then(async confirmed => {
+                    if (!confirmed) {
+                      return;
+                    }
+
+                    try {
+                      await gwCtx.setState(currRow.id);
+                    } catch (e) {
+                      enqueueSnackbar('failed deleting gateway ' + currRow.id, {
+                        variant: 'error',
+                      });
+                    }
+                  });
+              },
+            },
+
             {name: 'Deactivate'},
             {name: 'Reboot'},
           ]}
@@ -295,3 +319,5 @@ function GatewayTable({lteGateways}: {lteGateways: {[string]: lte_gateway}}) {
     </>
   );
 }
+
+const GatewayTable = withAlert(GatewayTableRaw);

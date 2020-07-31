@@ -13,18 +13,19 @@
  * @flow strict-local
  * @format
  */
-import type {tier, tier_id} from '@fbcnms/magma-api';
+import type {EnodebInfo} from '../lte/EnodebUtils';
+import type {network_ran_configs} from '@fbcnms/magma-api';
 
 import React from 'react';
 
-type GatewayTierState = {
-  tiers: {[string]: tier},
-  supportedVersions: Array<string>,
+type EnodebState = {
+  enbInfo: {[string]: EnodebInfo},
+  lteRanConfigs?: network_ran_configs,
 };
 
-export type GatewayTierContextType = {
-  state: GatewayTierState,
-  setState: (key: tier_id, val?: tier) => Promise<void>,
+export type EnodebContextType = {
+  state: EnodebState,
+  setState: (key: string, val?: EnodebInfo) => Promise<void>,
 };
 
-export default React.createContext<GatewayTierContextType>({});
+export default React.createContext<EnodebContextType>({});
