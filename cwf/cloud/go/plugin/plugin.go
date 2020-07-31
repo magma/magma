@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -52,8 +53,8 @@ func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*CwfOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{
+func (*CwfOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
+	return []mconfig.Builder{
 		&Builder{},
 	}
 }

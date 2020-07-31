@@ -3,6 +3,7 @@ package plugin
 import (
 	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
 	"magma/fbinternal/cloud/go/services/testcontroller"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/state/indexer"
 
 	"magma/fbinternal/cloud/go/fbinternal"
@@ -40,8 +41,8 @@ func (*FbinternalOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*FbinternalOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{}
+func (*FbinternalOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
+	return []mconfig.Builder{}
 }
 
 func (*FbinternalOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {

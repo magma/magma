@@ -18,6 +18,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -69,8 +70,8 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{
+func (*BaseOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
+	return []mconfig.Builder{
 		&BaseOrchestratorMconfigBuilder{},
 		&DnsdMconfigBuilder{},
 	}

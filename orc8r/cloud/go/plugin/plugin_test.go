@@ -17,12 +17,11 @@ import (
 	"errors"
 	"testing"
 
+	assert "github.com/stretchr/testify/require"
+
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/plugin/mocks"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
-
-	assert "github.com/stretchr/testify/require"
 )
 
 type errorLoader struct{}
@@ -42,7 +41,7 @@ func (m mockLoader) LoadPlugins() ([]plugin.OrchestratorPlugin, error) {
 func TestLoadAllPlugins(t *testing.T) {
 	// Happy path - just make sure all functions on the plugin are called
 	mockPlugin := &mocks.OrchestratorPlugin{}
-	mockPlugin.On("GetMconfigBuilders").Return([]configurator.MconfigBuilder{})
+	//mockPlugin.On("GetMconfigBuilders").Return([]configurator.MconfigBuilder{})
 	//mockPlugin.On("GetMetricsProfiles", mock.Anything).Return([]metricsd.MetricsProfile{}).Once()
 	//mockPlugin.On("GetObsidianHandlers", mock.Anything).Return([]obsidian.Handler{})
 	mockPlugin.On("GetSerdes").Return([]serde.Serde{})
@@ -51,7 +50,7 @@ func TestLoadAllPlugins(t *testing.T) {
 	//mockPlugin.On("GetStreamerProviders").Return([]providers.StreamProvider{})
 	err := plugin.LoadAllPlugins(mockLoader{ret: mockPlugin})
 	assert.NoError(t, err)
-	mockPlugin.AssertNumberOfCalls(t, "GetMconfigBuilders", 1)
+	//mockPlugin.AssertNumberOfCalls(t, "GetMconfigBuilders", 1)
 	//mockPlugin.AssertNumberOfCalls(t, "GetMetricsProfiles", 1)
 	//mockPlugin.AssertNumberOfCalls(t, "GetObsidianHandlers", 1)
 	mockPlugin.AssertNumberOfCalls(t, "GetSerdes", 1)

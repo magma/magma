@@ -23,7 +23,7 @@ import (
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
@@ -58,7 +58,7 @@ type OrchestratorPlugin interface {
 	// GetMconfigBuilders returns a list of MconfigBuilders to register with
 	// the configurator service. These builder are responsible for constructing
 	// mconfigs to pass down to gateways.
-	GetMconfigBuilders() []configurator.MconfigBuilder
+	GetMconfigBuilders() []mconfig.Builder
 
 	// GetMetricsProfiles returns the metricsd profiles that this module
 	// supplies. This will make specific configurations available for metricsd
@@ -74,8 +74,9 @@ type OrchestratorPlugin interface {
 	// receive data from the orchestrator (e.g. configuration).
 	GetStreamerProviders() []providers.StreamProvider
 
-	// GetStateIndexers returns a list of Indexers to register with the state service.
-	// These indexers are responsible for generating secondary indices mapped to derived state.
+	// GetStateIndexers returns a list of secondary state indexers.
+	// These indexers are responsible for generating secondary indices mapped
+	// to derived state.
 	GetStateIndexers() []indexer.Indexer
 }
 
@@ -174,7 +175,6 @@ func registerPlugin(p OrchestratorPlugin) error {
 	if err := serde.RegisterSerdes(p.GetSerdes()...); err != nil {
 		return err
 	}
-	configurator.RegisterMconfigBuilders(p.GetMconfigBuilders()...)
 
 	return nil
 }
