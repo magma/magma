@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
@@ -101,13 +100,8 @@ func LoadAllPlugins(loader OrchestratorPluginLoader) error {
 	if err != nil {
 		return err
 	}
-
-	metricsConfig, err := config.GetServiceConfig(orc8r.ModuleName, metricsd.ServiceName)
-	if err != nil {
-		return err
-	}
 	for _, p := range plugins {
-		if err := registerPlugin(p, metricsConfig); err != nil {
+		if err := registerPlugin(p); err != nil {
 			return err
 		}
 	}
@@ -176,15 +170,11 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 	return ret, nil
 }
 
-func registerPlugin(plug OrchestratorPlugin, metricsConfig *config.ConfigMap) error {
-	if err := serde.RegisterSerdes(plug.GetSerdes()...); err != nil {
+func registerPlugin(p OrchestratorPlugin) error {
+	if err := serde.RegisterSerdes(p.GetSerdes()...); err != nil {
 		return err
 	}
-	if err := obsidian.RegisterAll(plug.GetObsidianHandlers(metricsConfig)); err != nil {
-		return err
-	}
-
-	configurator.RegisterMconfigBuilders(plug.GetMconfigBuilders()...)
+	configurator.RegisterMconfigBuilders(p.GetMconfigBuilders()...)
 
 	return nil
 }
