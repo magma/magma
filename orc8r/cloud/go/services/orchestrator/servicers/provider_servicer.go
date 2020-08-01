@@ -40,7 +40,7 @@ func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamReq
 
 	update, err := streamer.GetUpdates(req.GetGatewayId(), req.GetExtraArgs())
 	if err != nil {
-		// Note: return blank err to properly receive EAGAINs from mconfig provider
+		// Note: return blank err to properly receive EAGAIN from mconfig provider
 		return nil, err
 	}
 	return &protos.DataUpdateBatch{Updates: update}, nil

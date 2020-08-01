@@ -54,13 +54,13 @@ func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*p
 }
 
 func mconfigToUpdate(configs *protos.GatewayConfigs, key string, digest string) ([]*protos.DataUpdate, error) {
-	// Early/empty return if gateway already has config that would be sent here
+	// Early/empty return if gateway already has this config
 	if digest == configs.Metadata.Digest.Md5HexDigest {
 		return []*protos.DataUpdate{}, streamer.EAGAIN // do not close the stream, there were no changes in configs
 	}
 	marshaledConfig, err := protos.MarshalJSON(configs)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "marshal gateway mconfig")
 	}
 	return []*protos.DataUpdate{{Key: key, Value: marshaledConfig}}, nil
 }

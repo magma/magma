@@ -17,8 +17,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/golang/protobuf/proto"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -31,6 +29,7 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"

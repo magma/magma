@@ -43,7 +43,6 @@ func TestBuilder_Build(t *testing.T) {
 	cwf_test_init.StartTestService(t)
 
 	t.Run("empty network config", func(t *testing.T) {
-		// empty case: no cwf associated to magmad gateway
 		nw := configurator.Network{ID: "n1"}
 		gw := configurator.NetworkEntity{
 			Type: orc8r.MagmadGatewayType, Key: "gw1",

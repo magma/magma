@@ -17,11 +17,11 @@ import (
 	"errors"
 	"testing"
 
-	assert "github.com/stretchr/testify/require"
-
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/plugin/mocks"
 	"magma/orc8r/cloud/go/serde"
+
+	assert "github.com/stretchr/testify/require"
 )
 
 type errorLoader struct{}

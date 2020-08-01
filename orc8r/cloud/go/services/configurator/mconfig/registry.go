@@ -14,8 +14,6 @@
 package mconfig
 
 import (
-	"testing"
-
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
 )
@@ -33,13 +31,4 @@ func GetBuilders() ([]Builder, error) {
 	}
 
 	return builders, nil
-}
-
-// DeregisterAllForTest deregisters all previously-registered mconfig builders.
-// This should only be called by test code.
-func DeregisterAllForTest(t *testing.T) {
-	if t == nil {
-		panic("for tests only")
-	}
-	registry.RemoveServicesWithLabel(orc8r.MconfigBuilderLabel)
 }
