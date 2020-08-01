@@ -79,7 +79,11 @@ RUN apt-get -y update && apt-get -y install \
   libboost-context-dev \
   libboost-program-options-dev \
   libboost-filesystem-dev \
-  libboost-regex-dev
+  libboost-regex-dev \
+  libmnl-dev \
+  libtins-dev \
+  libpcap-dev
+
 
 ENV MAGMA_ROOT /magma
 ENV C_BUILD /build/c
@@ -103,6 +107,9 @@ COPY lte/gateway/c $MAGMA_ROOT/lte/gateway/c
 ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
 RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_TYPE}"
+
+
+RUN make -C $MAGMA_ROOT/lte/gateway/c/connection_tracker build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -150,10 +157,14 @@ RUN apt-get -y update && apt-get -y install \
   grpc-dev \
   protobuf-compiler \
   libprotoc-dev \
-  netcat
+  netcat \
+  libmnl-dev \
+  libtins-dev \
+  libpcap-dev
 
 # Copy the build artifacts.
 COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
+COPY --from=builder /build/c/cont/connection_tracker  /usr/local/bin/connection_tracker
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma

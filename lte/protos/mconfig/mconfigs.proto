@@ -270,3 +270,10 @@ message MonitorD {
 message DPID {
     orc8r.LogLevel log_level = 1;
 }
+
+//------------------------------------------------------------------------------
+// DPID configs
+//------------------------------------------------------------------------------
+message ConnectionD {
+    orc8r.LogLevel log_level = 1;
+}
