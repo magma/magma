@@ -55,7 +55,7 @@ const handleReact = tab =>
           }
         : {tenant: '', email: '', isSuperUser: false, isReadOnlyUser: false},
       enabledFeatures: await getEnabledFeatures(req, organization?.name),
-      ssoEnabled: false,
+      ssoEnabled: !!organization?.ssoEntrypoint,
       ssoSelectedType: 'none',
       csvCharset: null,
     };
