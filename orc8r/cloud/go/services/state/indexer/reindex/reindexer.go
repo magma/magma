@@ -35,7 +35,7 @@ type Error string
 const (
 	// ErrDefault is the default error reported for reindex failure.
 	ErrDefault Error = "state reindex error"
-	// ErrReindexPerState indicates a Reindex error occured for specific keys. Not included in any job errors.
+	// ErrReindexPerState indicates a Reindex error occurred for specific keys. Not included in any job errors.
 	ErrReindexPerState Error = "reindex error: per-state errors"
 
 	// ErrPrepare is included in job error when error source is indexer PrepareReindex call.
