@@ -55,11 +55,7 @@ export default function () {
   }
 
   const data: AlertTable = {Critical: [], Major: [], Minor: [], Other: []};
-  if (!response) {
-    return null;
-  }
-
-  const alerts: Array<prom_firing_alert> = response;
+  const alerts: Array<prom_firing_alert> = response ?? [];
   alerts.forEach(alert => {
     const labelInfo = {
       job: alert.labels['job'] || '',
