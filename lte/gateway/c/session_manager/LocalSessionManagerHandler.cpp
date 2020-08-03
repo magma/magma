@@ -184,21 +184,10 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 static CreateSessionRequest copy_session_info2create_req(
     const LocalCreateSessionRequest& request, const std::string& sid) {
   CreateSessionRequest create_request;
-  create_request.mutable_subscriber()->CopyFrom(request.sid());
   create_request.set_session_id(sid);
-  create_request.set_ue_ipv4(request.ue_ipv4());
-  create_request.set_spgw_ipv4(request.spgw_ipv4());
-  create_request.set_apn(request.apn());
-  create_request.set_msisdn(request.msisdn());
-  create_request.set_imei(request.imei());
-  create_request.set_plmn_id(request.plmn_id());
-  create_request.set_imsi_plmn_id(request.imsi_plmn_id());
-  create_request.set_user_location(request.user_location());
-  create_request.set_hardware_addr(request.hardware_addr());
-  create_request.set_rat_type(request.rat_type());
-  if (request.has_qos_info()) {
-    create_request.mutable_qos_info()->CopyFrom(request.qos_info());
-  }
+  create_request.mutable_common_context()->CopyFrom(request.common_context());
+  create_request.mutable_rat_specific_context()->CopyFrom(
+      request.rat_specific_context());
   return create_request;
 }
 

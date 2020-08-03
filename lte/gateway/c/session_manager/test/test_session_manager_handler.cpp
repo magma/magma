@@ -92,8 +92,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
 };
 
 MATCHER_P(CheckCreateSession, imsi, "") {
-  auto sid = static_cast<const CreateSessionRequest*>(arg);
-  return sid->subscriber().id() == imsi;
+  auto req = static_cast<const CreateSessionRequest*>(arg);
+  return req->common_context().sid().id() == imsi;
 }
 
 MATCHER_P(CheckUpdateSessionRequest, request_number, "") {
