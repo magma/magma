@@ -359,15 +359,20 @@ int s1ap_mme_handle_nas_non_delivery(
   s1ap_state_t *state,
   __attribute__((unused)) sctp_assoc_id_t assoc_id,
   sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
+  S1ap_S1AP_PDU_t *pdu)
 {
-#if S1AP_R1O_TO_R15_DONE
-  S1ap_NASNonDeliveryIndication_IEs_t *nasNonDeliveryIndication_p = NULL;
+  S1ap_NASNonDeliveryIndication_t *container;
+  S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu;
   ue_description_t *ue_ref = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("nas_non_delivery_indication_received", 1, NO_LABELS);
+
+  container =
+      &pdu->choice.initiatingMessage.value.choice.NASNonDeliveryIndication;
   /*
    * UE associated signalling on stream == 0 is not valid.
    */
@@ -379,30 +384,48 @@ int s1ap_mme_handle_nas_non_delivery(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  nasNonDeliveryIndication_p = &message->msg.s1ap_NASNonDeliveryIndication_IEs;
+OAILOG_NOTICE(LOG_S1AP,
+                "Received S1AP NAS_NON_DELIVERY_INDICATION message "
+                "MME_UE_S1AP_ID " MME_UE_S1AP_ID_FMT
+                " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT "\n",
+                mme_ue_s1ap_id, enb_ue_s1ap_id);
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_NASNonDeliveryIndication_IEs_t, ie, container,
+                             S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_NASNonDeliveryIndication_IEs_t, ie, container,
+                             S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  enb_ue_s1ap_id = ie->value.choice.ENB_UE_S1AP_ID;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_NASNonDeliveryIndication_IEs_t, ie_nas_pdu,
+                             container, S1ap_ProtocolIE_ID_id_NAS_PDU, true);
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_NASNonDeliveryIndication_IEs_t, ie, container,
+                             S1ap_ProtocolIE_ID_id_Cause, true);
 
   OAILOG_NOTICE(
     LOG_S1AP,
     "Received S1AP NAS_NON_DELIVERY_INDICATION message "
     "MME_UE_S1AP_ID " MME_UE_S1AP_ID_FMT " enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
     "\n",
-    (mme_ue_s1ap_id_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id,
-    (enb_ue_s1ap_id_t) nasNonDeliveryIndication_p->eNB_UE_S1AP_ID);
+    mme_ue_s1ap_id,
+    enb_ue_s1ap_id);
 
   if (
     (ue_ref = s1ap_state_get_ue_mmeid(
-       state, nasNonDeliveryIndication_p->mme_ue_s1ap_id)) == NULL) {
+       state, mme_ue_s1ap_id)) == NULL) {
     OAILOG_DEBUG(
       LOG_S1AP,
       "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT "\n",
-      (mme_ue_s1ap_id_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id);
+      mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
   hashtable_uint64_ts_get(
       imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) nasNonDeliveryIndication_p->mme_ue_s1ap_id,
+      mme_ue_s1ap_id,
       &imsi64);
 
   if (ue_ref->s1_ue_state != S1AP_UE_CONNECTED) {
@@ -416,15 +439,13 @@ int s1ap_mme_handle_nas_non_delivery(
 
   //TODO: forward NAS PDU to NAS
   s1ap_mme_itti_nas_non_delivery_ind(
-    nasNonDeliveryIndication_p->mme_ue_s1ap_id,
-    nasNonDeliveryIndication_p->nas_pdu.buf,
-    nasNonDeliveryIndication_p->nas_pdu.size,
-    &nasNonDeliveryIndication_p->cause,
+    ie->value.choice.MME_UE_S1AP_ID,
+    ie->value.choice.NAS_PDU.buf,
+    ie->value.choice.NAS_PDU.size,
+    &ie->value.choice.Cause,
     imsi64);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-#else
-  return -1;
-#endif
+
 }
 
 //------------------------------------------------------------------------------
