@@ -13,11 +13,19 @@
  * @flow strict-local
  * @format
  */
+
+import type {ComponentType} from 'react';
+
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
 import DeviceStatusCircle from '../theme/design-system/DeviceStatusCircle';
 import Grid from '@material-ui/core/Grid';
+import IconButton from '@material-ui/core/IconButton';
+import Input from '@material-ui/core/Input';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import React from 'react';
+import Visibility from '@material-ui/icons/Visibility';
+import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -50,12 +58,36 @@ const useStyles = makeStyles(theme => ({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    width: props => (props.hasStatus ? 'calc(100% - 16px)' : '100%'),
+    width: props =>
+      props.hasStatus
+        ? 'calc(100% - 16px)'
+        : props.hasIcon
+        ? 'calc(100% - 32px)'
+        : '100%',
+  },
+  kpiObscuredValue: {
+    color: colors.primary.brightGray,
+    width: '100%',
+
+    '& input': {
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    },
   },
   kpiBox: {
     width: '100%',
     '& > div': {
       width: '100%',
+    },
+  },
+  kpiIcon: {
+    display: 'flex',
+    alignItems: 'center',
+
+    '& svg': {
+      fill: colors.primary.comet,
+      marginRight: theme.spacing(1),
     },
   },
 }));
@@ -67,7 +99,7 @@ function StatusIndicator(disabled: boolean, up: boolean, val: string) {
   const props = {hasStatus: true};
   const classes = useStyles(props);
   return (
-    <Grid container zeroMinWidth alignItems="center" xs={12}>
+    <Grid container alignItems="center">
       <Grid item>
         <DeviceStatusCircle isGrey={disabled} isActive={up} isFilled={true} />
       </Grid>
@@ -78,11 +110,55 @@ function StatusIndicator(disabled: boolean, up: boolean, val: string) {
   );
 }
 
+// KPI Icon adds an icon to the left of the value
+function KpiIcon(icon: ComponentType<SvgIconExports>, val: string) {
+  const props = {hasIcon: true};
+  const classes = useStyles(props);
+  const Icon = icon;
+  return (
+    <Grid container alignItems="center">
+      <Grid item className={classes.kpiIcon}>
+        <Icon />
+      </Grid>
+      <Grid item className={classes.kpiValue}>
+        {val}
+      </Grid>
+    </Grid>
+  );
+}
+
+// KPI Obscure makes the field into a password type filed with a visibility toggle for more sensitive fields.
+function KpiObscure(val: number | string) {
+  const [showPassword, setShowPassword] = React.useState(false);
+  return (
+    <Input
+      type={showPassword ? 'text' : 'password'}
+      fullWidth={true}
+      value={val}
+      disableUnderline={true}
+      readOnly={true}
+      data-testid={'epcPassword'} // TODO: TEMPORARY fix for yarn - test
+      endAdornment={
+        <InputAdornment position="end">
+          <IconButton
+            aria-label="toggle password visibility"
+            onClick={() => setShowPassword(!showPassword)}
+            onMouseDown={event => event.preventDefault()}>
+            {showPassword ? <Visibility /> : <VisibilityOff />}
+          </IconButton>
+        </InputAdornment>
+      }
+    />
+  );
+}
+
 type KPIData = {
+  icon?: ComponentType<SvgIconExports>,
   category?: string,
   value: number | string,
+  obscure?: boolean,
   unit?: string,
-  statusCircle: boolean,
+  statusCircle?: boolean,
   statusInactive?: boolean,
   status?: boolean,
 };
@@ -94,7 +170,7 @@ type Props = {data: KPIRows[]};
 export default function KPIGrid(props: Props) {
   const classes = useStyles();
   const kpiGrid = props.data.map((row, i) => (
-    <Grid key={i} container direction="row" zeroMinWidth>
+    <Grid key={i} container direction="row">
       {row.map((kpi, j) => (
         <Grid
           item
@@ -103,30 +179,41 @@ export default function KPIGrid(props: Props) {
           key={`data-${i}-${j}`}
           zeroMinWidth
           className={classes.kpiBlock}>
-          <CardHeader
-            data-testid={kpi.category}
-            className={classes.kpiBox}
-            title={kpi.category}
-            titleTypographyProps={{
-              variant: 'body3',
-              className: classes.kpiLabel,
-              title: kpi.category,
-            }}
-            subheaderTypographyProps={{
-              variant: 'body1',
-              className: classes.kpiValue,
-              title: kpi.value + (kpi.unit ?? ''),
-            }}
-            subheader={
-              kpi.statusCircle === true
-                ? StatusIndicator(
-                    kpi.statusInactive || false,
-                    kpi.status || false,
-                    kpi.value + (kpi.unit ?? ''),
-                  )
-                : kpi.value + (kpi.unit ?? '')
-            }
-          />
+          <Grid container direction="row" alignItems="center">
+            <Grid item xs={12}>
+              <CardHeader
+                data-testid={kpi.category}
+                className={classes.kpiBox}
+                title={kpi.category}
+                titleTypographyProps={{
+                  variant: 'body3',
+                  className: classes.kpiLabel,
+                  title: kpi.category,
+                }}
+                subheaderTypographyProps={{
+                  variant: 'body1',
+                  className:
+                    kpi.obscure === true
+                      ? classes.kpiObscuredValue
+                      : classes.kpiValue,
+                  title: kpi.value + (kpi.unit ?? ''),
+                }}
+                subheader={
+                  kpi.statusCircle === true
+                    ? StatusIndicator(
+                        kpi.statusInactive || false,
+                        kpi.status || false,
+                        kpi.value + (kpi.unit ?? ''),
+                      )
+                    : kpi.icon
+                    ? KpiIcon(kpi.icon, kpi.value + (kpi.unit ?? ''))
+                    : kpi.obscure === true
+                    ? KpiObscure(kpi.value)
+                    : kpi.value + (kpi.unit ?? '')
+                }
+              />
+            </Grid>
+          </Grid>
         </Grid>
       ))}
     </Grid>

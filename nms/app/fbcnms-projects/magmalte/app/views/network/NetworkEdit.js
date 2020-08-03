@@ -22,12 +22,10 @@ import type {
 
 import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Link from '@material-ui/core/Link';
+import DialogTitle from '../../theme/design-system/DialogTitle';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import {NetworkEpcEdit} from './NetworkEpc';
 import {NetworkInfoEdit} from './NetworkInfo';
 import {NetworkRanEdit} from './NetworkRanConfig';
@@ -40,12 +38,6 @@ const EPC_TITLE = 'Epc';
 const RAN_TITLE = 'Ran';
 
 const useStyles = makeStyles(_ => ({
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-
   appBarBtn: {
     color: colors.primary.white,
     background: colors.primary.comet,
@@ -58,6 +50,10 @@ const useStyles = makeStyles(_ => ({
     '&:hover': {
       background: colors.primary.mirage,
     },
+  },
+  tabBar: {
+    backgroundColor: colors.primary.brightGray,
+    color: colors.primary.white,
   },
 }));
 
@@ -109,16 +105,15 @@ export default function AddEditNetworkButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
-          component="button"
-          variant="body2"
+          variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
-          variant="contained"
+          variant="text"
           className={classes.appBarBtn}
           onClick={handleClickOpen}>
           {props.title}
@@ -142,17 +137,15 @@ function NetworkEditDialog({open, onClose, editProps}: DialogProps) {
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
-      <DialogTitle className={classes.topBar}>
-        <Text color="light" weight="medium">
-          {editProps ? 'Edit Network Settings' : 'Add Network'}
-        </Text>
-      </DialogTitle>
+      <DialogTitle
+        label={editProps ? 'Edit Network Settings' : 'Add Network'}
+        onClose={onClose}
+      />
       <Tabs
         value={tabPos}
         onChange={(_, v) => setTabPos(v)}
         indicatorColor="primary"
-        textColor="primary"
-        variant="fullWidth">
+        className={classes.tabBar}>
         <Tab key="network" data-testid="networkTab" label={NETWORK_TITLE} />;
         <Tab
           key="epc"

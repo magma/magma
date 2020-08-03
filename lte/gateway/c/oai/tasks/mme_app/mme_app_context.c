@@ -1430,7 +1430,7 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_ERROR(LOG_MME_APP, "Invalid UE context received\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  if (new_ecm_state == ECM_IDLE) {
+  if (ue_context_p->ecm_state == ECM_CONNECTED && new_ecm_state == ECM_IDLE) {
     hash_rc = hashtable_uint64_ts_remove(
         mme_ue_context_p->enb_ue_s1ap_id_ue_context_htbl,
         (const hash_key_t) ue_context_p->enb_s1ap_id_key);
@@ -1453,38 +1453,47 @@ void mme_ue_context_update_ue_sig_connection_state(
     if (mme_config.nas_config.t3412_min > 0) {
       // Start Mobile reachability timer only if peroidic TAU timer is not
       // disabled
-      nas_itti_timer_arg_t timer_callback_arg = {0};
-      timer_callback_arg.nas_timer_callback =
-          mme_app_handle_mobile_reachability_timer_expiry;
-      timer_callback_arg.nas_timer_callback_arg =
-          (void*) &(ue_context_p->mme_ue_s1ap_id);
-      if (timer_setup(
-              ue_context_p->mobile_reachability_timer.sec, 0, TASK_MME_APP,
-              INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_arg,
-              sizeof(timer_callback_arg),
-              &(ue_context_p->mobile_reachability_timer.id)) < 0) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Failed to start Mobile Reachability timer for UE id "
-            " " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
-        ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
+      if (ue_context_p->mobile_reachability_timer.id ==
+          MME_APP_TIMER_INACTIVE_ID) {
+        // Start Mobile Reachability timer only if it is not running
+        nas_itti_timer_arg_t timer_callback_arg = {0};
+        timer_callback_arg.nas_timer_callback =
+            mme_app_handle_mobile_reachability_timer_expiry;
+        timer_callback_arg.nas_timer_callback_arg =
+            (void*) &(ue_context_p->mme_ue_s1ap_id);
+        if (timer_setup(
+                ue_context_p->mobile_reachability_timer.sec, 0, TASK_MME_APP,
+                INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_arg,
+                sizeof(timer_callback_arg),
+                &(ue_context_p->mobile_reachability_timer.id)) < 0) {
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              "Failed to start Mobile Reachability timer for UE id "
+              " " MME_UE_S1AP_ID_FMT "\n",
+              ue_context_p->mme_ue_s1ap_id);
+          ue_context_p->mobile_reachability_timer.id =
+              MME_APP_TIMER_INACTIVE_ID;
+        } else {
+          ue_context_p->time_mobile_reachability_timer_started = time(NULL);
+          OAILOG_DEBUG_UE(
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              "Started Mobile Reachability timer for UE id " MME_UE_S1AP_ID_FMT
+              "\n",
+              ue_context_p->mme_ue_s1ap_id);
+        }
       } else {
-        ue_context_p->time_mobile_reachability_timer_started = time(NULL);
         OAILOG_DEBUG_UE(
             LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Started Mobile Reachability timer for UE id  " MME_UE_S1AP_ID_FMT
-            "\n",
+            "Mobile Reachability timer is already started for UE id:"
+            " " MME_UE_S1AP_ID_FMT "\n",
             ue_context_p->mme_ue_s1ap_id);
       }
     }
-    if (ue_context_p->ecm_state == ECM_CONNECTED) {
-      ue_context_p->ecm_state = ECM_IDLE;
-      // Update Stats
-      update_mme_app_stats_connected_ue_sub();
-      OAILOG_INFO_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64, "UE STATE - IDLE.\n");
-    }
+    ue_context_p->ecm_state = ECM_IDLE;
+    // Update Stats
+    update_mme_app_stats_connected_ue_sub();
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64, "UE STATE - IDLE.\n");
 
   } else if (
       (ue_context_p->ecm_state == ECM_IDLE) &&
@@ -1539,6 +1548,12 @@ void mme_ue_context_update_ue_sig_connection_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - CONNECTED.\n");
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Old UE ECM State (%s) is same as the new UE ECM state (%s)\n",
+        (ue_context_p->ecm_state == ECM_CONNECTED ? "CONNECTED" : "IDLE"),
+        (new_ecm_state == ECM_CONNECTED ? "CONNECTED" : "IDLE"));
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
