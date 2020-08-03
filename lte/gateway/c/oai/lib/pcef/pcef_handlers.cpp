@@ -65,7 +65,7 @@ static void create_session_response(
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
 static void pcef_fill_create_session_req(
-    std::string& imsi, std::string& ip4, std::string& ip6,ebi_t eps_bearer_id,
+    std::string& imsi, std::string& ip4, std::string& ip6, ebi_t eps_bearer_id,
     const struct pcef_create_session_data* session_data,
     magma::LocalCreateSessionRequest* sreq) {
   // TODO Remove once we migrate all fields to be handled by
@@ -76,9 +76,7 @@ static void pcef_fill_create_session_req(
     sreq->set_ue_ipv4(ip4);
   } else if (!ip6.empty()) {
     sreq->set_ue_ipv6(ip6);
-  } else if (
-      (!ip4.empty()) &&
-      (!ip6.empty())) {
+  } else if ((!ip4.empty()) && (!ip6.empty())) {
     sreq->set_ue_ipv4(ip4);
     sreq->set_ue_ipv6(ip6);
   }
@@ -115,9 +113,7 @@ static void pcef_fill_create_session_req(
     sreq->set_ue_ipv4(ip4);
   } else if (!ip6.empty()) {
     sreq->set_ue_ipv6(ip6);
-  } else if (
-      (!ip4.empty()) &&
-      (!ip6.empty())) {
+  } else if ((!ip4.empty()) && (!ip6.empty())) {
     sreq->set_ue_ipv4(ip4);
     sreq->set_ue_ipv6(ip6);
   }
@@ -160,7 +156,8 @@ void pcef_create_session(
   // Change ip to spgw_ip. Get it from sgw_app_t sgw_app;
   magma::LocalCreateSessionRequest sreq;
   pcef_fill_create_session_req(
-      imsi_str, ip4_str, ip6_str, session_request.eps_bearer_id, session_data, &sreq);
+      imsi_str, ip4_str, ip6_str, session_request.eps_bearer_id, session_data,
+      &sreq);
 
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
