@@ -26,7 +26,7 @@ from magma.subscriberdb.sid import SIDUtils
 
 from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
 
-from .ip_allocator_static import IPBlockNotFoundError, NoAvailableIPError, \
+from .ip_allocator_pool import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
 
 from .ip_allocator_base import DuplicatedIPAllocationError

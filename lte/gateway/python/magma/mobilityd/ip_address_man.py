@@ -54,7 +54,7 @@ from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
 from magma.common.redis.client import get_default_client
 
 from .ip_allocator_dhcp import IPAllocatorDHCP
-from .ip_allocator_static import IpAllocatorStatic
+from .ip_allocator_pool import IpAllocatorPool
 from .ip_descriptor_map import IpDescriptorMap
 from .uplink_gw import UplinkGatewayInfo
 
@@ -153,9 +153,9 @@ class IPAddressManager:
 
         if self.allocator_type == MobilityD.IP_POOL:
             self._dhcp_gw_info.read_default_gw()
-            self.ip_allocator = IpAllocatorStatic(self._assigned_ip_blocks,
-                                                  self.ip_state_map,
-                                                  self.sid_ips_map)
+            self.ip_allocator = IpAllocatorPool(self._assigned_ip_blocks,
+                                                self.ip_state_map,
+                                                self.sid_ips_map)
         elif self.allocator_type == MobilityD.DHCP:
             dhcp_store = store.MacToIP()  # mac => DHCP_State
             iface = config.get('dhcp_iface', 'dhcp0')

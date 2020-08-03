@@ -33,7 +33,7 @@ from .ip_allocator_base import IPAllocator, NoAvailableIPError, \
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 
-class IpAllocatorStatic(IPAllocator):
+class IpAllocatorPool(IPAllocator):
 
     def __init__(self,
                  assigned_ip_blocks: Set[ip_network],

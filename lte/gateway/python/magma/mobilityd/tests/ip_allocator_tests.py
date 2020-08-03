@@ -24,7 +24,7 @@ from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
-from magma.mobilityd.ip_allocator_static import IPBlockNotFoundError, \
+from magma.mobilityd.ip_allocator_pool import IPBlockNotFoundError, \
     NoAvailableIPError
 
 # If the preallocated IP addresses in ip_address_man.py code
