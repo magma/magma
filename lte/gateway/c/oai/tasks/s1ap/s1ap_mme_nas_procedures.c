@@ -456,7 +456,7 @@ int s1ap_generate_downlink_nas_transport(
   STOLEN_REF bstring *payload,
   const imsi64_t imsi64)
 {
-#if S1AP_R1O_TO_R15_DONE
+
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
   uint32_t length = 0;
@@ -506,11 +506,20 @@ int s1ap_generate_downlink_nas_transport(
       (const hash_key_t) ue_id,
       imsi64);
 
-    S1ap_DownlinkNASTransportIEs_t *downlinkNasTransport = NULL;
-    s1ap_message message = {0};
+    S1ap_DownlinkNASTransport_IEs_t *ie = NULL;
+    S1ap_DownlinkNASTransport_t *out;
+    S1ap_S1AP_PDU_t pdu = {0};
 
-    message.procedureCode = S1ap_ProcedureCode_id_downlinkNASTransport;
-    message.direction = S1AP_PDU_PR_initiatingMessage;
+    memset(&pdu, 0, sizeof(pdu));
+      pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+      pdu.choice.initiatingMessage.procedureCode =
+      S1ap_ProcedureCode_id_downlinkNASTransport;
+      pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+      pdu.choice.initiatingMessage.value.present =
+      S1ap_InitiatingMessage__value_PR_DownlinkNASTransport;
+
+    out = &pdu.choice.initiatingMessage.value.choice.DownlinkNASTransport;
+
     if (ue_ref->s1_ue_state == S1AP_UE_WAITING_CRR) {
       OAILOG_ERROR_UE(
         LOG_S1AP, imsi64,
@@ -520,23 +529,41 @@ int s1ap_generate_downlink_nas_transport(
     } else {
     ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
     }
-    downlinkNasTransport = &message.msg.s1ap_DownlinkNASTransportIEs;
     /*
      * Setting UE informations with the ones fount in ue_ref
      */
-    downlinkNasTransport->mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
-    downlinkNasTransport->eNB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ie = (S1ap_DownlinkNASTransport_IEs_t *)calloc(
+      1, sizeof(S1ap_DownlinkNASTransport_IEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_DownlinkNASTransport_IEs__value_PR_MME_UE_S1AP_ID;
+    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+   /* mandatory */
+    ie = (S1ap_DownlinkNASTransport_IEs_t *)calloc(
+      1, sizeof(S1ap_DownlinkNASTransport_IEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_DownlinkNASTransport_IEs__value_PR_ENB_UE_S1AP_ID;
+    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    /* mandatory */
+    ie = (S1ap_DownlinkNASTransport_IEs_t *)calloc(
+      1, sizeof(S1ap_DownlinkNASTransport_IEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_NAS_PDU;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_DownlinkNASTransport_IEs__value_PR_NAS_PDU;
     /*eNB
      * Fill in the NAS pdu
      */
     OCTET_STRING_fromBuf(
-      &downlinkNasTransport->nas_pdu,
+      &ie->value.choice.NAS_PDU,
       (char *) bdata(*payload),
       blength(*payload));
     bdestroy_wrapper(payload);
 
-    if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
-      free_s1ap_downlinknastransport(downlinkNasTransport);
+    if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
 
@@ -547,8 +574,8 @@ int s1ap_generate_downlink_nas_transport(
       " MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
       ue_id,
-      (mme_ue_s1ap_id_t) downlinkNasTransport->mme_ue_s1ap_id,
-      (enb_ue_s1ap_id_t) downlinkNasTransport->eNB_UE_S1AP_ID);
+      ue_ref->mme_ue_s1ap_id,
+      enb_ue_s1ap_id);
     bstring b = blk2bstr(buffer_p, length);
     free(buffer_p);
     s1ap_mme_itti_send_sctp_request(
@@ -556,12 +583,9 @@ int s1ap_generate_downlink_nas_transport(
       ue_ref->enb->sctp_assoc_id,
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
-    free_s1ap_downlinknastransport(downlinkNasTransport);
   }
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-#else
-  return -1;
-#endif
+
 }
 
 //------------------------------------------------------------------------------
