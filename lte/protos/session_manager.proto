@@ -58,6 +58,8 @@ message LocalCreateSessionRequest {
   uint32 bearer_id = 15; // Included in LTE ctx
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
+  string ue_ipv6 = 18;
+  uint32 pdn_type = 19;
 }
 
 message CommonSessionContext {
