@@ -1073,7 +1073,7 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
   itti_s1ap_e_rab_rel_cmd_t *const e_rab_rel_cmd)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-#if S1AP_R1O_TO_R15_DONE
+
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
   uint32_t length = 0;
@@ -1109,27 +1109,47 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
      * We have found the UE in the list.
      * Create new IE list message and encode it.
      */
-    S1ap_E_RABReleaseCommandIEs_t *e_rabreleasecmdies = NULL;
-    s1ap_message message = {0};
+    S1ap_S1AP_PDU_t pdu = {0};
+    S1ap_E_RABReleaseCommand_t *out = NULL;
+    S1ap_E_RABReleaseCommandIEs_t *ie = NULL;
 
-    message.procedureCode = S1ap_ProcedureCode_id_E_RABRelease;
-    message.direction = S1AP_PDU_PR_initiatingMessage;
-    ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
-    e_rabreleasecmdies = &message.msg.s1ap_E_RABReleaseCommandIEs;
+    memset(&pdu, 0, sizeof(pdu));
+    pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+    pdu.choice.initiatingMessage.procedureCode =
+        S1ap_ProcedureCode_id_E_RABRelease;
+    pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+    pdu.choice.initiatingMessage.value.present =
+        S1ap_InitiatingMessage__value_PR_E_RABReleaseCommand;
+    out = &pdu.choice.initiatingMessage.value.choice.E_RABReleaseCommand;
     /*
      * Setting UE information with the ones found in ue_ref
      */
-    e_rabreleasecmdies->mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
-    e_rabreleasecmdies->eNB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
-    // e_rabreleasecmdies->uEaggregateMaximumBitrate = NULL;
+    /* mandatory */
+    ie = (S1ap_E_RABReleaseCommandIEs_t *)calloc(
+        1, sizeof(S1ap_E_RABReleaseCommandIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_MME_UE_S1AP_ID;
+    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    /* mandatory */
+    ie = (S1ap_E_RABReleaseCommandIEs_t *)calloc(
+        1, sizeof(S1ap_E_RABReleaseCommandIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_ENB_UE_S1AP_ID;
+    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+    ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+
     /*
      * Fill in the NAS pdu
      */
-    e_rabreleasecmdies->presenceMask |=
-      S1AP_E_RABRELEASECOMMANDIES_NAS_PDU_PRESENT;
-
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_E_RABReleaseCommandIEs_t, ie, out,
+                             S1ap_ProtocolIE_ID_id_E_RABReleasedList, true);
     OCTET_STRING_fromBuf(
-      &e_rabreleasecmdies->nas_pdu,
+      &ie->value.choice.NAS_PDU,
       (char *) bdata(e_rab_rel_cmd->nas_pdu),
       blength(e_rab_rel_cmd->nas_pdu));
 
@@ -1151,12 +1171,12 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
         S1ap_CauseRadioNetwork_unspecified);
 
       ASN_SEQUENCE_ADD(
-        &e_rabreleasecmdies->e_RABToBeReleasedList,
+        &ie->value.choice.E_RABList,
         &s1ap_E_RABItemIEs[i]);
     }
 
-    if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
-      OAILOG_ERROR(LOG_S1AP, "Encoding of  failed \n");
+    if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+      OAILOG_ERROR(LOG_S1AP, "Encoding of s1ap_E_RABReleaseCommandIEs failed \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
 
@@ -1165,8 +1185,8 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       "Send S1AP E_RABRelease Command message MME_UE_S1AP_ID = "
       MME_UE_S1AP_ID_FMT
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
-      (mme_ue_s1ap_id_t) e_rabreleasecmdies->mme_ue_s1ap_id,
-      (enb_ue_s1ap_id_t) e_rabreleasecmdies->eNB_UE_S1AP_ID);
+      (mme_ue_s1ap_id_t) ue_ref->mme_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) ue_ref->enb_ue_s1ap_id);
     bstring b = blk2bstr(buffer_p, length);
     s1ap_mme_itti_send_sctp_request(
       &b,
@@ -1174,6 +1194,6 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
   }
-#endif
+
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
