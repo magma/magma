@@ -54,12 +54,7 @@ StoredSessionState SessionState::marshal() {
     monitor.level  = monitor_pair.second->level;
     marshaled.monitor_map[monitor_pair.first] = monitor;
   }
-
-  if (session_level_key_ != nullptr) {
-    marshaled.session_level_key = *session_level_key_;
-  } else {
-    marshaled.session_level_key = "";
-  }
+  marshaled.session_level_key = session_level_key_;
 
   marshaled.credit_map = StoredChargingCreditMap(4, &ccHash, &ccEqual);
   for (auto& credit_pair : credit_map_) {
@@ -107,8 +102,7 @@ SessionState::SessionState(
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
       credit_map_(4, &ccHash, &ccEqual) {
-  session_level_key_ =
-      std::make_unique<std::string>(marshaled.session_level_key);
+  session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
     monitor.credit = SessionCredit::unmarshal(it.second.credit);
@@ -221,11 +215,9 @@ void SessionState::add_rule_usage(
                 << " Monitoring Key=" << monitoring_key;
     add_to_monitor(monitoring_key, used_tx, used_rx, update_criteria);
   }
-  auto session_level_key_p = get_session_level_key();
-  if (session_level_key_p != nullptr &&
-      monitoring_key != *session_level_key_p) {
+  if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
-    add_to_monitor(*session_level_key_p, used_tx, used_rx, update_criteria);
+    add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
   }
 }
 
@@ -1137,13 +1129,6 @@ bool SessionState::reset_reporting_monitor(
   return true;
 }
 
-std::unique_ptr<std::string> SessionState::get_session_level_key() const {
-  if (session_level_key_ == nullptr) {
-    return nullptr;
-  }
-  return std::make_unique<std::string>(*session_level_key_);
-}
-
 bool SessionState::init_new_monitor(
     const UsageMonitoringUpdateResponse& update,
     SessionStateUpdateCriteria& update_criteria) {
@@ -1176,18 +1161,23 @@ bool SessionState::init_new_monitor(
 
 void SessionState::update_session_level_key(
     const UsageMonitoringUpdateResponse& update,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& uc) {
   const auto& new_key = update.credit().monitoring_key();
-  if (session_level_key_ != nullptr && *session_level_key_ != new_key) {
-    MLOG(MWARNING) << "Session level monitoring key already exists, updating";
+  if (session_level_key_ != "" && session_level_key_ != new_key) {
+    MLOG(MINFO) << "Session level monitoring key is updated from "
+                << session_level_key_ << " to " << new_key;
   }
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    session_level_key_ = nullptr;
-    // TODO: set in UpdateCriteria
+    session_level_key_ = "";
   } else {
-    session_level_key_ = std::make_unique<std::string>(new_key);
-    // TODO: set in UpdateCriteria
+    session_level_key_ = new_key;
   }
+  uc.is_session_level_key_updated = true;
+  uc.updated_session_level_key    = session_level_key_;
+}
+
+void SessionState::set_session_level_key(const std::string new_key) {
+  session_level_key_ = new_key;
 }
 
 SessionCreditUpdateCriteria* SessionState::get_monitor_uc(

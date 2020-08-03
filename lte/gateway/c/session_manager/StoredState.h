@@ -235,6 +235,8 @@ struct SessionStateUpdateCriteria {
   std::unordered_map<CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
                      decltype(&ccEqual)>
       charging_credit_map;
+  bool is_session_level_key_updated;
+  std::string updated_session_level_key;
   StoredMonitorMap monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria>
       monitor_credit_map;

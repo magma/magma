@@ -282,6 +282,9 @@ bool SessionStore::merge_into_session(
   }
 
   // Monitoring credit
+  if (update_criteria.is_session_level_key_updated) {
+    session->set_session_level_key(update_criteria.updated_session_level_key);
+  }
   for (const auto& it : update_criteria.monitor_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
