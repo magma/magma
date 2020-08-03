@@ -13,26 +13,31 @@
  * @flow strict-local
  * @format
  */
-
+import type {ActionQuery} from '../../components/ActionTable';
 import type {event as MagmaEvent} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import EventChart from './EventChart';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
 import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
 import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import Grid from '@material-ui/core/Grid';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import React from 'react';
+import Text from '../../theme/design-system/Text';
+import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {filter, flatMap, map, some} from 'lodash';
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
+import {DateTimePicker} from '@material-ui/pickers';
+import {colors} from '../../theme/default';
+import {getStep} from '../../components/CustomHistogram';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   header: {
@@ -58,6 +63,9 @@ const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
+  dateTimeText: {
+    color: colors.primary.comet,
+  },
 }));
 
 function getEventDescription(event) {
@@ -78,12 +86,7 @@ function getEventDescription(event) {
 const streamNameMagmad = 'magmad';
 const streamNameSessiond = 'sessiond';
 
-export const magmaEventTypes = Object.freeze({
-  NETWORK: 1,
-  GATEWAY: 2,
-  SUBSCRIBER: 3,
-});
-
+export type magmaEventStream = 'NETWORK' | 'GATEWAY' | 'SUBSCRIBER';
 type EventRowType = {
   ts: string,
   eventType: string,
@@ -137,85 +140,160 @@ function ExpandEvent(props: EventDescriptionProps) {
   );
 }
 
+function handleEventQuery(
+  networkId,
+  streams,
+  tags,
+  q,
+  from,
+  start,
+  end,
+  enqueueSnackbar,
+) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
+        networkId: networkId,
+        streams: streams,
+        tags: tags,
+        events: q.search !== '' ? q.search : undefined,
+        from,
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+
+      const eventResp = await MagmaV1API.getEventsByNetworkId({
+        networkId: networkId,
+        streams: streams,
+        tags: tags,
+        events: q.search !== '' ? q.search : undefined,
+        from: (q.page * q.pageSize).toString(),
+        size: q.pageSize.toString(),
+        start: start.toISOString(),
+        end: end.toISOString(),
+      });
+      const page =
+        eventCount < q.page * q.pageSize ? eventCount / q.pageSize : q.page;
+
+      // flowlint-next-line unclear-type:off
+      const unfiltered: Array<MagmaEvent> = (eventResp: any);
+      const data = unfiltered.map(event => {
+        return {
+          ts: event.timestamp,
+          eventType: event.event_type,
+          eventDescription: getEventDescription(event),
+          value: event.value,
+          hardwareID: event.hardware_id,
+          tag: event.tag,
+        };
+      });
+      resolve({
+        data: data,
+        page: page,
+        totalCount: eventCount,
+      });
+    } catch (e) {
+      enqueueSnackbar(e, {variant: 'error'});
+      reject(e);
+    }
+  });
+}
+
 export default function EventsTable({
-  eventTypes,
-  eventKey,
+  eventStream,
+  tags,
   sz,
 }: {
-  eventTypes: number,
-  eventKey?: string,
+  eventStream: magmaEventStream,
+  tags?: string,
   sz: 'sm' | 'md' | 'lg',
 }) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(moment());
+  const [eventCount, setEventCount] = useState(0);
+  const tableRef = useRef(null);
   const enqueueSnackbar = useEnqueueSnackbar();
-  const magmadEvents = useMagmaAPI(
-    MagmaV1API.getEventsByNetworkIdByStreamName,
-    {
-      networkId: nullthrows(match.params.networkId),
-      streamName: streamNameMagmad,
-    },
-    undefined,
-  );
-  const sessiondEvents = useMagmaAPI(
-    MagmaV1API.getEventsByNetworkIdByStreamName,
-    {
-      networkId: nullthrows(match.params.networkId),
-      streamName: streamNameSessiond,
-    },
-    undefined,
-  );
+  const {match} = useRouter();
+  const networkId = nullthrows(match.params.networkId);
+  const streams =
+    eventStream === 'SUBSCRIBER'
+      ? streamNameSessiond
+      : streamNameMagmad + ',' + streamNameSessiond;
 
-  let renderedEvents = [];
-
-  switch (eventTypes) {
-    case magmaEventTypes.NETWORK:
-      renderedEvents = [magmadEvents, sessiondEvents];
-      break;
-    case magmaEventTypes.GATEWAY:
-      renderedEvents = [magmadEvents, sessiondEvents];
-      break;
-    case magmaEventTypes.SUBSCRIBER:
-      renderedEvents = [sessiondEvents];
-      break;
-  }
-
-  if (some(renderedEvents, s => s.isLoading)) {
-    return <LoadingFiller />;
-  }
-
-  if (some(renderedEvents, s => s.isLoading)) {
-    return <LoadingFiller />;
-  }
-
-  const errored = filter(renderedEvents, s => s.error);
-  const errors = map(errored, e => e.error.message);
-  errors.forEach(err => enqueueSnackbar(err, {variant: 'error'}));
-
-  const loaded = filter(renderedEvents, s => s.response);
-  const unfiltered: Array<MagmaEvent> = flatMap(loaded, s => s.response);
-  let events = unfiltered;
-  if (eventTypes === magmaEventTypes.GATEWAY) {
-    events = filter(unfiltered, s => s.hardware_id === eventKey);
-  }
-
-  const eventRows: Array<EventRowType> = events.map(event => {
+  const startEnd = useMemo(() => {
+    const [delta, unit, format] = getStep(startDate, endDate);
     return {
-      ts: event.timestamp,
-      eventType: event.event_type,
-      eventDescription: getEventDescription(event),
-      value: event.value,
-      hardwareID: event.hardware_id,
-      tag: event.tag,
+      start: startDate,
+      end: endDate,
+      delta: delta,
+      unit: unit,
+      format: format,
     };
-  });
+  }, [startDate, endDate]);
+
+  function DateFilter() {
+    return (
+      <Grid container justify="flex-end" alignItems="center" spacing={1}>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            Filter By Date
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="inline"
+            inputVariant="outlined"
+            maxDate={endDate}
+            disableFuture
+            value={startDate}
+            onChange={val => {
+              setStartDate(val);
+              tableRef.current && tableRef.current.onQueryChange();
+            }}
+          />
+        </Grid>
+        <Grid item>
+          <Text variant="body3" className={classes.dateTimeText}>
+            To
+          </Text>
+        </Grid>
+        <Grid item>
+          <DateTimePicker
+            autoOk
+            variant="inline"
+            inputVariant="outlined"
+            disableFuture
+            value={endDate}
+            onChange={val => {
+              setEndDate(val);
+              tableRef.current && tableRef.current.onQueryChange();
+            }}
+          />
+        </Grid>
+      </Grid>
+    );
+  }
 
   return (
     <>
       {sz === 'sm' && (
         <ActionTable
           title=""
-          data={eventRows}
+          tableRef={tableRef}
+          data={(query: ActionQuery) => {
+            return handleEventQuery(
+              networkId,
+              streams,
+              tags,
+              query,
+              0,
+              startDate,
+              endDate,
+              enqueueSnackbar,
+            );
+          }}
           columns={[
             {title: 'Timestamp', field: 'ts', type: 'datetime'},
             {title: 'EventType', field: 'eventType'},
@@ -229,9 +307,19 @@ export default function EventsTable({
       )}
       {sz === 'md' && (
         <ActionTable
-          title="Events"
-          titleIcon={MyLocationIcon}
-          data={eventRows}
+          tableRef={tableRef}
+          data={(query: ActionQuery) => {
+            return handleEventQuery(
+              networkId,
+              streams,
+              tags,
+              query,
+              0,
+              startDate,
+              endDate,
+              enqueueSnackbar,
+            );
+          }}
           columns={[
             {title: 'Timestamp', field: 'ts', type: 'datetime'},
             {title: 'Event Type', field: 'eventType'},
@@ -250,25 +338,55 @@ export default function EventsTable({
       )}
       {sz === 'lg' && (
         <div className={classes.dashboardRoot}>
-          <ActionTable
-            title="Events"
-            titleIcon={MyLocationIcon}
-            data={eventRows}
-            columns={[
-              {title: 'Timestamp', field: 'ts', type: 'datetime'},
-              {title: 'Event Type', field: 'eventType'},
-              {title: 'Event Description', field: 'eventDescription'},
-              {
-                title: 'More Details',
-                field: 'eventDescription',
-                render: rowData => <ExpandEvent rowData={rowData} />,
-              },
-            ]}
-            options={{
-              actionsColumnIndex: -1,
-              pageSizeOptions: [10, 20],
-            }}
-          />
+          <Grid container spacing={4}>
+            <Grid item xs={12}>
+              <CardTitleFilterRow
+                icon={MyLocationIcon}
+                label={`Events (${eventCount})`}
+                filter={DateFilter}
+              />
+              <EventChart
+                {...startEnd}
+                setEventCount={setEventCount}
+                streams={streams}
+                tags={tags ?? ''}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <ActionTable
+                tableRef={tableRef}
+                toolbar={{
+                  searchTooltip: 'Search Event Types',
+                }}
+                data={(query: ActionQuery) => {
+                  return handleEventQuery(
+                    networkId,
+                    streams,
+                    tags,
+                    query,
+                    0,
+                    startDate,
+                    endDate,
+                    enqueueSnackbar,
+                  );
+                }}
+                columns={[
+                  {title: 'Timestamp', field: 'ts', type: 'datetime'},
+                  {title: 'Event Type', field: 'eventType'},
+                  {title: 'Event Description', field: 'eventDescription'},
+                  {
+                    title: 'More Details',
+                    field: 'eventDescription',
+                    render: rowData => <ExpandEvent rowData={rowData} />,
+                  },
+                ]}
+                options={{
+                  actionsColumnIndex: -1,
+                  pageSizeOptions: [10, 20],
+                }}
+              />
+            </Grid>
+          </Grid>
         </div>
       )}
     </>
