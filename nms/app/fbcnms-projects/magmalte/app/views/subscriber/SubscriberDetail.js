@@ -38,7 +38,6 @@ import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
-import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -161,7 +160,11 @@ export default function SubscriberDetail(props: {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventTypes={magmaEventTypes.SUBSCRIBER} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              tags={subscriberInfo.id}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
@@ -200,8 +203,8 @@ function Overview(props: {subscriberInfo: subscriber}) {
         </Grid>
         <Grid item xs={12}>
           <EventsTable
-            eventTypes={magmaEventTypes.SUBSCRIBER}
-            eventKey={props.subscriberInfo.id}
+            eventStream="SUBSCRIBER"
+            tags={props.subscriberInfo.id}
             sz="md"
           />
         </Grid>

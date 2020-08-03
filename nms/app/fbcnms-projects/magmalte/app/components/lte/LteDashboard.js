@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-
 import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
 import DashboardKPIs from '../DashboardKPIs';
@@ -31,7 +30,6 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
-import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -96,13 +94,6 @@ function LteDashboard() {
                 component={NestedRouteLink}
                 label={<DashboardTabLabel label="Network" />}
                 to="/network"
-                className={classes.tab}
-              />
-              <Tab
-                key="Subscribers"
-                component={NestedRouteLink}
-                label={<DashboardTabLabel label="Subscribers" />}
-                to="#"
                 className={classes.tab}
               />
             </Tabs>
@@ -172,7 +163,7 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
           <DashboardKPIs />
         </Grid>
         <Grid item xs={12}>
-          <EventsTable eventTypes={magmaEventTypes.NETWORK} sz="md" />
+          <EventsTable eventStream="NETWORK" sz="md" />
         </Grid>
       </Grid>
     </div>

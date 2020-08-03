@@ -20,4 +20,6 @@ const (
 	CwfNetworkType             = "carrier_wifi_network"
 	CwfGatewayType             = "carrier_wifi_gateway"
 	CwfSubscriberDirectoryType = "cwf_subscriber_directory_record"
+	CwfClusterHealthType       = "cwf_cluster_status"
+	CwfGatewayHealthType       = "cwf_gateway_health"
 )
