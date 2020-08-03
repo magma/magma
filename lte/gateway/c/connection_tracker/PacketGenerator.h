@@ -21,8 +21,6 @@
 #include <string>
 
 struct flow_information {
-//  std::string src_mac;                /* Source mac address */
-//  std::string dst_mac;                /* Destination mac address */
   uint32_t saddr;                     /* Source address */
   uint32_t daddr;                     /* Destination address */
   uint32_t l4_proto;                  /* Layer4 Proto ID */

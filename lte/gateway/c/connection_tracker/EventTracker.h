@@ -32,5 +32,6 @@
 #include <linux/netfilter/nfnetlink.h>
 #include <linux/netfilter/nfnetlink_conntrack.h>
 
+#include "magma_logging.h"
 
-int init_conntrack_event_loop(void);
+int init_conntrack_event_loop();

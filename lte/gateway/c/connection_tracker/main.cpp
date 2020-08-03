@@ -78,6 +78,9 @@ int main(void)
     magma::set_verbosity(get_log_verbosity(config, mconfig));
     MLOG(MINFO) << "Starting Connection Tracker";
 
+    std::string interface_name = config["interface_name"].as<std::string>();
+    MLOG(MINFO) << "TODO" << interface_name;
+
     magma::service303::MagmaService server(CONNECTION_SERVICE, CONNECTIOND_VERSION);
     server.Start();
 

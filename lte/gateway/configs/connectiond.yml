@@ -12,3 +12,5 @@
 # limitations under the License.
 
 log_level: INFO
+
+interface_name: mtr0

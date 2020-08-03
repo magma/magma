@@ -38,7 +38,6 @@ int send_packet(struct flow_information *flow) {
     /* Create a TCP PDU using 13 as the destination port, and 15
      * as the source port.
      */
-    //printf("Proto %d", flow->l4_proto);
     if (flow->l4_proto==6) {
         eth /= TCP(flow->dport, flow->sport);
     } else if (flow->l4_proto==17) {
@@ -48,11 +47,8 @@ int send_packet(struct flow_information *flow) {
         return -1;
     }
 
-    // The actual sender
     PacketSender sender;
-
-    // Send the packet through the default interface
     sender.send(eth, iface);
-    //printf("Sent packet");
+    
     return 0;
 }

@@ -151,8 +151,6 @@ static void print_tuple(const struct nlattr *nest, struct flow_information *flow
 	if (tb[CTA_TUPLE_PROTO]) {
 		print_proto(tb[CTA_TUPLE_PROTO], flow);
 	}
-
-    send_packet(flow);
 }
 
 static int data_attr_cb(const struct nlattr *attr, void *data)
@@ -193,8 +191,8 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
 	case IPCTNL_MSG_CT_NEW:
 		if (nlh->nlmsg_flags & (NLM_F_CREATE|NLM_F_EXCL))
 			printf("%9s ", "[NEW] ");
-//		else
-//			printf("%9s ", "[UPDATE] ");
+		else
+			printf("%9s ", "[UPDATE] ");
 		break;
 	case IPCTNL_MSG_CT_DELETE:
 		printf("%9s ", "[DESTROY] ");
@@ -212,6 +210,10 @@ static int data_cb(const struct nlmsghdr *nlh, void *data)
 //		printf("secmark=%u ", ntohl(mnl_attr_get_u32(tb[CTA_SECMARK])));
 //	}
 	printf("\n");
+
+	if
+        send_packet(flow);
+
 	return MNL_CB_OK;
 }
 
