@@ -108,6 +108,14 @@ message PipelineD {
     }
     IPDRExportDst ipdr_export_dst = 10;
     repeated string li_imsis = 11;
+
+    message LiUes {
+        repeated string imsis = 1;
+        repeated string msisdns = 2;
+        repeated string macs = 3;
+        repeated string ips = 4;
+    }
+    LiUes li_ues = 12;
     // DEPRECATED
     // repeated string apps = 4;
 }

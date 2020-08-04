@@ -39,6 +39,7 @@ import (
 )
 
 const (
+<<<<<<< HEAD
 	CwfNetworks                    = "cwf"
 	ListNetworksPath               = obsidian.V1Root + CwfNetworks
 	ManageNetworkPath              = ListNetworksPath + "/:network_id"
@@ -54,6 +55,7 @@ const (
 	ManageNetworkBaseNamePath      = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 	ManageNetworkRuleNamePath      = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
 	ManageNetworkClusterStatusPath = ManageNetworkPath + obsidian.UrlSep + "cluster_status"
+	ManageNetworkLiUesPath         = ManageNetworkPath + obsidian.UrlSep + ":li_ues"
 
 	Gateways                      = "gateways"
 	ListGatewaysPath              = ManageNetworkPath + obsidian.UrlSep + Gateways
@@ -103,10 +105,10 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkLiUesPath, new(cwfModels.LiUes), "")...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayLiImsisPath, new(cwfModels.LiImsis))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)

@@ -32,6 +32,9 @@ type NetworkCarrierWifiConfigs struct {
 	// Required: true
 	EapAka *EapAka `json:"eap_aka"`
 
+	// li ues
+	LiUes *LiUes `json:"li_ues,omitempty"`
+
 	// Configuration for network services. Services will be instantiated in the listed order.
 	// Required: true
 	NetworkServices []string `json:"network_services"`
@@ -50,6 +53,10 @@ func (m *NetworkCarrierWifiConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateEapAka(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateLiUes(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,6 +107,24 @@ func (m *NetworkCarrierWifiConfigs) validateEapAka(formats strfmt.Registry) erro
 		if err := m.EapAka.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) validateLiUes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.LiUes) { // not required
+		return nil
+	}
+
+	if m.LiUes != nil {
+		if err := m.LiUes.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("li_ues")
 			}
 			return err
 		}
