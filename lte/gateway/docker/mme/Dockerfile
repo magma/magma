@@ -217,6 +217,35 @@ RUN ldconfig && \
     make build_oai && \
     make build_sctpd
 
+# Prepare config file
+RUN apt-get install -y python3-pip && \
+    pip3 install jinja2-cli && \
+    cd $MAGMA_ROOT/lte/gateway/configs/docker/ && \
+    echo '{ \n' \
+    '"realm": "magma.com",	 \n'\
+    '"use_stateless": "", \n'\
+    '"conf_dir": "/conv-mme/etc", \n'\
+    '"hss_hostname": "hss", \n'\
+    '"mcc": "001", \n'\
+    '"mnc": "01", \n'\
+    '"mmeGid": "1", \n'\
+    '"mmeCode": "1", \n'\
+    '"tac": "1", \n'\
+    '"non_eps_service_control": "OFF", \n'\
+    '"csfb_mcc": "001", \n'\
+    '"csfb_mnc": "01", \n'\
+    '"lac": "1", \n'\
+    '"s1ap_iface_name": "eth0", \n'\
+    '"s1ap_ip": "192.168.61.133/24", \n'\
+    '"s11_iface_name": "eth0", \n'\
+    '"mme_s11_ip": "192.168.61.133/24", \n'\
+    '"oai_log_level": "INFO", \n'\
+    '"remote_sgw_ip": "192.168.61.130", \n'\
+    '"attachedEnodebTacs": [], \n'\
+    '"attached_enodeb_tacs": [1] }' \
+    > mme_vars.json && \
+    jinja2 ../templates/mme.conf.template mme_vars.json --format=json  > mme.conf
+
 # For developer's to have the same run env as in target image to debug
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
