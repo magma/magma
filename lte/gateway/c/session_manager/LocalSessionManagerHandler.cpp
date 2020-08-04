@@ -184,7 +184,6 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 static CreateSessionRequest copy_session_info2create_req(
     const LocalCreateSessionRequest& request, const std::string& sid) {
   CreateSessionRequest create_request;
-
   create_request.mutable_subscriber()->CopyFrom(request.sid());
   create_request.set_session_id(sid);
   create_request.set_ue_ipv4(request.ue_ipv4());
@@ -200,7 +199,6 @@ static CreateSessionRequest copy_session_info2create_req(
   if (request.has_qos_info()) {
     create_request.mutable_qos_info()->CopyFrom(request.qos_info());
   }
-
   return create_request;
 }
 
@@ -220,14 +218,17 @@ SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
       .hardware_addr     = request.hardware_addr(),
       .radius_session_id = request.radius_session_id(),
       .bearer_id         = request.bearer_id()};
-
   QoSInfo qos_info = {.enabled = request.has_qos_info()};
   if (request.has_qos_info()) {
     qos_info.qci = request.qos_info().qos_class_id();
   }
   cfg.qos_info = qos_info;
 
-  return cfg;
+  // TODO The fields above in SessionConfig will be replaced by the bundled
+  // fields below
+  cfg.common_context = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
+   return cfg;
 }
 
 void LocalSessionManagerHandlerImpl::recycle_session(

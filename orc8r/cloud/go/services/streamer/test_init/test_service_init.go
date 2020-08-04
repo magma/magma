@@ -18,10 +18,8 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/streamer"
-	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 	"magma/orc8r/cloud/go/services/streamer/servicers"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 )
 
@@ -34,14 +32,7 @@ func (srv *testStreamerServer) GetUpdates(req *protos.StreamRequest, stream prot
 }
 
 func StartTestService(t *testing.T) {
-	labels := map[string]string{
-		orc8r.StreamProviderLabel: "true",
-	}
-	annotations := map[string]string{
-		orc8r.StreamProviderStreamsAnnotation: definitions.MconfigStreamName,
-	}
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamer.ServiceName, labels, annotations)
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamer.ServiceName, nil, nil)
 	protos.RegisterStreamerServer(srv.GrpcServer, &testStreamerServer{})
-	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewBaseOrchestratorStreamProviderServicer())
 	go srv.RunTest(lis)
 }

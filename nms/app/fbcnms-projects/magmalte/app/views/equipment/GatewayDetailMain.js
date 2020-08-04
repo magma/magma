@@ -46,7 +46,6 @@ import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
-import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
@@ -231,8 +230,8 @@ export function GatewayDetail({
           path={relativePath('/event')}
           render={() => (
             <EventsTable
-              eventTypes={magmaEventTypes.GATEWAY}
-              eventKey={gwInfo.device.hardware_id}
+              eventStream="GATEWAY"
+              tags={gwInfo.device.hardware_id}
               sz="lg"
             />
           )}
@@ -265,8 +264,8 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             <Grid item xs={12} alignItems="center">
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
-                eventTypes={magmaEventTypes.GATEWAY}
-                eventKey={gwInfo.device.hardware_id}
+                eventStream="GATEWAY"
+                tags={gwInfo.device.hardware_id}
                 sz="sm"
               />
             </Grid>

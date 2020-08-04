@@ -97,7 +97,7 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	assert.NotNil(t, record,
 		fmt.Sprintf("Policy usage record for imsi: %v rule: 'static-pass-all-raa1' does not exist", imsi))
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-	if (record.BytesTx == uint64(0) && record.BytesRx == uint64(0)) {
+	if record.BytesTx == uint64(0) && record.BytesRx == uint64(0) {
 		dumpPipelinedState(tr)
 	}
 	// Send ReAuth Request to update quota

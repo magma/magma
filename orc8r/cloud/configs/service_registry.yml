@@ -17,14 +17,31 @@
 # port. Example in magma/feg/cloud/configs/service_registry.yml
 
 services:
+  orchestrator:
+    host: "localhost"
+    port: 9112
+    echo_port: 10112
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+      orc8r.io/stream_provider: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/stream_provider_streams: "configs"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+        /magma/v1/channels,
+        /magma/v1/events
+
   streamer:
     host: "localhost"
     port: 9082
     proxy_type: "clientcert"
-    labels:
-      orc8r.io/stream_provider: "true"
-    annotations:
-      orc8r.io/stream_provider_streams: "configs"
 
   metricsd:
     host: "localhost"
@@ -32,7 +49,6 @@ services:
     echo_port: 10084
     proxy_type: "clientcert"
     labels:
-      orc8r.io/metrics_exporter: "true"
       orc8r.io/obsidian_handlers: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
@@ -71,11 +87,6 @@ services:
     host: "localhost"
     port: 9100
     proxy_type: "clientcert"
-    labels:
-      orc8r.io/state_indexer: "true"
-    annotations:
-      orc8r.io/state_indexer_types: "directory_record"
-      orc8r.io/state_indexer_version: "1"
 
   state:
     host: "localhost"
@@ -91,21 +102,6 @@ services:
     host: "localhost"
     port: 9108
     proxy_type: "clientcert"
-
-  orchestrator:
-    host: "localhost"
-    port: 9112
-    echo_port: 10112
-    proxy_type: "clientcert"
-    labels:
-      orc8r.io/obsidian_handlers: "true"
-    annotations:
-      orc8r.io/obsidian_handlers_path_prefixes: >
-        /,
-        /magma/v1/networks,
-        /magma/v1/networks/:network_id,
-        /magma/v1/channels,
-        /magma/v1/events
 
   tenants:
     host: "localhost"

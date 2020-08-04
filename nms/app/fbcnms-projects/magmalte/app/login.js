@@ -32,6 +32,10 @@ function LoginWrapper() {
       // $FlowFixMe - createHref exists
       action={history.createHref({pathname: '/user/login'})}
       title="Magma"
+      // eslint-disable-next-line no-warning-comments
+      // $FlowFixMe - createHref exists
+      ssoAction={history.createHref({pathname: '/user/login/saml'})}
+      ssoEnabled={window.CONFIG.appData.ssoEnabled}
       csrfToken={window.CONFIG.appData.csrfToken}
     />
   );

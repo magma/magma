@@ -23,7 +23,6 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
-	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
@@ -44,9 +43,6 @@ func main() {
 
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
-
-	exporterServicer := servicers.NewPushExporterServicer(srv.Config.MustGetStrings(metricsd.PrometheusPushAddresses))
-	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 
 	// Initialize gatherers
 	metricsCh := make(chan *io_prometheus_client.MetricFamily)

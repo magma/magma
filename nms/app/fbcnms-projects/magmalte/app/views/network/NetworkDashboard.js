@@ -29,7 +29,6 @@ import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
 import NetworkKPI from './NetworkKPIs';
 import NetworkRanConfig from './NetworkRanConfig';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -37,6 +36,10 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {
+  CardTitleFilterRow,
+  CardTitleRow,
+} from '../../components/layout/CardTitleRow';
 import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
@@ -46,8 +49,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
+    margin: theme.spacing(5),
   },
   topBar: {
     backgroundColor: colors.primary.mirage,
@@ -86,8 +88,8 @@ export default function NetworkDashboard() {
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container>
-          <Grid item xs={6}>
+        <Grid container justify="flex-end" alignItems="center">
+          <Grid item xs>
             <Tabs
               value={0}
               indicatorColor="primary"
@@ -103,15 +105,11 @@ export default function NetworkDashboard() {
               />
             </Tabs>
           </Grid>
-          <Grid
-            container
-            item
-            xs={6}
-            justify="flex-end"
-            alignItems="center"
-            spacing={2}>
-            <Grid item>
-              <AddEditNetworkButton title={'Add Network'} isLink={false} />
+          <Grid item xs>
+            <Grid container justify="flex-end" alignItems="center" spacing={2}>
+              <Grid item>
+                <AddEditNetworkButton title={'Add Network'} isLink={false} />
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
@@ -218,84 +216,74 @@ function NetworkDashboardInternal() {
     onSaveLteRanConfigs: setLteRanConfigs,
   };
 
+  function editNetwork() {
+    return (
+      <AddEditNetworkButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'info',
+          ...editProps,
+        }}
+      />
+    );
+  }
+
+  function editRAN() {
+    return (
+      <AddEditNetworkButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'ran',
+          ...editProps,
+        }}
+      />
+    );
+  }
+
+  function editEPC() {
+    return (
+      <AddEditNetworkButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'epc',
+          ...editProps,
+        }}
+      />
+    );
+  }
+
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Paper elevation={0}>
-            <NetworkKPI
-              apns={apns}
-              enb={enb}
-              lteGatwayResp={lteGatwayResp}
-              policyRules={policyRules}
-              subscriber={subscriber}
-            />
-          </Paper>
+          <CardTitleRow label="Overview" />
+          <NetworkKPI
+            apns={apns}
+            enb={enb}
+            lteGatwayResp={lteGatwayResp}
+            policyRules={policyRules}
+            subscriber={subscriber}
+          />
         </Grid>
-
-        <Grid container item xs={6} spacing={3} alignItems={'flex-start'}>
-          <Grid container item xs={12}>
-            <Grid container item xs={12}>
-              <Grid item>
-                <Text variant="h6">Network</Text>
-              </Grid>
-              <Grid container item justify="flex-end">
-                <AddEditNetworkButton
-                  title={'Edit'}
-                  isLink={true}
-                  editProps={{
-                    editTable: 'info',
-                    ...editProps,
-                  }}
-                />
-              </Grid>
-            </Grid>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4}>
             <Grid item xs={12}>
+              <CardTitleFilterRow label="Network" filter={editNetwork} />
               <NetworkInfo networkInfo={networkInfo} />
             </Grid>
-          </Grid>
-          <Grid container item xs={12}>
-            <Grid container item xs={12}>
-              <Grid item>
-                <Text variant="h6">RAN</Text>
-              </Grid>
-              <Grid container item justify="flex-end">
-                <AddEditNetworkButton
-                  title={'Edit'}
-                  isLink={true}
-                  editProps={{
-                    editTable: 'ran',
-                    ...editProps,
-                  }}
-                />
-              </Grid>
-            </Grid>
             <Grid item xs={12}>
+              <CardTitleFilterRow label="RAN" filter={editRAN} />
               <NetworkRanConfig lteRanConfigs={lteRanConfigs} />
             </Grid>
           </Grid>
         </Grid>
-
-        <Grid container item xs={6} spacing={3} alignItems={'flex-start'}>
-          <Grid container item xs={12}>
-            <Grid container item xs={12}>
-              <Grid item>
-                <Text weight="medium" variant="h6">
-                  EPC
-                </Text>
-              </Grid>
-              <Grid container item justify="flex-end">
-                <AddEditNetworkButton
-                  title={'Edit'}
-                  isLink={true}
-                  editProps={{
-                    editTable: 'epc',
-                    ...editProps,
-                  }}
-                />
-              </Grid>
-            </Grid>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4}>
             <Grid item xs={12}>
+              <CardTitleFilterRow label="EPC" filter={editEPC} />
               <NetworkEpc epcConfigs={epcConfigs} />
             </Grid>
           </Grid>

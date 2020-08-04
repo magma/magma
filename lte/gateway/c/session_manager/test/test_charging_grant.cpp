@@ -98,10 +98,10 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   EXPECT_TRUE(grant.get_update_type(&update_type));
   EXPECT_EQ(update_type, CreditUsage::QUOTA_EXHAUSTED);
 
-  // Check how much we will report (as much as the total allowed, the rest
-  // will be left unreported and reported in future updates)
+  // Check how much we will report (we will report everything, even if
+  // we go have gone over the allowed quota)
   auto update = grant.credit.get_usage_for_reporting(uc);
-  EXPECT_EQ(update.bytes_tx, 1000);
+  EXPECT_EQ(update.bytes_tx, 2000);
   EXPECT_TRUE(grant.credit.is_reporting());
 
   // Credit is being reported, no update necessary
@@ -245,22 +245,21 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // continue the service even we are over the quota (but not final unit)
   EXPECT_EQ(grant.get_action(uc), CONTINUE_SERVICE);
 
-  // Check how much we will report (as much as the total allowed, the rest
-  // will be left unreported and reported in future updates)
+  // Check how much we will report (we will report everything, even if
+  // we go have gone over the allowed quota)
   CreditUsage::UpdateType update_type;
   EXPECT_TRUE(grant.get_update_type(&update_type));
   auto c_usage = grant.get_credit_usage(update_type, uc, false);
-  EXPECT_EQ(c_usage.bytes_tx(), 1000);
+  EXPECT_EQ(c_usage.bytes_tx(), 2000);
   EXPECT_EQ(c_usage.bytes_rx(), 0);
-  // we have used 2000 but we will report only what we were granted
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
-  EXPECT_EQ(credit.get_credit(REPORTING_TX), 1000);
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 2000);
 
   // Now receive new quota (not final unit)
   uc = grant.get_update_criteria();  // reset UC
   grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 2000);
-  EXPECT_EQ(credit.get_credit(REPORTED_TX), 1000);
+  EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
 
@@ -268,11 +267,11 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   uc = grant.get_update_criteria();  // reset UC
   EXPECT_TRUE(grant.get_update_type(&update_type));
   c_usage = grant.get_credit_usage(update_type, uc, false);
-  EXPECT_EQ(c_usage.bytes_tx(), 1000);
+  EXPECT_EQ(c_usage.bytes_tx(), 0);
   EXPECT_EQ(c_usage.bytes_rx(), 0);
   // we have used 2000 but we will report only what we were granted
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
-  EXPECT_EQ(credit.get_credit(REPORTING_TX), 1000);
+  EXPECT_EQ(credit.get_credit(REPORTING_TX), 0);
 
   // receive some more FINAL grant that will go over part of the used and not
   // reported credit

@@ -383,7 +383,7 @@ class SessionState {
   bool reset_reporting_monitor(
     const std::string &key, SessionStateUpdateCriteria &uc);
 
-  std::unique_ptr<std::string> get_session_level_key() const;
+  void set_session_level_key(const std::string new_key);
  private:
   std::string imsi_;
   std::string session_id_;
@@ -428,7 +428,7 @@ class SessionState {
   */
   CreditMap credit_map_;
   MonitorMap monitor_map_;
-  std::unique_ptr<std::string> session_level_key_;
+  std::string session_level_key_;
 
  private:
   /**

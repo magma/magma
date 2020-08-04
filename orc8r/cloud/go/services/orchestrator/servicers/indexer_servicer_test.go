@@ -20,8 +20,10 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/directoryd"
-	directoryd_test "magma/orc8r/cloud/go/services/directoryd/test_init"
+	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
+	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
@@ -43,8 +45,9 @@ func TestIndexerSessionID(t *testing.T) {
 	)
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 
-	directoryd_test.StartTestService(t)
-	idx := indexer.NewRemoteIndexer(directoryd.ServiceName, version, types...)
+	directoryd_test_init.StartTestService(t)
+	orchestrator_test_init.StartTestService(t)
+	idx := indexer.NewRemoteIndexer(orchestrator.ServiceName, version, types...)
 
 	record := &directoryd.DirectoryRecord{
 		Identifiers: map[string]interface{}{

@@ -42,10 +42,10 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 
 		nid0 = "some_networkid_0"
 
-		iid0 = "SOME_INDEXERID_0"
-		iid1 = "SOME_INDEXERID_1"
-		iid2 = "SOME_INDEXERID_2"
-		iid3 = "SOME_INDEXERID_3"
+		iid0 = "some_indexerid_0"
+		iid1 = "some_indexerid_1"
+		iid2 = "some_indexerid_2"
+		iid3 = "some_indexerid_3"
 	)
 	var (
 		someErr = errors.New("some_error")
