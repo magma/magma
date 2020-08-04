@@ -15,6 +15,7 @@ package reverse_proxy
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -26,22 +27,45 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
+// ReverseProxyHandler tracks registered paths to their associated proxy
+// backends. This is used to dynamically update the proxy middleware based
+// off of the service registry
+type ReverseProxyHandler struct {
+	proxyBackendsByPathPrefix map[string]*reverseProxyBackend
+}
+
+type reverseProxyBackend struct {
+	serverUrl *url.URL
+	active    bool
+}
+
+// NewReverseProxyHandler initializes a ReverseProxyHandler
+func NewReverseProxyHandler() *ReverseProxyHandler {
+	return &ReverseProxyHandler{
+		proxyBackendsByPathPrefix: map[string]*reverseProxyBackend{},
+	}
+}
+
 // AddReverseProxyPaths adds reverse proxying from the echo server to every
 // service that has registered obsidian handlers. The proxying is based off of
 // the path prefixes that have been registered in the services' annotations.
-func AddReverseProxyPaths(server *echo.Echo) (*echo.Echo, error) {
-	pathPrefixesByAddr, err := getEchoServerAddressToPathPrefixes()
-	if err != nil {
-		return nil, err
-	}
+func (r *ReverseProxyHandler) AddReverseProxyPaths(server *echo.Echo, pathPrefixesByAddr map[*url.URL][]string) (*echo.Echo, error) {
 	// Echo does not enforce a one to one mapping of path to group.
-	// To ensure that every group registers a unique path, track the
-	// paths that have been registered.
-	registeredPaths := map[string]string{}
+	// To ensure that a path isn't registered to multiple backends,
+	// track the paths and associated addresses that have been registered.
+	activePrefixes := map[string]bool{}
 	for addr, prefixes := range pathPrefixesByAddr {
 		for _, prefix := range prefixes {
-			if registeredAddr, exists := registeredPaths[prefix]; exists {
-				glog.Errorf("path prefix '%s' was added to multiple addresses: %s, %s", prefix, registeredAddr, addr.String())
+			activePrefixes[prefix] = true
+			backend, exists := r.proxyBackendsByPathPrefix[prefix]
+			if exists && backend.serverUrl.String() == addr.String() {
+				continue
+			} else if exists {
+				glog.Errorf("path prefix '%s' was attempted to be added to address %s; prefix already registered to %s",
+					prefix,
+					addr.String(),
+					backend.serverUrl.String(),
+				)
 				continue
 			}
 			target := []*middleware.ProxyTarget{
@@ -50,14 +74,47 @@ func AddReverseProxyPaths(server *echo.Echo) (*echo.Echo, error) {
 				},
 			}
 			g := server.Group(prefix)
+			g.Use(r.activeBackendMiddleware)
 			g.Use(middleware.Proxy(middleware.NewRoundRobinBalancer(target)))
-			registeredPaths[prefix] = addr.String()
+			r.proxyBackendsByPathPrefix[prefix] = &reverseProxyBackend{
+				serverUrl: addr,
+				active:    true,
+			}
 		}
 	}
+	r.updateInactiveBackends(activePrefixes)
 	return server, nil
 }
 
-func getEchoServerAddressToPathPrefixes() (map[*url.URL][]string, error) {
+func (r *ReverseProxyHandler) activeBackendMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Echo does not allow dynamically removing routes.
+		// If the backend is no longer active (i.e. the service no longer
+		// exists), return a 404.
+		path := c.Path()
+		path = strings.TrimSuffix(path, "/*")
+		backend, exists := r.proxyBackendsByPathPrefix[path]
+		if exists && !backend.active {
+			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Service not found"))
+		}
+		return next(c)
+	}
+}
+
+func (r *ReverseProxyHandler) updateInactiveBackends(activePrefixes map[string]bool) {
+	// proxyBackendsByPathPrefix contains the union of previously existing
+	// proxy configuration and all new paths that have been added. In order to
+	// figure out deactivated paths, we take the set difference of the unioned
+	// state and the current snapshot.
+	for prefix, backend := range r.proxyBackendsByPathPrefix {
+		_, exists := activePrefixes[prefix]
+		if !exists {
+			backend.active = false
+		}
+	}
+}
+
+func GetEchoServerAddressToPathPrefixes() (map[*url.URL][]string, error) {
 	pathPrefixesByAddr := map[*url.URL][]string{}
 	services := registry.FindServices(orc8r.ObsidianHandlersLabel)
 	for _, srv := range services {
