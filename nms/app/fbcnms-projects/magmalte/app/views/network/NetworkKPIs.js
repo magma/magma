@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {
   apn,
   enodeb,
@@ -23,7 +23,7 @@ import type {
 } from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import KPIGrid from '../../components/KPIGrid';
+import DataGrid from '../../components/DataGrid';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
@@ -39,7 +39,7 @@ type Props = {
 };
 
 export default function NetworkKPI(props: Props) {
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         icon: CellWifiIcon,
@@ -71,5 +71,5 @@ export default function NetworkKPI(props: Props) {
     ],
   ];
 
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }
