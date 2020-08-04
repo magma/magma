@@ -69,16 +69,28 @@ typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState> EventTri
  * Each value is in terms of a volume unit - either bytes or seconds
  */
 enum Bucket {
+  // USED: the actual used quota by the UE.
+  // USED = REPORTED + REPORTING
   USED_TX = 0,
   USED_RX = 1,
+  // ALLOWED: the granted units received
   ALLOWED_TOTAL = 2,
   ALLOWED_TX = 3,
   ALLOWED_RX = 4,
+  // REPORTING: quota that is in transit to be acknowledged by OCS/PCRF
   REPORTING_TX = 5,
   REPORTING_RX = 6,
+  // REPORTED: quota that has been acknowledged by OCS/PCRF
   REPORTED_TX = 7,
   REPORTED_RX = 8,
-  MAX_VALUES = 9,
+  // ALLOWED_FLOOR: saves the previous ALLOWED value after a new grant is received
+  // last_valid_nonzero_received_grant = ALLOWED - ALLOWED_FLOOR
+  ALLOWED_FLOOR_TOTAL = 9,
+  ALLOWED_FLOOR_TX    = 10,
+  ALLOWED_FLOOR_RX    = 11,
+
+  // delimiter to iterate enum
+  MAX_VALUES = 12,
 };
 
 enum ReAuthState {
@@ -101,6 +113,7 @@ enum GrantTrackingType {
   TX_ONLY = 1,
   RX_ONLY = 2,
   TX_AND_RX = 3,
+  ALL_TOTAL_TX_RX = 4,
 };
 
 /**
