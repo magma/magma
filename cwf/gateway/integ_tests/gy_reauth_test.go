@@ -17,6 +17,7 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"testing"
 	"time"
 
@@ -58,7 +59,7 @@ func TestGyReAuth(t *testing.T) {
 		&fegprotos.CreditInfo{
 			Imsi:        imsi,
 			ChargingKey: 1,
-			Volume:      &fegprotos.Octets{TotalOctets: 7 * MegaBytes},
+			Volume:      &fegprotos.Octets{TotalOctets: 500 * KiloBytes},
 			UnitType:    fegprotos.CreditInfo_Bytes,
 		},
 	)
@@ -82,8 +83,9 @@ func TestGyReAuth(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: "4.0M"}}
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "400K"},
+		Bitrate: &wrappers.StringValue{Value: "1M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -96,12 +98,12 @@ func TestGyReAuth(t *testing.T) {
 	assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
 	assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
 
-	// Top UP extra credits (10M total)
+	// Top UP extra credits (2.5M total)
 	err = setCreditOnOCS(
 		&fegprotos.CreditInfo{
 			Imsi:        imsi,
 			ChargingKey: ratingGroup,
-			Volume:      &fegprotos.Octets{TotalOctets: 3 * MegaBytes},
+			Volume:      &fegprotos.Octets{TotalOctets: 2 * MegaBytes},
 			UnitType:    fegprotos.CreditInfo_Bytes,
 		},
 	)
@@ -116,8 +118,10 @@ func TestGyReAuth(t *testing.T) {
 	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
-	// Generate over 7M of data to check that initial quota was updated
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "6M"}}
+	// Generate over 1M of data to check that initial quota was updated
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi,
+		Volume: &wrappers.StringValue{Value: "1M"},
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -127,8 +131,8 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 	record = recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
 	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
-	assert.True(t, record.BytesTx > uint64(8*MegaBytes+Buffer), fmt.Sprintf("did not pass data over initial quota %v", record))
-	assert.True(t, record.BytesTx <= uint64(10*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+	assert.True(t, record.BytesTx > uint64(400*KiloBytes+Buffer), fmt.Sprintf("did not pass data over initial quota %v", record))
+	assert.True(t, record.BytesTx <= uint64(math.Round(2.4*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
