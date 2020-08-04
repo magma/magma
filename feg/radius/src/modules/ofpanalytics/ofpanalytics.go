@@ -128,7 +128,7 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 	}
 	defer resp.Body.Close()
 	rc.Logger.Debug("got response", zap.String("status", resp.Status),
-		zap.String("msg", string(encodedMsg)), zap.String("url", resp.Request.URL.String()),
+	    zap.ByteString("full_msg", encodedMsg), zap.String("url", resp.Request.URL.String()),
 		zap.Any("request", r.Packet.Attributes))
 
 	if resp.StatusCode != http.StatusOK {
