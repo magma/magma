@@ -1,0 +1,6 @@
+dependencies:
+- name: modulelib
+  repository: file://../../../../orc8r/cloud/helm/modulelib
+  version: 0.1.0
+digest: sha256:9bab56ffd672a6d0bb38a11cd2ec2c4ed2732d3e6080a0f1e790fb12aa1a395b
+generated: "2020-08-04T01:18:43.061037-07:00"
