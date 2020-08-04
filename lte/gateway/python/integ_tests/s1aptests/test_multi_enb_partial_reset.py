@@ -46,11 +46,13 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
 
         # column is an enb parameter, row is number of enbs
         """         Cell Id, Tac, EnbType, PLMN Id, PLMN length """
-        enb_list = [[1, 1, 1, "00101", 5],
-                    [2, 1, 1, "00101", 5],
-                    [3, 1, 1, "00101", 5],
-                    [4, 1, 1, "00101", 5],
-                    [5, 1, 1, "00101", 5]]
+        enb_list = [
+            [1, 1, 1, "00101", 5],
+            [2, 1, 1, "00101", 5],
+            [3, 1, 1, "00101", 5],
+            [4, 1, 1, "00101", 5],
+            [5, 1, 1, "00101", 5],
+        ]
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
@@ -61,8 +63,10 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Calling attach for UE id ",
-                  req.ue_id)
+            print(
+                "************************* Calling attach for UE id ",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
@@ -80,15 +84,16 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
         reset_req = s1ap_types.ResetReq()
         reset_req.rstType = s1ap_types.resetType.PARTIAL_RESET.value
         reset_req.cause = s1ap_types.ResetCause()
-        reset_req.cause.causeType = \
+        reset_req.cause.causeType = (
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_MISC.value
+        )
         # Set the cause to MISC.hardware-failure
         reset_req.cause.causeVal = 3
         reset_req.r = s1ap_types.R()
         reset_req.r.partialRst = s1ap_types.PartialReset()
         reset_req.r.partialRst.numOfConn = num_ues
         reset_req.r.partialRst.ueIdLst = (
-            ctypes.c_ubyte * reset_req.r.partialRst.numOfConn
+            ctypes.c_uint32 * reset_req.r.partialRst.numOfConn
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueIdLst[indx] = ue_ids[indx]
@@ -99,7 +104,8 @@ class TestMultipleEnbPartialReset(unittest.TestCase):
             )
         print("ue_ids", ue_ids)
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req)
+            s1ap_types.tfwCmd.RESET_REQ, reset_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
         # Trigger detach request

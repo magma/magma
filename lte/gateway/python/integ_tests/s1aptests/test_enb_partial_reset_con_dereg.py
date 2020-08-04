@@ -115,7 +115,7 @@ class TestEnbPartialReset(unittest.TestCase):
         reset_req.r.partialRst = s1ap_types.PartialReset()
         reset_req.r.partialRst.numOfConn = num_ues
         reset_req.r.partialRst.ueIdLst = (
-            ctypes.c_ubyte * reset_req.r.partialRst.numOfConn
+            ctypes.c_uint32 * reset_req.r.partialRst.numOfConn
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueIdLst[indx] = ue_ids[indx]
