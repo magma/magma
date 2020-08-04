@@ -17,9 +17,9 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"testing"
 	"time"
-	"math"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
@@ -83,8 +83,8 @@ func TestGyReAuth(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: "400K"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "400K"},
 		Bitrate: &wrappers.StringValue{Value: "1M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -121,6 +121,7 @@ func TestGyReAuth(t *testing.T) {
 	// Generate over 1M of data to check that initial quota was updated
 	req = &cwfprotos.GenTrafficRequest{Imsi: imsi,
 		Volume: &wrappers.StringValue{Value: "1M"},
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
