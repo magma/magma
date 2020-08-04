@@ -13,7 +13,7 @@ then
     fi
     echo
     echo "Please run via: "
-    echo "  cd $DOCKERPATH && docker-compose exec platform-server yarn --cwd /app/fbcnms-packages/fbcnms-magma-api gen"
+    echo "  cd $DOCKERPATH && docker-compose exec platform-server yarn --cwd /app/packages/fbcnms-magma-api gen"
     exit 1
 fi
 
