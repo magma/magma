@@ -29,20 +29,19 @@ struct Monitor {
   // monitoring key
   MonitoringLevel level;
 
+  Monitor() {}
+
+  Monitor(const StoredMonitor &marshaled) {
+    credit = SessionCredit(marshaled.credit);
+    level = marshaled.level;
+  }
+
   // Marshal into StoredMonitor structure used in SessionStore
   StoredMonitor marshal() {
     StoredMonitor marshaled{};
     marshaled.credit = credit.marshal();
     marshaled.level = level;
     return marshaled;
-  }
-
-  // Unmarshal from StoredMonitor structure used in SessionStore
-  static std::unique_ptr<Monitor> unmarshal(const StoredMonitor &marshaled) {
-    Monitor monitor;
-    monitor.credit = SessionCredit::unmarshal(marshaled.credit);
-    monitor.level = marshaled.level;
-    return std::make_unique<Monitor>(monitor);
   }
 };
 

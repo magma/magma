@@ -346,6 +346,7 @@ func defaultEnodebdTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
+		StartState: "check_for_upgrade",
 	}
 }
 
@@ -374,6 +375,7 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
+		StartState: "check_for_upgrade",
 	}
 }
 

@@ -357,8 +357,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   // Check for installation of new monitoring credit
   session_map[imsi].front()->set_monitor(
       monitoring_key2,
-      Monitor::unmarshal(
-          update_criteria.monitor_credit_to_install[monitoring_key2]),
+      Monitor(update_criteria.monitor_credit_to_install[monitoring_key2]),
       uc);
   EXPECT_EQ(
       session_map[imsi].front()->get_monitor(monitoring_key2, USED_TX), 100);

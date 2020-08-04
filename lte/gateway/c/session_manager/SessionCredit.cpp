@@ -23,20 +23,30 @@ namespace magma {
 float SessionCredit::USAGE_REPORTING_THRESHOLD             = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
 
-SessionCredit SessionCredit::unmarshal(const StoredSessionCredit& marshaled) {
-  SessionCredit credit;
+// by default, enable service & finite credit
+SessionCredit::SessionCredit() : SessionCredit(SERVICE_ENABLED, FINITE) {}
 
-  credit.reporting_           = marshaled.reporting;
-  credit.credit_limit_type_   = marshaled.credit_limit_type;
-  credit.grant_tracking_type_ = marshaled.grant_tracking_type;
+SessionCredit::SessionCredit(ServiceState start_state)
+    : SessionCredit(start_state, FINITE) {}
+
+SessionCredit::SessionCredit(
+    ServiceState start_state, CreditLimitType credit_limit_type)
+    : buckets_{},
+      reporting_(false),
+      credit_limit_type_(credit_limit_type),
+      grant_tracking_type_(TOTAL_ONLY) {}
+
+SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
+  reporting_           = marshaled.reporting;
+  credit_limit_type_   = marshaled.credit_limit_type;
+  grant_tracking_type_ = marshaled.grant_tracking_type;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     if (marshaled.buckets.find(bucket) != marshaled.buckets.end()) {
-      credit.buckets_[bucket] = marshaled.buckets.find(bucket)->second;
+      buckets_[bucket] = marshaled.buckets.find(bucket)->second;
     }
   }
-  return credit;
 }
 
 StoredSessionCredit SessionCredit::marshal() {
@@ -62,19 +72,6 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   }
   return uc;
 }
-
-SessionCredit::SessionCredit(ServiceState start_state)
-    : SessionCredit(start_state, FINITE) {}
-
-SessionCredit::SessionCredit(
-    ServiceState start_state, CreditLimitType credit_limit_type)
-    : buckets_{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0},
-      reporting_(false),
-      credit_limit_type_(credit_limit_type),
-      grant_tracking_type_(TOTAL_ONLY) {}
-
-// by default, enable service & finite credit
-SessionCredit::SessionCredit() : SessionCredit(SERVICE_ENABLED, FINITE) {}
 
 void SessionCredit::add_used_credit(
     uint64_t used_tx, uint64_t used_rx, SessionCreditUpdateCriteria& uc) {

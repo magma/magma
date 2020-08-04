@@ -42,7 +42,7 @@ TEST(test_marshal_unmarshal, test_session_credit) {
   // Check that after marshaling/unmarshaling that the fields are still the
   // same.
   auto marshaled = credit.marshal();
-  auto credit_2  = SessionCredit::unmarshal(marshaled);
+  SessionCredit credit_2(marshaled);
 
   EXPECT_EQ(credit_2.get_credit(USED_TX), (uint64_t) 39u);
   EXPECT_EQ(credit_2.get_credit(USED_RX), (uint64_t) 40u);

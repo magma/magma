@@ -103,7 +103,7 @@ module.exports.overrides = [
       'fbcnms-packages/fbcnms-ui/stories/**/*.js',
       'fbcnms-packages/fbcnms-util/**/*.js',
       'fbcnms-packages/fbcnms-webpack-config/**/*.js',
-      'fbcnms-projects/*/config/webpack.*.js',
+      'fbcnms-projects/*/config/*.js',
       'fbcnms-projects/*/scripts/**/*.js',
       'fbcnms-projects/*/server/**/*.js',
       'fbcnms-projects/platform-server/**/*.js',

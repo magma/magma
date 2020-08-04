@@ -277,8 +277,7 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.charging_credit_to_install) {
     auto key           = it.first;
     auto stored_credit = it.second;
-    session->set_charging_credit(
-        key, ChargingGrant::unmarshal(stored_credit), _);
+    session->set_charging_credit(key, ChargingGrant(stored_credit), _);
   }
 
   // Monitoring credit
@@ -293,7 +292,7 @@ bool SessionStore::merge_into_session(
   for (const auto& it : update_criteria.monitor_credit_to_install) {
     auto key            = it.first;
     auto stored_monitor = it.second;
-    session->set_monitor(key, Monitor::unmarshal(stored_monitor), _);
+    session->set_monitor(key, Monitor(stored_monitor), _);
   }
   return true;
 }
