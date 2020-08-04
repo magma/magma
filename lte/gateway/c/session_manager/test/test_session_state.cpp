@@ -400,15 +400,14 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
 }
 
 TEST_F(SessionStateTest, test_session_level_key) {
-  EXPECT_EQ(nullptr, session_state->get_session_level_key());
-
   receive_credit_from_pcrf("m1", 8000, MonitoringLevel::SESSION_LEVEL);
-  EXPECT_EQ("m1", *session_state->get_session_level_key());
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 8000);
   EXPECT_EQ(
       update_criteria.monitor_credit_to_install["m1"]
           .credit.buckets[ALLOWED_TOTAL],
       8000);
+  EXPECT_TRUE(update_criteria.is_session_level_key_updated);
+  EXPECT_EQ(update_criteria.updated_session_level_key, "m1");
 
   session_state->add_rule_usage("rule1", 5000, 3000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 5000);
@@ -428,6 +427,13 @@ TEST_F(SessionStateTest, test_session_level_key) {
   EXPECT_EQ(single_update.level(), MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ(single_update.bytes_rx(), 3000);
   EXPECT_EQ(single_update.bytes_tx(), 5000);
+
+  // Disable session level monitor with 0 grant. Monitor should get deleted and
+  // session level key updated.
+  receive_credit_from_pcrf("m1", 0, MonitoringLevel::SESSION_LEVEL);
+  EXPECT_TRUE(update_criteria.is_session_level_key_updated);
+  EXPECT_EQ(update_criteria.updated_session_level_key, "");
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].deleted);
 }
 
 TEST_F(SessionStateTest, test_reauth_key) {
