@@ -121,7 +121,8 @@
    },
    "allowedGrePeers": [
     {"ip": "192.168.70.102"}
-   ]
+   ],
+   "liUes": {}
   },
   "state": {
    "@type": "type.googleapis.com/magma.mconfig.State",

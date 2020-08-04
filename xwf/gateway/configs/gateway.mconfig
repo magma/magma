@@ -26,7 +26,7 @@
       "apps": [],
       "services": [],
       "allowedGrePeers": [],
-      "liImsis": []
+      "liUes": {}
     },
     "policydb": {
       "@type": "type.googleapis.com/magma.mconfig.PolicyDB",
