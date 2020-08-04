@@ -14,6 +14,7 @@ limitations under the License.
 package migrations
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -87,4 +88,41 @@ func GetAllKeysFromTable(tx *sql.Tx, table string) ([]string, error) {
 	}
 	sort.Strings(ret)
 	return ret, nil
+}
+
+// ExecInTx executes a callback inside a sql transaction on the provided DB.
+// The transaction is rolled back if any error is encountered.
+// initFn is a callback to call before the main txFn, commonly used in our
+// codebase to execute a CREATE TABLE IF NOT EXISTS.
+// Copied from orc8r/cloud/go/sqorc/tx.go.
+func ExecInTx(
+	db *sql.DB,
+	opts *sql.TxOptions,
+	initFn func(*sql.Tx) error,
+	txFn func(*sql.Tx) (interface{}, error),
+) (ret interface{}, err error) {
+	tx, err := db.BeginTx(context.Background(), opts)
+	if err != nil {
+		return
+	}
+	defer func() {
+		switch err {
+		case nil:
+			err = tx.Commit()
+		default:
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				glog.Errorf("error rolling back tx: %s", rollbackErr)
+			}
+		}
+	}()
+
+	if initFn != nil {
+		err = initFn(tx)
+		if err != nil {
+			return
+		}
+	}
+
+	ret, err = txFn(tx)
+	return
 }

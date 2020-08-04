@@ -34,7 +34,7 @@ const (
 )
 
 // main runs the directoryd_to_blobstore migration.
-// Migration without SQL error will result in `SUCCESS` printed to sderr.
+// Migration without SQL error will result in `SUCCESS` printed to stderr.
 //
 // This migration just deletes the old hwid_to_hostname table.
 func main() {

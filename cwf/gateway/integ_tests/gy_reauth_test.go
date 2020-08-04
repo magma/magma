@@ -83,7 +83,7 @@ func TestGyReAuth(t *testing.T) {
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: "4.5M"}}
+		Volume: &wrappers.StringValue{Value: "4.0M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -117,7 +117,7 @@ func TestGyReAuth(t *testing.T) {
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Generate over 7M of data to check that initial quota was updated
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "5M"}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "6M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()

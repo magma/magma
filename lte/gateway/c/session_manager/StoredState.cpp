@@ -26,6 +26,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
   uc.charging_credit_map        = std::unordered_map<
       CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
       decltype(&ccEqual)>(4, &ccHash, &ccEqual);
+  uc.is_session_level_key_updated = false;
   return uc;
 }
 
@@ -66,6 +67,10 @@ std::string serialize_stored_session_config(const SessionConfig& stored) {
   marshaled["bearer_id"]         = std::to_string(stored.bearer_id);
   marshaled["qos_info"]          = serialize_stored_qos_info(stored.qos_info);
 
+  marshaled["common_context"] = stored.common_context.SerializeAsString();
+  marshaled["rat_specific_context"] =
+      stored.rat_specific_context.SerializeAsString();
+
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
@@ -91,6 +96,15 @@ SessionConfig deserialize_stored_session_config(const std::string& serialized) {
       static_cast<uint32_t>(std::stoul(marshaled["bearer_id"].getString()));
   stored.qos_info =
       deserialize_stored_qos_info(marshaled["qos_info"].getString());
+
+  magma::lte::CommonSessionContext common_context;
+  common_context.ParseFromString(marshaled["common_context"].getString());
+  stored.common_context = common_context;
+
+  magma::lte::RatSpecificContext rat_specific_context;
+  rat_specific_context.ParseFromString(
+      marshaled["rat_specific_context"].getString());
+  stored.rat_specific_context = rat_specific_context;
 
   return stored;
 }

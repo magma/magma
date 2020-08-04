@@ -273,6 +273,35 @@ export default createMuiTheme({
         backgroundColor: colors.primary.white,
         boxShadow: shadows.DP3,
         padding: '20px',
+        zIndex: '1',
+      },
+    },
+    MuiDialogContent: {
+      root: {
+        padding: '32px',
+      },
+    },
+    MuiDialogTitle: {
+      root: {
+        backgroundColor: colors.primary.mirage,
+        padding: '16px 24px',
+        color: colors.primary.white,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+      },
+    },
+    MuiDialog: {
+      paper: {
+        backgroundColor: colors.primary.concrete,
+      },
+    },
+    MuiDialogActions: {
+      root: {
+        backgroundColor: colors.primary.white,
+        boxShadow: shadows.DP3,
+        padding: '20px',
       },
     },
     MuiDialogContent: {
@@ -323,6 +352,12 @@ export default createMuiTheme({
         },
       },
     },
+    MuiListItem: {
+      root: {
+        paddingTop: '16px',
+        paddingBottom: '16px',
+      },
+    },
     MuiListItemText: {
       root: {
         marginBottom: '0px',
@@ -331,8 +366,17 @@ export default createMuiTheme({
       },
     },
     MuiSelect: {
-      selectMenu: {
-        backgroundColor: colors.button.fill,
+      root: {
+        display: 'flex',
+        alignItems: 'center',
+      },
+      outlined: {
+        '&:focus': {
+          backgroundColor: colors.primary.white,
+        },
+        '&:read-only': {
+          opacity: 1,
+        },
       },
     },
     MuiTabs: {
@@ -370,34 +414,19 @@ export default createMuiTheme({
     },
     MuiOutlinedInput: {
       root: {
+        minHeight: '36px',
         borderRadius: '2px',
-        height: '36px',
-        '&$notchedOutline': {
-          borderColor: colors.primary.gullGray,
-        },
-        '&$hovered $notchedOutline': {
-          borderColor: colors.secondary.malibu,
-          borderWidth: '1px',
-        },
-        '&$focused $notchedOutline': {
-          borderColor: colors.secondary.dodgerBlue,
-          borderWidth: '2px',
-        },
-        '&$disabled': {
-          borderColor: colors.button.lightOutline,
-        },
-      },
-      input: {
-        height: '100%',
         boxSizing: 'border-box',
         padding: '8px 16px',
         color: colors.primary.brightGray,
-        fontFamily: typography.button.fontFamily,
-        fontWeight: typography.button.fontWeight,
-        fontSize: typography.button.fontSize,
-        lineHeight: typography.button.lineHeight,
-        letterSpacing: typography.button.letterSpacing,
-        backgroundColor: colors.button.fill,
+        backgroundColor: colors.primary.white,
+      },
+      multiline: {
+        padding: '8px 16px',
+      },
+      input: {
+        padding: 0,
+        ...typography.button,
         '&::-webkit-input-placeholder': {
           opacity: 1,
         },

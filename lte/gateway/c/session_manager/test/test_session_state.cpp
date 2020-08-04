@@ -26,6 +26,7 @@
 using ::testing::Test;
 
 namespace magma {
+
 TEST_F(SessionStateTest, test_session_rules) {
   activate_rule(1, "m1", "rule1", DYNAMIC, 0, 0);
   EXPECT_EQ(1, session_state->total_monitored_rules_count());
@@ -399,15 +400,14 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
 }
 
 TEST_F(SessionStateTest, test_session_level_key) {
-  EXPECT_EQ(nullptr, session_state->get_session_level_key());
-
   receive_credit_from_pcrf("m1", 8000, MonitoringLevel::SESSION_LEVEL);
-  EXPECT_EQ("m1", *session_state->get_session_level_key());
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 8000);
   EXPECT_EQ(
       update_criteria.monitor_credit_to_install["m1"]
           .credit.buckets[ALLOWED_TOTAL],
       8000);
+  EXPECT_TRUE(update_criteria.is_session_level_key_updated);
+  EXPECT_EQ(update_criteria.updated_session_level_key, "m1");
 
   session_state->add_rule_usage("rule1", 5000, 3000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 5000);
@@ -427,6 +427,13 @@ TEST_F(SessionStateTest, test_session_level_key) {
   EXPECT_EQ(single_update.level(), MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ(single_update.bytes_rx(), 3000);
   EXPECT_EQ(single_update.bytes_tx(), 5000);
+
+  // Disable session level monitor with 0 grant. Monitor should get deleted and
+  // session level key updated.
+  receive_credit_from_pcrf("m1", 0, MonitoringLevel::SESSION_LEVEL);
+  EXPECT_TRUE(update_criteria.is_session_level_key_updated);
+  EXPECT_EQ(update_criteria.updated_session_level_key, "");
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].deleted);
 }
 
 TEST_F(SessionStateTest, test_reauth_key) {
@@ -747,6 +754,66 @@ TEST_F(SessionStateTest, test_empty_credit_grant) {
   session_state->add_rule_usage("rule1", 100, 100, update_criteria);
   auto credit_uc = update_criteria.charging_credit_map[1];
   EXPECT_EQ(credit_uc.service_state, SERVICE_NEEDS_DEACTIVATION);
+}
+
+TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
+  // add one rule with credits
+  insert_rule(1, "", "rule1", STATIC, 0, 0);
+  EXPECT_TRUE(
+      std::find(
+          update_criteria.static_rules_to_install.begin(),
+          update_criteria.static_rules_to_install.end(),
+          "rule1") != update_criteria.static_rules_to_install.end());
+
+  receive_credit_from_ocs(1, 3000, 2000, 2000, false);
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TOTAL],3000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TX],2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_RX],2000);
+
+  // add usage for 2 times to go over quota
+  session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
+
+  session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
+
+  // check if we need to report the usage
+  UpdateSessionRequest update;
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  session_state->get_updates(update, &actions, update_criteria);
+  EXPECT_EQ(actions.size(), 0);
+  EXPECT_EQ(update.updates_size(), 1);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_TX], 4000);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_RX], 2000);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].service_state, SERVICE_ENABLED);
+  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
+  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+
+  // recive final unit without grant
+  receive_credit_from_ocs(1, 0, 0, 0, true);
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[REPORTED_TX], 4000);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[REPORTED_RX], 2000);
+  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].service_state, SERVICE_ENABLED);
+  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+
+  // force to check for the state (no traffic sent)
+  session_state->add_rule_usage("rule1", 0, 0, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
+  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
+  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].service_state, SERVICE_NEEDS_DEACTIVATION);
+  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
 }
 
 int main(int argc, char** argv) {

@@ -145,7 +145,7 @@ services:
         /usr/bin/ovs-vsctl set-controller cwag_br0 tcp:127.0.0.1:6633 &&
         /usr/bin/ovs-vsctl set-fail-mode cwag_br0 secure &&
         /usr/bin/ovs-vsctl set bridge cwag_br0 other-config:disable-in-band=true &&
-        /var/opt/magma/scripts/add_uplink_bridge_flows.sh eth2 eth3 &&
+        /var/opt/magma/scripts/add_uplink_bridge_flows.sh ${UPLINK_PORTS:-eth2 eth3} &&
         python3.5 -m magma.pipelined.main"
 
   policydb:
@@ -187,7 +187,7 @@ services:
     network_mode: host
     restart: always
     command: >
-      /bin/bash -c "envsubst < /etc/magma/templates/radius.conf.template > /var/opt/magma/tmp/radius.config.json &&
+      /bin/bash -c "envsubst < /etc/magma/templates/radius.analytics_disabled.conf.template > /var/opt/magma/tmp/radius.config.json &&
              envdir /var/opt/magma/envdir /var/opt/magma/bin/radius -config /var/opt/magma/tmp/radius.config.json"
 
   radiusd:
