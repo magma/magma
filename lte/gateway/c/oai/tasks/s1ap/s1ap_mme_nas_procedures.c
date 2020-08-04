@@ -611,7 +611,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
   itti_s1ap_e_rab_setup_req_t *const e_rab_setup_req)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-#if S1AP_R1O_TO_R15_DONE
+
   ue_description_t *ue_ref = NULL;
   uint8_t *buffer_p = NULL;
   uint32_t length = 0;
@@ -649,60 +649,104 @@ int s1ap_generate_s1ap_e_rab_setup_req(
      * We have found the UE in the list.
      * Create new IE list message and encode it.
      */
-    S1ap_E_RABSetupRequestIEs_t *e_rabsetuprequesties = NULL;
-    s1ap_message message = {0};
+    //S1ap_E_RABSetupRequestIEs_t *e_rabsetuprequesties = NULL;
+   S1ap_S1AP_PDU_t pdu = {0};
+   S1ap_E_RABSetupRequest_t *out = NULL;
+   S1ap_E_RABSetupRequestIEs_t *ie = NULL;
 
-    message.procedureCode = S1ap_ProcedureCode_id_E_RABSetup;
-    message.direction = S1AP_PDU_PR_initiatingMessage;
+  memset(&pdu, 0, sizeof(pdu));
+    pdu.choice.initiatingMessage.procedureCode  = S1ap_ProcedureCode_id_E_RABSetup;
+    pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
+    pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+    pdu.choice.initiatingMessage.value.present =
+      S1ap_InitiatingMessage__value_PR_E_RABSetupRequest;
+    out = &pdu.choice.initiatingMessage.value.choice.E_RABSetupRequest;
     ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
-    e_rabsetuprequesties = &message.msg.s1ap_E_RABSetupRequestIEs;
+
     /*
      * Setting UE information with the ones found in ue_ref
      */
-    e_rabsetuprequesties->mme_ue_s1ap_id = ue_ref->mme_ue_s1ap_id;
-    e_rabsetuprequesties->eNB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ie = (S1ap_E_RABSetupRequestIEs_t *)calloc(
+      1, sizeof(S1ap_E_RABSetupRequestIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_E_RABSetupRequestIEs__value_PR_MME_UE_S1AP_ID;
+    ie->value.choice.MME_UE_S1AP_ID = ue_ref->mme_ue_s1ap_id;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+    /* mandatory */
+    ie = (S1ap_E_RABSetupRequestIEs_t *)calloc(
+      1, sizeof(S1ap_E_RABSetupRequestIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present = S1ap_E_RABSetupRequestIEs__value_PR_ENB_UE_S1AP_ID;
+    ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
     /*eNB
      * Fill in the NAS pdu
      */
-    e_rabsetuprequesties->presenceMask = 0;
-    //    if (e_rab_setup_req->ue_aggregate_maximum_bit_rate_present) {
-    //      e_rabsetuprequesties->presenceMask |= S1AP_E_RABSETUPREQUESTIES_UEAGGREGATEMAXIMUMBITRATE_PRESENT;
-    //      TO DO e_rabsetuprequesties->uEaggregateMaximumBitrate.uEaggregateMaximumBitRateDL.buf
-    //    }
+    if (e_rab_setup_req->ue_aggregate_maximum_bit_rate_present) {
+    ie = (S1ap_E_RABSetupRequestIEs_t *)calloc(
+        1, sizeof(S1ap_E_RABSetupRequestIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present =
+        S1ap_E_RABSetupRequestIEs__value_PR_UEAggregateMaximumBitrate;
+    asn_uint642INTEGER(
+        &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
+        e_rab_setup_req->ue_aggregate_maximum_bit_rate.dl);
+    asn_uint642INTEGER(
+        &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
+        e_rab_setup_req->ue_aggregate_maximum_bit_rate.ul);
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+  }
 
-    S1ap_E_RABToBeSetupItemBearerSUReq_t s1ap_E_RABToBeSetupItemBearerSUReq
-      [e_rab_setup_req->e_rab_to_be_setup_list.no_of_items];
-    struct S1ap_GBR_QosInformation
-      gbrQosInformation[e_rab_setup_req->e_rab_to_be_setup_list.no_of_items];
+    /* mandatory */
+    ie = (S1ap_E_RABSetupRequestIEs_t *)calloc(
+      1, sizeof(S1ap_E_RABSetupRequestIEs_t));
+    ie->id = S1ap_ProtocolIE_ID_id_E_RABToBeSetupListBearerSUReq;
+    ie->criticality = S1ap_Criticality_reject;
+    ie->value.present =
+      S1ap_E_RABSetupRequestIEs__value_PR_E_RABToBeSetupListBearerSUReq;
+     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+    S1ap_E_RABToBeSetupListBearerSUReq_t *e_rabtobesetuplistbearersureq =
+      &ie->value.choice.E_RABToBeSetupListBearerSUReq;
 
     for (int i = 0; i < e_rab_setup_req->e_rab_to_be_setup_list.no_of_items;
          i++) {
-      memset(
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i],
-        0,
-        sizeof(S1ap_E_RABToBeSetupItemBearerSUReq_t));
+      S1ap_E_RABToBeSetupItemBearerSUReqIEs_t *s1ap_e_rab_to_be_setup_item_ies =
+        calloc(1, sizeof(S1ap_E_RABToBeSetupItemBearerSUReqIEs_t));
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].e_RAB_ID =
+     s1ap_e_rab_to_be_setup_item_ies->id =
+        S1ap_ProtocolIE_ID_id_E_RABToBeSetupItemBearerSUReq;
+    s1ap_e_rab_to_be_setup_item_ies->criticality = S1ap_Criticality_reject;
+    s1ap_e_rab_to_be_setup_item_ies->value.present =
+        S1ap_E_RABToBeSetupItemBearerSUReqIEs__value_PR_E_RABToBeSetupItemBearerSUReq;
+
+    S1ap_E_RABToBeSetupItemBearerSUReq_t *e_rab_to_be_set_up_item =
+        &s1ap_e_rab_to_be_setup_item_ies->value.choice
+             .E_RABToBeSetupItemBearerSUReq;
+
+      e_rab_to_be_set_up_item->e_RAB_ID =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i].e_rab_id;
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].e_RABlevelQoSParameters.qCI =
+      e_rab_to_be_set_up_item->e_RABlevelQoSParameters.qCI =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.qci;
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i]
-        .e_RABlevelQoSParameters.allocationRetentionPriority.priorityLevel =
+      e_rab_to_be_set_up_item->e_RABlevelQoSParameters.allocationRetentionPriority.priorityLevel =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.allocation_and_retention_priority
           .priority_level;
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i]
-        .e_RABlevelQoSParameters.allocationRetentionPriority
+      e_rab_to_be_set_up_item->e_RABlevelQoSParameters.allocationRetentionPriority
         .pre_emptionCapability =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.allocation_and_retention_priority
           .pre_emption_capability;
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i]
-        .e_RABlevelQoSParameters.allocationRetentionPriority
+      e_rab_to_be_set_up_item->e_RABlevelQoSParameters.allocationRetentionPriority
         .pre_emptionVulnerability =
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .e_rab_level_qos_parameters.allocation_and_retention_priority
@@ -719,37 +763,28 @@ int s1ap_generate_s1ap_e_rab_setup_req(
         OAILOG_NOTICE(
           LOG_S1AP, "Encoding of e_RABlevelQoSParameters.gbrQosInformation\n");
 
-        //s1ap_E_RABToBeSetupItemBearerSUReq[i].e_RABlevelQoSParameters.gbrQosInformation = calloc(1, sizeof(struct S1ap_GBR_QosInformation));
-        s1ap_E_RABToBeSetupItemBearerSUReq[i]
-          .e_RABlevelQoSParameters.gbrQosInformation = &gbrQosInformation[i];
-        memset(&gbrQosInformation[i], 0, sizeof(gbrQosInformation[i]));
-        if (s1ap_E_RABToBeSetupItemBearerSUReq[i]
-              .e_RABlevelQoSParameters.gbrQosInformation) {
-          asn_uint642INTEGER(
-            &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
-               ->e_RAB_MaximumBitrateDL,
+
+      e_rab_to_be_set_up_item->e_RABlevelQoSParameters.gbrQosInformation =
+          calloc(1, sizeof(struct S1ap_GBR_QosInformation));
+          if (e_rab_to_be_set_up_item->e_RABlevelQoSParameters.gbrQosInformation) {
+        asn_uint642INTEGER(
+            &e_rab_to_be_set_up_item->e_RABlevelQoSParameters.gbrQosInformation->e_RAB_MaximumBitrateDL,
             gbr_qos_information->e_rab_maximum_bit_rate_downlink);
 
-          asn_uint642INTEGER(
-            &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
-               ->e_RAB_MaximumBitrateUL,
-            gbr_qos_information->e_rab_maximum_bit_rate_uplink);
+        asn_uint642INTEGER(&e_rab_to_be_set_up_item->e_RABlevelQoSParameters
+                                .gbrQosInformation->e_RAB_MaximumBitrateUL,
+                           gbr_qos_information->e_rab_maximum_bit_rate_uplink);
 
-          asn_uint642INTEGER(
-            &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
-               ->e_RAB_GuaranteedBitrateDL,
+        asn_uint642INTEGER(
+            &e_rab_to_be_set_up_item->e_RABlevelQoSParameters.gbrQosInformation->e_RAB_GuaranteedBitrateDL,
             gbr_qos_information->e_rab_guaranteed_bit_rate_downlink);
 
-          asn_uint642INTEGER(
-            &s1ap_E_RABToBeSetupItemBearerSUReq[i]
-               .e_RABlevelQoSParameters.gbrQosInformation
-               ->e_RAB_GuaranteedBitrateUL,
+        asn_uint642INTEGER(
+            &e_rab_to_be_set_up_item->e_RABlevelQoSParameters.gbrQosInformation->e_RAB_GuaranteedBitrateUL,
             gbr_qos_information->e_rab_guaranteed_bit_rate_uplink);
         }
-      } else {
+      }
+      else {
         OAILOG_NOTICE(
           LOG_S1AP,
           "NOT Encoding of e_RABlevelQoSParameters.gbrQosInformation\n");
@@ -757,36 +792,34 @@ int s1ap_generate_s1ap_e_rab_setup_req(
 
       INT32_TO_OCTET_STRING(
         e_rab_setup_req->e_rab_to_be_setup_list.item[i].gtp_teid,
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i].gTP_TEID);
+        &e_rab_to_be_set_up_item->gTP_TEID);
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.buf = calloc(
+      e_rab_to_be_set_up_item->transportLayerAddress.buf = calloc(
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i]
                   .transport_layer_address),
         sizeof(uint8_t));
       memcpy(
-        s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.buf,
+        e_rab_to_be_set_up_item->transportLayerAddress.buf,
         e_rab_setup_req->e_rab_to_be_setup_list.item[i]
           .transport_layer_address->data,
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i]
                   .transport_layer_address));
 
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.size =
+      e_rab_to_be_set_up_item->transportLayerAddress.size =
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i]
                   .transport_layer_address);
-      s1ap_E_RABToBeSetupItemBearerSUReq[i].transportLayerAddress.bits_unused =
-        0;
+        e_rab_to_be_set_up_item->transportLayerAddress.bits_unused = 0;
 
       OCTET_STRING_fromBuf(
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i].nAS_PDU,
+        &e_rab_to_be_set_up_item->nAS_PDU,
         (char *) bdata(e_rab_setup_req->e_rab_to_be_setup_list.item[i].nas_pdu),
         blength(e_rab_setup_req->e_rab_to_be_setup_list.item[i].nas_pdu));
 
-      ASN_SEQUENCE_ADD(
-        &e_rabsetuprequesties->e_RABToBeSetupListBearerSUReq,
-        &s1ap_E_RABToBeSetupItemBearerSUReq[i]);
+     ASN_SEQUENCE_ADD(&e_rabtobesetuplistbearersureq->list,
+                     s1ap_e_rab_to_be_setup_item_ies);
     }
 
-    if (s1ap_mme_encode_pdu(&message, &buffer_p, &length) < 0) {
+    if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
       // TODO: handle something
       OAILOG_ERROR(LOG_S1AP, "Encoding of s1ap_E_RABSetupRequestIEs failed \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -796,8 +829,8 @@ int s1ap_generate_s1ap_e_rab_setup_req(
       LOG_S1AP,
       "Send S1AP E_RABSetup message MME_UE_S1AP_ID = " MME_UE_S1AP_ID_FMT
       " eNB_UE_S1AP_ID = " ENB_UE_S1AP_ID_FMT "\n",
-      (mme_ue_s1ap_id_t) e_rabsetuprequesties->mme_ue_s1ap_id,
-      (enb_ue_s1ap_id_t) e_rabsetuprequesties->eNB_UE_S1AP_ID);
+      (mme_ue_s1ap_id_t) ue_ref->mme_ue_s1ap_id,
+      (enb_ue_s1ap_id_t) ue_ref->enb_ue_s1ap_id);
     bstring b = blk2bstr(buffer_p, length);
     s1ap_mme_itti_send_sctp_request(
       &b,
@@ -805,7 +838,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
       ue_ref->sctp_stream_send,
       ue_ref->mme_ue_s1ap_id);
   }
-#endif
+
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
