@@ -105,7 +105,7 @@ SessionState::SessionState(
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
-    monitor.credit = SessionCredit::unmarshal(it.second.credit);
+    monitor.credit = SessionCredit(it.second.credit);
     monitor.level  = it.second.level;
 
     monitor_map_[it.first] = std::make_unique<Monitor>(monitor);
@@ -113,7 +113,7 @@ SessionState::SessionState(
 
   for (const auto& it : marshaled.credit_map) {
     credit_map_[it.first] =
-        std::make_unique<ChargingGrant>(ChargingGrant::unmarshal(it.second));
+        std::make_unique<ChargingGrant>(ChargingGrant(it.second));
   }
 
   for (const std::string& rule_id : marshaled.static_rule_ids) {
@@ -1110,10 +1110,10 @@ bool SessionState::add_to_monitor(
 }
 
 void SessionState::set_monitor(
-    const std::string& key, std::unique_ptr<Monitor> monitor,
+    const std::string& key, Monitor monitor,
     SessionStateUpdateCriteria& update_criteria) {
-  update_criteria.monitor_credit_to_install[key] = monitor->marshal();
-  monitor_map_[key]                              = std::move(monitor);
+  update_criteria.monitor_credit_to_install[key] = monitor.marshal();
+  monitor_map_[key] = std::make_unique<Monitor>(monitor);
 }
 
 bool SessionState::reset_reporting_monitor(

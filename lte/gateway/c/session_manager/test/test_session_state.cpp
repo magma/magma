@@ -204,7 +204,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(unmarshaled->get_charging_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->get_monitor("m1", ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
-  EXPECT_EQ(session_state->is_dynamic_rule_installed("rule2"), false);
+  EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
 }
 
 TEST_F(SessionStateTest, test_insert_credit) {
