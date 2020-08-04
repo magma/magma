@@ -107,7 +107,7 @@ prometheusConfigurer:
         targetPort: 9100
 
   prometheusConfigurerPort: 9100
-  rulesDir: "/etc/configs/alert_rules"
+  rulesDir: "/etc/configs/alert_rules/"
   prometheusURL: "orc8r-prometheus:9090"
 
   image:

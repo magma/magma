@@ -54,12 +54,7 @@ StoredSessionState SessionState::marshal() {
     monitor.level  = monitor_pair.second->level;
     marshaled.monitor_map[monitor_pair.first] = monitor;
   }
-
-  if (session_level_key_ != nullptr) {
-    marshaled.session_level_key = *session_level_key_;
-  } else {
-    marshaled.session_level_key = "";
-  }
+  marshaled.session_level_key = session_level_key_;
 
   marshaled.credit_map = StoredChargingCreditMap(4, &ccHash, &ccEqual);
   for (auto& credit_pair : credit_map_) {
@@ -107,8 +102,7 @@ SessionState::SessionState(
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
       credit_map_(4, &ccHash, &ccEqual) {
-  session_level_key_ =
-      std::make_unique<std::string>(marshaled.session_level_key);
+  session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
     monitor.credit = SessionCredit::unmarshal(it.second.credit);
@@ -209,6 +203,9 @@ void SessionState::add_rule_usage(
       if (it->second->should_deactivate_service()) {
         it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
       }
+    } else {
+      MLOG(MDEBUG) << "Rating Group " << charging_key.rating_group
+                   << " not found, not adding the usage";
     }
   }
   std::string monitoring_key;
@@ -218,11 +215,9 @@ void SessionState::add_rule_usage(
                 << " Monitoring Key=" << monitoring_key;
     add_to_monitor(monitoring_key, used_tx, used_rx, update_criteria);
   }
-  auto session_level_key_p = get_session_level_key();
-  if (session_level_key_p != nullptr &&
-      monitoring_key != *session_level_key_p) {
+  if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
-    add_to_monitor(*session_level_key_p, used_tx, used_rx, update_criteria);
+    add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
   }
 }
 
@@ -925,6 +920,10 @@ void SessionState::merge_charging_credit_update(
   }
   auto& charging_grant = it->second;
   auto& credit         = charging_grant->credit;
+  if (credit_update.deleted) {
+    credit_map_.erase(key);
+    return;
+  }
 
   // Credit merging
   credit.set_grant_tracking_type(
@@ -1046,24 +1045,26 @@ bool SessionState::receive_monitor(
       update.credit().level() == MonitoringLevel::SESSION_LEVEL) {
     update_session_level_key(update, update_criteria);
   }
-  auto it = monitor_map_.find(update.credit().monitoring_key());
+  auto mkey = update.credit().monitoring_key();
+  auto it = monitor_map_.find(mkey);
   if (it == monitor_map_.end()) {
     // new credit
     return init_new_monitor(update, update_criteria);
   }
-  auto credit_uc =
-      get_monitor_uc(update.credit().monitoring_key(), update_criteria);
+  auto credit_uc = get_monitor_uc(mkey, update_criteria);
   if (!update.success()) {
     it->second->credit.mark_failure(update.result_code(), credit_uc);
     return false;
   }
-  const auto& gsu = update.credit().granted_units();
-  MLOG(MINFO) << session_id_ << " Received monitor credit for "
-              << update.credit().monitoring_key();
-  FinalActionInfo final_action_info;
-  it->second->credit.receive_credit(gsu, credit_uc);
+
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    monitor_map_.erase(update.credit().monitoring_key());
+    MLOG(MINFO) << "Erasing monitor " << mkey << " from DISABLE instruction";
+    monitor_map_.erase(mkey);
+    credit_uc->deleted = true;
+  } else {
+    MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
+    const auto& gsu = update.credit().granted_units();
+    it->second->credit.receive_credit(gsu, credit_uc);
   }
   return true;
 }
@@ -1072,6 +1073,10 @@ void SessionState::merge_monitor_updates(
     const std::string& key, SessionCreditUpdateCriteria& update) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
+    return;
+  }
+  if (update.deleted) {
+    monitor_map_.erase(key);
     return;
   }
   for (int i = USED_TX; i != MAX_VALUES; i++) {
@@ -1095,6 +1100,8 @@ bool SessionState::add_to_monitor(
     SessionStateUpdateCriteria& uc) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
+    MLOG(MDEBUG) << "Monitoring Key " << key
+                 << " not found, not adding the usage";
     return false;
   }
   auto credit_uc = get_monitor_uc(key, uc);
@@ -1120,13 +1127,6 @@ bool SessionState::reset_reporting_monitor(
   auto credit_uc = get_monitor_uc(key, update_criteria);
   it->second->credit.reset_reporting_credit(credit_uc);
   return true;
-}
-
-std::unique_ptr<std::string> SessionState::get_session_level_key() const {
-  if (session_level_key_ == nullptr) {
-    return nullptr;
-  }
-  return std::make_unique<std::string>(*session_level_key_);
 }
 
 bool SessionState::init_new_monitor(
@@ -1161,18 +1161,23 @@ bool SessionState::init_new_monitor(
 
 void SessionState::update_session_level_key(
     const UsageMonitoringUpdateResponse& update,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& uc) {
   const auto& new_key = update.credit().monitoring_key();
-  if (session_level_key_ != nullptr && *session_level_key_ != new_key) {
-    MLOG(MWARNING) << "Session level monitoring key already exists, updating";
+  if (session_level_key_ != "" && session_level_key_ != new_key) {
+    MLOG(MINFO) << "Session level monitoring key is updated from "
+                << session_level_key_ << " to " << new_key;
   }
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    session_level_key_ = nullptr;
-    // TODO: set in UpdateCriteria
+    session_level_key_ = "";
   } else {
-    session_level_key_ = std::make_unique<std::string>(new_key);
-    // TODO: set in UpdateCriteria
+    session_level_key_ = new_key;
   }
+  uc.is_session_level_key_updated = true;
+  uc.updated_session_level_key    = session_level_key_;
+}
+
+void SessionState::set_session_level_key(const std::string new_key) {
+  session_level_key_ = new_key;
 }
 
 SessionCreditUpdateCriteria* SessionState::get_monitor_uc(

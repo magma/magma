@@ -32,20 +32,18 @@
 #define FILE_GCC_DIAG_SEEN
 
 #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 402
-#define OAI_GCC_DIAG_STR(s) #s
-#define OAI_GCC_DIAG_JOINSTR(x, y) OAI_GCC_DIAG_STR(x##y)
 #define OAI_GCC_DIAG_DO_PRAGMA(x) _Pragma(#x)
 #define OAI_GCC_DIAG_PRAGMA(x) OAI_GCC_DIAG_DO_PRAGMA(GCC diagnostic x)
 #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 406
 #define OAI_GCC_DIAG_OFF(x)                                                    \
   OAI_GCC_DIAG_PRAGMA(push)                                                    \
-  OAI_GCC_DIAG_PRAGMA(ignored OAI_GCC_DIAG_JOINSTR(-W, x))
+  OAI_GCC_DIAG_PRAGMA(ignored x)
 #define OAI_GCC_DIAG_ON(x) OAI_GCC_DIAG_PRAGMA(pop)
 #else
 #define OAI_GCC_DIAG_OFF(x)                                                    \
-  OAI_GCC_DIAG_PRAGMA(ignored OAI_GCC_DIAG_JOINSTR(-W, x))
+  OAI_GCC_DIAG_PRAGMA(ignored x)
 #define OAI_GCC_DIAG_ON(x)                                                     \
-  OAI_GCC_DIAG_PRAGMA(warning OAI_GCC_DIAG_JOINSTR(-W, x))
+  OAI_GCC_DIAG_PRAGMA(warning x)
 #endif
 #else
 #define OAI_GCC_DIAG_OFF(x)

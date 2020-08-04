@@ -44,7 +44,10 @@ struct SessionConfig {
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;
   uint32_t bearer_id;
+  // TODO The fields above will be replaced by the bundled fields below
   QoSInfo qos_info;
+  CommonSessionContext common_context;
+  RatSpecificContext rat_specific_context;
 };
 
 // Session Credit
@@ -66,16 +69,28 @@ typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState> EventTri
  * Each value is in terms of a volume unit - either bytes or seconds
  */
 enum Bucket {
+  // USED: the actual used quota by the UE.
+  // USED = REPORTED + REPORTING
   USED_TX = 0,
   USED_RX = 1,
+  // ALLOWED: the granted units received
   ALLOWED_TOTAL = 2,
   ALLOWED_TX = 3,
   ALLOWED_RX = 4,
+  // REPORTING: quota that is in transit to be acknowledged by OCS/PCRF
   REPORTING_TX = 5,
   REPORTING_RX = 6,
+  // REPORTED: quota that has been acknowledged by OCS/PCRF
   REPORTED_TX = 7,
   REPORTED_RX = 8,
-  MAX_VALUES = 9,
+  // ALLOWED_FLOOR: saves the previous ALLOWED value after a new grant is received
+  // last_valid_nonzero_received_grant = ALLOWED - ALLOWED_FLOOR
+  ALLOWED_FLOOR_TOTAL = 9,
+  ALLOWED_FLOOR_TX    = 10,
+  ALLOWED_FLOOR_RX    = 11,
+
+  // delimiter to iterate enum
+  MAX_VALUES = 12,
 };
 
 enum ReAuthState {
@@ -98,6 +113,7 @@ enum GrantTrackingType {
   TX_ONLY = 1,
   RX_ONLY = 2,
   TX_AND_RX = 3,
+  ALL_TOTAL_TX_RX = 4,
 };
 
 /**
@@ -201,6 +217,8 @@ struct SessionCreditUpdateCriteria {
   GrantTrackingType grant_tracking_type;
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
+
+  bool deleted;
 };
 
 struct SessionStateUpdateCriteria {
@@ -230,6 +248,8 @@ struct SessionStateUpdateCriteria {
   std::unordered_map<CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
                      decltype(&ccEqual)>
       charging_credit_map;
+  bool is_session_level_key_updated;
+  std::string updated_session_level_key;
   StoredMonitorMap monitor_credit_to_install;
   std::unordered_map<std::string, SessionCreditUpdateCriteria>
       monitor_credit_map;

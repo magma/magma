@@ -29,6 +29,7 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/utils"
 	"magma/lte/cloud/go/lte"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
+	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/magmad"
@@ -37,6 +38,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -89,6 +91,18 @@ const (
 	trafficTest4State1 = "traffic_test4_1"
 	trafficTest4State2 = "traffic_test4_2"
 	trafficTest4State3 = "traffic_test4_3"
+
+	subscriberInactiveState = "subscriber_inactive"
+
+	trafficTest5State1 = "traffic_test5_1"
+	trafficTest5State2 = "traffic_test5_2"
+	trafficTest5State3 = "traffic_test5_3"
+
+	subscriberActiveState = "subscriber_active"
+
+	trafficTest6State1 = "traffic_test6_1"
+	trafficTest6State2 = "traffic_test6_2"
+	trafficTest6State3 = "traffic_test6_3"
 )
 
 // GatewayClient defines an interface which is used to switch between
@@ -192,9 +206,21 @@ func NewEnodebdE2ETestStateMachine(store storage.TestControllerStorage, client H
 			restoreEnodebConfigState3: makeConfigEnodebStateHandler(3, verifyConfig2State),
 			verifyConfig2State:        makeVerifyConfigStateHandler(trafficTest4State1),
 
-			trafficTest4State1: makeTrafficTestStateHandler(4, 1, gatewayClient, checkForUpgradeState),
-			trafficTest4State2: makeTrafficTestStateHandler(4, 2, gatewayClient, checkForUpgradeState),
-			trafficTest4State3: makeTrafficTestStateHandler(4, 3, gatewayClient, checkForUpgradeState),
+			trafficTest4State1: makeTrafficTestStateHandler(4, 1, gatewayClient, subscriberInactiveState),
+			trafficTest4State2: makeTrafficTestStateHandler(4, 2, gatewayClient, subscriberInactiveState),
+			trafficTest4State3: makeTrafficTestStateHandler(4, 3, gatewayClient, subscriberInactiveState),
+
+			subscriberInactiveState: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateINACTIVE, trafficTest5State1),
+
+			trafficTest5State1: makeTrafficTestStateHandler(5, 1, gatewayClient, subscriberActiveState),
+			trafficTest5State2: makeTrafficTestStateHandler(5, 2, gatewayClient, subscriberActiveState),
+			trafficTest5State3: makeTrafficTestStateHandler(5, 3, gatewayClient, subscriberActiveState),
+
+			subscriberActiveState: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateACTIVE, trafficTest6State1),
+
+			trafficTest6State1: makeTrafficTestStateHandler(6, 1, gatewayClient, checkForUpgradeState),
+			trafficTest6State2: makeTrafficTestStateHandler(6, 2, gatewayClient, checkForUpgradeState),
+			trafficTest6State3: makeTrafficTestStateHandler(6, 3, gatewayClient, checkForUpgradeState),
 		},
 		client: client,
 	}
@@ -224,7 +250,10 @@ func NewEnodebdE2ETestStateMachineNoTraffic(store storage.TestControllerStorage,
 			restoreEnodebConfigState1: makeConfigEnodebStateHandler(1, verifyConfig2State),
 			restoreEnodebConfigState2: makeConfigEnodebStateHandler(2, verifyConfig2State),
 			restoreEnodebConfigState3: makeConfigEnodebStateHandler(3, verifyConfig2State),
-			verifyConfig2State:        makeVerifyConfigStateHandler(checkForUpgradeState),
+			verifyConfig2State:        makeVerifyConfigStateHandler(subscriberInactiveState),
+
+			subscriberInactiveState: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateINACTIVE, subscriberActiveState),
+			subscriberActiveState:   makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateACTIVE, checkForUpgradeState),
 		},
 		client: client,
 	}
@@ -253,31 +282,102 @@ func (e *enodebdE2ETestStateMachine) Run(state string, config interface{}, previ
 
 // Handlers (consider making these instance methods)
 // TODO: ASCII art diagram of the state machine
-// TODO: enodebd reconfiguration; right now we just do gateway autoupgrades
 // TODO: refactor out the AGW autoupgrade handlers if/when we make more test cases
 
 /*
-States:
+States with traffic tests enabled:
 	- Check for upgrade: compare repo version and gateway reported version; change tier config if different
 		> Epsilon if same, 20 minutes
 		> "Verify upgrade 1" if different, 10 minutes
 	- Upgrade gateway: change version of target tier
 		> "Verify upgrade 1", 10 minutes
 	- Verify upgrade N: check gateway's reported version against tier, ping slack if max attempts reached and unsuccessful; there are 3 of these states
-		> "Reboot enodeb 1" if equal, 20 minutes
+		> "Traffic test 1 1" if equal, 20 minutes
 		> "Verify upgrade N+1" if not equal and N < 3, 20 minutes
 		> "Check for upgrade" if not equal and N >= 3 (after pinging slack), 20 minutes
+	- Traffic Test 1 N: Send user traffic to an arbitrary end point, ping slack upon success/failure; there are 3 of these states
+		> "Reboot Enodeb 1" traffic is sent, pings slack, 1 minute
+		> "Traffic Test 1 N+1" traffic unable to be sent, 1 minute
+		> "Check for upgrade" N >= 3 (ping slack), 1 minute
 	- Reboot enodeb N: reboot a gateway's enodeb, ping slack if max attempts reached and unsuccessful; there are 3 of these states
 		> "Reboot Enodeb N+1" if reboot fails and N < 3, 15 minutes
-		> "Check for upgrade" if N >=3, 15 minutes (ping slack)
+		> "Check for upgrade" if N >= 3, 15 minutes (ping slack)
 		> "Verify Connectivity", 15 minutes
 	- Verify Connectivity: after reboot, we check that the enodeb has successfully reconnected, then ping slack whether successful or unsuccessful
+		> "Traffic Test 2 1" able to get enodeb status, pings slack, 15 minutes
 		> "Check for upgrade" if cannot get enodeb status or hwID, 5 minutes
 		> "Check for upgrade", 15 minutes
+	- Traffic Test 2 N: Same deal with traffic test 1, only difference is success state transition
+		> "Reconfig Enodeb 1" traffic is sent, pings slack, 1 minute
+	- Reconfig Enodeb N: Changes config (for now PCI) of enodeb. Pings slack upon successful/fail
+		> "Verify Config 1" pings slack, 10 minutes
+		> "Reconfig Enodeb N+1" Error in reconfiguring enodeb, 5 minutes
+		> "Check for upgrade" if N >= 3, 10 minutes (ping slack)
+	- Verify Config 1: Makes sure enodeb has a configuration
+		> "Traffic Test 3 1" Enodeb has a config, 10 minutes
+		> "Check for upgrade" if cannot get enodeb status, 5 minutes, else 10 minutes
+	- Traffic Test 3 N: Same deal with traffic test 1, only difference is success state transition
+		> "Restore Enodeb 1" traffic is sent, pings slack, 1 minute
+	- Restore Enodeb N: Return enodeb config to original state
+		> "Verify Config 2" pings slack, 10 minutes
+		> "Restore Enodeb N+1" Error in reconfiguring enodeb, 5 minutes
+		> "Check for upgrade" if N >= 3, 10 minutes (ping slack)
+	- Verify Config 2 Same deal with Verify Config 1, only difference is success state transition
+		> "Traffic Test 4 1" Enodeb has a config, 10 minutes
+	- Traffic Test 4 N: Same deal with traffic test 1, only difference is success state transition
+		> "Subscriber Inactive" traffic is sent, pings slack, 1 minute
+	- Subscriber Inactive: Flips subscriber state to INACTIVE
+		> "Traffic Test 5 1" Subscriber state successfully set to INACTIVE, 10 minutes
+		> "Check for upgrade" Unsuccessfully set subscriber state, 10 minutes
+	- Traffic Test 5 N: Expected to fail since subscriber cannot receive data. The "successful" state transition will be triggered by a failure
+		> "Restore Enodeb 1" traffic is NOT sent, pings slack, 1 minute (success)
+		> "Check for upgrade" traffic gets sent, pings slack, 1 minute (fail)
+	- Subscriber Active: Restores subscriber state to ACTIVE
+		> "Traffic Test 6 1" Subscriber state successfully set to ACTIVE, 10 minutes
+		> "Check for upgrade" Unsuccessfully set subscriber state, 10 minutes
+	- Traffic Test 6 N: Same deal with traffic test 1, only difference is success state transition
+		> "Check for upgrade" pings slack, 1 minute
 */
 
 func startNewTest(*enodebdE2ETestStateMachine, *models.EnodebdTestConfig) (string, time.Duration, error) {
 	return checkForUpgradeState, time.Minute, nil
+}
+
+func makeSubscriberStateHandler(desiredState string, successState string) handlerFunc {
+	return func(machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+		return subscriberState(desiredState, successState, machine, config)
+	}
+}
+
+func subscriberState(desiredState string, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+	pretext := fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "SUCCEEDED")
+	fallback := "Subscriber state notification"
+	cfg, err := configurator.LoadEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID)
+	if err != nil {
+		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		return checkForUpgradeState, 10 * time.Minute, err
+	}
+
+	newConfig, ok := cfg.(*subscribermodels.LteSubscription)
+	if !ok {
+		glog.Errorf("got data of type %T but wanted LteSubscription", cfg)
+		return checkForUpgradeState, 10 * time.Minute, err
+	}
+	newConfig.State = desiredState
+	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig)
+	if err != nil {
+		// Restore subscriber to original config before erroring out
+		err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, cfg)
+		if err != nil {
+			glog.Error(err)
+		}
+		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		return checkForUpgradeState, 10 * time.Minute, err
+	}
+	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	return successState, 10 * time.Minute, nil
 }
 
 func makeConfigEnodebStateHandler(stateNumber int, successState string) handlerFunc {
@@ -287,14 +387,22 @@ func makeConfigEnodebStateHandler(stateNumber int, successState string) handlerF
 }
 
 func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+	pretext := fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "SUCCEEDED")
+	fallback := "Reconfig enodeb notification"
 	_, err := configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
 		Type:      lte.CellularEnodebType,
 		Key:       *config.EnodebSN,
 		NewConfig: config.EnodebConfig,
 	})
+
 	if err != nil {
 		if stateNumber >= maxConfigStateCount {
-			// TODO Add postToSlack later
+			// TODO Restore enodeb config to original state
+			pretext = fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "FAILED")
+			if successState == trafficTest4State1 {
+				pretext = fmt.Sprintf(restoreConfigPretextFmt, *config.EnodebSN, "FAILED")
+			}
+			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 10 * time.Minute, err
 		}
 		switch successState {
@@ -306,6 +414,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 			return checkForUpgradeState, 10 * time.Minute, err
 		}
 	}
+	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
 	return successState, 10 * time.Minute, nil
 }
 
@@ -322,7 +431,7 @@ func verifyConfig(successState string, machine *enodebdE2ETestStateMachine, conf
 	}
 
 	if !*resp.EnodebConfigured {
-		return checkForUpgradeState, 10 * time.Minute, err
+		return checkForUpgradeState, 10 * time.Minute, errors.Errorf("error enodeb %s is not configured", *config.EnodebSN)
 	}
 	return successState, 10 * time.Minute, nil
 }
@@ -338,14 +447,37 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	pretext := fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
 	fallback := "Generate traffic notification"
 
+	helper := &protos.GenericCommandResponse{
+		Response: &structpb.Struct{
+			Fields: map[string]*structpb.Value{
+				"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+				"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+				"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+			},
+		},
+	}
 	resp, err := gatewayClient.GenerateTraffic(*config.NetworkID, trafficGWID, config.Ssid, config.SsidPw)
-	if resp == nil || err != nil {
+	// Any result that is not 0 is considered a failure on the traffic script's part
+	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
+		if successState == subscriberActiveState {
+			pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
+			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			return successState, 1 * time.Minute, nil
+		}
 		if stateNumber >= maxTrafficStateCount {
 			pretext = fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
 			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d failed on gwID %s after %d tries", trafficTestNumber, trafficGWID, maxTrafficStateCount)
 		}
+		if !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
+			err = errors.Errorf("Traffic script failed")
+		}
 		return fmt.Sprintf(trafficTestStateFmt, trafficTestNumber, stateNumber+1), 1 * time.Minute, err
+	}
+	if successState == subscriberActiveState {
+		pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+		return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d should not have succeeded on gwID %s", trafficTestNumber, trafficGWID)
 	}
 	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
 	return successState, 1 * time.Minute, nil
@@ -390,6 +522,14 @@ func verifyConnectivity(successState string, machine *enodebdE2ETestStateMachine
 	if resp == nil || err != nil {
 		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
+	}
+	if !*resp.EnodebConnected {
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error Enodeb is not connected")
+	}
+	if !*resp.RfTxDesired || !*resp.RfTxOn {
+		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error RF TX on/desired are not both set to true")
 	}
 
 	pretext = fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "SUCCEEDED")
@@ -578,11 +718,15 @@ func postPayload(client HttpClient, slackURL string, payload io.Reader) {
 }
 
 const (
-	colorRed              = "#8b0902"
-	colorGreen            = "#36a64f"
-	autoupgradePretextFmt = "Auto-upgrade of gateway %s %s. %s"
-	rebootPretextFmt      = "Enodeb reboot of enodeb %s of gateway %s %s"
-	trafficPretextFmt     = "Generate traffic test %d for enodeb %s of gateway %s %s"
+	colorRed                     = "#8b0902"
+	colorGreen                   = "#36a64f"
+	autoupgradePretextFmt        = "Auto-upgrade of gateway %s %s. %s"
+	rebootPretextFmt             = "Enodeb reboot of enodeb %s of gateway %s %s"
+	trafficPretextFmt            = "Generate traffic test %d for enodeb %s of gateway %s %s"
+	trafficInactiveSubPretextFmt = "Generate traffic test for inactive subscriber %s for enodeb %s of gateway %s %s"
+	reconfigPretextFmt           = "Reconfig enodeb %s %s"
+	restoreConfigPretextFmt      = "Restored config of enodeb %s %s"
+	subscriberPretextFmt         = "Subscriber %s set to %s %s"
 )
 
 type slackPayload struct {

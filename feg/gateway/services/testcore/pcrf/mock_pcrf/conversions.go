@@ -145,15 +145,25 @@ func toUsageMonitoringInfoAVP(monitoringKey string, quotaGrant *protos.Octets, l
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.MonitoringKey, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(monitoringKey)),
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
-				AVP: []*diam.AVP{
-					diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetTotalOctets())),
-					diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetInputOctets())),
-					diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetOutputOctets())),
-				},
+				AVP: toGrantedServiceUnitAVP(quotaGrant),
 			}),
 			diam.NewAVP(avp.UsageMonitoringLevel, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(level)),
 		},
 	})
+}
+
+func toGrantedServiceUnitAVP(quotaGrant *protos.Octets) []*diam.AVP {
+	res := []*diam.AVP{}
+	if quotaGrant.GetTotalOctets() != 0 {
+		res = append(res, diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetTotalOctets())))
+	}
+	if quotaGrant.GetInputOctets() != 0 {
+		res = append(res, diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetInputOctets())))
+	}
+	if quotaGrant.GetOutputOctets() != 0 {
+		res = append(res, diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(quotaGrant.GetOutputOctets())))
+	}
+	return res
 }
 
 func toRuleInstallAVPs(ruleNames, ruleBaseNames []string, ruleDefs []*protos.RuleDefinition, activationTime, deactivationTime *timestamp.Timestamp) []*diam.AVP {

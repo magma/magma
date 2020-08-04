@@ -16,30 +16,10 @@
 import type {network_ran_configs} from '@fbcnms/magma-api';
 
 import Grid from '@material-ui/core/Grid';
-import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 
-import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
-
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '50%',
-    fullWidth: true,
-  },
-  itemTitle: {
-    color: colors.primary.comet,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  itemValue: {
-    color: colors.primary.brightGray,
-  },
-}));
+import {AltFormField} from '../../components/FormField';
 
 type Props = {
   lteRanConfigs: network_ran_configs,
@@ -47,46 +27,34 @@ type Props = {
 };
 
 export default function TddConfig(props: Props) {
-  const classes = useStyles();
   return (
     <>
-      <ListItem>
-        <Grid container>
-          <Grid item xs={12}>
-            EARFCNDL
-          </Grid>
-          <Grid item xs={12}>
+      <AltFormField label={'EARFCNDL'}>
+        <OutlinedInput
+          fullWidth={true}
+          type="number"
+          data-testid="earfcndl"
+          value={props.lteRanConfigs.tdd_config?.earfcndl}
+          onChange={({target}) =>
+            props.setLteRanConfigs({
+              ...props.lteRanConfigs,
+              fdd_config: undefined,
+              tdd_config: {
+                special_subframe_pattern:
+                  props.lteRanConfigs.tdd_config?.special_subframe_pattern ?? 0,
+                subframe_assignment:
+                  props.lteRanConfigs.tdd_config?.subframe_assignment ?? 0,
+                earfcndl: parseInt(target.value),
+              },
+            })
+          }
+        />
+      </AltFormField>
+      <Grid container xs={12}>
+        <Grid item xs={12} sm={6}>
+          <AltFormField label={'Special Subframe Pattern'}>
             <OutlinedInput
-              className={classes.input}
-              type="number"
-              data-testid="earfcndl"
-              value={props.lteRanConfigs.tdd_config?.earfcndl}
-              onChange={({target}) =>
-                props.setLteRanConfigs({
-                  ...props.lteRanConfigs,
-                  fdd_config: undefined,
-                  tdd_config: {
-                    special_subframe_pattern:
-                      props.lteRanConfigs.tdd_config
-                        ?.special_subframe_pattern ?? 0,
-                    subframe_assignment:
-                      props.lteRanConfigs.tdd_config?.subframe_assignment ?? 0,
-                    earfcndl: parseInt(target.value),
-                  },
-                })
-              }
-            />
-          </Grid>
-        </Grid>
-      </ListItem>
-      <ListItem>
-        <Grid container>
-          <Grid item xs={12}>
-            Special Subframe Pattern
-          </Grid>
-          <Grid item xs={12}>
-            <OutlinedInput
-              className={classes.input}
+              fullWidth={true}
               type="number"
               data-testid="specialSubframePattern"
               value={props.lteRanConfigs.tdd_config?.special_subframe_pattern}
@@ -103,17 +71,12 @@ export default function TddConfig(props: Props) {
                 })
               }
             />
-          </Grid>
+          </AltFormField>
         </Grid>
-      </ListItem>
-      <ListItem>
-        <Grid container>
-          <Grid item xs={12}>
-            Subframe Assignment
-          </Grid>
-          <Grid item xs={12}>
+        <Grid item xs={12} sm={6}>
+          <AltFormField label={'Subframe Assignment'}>
             <OutlinedInput
-              className={classes.input}
+              fullWidth={true}
               type="number"
               data-testid="subframeAssignment"
               value={props.lteRanConfigs.tdd_config?.subframe_assignment}
@@ -131,9 +94,9 @@ export default function TddConfig(props: Props) {
                 });
               }}
             />
-          </Grid>
+          </AltFormField>
         </Grid>
-      </ListItem>
+      </Grid>
     </>
   );
 }

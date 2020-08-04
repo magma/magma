@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-
 import AppBar from '@material-ui/core/AppBar';
 import DashboardAlertTable from '../DashboardAlertTable';
 import DashboardKPIs from '../DashboardKPIs';
@@ -31,7 +30,6 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {NetworkCheck, People} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
-import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -62,11 +60,6 @@ const useStyles = makeStyles(theme => ({
   },
   tabIconLabel: {
     marginRight: '8px',
-  },
-  input: {
-    color: colors.primary.white,
-    backgroundColor: colors.primary.comet,
-    borderRadius: '4px',
   },
   dateTimeText: {
     color: colors.primary.selago,
@@ -103,13 +96,6 @@ function LteDashboard() {
                 to="/network"
                 className={classes.tab}
               />
-              <Tab
-                key="Subscribers"
-                component={NestedRouteLink}
-                label={<DashboardTabLabel label="Subscribers" />}
-                to="#"
-                className={classes.tab}
-              />
             </Tabs>
           </Grid>
           <Grid item xs={6}>
@@ -126,7 +112,6 @@ function LteDashboard() {
                 maxDate={endDate}
                 disableFuture
                 value={startDate}
-                inputProps={{className: classes.input}}
                 onChange={setStartDate}
               />
               <Grid item>
@@ -140,7 +125,6 @@ function LteDashboard() {
                 inputVariant="outlined"
                 disableFuture
                 value={endDate}
-                inputProps={{className: classes.input}}
                 onChange={setEndDate}
               />
             </Grid>
@@ -179,7 +163,7 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
           <DashboardKPIs />
         </Grid>
         <Grid item xs={12}>
-          <EventsTable eventTypes={magmaEventTypes.NETWORK} sz="md" />
+          <EventsTable eventStream="NETWORK" sz="md" />
         </Grid>
       </Grid>
     </div>
