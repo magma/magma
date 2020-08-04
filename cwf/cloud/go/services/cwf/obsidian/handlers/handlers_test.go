@@ -69,7 +69,7 @@ func TestCwfNetworks(t *testing.T) {
 	getCarrierWifiConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/carrier_wifi", obsidian.GET).HandlerFunc
 	getSubscriberDirectory := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/subscribers/:subscriber_id/directory_record", obsidian.GET).HandlerFunc
 	getClusterStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/cluster_status", obsidian.GET).HandlerFunc
-    getCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.GET).HandlerFunc
+	getCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.GET).HandlerFunc
 	updateCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.PUT).HandlerFunc
 
 	// Test ListNetworks
@@ -301,15 +301,15 @@ func TestCwfNetworks(t *testing.T) {
 
 	// Test update gateway LiImsis config
 	tc = tests.Test{
-		Method:         "PUT",
-		URL:            "/magma/v1/cwf/n1/li_ues",
-		Handler:        updateCarrierWifiLiUes,
-		Payload:        &models2.LiUes{
-                            Imsis: []string{"IMSI001010000000013",},
-                            Ips: []string{"192.16.8.1",},
-                            Macs: []string{"00:33:bb:aa:cc:33",},
-                            Msisdns: []string{"57192831",},
-		                },
+		Method:  "PUT",
+		URL:     "/magma/v1/cwf/n1/li_ues",
+		Handler: updateCarrierWifiLiUes,
+		Payload: &models2.LiUes{
+			Imsis:   []string{"IMSI001010000000013"},
+			Ips:     []string{"192.16.8.1"},
+			Macs:    []string{"00:33:bb:aa:cc:33"},
+			Msisdns: []string{"57192831"},
+		},
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n1", "g1"},
 		ExpectedStatus: 204,
@@ -323,14 +323,13 @@ func TestCwfNetworks(t *testing.T) {
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 200,
 		ExpectedResult: &models2.LiUes{
-                            Imsis: []string{"IMSI001010000000013",},
-                            Ips: []string{"192.16.8.1",},
-                            Macs: []string{"00:33:bb:aa:cc:33",},
-                            Msisdns: []string{"57192831",},
-		                },
+			Imsis:   []string{"IMSI001010000000013"},
+			Ips:     []string{"192.16.8.1"},
+			Macs:    []string{"00:33:bb:aa:cc:33"},
+			Msisdns: []string{"57192831"},
+		},
 	}
 	tests.RunUnitTest(t, e, tc)
-
 
 	// Test DeleteNetwork
 	tc = tests.Test{
@@ -612,7 +611,6 @@ func TestCwfGateways(t *testing.T) {
 		ExpectedError:  "Found duplicate peer 2.2.2.2/24 with key 444",
 	}
 	tests.RunUnitTest(t, e, tc)
-
 
 	// Test get gateway CarrierWifi config
 	expectedGwConfGet = &models2.GatewayCwfConfigs{

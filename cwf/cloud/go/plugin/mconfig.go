@@ -263,8 +263,8 @@ func getPipelineDLiUes(liUes *models.LiUes) (*ltemconfig.PipelineD_LiUes, error)
 	dst := &ltemconfig.PipelineD_LiUes{
 		Imsis:   liUes.Imsis,
 		Msisdns: liUes.Msisdns,
-		Macs:   liUes.Macs,
-		Ips: liUes.Ips,
+		Macs:    liUes.Macs,
+		Ips:     liUes.Ips,
 	}
 	return dst, nil
 }

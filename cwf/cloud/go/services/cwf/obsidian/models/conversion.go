@@ -202,7 +202,6 @@ func (m *NetworkCarrierWifiConfigs) GetFromNetwork(network configurator.Network)
 	return orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
 }
 
-
 func (m *LiUes) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
 	if networkConfig == nil {
@@ -213,10 +212,10 @@ func (m *LiUes) ToUpdateCriteria(network configurator.Network) (configurator.Net
 }
 
 func (m *LiUes) GetFromNetwork(network configurator.Network) interface{} {
-    networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
-    if networkConfig == nil {
-        return nil
-    }
+	networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
+	if networkConfig == nil {
+		return nil
+	}
 	return networkConfig.(*NetworkCarrierWifiConfigs).LiUes
 }
 
