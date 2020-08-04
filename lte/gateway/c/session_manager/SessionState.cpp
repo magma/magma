@@ -275,9 +275,9 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   req->set_session_id(session_id_);
   req->set_request_number(request_number_);
   req->set_sid(imsi_);
-  req->set_ue_ipv4(config_.ue_ipv4);
+  req->set_ue_ipv4(config_.common_context.ue_ipv4());
   req->set_hardware_addr(config_.hardware_addr);
-  req->set_rat_type(config_.rat_type);
+  req->set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req->mutable_tgpp_ctx());
 }
 
@@ -339,16 +339,16 @@ SessionTerminateRequest SessionState::make_termination_request(
   req.set_sid(imsi_);
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
-  req.set_ue_ipv4(config_.ue_ipv4);
-  req.set_msisdn(config_.msisdn);
+  req.set_ue_ipv4(config_.common_context.ue_ipv4());
+  req.set_msisdn(config_.common_context.msisdn());
   req.set_spgw_ipv4(config_.spgw_ipv4);
-  req.set_apn(config_.apn);
+  req.set_apn(config_.common_context.apn());
   req.set_imei(config_.imei);
   req.set_plmn_id(config_.plmn_id);
   req.set_imsi_plmn_id(config_.imsi_plmn_id);
   req.set_user_location(config_.user_location);
   req.set_hardware_addr(config_.hardware_addr);
-  req.set_rat_type(config_.rat_type);
+  req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
@@ -432,12 +432,12 @@ void SessionState::set_config(const SessionConfig& config) {
 }
 
 bool SessionState::is_radius_cwf_session() const {
-  return (config_.rat_type == RATType::TGPP_WLAN);
+  return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
 }
 
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
-  info.ip_addr = config_.ue_ipv4;
+  info.ip_addr = config_.common_context.ue_ipv4();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
@@ -941,16 +941,16 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
   req.set_sid(imsi_);
-  req.set_msisdn(config_.msisdn);
-  req.set_ue_ipv4(config_.ue_ipv4);
+  req.set_msisdn(config_.common_context.msisdn());
+  req.set_ue_ipv4(config_.common_context.ue_ipv4());
   req.set_spgw_ipv4(config_.spgw_ipv4);
-  req.set_apn(config_.apn);
+  req.set_apn(config_.common_context.apn());
   req.set_imei(config_.imei);
   req.set_plmn_id(config_.plmn_id);
   req.set_imsi_plmn_id(config_.imsi_plmn_id);
   req.set_user_location(config_.user_location);
   req.set_hardware_addr(config_.hardware_addr);
-  req.set_rat_type(config_.rat_type);
+  req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   req.mutable_usage()->CopyFrom(usage);
   return req;
@@ -1003,7 +1003,7 @@ void SessionState::get_charging_updates(
                      << " action type " << action_type;
         action->set_credit_key(key);
         action->set_imsi(imsi_);
-        action->set_ip_addr(config_.ue_ipv4);
+        action->set_ip_addr(config_.common_context.ue_ipv4());
         action->set_session_id(session_id_);
         static_rules_.get_rule_ids_for_charging_key(
             key, *action->get_mutable_rule_ids());
