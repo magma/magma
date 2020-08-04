@@ -399,9 +399,9 @@ void SessionCredit::log_quota_and_usage() const {
                << ",  Reporting: " << reporting_;
   // TODO: delete once we tested it works for both credit and monitors
   MLOG(MDEBUG) << "===> Current Granted Units (tx/rx/total) "
-               << buckets_[ALLOWED_TOTAL] - buckets_[ALLOWED_FLOOR_TOTAL] << "/"
                << buckets_[ALLOWED_TX] - buckets_[ALLOWED_FLOOR_TX] << "/"
-               << buckets_[ALLOWED_RX] - buckets_[ALLOWED_FLOOR_RX];
+               << buckets_[ALLOWED_RX] - buckets_[ALLOWED_FLOOR_RX] << "/"
+               << buckets_[ALLOWED_TOTAL] - buckets_[ALLOWED_FLOOR_TOTAL];
 }
 
 void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
