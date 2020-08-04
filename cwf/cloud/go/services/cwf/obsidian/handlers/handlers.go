@@ -39,7 +39,6 @@ import (
 )
 
 const (
-<<<<<<< HEAD
 	CwfNetworks                    = "cwf"
 	ListNetworksPath               = obsidian.V1Root + CwfNetworks
 	ManageNetworkPath              = ListNetworksPath + "/:network_id"

@@ -68,13 +68,9 @@ func TestCwfNetworks(t *testing.T) {
 	getNetworkFederationConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/federation", obsidian.GET).HandlerFunc
 	getCarrierWifiConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/carrier_wifi", obsidian.GET).HandlerFunc
 	getSubscriberDirectory := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/subscribers/:subscriber_id/directory_record", obsidian.GET).HandlerFunc
-<<<<<<< HEAD
 	getClusterStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/cluster_status", obsidian.GET).HandlerFunc
-=======
     getCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.GET).HandlerFunc
 	updateCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.PUT).HandlerFunc
-
->>>>>>> Update the LI configuration API for cwf
 
 	// Test ListNetworks
 	tc := tests.Test{
