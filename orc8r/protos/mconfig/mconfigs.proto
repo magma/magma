@@ -38,6 +38,7 @@ message DnsD {
     bool enable_caching = 2;
     int32 localTTL = 3;
     repeated NetworkDNSConfigRecordsItems records = 4;
+    bool dhcp_enabled = 5;
 }
 
 message NetworkDNSConfigRecordsItems {
