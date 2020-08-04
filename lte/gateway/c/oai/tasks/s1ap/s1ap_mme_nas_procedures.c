@@ -86,35 +86,55 @@ int s1ap_mme_handle_initial_ue_message(
   s1ap_state_t *state,
   const sctp_assoc_id_t assoc_id,
   const sctp_stream_id_t stream,
-  S1ap_S1AP_PDU_t *message)
+  S1ap_S1AP_PDU_t *pdu)
 {
-#if S1AP_R1O_TO_R15_DONE
-  S1ap_InitialUEMessageIEs_t *initialUEMessage_p = NULL;
+  S1ap_InitialUEMessage_t *container;
+  S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi, *ie_csg_id, *ie_gummei,
+                              *ie_cause;
   ue_description_t *ue_ref = NULL;
   enb_description_t *eNB_ref = NULL;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  initialUEMessage_p = &message->msg.s1ap_InitialUEMessageIEs;
+  container = &pdu->choice.initiatingMessage.value.choice.InitialUEMessage;
+
+ S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
+                             S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
 
   OAILOG_INFO(
     LOG_S1AP,
-    "Received S1AP INITIAL_UE_MESSAGE eNB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT "\n",
-    (enb_ue_s1ap_id_t) initialUEMessage_p->eNB_UE_S1AP_ID);
+    "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT "\n",
+    (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID);
 
+ /*
+  MSC_LOG_RX_MESSAGE(
+      MSC_S1AP_MME, MSC_S1AP_ENB, NULL, 0,
+      "0 initialUEMessage/%s assoc_id %u stream %u " ENB_UE_S1AP_ID_FMT " ",
+      s1ap_direction2String[pdu->present - 1], assoc_id, stream,
+      (enb_ue_s1ap_id_t)ie->value.choice.ENB_UE_S1AP_ID); MSC_LOG_RX_MESSAGE(
+      MSC_S1AP_MME, MSC_S1AP_ENB, NULL, 0,
+      "0 initialUEMessage/%s assoc_id %u stream %u " ENB_UE_S1AP_ID_FMT " ",
+      s1ap_direction2String[pdu->present - 1], assoc_id, stream,
+      (enb_ue_s1ap_id_t)ie->value.choice.ENB_UE_S1AP_ID);
+*/
   if ((eNB_ref = s1ap_state_get_enb(state, assoc_id)) == NULL) {
     OAILOG_ERROR(LOG_S1AP, "Unknown eNB on assoc_id %d\n", assoc_id);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   // eNB UE S1AP ID is limited to 24 bits
   enb_ue_s1ap_id =
-    (enb_ue_s1ap_id_t)(initialUEMessage_p->eNB_UE_S1AP_ID & 0x00ffffff);
+    (enb_ue_s1ap_id_t)(ie->value.choice.ENB_UE_S1AP_ID & 0x00ffffff);
   OAILOG_INFO(
     LOG_S1AP,
     "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
     "\n",
     enb_ue_s1ap_id);
   ue_ref = s1ap_state_get_ue_enbid(eNB_ref, enb_ue_s1ap_id);
+
+  if (ie) {
+    OAILOG_WARNING(LOG_S1AP, "Received (unhandled) GUMMEI-Type %ld\n",
+                   ie->value.choice.GUMMEIType);
+  }
 
   if (ue_ref == NULL) {
     tai_t tai = {0};
@@ -169,79 +189,78 @@ int s1ap_mme_handle_initial_ue_message(
     }
     s1ap_dump_enb(ue_ref->enb);
     // TAI mandatory IE
-    OCTET_STRING_TO_TAC(&initialUEMessage_p->tai.tAC, tai.tac);
-    DevAssert(initialUEMessage_p->tai.pLMNidentity.size == 3);
-    TBCD_TO_PLMN_T(&initialUEMessage_p->tai.pLMNidentity, &tai);
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
+                               S1ap_ProtocolIE_ID_id_TAI, true);
+    OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
+    DevAssert(ie->value.choice.TAI.pLMNidentity.size == 3);
+    //TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
     // CGI mandatory IE
-    DevAssert(initialUEMessage_p->eutran_cgi.pLMNidentity.size == 3);
-    TBCD_TO_PLMN_T(&initialUEMessage_p->eutran_cgi.pLMNidentity, &ecgi.plmn);
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
+                               S1ap_ProtocolIE_ID_id_EUTRAN_CGI, true);
+    DevAssert(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3);
+    TBCD_TO_PLMN_T(&ie->value.choice.EUTRAN_CGI.pLMNidentity, &ecgi.plmn);
     BIT_STRING_TO_CELL_IDENTITY(
-      &initialUEMessage_p->eutran_cgi.cell_ID, ecgi.cell_identity);
+      &ie->value.choice.EUTRAN_CGI.cell_ID, ecgi.cell_identity);
 
-    if (
-      initialUEMessage_p->presenceMask &
-      S1AP_INITIALUEMESSAGEIES_S_TMSI_PRESENT) {
+    /** Set the ENB Id. */
+    ecgi.cell_identity.enb_id = eNB_ref->enb_id;
+
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_e_tmsi,
+                               container, S1ap_ProtocolIE_ID_id_S_TMSI, false);
+    if (ie_e_tmsi) {
       OCTET_STRING_TO_MME_CODE(
-        &initialUEMessage_p->s_tmsi.mMEC, s_tmsi.mme_code);
-      OCTET_STRING_TO_M_TMSI(&initialUEMessage_p->s_tmsi.m_TMSI, s_tmsi.m_tmsi);
+        &ie_e_tmsi->value.choice.S_TMSI.mMEC,
+                               s_tmsi.mme_code);
+      OCTET_STRING_TO_M_TMSI(&ie_e_tmsi->value.choice.S_TMSI.m_TMSI,
+                             s_tmsi.m_tmsi);
     }
 
-    if (
-      initialUEMessage_p->presenceMask &
-      S1AP_INITIALUEMESSAGEIES_CSG_ID_PRESENT) {
-      csg_id = BIT_STRING_to_uint32(&initialUEMessage_p->csG_Id);
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_csg_id,
+                               container, S1ap_ProtocolIE_ID_id_CSG_Id, false);
+    if (ie_csg_id) {
+      csg_id = BIT_STRING_to_uint32(&ie_csg_id->value.choice.CSG_Id);
     }
-
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_gummei,
+                               container, S1ap_ProtocolIE_ID_id_GUMMEI_ID,
+                               false);
     memset(&gummei, 0, sizeof(gummei));
-    if (
-      initialUEMessage_p->presenceMask &
-      S1AP_INITIALUEMESSAGEIES_GUMMEI_ID_PRESENT) {
-      TBCD_TO_PLMN_T(
-        &initialUEMessage_p->gummei_id.pLMN_Identity, &gummei.plmn);
+    if (ie_gummei) {
+      //TBCD_TO_PLMN_T(&ie->gummei_id.pLMN_Identity, &gummei.plmn);
       OCTET_STRING_TO_MME_GID(
-        &initialUEMessage_p->gummei_id.mME_Group_ID, gummei.mme_gid);
+       &ie_gummei->value.choice.GUMMEI.mME_Group_ID,
+                              gummei.mme_gid);
       OCTET_STRING_TO_MME_CODE(
-        &initialUEMessage_p->gummei_id.mME_Code, gummei.mme_code);
+        &ie_gummei->value.choice.GUMMEI.mME_Code,
+                               gummei.mme_code);
     }
     /*
      * We received the first NAS transport message: initial UE message.
      * * * * Send a NAS ESTAeNBBLISH IND to NAS layer
      */
-#if ORIGINAL_CODE
-    s1ap_mme_itti_nas_establish_ind(
-      ue_ref->mme_ue_s1ap_id,
-      initialUEMessage_p->nas_pdu.buf,
-      initialUEMessage_p->nas_pdu.size,
-      initialUEMessage_p->rrC_Establishment_Cause,
-      tai_tac);
-#else
+
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie, container,
+                               S1ap_ProtocolIE_ID_id_NAS_PDU, true);
+    S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_cause, container,
+                               S1ap_ProtocolIE_ID_id_RRC_Establishment_Cause,
+                               true);
     s1ap_mme_itti_s1ap_initial_ue_message(
       assoc_id,
       ue_ref->enb->enb_id,
       ue_ref->enb_ue_s1ap_id,
-      initialUEMessage_p->nas_pdu.buf,
-      initialUEMessage_p->nas_pdu.size,
+      ie->value.choice.NAS_PDU.buf,
+      ie->value.choice.NAS_PDU.size,
       &tai,
       &ecgi,
-      initialUEMessage_p->rrC_Establishment_Cause,
-      (initialUEMessage_p->presenceMask &
-       S1AP_INITIALUEMESSAGEIES_S_TMSI_PRESENT) ?
-        &s_tmsi :
-        NULL,
-      (initialUEMessage_p->presenceMask &
-       S1AP_INITIALUEMESSAGEIES_CSG_ID_PRESENT) ?
-        &csg_id :
-        NULL,
-      (initialUEMessage_p->presenceMask &
-       S1AP_INITIALUEMESSAGEIES_GUMMEI_ID_PRESENT) ?
-        &gummei :
-        NULL,
+      ie_cause->value.choice.RRC_Establishment_Cause,
+      ie_e_tmsi ? &s_tmsi : NULL,
+      ie_csg_id ? &csg_id : NULL,
+      ie_gummei ? &gummei : NULL,
       NULL, // CELL ACCESS MODE
       NULL, // GW Transport Layer Address
       NULL  //Relay Node Indicator
     );
-#endif
+
   } else {
     OAILOG_ERROR(
       LOG_S1AP,
@@ -251,9 +270,7 @@ int s1ap_mme_handle_initial_ue_message(
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
-#else
-  return -1;
-#endif
+
 }
 
 //------------------------------------------------------------------------------
@@ -1027,7 +1044,7 @@ void s1ap_handle_mme_ue_id_notification(
   const itti_mme_app_s1ap_mme_ue_id_notification_t *const notification_p)
 {
   OAILOG_FUNC_IN(LOG_S1AP);
-#if S1AP_R1O_TO_R15_DONE
+
   DevAssert(notification_p != NULL);
 
   sctp_assoc_id_t sctp_assoc_id = notification_p->sctp_assoc_id;
@@ -1063,7 +1080,7 @@ void s1ap_handle_mme_ue_id_notification(
   }
   OAILOG_DEBUG(
     LOG_S1AP, "Could not find  eNB with sctp_assoc_id %d \n", sctp_assoc_id);
-#endif
+
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 
