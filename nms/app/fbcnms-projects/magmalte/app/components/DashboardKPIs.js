@@ -17,7 +17,6 @@
 import EnodebKPIs from './EnodebKPIs';
 import GatewayKPIs from './GatewayKPIs';
 import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 
 import {CardTitleRow} from './layout/CardTitleRow';
@@ -28,15 +27,11 @@ export default function () {
     <>
       <CardTitleRow icon={GpsFixed} label="Events" />
       <Grid container item zeroMinWidth alignItems="center" spacing={4}>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0}>
-            <GatewayKPIs />
-          </Paper>
+        <Grid item xs={12} lg={6}>
+          <GatewayKPIs />
         </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={0}>
-            <EnodebKPIs />
-          </Paper>
+        <Grid item xs={12} lg={6}>
+          <EnodebKPIs />
         </Grid>
       </Grid>
     </>

@@ -13,11 +13,10 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 
-import Card from '@material-ui/core/Card';
+import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
-import KPIGrid from '../../components/KPIGrid';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 
@@ -29,20 +28,15 @@ export function EnodebSummary() {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
 
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         category: 'eNodeB Serial Number',
         value: enodebSerial,
-        statusCircle: false,
       },
     ],
   ];
-  return (
-    <Card elevation={0}>
-      <KPIGrid data={kpiData} />
-    </Card>
-  );
+  return <DataGrid data={kpiData} />;
 }
 
 export function EnodebStatus() {
@@ -53,7 +47,7 @@ export function EnodebStatus() {
 
   const isEnbHealthy = isEnodebHealthy(enbInfo);
 
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         category: 'Health',
@@ -78,10 +72,9 @@ export function EnodebStatus() {
       {
         category: 'Mme Connected',
         value: enbInfo.enb_state.mme_connected ? 'Connected' : 'Disconnected',
-        statusCircle: false,
         status: enbInfo.enb_state.mme_connected,
       },
     ],
   ];
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }

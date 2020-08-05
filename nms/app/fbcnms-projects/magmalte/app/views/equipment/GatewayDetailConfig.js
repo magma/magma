@@ -13,27 +13,18 @@
  * @flow strict-local
  * @format
  */
+import type {DataRows} from '../../components/DataGrid';
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {KPIRows} from '../../components/KPIGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
-import CardHeader from '@material-ui/core/CardHeader';
-import Collapse from '@material-ui/core/Collapse';
-import Divider from '@material-ui/core/Divider';
+import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
 import GatewayContext from '../../components/context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import KPIGrid from '../../components/KPIGrid';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
@@ -49,48 +40,6 @@ const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
     flexGrow: 1,
-  },
-  list: {
-    padding: 0,
-  },
-  kpiLabel: {
-    color: colors.primary.comet,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  kpiValue: {
-    color: colors.primary.brightGray,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    width: '100%',
-  },
-  kpiBox: {
-    width: '100%',
-    padding: 0,
-    '& > div': {
-      width: '100%',
-    },
-  },
-  paper: {
-    height: 100,
-    padding: theme.spacing(10),
-    textAlign: 'center',
-  },
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '50%',
-  },
-  itemTitle: {
-    color: colors.primary.comet,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  itemValue: {
-    color: colors.primary.brightGray,
   },
   appBarBtn: {
     color: colors.primary.white,
@@ -153,6 +102,54 @@ export default function GatewayConfig() {
     );
   }
 
+  function editGateway() {
+    return (
+      <AddEditGatewayButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'info',
+        }}
+      />
+    );
+  }
+
+  function editAggregations() {
+    return (
+      <AddEditGatewayButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'aggregation',
+        }}
+      />
+    );
+  }
+
+  function editEPC() {
+    return (
+      <AddEditGatewayButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'epc',
+        }}
+      />
+    );
+  }
+
+  function editRan() {
+    return (
+      <AddEditGatewayButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'ran',
+        }}
+      />
+    );
+  }
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -168,24 +165,13 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Gateway" />
-                  <AddEditGatewayButton
-                    title={'Edit'}
-                    isLink={true}
-                    editProps={{
-                      editTable: 'info',
-                    }}
-                  />
+                  <CardTitleFilterRow label="Gateway" filter={editGateway} />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Aggregations" />
-                  <AddEditGatewayButton
-                    title={'Edit'}
-                    isLink={true}
-                    editProps={{
-                      editTable: 'aggregation',
-                    }}
+                  <CardTitleFilterRow
+                    label="Aggregations"
+                    filter={editAggregations}
                   />
                   <GatewayAggregation gwInfo={gwInfo} />
                 </Grid>
@@ -194,25 +180,11 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="EPC" />
-                  <AddEditGatewayButton
-                    title={'Edit'}
-                    isLink={true}
-                    editProps={{
-                      editTable: 'epc',
-                    }}
-                  />
+                  <CardTitleFilterRow label="EPC" filter={editEPC} />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Ran" />
-                  <AddEditGatewayButton
-                    title={'Edit'}
-                    isLink={true}
-                    editProps={{
-                      editTable: 'ran',
-                    }}
-                  />
+                  <CardTitleFilterRow label="Ran" filter={editRan} />
                   <GatewayRAN gwInfo={gwInfo} />
                 </Grid>
               </Grid>
@@ -225,152 +197,74 @@ export default function GatewayConfig() {
 }
 
 function GatewayInfoConfig({gwInfo}: {gwInfo: lte_gateway}) {
-  const kpiData: KPIRows[] = [
+  const data: DataRows[] = [
     [
       {
         category: 'Name',
         value: gwInfo.name,
-        statusCircle: false,
       },
     ],
     [
       {
         category: 'Gateway ID',
         value: gwInfo.id,
-        statusCircle: false,
       },
     ],
     [
       {
         category: 'Hardware UUID',
         value: gwInfo.device.hardware_id,
-        statusCircle: false,
       },
     ],
     [
       {
         category: 'Version',
         value: gwInfo.status?.platform_info?.packages?.[0]?.version ?? 'null',
-        statusCircle: false,
       },
     ],
     [
       {
         category: 'Description',
         value: gwInfo.description,
-        statusCircle: false,
       },
     ],
   ];
 
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={data} />;
 }
 
 function GatewayEPC({gwInfo}: {gwInfo: lte_gateway}) {
-  const classes = useStyles();
+  const collapse: DataRows[] = [
+    [
+      {
+        value: gwInfo.cellular.epc.ip_block ?? '-',
+      },
+    ],
+  ];
 
-  const [open, setOpen] = useState({
-    ipAllocation: true,
-    reservedIp: true,
-  });
-  const handleCollapse = (config: string) => {
-    setOpen({
-      ...open,
-      [config]: !open[config],
-    });
-  };
+  const data: DataRows[] = [
+    [
+      {
+        category: 'IP Allocation',
+        value: gwInfo.cellular.epc.nat_enabled ? 'NAT' : 'Custom',
+        collapse: <DataGrid data={collapse} />,
+      },
+    ],
+    [
+      {
+        category: 'Primary DNS',
+        value: gwInfo.cellular.epc.dns_primary ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Secondary DNS',
+        value: gwInfo.cellular.epc.dns_secondary ?? '-',
+      },
+    ],
+  ];
 
-  function ListItems(props) {
-    return (
-      <>
-        <ListItem>
-          <ListItemText primary={props.data} />
-        </ListItem>
-        <Divider />
-      </>
-    );
-  }
-
-  function ListNull() {
-    return (
-      <>
-        <ListItem>
-          <ListItemText primary="-" />
-        </ListItem>
-        <Divider />
-      </>
-    );
-  }
-
-  return (
-    <List component={Paper} elevation={0} className={classes.list}>
-      <ListItem button onClick={() => handleCollapse('ipAllocation')}>
-        <CardHeader
-          title="IP Allocation"
-          className={classes.kpiBox}
-          subheader={gwInfo.cellular.epc.nat_enabled ? 'NAT' : 'Custom'}
-          titleTypographyProps={{
-            variant: 'body3',
-            className: classes.kpiLabel,
-            title: 'IP Allocation',
-          }}
-          subheaderTypographyProps={{
-            variant: 'body1',
-            className: classes.kpiValue,
-            title: gwInfo.cellular.epc.nat_enabled ? 'NAT' : 'Custom',
-          }}
-        />
-        {open['ipAllocation'] ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
-      <Divider />
-      <Collapse
-        key="ipAllocation"
-        in={open['ipAllocation']}
-        timeout="auto"
-        unmountOnExit>
-        {gwInfo.cellular.epc.ip_block ? (
-          <ListItems data={gwInfo.cellular.epc.ip_block} />
-        ) : (
-          <ListNull />
-        )}
-      </Collapse>
-      <ListItem>
-        <CardHeader
-          title="Primary DNS"
-          className={classes.kpiBox}
-          subheader={gwInfo.cellular.epc.dns_primary ?? '-'}
-          titleTypographyProps={{
-            variant: 'body3',
-            className: classes.kpiLabel,
-            title: 'Primary DNS',
-          }}
-          subheaderTypographyProps={{
-            variant: 'body1',
-            className: classes.kpiValue,
-            title: gwInfo.cellular.epc.dns_primary ?? '-',
-          }}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <CardHeader
-          title="Secondary DNS"
-          className={classes.kpiBox}
-          subheader={gwInfo.cellular.epc.dns_secondary ?? '-'}
-          titleTypographyProps={{
-            variant: 'body3',
-            className: classes.kpiLabel,
-            title: 'Secondary DNS',
-          }}
-          subheaderTypographyProps={{
-            variant: 'body1',
-            className: classes.kpiValue,
-            title: gwInfo.cellular.epc.dns_secondary ?? '-',
-          }}
-        />
-      </ListItem>
-    </List>
-  );
+  return <DataGrid data={data} />;
 }
 
 function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
@@ -380,7 +274,7 @@ function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
   const eventAggregation = !!gwInfo.magmad?.dynamic_services?.includes(
     'eventd',
   );
-  const aggregations: KPIRows[] = [
+  const aggregations: DataRows[] = [
     [
       {
         category: 'Aggregation',
@@ -395,7 +289,7 @@ function GatewayAggregation({gwInfo}: {gwInfo: lte_gateway}) {
     ],
   ];
 
-  return <KPIGrid data={aggregations} />;
+  return <DataGrid data={aggregations} />;
 }
 
 function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
@@ -437,8 +331,6 @@ function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
 }
 
 function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
-  const [open, setOpen] = React.useState(true);
-  const classes = useStyles();
   const enbCtx = useContext(EnodebContext);
   const enbInfo =
     gwInfo.connected_enodeb_serials?.reduce(
@@ -450,8 +342,7 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
       },
       {},
     ) || {};
-
-  const ran: KPIRows[] = [
+  const ran: DataRows[] = [
     [
       {
         category: 'PCI',
@@ -464,36 +355,14 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
         statusCircle: false,
       },
     ],
+    [
+      {
+        category: 'Registered eNodeBs',
+        value: gwInfo.connected_enodeb_serials?.length || 0,
+        collapse: <EnodebsTable gwInfo={gwInfo} enbInfo={enbInfo} />,
+      },
+    ],
   ];
 
-  return (
-    <>
-      <KPIGrid data={ran} />
-      <Divider />
-      <List component={Paper} elevation={0} className={classes.list}>
-        <ListItem button onClick={() => setOpen(!open)}>
-          <CardHeader
-            title="Registered eNodeBs"
-            className={classes.kpiBox}
-            subheader={gwInfo.connected_enodeb_serials?.length || 0}
-            titleTypographyProps={{
-              variant: 'body3',
-              className: classes.kpiLabel,
-              title: 'Registered eNodeBs',
-            }}
-            subheaderTypographyProps={{
-              variant: 'body1',
-              className: classes.kpiValue,
-              title: gwInfo.connected_enodeb_serials?.length || 0,
-            }}
-          />
-          {open ? <ExpandLess /> : <ExpandMore />}
-        </ListItem>
-        <Divider />
-        <Collapse key="reservedIp" in={open} timeout="auto" unmountOnExit>
-          <EnodebsTable gwInfo={gwInfo} enbInfo={enbInfo} />
-        </Collapse>
-      </List>
-    </>
-  );
+  return <DataGrid data={ran} />;
 }

@@ -13,11 +13,11 @@
  * @flow strict-local
  * @format
  */
-import type {KPIData} from '../../components/KPITray';
+import type {DataRows} from '../../components/DataGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
+import DataGrid from '../../components/DataGrid';
 import GatewayContext from '../../components/context/GatewayContext';
-import KPITray from '../../components/KPITray';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
@@ -98,14 +98,16 @@ export default function EquipmentGatewayKPIs() {
     pctHealthyGw = ((upCount * 100) / (upCount + downCount)).toFixed(2);
   }
 
-  const kpiData: KPIData[] = [
-    {category: 'Max Latency', value: maxLatency, unit: 'ms'},
-    {category: 'Min Latency', value: minLatency, unit: 'ms'},
-    {category: 'Avg Latency', value: avgLatency, unit: 'ms'},
-    {
-      category: '% Healthy Gateways',
-      value: pctHealthyGw,
-    },
+  const kpiData: DataRows[] = [
+    [
+      {category: 'Max Latency', value: maxLatency, unit: 'ms'},
+      {category: 'Min Latency', value: minLatency, unit: 'ms'},
+      {category: 'Avg Latency', value: avgLatency, unit: 'ms'},
+      {
+        category: '% Healthy Gateways',
+        value: pctHealthyGw,
+      },
+    ],
   ];
-  return <KPITray data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }

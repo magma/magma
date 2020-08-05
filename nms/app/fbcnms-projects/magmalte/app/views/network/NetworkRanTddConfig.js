@@ -50,7 +50,7 @@ export default function TddConfig(props: Props) {
           }
         />
       </AltFormField>
-      <Grid container xs={12}>
+      <Grid container>
         <Grid item xs={12} sm={6}>
           <AltFormField label={'Special Subframe Pattern'}>
             <OutlinedInput

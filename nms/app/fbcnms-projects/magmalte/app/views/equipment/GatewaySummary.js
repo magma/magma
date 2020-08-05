@@ -13,17 +13,16 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-import Card from '@material-ui/core/Card';
-import KPIGrid from '../../components/KPIGrid';
+import DataGrid from '../../components/DataGrid';
 import React from 'react';
 
 export default function GatewaySummary({gwInfo}: {gwInfo: lte_gateway}) {
   const version = gwInfo.status?.platform_info?.packages?.[0]?.version;
 
-  const kpiData: KPIRows[] = [
+  const data: DataRows[] = [
     [
       {
         value: gwInfo.description,
@@ -53,9 +52,5 @@ export default function GatewaySummary({gwInfo}: {gwInfo: lte_gateway}) {
     ],
   ];
 
-  return (
-    <Card elevation={0}>
-      <KPIGrid data={kpiData} />
-    </Card>
-  );
+  return <DataGrid data={data} />;
 }
