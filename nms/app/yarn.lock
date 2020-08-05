@@ -1515,6 +1515,11 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.0.tgz#fca603d1cb8be85678f31db50cde5dba5ae5ddcb"
   integrity sha512-lxrVvZHO88mCXwvkj4zAWw5ged7uHgO7gFodlQZK03S2WvWacXK67B9JSn/HOAzeceBcUNjwc9z4BG/piVKdSA==
 
+"@fbcnms/types@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.1.tgz#c857cbcec119539b56780f5bf134fc5b445e7dd6"
+  integrity sha512-pRkV23/izRAefxaZ6i0pL1nMZv+lM9kWY/VzAZXiNJoyevzO/X6Ug8y1KekB+TLkYB6DnVadfENFQlJUSPgC9Q==
+
 "@fbcnms/ui@^0.1.2":
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/@fbcnms/ui/-/ui-0.1.2.tgz#d318ba0af1a37e75ec1461701585c5d9d8ae4b62"
