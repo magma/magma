@@ -1,10 +1,14 @@
 """
-Copyright (c) 2019-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
@@ -15,7 +19,6 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
     PipelinedController
-from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder
 from magma.pipelined.tests.app.subscriber import SubContextConfig
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
@@ -24,7 +27,6 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     stop_ryu_app_thread, create_service_manager, assert_bridge_snapshot_match, \
     SnapshotVerifier
-from ryu.lib import hub
 
 class ConntrackTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -105,7 +107,6 @@ class ConntrackTest(unittest.TestCase):
         """
         Test that conntrack rules are properly setup
         Verifies that 3 new connections are detected (2 tcp, 1 udp)
-        Matches 2 Fin packets for end of 1 tcp stream
         """
         sub_ip = '145.254.160.237' # extracted from pcap don't change
         sub = SubContextConfig('IMSI001010000000013', sub_ip,
