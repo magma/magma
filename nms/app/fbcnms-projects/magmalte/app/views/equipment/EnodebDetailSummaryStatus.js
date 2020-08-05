@@ -13,21 +13,27 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {KPIRows} from '../../components/KPIGrid';
 
 import Card from '@material-ui/core/Card';
+import EnodebContext from '../../components/context/EnodebContext';
 import KPIGrid from '../../components/KPIGrid';
 import React from 'react';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
+import {useContext} from 'react';
+import {useRouter} from '@fbcnms/ui/hooks';
 
-export function EnodebSummary({enbInfo}: {enbInfo: EnodebInfo}) {
+export function EnodebSummary() {
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+
   const kpiData: KPIRows[] = [
     [
       {
         category: 'eNodeB Serial Number',
-        value: enbInfo.enb.serial,
+        value: enodebSerial,
         statusCircle: false,
       },
     ],
@@ -39,7 +45,12 @@ export function EnodebSummary({enbInfo}: {enbInfo: EnodebInfo}) {
   );
 }
 
-export function EnodebStatus({enbInfo}: {enbInfo: EnodebInfo}) {
+export function EnodebStatus() {
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+
   const isEnbHealthy = isEnodebHealthy(enbInfo);
 
   const kpiData: KPIRows[] = [

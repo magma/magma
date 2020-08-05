@@ -13,18 +13,15 @@
  * @flow strict-local
  * @format
  */
-import type {tier, tier_id} from '@fbcnms/magma-api';
+import type {UpdateGatewayProps} from '../../state/EquipmentState';
+import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import React from 'react';
 
-type GatewayTierState = {
-  tiers: {[string]: tier},
-  supportedVersions: Array<string>,
+export type GatewayContextType = {
+  state: {[string]: lte_gateway},
+  setState: (key: gateway_id, val?: lte_gateway) => Promise<void>,
+  updateGateway: (props: $Shape<UpdateGatewayProps>) => Promise<void>,
 };
 
-export type GatewayTierContextType = {
-  state: GatewayTierState,
-  setState: (key: tier_id, val?: tier) => Promise<void>,
-};
-
-export default React.createContext<GatewayTierContextType>({});
+export default React.createContext<GatewayContextType>({});

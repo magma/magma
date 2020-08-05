@@ -18,8 +18,8 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 
 import KPIGrid from '../../components/KPIGrid';
 import React from 'react';
-
 import isGatewayHealthy from '../../components/GatewayUtils';
+
 export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
   let checkInTime = new Date(0);
   if (

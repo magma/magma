@@ -14,15 +14,17 @@
  * @format
  */
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {gateway_id, lte_gateway, tier, tier_id} from '@fbcnms/magma-api';
+import type {lte_gateway, network_ran_configs, tier} from '@fbcnms/magma-api';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import AppBar from '@material-ui/core/AppBar';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
+import EnodebContext from '../../components/context/EnodebContext';
 import EnodebDetail from './EnodebDetailMain';
 import Gateway from './EquipmentGateway';
+import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetail from './GatewayDetailMain';
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
@@ -38,6 +40,14 @@ import UpgradeButton from './UpgradeTiersDialog';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
+import {
+  InitEnodeState,
+  InitTierState,
+  SetEnodebState,
+  SetGatewayState,
+  SetTierState,
+  UpdateGateway,
+} from '../../state/EquipmentState';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -93,151 +103,58 @@ function EquipmentDashboard() {
   const networkId: string = nullthrows(match.params.networkId);
   const [enbInfo, setEnbInfo] = useState<{[string]: EnodebInfo}>({});
   const [isLoading, setIsLoading] = useState(true);
-  const [lteGateways, setLteGatways] = useState<{[string]: lte_gateway}>({});
+  const [lteGateways, setLteGateways] = useState<{[string]: lte_gateway}>({});
+  const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
   const [tiers, setTiers] = useState<{[string]: tier}>({});
   const [supportedVersions, setSupportedVersions] = useState<Array<string>>([]);
   const enqueueSnackbar = useEnqueueSnackbar();
-
-  const updateTier = async (key: tier_id, value: tier) => {
-    if (key in tiers) {
-      await MagmaV1API.putNetworksByNetworkIdTiersByTierId({
-        networkId: networkId,
-        tierId: key,
-        tier: value,
-      });
-    } else {
-      await MagmaV1API.postNetworksByNetworkIdTiers({
-        networkId: networkId,
-        tier: value,
-      });
-    }
-    setTiers({...tiers, [key]: value});
+  const enodebCtx = {
+    state: {enbInfo, lteRanConfigs},
+    setState: (key, value?) =>
+      SetEnodebState({enbInfo, setEnbInfo, networkId, key, value}),
   };
-
-  const removeTier = async (key: tier_id) => {
-    await MagmaV1API.deleteNetworksByNetworkIdTiersByTierId({
-      networkId: networkId,
-      tierId: key,
-    });
-    const {key: _, ...newTiers} = tiers;
-    setTiers(newTiers);
+  const tierCtx = {
+    state: {supportedVersions, tiers},
+    setState: (key, value?) =>
+      SetTierState({tiers, setTiers, networkId, key, value}),
   };
-
-  const updateGatewayTier = async (gatewayId: gateway_id, tierId: tier_id) => {
-    await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdTier({
-      networkId,
-      gatewayId: gatewayId,
-      tierId: JSON.stringify(`"${tierId}"`),
-    });
-    const gateways = await MagmaV1API.getLteByNetworkIdGateways({
-      networkId,
-    });
-    setLteGatways(gateways);
+  const gatewayCtx = {
+    state: lteGateways,
+    setState: (key, value?) =>
+      SetGatewayState({lteGateways, setLteGateways, networkId, key, value}),
+    updateGateway: props =>
+      UpdateGateway({networkId, setLteGateways, ...props}),
   };
 
   useEffect(() => {
-    const fetchAllNetworkUpgradeTiers = async () => {
-      let tierIdList = [];
-      try {
-        tierIdList = await MagmaV1API.getNetworksByNetworkIdTiers({networkId});
-      } catch (e) {
-        enqueueSnackbar('failed fetching tier information', {variant: 'error'});
-      }
-
-      const requests = tierIdList.map(tierId => {
-        try {
-          return MagmaV1API.getNetworksByNetworkIdTiersByTierId({
-            networkId,
-            tierId,
-          });
-        } catch (e) {
-          enqueueSnackbar('failed fetching tier information for ' + tierId, {
-            variant: 'error',
-          });
-          return;
-        }
-      });
-
-      return await Promise.all(requests);
-    };
-
-    const fetchEnodebState = async () => {
-      let enb = {};
-      try {
-        enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
-      } catch (e) {
-        enqueueSnackbar('failed fetching enodeb information', {
-          variant: 'error',
-        });
-        return [];
-      }
-
-      let err = false;
-      const requests = Object.keys(enb).map(async k => {
-        try {
-          const {serial} = enb[k];
-          // eslint-disable-next-line max-len
-          const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
-            {
-              networkId: networkId,
-              enodebSerial: serial,
-            },
-          );
-          return [enb[k], enbSt];
-        } catch (e) {
-          err = true;
-          return [enb[k], {}];
-        }
-      });
-      if (err) {
-        enqueueSnackbar('failed fetching enodeb state information', {
-          variant: 'error',
-        });
-      }
-      return await Promise.all(requests);
-    };
-
     const fetchAllData = async () => {
       const [
-        lteGateways,
-        enbResp,
-        tierResponse,
-        stableChannel,
-      ] = await Promise.all([
+        lteGatewaysResp,
+        lteRanConfigsResp,
+        stableChannelResp,
+      ] = await Promise.allSettled([
         MagmaV1API.getLteByNetworkIdGateways({networkId}),
-        fetchEnodebState(),
-        fetchAllNetworkUpgradeTiers(),
+        MagmaV1API.getLteByNetworkIdCellularRan({networkId}),
         MagmaV1API.getChannelsByChannelId({channelId: 'stable'}),
+        InitEnodeState({networkId, setEnbInfo, enqueueSnackbar}),
+        InitTierState({networkId, setTiers, enqueueSnackbar}),
       ]);
-      const enbInfoLocal = {};
-      enbResp.filter(Boolean).forEach(r => {
-        if (r.length > 0) {
-          const [enb, enbSt] = r;
-          if (enb != null && enbSt != null) {
-            enbInfoLocal[enb.serial] = {
-              enb: enb,
-              enb_state: enbSt,
-            };
-          }
-        }
-      });
 
-      const tiers = {};
-      // reduce function gives a flow lint, hence using forEach instead
-      tierResponse.filter(Boolean).forEach(item => {
-        tiers[item.id] = item;
-      });
-
-      setTiers(tiers);
-      setLteGatways(lteGateways);
-      setEnbInfo(enbInfoLocal);
-      setSupportedVersions(stableChannel.supported_versions.reverse());
+      if (lteGatewaysResp.value) {
+        setLteGateways(lteGatewaysResp.value);
+      }
+      if (lteRanConfigsResp.value) {
+        setLteRanConfigs(lteRanConfigsResp.value);
+      }
+      if (stableChannelResp.value) {
+        setSupportedVersions(
+          stableChannelResp.value.supported_versions.reverse(),
+        );
+      }
       setIsLoading(false);
     };
-    fetchAllData().catch(e => {
-      enqueueSnackbar(e?.message, {variant: 'error'});
-      setIsLoading(false);
-    });
+
+    fetchAllData();
   }, [networkId, isLoading, enqueueSnackbar]);
 
   if (isLoading) {
@@ -249,29 +166,33 @@ function EquipmentDashboard() {
         <Route
           path={relativePath('/overview/gateway/:gatewayId')}
           render={() => (
-            <GatewayDetail lteGateways={lteGateways} enbInfo={enbInfo} />
+            <EnodebContext.Provider value={enodebCtx}>
+              <GatewayContext.Provider value={gatewayCtx}>
+                <GatewayTierContext.Provider value={tierCtx}>
+                  <GatewayDetail />
+                </GatewayTierContext.Provider>
+              </GatewayContext.Provider>
+            </EnodebContext.Provider>
           )}
         />
         <Route
           path={relativePath('/overview/enodeb/:enodebSerial')}
-          render={() => <EnodebDetail enbInfo={enbInfo} />}
+          render={() => (
+            <EnodebContext.Provider value={enodebCtx}>
+              <EnodebDetail />
+            </EnodebContext.Provider>
+          )}
         />
         <Route
           path={relativePath('/overview')}
           render={() => (
-            <GatewayTierContext.Provider
-              value={{
-                supportedVersions: supportedVersions,
-                tiers: tiers,
-                updateTier: updateTier,
-                removeTier: removeTier,
-                updateGatewayTier: updateGatewayTier,
-              }}>
-              <EquipmentDashboardInternal
-                enbInfo={enbInfo}
-                lteGateways={lteGateways}
-              />
-            </GatewayTierContext.Provider>
+            <EnodebContext.Provider value={enodebCtx}>
+              <GatewayContext.Provider value={gatewayCtx}>
+                <GatewayTierContext.Provider value={tierCtx}>
+                  <EquipmentDashboardInternal />
+                </GatewayTierContext.Provider>
+              </GatewayContext.Provider>
+            </EnodebContext.Provider>
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
@@ -280,13 +201,7 @@ function EquipmentDashboard() {
   );
 }
 
-function EquipmentDashboardInternal({
-  lteGateways,
-  enbInfo,
-}: {
-  lteGateways: {[string]: lte_gateway},
-  enbInfo: {[string]: EnodebInfo},
-}) {
+function EquipmentDashboardInternal() {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const tabPos = GetCurrentTabPos(match.url, ['gateway', 'enodeb']);
@@ -341,14 +256,8 @@ function EquipmentDashboardInternal({
         </Grid>
       </AppBar>
       <Switch>
-        <Route
-          path={relativePath('/gateway')}
-          render={() => <Gateway lteGateways={lteGateways} />}
-        />
-        <Route
-          path={relativePath('/enodeb')}
-          render={() => <Enodeb enbInfo={enbInfo} />}
-        />
+        <Route path={relativePath('/gateway')} render={() => <Gateway />} />
+        <Route path={relativePath('/enodeb')} render={() => <Enodeb />} />
         <Redirect to={relativeUrl('/gateway')} />
       </Switch>
     </>

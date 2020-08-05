@@ -23,15 +23,16 @@ import Button from '@material-ui/core/Button';
 import CardHeader from '@material-ui/core/CardHeader';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
+import EnodebContext from '../../components/context/EnodebContext';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import GatewayContext from '../../components/context/GatewayContext';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import KPIGrid from '../../components/KPIGrid';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -40,9 +41,9 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -106,33 +107,25 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
-  gwInfo: lte_gateway,
-  onSave?: lte_gateway => void,
-};
-
-export function GatewayJsonConfig(props: Props) {
+export function GatewayJsonConfig() {
   const {match} = useRouter();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
+  const gatewayId: string = nullthrows(match.params.gatewayId);
   const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(GatewayContext);
+  const gwInfo = ctx.state[gatewayId];
 
   return (
     <JsonEditor
-      content={props.gwInfo}
+      content={gwInfo}
       error={error}
       onSave={async gateway => {
         try {
-          await MagmaV1API.putLteByNetworkIdGatewaysByGatewayId({
-            networkId: networkId,
-            gatewayId: props.gwInfo.id,
-            gateway: (gateway: lte_gateway),
-          });
+          await ctx.setState(gatewayId, gateway);
           enqueueSnackbar('Gateway saved successfully', {
             variant: 'success',
           });
           setError('');
-          props.onSave?.(gateway);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -141,22 +134,12 @@ export function GatewayJsonConfig(props: Props) {
   );
 }
 
-export default function GatewayConfig({
-  gwInfo,
-  enbInfo,
-  onSave,
-}: {
-  gwInfo: lte_gateway,
-  enbInfo: {[string]: EnodebInfo},
-  onSave: lte_gateway => void,
-}) {
+export default function GatewayConfig() {
   const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
-
-  const editProps = {
-    gateway: gwInfo,
-    onSave: onSave,
-  };
+  const {history, match, relativeUrl} = useRouter();
+  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const ctx = useContext(GatewayContext);
+  const gwInfo = ctx.state[gatewayId];
 
   function ConfigFilter() {
     return (
@@ -169,6 +152,7 @@ export default function GatewayConfig({
       </Button>
     );
   }
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -189,9 +173,7 @@ export default function GatewayConfig({
                     title={'Edit'}
                     isLink={true}
                     editProps={{
-                      ...editProps,
                       editTable: 'info',
-                      onSave: gateway => editProps.onSave?.(gateway),
                     }}
                   />
                   <GatewayInfoConfig gwInfo={gwInfo} />
@@ -202,9 +184,7 @@ export default function GatewayConfig({
                     title={'Edit'}
                     isLink={true}
                     editProps={{
-                      ...editProps,
                       editTable: 'aggregation',
-                      onSave: gateway => editProps.onSave?.(gateway),
                     }}
                   />
                   <GatewayAggregation gwInfo={gwInfo} />
@@ -219,9 +199,7 @@ export default function GatewayConfig({
                     title={'Edit'}
                     isLink={true}
                     editProps={{
-                      ...editProps,
                       editTable: 'epc',
-                      onSave: gateway => editProps.onSave?.(gateway),
                     }}
                   />
                   <GatewayEPC gwInfo={gwInfo} />
@@ -232,12 +210,10 @@ export default function GatewayConfig({
                     title={'Edit'}
                     isLink={true}
                     editProps={{
-                      ...editProps,
                       editTable: 'ran',
-                      onSave: gateway => editProps.onSave?.(gateway),
                     }}
                   />
-                  <GatewayRAN gwInfo={gwInfo} enbInfo={enbInfo} />
+                  <GatewayRAN gwInfo={gwInfo} />
                 </Grid>
               </Grid>
             </Grid>
@@ -460,15 +436,20 @@ function EnodebsTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
   );
 }
 
-function GatewayRAN({
-  gwInfo,
-  enbInfo,
-}: {
-  gwInfo: lte_gateway,
-  enbInfo: {[string]: EnodebInfo},
-}) {
+function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   const [open, setOpen] = React.useState(true);
   const classes = useStyles();
+  const enbCtx = useContext(EnodebContext);
+  const enbInfo =
+    gwInfo.connected_enodeb_serials?.reduce(
+      (enbs: {[string]: EnodebInfo}, serial: string) => {
+        if (enbCtx.state.enbInfo[serial] != null) {
+          enbs[serial] = enbCtx.state.enbInfo[serial];
+        }
+        return enbs;
+      },
+      {},
+    ) || {};
 
   const ran: KPIRows[] = [
     [

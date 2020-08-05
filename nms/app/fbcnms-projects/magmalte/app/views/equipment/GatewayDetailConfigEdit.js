@@ -30,9 +30,9 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import FormLabel from '@material-ui/core/FormLabel';
+import GatewayContext from '../../components/context/GatewayContext';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
@@ -43,9 +43,9 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const GATEWAY_TITLE = 'Gateway';
 const RAN_TITLE = 'Ran';
@@ -122,8 +122,6 @@ const EditTableType = {
 
 type EditProps = {
   editTable: $Keys<typeof EditTableType>,
-  gateway: lte_gateway,
-  onSave: lte_gateway => void,
 };
 
 type DialogProps = {
@@ -177,12 +175,21 @@ export default function AddEditGatewayButton(props: ButtonProps) {
   );
 }
 
-function GatewayEditDialog({open, onClose, editProps}: DialogProps) {
+function GatewayEditDialog(props: DialogProps) {
+  const {open, editProps} = props;
   const classes = useStyles();
+  const {match} = useRouter();
   const [gateway, setGateway] = useState<lte_gateway>({});
+  const gatewayId: string = match.params.gatewayId;
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
+  const ctx = useContext(GatewayContext);
+  const onClose = () => {
+    setGateway({});
+    setTabPos(0);
+    props.onClose();
+  };
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
@@ -220,13 +227,12 @@ function GatewayEditDialog({open, onClose, editProps}: DialogProps) {
         <ConfigEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           gateway={
-            Object.keys(gateway).length != 0 ? gateway : editProps?.gateway
+            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
             if (editProps) {
-              editProps.onSave(gateway);
               onClose();
             } else {
               setTabPos(tabPos + 1);
@@ -238,13 +244,12 @@ function GatewayEditDialog({open, onClose, editProps}: DialogProps) {
         <AggregationEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Add Gateway'}
           gateway={
-            Object.keys(gateway).length != 0 ? gateway : editProps?.gateway
+            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
             if (editProps) {
-              editProps.onSave(gateway);
               onClose();
             } else {
               setTabPos(tabPos + 1);
@@ -256,13 +261,12 @@ function GatewayEditDialog({open, onClose, editProps}: DialogProps) {
         <EPCEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
           gateway={
-            Object.keys(gateway).length != 0 ? gateway : editProps?.gateway
+            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
             if (editProps) {
-              editProps.onSave(gateway);
               onClose();
             } else {
               setTabPos(tabPos + 1);
@@ -274,13 +278,12 @@ function GatewayEditDialog({open, onClose, editProps}: DialogProps) {
         <RanEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Close'}
           gateway={
-            Object.keys(gateway).length != 0 ? gateway : editProps?.gateway
+            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
           onClose={onClose}
           onSave={(gateway: lte_gateway) => {
             setGateway(gateway);
             if (editProps) {
-              editProps.onSave(gateway);
               onClose();
             }
             onClose();
@@ -303,8 +306,7 @@ type VersionType = $PropertyType<package_type, 'version'>;
 export function ConfigEdit(props: Props) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const ctx = useContext(GatewayContext);
 
   const [gateway, setGateway] = useState<lte_gateway>({
     ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
@@ -336,25 +338,10 @@ export function ConfigEdit(props: Props) {
         },
         device: gatewayDevice,
       };
-      if (props.gateway) {
-        await MagmaV1API.putLteByNetworkIdGatewaysByGatewayId({
-          networkId: networkId,
-          gatewayId: gateway.id,
-          gateway: gatewayInfos,
-        });
-        enqueueSnackbar('Gateway saved successfully', {
-          variant: 'success',
-        });
-      } else {
-        await MagmaV1API.postLteByNetworkIdGateways({
-          networkId: networkId,
-          gateway: gatewayInfos,
-        });
-
-        enqueueSnackbar('Gateway added successfully', {
-          variant: 'success',
-        });
-      }
+      await ctx.setState(gateway.id, gatewayInfos);
+      enqueueSnackbar('Gateway saved successfully', {
+        variant: 'success',
+      });
       props.onSave(gatewayInfos);
     } catch (e) {
       setError(e.response?.data?.message ?? e.message);
@@ -437,10 +424,10 @@ export function ConfigEdit(props: Props) {
 }
 
 export function AggregationEdit(props: Props) {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(GatewayContext);
+  const {match} = useRouter();
 
   const gatewayId: string =
     props.gateway?.id || nullthrows(match.params.gatewayId);
@@ -493,13 +480,7 @@ export function AggregationEdit(props: Props) {
         ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
         magmad: aggregationConfig,
       };
-
-      await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdMagmad({
-        networkId: networkId,
-        gatewayId: gatewayId,
-        magmad: aggregationConfig,
-      });
-
+      await ctx.updateGateway({gatewayId, magmadConfigs: aggregationConfig});
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
       });
@@ -551,10 +532,9 @@ export function AggregationEdit(props: Props) {
 }
 
 export function EPCEdit(props: Props) {
-  const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
+  const ctx = useContext(GatewayContext);
 
   const handleEPCChange = (key: string, val) => {
     setEPCConfig({...EPCConfig, [key]: val});
@@ -573,11 +553,7 @@ export function EPCEdit(props: Props) {
           epc: EPCConfig,
         },
       };
-      await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularEpc({
-        networkId: networkId,
-        gatewayId: gateway.id,
-        config: EPCConfig,
-      });
+      await ctx.updateGateway({gatewayId: gateway.id, epcConfigs: EPCConfig});
 
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
@@ -651,10 +627,9 @@ export function EPCEdit(props: Props) {
 }
 
 export function RanEdit(props: Props) {
-  const {match} = useRouter();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
+  const ctx = useContext(GatewayContext);
 
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
@@ -671,7 +646,6 @@ export function RanEdit(props: Props) {
 
   const onSave = async () => {
     try {
-      const requests = [];
       const gateway = {
         ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
         cellular: {
@@ -680,23 +654,11 @@ export function RanEdit(props: Props) {
         },
         connected_enodeb_serials: connectedEnodebs,
       };
-
-      requests.push(
-        MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdConnectedEnodebSerials({
-          networkId: networkId,
-          gatewayId: gateway.id,
-          serials: connectedEnodebs,
-        }),
-      );
-      requests.push(
-        MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularRan({
-          networkId: networkId,
-          gatewayId: gateway.id,
-          config: ranConfig,
-        }),
-      );
-      await Promise.all(requests);
-
+      await ctx.updateGateway({
+        gatewayId: gateway.id,
+        enbs: connectedEnodebs,
+        ranConfigs: ranConfig,
+      });
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
       });
