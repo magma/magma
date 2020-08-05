@@ -325,15 +325,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
 
-	apn := datatype.UTF8String(request.Apn)
-	if gyGlobalConfig != nil {
-		if len(gyGlobalConfig.VirtualApnRules) > 0 {
-			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request.Apn, gyGlobalConfig.VirtualApnRules))
-		} else if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
-			// OverwriteApn is deprected transition to VirtualApnRules
-			apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
-		}
-	}
+	apn := getAPNfromConfig(gyGlobalConfig, request.Apn)
 	if len(apn) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn))
 	}
@@ -361,6 +353,23 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		diam.NewAVP(avp.PSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, psInfoGrp),
 	)
 	return diam.NewAVP(avp.ServiceInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: svcInfoGrp})
+}
+
+// getAPNfromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gy config.
+// If Virtual APN config is not defined, the function returnis OCSOverwriteApn instead.
+// Input: GyGlobalConfig and the APN received from the request
+// Output: Overwritten apn value
+func getAPNfromConfig(gyGlobalConfig *GyGlobalConfig, request_apn string) datatype.UTF8String {
+	apn := datatype.UTF8String(request_apn)
+	if gyGlobalConfig != nil {
+		if len(gyGlobalConfig.VirtualApnRules) > 0 {
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request_apn, gyGlobalConfig.VirtualApnRules))
+		} else if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
+			// OverwriteApn is deprecated transition to VirtualApnRules
+			apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
+		}
+	}
+	return apn
 }
 
 // getMSCCAVP retrieves the MultipleServicesCreditControl AVP for the

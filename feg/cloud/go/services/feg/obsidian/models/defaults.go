@@ -83,7 +83,7 @@ func newDefaultEapAka() *EapAka {
 func newDefaultGx() *Gx {
 	return &Gx{
 		Server:       newDefaultDiameterClientConfigs(),
-		VirtualApnRules: newDefaultVirtualApnRule(),
+		VirtualApnRules: []*VirtualApnRule {},
 	}
 }
 
@@ -92,7 +92,7 @@ func newDefaultGy() *Gy {
 	return &Gy{
 		InitMethod:   &initMethod,
 		Server:       newDefaultDiameterClientConfigs(),
-		VirtualApnRules: newDefaultVirtualApnRule(),
+		VirtualApnRules: []*VirtualApnRule {},
 	}
 }
 
@@ -111,10 +111,6 @@ func newDefaultDiameterClientConfigs() *DiameterClientConfigs {
 		RetryCount:       0,
 		WatchdogInterval: 0,
 	}
-}
-
-func newDefaultVirtualApnRule() []*VirtualApnRule {
-  return []*VirtualApnRule {};
 }
 
 func newDefaultHealth() *Health {

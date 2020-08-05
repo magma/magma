@@ -126,10 +126,7 @@ function getDiameterServerConfig(
 function getVirtualApnRules(
   rules: ?Array<virtual_apn_rule>,
 ): ?Array<[string, string]> {
-  if (!rules || rules.length == 0) {
-    return null;
-  }
-  return rules.map(entry => {
+  return rules?.map(entry => {
     return [entry.apn_filter || '', entry.apn_overwrite || ''];
   });
 }
@@ -137,16 +134,11 @@ function getVirtualApnRules(
 function virtualApnRulesToObject(
   props: ?Array<[string, string]>,
 ): ?Array<virtual_apn_rule> {
-  if (!props) {
-    return null;
-  }
-
-  const results = props
-    .filter(p => p[0])
+  return props
+    ?.filter(p => p[0])
     .map(pair => {
       return {apn_filter: pair[0], apn_overwrite: pair[1]};
     });
-  return results;
 }
 
 export default function FEGGatewayDialog(props: Props) {
@@ -280,7 +272,11 @@ export default function FEGGatewayDialog(props: Props) {
           key_label="APN Filter"
           value_label="APN Overwrite"
           onChange={setGxVirtualApnRules}
-          keyValuePairs={gxVirtualApnRules || [['', '']]}
+          keyValuePairs={
+            gxVirtualApnRules && gxVirtualApnRules.length
+              ? gxVirtualApnRules
+              : [['', '']]
+          }
         />
       );
       break;
@@ -297,7 +293,11 @@ export default function FEGGatewayDialog(props: Props) {
           key_label="APN Filter"
           value_label="APN Overwrite"
           onChange={setGyVirtualApnRules}
-          keyValuePairs={gyVirtualApnRules || [['', '']]}
+          keyValuePairs={
+            gyVirtualApnRules && gyVirtualApnRules.length
+              ? gyVirtualApnRules
+              : [['', '']]
+          }
         />
       );
       break;

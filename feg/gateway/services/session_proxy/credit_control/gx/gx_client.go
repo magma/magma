@@ -251,15 +251,7 @@ func (gxClient *GxClient) createCreditControlMessage(
 		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(Ipv6PrefixFromMAC(request.HardwareAddr)))
 	}
 
-	apn := datatype.UTF8String(request.Apn)
-	if globalConfig != nil {
-		if len(globalConfig.VirtualApnRules) > 0 {
-			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request.Apn, globalConfig.VirtualApnRules))
-		} else if len(globalConfig.PCFROverwriteApn) > 0 {
-			// OverwriteApn is deprected transition to VirtualApnRules
-			apn = datatype.UTF8String(globalConfig.PCFROverwriteApn)
-		}
-	}
+	apn := getAPNfromConfig(globalConfig, request.Apn)
 	if len(apn) > 0 {
 		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, datatype.UTF8String(apn))
 	}
@@ -424,6 +416,23 @@ func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AV
 		}
 	}
 	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(eventTrigger))
+}
+
+// getAPNfromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gx config.
+// If Virtual APN config is not defined, the function returnis OCSOverwriteApn instead.
+// Input: GxGlobalConfig and the APN received from the request
+// Output: Overwritten apn value
+func getAPNfromConfig(gxGlobalConfig *GxGlobalConfig, request_apn string) datatype.UTF8String {
+	apn := datatype.UTF8String(request_apn)
+	if gxGlobalConfig != nil {
+		if len(gxGlobalConfig.VirtualApnRules) > 0 {
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request_apn, gxGlobalConfig.VirtualApnRules))
+		} else if len(gxGlobalConfig.PCFROverwriteApn) > 0 {
+			// OverwriteApn is deprecated transition to VirtualApnRules
+			apn = datatype.UTF8String(gxGlobalConfig.PCFROverwriteApn)
+		}
+	}
+	return apn
 }
 
 // Is p all zeros?
