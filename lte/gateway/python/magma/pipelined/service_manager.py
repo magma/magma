@@ -418,7 +418,7 @@ class ServiceManager:
         static_services = self._magma_service.config['static_services']
         nat_enabled = self._magma_service.config.get('nat_enabled', False)
         setup_type = self._magma_service.config.get('setup_type', None)
-        if nat_enabled is False and setup_type == 'LTE':
+        if setup_type == 'LTE':
             static_services.append(self.__class__.UPLINK_BRIDGE_NAME)
             logging.info("added uplink bridge controller")
 
