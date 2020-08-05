@@ -107,8 +107,6 @@ message PipelineD {
       uint32 port = 2;
     }
     IPDRExportDst ipdr_export_dst = 10;
-    repeated string li_imsis = 11;
-
     message LiUes {
         repeated string imsis = 1;
         repeated string msisdns = 2;
@@ -116,8 +114,10 @@ message PipelineD {
         repeated string ips = 4;
     }
     LiUes li_ues = 12;
+
     // DEPRECATED
     // repeated string apps = 4;
+    repeated string li_imsis = 11; [deprecated=true]
 }
 
 //------------------------------------------------------------------------------

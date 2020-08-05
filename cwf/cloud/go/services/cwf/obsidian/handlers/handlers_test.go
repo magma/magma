@@ -299,7 +299,7 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Test update gateway LiImsis config
+	// Test update gateway LI UEs config
 	tc = tests.Test{
 		Method:  "PUT",
 		URL:     "/magma/v1/cwf/n1/li_ues",

@@ -61,7 +61,6 @@ const (
 	ManageGatewayPath             = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
 	ManageGatewayNamePath         = ManageGatewayPath + obsidian.UrlSep + "name"
 	ManageGatewayDescriptionPath  = ManageGatewayPath + obsidian.UrlSep + "description"
-	ManageGatewayLiImsisPath      = ManageGatewayPath + obsidian.UrlSep + "li_imsis"
 	ManageGatewayConfigPath       = ManageGatewayPath + obsidian.UrlSep + "magmad"
 	ManageGatewayDevicePath       = ManageGatewayPath + obsidian.UrlSep + "device"
 	ManageGatewayStatePath        = ManageGatewayPath + obsidian.UrlSep + "status"
