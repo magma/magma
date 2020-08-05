@@ -30,7 +30,7 @@
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
       "bandwidthMhz": 20,
       "specialSubframePattern": 7,
-      "earfcndl": 1575,
+      "earfcndl": 44490,
       "logLevel": "INFO",
       "plmnidList": "00101",
       "pci": 260,
