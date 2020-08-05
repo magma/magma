@@ -40,7 +40,7 @@
     "eslint-plugin-mdx": "^1.7.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-prettier": "^3.1.1",
-    "eslint-plugin-react": "^7.14.2",
+    "eslint-plugin-react": "^7.20.5",
     "eslint-plugin-react-hooks": "^2.0.1",
     "eslint-plugin-relay": "^1.5.0",
     "eslint-plugin-sort-imports-es6-autofix": "^0.5.0",
