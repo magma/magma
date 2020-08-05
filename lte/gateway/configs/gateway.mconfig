@@ -30,7 +30,7 @@
       "@type": "type.googleapis.com/magma.mconfig.EnodebD",
       "bandwidthMhz": 20,
       "specialSubframePattern": 7,
-      "earfcndl": 44490,
+      "earfcndl": 1575,
       "logLevel": "INFO",
       "plmnidList": "00101",
       "pci": 260,
@@ -77,7 +77,7 @@
       "logLevel": "INFO",
       "enableCaching": false,
       "localTTL": 0,
-      "dhcpEnabled": true
+      "dhcpServerEnabled": true
     },
     "lighttpd": {
       "@type": "type.googleapis.com/magma.mconfig.LighttpD",

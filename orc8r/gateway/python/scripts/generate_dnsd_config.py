@@ -69,6 +69,7 @@ def get_context():
     dhcp_block_size = cfg['dhcp_block_size']
     available_hosts = list(ipaddress.IPv4Interface(ip).network.hosts())
 
+    context['dhcp_server_enabled'] = mconfig.dhcp_server_enabled or True
     if dhcp_block_size < len(available_hosts):
         context['dhcp_range'] = {
             "lower": str(available_hosts[-dhcp_block_size]),

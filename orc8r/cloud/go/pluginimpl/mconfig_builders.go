@@ -244,6 +244,7 @@ func (s *DnsdMconfigBuilderServicer) Build(
 	protos.FillIn(dnsConfig, mconfigDnsd)
 	mconfigDnsd.LocalTTL = int32(swag.Uint32Value(dnsConfig.LocalTTL))
 	mconfigDnsd.EnableCaching = swag.BoolValue(dnsConfig.EnableCaching)
+	mconfigDnsd.DhcpServerEnabled = dnsConfig.DhcpServerEnabled
 	mconfigDnsd.LogLevel = protos.LogLevel_INFO
 	for _, record := range dnsConfig.Records {
 		mconfigRecord := &mconfig.NetworkDNSConfigRecordsItems{}
