@@ -24,7 +24,7 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_model v0.2.0
 	github.com/stretchr/testify v1.4.0
-	github.com/thoas/go-funk v0.4.0
+	github.com/thoas/go-funk v0.7.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	google.golang.org/grpc v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
