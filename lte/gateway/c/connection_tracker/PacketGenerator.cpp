@@ -10,45 +10,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include "PacketGenerator.h"
+
+#include "PacketGenerator.h"
+
+namespace magma {
 
 using namespace Tins;
 
-int send_packet(struct flow_information *flow) {
-    NetworkInterface iface = NetworkInterface("mtr0");
-
-    /* Retrieve this structure which holds the interface's IP,
-     * broadcast, hardware address and the network mask.
-     */
-    NetworkInterface::Info info = iface.addresses();
-
-    /* Create an Ethernet II PDU which will be sent to
-     * 77:22:33:11:ad:ad using the default interface's hardware
-     * address as the sender.
-     */
-    EthernetII eth("77:22:33:11:ad:ad", info.hw_addr);
-
-    /* Create an IP PDU, with 192.168.0.1 as the destination address
-     * and the default interface's IP address as the sender.
-     */
-    IPv4Address ip_s = IPv4Address(flow->saddr);
-    IPv4Address ip_d = IPv4Address(flow->daddr);
-    eth /= IP(ip_s, ip_d);
-
-    /* Create a TCP PDU using 13 as the destination port, and 15
-     * as the source port.
-     */
-    if (flow->l4_proto==6) {
-        eth /= TCP(flow->dport, flow->sport);
-    } else if (flow->l4_proto==17) {
-        eth /= UDP(flow->dport, flow->sport);
-    } else {
-        // unsupported
-        return -1;
-    }
-
-    PacketSender sender;
-    sender.send(eth, iface);
-    
-    return 0;
+PacketGenerator::PacketGenerator(std::string iface_name)
+    : iface_name_(iface_name) {
+  iface_ = NetworkInterface(iface_name_);
+  MLOG(MINFO) << "Using interface " << iface_name_.c_str()
+              << "for pkt generation";
 }
+
+bool PacketGenerator::send_packet(struct flow_information* flow) {
+  PacketSender sender;
+
+  // Random mac header for our internal packets
+  EthernetII eth_("33:aa:99:33:aa:00", "55:11:44:ee:00:00");
+  eth_ /= IP(IPv4Address(flow->saddr), IPv4Address(flow->daddr));
+
+  if (flow->l4_proto == 6) {
+    eth_ /= TCP(flow->dport, flow->sport);
+  } else if (flow->l4_proto == 17) {
+    eth_ /= UDP(flow->dport, flow->sport);
+  } else {
+    MLOG(MDEBUG) << "Encountered unsupported protocol, not sending pkt";
+    return false;
+  }
+
+  sender.send(eth_, iface_);
+
+  return true;
+}
+
+}  // namespace magma

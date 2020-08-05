@@ -15,16 +15,15 @@
 #include <stdlib.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 
-#include "magma_logging.h"
 #include "MagmaService.h"
-#include "EventTracker.h"
 #include "MConfigLoader.h"
 #include "ServiceRegistrySingleton.h"
 
+#include "EventTracker.h"
+#include "PacketGenerator.h"
 
 #define CONNECTION_SERVICE "connectiond"
 #define CONNECTIOND_VERSION "1.0"
-
 
 static magma::mconfig::ConnectionD get_default_mconfig() {
   magma::mconfig::ConnectionD mconfig;
@@ -68,23 +67,27 @@ static uint32_t get_log_verbosity(
   }
 }
 
-int main(void)
-{
-    magma::init_logging(CONNECTION_SERVICE);
+int main(void) {
+  magma::init_logging(CONNECTION_SERVICE);
 
-    auto mconfig = load_mconfig();
-    auto config =
-        magma::ServiceConfigLoader{}.load_service_config(CONNECTION_SERVICE);
-    magma::set_verbosity(get_log_verbosity(config, mconfig));
-    MLOG(MINFO) << "Starting Connection Tracker";
+  auto mconfig = load_mconfig();
+  auto config =
+      magma::ServiceConfigLoader{}.load_service_config(CONNECTION_SERVICE);
+  magma::set_verbosity(get_log_verbosity(config, mconfig));
+  MLOG(MINFO) << "Starting Connection Tracker";
 
-    std::string interface_name = config["interface_name"].as<std::string>();
-    MLOG(MINFO) << "TODO" << interface_name;
+  std::string interface_name = config["interface_name"].as<std::string>();
+  MLOG(MINFO) << "TODO" << interface_name;
 
-    magma::service303::MagmaService server(CONNECTION_SERVICE, CONNECTIOND_VERSION);
-    server.Start();
+  magma::service303::MagmaService server(
+      CONNECTION_SERVICE, CONNECTIOND_VERSION);
+  server.Start();
 
-    init_conntrack_event_loop();
+  auto pkt_generator = std::make_shared<magma::PacketGenerator>(interface_name);
 
-	return 0;
+  auto event_tracker = std::make_shared<magma::EventTracker>(pkt_generator);
+
+  event_tracker->init_conntrack_event_loop();
+
+  return 0;
 }

@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <iostream>
 
 #include <linux/if_packet.h>
 #include <stdio.h>
@@ -27,11 +28,26 @@
 #include <net/if.h>
 #include <netinet/ether.h>
 #include <linux/ip.h>
+#include <memory>
 
 #include <libmnl/libmnl.h>
 #include <linux/netfilter/nfnetlink.h>
 #include <linux/netfilter/nfnetlink_conntrack.h>
 
+#include "PacketGenerator.h"
+
 #include "magma_logging.h"
 
-int init_conntrack_event_loop();
+namespace magma {
+
+class EventTracker {
+ public:
+  EventTracker(std::shared_ptr<PacketGenerator> pkt_gen);
+
+  int init_conntrack_event_loop(void);
+
+ private:
+  std::shared_ptr<PacketGenerator> pkt_gen_;
+};
+
+}  // namespace magma

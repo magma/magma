@@ -15,17 +15,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <tins/tins.h>
 #include <cassert>
 #include <iostream>
 #include <string>
 
+#include <tins/tins.h>
+
+#include "magma_logging.h"
+
 struct flow_information {
-  uint32_t saddr;                     /* Source address */
-  uint32_t daddr;                     /* Destination address */
-  uint32_t l4_proto;                  /* Layer4 Proto ID */
-  uint16_t sport;                     /* Source port */
-  uint16_t dport;                     /* Destination port */
+  uint32_t saddr;    /* Source address */
+  uint32_t daddr;    /* Destination address */
+  uint32_t l4_proto; /* Layer4 Proto ID */
+  uint16_t sport;    /* Source port */
+  uint16_t dport;    /* Destination port */
 };
 
-int send_packet(struct flow_information *flow);
+namespace magma {
+
+class PacketGenerator {
+ public:
+  PacketGenerator(std::string iface_name);
+  /**
+   * Send packet based on provided flow information
+   * @param flow_information - flow_information
+   * @return true if the operation was successful
+   */
+  bool send_packet(struct flow_information* flow);
+
+ private:
+  std::string iface_name_;
+  Tins::NetworkInterface iface_;
+};
+
+}  // namespace magma
