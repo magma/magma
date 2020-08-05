@@ -1459,9 +1459,9 @@
     winston "^3.0.0"
 
 "@fbcnms/platform-server@^0.1.4":
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.4.tgz#81df9b5d9321265d17a66edb10e4267e48b8d474"
-  integrity sha512-qGdusCjHG/I5bCpF2LMK0My3w3kGfpDSZK8qUyYY3E68fKuBUNBY+2QSA9t9CpbyOxTFwlsQi7fhNvnTVIxrhA==
+  version "0.1.6"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.6.tgz#3ff641b34deabb63fe86b11a2a22e493732e3b25"
+  integrity sha512-8n9pA9fkEdt/zgl9BEdS+Q50QSaJTyH/7up8kqgf4ExwKevWvBDFQy3N6W7WbOvKZi6EsdBYd3rWh2vj8cVOag==
   dependencies:
     "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
@@ -1514,6 +1514,11 @@
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.0.tgz#fca603d1cb8be85678f31db50cde5dba5ae5ddcb"
   integrity sha512-lxrVvZHO88mCXwvkj4zAWw5ged7uHgO7gFodlQZK03S2WvWacXK67B9JSn/HOAzeceBcUNjwc9z4BG/piVKdSA==
+
+"@fbcnms/types@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.1.tgz#c857cbcec119539b56780f5bf134fc5b445e7dd6"
+  integrity sha512-pRkV23/izRAefxaZ6i0pL1nMZv+lM9kWY/VzAZXiNJoyevzO/X6Ug8y1KekB+TLkYB6DnVadfENFQlJUSPgC9Q==
 
 "@fbcnms/ui@^0.1.2":
   version "0.1.2"
