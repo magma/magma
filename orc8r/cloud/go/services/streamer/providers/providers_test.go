@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mocks"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
+	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/cloud/go/services/streamer"
 	streamer_test_init "magma/orc8r/cloud/go/services/streamer/test_init"
 	"magma/orc8r/cloud/go/services/streamer/test_utils/mconfig/factory"
@@ -38,6 +39,7 @@ import (
 func TestMconfigStreamer_Configurator(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	streamer_test_init.StartTestService(t)
+	orchestrator_test_init.StartTestService(t)
 
 	// Set up mock mconfig builders (legacy and new)
 	configurator.ClearMconfigBuilders(t)

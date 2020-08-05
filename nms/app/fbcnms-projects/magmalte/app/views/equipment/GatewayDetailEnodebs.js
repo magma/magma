@@ -13,15 +13,16 @@
  * @flow strict-local
  * @format
  */
-import ActionTable from '../../components/ActionTable';
-import React from 'react';
-
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
+import ActionTable from '../../components/ActionTable';
+import EnodebContext from '../../components/context/EnodebContext';
+import React from 'react';
+
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 type EnodebRowType = {
   name: string,
@@ -29,14 +30,19 @@ type EnodebRowType = {
   health: string,
 };
 
-export default function GatewayDetailEnodebs({
-  gwInfo,
-  enbInfo,
-}: {
-  gwInfo: lte_gateway,
-  enbInfo: {[string]: EnodebInfo},
-}) {
+export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
   const {history, match} = useRouter();
+  const enbCtx = useContext(EnodebContext);
+  const enbInfo =
+    gwInfo.connected_enodeb_serials?.reduce(
+      (enbs: {[string]: EnodebInfo}, serial: string) => {
+        if (enbCtx.state.enbInfo[serial] != null) {
+          enbs[serial] = enbCtx.state.enbInfo[serial];
+        }
+        return enbs;
+      },
+      {},
+    ) || {};
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
 
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(

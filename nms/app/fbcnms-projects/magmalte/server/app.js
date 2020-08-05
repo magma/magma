@@ -39,11 +39,12 @@ const connectSession = require('connect-session-sequelize');
 const express = require('express');
 const passport = require('passport');
 const path = require('path');
-const paths = require('@fbcnms/webpack-config/paths');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const session = require('express-session');
 const {sequelize} = require('@fbcnms/sequelize-models');
 const OrganizationLocalStrategy = require('@fbcnms/auth/strategies/OrganizationLocalStrategy')
+  .default;
+const OrganizationSamlStrategy = require('@fbcnms/auth/strategies/OrganizationSamlStrategy')
   .default;
 
 const {access, configureAccess} = require('@fbcnms/auth/access');
@@ -78,6 +79,12 @@ app.use(passport.session()); // must be after sessionMiddleware
 
 fbcPassport.use();
 passport.use('local', OrganizationLocalStrategy());
+passport.use(
+  'saml',
+  OrganizationSamlStrategy({
+    urlPrefix: '/user',
+  }),
+);
 
 // Views
 app.set('views', path.join(__dirname, '..', 'views'));
@@ -88,7 +95,7 @@ app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,
     devWebpackConfig: require('../config/webpack.config.js'),
-    distPath: paths.distPath,
+    distPath: require('../config/paths').distPath,
   }),
 );
 app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());

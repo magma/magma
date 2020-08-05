@@ -1,0 +1,7 @@
+version: "3.7"
+
+services:
+  dpid:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: fb/src/dpi/Dockerfile

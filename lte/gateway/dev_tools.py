@@ -46,7 +46,7 @@ def register_vm():
                     ),
                 ),
             ),
-            dns=types.NetworkDNSConfig(enable_caching=True, local_ttl=60),
+            dns=types.NetworkDNSConfig(enable_caching=False, local_ttl=60),
         )
         dev_utils.cloud_post('lte', network_payload)
 

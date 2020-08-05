@@ -29,7 +29,7 @@ import (
 // The remote indexer's fields are cached at the state service.
 type remoteIndexer struct {
 	// service name of the indexer
-	// should always be uppercase to match service registry convention
+	// should always be lowercase to match service registry convention
 	service string
 	// version of the indexer
 	version Version
@@ -40,7 +40,7 @@ type remoteIndexer struct {
 // NewRemoteIndexer returns an indexer that forwards its methods to the
 // remote indexer servicer.
 func NewRemoteIndexer(serviceName string, version Version, types ...string) Indexer {
-	return &remoteIndexer{service: strings.ToUpper(serviceName), version: version, types: types}
+	return &remoteIndexer{service: strings.ToLower(serviceName), version: version, types: types}
 }
 
 func (r *remoteIndexer) GetID() string {

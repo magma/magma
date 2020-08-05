@@ -57,3 +57,17 @@ func (m *CwfSubscriberDirectoryRecord) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *CarrierWifiNetworkClusterStatus) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *CarrierWifiGatewayHealthStatus) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

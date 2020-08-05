@@ -13,9 +13,6 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {lte_gateway} from '@fbcnms/magma-api';
-
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
@@ -23,6 +20,8 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
+import GatewayContext from '../../components/context/GatewayContext';
+import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
@@ -46,10 +45,9 @@ import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
-import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
+import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -101,27 +99,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export function GatewayDetail({
-  lteGateways,
-  enbInfo,
-}: {
-  lteGateways: {[string]: lte_gateway},
-  enbInfo: {[string]: EnodebInfo},
-}) {
+export function GatewayDetail() {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const [gwInfo, setGwInfo] = useState(lteGateways[gatewayId]);
-  const gwEnbs =
-    gwInfo.connected_enodeb_serials?.reduce(
-      (enbs: {[string]: EnodebInfo}, serial: string) => {
-        if (enbInfo[serial]) {
-          enbs[serial] = enbInfo[serial];
-        }
-        return enbs;
-      },
-      {},
-    ) || {};
+  const gwCtx = useContext(GatewayContext);
 
   return (
     <>
@@ -206,41 +188,20 @@ export function GatewayDetail({
       <Switch>
         <Route
           path={relativePath('/config/json')}
-          render={() => (
-            <GatewayJsonConfig
-              gwInfo={gwInfo}
-              onSave={gateway => {
-                setGwInfo(gateway);
-              }}
-            />
-          )}
+          component={GatewayJsonConfig}
         />
-        <Route
-          path={relativePath('/config')}
-          render={() => (
-            <GatewayConfig
-              gwInfo={gwInfo}
-              enbInfo={gwEnbs}
-              onSave={gateway => {
-                setGwInfo(gateway);
-              }}
-            />
-          )}
-        />
+        <Route path={relativePath('/config')} component={GatewayConfig} />
         <Route
           path={relativePath('/event')}
           render={() => (
             <EventsTable
-              eventTypes={magmaEventTypes.GATEWAY}
-              eventKey={gwInfo.device.hardware_id}
+              eventStream="GATEWAY"
+              tags={gwCtx.state[gatewayId].device.hardware_id}
               sz="lg"
             />
           )}
         />
-        <Route
-          path={relativePath('/overview')}
-          render={() => <GatewayOverview gwInfo={gwInfo} enbInfo={gwEnbs} />}
-        />
+        <Route path={relativePath('/overview')} component={GatewayOverview} />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
@@ -248,10 +209,12 @@ export function GatewayDetail({
   );
 }
 
-function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
+function GatewayOverview() {
   const classes = useStyles();
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
+  const ctx = useContext(GatewayContext);
+  const gwInfo = ctx.state[gatewayId];
 
   return (
     <div className={classes.dashboardRoot}>
@@ -265,8 +228,8 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
             <Grid item xs={12} alignItems="center">
               <CardTitleRow icon={MyLocationIcon} label="Events" />
               <EventsTable
-                eventTypes={magmaEventTypes.GATEWAY}
-                eventKey={gwInfo.device.hardware_id}
+                eventStream="GATEWAY"
+                tags={gwInfo.device.hardware_id}
                 sz="sm"
               />
             </Grid>
@@ -283,9 +246,7 @@ function GatewayOverview({gwInfo}: {gwInfo: lte_gateway}) {
                 icon={SettingsInputAntennaIcon}
                 label="Connected eNodeBs"
               />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Connected eNodeB Information</Text>
-              </Paper>
+              <GatewayDetailEnodebs gwInfo={gwInfo} />
             </Grid>
             <Grid item>
               <CardTitleRow icon={PeopleIcon} label="Subscribers" />
