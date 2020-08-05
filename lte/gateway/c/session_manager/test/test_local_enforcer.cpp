@@ -60,11 +60,10 @@ class LocalEnforcerTest : public ::testing::Test {
   virtual void TearDown() { folly::EventBaseManager::get()->clearEventBase(); }
 
   void initialize_lte_test_config() {
-    test_cfg_.spgw_ipv4 = "128.0.0.1";
     build_common_context(
         "", "127.0.0.1", "IMS", "", TGPP_LTE, &test_cfg_.common_context);
     build_lte_context(
-        "128.0.0.1", "", "", "",
+        "128.0.0.1", "", "", "", "", 0, nullptr,
         test_cfg_.rat_specific_context.mutable_lte_context());
   }
 
@@ -1444,15 +1443,15 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
 }
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
-  QoSInfo test_qos_info;
-  test_qos_info.enabled = true;
-  test_qos_info.qci     = 0;
+  QosInformationRequest test_qos_info;
+  test_qos_info.set_qos_class_id(0);
 
   SessionConfig test_volte_cfg;
   build_common_context(
       "", "127.0.0.1", "", "IMS", TGPP_LTE, &test_volte_cfg.common_context);
-  test_volte_cfg.bearer_id = 1;
-  test_volte_cfg.qos_info  = test_qos_info;
+  build_lte_context(
+      "", "", "", "", "", 1, &test_qos_info,
+      test_volte_cfg.rat_specific_context.mutable_lte_context());
 
   CreateSessionResponse response;
   local_enforcer->init_session_credit(

@@ -30,11 +30,17 @@ void build_common_context(
 void build_lte_context(
     const std::string& spgw_ipv4, const std::string& imei,
     const std::string& plmn_id, const std::string& imsi_plmn_id,
-    LTESessionContext* lte_context) {
+    const std::string& user_location, uint32_t bearer_id,
+    QosInformationRequest* qos_info, LTESessionContext* lte_context) {
   lte_context->set_spgw_ipv4(spgw_ipv4);
   lte_context->set_imei(imei);
   lte_context->set_plmn_id(plmn_id);
   lte_context->set_imsi_plmn_id(imsi_plmn_id);
+  lte_context->set_user_location(user_location);
+  lte_context->set_bearer_id(bearer_id);
+  if (qos_info != nullptr) {
+    lte_context->mutable_qos_info()->CopyFrom(*qos_info);
+  }
 }
 
 void build_wlan_context(

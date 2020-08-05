@@ -1742,17 +1742,22 @@ void LocalEnforcer::create_bearer(
     const PolicyReAuthRequest& request,
     const std::vector<PolicyRule>& dynamic_rules) {
   auto config = session->get_config();
-  if (!activate_success || !config.qos_info.enabled ||
+  if (!config.rat_specific_context.has_lte_context()) {
+    MLOG(MWARNING) << "No LTE Session Context is specified for session";
+    return;
+  }
+  auto lte_context = config.rat_specific_context.lte_context();
+  if (!activate_success || !lte_context.has_qos_info() ||
       !request.has_qos_info()) {
     MLOG(MDEBUG) << "Not creating bearer";
     return;
   }
-  auto default_qci = QCI(config.qos_info.qci);
+  auto default_qci = QCI(lte_context.qos_info().qos_class_id());
   if (request.qos_info().qci() != default_qci) {
     MLOG(MDEBUG) << "QCI sent in RAR is different from default QCI";
     spgw_client_->create_dedicated_bearer(
-        request.imsi(), config.common_context.ue_ipv4(), config.bearer_id,
-        dynamic_rules);
+        request.imsi(), config.common_context.ue_ipv4(),
+        lte_context.bearer_id(), dynamic_rules);
   }
   return;
 }

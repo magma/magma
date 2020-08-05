@@ -121,11 +121,6 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   std::string mac_addr = "0f:10:2e:12:3a:55";
   auto sid             = id_gen_.gen_session_id(imsi);
   SessionConfig cfg    = {
-      .spgw_ipv4         = "",
-      .imei              = "",
-      .plmn_id           = "",
-      .imsi_plmn_id      = "",
-      .user_location     = "",
       .mac_addr          = mac_addr,
       .hardware_addr     = hardware_addr_bytes,
       .radius_session_id = radius_session_id};
@@ -198,14 +193,10 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   std::string imsi   = "IMSI1";
   std::string msisdn = "5100001234";
   auto sid           = id_gen_.gen_session_id(imsi);
-  SessionConfig cfg  = {
-      .spgw_ipv4    = "spgw_ip",
-      .imei         = "imei",
-      .plmn_id      = "plmn_id",
-      .imsi_plmn_id = "imsi_plmn_id"};
+  SessionConfig cfg;
   build_common_context(imsi, "", "apn1", msisdn, TGPP_LTE, &cfg.common_context);
   build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id",
+      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr,
       cfg.rat_specific_context.mutable_lte_context());
 
   response.set_session_id(sid);
@@ -243,7 +234,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   build_common_context(
       imsi, "", "apn1", msisdn, TGPP_LTE, request.mutable_common_context());
   build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id",
+      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr,
       request.mutable_rat_specific_context()->mutable_lte_context());
 
   // Ensure session is not reported as its a duplicate
@@ -282,7 +273,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
       imsi, "", "apn1", msisdn + "magma :)", TGPP_LTE,
       request2.mutable_common_context());
   build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id",
+      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr,
       request2.mutable_rat_specific_context()->mutable_lte_context());
 
   // Ensure a create session for the new session is sent, the old one is
@@ -356,11 +347,6 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
       "0F-10-2E-12-3A-55";
   auto sid          = id_gen_.gen_session_id(imsi);
   SessionConfig cfg = {
-      .spgw_ipv4         = "",
-      .imei              = "",
-      .plmn_id           = "",
-      .imsi_plmn_id      = "",
-      .user_location     = "",
       .mac_addr          = "0f:10:2e:12:3a:55",
       .hardware_addr     = hardware_addr_bytes,
       .radius_session_id = radius_session_id};
@@ -414,11 +400,6 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   std::string mac_addr = "0f:10:2e:12:3a:55";
   auto sid          = id_gen_.gen_session_id(imsi);
   SessionConfig cfg = {
-      .spgw_ipv4         = "",
-      .imei              = "",
-      .plmn_id           = "",
-      .imsi_plmn_id      = "",
-      .user_location     = "",
       .mac_addr          = mac_addr,
       .hardware_addr     = hardware_addr_bytes,
       .radius_session_id = radius_session_id};
