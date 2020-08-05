@@ -364,7 +364,7 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   insert_static_rule(2, "", "rule3");
 
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+  local_enforcer->terminate_session(session_map, "IMSI1", "IMS", update);
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
@@ -548,7 +548,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
       *reporter,
       report_terminate_session(CheckTerminateRequestCount("IMSI1", 0, 2), _))
       .Times(1);
-  local_enforcer->terminate_subscriber(
+  local_enforcer->terminate_session(
       session_map, "IMSI1", test_cfg.apn, update);
 
   RuleRecordTable empty_table;
@@ -603,7 +603,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
 
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
   // Collecting terminations should key 1 anyways during reporting
-  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+  local_enforcer->terminate_session(session_map, "IMSI1", "IMS", update);
 
   EXPECT_CALL(
       *reporter,
@@ -1002,7 +1002,7 @@ TEST_F(LocalEnforcerTest, test_all) {
       1024);
 
   // Terminate IMSI1
-  local_enforcer->terminate_subscriber(session_map, "IMSI1", "IMS", update);
+  local_enforcer->terminate_session(session_map, "IMSI1", "IMS", update);
 
   EXPECT_CALL(
       *reporter,
@@ -1100,6 +1100,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rules) {
 
 TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   CreateSessionResponse response;
+  // with final action = terminate
   create_credit_update_response(
       "IMSI1", 1, 1024, true, response.mutable_credits()->Add());
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
@@ -1107,15 +1108,21 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   policy_rule->set_id("rule2");
   policy_rule->set_rating_group(1);
   policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  auto static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("rule1");
+  static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("rule3");
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule3");
 
+  // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(0), CheckCount(1), testing::_))
+          testing::_, testing::_, CheckCount(2), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
+
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cfg, response);
 

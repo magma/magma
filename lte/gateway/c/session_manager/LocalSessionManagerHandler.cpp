@@ -483,7 +483,7 @@ void LocalSessionManagerHandlerImpl::end_session(
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   try {
     auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_subscriber(session_map, sid.id(), apn, update);
+    enforcer_->terminate_session(session_map, sid.id(), apn, update);
 
     bool update_success = session_store_.update_sessions(update);
     if (update_success) {

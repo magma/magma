@@ -134,4 +134,17 @@ std::string raa_result_to_str(ReAuthResult res) {
       return "UNKNOWN_RESULT";
   }
 }
+
+std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state) {
+  switch (state) {
+    case SubscriberQuotaUpdate_Type_VALID_QUOTA:
+      return "VALID_QUOTA";
+    case SubscriberQuotaUpdate_Type_NO_QUOTA:
+      return "NO_QUOTA";
+    case SubscriberQuotaUpdate_Type_TERMINATE:
+      return "TERMINATE";
+    default:
+      return "INVALID";
+  }
+}
 }  // namespace magma

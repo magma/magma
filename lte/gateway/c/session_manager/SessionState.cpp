@@ -1004,6 +1004,7 @@ void SessionState::get_charging_updates(
         action->set_credit_key(key);
         action->set_imsi(imsi_);
         action->set_ip_addr(config_.ue_ipv4);
+        action->set_session_id(session_id_);
         static_rules_.get_rule_ids_for_charging_key(
             key, *action->get_mutable_rule_ids());
         dynamic_rules_.get_rule_definitions_for_charging_key(
