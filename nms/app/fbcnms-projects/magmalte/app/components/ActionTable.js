@@ -193,6 +193,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
               if (item.handleFunc) {
                 item.handleFunc();
               }
+              handleClose();
             }}>
             {item.name}
           </MenuItem>

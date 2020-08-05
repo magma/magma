@@ -15,6 +15,7 @@
  */
 import 'jest-dom/extend-expect';
 import Gateway from '../EquipmentGateway';
+import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -138,10 +139,17 @@ describe('<Gateway />', () => {
     <MemoryRouter initialEntries={['/nms/mynetwork/gateway']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route
-            path="/nms/:networkId/gateway/"
-            render={props => <Gateway {...props} lteGateways={lteGateways} />}
-          />
+          <GatewayContext.Provider
+            value={{
+              state: lteGateways,
+              setState: async _ => {},
+              updateGateway: async _ => {},
+            }}>
+            <Route
+              path="/nms/:networkId/gateway/"
+              render={props => <Gateway {...props} lteGateways={lteGateways} />}
+            />
+          </GatewayContext.Provider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>

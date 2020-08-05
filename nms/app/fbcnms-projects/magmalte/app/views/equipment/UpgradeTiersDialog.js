@@ -145,10 +145,10 @@ function UpgradeDetails(props: DialogProps) {
   const [updatedTierEntries, setUpdatedTierEntries] = useState(new Set());
   const [removedTierEntries, setRemovedTierEntries] = useState(new Set());
   const [tierEntries, setTierEntries] = useState(
-    Object.keys(ctx.tiers).map(tierId => ({
+    Object.keys(ctx.state.tiers).map(tierId => ({
       id: tierId,
-      name: ctx.tiers[tierId].name,
-      version: ctx.tiers[tierId].version,
+      name: ctx.state.tiers[tierId].name,
+      version: ctx.state.tiers[tierId].version,
     })),
   );
   const saveTier = async () => {
@@ -157,8 +157,8 @@ function UpgradeDetails(props: DialogProps) {
         continue;
       }
       try {
-        await ctx.updateTier(tier.id, {
-          ...(ctx.tiers[tier.id] ?? {gateways: [], images: []}),
+        await ctx.setState(tier.id, {
+          ...(ctx.state.tiers[tier.id] ?? {gateways: [], images: []}),
           ...tier,
         });
       } catch (e) {
@@ -170,7 +170,7 @@ function UpgradeDetails(props: DialogProps) {
 
     for (const tierId of removedTierEntries) {
       try {
-        await ctx.removeTier(tierId);
+        await ctx.setState(tierId);
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         setError('error removing ' + tierId + ' : ' + errMsg);
@@ -221,7 +221,7 @@ function UpgradeDetails(props: DialogProps) {
                   {...props}
                   defaultValue={props.value}
                   value={props.value}
-                  content={ctx.supportedVersions}
+                  content={ctx.state.supportedVersions}
                   onChange={value => props.onChange(value)}
                 />
               ),
@@ -276,8 +276,8 @@ function UpgradeDetails(props: DialogProps) {
 function SupportedVersions() {
   const [open, setOpen] = useState(false);
   const ctx = useContext(GatewayTierContext);
-  const newVersions = ctx.supportedVersions.slice(0, 10);
-  const olderVersion = ctx.supportedVersions.slice(10);
+  const newVersions = ctx.state.supportedVersions.slice(0, 10);
+  const olderVersion = ctx.state.supportedVersions.slice(10);
   return newVersions.length > 0 ? (
     <DialogContent>
       <List component={Paper}>

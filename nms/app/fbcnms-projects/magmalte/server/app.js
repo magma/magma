@@ -39,7 +39,6 @@ const connectSession = require('connect-session-sequelize');
 const express = require('express');
 const passport = require('passport');
 const path = require('path');
-const paths = require('@fbcnms/webpack-config/paths');
 const fbcPassport = require('@fbcnms/auth/passport').default;
 const session = require('express-session');
 const {sequelize} = require('@fbcnms/sequelize-models');
@@ -96,7 +95,7 @@ app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,
     devWebpackConfig: require('../config/webpack.config.js'),
-    distPath: paths.distPath,
+    distPath: require('../config/paths').distPath,
   }),
 );
 app.use('/user', require('@fbcnms/auth/express').unprotectedUserRoutes());

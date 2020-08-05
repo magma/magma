@@ -35,7 +35,7 @@ class SessionCredit {
 
   SessionCredit(ServiceState start_state, CreditLimitType limit_type);
 
-  static SessionCredit unmarshal(const StoredSessionCredit& marshaled);
+  SessionCredit(const StoredSessionCredit &marshaled);
 
   StoredSessionCredit marshal();
 

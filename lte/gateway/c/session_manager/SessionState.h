@@ -377,8 +377,7 @@ class SessionState {
                       uint64_t used_rx, SessionStateUpdateCriteria &uc);
 
   void set_monitor(
-    const std::string &key, std::unique_ptr<Monitor> monitor,
-    SessionStateUpdateCriteria &uc);
+      const std::string& key, Monitor monitor, SessionStateUpdateCriteria& uc);
 
   bool reset_reporting_monitor(
     const std::string &key, SessionStateUpdateCriteria &uc);

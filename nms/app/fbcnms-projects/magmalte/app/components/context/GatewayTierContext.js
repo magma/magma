@@ -13,16 +13,18 @@
  * @flow strict-local
  * @format
  */
-import type {gateway_id, tier, tier_id} from '@fbcnms/magma-api';
+import type {tier, tier_id} from '@fbcnms/magma-api';
 
 import React from 'react';
 
-export type GatewayTierContextType = {
+type GatewayTierState = {
   tiers: {[string]: tier},
   supportedVersions: Array<string>,
-  updateTier: (key: string, val: tier) => Promise<void>,
-  removeTier: (key: string) => Promise<void>,
-  updateGatewayTier: (gatewayId: gateway_id, tierId: tier_id) => Promise<void>,
+};
+
+export type GatewayTierContextType = {
+  state: GatewayTierState,
+  setState: (key: tier_id, val?: tier) => Promise<void>,
 };
 
 export default React.createContext<GatewayTierContextType>({});
