@@ -111,6 +111,8 @@ s1aptests/test_multi_enb_complete_reset.py \
 s1aptests/test_multi_enb_sctp_shutdown.py \
 s1aptests/test_x2_handover.py \
 s1aptests/test_x2_handover_ping_pong.py \
+s1aptests/test_attach_mobile_reachability_timer_expiry.py \
+s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
