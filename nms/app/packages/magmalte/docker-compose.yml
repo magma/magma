@@ -28,13 +28,13 @@ services:
   magmalte:
     build:
       context: ../..
-      dockerfile: fbcnms-projects/magmalte/Dockerfile
+      dockerfile: packages/magmalte/Dockerfile
     command: "/usr/local/bin/wait-for-it.sh -s -t 30 mariadb:3306 -- yarn run start:dev"
     volumes:
-      - ../../fbcnms-packages:/usr/src/fbcnms-packages      
-      - ../../fbcnms-projects/magmalte/app:/usr/src/fbcnms-projects/magmalte/app
-      - ../../fbcnms-projects/magmalte/scripts:/usr/src/fbcnms-projects/magmalte/scripts
-      - ../../fbcnms-projects/magmalte/server:/usr/src/fbcnms-projects/magmalte/server
+      - ../../packages/fbcnms-magma-api:/usr/src/packages/fbcnms-magma-api
+      - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
+      - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
+      - ../../packages/magmalte/server:/usr/src/packages/magmalte/server
     depends_on:
       - mariadb
     networks:

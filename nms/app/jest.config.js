@@ -15,14 +15,10 @@
 
 module.exports = {
   collectCoverageFrom: [
-    '**/fbcnms-projects/**/*.js',
-    '**/fbcnms-packages/**/*.js',
+    '**/packages/**/*.js',
     '!**/__mocks__/**',
     '!**/__tests__/**',
-    '!**/fbcnms-packages/fbcnms-ui/stories/**',
-    '!**/thrift/gen-nodejs/**',
     '!**/node_modules/**',
-    '!**/fbcnms-packages/fbcnms-test/**',
   ],
 
   coverageReporters: ['json', 'html'],
@@ -33,14 +29,9 @@ module.exports = {
       testEnvironment: 'node',
       testMatch: [
         '<rootDir>/__tests__/*.js',
-        '<rootDir>/fbcnms-projects/**/server/**/__tests__/*.js',
-        '<rootDir>/fbcnms-packages/fbcnms-auth/**/__tests__/*.js',
-        '<rootDir>/fbcnms-packages/fbcnms-express-middleware/**/__tests__/*.js',
-        '<rootDir>/fbcnms-packages/fbcnms-platform-server/**/__tests__/*.js',
-        '<rootDir>/fbcnms-projects/platform-server/**/__tests__/*.js',
+        '<rootDir>/packages/**/server/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
-        '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
-        '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
+        '<rootDir>/packages/**/shared/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
@@ -57,13 +48,9 @@ module.exports = {
       setupFiles: [require.resolve('@fbcnms/babel-register/polyfill')],
       testEnvironment: 'jsdom',
       testMatch: [
-        '<rootDir>/fbcnms-projects/**/app/**/__tests__/*.js',
-        '<rootDir>/fbcnms-packages/fbcnms-ui/**/__tests__/*.js',
-        '<rootDir>/fbcnms-packages/fbcnms-alarms/(components|hooks)/__tests__/*.js',
+        '<rootDir>/packages/**/app/**/__tests__/*.js',
         // run app/server shared tests in both node and jsdom environments
-        '<rootDir>/fbcnms-packages/fbcnms-util/**/__tests__/*.js',
-        '<rootDir>/fbcnms-packages/fbcnms-mobileapp/**/__tests__/*.js',
-        '<rootDir>/fbcnms-projects/**/shared/**/__tests__/*.js',
+        '<rootDir>/packages/**/shared/**/__tests__/*.js',
       ],
       transform: {
         '^.+\\.js$': 'babel-jest',
