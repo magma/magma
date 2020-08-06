@@ -21,6 +21,8 @@ lte/gateway/release @kkahrs
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
 
-nms/ @karthiksubraveti @andreilee @xjtian @Scott8440
+lte/cloud/go/protos @magma/entire-org
+
+nms/ @karthiksubraveti @andreilee @xjtian
 
 CODEOWNERS @xjtian @amarpad
