@@ -824,6 +824,9 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
       - run:
+          name: Load openvswitch kernel module for xwf integ test
+          command: sudo modprobe openvswitch
+      - run:
           name: Build xwfm-integ-tests
           command: |
             cd ${MAGMA_ROOT}
