@@ -280,61 +280,52 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			},
 		},
 	}
-
 	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, models2.DHCPBroadcastAllocationMode, false)
-	err = builder.Build("n1", "gw1", graph, nw, actual)
-	assert.NoError(t, err)
-
-	expected["mobilityd"] = &mconfig.MobilityD{
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, false)
+	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
-		IpAllocatorType: mconfig.MobilityD_DHCP,
+		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: false,
 	}
-
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, models2.NATAllocationMode, false)
-	err = builder.Build("n1", "gw1", graph, nw, actual)
-	assert.NoError(t, err)
-
-	expected["mobilityd"] = &mconfig.MobilityD{
+	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, false)
+	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
-		IpAllocatorType: mconfig.MobilityD_IP_POOL,
+		IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 		StaticIpEnabled: false,
 	}
-
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, models2.NATAllocationMode, true)
-	err = builder.Build("n1", "gw1", graph, nw, actual)
-	assert.NoError(t, err)
-
-	expected["mobilityd"] = &mconfig.MobilityD{
+	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, true)
+	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
-		IpAllocatorType: mconfig.MobilityD_IP_POOL,
+		IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 		StaticIpEnabled: true,
 	}
-
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, models2.DHCPBroadcastAllocationMode, true)
-	err = builder.Build("n1", "gw1", graph, nw, actual)
-	assert.NoError(t, err)
-
-	expected["mobilityd"] = &mconfig.MobilityD{
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true)
+	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
-		IpAllocatorType: mconfig.MobilityD_DHCP,
+		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: true,
 	}
-
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 }
@@ -666,8 +657,8 @@ func setEPCNetworkServices(services []string, nw *configurator.Network) {
 
 func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool) {
 	inwConfig := nw.Configs[lte.CellularNetworkType]
-	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
-	cellularNwConfig.Epc.Mobility = &models2.NetworkEpcConfigsMobility{
+	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
+	cellularNwConfig.Epc.Mobility = &lte_models.NetworkEpcConfigsMobility{
 		IPAllocationMode:          mode,
 		EnableStaticIPAssignments: static_ip,
 	}

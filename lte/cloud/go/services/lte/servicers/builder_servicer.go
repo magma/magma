@@ -374,18 +374,18 @@ func getSubProfiles(epc *lte_models.NetworkEpcConfigs) map[string]*mconfig.Subsc
 	return ret
 }
 
-func getMobilityDIPAllocator(epc *models2.NetworkEpcConfigs) mconfig.MobilityD_IpAllocatorType {
+func getMobilityDIPAllocator(epc *lte_models.NetworkEpcConfigs) mconfig.MobilityD_IpAllocatorType {
 	if epc.Mobility == nil {
 		return mconfig.MobilityD_IP_POOL
 	}
-	if epc.Mobility.IPAllocationMode == models2.DHCPBroadcastAllocationMode {
+	if epc.Mobility.IPAllocationMode == lte_models.DHCPBroadcastAllocationMode {
 		return mconfig.MobilityD_DHCP
 	}
-	// for other modes set IP pool allocator.
+	// For other modes set IP pool allocator
 	return mconfig.MobilityD_IP_POOL
 }
 
-func getMobilityDStaticIPAllocation(epc *models2.NetworkEpcConfigs) bool {
+func getMobilityDStaticIPAllocation(epc *lte_models.NetworkEpcConfigs) bool {
 	if epc.Mobility == nil {
 		return false
 	}

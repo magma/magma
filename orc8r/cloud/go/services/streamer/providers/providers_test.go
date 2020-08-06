@@ -32,7 +32,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
-	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/mock"
 	assert "github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -43,29 +42,14 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	streamer_test_init.StartTestService(t)
 	orchestrator_test_init.StartTestServiceInternal(t, nil, nil, servicers.NewProviderServicer())
 
-	// TODO(8/5/20): revert below (remove next two paragraphs, uncomment replacements) once we send proto descriptors from mconfig_builders
-
 	msg := &test_protos.Message1{Field: "hello"}
 	msgAny, err := ptypes.MarshalAny(msg)
 	assert.NoError(t, err)
-	msgJSON, err := protos.MarshalJSON(msgAny)
-	assert.NoError(t, err)
-	outAny, err := ptypes.MarshalAny(&wrappers.BytesValue{Value: msgJSON})
-	assert.NoError(t, err)
-	out := mconfig.ConfigsByKey{"new_builder": outAny}
+	out := mconfig.ConfigsByKey{"new_builder": msgAny}
 
 	mockBuilder := &mocks.Builder{}
 	mockBuilder.On("Build", mock.Anything, mock.Anything, "gw1").Return(out, nil)
 	configurator_test_init.StartNewTestBuilder(t, mockBuilder)
-
-	//msg := &test_protos.Message1{Field: "hello"}
-	//msgAny, err := ptypes.MarshalAny(msg)
-	//assert.NoError(t, err)
-	//out := mconfig.ConfigsByKey{"new_builder": msgAny}
-	//
-	//mockBuilder := &mocks.Builder{}
-	//mockBuilder.On("Build", mock.Anything, mock.Anything, "gw1").Return(out, nil)
-	//configurator_test_init.StartNewTestBuilder(t, mockBuilder)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
