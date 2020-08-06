@@ -164,7 +164,7 @@ class SessionCredit {
 
   void apply_reporting_limits(SessionCredit::Usage& usage);
 
-  uint64_t calculate_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor);
+  uint64_t calculate_delta_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor);
 };
 
 }  // namespace magma

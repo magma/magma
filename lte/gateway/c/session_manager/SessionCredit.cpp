@@ -112,12 +112,16 @@ void SessionCredit::receive_credit(
 
   // Floor represent the previous value of ALLOWED counters before grant is applied
   // They will only be updated if a valid grant is received
-  buckets_[ALLOWED_FLOOR_TOTAL] =
-      calculate_allowed_floor(gsu.total(), ALLOWED_TOTAL, ALLOWED_FLOOR_TOTAL);
-  buckets_[ALLOWED_FLOOR_TX] =
-      calculate_allowed_floor(gsu.total(), ALLOWED_TX, ALLOWED_FLOOR_TX);
-  buckets_[ALLOWED_FLOOR_RX] =
-      calculate_allowed_floor(gsu.total(), ALLOWED_RX, ALLOWED_FLOOR_RX);
+  uint64_t delta_allowed_floor_total =
+      calculate_delta_allowed_floor(gsu.total(), ALLOWED_TOTAL, ALLOWED_FLOOR_TOTAL);
+  uint64_t delta_allowed_floor_tx =
+      calculate_delta_allowed_floor(gsu.total(), ALLOWED_TX, ALLOWED_FLOOR_TX);
+  uint64_t delta_allowed_floor_rx =
+      calculate_delta_allowed_floor(gsu.total(), ALLOWED_RX, ALLOWED_FLOOR_RX);
+
+  buckets_[ALLOWED_FLOOR_TOTAL] +=  delta_allowed_floor_total;
+  buckets_[ALLOWED_FLOOR_TX] +=     delta_allowed_floor_tx;
+  buckets_[ALLOWED_FLOOR_RX] +=     delta_allowed_floor_rx;
 
   // Clear invalid values
   uint64_t total_volume = gsu.total().is_valid() ? gsu.total().volume() : 0;
@@ -150,21 +154,27 @@ void SessionCredit::receive_credit(
     uc->bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
     uc->bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
 
-    uc->bucket_deltas[ALLOWED_FLOOR_TOTAL] = buckets_[ALLOWED_FLOOR_TOTAL];
-    uc->bucket_deltas[ALLOWED_FLOOR_TX] = buckets_[ALLOWED_FLOOR_TX];
-    uc->bucket_deltas[ALLOWED_FLOOR_RX] = buckets_[ALLOWED_FLOOR_RX];
+    uc->bucket_deltas[ALLOWED_FLOOR_TOTAL] += delta_allowed_floor_total;
+    uc->bucket_deltas[ALLOWED_FLOOR_TX] += delta_allowed_floor_tx;
+    uc->bucket_deltas[ALLOWED_FLOOR_RX] += delta_allowed_floor_rx;
   }
 
   reset_reporting_credit(uc);
   log_quota_and_usage();
 }
 
-uint64_t SessionCredit::calculate_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor){
+uint64_t SessionCredit::calculate_delta_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor){
   if (cu.is_valid() && cu.volume() !=0 ) {
     // only advance floor when there is a new grant
-    return buckets_[allowed];
+    if (buckets_[allowed]<buckets_[floor]){
+      MLOG(MERROR) << "Error in calculate_delta_allowed_floor, "
+                      "floor bigger than allowed "
+                   << buckets_[floor] << ">" << buckets_[allowed];
+      return 0;
+    }
+    return buckets_[allowed]-buckets_[floor];
   }
-  return buckets_[floor];
+  return 0;
 }
 
 bool SessionCredit::is_quota_exhausted(float threshold) const {
