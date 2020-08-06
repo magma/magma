@@ -22,7 +22,7 @@ from ipaddress import ip_address, ip_network
 from typing import List, Set, MutableMapping
 from threading import Condition
 
-from magma.mobilityd.ip_descriptor import IPState, IPDesc
+from magma.mobilityd.ip_descriptor import IPState, IPDesc, IPType
 
 from .ip_descriptor_map import IpDescriptorMap
 from .ip_allocator_base import IPAllocator, NoAvailableIPError
@@ -120,7 +120,8 @@ class IPAllocatorDHCP(IPAllocator):
 
         if dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
-            ip_desc = IPDesc(ip_address(dhcp_desc.ip), IPState.ALLOCATED, sid, ip_block)
+            ip_desc = IPDesc(ip=ip_address(dhcp_desc.ip), state=IPState.ALLOCATED,
+                             sid=sid, ip_block=ip_block, ip_type=IPType.DHCP)
             LOG.debug("Got IP after sending DHCP requests: %s", ip_desc)
             self._assigned_ip_blocks.add(ip_block)
 

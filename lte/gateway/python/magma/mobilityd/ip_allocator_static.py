@@ -24,7 +24,7 @@ from ipaddress import ip_address, ip_network
 from typing import List, Set
 
 from copy import deepcopy
-from magma.mobilityd.ip_descriptor import IPDesc, IPState
+from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from .ip_descriptor_map import IpDescriptorMap
 from .ip_allocator_base import IPAllocator, NoAvailableIPError, \
     IPBlockNotFoundError, OverlappedIPBlocksError
@@ -71,7 +71,7 @@ class IpAllocatorStatic(IPAllocator):
             state = IPState.RESERVED if num_reserved_addresses > 0 \
                 else IPState.FREE
             ip_desc = IPDesc(ip=ip, state=state,
-                             ip_block=ipblock, sid=None)
+                             ip_block=ipblock, sid=None, ip_type=IPType.IP_POOL)
             self._ip_state_map.add_ip_to_state(ip, ip_desc, state)
             if num_reserved_addresses > 0:
                 num_reserved_addresses -= 1
