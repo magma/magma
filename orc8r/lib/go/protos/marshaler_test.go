@@ -44,7 +44,8 @@ var marshaledSrc = `{
    "enableCaching": false,
    "localTTL": 0,
    "records": [
-   ]
+   ],
+   "dhcpServerEnabled": true
   },
   "eap_aka": {
    "@type": "type.googleapis.com/magma.mconfig.EapAkaConfig",
