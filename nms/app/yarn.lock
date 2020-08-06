@@ -5372,10 +5372,10 @@ eslint-import-resolver-node@^0.3.3:
     debug "^2.6.9"
     resolve "^1.13.1"
 
-eslint-mdx@^1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/eslint-mdx/-/eslint-mdx-1.7.1.tgz#616c6f39025c2beb55a24f0c4ce94949e1288134"
-  integrity sha512-xcwxSopOn1LWn2lJyIkpT3osdSpqHdtLsC5ovNfY6QNlaBN8UZ+yT14XgmqURKqqGKwSeLOgfRDsXKbupDoN9g==
+eslint-mdx@^1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/eslint-mdx/-/eslint-mdx-1.8.1.tgz#75316e06f0217627b3361e6968b0bc84cedfdced"
+  integrity sha512-SWxV/T/51v3zLvLJjgKJpyDuA/pyl1oTNhhXKJ2VbN/W1T7nsRFtWtTzywJbhJ21UytDDiRkJ5Z0wmRz17ilqw==
   dependencies:
     espree "^7.1.0"
     remark-mdx "^1.6.5"
@@ -5482,13 +5482,13 @@ eslint-plugin-lint@^1.0.0:
   resolved "https://registry.yarnpkg.com/eslint-plugin-lint/-/eslint-plugin-lint-1.0.0.tgz#bfc98ad0d1b5ea437b0072ec735c459df4d084b5"
   integrity sha512-hYl6F/lYLjycZmHYnpTk3dlliNxjy9breG/9URhdQmPZibmENjM378EPKvSdIDBOV+Zw/Z0d3EaJhLTjcWTovA==
 
-eslint-plugin-mdx@^1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-mdx/-/eslint-plugin-mdx-1.7.1.tgz#24693ec1c88e91da364ec209d99354085dfd1f4b"
-  integrity sha512-l8EzaTIYtgzUG0Tur2u0swPRFT73YbG7oQUP6qnMTHGXrqjO9aDF8lsMfDRyUPvLBJJJua0DFraCIvHyFPrPeg==
+eslint-plugin-mdx@^1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-mdx/-/eslint-plugin-mdx-1.8.1.tgz#203e906e0cc4c322d9a810d00beae1201a298d44"
+  integrity sha512-fo0I0M50xUGag247cAsI8YlOYmAsleLf1OnSbXugqtIMEBfIIl3H0+ZvdQNTmFfg9NqHnd+HBMbNmP8KJJ8luQ==
   dependencies:
     cosmiconfig "^6.0.0"
-    eslint-mdx "^1.7.1"
+    eslint-mdx "^1.8.1"
     eslint-plugin-react "^7.20.0"
     remark-mdx "^1.6.5"
     remark-parse "^8.0.2"
@@ -13170,18 +13170,7 @@ vfile-message@^2.0.0:
     "@types/unist" "^2.0.0"
     unist-util-stringify-position "^2.0.0"
 
-vfile@^4.0.0:
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/vfile/-/vfile-4.1.1.tgz#282d28cebb609183ac51703001bc18b3e3f17de9"
-  integrity sha512-lRjkpyDGjVlBA7cDQhQ+gNcvB1BGaTHYuSOcY3S7OhDmBtnzX95FhtZZDecSTDm6aajFymyve6S5DN4ZHGezdQ==
-  dependencies:
-    "@types/unist" "^2.0.0"
-    is-buffer "^2.0.0"
-    replace-ext "1.0.0"
-    unist-util-stringify-position "^2.0.0"
-    vfile-message "^2.0.0"
-
-vfile@^4.1.1:
+vfile@^4.0.0, vfile@^4.1.1:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/vfile/-/vfile-4.2.0.tgz#26c78ac92eb70816b01d4565e003b7e65a2a0e01"
   integrity sha512-a/alcwCvtuc8OX92rqqo7PflxiCgXRFjdyoGVuYV+qbgCb0GgZJRvIgCD4+U/Kl1yhaRsaTwksF88xbPyGsgpw==
