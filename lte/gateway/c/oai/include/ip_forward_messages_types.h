@@ -73,12 +73,16 @@ typedef struct {
 } itti_sgi_update_end_point_request_t;
 
 typedef struct {
-  SGIStatus_t status;   ///< Status of  endpoint creation (Failed = 0xFF or
-                        ///< Success = 0x0)
-  teid_t context_teid;  ///< Tunnel Endpoint Identifier S11
   teid_t sgw_S1u_teid;  ///< Tunnel Endpoint Identifier S1-U
   teid_t enb_S1u_teid;  ///< Tunnel Endpoint Identifier S1-U
   ebi_t eps_bearer_id;  ///< EPS bearer identifier
+} bearer_cxt_t;
+
+typedef struct {
+  teid_t context_teid;  ///< Tunnel Endpoint Identifier S11
+  SGIStatus_t status;   ///< Status of  endpoint creation (Failed = 0xFF or
+  uint8_t num_bearers;
+  bearer_cxt_t bearer_ctxt[BEARERS_PER_UE];
 } itti_sgi_update_end_point_response_t;
 
 typedef struct {
