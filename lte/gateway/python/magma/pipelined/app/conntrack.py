@@ -11,11 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from ryu.lib.packet import ether_types
+from ryu.ofproto.nicira_ext import ofs_nbits
+
 
 from .base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
 
 
 class ConntrackController(MagmaController):
@@ -87,7 +88,7 @@ class ConntrackController(MagmaController):
         actions = [parser.NXActionCT(
             flags=0x0,
             zone_src=None,
-            zone_ofs_nbits=0,
+            zone_ofs_nbits=ofs_nbits(14, 15),
             recirc_table=self.conntrack_scratch,
             alg=0,
             actions=[]
@@ -104,7 +105,7 @@ class ConntrackController(MagmaController):
         actions = [parser.NXActionCT(
             flags=0x1,
             zone_src=None,
-            zone_ofs_nbits=0,
+            zone_ofs_nbits=ofs_nbits(14, 15),
             recirc_table=self.connection_event_table,
             alg=0,
             actions=[]
@@ -113,15 +114,8 @@ class ConntrackController(MagmaController):
                             match, actions,
                             priority=flows.DEFAULT_PRIORITY)
 
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP)
         flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, inbound_match, [],
-            priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_table)
-        flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, outbound_match, [],
+            datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_table)
