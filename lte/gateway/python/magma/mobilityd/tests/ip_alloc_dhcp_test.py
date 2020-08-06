@@ -27,8 +27,7 @@ from unittest import mock
 from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.pipelined.bridge_util import BridgeTools
 from magma.mobilityd import mobility_store as store
-
-from magma.mobilityd.uplink_gw import UplinkGatewayInfo
+from magma.mobilityd.ip_descriptor import IPDesc, IPType, IPState
 
 from magma.mobilityd.mac import create_mac_from_sid
 from magma.mobilityd.dhcp_desc import DHCPState
@@ -119,9 +118,10 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         self.assertNotEqual(ip1, ip3)
         self.assertNotEqual(ip2, ip3)
         # release unallocated IP of SID
-        self._dhcp_allocator.ip_allocator.release_ip("IMSI033",
-                                                     ip3,
-                                                     ip_network("1.1.1.0/24"))
+        ip_unallocated = IPDesc(ip=ip3, state=IPState.ALLOCATED,
+               sid="IMSI033", ip_block=ip_network("1.1.1.0/24"),
+               ip_type=IPType.DHCP)
+        self._dhcp_allocator.ip_allocator.release_ip(ip_unallocated)
         self.assertEqual(self._dhcp_allocator.list_added_ip_blocks(),
                          [ip_network('192.168.128.0/24')])
 
