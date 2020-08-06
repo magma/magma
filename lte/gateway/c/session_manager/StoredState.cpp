@@ -17,6 +17,11 @@
 
 namespace magma {
 
+SessionConfig::SessionConfig(const LocalCreateSessionRequest& request) {
+  common_context = request.common_context();
+  rat_specific_context = request.rat_specific_context();
+}
+
 bool SessionConfig::operator==(const SessionConfig& config) const {
   auto common1 = common_context.SerializeAsString();
   auto common2 = config.common_context.SerializeAsString();
@@ -45,10 +50,6 @@ SessionStateUpdateCriteria get_default_update_criteria() {
 
 std::string serialize_stored_session_config(const SessionConfig& stored) {
   folly::dynamic marshaled       = folly::dynamic::object;
-  marshaled["mac_addr"]          = stored.mac_addr;
-  marshaled["hardware_addr"]     = stored.hardware_addr;
-  marshaled["radius_session_id"] = stored.radius_session_id;
-
   marshaled["common_context"] = stored.common_context.SerializeAsString();
   marshaled["rat_specific_context"] =
       stored.rat_specific_context.SerializeAsString();
@@ -62,10 +63,6 @@ SessionConfig deserialize_stored_session_config(const std::string& serialized) {
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored          = SessionConfig{};
-  stored.mac_addr      = marshaled["mac_addr"].getString();
-  stored.hardware_addr = marshaled["hardware_addr"].getString();
-  stored.radius_session_id = marshaled["radius_session_id"].getString();
-
   magma::lte::CommonSessionContext common_context;
   common_context.ParseFromString(marshaled["common_context"].getString());
   stored.common_context = common_context;

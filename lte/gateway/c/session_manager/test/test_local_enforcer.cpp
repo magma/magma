@@ -60,11 +60,11 @@ class LocalEnforcerTest : public ::testing::Test {
   virtual void TearDown() { folly::EventBaseManager::get()->clearEventBase(); }
 
   void initialize_lte_test_config() {
-    build_common_context(
-        "", "127.0.0.1", "IMS", "", TGPP_LTE, &test_cfg_.common_context);
-    build_lte_context(
-        "128.0.0.1", "", "", "", "", 0, nullptr,
-        test_cfg_.rat_specific_context.mutable_lte_context());
+    test_cfg_.common_context =
+        build_common_context("", "127.0.0.1", "IMS", "", TGPP_LTE);
+    const auto& lte_context =
+        build_lte_context("128.0.0.1", "", "", "", "", 0, nullptr);
+    test_cfg_.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   }
 
   void run_evb() {
@@ -183,8 +183,10 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
       .WillOnce(testing::Return(true));
 
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.mac_addr          = "00:00:00:00:00:00";
-  test_cwf_cfg.radius_session_id = "1234567";
+  const auto& mac_addr          = "00:00:00:00:00:00";
+  const auto& radius_session_id = "1234567";
+  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+  test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cwf_cfg, response);
@@ -851,12 +853,12 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   insert_static_rule(0, "m1", "rule3");
 
   SessionConfig test_cwf_cfg;
-  auto mac_addr          = "00:00:00:00:00:00";
-  auto radius_session_id = "1234567";
-  test_cwf_cfg.mac_addr = mac_addr;
-  test_cwf_cfg.radius_session_id = radius_session_id;
-build_common_context(
-"IMSI1", "", "", "", TGPP_WLAN, &test_cwf_cfg.common_context);
+  const auto& mac_addr          = "00:00:00:00:00:00";
+  const auto& radius_session_id = "1234567";
+  test_cwf_cfg.common_context =
+      build_common_context("IMSI1", "", "", "", TGPP_WLAN);
+  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+  test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cwf_cfg, response);
@@ -1447,11 +1449,11 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   test_qos_info.set_qos_class_id(0);
 
   SessionConfig test_volte_cfg;
-  build_common_context(
-      "", "127.0.0.1", "", "IMS", TGPP_LTE, &test_volte_cfg.common_context);
-  build_lte_context(
-      "", "", "", "", "", 1, &test_qos_info,
-      test_volte_cfg.rat_specific_context.mutable_lte_context());
+  test_volte_cfg.common_context =
+      build_common_context("", "127.0.0.1", "", "IMS", TGPP_LTE);
+  const auto& lte_context = build_lte_context("", "", "", "", "", 1, &test_qos_info);
+  test_volte_cfg.rat_specific_context.mutable_lte_context()->CopyFrom(
+      lte_context);
 
   CreateSessionResponse response;
   local_enforcer->init_session_credit(
@@ -1734,14 +1736,11 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
   auto static_rule = response.mutable_static_rules()->Add();
   static_rule->set_rule_id("rule2");
   SessionConfig test_cwf_cfg1;
-  build_common_context(
+  test_cwf_cfg1.common_context = build_common_context(
       "IMSI1", "127.0.0.1", "01-a1-20-c2-0f-bb:CWC_OFFLOAD", "msisdn1",
-      TGPP_WLAN, &test_cwf_cfg1.common_context);
-  build_wlan_context(
-      "11:22:00:00:22:11", "5555",
-      test_cwf_cfg1.rat_specific_context.mutable_wlan_context());
-  test_cwf_cfg1.mac_addr          = "11:22:00:00:22:11";
-  test_cwf_cfg1.radius_session_id = "5555";
+      TGPP_WLAN);
+  const auto& wlan = build_wlan_context("11:22:00:00:22:11", "5555");
+  test_cwf_cfg1.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cwf_cfg1, response);
 
@@ -1754,14 +1753,10 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
   policy_rule2->set_rating_group(1);
   policy_rule2->set_tracking_type(PolicyRule::ONLY_OCS);
   SessionConfig test_cwf_cfg2;
-  test_cwf_cfg2.mac_addr          = "00:00:00:00:00:02";
-  test_cwf_cfg2.radius_session_id = "5555";
-  build_common_context(
-      "IMSI2", "127.0.0.1", "03-21-00-02-00-20:Magma", "msisdn2", TGPP_WLAN,
-      &test_cwf_cfg2.common_context);
-  build_wlan_context(
-      "00:00:00:00:00:02", "5555",
-      test_cwf_cfg2.rat_specific_context.mutable_wlan_context());
+  test_cwf_cfg2.common_context = build_common_context(
+      "IMSI2", "127.0.0.1", "03-21-00-02-00-20:Magma", "msisdn2", TGPP_WLAN);
+  const auto& wlan2 = build_wlan_context("00:00:00:00:00:02", "5555");
+  test_cwf_cfg2.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan2);
   local_enforcer->init_session_credit(
       session_map, "IMSI2", "12345", test_cwf_cfg2, response2);
 
@@ -1859,13 +1854,10 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
   auto mac_addr          = "00:00:00:00:00:02";
   auto radius_session_id = "5555";
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.mac_addr          = mac_addr;
-  test_cwf_cfg.radius_session_id = radius_session_id;
-  build_common_context(
-      "IMSI1", "", apn, "msisdn", TGPP_WLAN, &test_cwf_cfg.common_context);
-  build_wlan_context(
-      mac_addr, radius_session_id,
-      test_cwf_cfg.rat_specific_context.mutable_wlan_context());
+  test_cwf_cfg.common_context =
+      build_common_context("IMSI1", "", apn, "msisdn", TGPP_WLAN);
+  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+  test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cwf_cfg, response);
@@ -1900,14 +1892,10 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
   auto mac_addr          = "00:00:00:00:00:02";
   auto radius_session_id = "5555";
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.mac_addr          = mac_addr;
-  test_cwf_cfg.radius_session_id = radius_session_id;
-  build_common_context(
-      "IMSI1", "127.0.0.1", apn, "msisdn", TGPP_WLAN,
-      &test_cwf_cfg.common_context);
-  build_wlan_context(
-      mac_addr, radius_session_id,
-      test_cwf_cfg.rat_specific_context.mutable_wlan_context());
+  test_cwf_cfg.common_context =
+      build_common_context("IMSI1", "127.0.0.1", apn, "msisdn", TGPP_WLAN);
+  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+  test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cwf_cfg, response);
