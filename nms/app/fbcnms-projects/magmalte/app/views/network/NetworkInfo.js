@@ -135,7 +135,7 @@ export function NetworkInfoEdit(props: EditProps) {
       try {
         const response = await axios.post('/nms/network/create', payload);
         if (response.data.success) {
-          enqueueSnackbar(`Network $networkInfo.name} successfully created`, {
+          enqueueSnackbar(`Network ${networkInfo.name} successfully created`, {
             variant: 'success',
           });
           props.onSave(networkInfo);

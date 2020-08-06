@@ -18,13 +18,17 @@ import AppContext from '@fbcnms/ui/context/AppContext';
 import Divider from '@material-ui/core/Divider';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkContext from './context/NetworkContext';
 import Popout from '@fbcnms/ui/components/Popout';
-import React, {useContext, useState} from 'react';
+import React, {useCallback, useContext, useState} from 'react';
 import SettingsEthernetIcon from '@material-ui/icons/SettingsEthernet';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import Tooltip from '@material-ui/core/Tooltip';
 import classNames from 'classnames';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
+import {NetworkEditDialog} from '../views/network/NetworkEdit';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
@@ -90,6 +94,15 @@ const NetworkSelector = () => {
   const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const appContext = useContext(AppContext);
+  const [networkIds, setNetworkIds] = useState([]);
+  const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
+  const [isNetworkAddOpen, setNetworkAddOpen] = useState(false);
+  useMagmaAPI(
+    MagmaV1API.getNetworks,
+    {},
+    useCallback(resp => setNetworkIds(resp), []),
+    lastRefreshTime,
+  );
 
   const {networkId} = useContext(NetworkContext);
   if (!networkId) {
@@ -97,55 +110,66 @@ const NetworkSelector = () => {
   }
 
   return (
-    <Popout
-      open={isMenuOpen}
-      content={
-        <List component="nav" className={classes.networksList}>
-          {appContext.networkIds.map(id => (
-            <ListItem
-              key={id}
-              selected={id === networkId}
-              classes={{
-                root: classes.listItemRoot,
-                gutters: classes.itemGutters,
-                selected: classes.selectedListItem,
-              }}
-              button
-              component="a"
-              href={`/nms/${id}`}>
-              <Text className={classes.networkItemText}>{id}</Text>
-            </ListItem>
-          ))}
-          {appContext.user.isSuperUser && (
-            <>
-              <Divider />
+    <>
+      <NetworkEditDialog
+        open={isNetworkAddOpen}
+        onClose={() => {
+          setNetworkAddOpen(false);
+          setLastRefreshTime(new Date().getTime());
+        }}
+      />
+      <Popout
+        open={isMenuOpen}
+        content={
+          <List component="nav" className={classes.networksList}>
+            {networkIds.map(id => (
               <ListItem
-                key="create_network"
+                key={id}
+                selected={id === networkId}
                 classes={{
                   root: classes.listItemRoot,
                   gutters: classes.itemGutters,
+                  selected: classes.selectedListItem,
                 }}
                 button
                 component="a"
-                href="/admin/networks/new">
-                <Text className={classes.networkItemText}>Create Network</Text>
+                href={`/nms/${id}`}>
+                <Text className={classes.networkItemText}>{id}</Text>
               </ListItem>
-            </>
-          )}
-        </List>
-      }
-      onOpen={() => setIsMenuOpen(true)}
-      onClose={() => setIsMenuOpen(false)}>
-      <Tooltip title={networkId} placement="right">
-        <div
-          className={classNames({
-            [classes.button]: true,
-            [classes.openButton]: isMenuOpen,
-          })}>
-          <SettingsEthernetIcon className={classes.selectedNetwork} />
-        </div>
-      </Tooltip>
-    </Popout>
+            ))}
+            {appContext.user.isSuperUser && (
+              <>
+                <Divider />
+                <ListItem
+                  key="create_network"
+                  classes={{
+                    root: classes.listItemRoot,
+                    gutters: classes.itemGutters,
+                  }}
+                  button
+                  component="a"
+                  onClick={() => setNetworkAddOpen(true)}>
+                  <Text className={classes.networkItemText}>
+                    Create Network
+                  </Text>
+                </ListItem>
+              </>
+            )}
+          </List>
+        }
+        onOpen={() => setIsMenuOpen(true)}
+        onClose={() => setIsMenuOpen(false)}>
+        <Tooltip title={networkId} placement="right">
+          <div
+            className={classNames({
+              [classes.button]: true,
+              [classes.openButton]: isMenuOpen,
+            })}>
+            <SettingsEthernetIcon className={classes.selectedNetwork} />
+          </div>
+        </Tooltip>
+      </Popout>
+    </>
   );
 };
 
