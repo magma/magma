@@ -17,6 +17,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 import type {event as MagmaEvent} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import EventChart from './EventChart';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import ExpansionPanel from '@material-ui/core/ExpansionPanel';
@@ -30,7 +31,6 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomHistogram';
@@ -340,7 +340,7 @@ export default function EventsTable({
         <div className={classes.dashboardRoot}>
           <Grid container spacing={4}>
             <Grid item xs={12}>
-              <CardTitleFilterRow
+              <CardTitleRow
                 icon={MyLocationIcon}
                 label={`Events (${eventCount})`}
                 filter={DateFilter}

@@ -17,6 +17,7 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import EquipmentGatewayKPIs from './EquipmentGatewayKPIs';
 import GatewayCheckinChart from './GatewayCheckinChart';
@@ -32,7 +33,6 @@ import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -185,10 +185,10 @@ function GatewayTableRaw(props: WithAlert) {
 
   return (
     <>
-      <CardTitleFilterRow
+      <CardTitleRow
         key="title"
         icon={CellWifiIcon}
-        label={'Gateways(' + lteGatewayRows.length + ')'}
+        label={`Gateways (${lteGatewayRows.length})`}
         filter={() => (
           <Grid container justify="flex-end" alignItems="center" spacing={1}>
             <Grid item>

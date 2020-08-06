@@ -21,6 +21,7 @@ import type {
 
 import AddEditNetworkButton from './NetworkEdit';
 import AppBar from '@material-ui/core/AppBar';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -36,10 +37,6 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {
-  CardTitleFilterRow,
-  CardTitleRow,
-} from '../../components/layout/CardTitleRow';
 import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../theme/default';
@@ -271,11 +268,11 @@ function NetworkDashboardInternal() {
         <Grid item xs={12} md={6}>
           <Grid container spacing={4}>
             <Grid item xs={12}>
-              <CardTitleFilterRow label="Network" filter={editNetwork} />
+              <CardTitleRow label="Network" filter={editNetwork} />
               <NetworkInfo networkInfo={networkInfo} />
             </Grid>
             <Grid item xs={12}>
-              <CardTitleFilterRow label="RAN" filter={editRAN} />
+              <CardTitleRow label="RAN" filter={editRAN} />
               <NetworkRanConfig lteRanConfigs={lteRanConfigs} />
             </Grid>
           </Grid>
@@ -283,7 +280,7 @@ function NetworkDashboardInternal() {
         <Grid item xs={12} md={6}>
           <Grid container spacing={4}>
             <Grid item xs={12}>
-              <CardTitleFilterRow label="EPC" filter={editEPC} />
+              <CardTitleRow label="EPC" filter={editEPC} />
               <NetworkEpc epcConfigs={epcConfigs} />
             </Grid>
           </Grid>

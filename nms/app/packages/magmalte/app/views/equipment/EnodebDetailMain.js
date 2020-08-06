@@ -15,6 +15,7 @@
  */
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
@@ -31,7 +32,6 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';

@@ -19,6 +19,7 @@ import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
@@ -34,7 +35,6 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';

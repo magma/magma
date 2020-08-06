@@ -17,13 +17,13 @@ import type {DataRows} from '../../components/DataGrid';
 import type {subscriber} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {EditSubscriberButton} from './SubscriberAddDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
@@ -50,7 +50,7 @@ export default function SubscriberDetailConfig({
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
-          <CardTitleFilterRow
+          <CardTitleRow
             icon={SettingsIcon}
             label="Config"
             filter={EditSubscriberButton}
@@ -62,7 +62,7 @@ export default function SubscriberDetailConfig({
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <CardTitleFilterRow
+          <CardTitleRow
             icon={GraphicEqIcon}
             label="Traffic Policy"
             filter={TrafficFilter}

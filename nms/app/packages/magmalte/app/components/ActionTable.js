@@ -17,6 +17,7 @@ import type {ComponentType} from 'react';
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
+import CardTitleRow from './layout/CardTitleRow';
 import Check from '@material-ui/icons/Check';
 import ChevronLeft from '@material-ui/icons/ChevronLeft';
 import ChevronRight from '@material-ui/icons/ChevronRight';
@@ -39,7 +40,6 @@ import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import Select from '@material-ui/core/Select';
 
-import {CardTitleRow} from './layout/CardTitleRow';
 import {forwardRef} from 'react';
 
 const tableIcons = {
