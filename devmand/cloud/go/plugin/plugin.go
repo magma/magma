@@ -15,7 +15,6 @@ package plugin
 
 import (
 	"magma/devmand/cloud/go/devmand"
-	_ "magma/devmand/cloud/go/protos/mconfig" // register mconfig protos with any.Any resolver
 	devmand_service "magma/devmand/cloud/go/services/devmand"
 	"magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"

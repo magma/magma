@@ -15,7 +15,6 @@ package plugin
 
 import (
 	"magma/lte/cloud/go/lte"
-	_ "magma/lte/cloud/go/protos/mconfig" // register mconfig protos with any.Any resolver
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"

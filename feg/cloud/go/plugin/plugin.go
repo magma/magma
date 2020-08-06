@@ -18,7 +18,6 @@ package plugin
 
 import (
 	"magma/feg/cloud/go/feg"
-	_ "magma/feg/cloud/go/protos/mconfig" // register mconfig protos with any.Any resolver
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"

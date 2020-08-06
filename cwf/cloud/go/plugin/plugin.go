@@ -15,7 +15,6 @@ package plugin
 
 import (
 	"magma/cwf/cloud/go/cwf"
-	_ "magma/cwf/cloud/go/protos/mconfig" // register mconfig protos with any.Any resolver
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"

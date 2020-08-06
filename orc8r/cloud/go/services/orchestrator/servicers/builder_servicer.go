@@ -225,6 +225,7 @@ func (b *dnsdBuilder) Build(network *storage.Network, graph *storage.EntityGraph
 	protos.FillIn(dnsConfig, dnsConfigProto)
 	dnsConfigProto.LocalTTL = int32(swag.Uint32Value(dnsConfig.LocalTTL))
 	dnsConfigProto.EnableCaching = swag.BoolValue(dnsConfig.EnableCaching)
+	dnsConfigProto.DhcpServerEnabled = dnsConfig.DhcpServerEnabled
 	dnsConfigProto.LogLevel = protos.LogLevel_INFO
 
 	for _, record := range dnsConfig.Records {

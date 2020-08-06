@@ -30,7 +30,6 @@ import (
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/definitions"
-	_ "magma/orc8r/lib/go/protos/mconfig" // register mconfig protos with any.Any resolver
 	"magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"
 )
