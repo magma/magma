@@ -52,8 +52,8 @@ The goals of automating VPN setup and making it configurable are:
                                                                          |                
                      +----------------------+                    +--------------------+   
                      |                      |                    |                    |   
-                     |                      |                    |                    |   
-                     |    OpenVPN Server    |--------------------|  TCP OpenVPN Client|   
+                     |                      |                    |     UDP/TCP        |   
+                     |    OpenVPN Server    |--------------------|  OpenVPN Client    |   
                      | module of Terraform  |                    |                    |   
                      |                      |                    |                    |   
                      |                      |                    +--------------------+   
@@ -65,11 +65,13 @@ We can deploy an OpenVPN server on kubernetes by using helm openvpn module on: h
 
 ### Bootstrapper Updates
 
-VPN credentials will be handed and provisioned from cloud controller during bootstrapping process (which is part of the magmad connection with the access gateway), these should be rotated along with the gateway certs and revoked if these become not valid or are expired. 
-The boostrapper module in cloud will be in charge of managing the client keys stored on disk by a RPC interface, and then hand them down to the gateway only after a successful bootstrap process. OpenVPN helm chart provides with configuration scripts to setup and manage the client keys. The RPC interface can be extended with:
-- newClientCert
-  - Creates a new client certificate under `/etc/openvpn`, which after bootstrap process will be handed to gateway.
-- revokeClientCert
+VPN credentials will be created on the client, and will be sent to cloud controller during bootstrapping process with a cert signing request (which is part of the magmad connection with the access gateway), these should be rotated along with the gateway certs and revoked if these become not valid or are expired. These credentials will be created with a default short-lived duration (e.g. 12 hours)
+
+
+OpenVPN helm chart provides with configuration scripts to setup and manage the client keys. The interface can be extended with:
+- requestVPNSignCert
+  - Will be called by the client to request a signed certificate (.crt) by the server after the client keys were generated.
+- revokeVPNClientCert
   - This will revoke the RSA vpn client cert, it should be aligned and rotated with an invalidation/expiration of the gateway certificates.
 
 We can mount the same persistent volume that the server uses for storing the client keys onto the bootstrapper, which will be the communication and syncing between the bootstrapper and OpenVPN.
@@ -78,11 +80,9 @@ We can mount the same persistent volume that the server uses for storing the cli
 
 From Orchestrator, we can add a new controller app endpoint that will allow user to do multiple operations on the VPN connection config:
 - `.../gateways/gateway_id/vpn_config`
-  - Port number
-  - Domain name
-  - Is Enabled Flag
+  - Enable / Disable shell flag
 
-From here, the AGW can spin off and enable an OpenVPN TCP client, we can wrap the client into a dynamic service that can be easier to manage and activate using magmad service. This implementation should give us more flexibility as deploying the OpenVPN server becomes a specification as a Terraform module, provides more security by maintaining the VPN credentials valid along with the Access Gateway certificates, and also provides an scenario for the user to configure and manage the VPN connections right from the API while also help with recovery options when issues arise.
+From here, the AGW can spin off and enable an OpenVPN UDP client, we can wrap the client into a dynamic service that can be easier to manage and activate using magmad service. This implementation should give us more flexibility as deploying the OpenVPN server becomes a specification as a Terraform module, provides more security by maintaining the VPN credentials valid along with the Access Gateway certificates, and also provides an scenario for the user to configure and manage the VPN connections right from the API while also help with recovery options when issues arise. UDP is the preferred default configuration for the client due to performance, and should fallback to TCP when necessary.
 
 ### VPN Usage
 
@@ -92,7 +92,7 @@ Current VPN server setup has `client-to-client` option enabled, which eases the 
 ## Timeline of Work
 
 - Adding deployment of OpenVPN server through Terraform module
-- Implement interface for bootstrapper management of persistent client keys
+- Implement interface for bootstrapper RPC VPN client certificate management
 - Update bootstrapper process to include provision / maintenance of VPN creds for enabled VPN gateways
-- Add OpenVPN client wrapper to AGWs
+- Add UDP/TPC OpenVPN client wrapper to AGWs
 - Add cloud endpoints for VPN configuration / management 
