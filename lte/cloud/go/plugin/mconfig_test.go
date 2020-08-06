@@ -275,6 +275,30 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	err := builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+
+	setEPCNetworkIPAllocator(&nw, models2.DHCPBroadcastAllocationMode)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+
+	expected["mobilityd"] = &mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: mconfig.MobilityD_DHCP,
+	}
+
+	assert.Equal(t, expected, actual)
+
+	setEPCNetworkIPAllocator(&nw, models2.NATAllocationMode)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+
+	expected["mobilityd"] = &mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: mconfig.MobilityD_IP_POOL,
+	}
+
+	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
@@ -561,6 +585,16 @@ func setEPCNetworkServices(services []string, nw *configurator.Network) {
 	inwConfig := nw.Configs[lte.CellularNetworkType]
 	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
 	cellularNwConfig.Epc.NetworkServices = services
+
+	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
+}
+
+func setEPCNetworkIPAllocator(nw *configurator.Network, mode string) {
+	inwConfig := nw.Configs[lte.CellularNetworkType]
+	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
+	cellularNwConfig.Epc.Mobility = &models2.NetworkEpcConfigsMobility{
+		IPAllocationMode: mode,
+	}
 
 	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
 }
