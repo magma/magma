@@ -79,7 +79,7 @@ individual needs may vary.</p>
 <p>NOTE: you may need to include your username and password/token for
 the registry using the <code>-u</code> and <code>-p</code> flags, as shown above.</p>
 <p>While we're here, build and publish NMS images as well</p>
-<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/symphony/app/fbcnms-projects/magmalte
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> magma/symphony/app/packages/magmalte
 docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte <span class="hljs-variable">${PUBLISH}</span> -r <span class="hljs-variable">${REGISTRY}</span> -i magmalte -v <span class="hljs-variable">${MAGMA_TAG}</span>
 </code></pre>
