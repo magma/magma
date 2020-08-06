@@ -14,10 +14,10 @@
  * @format
  */
 
-import type {KPIData} from './KPITray';
+import type {DataRows} from './DataGrid';
 import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
 
-import KPITray from './KPITray';
+import DataGrid from './DataGrid';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React, {useEffect, useState} from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
@@ -70,18 +70,29 @@ export default function EnodebKPIs() {
   }, [networkId, response]);
 
   const [total, transmitting] = enodebStatus(enodebSt);
-  const kpiData: KPIData[] = [
-    {category: 'Severe Events', value: 0},
-    {category: 'Total', value: total || 0},
-    {category: 'Transmitting', value: transmitting || 0},
+
+  const data: DataRows[] = [
+    [
+      {
+        icon: SettingsInputAntennaIcon,
+        value: 'eNodeBs',
+      },
+      {
+        category: 'Severe Events',
+        value: 0,
+      },
+      {
+        category: 'Total',
+        value: total || 0,
+      },
+      {
+        category: 'Transmitting',
+        value: transmitting || 0,
+      },
+    ],
   ];
-  return (
-    <KPITray
-      icon={SettingsInputAntennaIcon}
-      description="eNodeBs"
-      data={kpiData}
-    />
-  );
+
+  return <DataGrid data={data} />;
 }
 
 function enodebStatus(enodebSt: {[string]: enodeb_state}): [number, number] {

@@ -268,7 +268,8 @@ describe('<NetworkDashboard />', () => {
     expect(epc).toHaveTextContent('01');
     expect(epc).toHaveTextContent('1');
 
-    let epcPasswordInputElement = getByTestId('epcPassword').firstChild;
+    let epcPasswordInputElement = getByTestId('LTE Auth AMF obscure')
+      .firstChild;
     if (
       epcPasswordInputElement instanceof HTMLInputElement &&
       epcPasswordInputElement.value &&
@@ -282,7 +283,7 @@ describe('<NetworkDashboard />', () => {
 
     fireEvent.click(getByLabelText('toggle password visibility'));
     await wait();
-    epcPasswordInputElement = getByTestId('epcPassword').firstChild;
+    epcPasswordInputElement = getByTestId('LTE Auth AMF obscure').firstChild;
     if (
       epcPasswordInputElement instanceof HTMLInputElement &&
       epcPasswordInputElement.value &&

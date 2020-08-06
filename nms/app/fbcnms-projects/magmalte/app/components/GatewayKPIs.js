@@ -14,11 +14,11 @@
  * @format
  */
 
-import type {KPIData} from './KPITray';
+import type {DataRows} from './DataGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
-import KPITray from './KPITray';
+import DataGrid from './DataGrid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -27,6 +27,18 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {useRouter} from '@fbcnms/ui/hooks';
+
+function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
+  let upCount = 0;
+  let downCount = 0;
+  Object.keys(gatewaySt)
+    .map((k: string) => gatewaySt[k])
+    .filter((g: lte_gateway) => g.cellular && g.id)
+    .map(function (gateway: lte_gateway) {
+      isGatewayHealthy(gateway) ? upCount++ : downCount++;
+    });
+  return [upCount, downCount];
+}
 
 export default function GatewayKPIs() {
   const {match} = useRouter();
@@ -42,22 +54,27 @@ export default function GatewayKPIs() {
     return <LoadingFiller />;
   }
   const [upCount, downCount] = gatewayStatus(lteGateways);
-  const kpiData: KPIData[] = [
-    {category: 'Severe Events', value: 0},
-    {category: 'Connected', value: upCount || 0},
-    {category: 'Disconnected', value: downCount || 0},
-  ];
-  return <KPITray icon={CellWifiIcon} description="Gateways" data={kpiData} />;
-}
 
-function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
-  let upCount = 0;
-  let downCount = 0;
-  Object.keys(gatewaySt)
-    .map((k: string) => gatewaySt[k])
-    .filter((g: lte_gateway) => g.cellular && g.id)
-    .map(function (gateway: lte_gateway) {
-      isGatewayHealthy(gateway) ? upCount++ : downCount++;
-    });
-  return [upCount, downCount];
+  const data: DataRows[] = [
+    [
+      {
+        icon: CellWifiIcon,
+        value: 'Gateways',
+      },
+      {
+        category: 'Severe Events',
+        value: 0,
+      },
+      {
+        category: 'Connected',
+        value: upCount || 0,
+      },
+      {
+        category: 'Disconnected',
+        value: downCount || 0,
+      },
+    ],
+  ];
+
+  return <DataGrid data={data} />;
 }

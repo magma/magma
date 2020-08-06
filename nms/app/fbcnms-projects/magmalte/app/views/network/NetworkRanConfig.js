@@ -13,88 +13,34 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {network_ran_configs} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
-import CardHeader from '@material-ui/core/CardHeader';
-import Collapse from '@material-ui/core/Collapse';
+import DataGrid from '../../components/DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import Divider from '@material-ui/core/Divider';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
 import FddConfig from './NetworkRanFddConfig';
 import FormLabel from '@material-ui/core/FormLabel';
-import Grid from '@material-ui/core/Grid';
-import KPIGrid from '../../components/KPIGrid';
 import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import TddConfig from './NetworkRanTddConfig';
 
 import {AltFormField, FormDivider} from '../../components/FormField';
-import {colors} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
-
-const useStyles = makeStyles(() => ({
-  list: {
-    padding: 0,
-  },
-  kpiLabel: {
-    color: colors.primary.comet,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  kpiValue: {
-    color: colors.primary.brightGray,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    width: '100%',
-  },
-  kpiBox: {
-    width: '100%',
-    padding: 0,
-    '& > div': {
-      width: '100%',
-    },
-  },
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '50%',
-    fullWidth: true,
-  },
-  itemTitle: {
-    color: colors.primary.comet,
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  itemValue: {
-    color: colors.primary.brightGray,
-  },
-}));
 
 type Props = {
   lteRanConfigs: network_ran_configs,
 };
 
 export default function NetworkRan(props: Props) {
-  const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
-
-  const tdd: KPIRows[] = [
+  const tdd: DataRows[] = [
     [
       {
         category: 'EARFCNDL',
@@ -115,7 +61,7 @@ export default function NetworkRan(props: Props) {
     ],
   ];
 
-  const fdd: KPIRows[] = [
+  const fdd: DataRows[] = [
     [
       {
         category: 'EARFCNDL',
@@ -130,76 +76,33 @@ export default function NetworkRan(props: Props) {
     ],
   ];
 
-  return (
-    <Grid item xs={12}>
-      <List
-        component={Paper}
-        elevation={0}
-        data-testid="ran"
-        className={classes.list}>
-        {/* TODO: Temporary fix until Data Grid is made */}
-        <ListItem>
-          <ListItemText
-            primary={'Bandwidth'}
-            secondary={props.lteRanConfigs?.bandwidth_mhz}
-          />
-        </ListItem>
-        <Divider />
-        {props.lteRanConfigs?.tdd_config && (
-          <List key="tddConfigs" className={classes.list}>
-            <ListItem button onClick={() => setOpen(!open)}>
-              <CardHeader
-                title="RAN Config"
-                className={classes.kpiBox}
-                subheader="TDD"
-                titleTypographyProps={{
-                  variant: 'body3',
-                  className: classes.kpiLabel,
-                  title: 'RAN Config',
-                }}
-                subheaderTypographyProps={{
-                  variant: 'body1',
-                  className: classes.kpiValue,
-                  title: 'TDD',
-                }}
-              />
-              {open ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Divider />
-            <Collapse key="tdd" in={open} timeout="auto" unmountOnExit>
-              <KPIGrid data={tdd} />
-            </Collapse>
-          </List>
-        )}
-        {props.lteRanConfigs?.fdd_config && (
-          <List key="fddConfigs" className={classes.list}>
-            <ListItem button onClick={() => setOpen(!open)}>
-              <CardHeader
-                title="RAN Config"
-                className={classes.kpiBox}
-                subheader="FDD"
-                titleTypographyProps={{
-                  variant: 'body3',
-                  className: classes.kpiLabel,
-                  title: 'RAN Config',
-                }}
-                subheaderTypographyProps={{
-                  variant: 'body1',
-                  className: classes.kpiValue,
-                  title: 'FDD',
-                }}
-              />
-              {open ? <ExpandLess /> : <ExpandMore />}
-            </ListItem>
-            <Divider />
-            <Collapse key="fdd" in={open} timeout="auto" unmountOnExit>
-              <KPIGrid data={fdd} />
-            </Collapse>
-          </List>
-        )}
-      </List>
-    </Grid>
-  );
+  const ran: DataRows[] = [
+    [
+      {
+        category: 'Bandwidth',
+        value: props.lteRanConfigs?.bandwidth_mhz || '-',
+      },
+    ],
+    [
+      {
+        category: 'RAN Config',
+        value: props.lteRanConfigs?.fdd_config
+          ? 'FDD'
+          : props.lteRanConfigs?.tdd_config
+          ? 'TDD'
+          : '-',
+        collapse: props.lteRanConfigs?.fdd_config ? (
+          <DataGrid data={fdd} />
+        ) : props.lteRanConfigs?.tdd_config ? (
+          <DataGrid data={tdd} />
+        ) : (
+          false
+        ),
+      },
+    ],
+  ];
+
+  return <DataGrid data={ran} testID="ran" />;
 }
 
 type EditProps = {

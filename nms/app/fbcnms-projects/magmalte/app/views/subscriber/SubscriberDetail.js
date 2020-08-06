@@ -13,16 +13,16 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {subscriber} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import DataGrid from '../../components/DataGrid';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-import KPIGrid from '../../components/KPIGrid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PersonIcon from '@material-ui/icons/Person';
@@ -214,7 +214,7 @@ function Overview(props: {subscriberInfo: subscriber}) {
 }
 
 function Info(props: {subscriberInfo: subscriber}) {
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         value: props.subscriberInfo.id,
@@ -236,14 +236,14 @@ function Info(props: {subscriberInfo: subscriber}) {
     ],
   ];
 
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }
 
 function Status() {
   const featureUnsupported = 'Unsupported';
   const statusUnknown = 'Unknown';
 
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         category: 'Gateway ID',
@@ -270,7 +270,7 @@ function Status() {
     ],
   ];
 
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }
 
 function OverviewTabLabel() {
