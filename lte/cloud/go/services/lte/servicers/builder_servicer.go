@@ -43,7 +43,22 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
-	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}}
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
+	var err error
+
+	// TODO(8/5/20): revert defer (and changes to above) once we send proto descriptors from mconfig_builders
+	defer func() {
+		if err != nil {
+			return
+		}
+		for k, v := range ret.ConfigsByKey {
+			b, err := protos.MarshalJSON(v)
+			if err != nil {
+				return
+			}
+			ret.JsonConfigsByKey[k] = b
+		}
+	}()
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
@@ -170,6 +185,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	return ret, nil
 }
+
 func validateConfigs(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs) error {
 	if nwConfig == nil {
 		return errors.New("Cellular network config is nil")

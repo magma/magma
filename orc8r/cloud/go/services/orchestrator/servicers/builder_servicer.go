@@ -31,6 +31,7 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -47,22 +48,37 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
-	configs := mconfig.ConfigsByKey{}
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
+	var err error
+
+	// TODO(8/5/20): revert defer (and changes to above) once we send proto descriptors from mconfig_builders
+	defer func() {
+		if err != nil {
+			return
+		}
+		for k, v := range ret.ConfigsByKey {
+			b, err := protos.MarshalJSON(v)
+			if err != nil {
+				return
+			}
+			ret.JsonConfigsByKey[k] = b
+		}
+	}()
+
 	for _, b := range builders {
 		partialConfig, err := b.Build(request.Network, request.Graph, request.GatewayId)
 		if err != nil {
 			return nil, errors.Wrapf(err, "sub-builder %+v error", b)
 		}
 		for key, config := range partialConfig {
-			_, ok := configs[key]
+			_, ok := ret.ConfigsByKey[key]
 			if ok {
 				return nil, fmt.Errorf("builder received partial config for key %v from multiple sub-builders", key)
 			}
-			configs[key] = config
+			ret.ConfigsByKey[key] = config
 		}
 	}
 
-	ret := &builder_protos.BuildResponse{ConfigsByKey: configs}
 	return ret, nil
 }
 

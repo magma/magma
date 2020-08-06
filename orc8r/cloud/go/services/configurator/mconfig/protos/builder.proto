@@ -38,4 +38,8 @@ message BuildRequest {
 message BuildResponse {
   // configs_by_key contains the partial mconfig from this mconfig builder
   map<string, google.protobuf.Any> configs_by_key = 1;
+
+  // json_configs_by_key contains the partial mconfig from this mconfig builder
+  // TODO(8/5/20): revert json_configs_by_key once we send proto descriptors from mconfig_builders
+  map<string, bytes> json_configs_by_key = 2 [deprecated=true]; // deprecated
 }
