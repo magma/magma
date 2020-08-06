@@ -24,19 +24,17 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
+import EnodebContext from '../../components/context/EnodebContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import nullthrows from '@fbcnms/util/nullthrows';
 import {
   EnodebBandwidthOption,
   EnodebDeviceClass,
@@ -48,7 +46,7 @@ import EnodeConfigEditTdd from './EnodebDetailConfigTdd';
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useState} from 'react';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -92,9 +90,6 @@ const EditTableType = {
 
 type EditProps = {
   editTable: $Keys<typeof EditTableType>,
-  enb: enodeb,
-  lteRanConfigs?: ?network_ran_configs,
-  onSave: enodeb => void,
 };
 
 type DialogProps = {
@@ -111,7 +106,7 @@ type ButtonProps = {
 
 export default function AddEditEnodeButton(props: ButtonProps) {
   const classes = useStyles();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -148,42 +143,26 @@ export default function AddEditEnodeButton(props: ButtonProps) {
   );
 }
 
-function EnodeEditDialog({open, onClose, editProps}: DialogProps) {
+function EnodeEditDialog(props: DialogProps) {
+  const {open, editProps} = props;
   const classes = useStyles();
   const [enb, setEnb] = useState<enodeb>({});
   const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>(
-    editProps?.lteRanConfigs ?? {},
-  );
-  const [isLoading, setLoading] = useState<boolean>(true);
+  const ctx = useContext(EnodebContext);
+  const enodebSerial: string = match.params.enodebSerial;
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const lteRanConfigs = ctx.state.lteRanConfigs;
 
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
 
-  useEffect(() => {
-    const fetchSt = async () => {
-      try {
-        const lteRanConfigs = await MagmaV1API.getLteByNetworkIdCellularRan({
-          networkId: networkId,
-        });
-        setLteRanConfigs(lteRanConfigs);
-        setLoading(false);
-      } catch (error) {
-        setLoading(false);
-      }
-    };
-    if (Object.keys(editProps?.lteRanConfigs ?? {}).length > 0) {
-      setLoading(false);
-      return;
-    }
-    fetchSt();
-  }, [networkId, editProps]);
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
+  const onClose = () => {
+    // clear existing state
+    setEnb({});
+    setTabPos(0);
+    props.onClose();
+  };
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
@@ -207,13 +186,12 @@ function EnodeEditDialog({open, onClose, editProps}: DialogProps) {
       {tabPos === 0 && (
         <ConfigEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
-          enb={Object.keys(enb).length != 0 ? enb : editProps?.enb}
+          enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
           onSave={(enb: enodeb) => {
             setEnb(enb);
             if (editProps) {
-              editProps.onSave(enb);
               onClose();
             } else {
               setTabPos(tabPos + 1);
@@ -224,16 +202,10 @@ function EnodeEditDialog({open, onClose, editProps}: DialogProps) {
       {tabPos === 1 && (
         <RanEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Add eNodeB'}
-          enb={Object.keys(enb).length != 0 ? enb : editProps?.enb}
+          enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
-          onSave={(enb: enodeb) => {
-            setEnb(enb);
-            if (editProps) {
-              editProps.onSave(enb);
-            }
-            onClose();
-          }}
+          onSave={onClose}
         />
       )}
     </Dialog>
@@ -262,7 +234,9 @@ type OptKey = $Keys<OptConfig>;
 
 export function RanEdit(props: Props) {
   const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const ctx = useContext(EnodebContext);
+  const enodebSerial: string = match.params.enodebSerial;
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   const handleEnbChange = (key: string, val) =>
     setConfig({...config, [key]: val});
@@ -292,10 +266,9 @@ export function RanEdit(props: Props) {
         ...(props.enb || DEFAULT_ENB_CONFIG),
         config: buildRanConfig(config, optConfig),
       };
-      await MagmaV1API.putLteByNetworkIdEnodebsByEnodebSerial({
-        networkId: networkId,
-        enodebSerial: props.enb?.serial ?? '',
-        enodeb: enb,
+      await ctx.setState(enb.serial, {
+        enb_state: enbInfo?.enb_state ?? {},
+        enb: enb,
       });
 
       enqueueSnackbar('eNodeb saved successfully', {
@@ -303,6 +276,7 @@ export function RanEdit(props: Props) {
       });
       props.onSave(enb);
     } catch (e) {
+      console.log('xxxx', e);
       setError(e.response?.data?.message ?? e.message);
     }
   };
@@ -440,28 +414,21 @@ export function RanEdit(props: Props) {
 export function ConfigEdit(props: Props) {
   const [error, setError] = useState('');
   const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(EnodebContext);
+  const enodebSerial: string = match.params.enodebSerial;
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   const [enb, setEnb] = useState<enodeb>(props.enb || DEFAULT_ENB_CONFIG);
 
   const onSave = async () => {
     try {
+      await ctx.setState(enb.serial, {
+        enb_state: enbInfo?.enb_state ?? {},
+        enb: enb,
+      });
       if (props.enb) {
-        await MagmaV1API.putLteByNetworkIdEnodebsByEnodebSerial({
-          networkId: networkId,
-          enodebSerial: enb.serial,
-          enodeb: enb,
-        });
         enqueueSnackbar('eNodeb saved successfully', {
-          variant: 'success',
-        });
-      } else {
-        await MagmaV1API.postLteByNetworkIdEnodebs({
-          networkId: networkId,
-          enodeb: enb,
-        });
-        enqueueSnackbar('eNodeb added successfully', {
           variant: 'success',
         });
       }

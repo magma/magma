@@ -1349,7 +1349,8 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
       session_map, update_response, update);
 }
 
-// Test an insertion of a usage monitor and then a deletion. Additionally, test
+// Test an insertion of a usage monitor, both session_level and rule level,
+// and then a deletion. Additionally, test
 // that a rule update from PipelineD for a deleted usage monitor should NOT
 // trigger an update request.
 TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
@@ -1363,17 +1364,30 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
       "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
       response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
+      "IMSI1", "2", MonitoringLevel::SESSION_LEVEL, 1024,
+      response.mutable_usage_monitors()->Add());
+  create_monitor_update_response(
       "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cfg, response);
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 2048}});
 
-  // Receive an update with DISABLE for mkey=3, CONTINUE for mkey=1
+  // IMPORTANT: save the updates into store and reload
+  bool success =
+      session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
+  EXPECT_TRUE(success);
+  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
+
+
+
+  // Receive an update with DISABLE for mkey=3 & mkey=2, CONTINUE for mkey=1
   UpdateSessionResponse update_response;
   auto monitors = update_response.mutable_usage_monitor_responses();
   create_monitor_update_response(
       "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitors->Add());
+  create_monitor_update_response(
+      "IMSI1", "2", MonitoringLevel::SESSION_LEVEL, 0, monitors->Add());
   create_monitor_update_response(
       "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitors->Add());
   // Apply the updates
@@ -1383,12 +1397,16 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // Check the UC's deleted field, as that will be applied to SessionStore
   auto monitor_updates = update["IMSI1"]["1234"].monitor_credit_map;
   EXPECT_FALSE(monitor_updates["1"].deleted);
+  EXPECT_TRUE(monitor_updates["2"].deleted);
   EXPECT_TRUE(monitor_updates["3"].deleted);
+  // Check updates for disabling session level monitoring key
+  EXPECT_TRUE(update["IMSI1"]["1234"].is_session_level_key_updated);
+  EXPECT_EQ(update["IMSI1"]["1234"].updated_session_level_key, "");
   assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 2048}, {"3", 0}});
 
   // IMPORTANT: this step will sync the updates into session store and re-read
   // the session_map.
-  bool success = session_store->update_sessions(update);
+  success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
 

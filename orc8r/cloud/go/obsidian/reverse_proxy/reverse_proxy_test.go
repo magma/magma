@@ -25,6 +25,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
@@ -65,7 +66,8 @@ func TestReverseProxy(t *testing.T) {
 	go srv1.RunTest(lis1)
 	go srv2.RunTest(lis2)
 
-	e, err := startTestServer()
+	handler := NewReverseProxyHandler()
+	e, err := startTestServer(handler)
 	assert.NoError(t, err)
 
 	listener := tests.WaitForTestServer(t, e)
@@ -97,6 +99,65 @@ func TestReverseProxy(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 404, s)
 
+	// Test ReverseProxy properly handles dynamic changes to service registry
+
+	// Update existing service annotation with new prefix
+	newPrefix := "/magma/v1/newprefix"
+	err = addPrefixesToExistingService("test_service2", newPrefix)
+	assert.NoError(t, err)
+	srv2.EchoServer.GET(newPrefix, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+	// Add new service to registry
+	pathPrefix4 := "/magma/v1/dynamic"
+	annotations3 := map[string]string{
+		orc8r.ObsidianHandlersPathPrefixesAnnotation: pathPrefix4,
+	}
+	srv3, lis3 := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_service3", labels, annotations3)
+	srv3.EchoServer.GET(pathPrefix4, func(c echo.Context) error {
+		return c.String(http.StatusOK, "All good!")
+	})
+
+	pathPrefixesByAddr, err := GetEchoServerAddressToPathPrefixes()
+	assert.NoError(t, err)
+	_, err = handler.AddReverseProxyPaths(e, pathPrefixesByAddr)
+	assert.NoError(t, err)
+
+	go srv3.RunTest(lis3)
+
+	// Ensure added prefix to test_service2 works
+	s, err = sendRequest("GET", urlPrefix+newPrefix)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	// Ensure new test_service3 can be proxied to
+	s, err = sendRequest("GET", urlPrefix+pathPrefix4)
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
+
+	// Remove services from the registry to test inactive backends
+	registry.RemoveService("test_service3")
+	registry.RemoveService("test_service1")
+	pathPrefixesByAddr, err = GetEchoServerAddressToPathPrefixes()
+	assert.NoError(t, err)
+	_, err = handler.AddReverseProxyPaths(e, pathPrefixesByAddr)
+	assert.NoError(t, err)
+
+	// Test path without wildcard '*'
+	s, err = sendRequest("GET", urlPrefix+pathPrefix4)
+	assert.NoError(t, err)
+	assert.Equal(t, 404, s)
+
+	// Test path with wildcard '*'
+	assert.NoError(t, err)
+	s, err = sendRequest("GET", urlPrefix+pathPrefix1+"/foo1/rue")
+	assert.NoError(t, err)
+	assert.Equal(t, 404, s)
+
+	// Ensure active backend still works
+	s, err = sendRequest("GET", urlPrefix+"/magma/v1/foo/foo1/baz")
+	assert.NoError(t, err)
+	assert.Equal(t, 200, s)
 }
 
 func TestReverseProxyPathCollision(t *testing.T) {
@@ -118,7 +179,8 @@ func TestReverseProxyPathCollision(t *testing.T) {
 	go srv1.RunTest(lis1)
 	go srv2.RunTest(lis2)
 
-	e, err := startTestServer()
+	handler := NewReverseProxyHandler()
+	e, err := startTestServer(handler)
 	assert.NoError(t, err)
 
 	listener := tests.WaitForTestServer(t, e)
@@ -133,9 +195,13 @@ func TestReverseProxyPathCollision(t *testing.T) {
 	assert.Equal(t, 200, s)
 }
 
-func startTestServer() (*echo.Echo, error) {
+func startTestServer(handler *ReverseProxyHandler) (*echo.Echo, error) {
 	e := echo.New()
-	e, err := AddReverseProxyPaths(e)
+	pathPrefixesByAddr, err := GetEchoServerAddressToPathPrefixes()
+	if err != nil {
+		return nil, err
+	}
+	e, err = handler.AddReverseProxyPaths(e, pathPrefixesByAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -162,4 +228,35 @@ func sendRequest(method string, url string) (int, error) {
 	defer response.Body.Close()
 	_, err = ioutil.ReadAll(response.Body)
 	return response.StatusCode, err
+}
+
+func addPrefixesToExistingService(serviceName string, newPrefixes string) error {
+	port, err := registry.GetServicePort(serviceName)
+	if err != nil {
+		return err
+	}
+	echoPort, err := registry.GetEchoServerPort(serviceName)
+	if err != nil {
+		return err
+	}
+	existingPrefixes, err := registry.GetAnnotation(serviceName, orc8r.ObsidianHandlersPathPrefixesAnnotation)
+	if err != nil {
+		return err
+	}
+	updatedPrefixes := existingPrefixes + "," + newPrefixes
+	obsidianLabels := map[string]string{
+		orc8r.ObsidianHandlersLabel: "true",
+	}
+	newAnnotations := map[string]string{
+		orc8r.ObsidianHandlersPathPrefixesAnnotation: updatedPrefixes,
+	}
+	registry.AddService(registry.ServiceLocation{
+		Name:        serviceName,
+		Host:        "localhost",
+		Port:        port,
+		EchoPort:    echoPort,
+		Labels:      obsidianLabels,
+		Annotations: newAnnotations,
+	})
+	return nil
 }

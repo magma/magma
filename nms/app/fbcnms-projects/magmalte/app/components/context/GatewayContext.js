@@ -10,9 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @flow
+ * @flow strict-local
  * @format
  */
+import type {UpdateGatewayProps} from '../../state/EquipmentState';
+import type {gateway_id, lte_gateway} from '@fbcnms/magma-api';
 
-const config = require('../../babel.config');
-require('@babel/register')(config);
+import React from 'react';
+
+export type GatewayContextType = {
+  state: {[string]: lte_gateway},
+  setState: (key: gateway_id, val?: lte_gateway) => Promise<void>,
+  updateGateway: (props: $Shape<UpdateGatewayProps>) => Promise<void>,
+};
+
+export default React.createContext<GatewayContextType>({});

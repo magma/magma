@@ -823,6 +823,15 @@ jobs:
           images: 'goradius'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
+      - run:
+          name: Build xwfm-integ-tests
+          command: |
+            cd ${MAGMA_ROOT}
+            docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
+      - tag-push-docker:
+          images: 'xwfm-integ-tests'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
       - magma_slack_notify
 
 workflows:

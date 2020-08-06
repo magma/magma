@@ -68,6 +68,7 @@ func TestCwfNetworks(t *testing.T) {
 	getNetworkFederationConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/federation", obsidian.GET).HandlerFunc
 	getCarrierWifiConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/carrier_wifi", obsidian.GET).HandlerFunc
 	getSubscriberDirectory := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/subscribers/:subscriber_id/directory_record", obsidian.GET).HandlerFunc
+	getClusterStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/cluster_status", obsidian.GET).HandlerFunc
 
 	// Test ListNetworks
 	tc := tests.Test{
@@ -274,6 +275,28 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	ctx = test_utils.GetContextWithCertificate(t, "hw1")
+	clusterReq := &models2.CarrierWifiNetworkClusterStatus{
+		ActiveGateway: "g1",
+	}
+	reportClusterStatus(t, ctx, clusterReq)
+	expectedRes := &models2.CarrierWifiNetworkClusterStatus{
+		ActiveGateway: "g1",
+	}
+
+	// Test Get Network HA status
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/cluster_status",
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getClusterStatus,
+		ExpectedStatus: 200,
+		ExpectedResult: expectedRes,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test DeleteNetwork
 	tc = tests.Test{
 		Method:         "DELETE",
@@ -318,6 +341,7 @@ func TestCwfGateways(t *testing.T) {
 	updateGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.PUT).HandlerFunc
 	deleteGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id", obsidian.DELETE).HandlerFunc
 	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
+	getHealthStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/health_status", obsidian.GET).HandlerFunc
 	seedCwfNetworks(t)
 
 	// setup fixtures in backend
@@ -635,6 +659,26 @@ func TestCwfGateways(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	ctx = test_utils.GetContextWithCertificate(t, "hw1")
+	healthReq := &models2.CarrierWifiGatewayHealthStatus{
+		Status:      "HEALTHY",
+		Description: "ok",
+	}
+	reportGatewayHealthStatus(t, ctx, "g1", healthReq)
+
+	// Test Get gateway health status
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/gateways/g1/health_status",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        getHealthStatus,
+		ExpectedStatus: 200,
+		ExpectedResult: healthReq,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test DeleteGateway
 	tc = tests.Test{
 		Method:         "DELETE",
@@ -720,6 +764,48 @@ func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id strin
 		{
 			Type:     orc8r.DirectoryRecordType,
 			DeviceID: id,
+			Value:    serializedRecord,
+			Version:  1,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
+	)
+	assert.NoError(t, err)
+}
+
+func reportClusterStatus(t *testing.T, ctx context.Context, req *models2.CarrierWifiNetworkClusterStatus) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfClusterHealthType, req)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     cwf.CwfClusterHealthType,
+			DeviceID: "cluster",
+			Value:    serializedRecord,
+			Version:  1,
+		},
+	}
+	_, err = client.ReportStates(
+		ctx,
+		&protos.ReportStatesRequest{States: states},
+	)
+	assert.NoError(t, err)
+}
+
+func reportGatewayHealthStatus(t *testing.T, ctx context.Context, gatewayID string, req *models2.CarrierWifiGatewayHealthStatus) {
+	client, err := state.GetStateClient()
+	assert.NoError(t, err)
+
+	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfGatewayHealthType, req)
+	assert.NoError(t, err)
+	states := []*protos.State{
+		{
+			Type:     cwf.CwfGatewayHealthType,
+			DeviceID: gatewayID,
 			Value:    serializedRecord,
 			Version:  1,
 		},

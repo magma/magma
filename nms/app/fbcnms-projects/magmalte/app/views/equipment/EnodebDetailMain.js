@@ -13,13 +13,12 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebConfig from './EnodebDetailConfig';
+import EnodebContext from '../../components/context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
@@ -39,8 +38,8 @@ import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -93,14 +92,12 @@ const useStyles = makeStyles(theme => ({
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
-type Props = {
-  enbInfo: {[string]: EnodebInfo},
-};
-export function EnodebDetail(props: Props) {
+export function EnodebDetail() {
+  const ctx = useContext(EnodebContext);
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
-  const [enbInfo, setEnbInfo] = useState(props.enbInfo[enodebSerial]);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   return (
     <>
@@ -133,12 +130,7 @@ export function EnodebDetail(props: Props) {
               />
             </Tabs>
           </Grid>
-          <Grid
-            item
-            xs={6}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
+          <Grid item xs={6}>
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
                 <Button className={classes.appBarBtnSecondary}>
@@ -155,32 +147,12 @@ export function EnodebDetail(props: Props) {
         </Grid>
       </AppBar>
       <Switch>
-        <Route
-          path={relativePath('/overview')}
-          render={() => <Overview enbInfo={enbInfo} />}
-        />
+        <Route path={relativePath('/overview')} component={Overview} />
         <Route
           path={relativePath('/config/json')}
-          render={() => (
-            <EnodebJsonConfig
-              enbInfo={enbInfo}
-              onSave={enb => {
-                setEnbInfo({...enbInfo, enb: enb});
-              }}
-            />
-          )}
+          component={EnodebJsonConfig}
         />
-        <Route
-          path={relativePath('/config')}
-          render={() => (
-            <EnodebConfig
-              enbInfo={enbInfo}
-              onSave={enb => {
-                setEnbInfo({...enbInfo, enb: enb});
-              }}
-            />
-          )}
-        />
+        <Route path={relativePath('/config')} component={EnodebConfig} />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
@@ -188,10 +160,12 @@ export function EnodebDetail(props: Props) {
   );
 }
 
-function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
+function Overview() {
+  const ctx = useContext(EnodebContext);
   const classes = useStyles();
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -202,12 +176,12 @@ function Overview({enbInfo}: {enbInfo: EnodebInfo}) {
                 icon={SettingsInputAntennaIcon}
                 label={enbInfo.enb.name}
               />
-              <EnodebSummary enbInfo={enbInfo} />
+              <EnodebSummary />
             </Grid>
 
             <Grid item xs={12} md={6} alignItems="center">
               <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <EnodebStatus enbInfo={enbInfo} />
+              <EnodebStatus />
             </Grid>
           </Grid>
         </Grid>

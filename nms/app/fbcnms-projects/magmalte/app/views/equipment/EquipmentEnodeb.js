@@ -13,19 +13,22 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
+import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors} from '../../theme/default';
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const CHART_TITLE = 'Total Throughput';
 
@@ -71,9 +74,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function Enodeb({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
+export default function Enodeb() {
   const classes = useStyles();
-
   return (
     <div className={classes.dashboardRoot}>
       <Grid container justify="space-between" spacing={3}>
@@ -87,7 +89,7 @@ export default function Enodeb({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
           />
         </Grid>
         <Grid item xs={12}>
-          <EnodeTable enbInfo={enbInfo} />
+          <EnodebTable />
         </Grid>
       </Grid>
     </div>
@@ -102,16 +104,19 @@ type EnodebRowType = {
   reportedTime: Date,
 };
 
-function EnodeTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
+function EnodebTableRaw(props: WithAlert) {
   const {history, relativeUrl} = useRouter();
+  const ctx = useContext(EnodebContext);
   const [currRow, setCurrRow] = useState<EnodebRowType>({});
+  const enbInfo = ctx.state.enbInfo;
+  const enqueueSnackbar = useEnqueueSnackbar();
   const enbRows: Array<EnodebRowType> = Object.keys(enbInfo).map(
     (serialNum: string) => {
       const enbInf = enbInfo[serialNum];
       return {
         name: enbInf.enb.name,
         id: serialNum,
-        sessionName: enbInf.enb_state.fsm_state,
+        sessionName: enbInf.enb_state?.fsm_state ?? 'not available',
         health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
         reportedTime: new Date(enbInf.enb_state.time_reported ?? 0),
       };
@@ -138,8 +143,32 @@ function EnodeTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
             history.push(relativeUrl('/' + currRow.id));
           },
         },
-        {name: 'Edit'},
-        {name: 'Remove'},
+        {
+          name: 'Edit',
+          handleFunc: () => {
+            history.push(relativeUrl('/' + currRow.id + '/config'));
+          },
+        },
+        {
+          name: 'Remove',
+          handleFunc: () => {
+            props
+              .confirm(`Are you sure you want to delete ${currRow.id}?`)
+              .then(async confirmed => {
+                if (!confirmed) {
+                  return;
+                }
+
+                try {
+                  await ctx.setState(currRow.id);
+                } catch (e) {
+                  enqueueSnackbar('failed deleting enodeb ' + currRow.id, {
+                    variant: 'error',
+                  });
+                }
+              });
+          },
+        },
         {name: 'Deactivate'},
         {name: 'Reboot'},
       ]}
@@ -150,3 +179,5 @@ function EnodeTable({enbInfo}: {enbInfo: {[string]: EnodebInfo}}) {
     />
   );
 }
+
+const EnodebTable = withAlert(EnodebTableRaw);

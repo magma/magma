@@ -13,33 +13,28 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {enodeb, network_ran_configs} from '@fbcnms/magma-api';
-
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';
 import Divider from '@material-ui/core/Divider';
+import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -70,34 +65,25 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
-  enbInfo: EnodebInfo,
-  lteRanConfigs?: ?network_ran_configs,
-  onSave?: enodeb => void,
-};
-
-export function EnodebJsonConfig(props: Props) {
+export function EnodebJsonConfig() {
+  const ctx = useContext(EnodebContext);
   const {match} = useRouter();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
   const enqueueSnackbar = useEnqueueSnackbar();
 
   return (
     <JsonEditor
-      content={props.enbInfo.enb}
+      content={enbInfo.enb}
       error={error}
       onSave={async enb => {
         try {
-          await MagmaV1API.putLteByNetworkIdEnodebsByEnodebSerial({
-            networkId: networkId,
-            enodebSerial: props.enbInfo.enb.serial,
-            enodeb: (enb: enodeb),
-          });
+          ctx.setState(enbInfo.enb.serial, {...enbInfo, enb: enb});
           enqueueSnackbar('eNodeb saved successfully', {
             variant: 'success',
           });
           setError('');
-          props.onSave?.(enb);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -106,28 +92,9 @@ export function EnodebJsonConfig(props: Props) {
   );
 }
 
-export default function EnodebConfig(props: Props) {
+export default function EnodebConfig() {
   const classes = useStyles();
-  const {enbInfo, onSave} = props;
-  const {history, relativeUrl, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-
-  const {response: lteRanConfigs, isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularRan,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const editProps = {
-    enb: enbInfo.enb,
-    lteRanConfigs: lteRanConfigs,
-    onSave: onSave,
-  };
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
+  const {history, relativeUrl} = useRouter();
 
   return (
     <div className={classes.dashboardRoot}>
@@ -162,14 +129,12 @@ export default function EnodebConfig(props: Props) {
                   title={'Edit'}
                   isLink={true}
                   editProps={{
-                    ...editProps,
                     editTable: 'config',
-                    onSave: enb => editProps.onSave?.(enb),
                   }}
                 />
               </Grid>
             </Grid>
-            <EnodebInfoConfig enbInfo={enbInfo} />
+            <EnodebInfoConfig />
           </Grid>
 
           <Grid item xs={6}>
@@ -182,14 +147,12 @@ export default function EnodebConfig(props: Props) {
                   title={'Edit'}
                   isLink={true}
                   editProps={{
-                    ...editProps,
                     editTable: 'ran',
-                    onSave: enb => editProps.onSave?.(enb),
                   }}
                 />
               </Grid>
             </Grid>
-            <EnodebRanConfig lteRanConfigs={lteRanConfigs} enbInfo={enbInfo} />
+            <EnodebRanConfig />
           </Grid>
         </Grid>
       </Grid>
@@ -197,9 +160,13 @@ export default function EnodebConfig(props: Props) {
   );
 }
 
-function EnodebRanConfig(props: Props) {
+function EnodebRanConfig() {
   const classes = useStyles();
-
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const lteRanConfigs = ctx.state.lteRanConfigs;
   const typographyProps = {
     primaryTypographyProps: {
       variant: 'caption',
@@ -216,38 +183,38 @@ function EnodebRanConfig(props: Props) {
       <ListItem>
         <ListItemText
           primary="Bandwidth"
-          secondary={props.enbInfo.enb.config.bandwidth_mhz}
+          secondary={enbInfo.enb.config.bandwidth_mhz}
           {...typographyProps}
         />
       </ListItem>
       <Divider />
       <ListItem>
         <ListItemText
-          secondary={props.enbInfo.enb.config.cell_id}
+          secondary={enbInfo.enb.config.cell_id}
           primary="Cell ID"
           {...typographyProps}
         />
       </ListItem>
       <Divider />
-      {props.lteRanConfigs?.tdd_config && (
+      {lteRanConfigs?.tdd_config && (
         <EnodeConfigTdd
-          earfcndl={props.enbInfo.enb.config.earfcndl ?? 0}
+          earfcndl={enbInfo.enb.config.earfcndl ?? 0}
           specialSubframePattern={
-            props.enbInfo.enb.config.special_subframe_pattern ?? 0
+            enbInfo.enb.config.special_subframe_pattern ?? 0
           }
-          subframeAssignment={props.enbInfo.enb.config.subframe_assignment ?? 0}
+          subframeAssignment={enbInfo.enb.config.subframe_assignment ?? 0}
         />
       )}
-      {props.lteRanConfigs?.fdd_config && (
+      {lteRanConfigs?.fdd_config && (
         <EnodeConfigFdd
-          earfcndl={props.enbInfo.enb.config.earfcndl ?? 0}
-          earfcnul={props.lteRanConfigs.fdd_config.earfcnul}
+          earfcndl={enbInfo.enb.config.earfcndl ?? 0}
+          earfcnul={lteRanConfigs.fdd_config.earfcnul}
         />
       )}
       <Divider />
       <ListItem>
         <ListItemText
-          secondary={props.enbInfo.enb.config.pci}
+          secondary={enbInfo.enb.config.pci}
           primary="PCI"
           {...typographyProps}
         />
@@ -255,7 +222,7 @@ function EnodebRanConfig(props: Props) {
       <Divider />
       <ListItem>
         <ListItemText
-          secondary={props.enbInfo.enb.config.tac}
+          secondary={enbInfo.enb.config.tac}
           primary="TAC"
           {...typographyProps}
         />
@@ -264,7 +231,7 @@ function EnodebRanConfig(props: Props) {
       <ListItem>
         <ListItemText
           secondary={
-            props.enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled'
+            enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled'
           }
           primary="Transmit"
           {...typographyProps}
@@ -274,8 +241,12 @@ function EnodebRanConfig(props: Props) {
   );
 }
 
-function EnodebInfoConfig(props: Props) {
+function EnodebInfoConfig() {
   const classes = useStyles();
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
   const typographyProps = {
     primaryTypographyProps: {
@@ -292,7 +263,7 @@ function EnodebInfoConfig(props: Props) {
       <ListItem>
         <ListItemText
           primary="Name"
-          secondary={props.enbInfo.enb.name}
+          secondary={enbInfo.enb.name}
           {...typographyProps}
         />
       </ListItem>
@@ -300,7 +271,7 @@ function EnodebInfoConfig(props: Props) {
       <ListItem>
         <ListItemText
           primary="Serial Number"
-          secondary={props.enbInfo.enb.serial}
+          secondary={enbInfo.enb.serial}
           {...typographyProps}
         />
       </ListItem>
@@ -308,7 +279,7 @@ function EnodebInfoConfig(props: Props) {
       <ListItem>
         <ListItemText
           primary="Description"
-          secondary={props.enbInfo.enb.description}
+          secondary={enbInfo.enb.description}
           {...typographyProps}
         />
       </ListItem>

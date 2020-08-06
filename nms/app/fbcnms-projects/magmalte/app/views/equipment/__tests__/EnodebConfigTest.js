@@ -17,6 +17,7 @@ import 'jest-dom/extend-expect';
 
 import AddEditEnodeButton from '../EnodebDetailConfigEdit';
 import EnodebConfig from '../EnodebDetailConfig';
+import EnodebContext from '../../../components/context/EnodebContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
@@ -24,6 +25,7 @@ import defaultTheme from '../../../theme/default.js';
 
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {SetEnodebState} from '../../../state/EquipmentState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
@@ -80,55 +82,71 @@ describe('<AddEditEnodeButton />', () => {
     },
   };
 
-  beforeEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdCellularRan.mockResolvedValue(ran);
-  });
-
   afterEach(() => {
-    MagmaAPIBindings.getLteByNetworkIdCellularRan.mockClear();
     MagmaAPIBindings.postLteByNetworkIdEnodebs.mockClear();
     MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial.mockClear();
   });
 
-  const AddWrapper = () => (
-    <MemoryRouter initialEntries={['/nms/test/enode']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route
-            path="/nms/:networkId/enode"
-            render={props => (
-              <AddEditEnodeButton
-                {...props}
-                title="Add Enodeb"
-                isLink={false}
+  const AddWrapper = () => {
+    const [enbInf, setEnbInfo] = useState({});
+    return (
+      <MemoryRouter initialEntries={['/nms/test/enode']} initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <EnodebContext.Provider
+              value={{
+                state: {enbInfo: enbInf, lteRanConfigs: ran},
+                setState: async (key, value?) =>
+                  SetEnodebState({
+                    enbInfo: enbInf,
+                    setEnbInfo: setEnbInfo,
+                    networkId: 'test',
+                    key: key,
+                    value: value,
+                  }),
+              }}>
+              <Route
+                path="/nms/:networkId/enode"
+                render={props => (
+                  <AddEditEnodeButton
+                    {...props}
+                    title="Add Enodeb"
+                    isLink={false}
+                  />
+                )}
               />
-            )}
-          />
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
+            </EnodebContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
 
   const DetailWrapper = () => {
-    const [enbInf, setEnbInfo] = useState(enbInfo);
+    const [enbInf, setEnbInfo] = useState({testEnodebSerial0: enbInfo});
     return (
       <MemoryRouter
         initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
         initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <Route
-              path="/nms/:networkId/enodeb/:enodebSerial/overview"
-              render={props => (
-                <EnodebConfig
-                  {...props}
-                  enbInfo={enbInf}
-                  onSave={enb => {
-                    setEnbInfo({...enbInf, enb: enb});
-                  }}
-                />
-              )}
-            />
+            <EnodebContext.Provider
+              value={{
+                state: {enbInfo: enbInf, lteRanConfigs: ran},
+                setState: async (key, value?) =>
+                  SetEnodebState({
+                    enbInfo: enbInf,
+                    setEnbInfo: setEnbInfo,
+                    networkId: 'mynetwork',
+                    key: key,
+                    value: value,
+                  }),
+              }}>
+              <Route
+                path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                render={props => <EnodebConfig {...props} />}
+              />
+            </EnodebContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MemoryRouter>
@@ -138,9 +156,7 @@ describe('<AddEditEnodeButton />', () => {
   it('Verify Enode Configs', async () => {
     const {getByTestId} = render(<DetailWrapper />);
     await wait();
-    expect(MagmaAPIBindings.getLteByNetworkIdCellularRan).toHaveBeenCalledTimes(
-      1,
-    );
+
     const config = getByTestId('config');
     expect(config).toHaveTextContent('testEnodeb0');
     expect(config).toHaveTextContent('testEnodeb0Serial');
@@ -295,9 +311,6 @@ describe('<AddEditEnodeButton />', () => {
       enodebSerial: 'TestEnodebSerial1',
       networkId: 'test',
     });
-    expect(MagmaAPIBindings.getLteByNetworkIdCellularRan).toHaveBeenCalledTimes(
-      1,
-    );
   });
 
   it('Verify Enode Edit Config', async () => {
@@ -369,9 +382,6 @@ describe('<AddEditEnodeButton />', () => {
     fireEvent.click(getByTestId('ranEditButton'));
     await wait();
 
-    expect(MagmaAPIBindings.getLteByNetworkIdCellularRan).toHaveBeenCalledTimes(
-      1,
-    );
     expect(queryByTestId('configEdit')).toBeNull();
     expect(queryByTestId('ranEdit')).not.toBeNull();
 
