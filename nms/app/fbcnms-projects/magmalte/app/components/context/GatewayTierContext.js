@@ -13,23 +13,18 @@
  * @flow strict-local
  * @format
  */
+import type {tier, tier_id} from '@fbcnms/magma-api';
 
-'use strict';
+import React from 'react';
 
-const fs = require('fs');
-const path = require('path');
-
-const appDirectory = fs.realpathSync(process.cwd());
-
-const resolveApp = (relativePath: string) =>
-  path.resolve(appDirectory, relativePath);
-
-module.exports = {
-  appIndexJs: resolveApp('app/main.js'),
-  loginJs: resolveApp('app/login.js'),
-  appSrc: resolveApp('app'),
-  distPath: resolveApp('static/dist'),
-  packagesDir: resolveApp('../../fbcnms-packages'),
-  nodeModulesDir: resolveApp('../../node_modules'),
-  resolveApp,
+type GatewayTierState = {
+  tiers: {[string]: tier},
+  supportedVersions: Array<string>,
 };
+
+export type GatewayTierContextType = {
+  state: GatewayTierState,
+  setState: (key: tier_id, val?: tier) => Promise<void>,
+};
+
+export default React.createContext<GatewayTierContextType>({});

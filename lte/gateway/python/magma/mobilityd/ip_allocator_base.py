@@ -18,9 +18,8 @@ from abc import ABC, abstractmethod
 
 from ipaddress import ip_address, ip_network
 from typing import List
-from enum import Enum
 
-from magma.mobilityd.ip_descriptor import IPDesc
+from magma.mobilityd.ip_descriptor import IPDesc, IPType
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 

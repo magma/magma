@@ -16,6 +16,7 @@
 import type {promql_return_object} from '@fbcnms/magma-api';
 
 import 'jest-dom/extend-expect';
+import EnodebContext from '../../../components/context/EnodebContext';
 import EnodebDetail from '../EnodebDetailMain';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MomentUtils from '@date-io/moment';
@@ -115,10 +116,16 @@ describe('<Enodeb />', () => {
       <MuiPickersUtilsProvider utils={MomentUtils}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <Route
-              path="/nms/:networkId/enodeb/:enodebSerial/overview"
-              render={props => <EnodebDetail {...props} enbInfo={enbInfo} />}
-            />
+            <EnodebContext.Provider
+              value={{
+                state: {enbInfo: enbInfo},
+                setState: async _ => {},
+              }}>
+              <Route
+                path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                render={props => <EnodebDetail {...props} enbInfo={enbInfo} />}
+              />
+            </EnodebContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MuiPickersUtilsProvider>

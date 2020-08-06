@@ -13,6 +13,7 @@ limitations under the License.
 import ipaddress
 from enum import Enum
 
+
 class IPState(Enum):
     FREE = 1
     ALLOCATED = 2
@@ -21,7 +22,13 @@ class IPState(Enum):
     RESERVED = 5
 
 
-class IPDesc():
+class IPType(Enum):
+    STATIC = 1
+    IP_POOL = 2
+    DHCP = 3
+
+
+class IPDesc:
     """
     IP descriptor.
 
@@ -33,17 +40,20 @@ class IPDesc():
     """
 
     def __init__(self, ip: ipaddress.ip_address = None, state: IPState = None,
-                 sid: str = None, ip_block: ipaddress.ip_network = None):
+                 sid: str = None, ip_block: ipaddress.ip_network = None,
+                 ip_type: IPType = None):
         self.ip = ip
         self.ip_block = ip_block
         self.state = state
         self.sid = sid
+        self.type = ip_type
 
     def __str__(self):
         as_str = '<mobilityd.IPDesc ' + \
-                 '{{ip: {}, ip_block: {}, state: {}, sid: {}}}>'.format(
+                 '{{ip: {}, ip_block: {}, state: {}, sid: {}, type: {}}}>'.format(
                      self.ip,
                      self.ip_block,
                      self.state,
-                     self.sid)
+                     self.sid,
+                     self.type)
         return as_str

@@ -123,7 +123,8 @@ export default function AddEditNetworkButton(props: ButtonProps) {
   );
 }
 
-function NetworkEditDialog({open, onClose, editProps}: DialogProps) {
+export function NetworkEditDialog(props: DialogProps) {
+  const {open, editProps} = props;
   const classes = useStyles();
   const [networkId, setNetworkId] = useState<network_id>(
     editProps?.networkInfo?.id || '',
@@ -134,6 +135,13 @@ function NetworkEditDialog({open, onClose, editProps}: DialogProps) {
   const [tabPos, setTabPos] = React.useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
+
+  const onClose = () => {
+    setNetworkInfo({});
+    setEpcConfigs({});
+    setNetworkId('');
+    props.onClose();
+  };
 
   return (
     <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">

@@ -107,6 +107,7 @@ export type ActionQuery = {
 export type ActionTableProps<T> = {
   titleIcon?: ComponentType<SvgIconExports>,
   tableRef?: {},
+  toolbar?: {},
   editable?: {},
   title?: string,
   handleCurrRow?: T => void,
@@ -192,6 +193,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
               if (item.handleFunc) {
                 item.handleFunc();
               }
+              handleClose();
             }}>
             {item.name}
           </MenuItem>
@@ -203,6 +205,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
     <>
       {actionTableJSX}
       <MaterialTable
+        toolbar={props.toolbar}
         tableRef={props.tableRef}
         editable={props.editable}
         components={{

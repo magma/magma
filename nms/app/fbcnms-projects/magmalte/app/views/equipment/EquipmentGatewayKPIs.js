@@ -13,15 +13,18 @@
  * @flow strict-local
  * @format
  */
-import type {KPIData} from '../../components/KPITray';
+import type {DataRows} from '../../components/DataGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-import KPITray from '../../components/KPITray';
+import DataGrid from '../../components/DataGrid';
+import GatewayContext from '../../components/context/GatewayContext';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import isGatewayHealthy from '../../components/GatewayUtils';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+
+import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const getLatency = (resp, fn) => {
@@ -33,12 +36,11 @@ const getLatency = (resp, fn) => {
   return respArr && respArr.length ? fn(...respArr).toFixed(2) : 0;
 };
 
-export default function EquipmentGatewayKPIs({
-  lteGateways,
-}: {
-  lteGateways: {[string]: lte_gateway},
-}) {
+export default function EquipmentGatewayKPIs() {
   const {match} = useRouter();
+  const ctx = useContext(GatewayContext);
+  const lteGateways = ctx.state;
+
   const networkId: string = nullthrows(match.params.networkId);
   const timeRange = '3h';
   const {response: maxResponse} = useMagmaAPI(
@@ -96,14 +98,16 @@ export default function EquipmentGatewayKPIs({
     pctHealthyGw = ((upCount * 100) / (upCount + downCount)).toFixed(2);
   }
 
-  const kpiData: KPIData[] = [
-    {category: 'Max Latency', value: maxLatency, unit: 'ms'},
-    {category: 'Min Latency', value: minLatency, unit: 'ms'},
-    {category: 'Avg Latency', value: avgLatency, unit: 'ms'},
-    {
-      category: '% Healthy Gateways',
-      value: pctHealthyGw,
-    },
+  const kpiData: DataRows[] = [
+    [
+      {category: 'Max Latency', value: maxLatency, unit: 'ms'},
+      {category: 'Min Latency', value: minLatency, unit: 'ms'},
+      {category: 'Avg Latency', value: avgLatency, unit: 'ms'},
+      {
+        category: '% Healthy Gateways',
+        value: pctHealthyGw,
+      },
+    ],
   ];
-  return <KPITray data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }

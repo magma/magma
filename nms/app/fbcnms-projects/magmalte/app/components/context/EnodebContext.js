@@ -13,6 +13,19 @@
  * @flow strict-local
  * @format
  */
+import type {EnodebInfo} from '../lte/EnodebUtils';
+import type {network_ran_configs} from '@fbcnms/magma-api';
 
-import 'core-js';
-import 'regenerator-runtime/runtime';
+import React from 'react';
+
+type EnodebState = {
+  enbInfo: {[string]: EnodebInfo},
+  lteRanConfigs?: network_ran_configs,
+};
+
+export type EnodebContextType = {
+  state: EnodebState,
+  setState: (key: string, val?: EnodebInfo) => Promise<void>,
+};
+
+export default React.createContext<EnodebContextType>({});

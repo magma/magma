@@ -13,13 +13,13 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {lte_gateway} from '@fbcnms/magma-api';
 
-import KPIGrid from '../../components/KPIGrid';
+import DataGrid from '../../components/DataGrid';
 import React from 'react';
-
 import isGatewayHealthy from '../../components/GatewayUtils';
+
 export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
   let checkInTime = new Date(0);
   if (
@@ -38,7 +38,7 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
     !!gwInfo.magmad.dynamic_services &&
     gwInfo.magmad.dynamic_services.includes('eventd');
 
-  const kpiData: KPIRows[] = [
+  const data: DataRows[] = [
     [
       {
         category: 'Health',
@@ -73,5 +73,5 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
       },
     ],
   ];
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={data} />;
 }

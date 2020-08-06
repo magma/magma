@@ -13,33 +13,26 @@
  * @flow strict-local
  * @format
  */
-import type {EnodebInfo} from '../../components/lte/EnodebUtils';
-import type {enodeb, network_ran_configs} from '@fbcnms/magma-api';
+import type {DataRows} from '../../components/DataGrid';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';
-import Divider from '@material-ui/core/Divider';
+import DataGrid from '../../components/DataGrid';
+import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
-import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -70,34 +63,25 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = {
-  enbInfo: EnodebInfo,
-  lteRanConfigs?: ?network_ran_configs,
-  onSave?: enodeb => void,
-};
-
-export function EnodebJsonConfig(props: Props) {
+export function EnodebJsonConfig() {
+  const ctx = useContext(EnodebContext);
   const {match} = useRouter();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
   const enqueueSnackbar = useEnqueueSnackbar();
 
   return (
     <JsonEditor
-      content={props.enbInfo.enb}
+      content={enbInfo.enb}
       error={error}
       onSave={async enb => {
         try {
-          await MagmaV1API.putLteByNetworkIdEnodebsByEnodebSerial({
-            networkId: networkId,
-            enodebSerial: props.enbInfo.enb.serial,
-            enodeb: (enb: enodeb),
-          });
+          ctx.setState(enbInfo.enb.serial, {...enbInfo, enb: enb});
           enqueueSnackbar('eNodeb saved successfully', {
             variant: 'success',
           });
           setError('');
-          props.onSave?.(enb);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -106,212 +90,172 @@ export function EnodebJsonConfig(props: Props) {
   );
 }
 
-export default function EnodebConfig(props: Props) {
+export default function EnodebConfig() {
   const classes = useStyles();
-  const {enbInfo, onSave} = props;
-  const {history, relativeUrl, match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
+  const {history, relativeUrl} = useRouter();
 
-  const {response: lteRanConfigs, isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularRan,
-    {
-      networkId: networkId,
-    },
-  );
+  function editJSON() {
+    return (
+      <Button
+        className={classes.appBarBtn}
+        onClick={() => {
+          history.push(relativeUrl('/json'));
+        }}>
+        Edit JSON
+      </Button>
+    );
+  }
 
-  const editProps = {
-    enb: enbInfo.enb,
-    lteRanConfigs: lteRanConfigs,
-    onSave: onSave,
-  };
+  function editEnodeb() {
+    return (
+      <AddEditEnodeButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'config',
+        }}
+      />
+    );
+  }
 
-  if (isLoading) {
-    return <LoadingFiller />;
+  function editRAN() {
+    return (
+      <AddEditEnodeButton
+        title={'Edit'}
+        isLink={true}
+        editProps={{
+          editTable: 'ran',
+        }}
+      />
+    );
   }
 
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3} alignItems="stretch">
-        <Grid container spacing={3} alignItems="stretch" item xs={12}>
-          <Grid container item xs={12}>
-            <Grid item xs={6}>
-              <Text>
-                <SettingsIcon /> Config
-              </Text>
-            </Grid>
-            <Grid container item xs={6} justify="flex-end">
-              <Text>
-                <Button
-                  className={classes.appBarBtn}
-                  onClick={() => {
-                    history.push(relativeUrl('/json'));
-                  }}>
-                  Edit JSON
-                </Button>
-              </Text>
-            </Grid>
-          </Grid>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <CardTitleFilterRow
+            label="Config"
+            icon={SettingsIcon}
+            filter={editJSON}
+          />
+        </Grid>
 
-          <Grid item xs={6}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>eNodeB</Text>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <AddEditEnodeButton
-                  title={'Edit'}
-                  isLink={true}
-                  editProps={{
-                    ...editProps,
-                    editTable: 'config',
-                    onSave: enb => editProps.onSave?.(enb),
-                  }}
-                />
-              </Grid>
-            </Grid>
-            <EnodebInfoConfig enbInfo={enbInfo} />
-          </Grid>
+        <Grid item xs={12} md={6}>
+          <CardTitleFilterRow label="eNodeb" filter={editEnodeb} />
+          <EnodebInfoConfig />
+        </Grid>
 
-          <Grid item xs={6}>
-            <Grid container>
-              <Grid item xs={6}>
-                <Text>RAN</Text>
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <AddEditEnodeButton
-                  title={'Edit'}
-                  isLink={true}
-                  editProps={{
-                    ...editProps,
-                    editTable: 'ran',
-                    onSave: enb => editProps.onSave?.(enb),
-                  }}
-                />
-              </Grid>
-            </Grid>
-            <EnodebRanConfig lteRanConfigs={lteRanConfigs} enbInfo={enbInfo} />
-          </Grid>
+        <Grid item xs={12} md={6}>
+          <CardTitleFilterRow label="RAN" filter={editRAN} />
+          <EnodebRanConfig />
         </Grid>
       </Grid>
     </div>
   );
 }
 
-function EnodebRanConfig(props: Props) {
-  const classes = useStyles();
+function EnodebRanConfig() {
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const lteRanConfigs = ctx.state.lteRanConfigs;
 
-  const typographyProps = {
-    primaryTypographyProps: {
-      variant: 'caption',
-      className: classes.itemTitle,
-    },
-    secondaryTypographyProps: {
-      variant: 'h6',
-      className: classes.itemValue,
-    },
-  };
+  const data: DataRows[] = [
+    [
+      {
+        category: 'Bandwidth',
+        value: enbInfo.enb.config.bandwidth_mhz ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Cell ID',
+        value: enbInfo.enb.config.cell_id ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Description',
+        value: enbInfo.enb.description ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'RAN Config',
+        value: lteRanConfigs?.tdd_config
+          ? 'TDD'
+          : lteRanConfigs?.fdd_config
+          ? 'FDD'
+          : '-',
+        collapse: lteRanConfigs?.tdd_config ? (
+          <EnodeConfigTdd
+            earfcndl={enbInfo.enb.config.earfcndl ?? 0}
+            specialSubframePattern={
+              enbInfo.enb.config.special_subframe_pattern ?? 0
+            }
+            subframeAssignment={enbInfo.enb.config.subframe_assignment ?? 0}
+          />
+        ) : lteRanConfigs?.fdd_config ? (
+          <EnodeConfigFdd
+            earfcndl={enbInfo.enb.config.earfcndl ?? 0}
+            earfcnul={lteRanConfigs.fdd_config.earfcnul}
+          />
+        ) : (
+          false
+        ),
+      },
+    ],
+    [
+      {
+        category: 'PCI',
+        value: enbInfo.enb.config.pci ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'TAC',
+        value: enbInfo.enb.config.tac ?? '-',
+      },
+    ],
+    [
+      {
+        category: 'Transmit',
+        value: enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled',
+      },
+    ],
+  ];
 
-  return (
-    <List component={Paper} data-testid="ran">
-      <ListItem>
-        <ListItemText
-          primary="Bandwidth"
-          secondary={props.enbInfo.enb.config.bandwidth_mhz}
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={props.enbInfo.enb.config.cell_id}
-          primary="Cell ID"
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      {props.lteRanConfigs?.tdd_config && (
-        <EnodeConfigTdd
-          earfcndl={props.enbInfo.enb.config.earfcndl ?? 0}
-          specialSubframePattern={
-            props.enbInfo.enb.config.special_subframe_pattern ?? 0
-          }
-          subframeAssignment={props.enbInfo.enb.config.subframe_assignment ?? 0}
-        />
-      )}
-      {props.lteRanConfigs?.fdd_config && (
-        <EnodeConfigFdd
-          earfcndl={props.enbInfo.enb.config.earfcndl ?? 0}
-          earfcnul={props.lteRanConfigs.fdd_config.earfcnul}
-        />
-      )}
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={props.enbInfo.enb.config.pci}
-          primary="PCI"
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={props.enbInfo.enb.config.tac}
-          primary="TAC"
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          secondary={
-            props.enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled'
-          }
-          primary="Transmit"
-          {...typographyProps}
-        />
-      </ListItem>
-    </List>
-  );
+  return <DataGrid data={data} testID="ran" />;
 }
 
-function EnodebInfoConfig(props: Props) {
-  const classes = useStyles();
+function EnodebInfoConfig() {
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
 
-  const typographyProps = {
-    primaryTypographyProps: {
-      variant: 'caption',
-      className: classes.itemTitle,
-    },
-    secondaryTypographyProps: {
-      variant: 'h6',
-      className: classes.itemValue,
-    },
-  };
-  return (
-    <List component={Paper} data-testid="config">
-      <ListItem>
-        <ListItemText
-          primary="Name"
-          secondary={props.enbInfo.enb.name}
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          primary="Serial Number"
-          secondary={props.enbInfo.enb.serial}
-          {...typographyProps}
-        />
-      </ListItem>
-      <Divider />
-      <ListItem>
-        <ListItemText
-          primary="Description"
-          secondary={props.enbInfo.enb.description}
-          {...typographyProps}
-        />
-      </ListItem>
-    </List>
-  );
+  const data: DataRows[] = [
+    [
+      {
+        category: 'Name',
+        value: enbInfo.enb.name,
+      },
+    ],
+    [
+      {
+        category: 'Serial Number',
+        value: enbInfo.enb.serial,
+      },
+    ],
+    [
+      {
+        category: 'Description',
+        value: enbInfo.enb.description ?? '-',
+      },
+    ],
+  ];
+
+  return <DataGrid data={data} testID="config" />;
 }

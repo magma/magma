@@ -13,12 +13,9 @@
  * @flow strict-local
  * @format
  */
-import Collapse from '@material-ui/core/Collapse';
-import ExpandLess from '@material-ui/icons/ExpandLess';
-import ExpandMore from '@material-ui/icons/ExpandMore';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
+import type {DataRows} from '../../components/DataGrid';
+
+import DataGrid from '../../components/DataGrid';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 
@@ -48,50 +45,30 @@ type Props = {
   specialSubframePattern: number,
   subframeAssignment: number,
 };
+
 export function EnodeConfigTdd(props: Props) {
-  const classes = useStyles();
-  const [open, setOpen] = React.useState(true);
-  const typographyProps = {
-    primaryTypographyProps: {
-      variant: 'caption',
-      className: classes.itemTitle,
-    },
-    secondaryTypographyProps: {
-      variant: 'h6',
-      className: classes.itemValue,
-    },
-  };
-  return (
-    <List key="tddConfigs">
-      <ListItem button onClick={() => setOpen(!open)}>
-        <ListItemText primary="TDD" />
-        {open ? <ExpandLess /> : <ExpandMore />}
-      </ListItem>
-      <Collapse key="tdd" in={open} timeout="auto" unmountOnExit>
-        <ListItem>
-          <ListItemText
-            secondary={props.earfcndl}
-            primary="EARFCNDL"
-            {...typographyProps}
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            secondary={props.specialSubframePattern}
-            primary="Special Subframe Pattern"
-            {...typographyProps}
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            secondary={props.subframeAssignment}
-            primary="Subframe Assignment"
-            {...typographyProps}
-          />
-        </ListItem>
-      </Collapse>
-    </List>
-  );
+  const tddData: DataRows[] = [
+    [
+      {
+        category: 'EARFCNDL',
+        value: props.earfcndl,
+      },
+    ],
+    [
+      {
+        category: 'Special Subframe Pattern',
+        value: props.specialSubframePattern,
+      },
+    ],
+    [
+      {
+        category: 'Subframe Assignment',
+        value: props.subframeAssignment,
+      },
+    ],
+  ];
+
+  return <DataGrid data={tddData} />;
 }
 
 type EditProps = {

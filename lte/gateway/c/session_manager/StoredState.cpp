@@ -26,6 +26,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
   uc.charging_credit_map        = std::unordered_map<
       CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
       decltype(&ccEqual)>(4, &ccHash, &ccEqual);
+  uc.is_session_level_key_updated = false;
   return uc;
 }
 

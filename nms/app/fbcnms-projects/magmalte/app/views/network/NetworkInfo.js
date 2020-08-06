@@ -13,20 +13,19 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {network, network_dns_config} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
+import DataGrid from '../../components/DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
-import KPIGrid from '../../components/KPIGrid';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import axios from 'axios';
@@ -42,7 +41,7 @@ type Props = {
 };
 
 export default function NetworkInfo(props: Props) {
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         category: 'ID',
@@ -67,15 +66,11 @@ export default function NetworkInfo(props: Props) {
     [
       {
         category: 'Description',
-        value: props.networkInfo.description,
+        value: props.networkInfo.description || '-',
       },
     ],
   ];
-  return (
-    <Paper elevation={0} data-testid="info">
-      <KPIGrid data={kpiData} />
-    </Paper>
-  );
+  return <DataGrid data={kpiData} testID="info" />;
 }
 
 type EditProps = {
@@ -140,7 +135,7 @@ export function NetworkInfoEdit(props: EditProps) {
       try {
         const response = await axios.post('/nms/network/create', payload);
         if (response.data.success) {
-          enqueueSnackbar(`Network $networkInfo.name} successfully created`, {
+          enqueueSnackbar(`Network ${networkInfo.name} successfully created`, {
             variant: 'success',
           });
           props.onSave(networkInfo);

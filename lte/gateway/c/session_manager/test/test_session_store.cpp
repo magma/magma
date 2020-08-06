@@ -146,6 +146,9 @@ class SessionStoreTest : public ::testing::Test {
     credit2.buckets[REPORTING_RX]  = 6;
     credit2.buckets[REPORTED_TX]   = 7;
     credit2.buckets[REPORTED_RX]   = 8;
+    credit2.buckets[ALLOWED_FLOOR_TOTAL] = 9;
+    credit2.buckets[ALLOWED_FLOOR_TX]    = 10;
+    credit2.buckets[ALLOWED_FLOOR_RX]    = 11;
     monitor2.level                 = SESSION_LEVEL;
     monitor2.credit                = credit2;
     update_criteria.monitor_credit_to_install[monitoring_key2] = monitor2;
@@ -164,6 +167,9 @@ class SessionStoreTest : public ::testing::Test {
     bucket_deltas[REPORTING_RX]     = 6;
     bucket_deltas[REPORTED_TX]      = 7;
     bucket_deltas[REPORTED_RX]      = 8;
+    bucket_deltas[ALLOWED_FLOOR_TOTAL] = 9;
+    bucket_deltas[ALLOWED_FLOOR_TX]    = 10;
+    bucket_deltas[ALLOWED_FLOOR_RX]    = 11;
     monitoring_update.bucket_deltas = bucket_deltas;
 
     update_criteria.monitor_credit_map =
@@ -351,8 +357,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   // Check for installation of new monitoring credit
   session_map[imsi].front()->set_monitor(
       monitoring_key2,
-      Monitor::unmarshal(
-          update_criteria.monitor_credit_to_install[monitoring_key2]),
+      Monitor(update_criteria.monitor_credit_to_install[monitoring_key2]),
       uc);
   EXPECT_EQ(
       session_map[imsi].front()->get_monitor(monitoring_key2, USED_TX), 100);

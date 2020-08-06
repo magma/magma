@@ -41,6 +41,22 @@ void create_credit_update_response(
   uint64_t volume,
   CreditUpdateResponse* response);
 
+void create_charging_credit(
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    bool is_final,
+    ChargingCredit* credit);
+
+void create_credit_update_response(
+    const std::string& imsi,
+    uint32_t charging_key,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    bool is_final,
+    CreditUpdateResponse* response);
+
 void create_credit_update_response(
   const std::string& imsi,
   uint32_t charging_key,

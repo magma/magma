@@ -13,16 +13,16 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {subscriber} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
 import DashboardIcon from '@material-ui/icons/Dashboard';
+import DataGrid from '../../components/DataGrid';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-import KPIGrid from '../../components/KPIGrid';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PersonIcon from '@material-ui/icons/Person';
@@ -38,7 +38,6 @@ import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
-import {magmaEventTypes} from '../../views/events/EventsTable';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -161,7 +160,11 @@ export default function SubscriberDetail(props: {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventTypes={magmaEventTypes.SUBSCRIBER} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              tags={subscriberInfo.id}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
@@ -200,8 +203,8 @@ function Overview(props: {subscriberInfo: subscriber}) {
         </Grid>
         <Grid item xs={12}>
           <EventsTable
-            eventTypes={magmaEventTypes.SUBSCRIBER}
-            eventKey={props.subscriberInfo.id}
+            eventStream="SUBSCRIBER"
+            tags={props.subscriberInfo.id}
             sz="md"
           />
         </Grid>
@@ -211,7 +214,7 @@ function Overview(props: {subscriberInfo: subscriber}) {
 }
 
 function Info(props: {subscriberInfo: subscriber}) {
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         value: props.subscriberInfo.id,
@@ -233,14 +236,14 @@ function Info(props: {subscriberInfo: subscriber}) {
     ],
   ];
 
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }
 
 function Status() {
   const featureUnsupported = 'Unsupported';
   const statusUnknown = 'Unknown';
 
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         category: 'Gateway ID',
@@ -267,7 +270,7 @@ function Status() {
     ],
   ];
 
-  return <KPIGrid data={kpiData} />;
+  return <DataGrid data={kpiData} />;
 }
 
 function OverviewTabLabel() {

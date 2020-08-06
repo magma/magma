@@ -13,22 +13,21 @@
  * @flow strict-local
  * @format
  */
-import type {KPIRows} from '../../components/KPIGrid';
+import type {DataRows} from '../../components/DataGrid';
 import type {network_epc_configs} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
+import DataGrid from '../../components/DataGrid';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
-import KPIGrid from '../../components/KPIGrid';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Visibility from '@material-ui/icons/Visibility';
@@ -43,7 +42,7 @@ type Props = {
 };
 
 export default function NetworkEpc(props: Props) {
-  const kpiData: KPIRows[] = [
+  const kpiData: DataRows[] = [
     [
       {
         category: 'Policy Enforcement Enabled',
@@ -77,11 +76,7 @@ export default function NetworkEpc(props: Props) {
     ],
   ];
 
-  return (
-    <Paper elevation={0} data-testid="epc">
-      <KPIGrid data={kpiData} />
-    </Paper>
-  );
+  return <DataGrid data={kpiData} testID="epc" />;
 }
 
 type EditProps = {
