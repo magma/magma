@@ -8811,10 +8811,10 @@ markdown-to-jsx@^6.11.4:
     prop-types "^15.6.2"
     unquote "^1.1.0"
 
-material-table@^1.59.0:
-  version "1.64.0"
-  resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.64.0.tgz#c0d0a2a2b3657cbe729b25abf194c549015fa411"
-  integrity sha512-jvjr/USecR8BbEuWF2+8iScrjnoyOXsP/ghFOacNdgxZAZbmpJrhtHZtvu957QmRRYJSORAAW6JMskLEra9Sig==
+material-table@^1.68.0:
+  version "1.68.0"
+  resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.68.0.tgz#275c3d9a885c40ae4bc5a7461c00e877f92397b9"
+  integrity sha512-dyJJaVsS3m+i6sn71AvYcVdA1P9X1XiUOM2PekfvEeeMtkdQb66oChGkk77ndYi3Ja6j4DovGVNrgeVLwXLZiw==
   dependencies:
     "@date-io/date-fns" "^1.1.0"
     "@material-ui/pickers" "^3.2.2"
