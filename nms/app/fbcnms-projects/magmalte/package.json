@@ -28,7 +28,7 @@
     "@material-ui/icons": "^4.0.0",
     "@material-ui/pickers": "^3.2.10",
     "@material-ui/styles": "^4.0.0",
-    "axios": "^0.18.0",
+    "axios": "^0.19.2",
     "chart.js": "^2.7.3",
     "classnames": "^2.2.5",
     "css-loader": "^1.0.1",
