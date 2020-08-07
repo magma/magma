@@ -23,6 +23,7 @@ import GatewayCheckinChart from './GatewayCheckinChart';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
@@ -214,7 +215,19 @@ function GatewayTableRaw(props: WithAlert) {
           data={lteGatewayUpgradeRows}
           columns={[
             {title: 'Name', field: 'name', editable: 'never'},
-            {title: 'ID', field: 'id', editable: 'never'},
+            {
+              title: 'ID',
+              field: 'id',
+              editable: 'never',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                  {currRow.id}
+                </Link>
+              ),
+            },
             {title: 'Hardware ID', field: 'hardwareId', editable: 'never'},
             {
               title: 'Current Version',
@@ -266,7 +279,18 @@ function GatewayTableRaw(props: WithAlert) {
           data={lteGatewayRows}
           columns={[
             {title: 'Name', field: 'name'},
-            {title: 'ID', field: 'id'},
+            {
+              title: 'ID',
+              field: 'id',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+                  {currRow.id}
+                </Link>
+              ),
+            },
             {title: 'enodeBs', field: 'num_enodeb', type: 'numeric'},
             {title: 'Subscribers', field: 'num_subscribers', type: 'numeric'},
             {title: 'Health', field: 'health'},
@@ -306,9 +330,6 @@ function GatewayTableRaw(props: WithAlert) {
                   });
               },
             },
-
-            {name: 'Deactivate'},
-            {name: 'Reboot'},
           ]}
           options={{
             actionsColumnIndex: -1,

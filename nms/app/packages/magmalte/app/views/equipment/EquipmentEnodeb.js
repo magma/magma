@@ -19,6 +19,7 @@ import ActionTable from '../../components/ActionTable';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -130,7 +131,18 @@ function EnodebTableRaw(props: WithAlert) {
       data={enbRows}
       columns={[
         {title: 'Name', field: 'name'},
-        {title: 'Serial Number', field: 'id'},
+        {
+          title: 'Serial Number',
+          field: 'id',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+              {currRow.id}
+            </Link>
+          ),
+        },
         {title: 'Session State Name', field: 'sessionName'},
         {title: 'Health', field: 'health'},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
@@ -169,8 +181,6 @@ function EnodebTableRaw(props: WithAlert) {
               });
           },
         },
-        {name: 'Deactivate'},
-        {name: 'Reboot'},
       ]}
       options={{
         actionsColumnIndex: -1,
