@@ -53,7 +53,7 @@
     "@babel/preset-flow": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "@testing-library/react": "^9.4.0",
-    "@testing-library/react-hooks": "^3.2.1",
+    "@testing-library/react-hooks": "^3.4.1",
     "autoprefixer": "^7.1.6",
     "babel-loader": "^8.0.5",
     "css-loader": "^1.0.1",
