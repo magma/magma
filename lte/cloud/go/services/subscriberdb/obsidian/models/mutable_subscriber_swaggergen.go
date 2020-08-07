@@ -39,6 +39,9 @@ type MutableSubscriber struct {
 
 	// Name for the subscriber
 	Name string `json:"name,omitempty"`
+
+	// static ips
+	StaticIps SubscriberStaticIps `json:"static_ips,omitempty"`
 }
 
 // Validate validates this mutable subscriber
@@ -62,6 +65,10 @@ func (m *MutableSubscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateLte(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStaticIps(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -152,6 +159,22 @@ func (m *MutableSubscriber) validateLte(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *MutableSubscriber) validateStaticIps(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.StaticIps) { // not required
+		return nil
+	}
+
+	if err := m.StaticIps.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("static_ips")
+		}
+		return err
 	}
 
 	return nil

@@ -181,24 +181,15 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
   return true;
 }
 
-static CreateSessionRequest copy_session_info2create_req(
-    const LocalCreateSessionRequest& request, const std::string& sid) {
+static CreateSessionRequest make_create_session_request(
+    const SessionConfig& cfg, const std::string& sid) {
+  auto common       = cfg.common_context;
+  auto rat_specific = cfg.rat_specific_context;
+
   CreateSessionRequest create_request;
-  create_request.mutable_subscriber()->CopyFrom(request.sid());
   create_request.set_session_id(sid);
-  create_request.set_ue_ipv4(request.ue_ipv4());
-  create_request.set_spgw_ipv4(request.spgw_ipv4());
-  create_request.set_apn(request.apn());
-  create_request.set_msisdn(request.msisdn());
-  create_request.set_imei(request.imei());
-  create_request.set_plmn_id(request.plmn_id());
-  create_request.set_imsi_plmn_id(request.imsi_plmn_id());
-  create_request.set_user_location(request.user_location());
-  create_request.set_hardware_addr(request.hardware_addr());
-  create_request.set_rat_type(request.rat_type());
-  if (request.has_qos_info()) {
-    create_request.mutable_qos_info()->CopyFrom(request.qos_info());
-  }
+  create_request.mutable_common_context()->CopyFrom(common);
+  create_request.mutable_rat_specific_context()->CopyFrom(rat_specific);
   return create_request;
 }
 
@@ -224,53 +215,11 @@ SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
   }
   cfg.qos_info = qos_info;
 
-  // TODO The fields above in SessionConfig will be replaced by the bundled
-  // fields below
-  cfg.common_context = request.common_context();
+  // TODO @themarwhal The fields above in SessionConfig will be replaced by
+  //  the bundled fields below
+  cfg.common_context       = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
-   return cfg;
-}
-
-void LocalSessionManagerHandlerImpl::recycle_session(
-    SessionMap& session_map, const LocalCreateSessionRequest& request,
-    const std::string& imsi, const std::string& sid,
-    const std::string& core_sid, SessionConfig cfg, const bool is_wifi,
-    std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
-  Status status;
-  if (is_wifi) {
-    MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
-                << " and RAT Type is WLAN, not creating a new session";
-    // Wifi only supports one session per subscriber, so update the config
-    // here
-    SessionUpdate session_update =
-        SessionStore::get_default_session_update(session_map);
-    enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
-    if (session_store_.update_sessions(session_update)) {
-      MLOG(MINFO) << "Successfully updated session " << sid
-                  << " in sessiond for subscriber " << imsi;
-      status = grpc::Status::OK;
-    } else {
-      MLOG(MINFO) << "Failed to initialize new session " << sid
-                  << " in sessiond for subscriber " << imsi
-                  << " with default bearer id " << cfg.bearer_id
-                  << " due to failure writing to SessionStore."
-                  << " An earlier update may have invalidated it.";
-      status = Status(grpc::ABORTED, "Failed to update SessionStore");
-    }
-  } else {
-    MLOG(MINFO) << "Found completely duplicated session with IMSI " << imsi
-                << " and APN " << request.apn() << ", not creating session";
-    status = grpc::Status::OK;
-  }
-  try {
-    LocalCreateSessionResponse resp;
-    resp.set_session_id(core_sid);
-    response_callback(status, resp);
-  } catch (...) {
-    std::exception_ptr ep = std::current_exception();
-    MLOG(MERROR) << "CreateSession response_callback exception: "
-                 << (ep ? ep.__cxa_exception_type()->name() : "<unknown");
-  }
+  return cfg;
 }
 
 void LocalSessionManagerHandlerImpl::CreateSession(
@@ -282,76 +231,44 @@ void LocalSessionManagerHandlerImpl::CreateSession(
       [this, context, response_callback, request_cpy]() {
         auto imsi = request_cpy.sid().id();
         auto sid  = id_gen_.gen_session_id(imsi);
-        MLOG(MDEBUG) << "PLMN_ID: " << request_cpy.plmn_id()
-                     << " IMSI_PLMN_ID: " << request_cpy.imsi_plmn_id();
+        auto apn  = request_cpy.apn();
+        MLOG(MDEBUG) << "Received a CreateSessionRequest for " << imsi
+                     << " apn: " << apn << " plmn_id: " << request_cpy.plmn_id()
+                     << " imsi_plmn_id: " << request_cpy.imsi_plmn_id();
 
         SessionConfig cfg = build_session_config(request_cpy);
-        auto session_map  = get_sessions_for_creation(request_cpy);
-
-        if (enforcer_->session_with_imsi_exists(session_map, imsi)) {
-          std::string core_sid;
-
-          // For LTE case, load session if and only if the configuration exactly
-          // matches. For CWF use case, we can recycle any active session
-          bool same_config = false;
-          bool is_active   = false;
-          bool is_wifi     = request_cpy.rat_type() == RATType::TGPP_WLAN;
-          if (is_wifi) {
-            is_active = enforcer_->get_core_sid_of_active_session(
-                session_map, imsi, &core_sid);
-          } else {
-            same_config = enforcer_->get_core_sid_of_session_with_same_config(
-                session_map, imsi, cfg, &core_sid);
-            is_active =
-                enforcer_->is_session_active(session_map, imsi, core_sid);
-          }
-          // To recycle the session, it has to be active (i.e., not in
-          // transition for termination), it should have the exact same
-          // configuration or it should be CWF use case.
-          if ((same_config || is_wifi) && is_active) {
-            recycle_session(
-                session_map, request_cpy, imsi, sid, core_sid, cfg, is_wifi,
-                response_callback);
+        auto session_map  = get_sessions_for_creation(imsi);
+        switch (cfg.rat_type) {
+          case TGPP_WLAN:
+            handle_create_session_cwf(
+                session_map, request_cpy, sid, cfg, response_callback);
             return;
-          }
-
-          if (!enforcer_->session_with_apn_exists(
-                  session_map, imsi, request_cpy.apn())) {
-            MLOG(MINFO) << "Found session with the same IMSI " << imsi
-                        << " but different APN " << request_cpy.apn()
-                        << ", will request a new session from PCRF/PCF";
-          } else if (is_active) {
-            MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
-                        << " and APN " << request_cpy.apn()
-                        << ", but different configuration."
-                        << " Ending the existing session, "
-                        << "will request a new session from PCRF/PCF";
-            LocalEndSessionRequest end_session_req;
-            end_session_req.mutable_sid()->CopyFrom(request_cpy.sid());
-            end_session_req.set_apn(request_cpy.apn());
-            end_session(
-                session_map, end_session_req,
-                [&](grpc::Status status, LocalEndSessionResponse response) {});
-          } else {
-            MLOG(MINFO) << "Found a session in termination with the same IMSI "
-                        << imsi << " and same APN " << request_cpy.apn()
-                        << ", will request a new session from PCRF/PCF";
-          }
+          case TGPP_LTE:
+            handle_create_session_lte(
+                session_map, request_cpy, sid, cfg, response_callback);
+            return;
+          default:
+            std::ostringstream failure_stream;
+            failure_stream << "Received an invalid RAT type " << cfg.rat_type;
+            std::string failure_msg = failure_stream.str();
+            MLOG(MERROR) << failure_msg;
+            events_reporter_->session_create_failure(
+                imsi, cfg.apn, cfg.mac_addr, failure_msg);
+            auto status = Status(grpc::FAILED_PRECONDITION, "Invalid RAT type");
+            send_local_create_session_response(status, sid, response_callback);
+            return;
         }
-        send_create_session(
-            session_map, copy_session_info2create_req(request_cpy, sid), imsi,
-            sid, cfg, response_callback);
       });
 }
 
 void LocalSessionManagerHandlerImpl::send_create_session(
-    SessionMap& session_map, const CreateSessionRequest& request,
-    const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
-    std::function<void(grpc::Status, LocalCreateSessionResponse)>
-        response_callback) {
+    SessionMap& session_map, const std::string& sid, const SessionConfig& cfg,
+    std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
+  auto imsi       = cfg.common_context.sid().id();
+  auto create_req = make_create_session_request(cfg, sid);
   reporter_->report_create_session(
-      request,
-      [this, imsi, sid, cfg, response_callback,
+      create_req,
+      [this, imsi, sid, cfg, cb,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, CreateSessionResponse response) mutable {
         PrintGrpcMessage(
@@ -392,10 +309,112 @@ void LocalSessionManagerHandlerImpl::send_create_session(
           events_reporter_->session_create_failure(
               imsi, cfg.apn, cfg.mac_addr, failure_msg);
         }
-        LocalCreateSessionResponse resp;
-        resp.set_session_id(response.session_id());
-        response_callback(status, resp);
+        send_local_create_session_response(status, sid, cb);
       });
+}
+
+void LocalSessionManagerHandlerImpl::handle_create_session_cwf(
+    SessionMap& session_map, const LocalCreateSessionRequest& request,
+    const std::string& sid, SessionConfig cfg,
+    std::function<void(Status, LocalCreateSessionResponse)> cb) {
+  auto imsi = request.sid().id();
+
+  auto it = session_map.find(imsi);
+  if (it != session_map.end()) {
+    for (const auto& session : it->second) {
+      if (session->is_active()) {
+        recycle_cwf_session(imsi, sid, cfg, session_map, cb);
+        return;
+      } else {
+        MLOG(MINFO) << "Found a non-active CWF session with the same IMSI "
+                    << imsi << ", requesting a new session";
+      }
+    }
+  }
+  MLOG(MINFO) << "Requesting a new CWF session for" << imsi;
+  send_create_session(session_map, sid, cfg, cb);
+}
+
+void LocalSessionManagerHandlerImpl::recycle_cwf_session(
+    const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
+    SessionMap& session_map,
+    std::function<void(Status, LocalCreateSessionResponse)> cb) {
+  // To recycle the session, it has to be active (i.e., not in
+  // transition for termination).
+  MLOG(MINFO) << "Found an active CWF session with the same IMSI " << imsi
+              << "... Recycling the existing session.";
+  // Since the new session context could be different from the current one,
+  // update the config
+  SessionUpdate session_update =
+      SessionStore::get_default_session_update(session_map);
+  enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
+  bool success = session_store_.update_sessions(session_update);
+  if (!success) {
+    MLOG(MINFO) << "Failed to update session config for " << sid
+                << " in SessionD due to failure writing to SessionStore."
+                << " An earlier update may have invalidated it.";
+    auto err_status = Status(grpc::ABORTED, "Failed to update SessionStore");
+    send_local_create_session_response(err_status, sid, cb);
+    return;
+  }
+  MLOG(MINFO) << "Successfully recycled an existing CWF session " << sid;
+  send_local_create_session_response(grpc::Status::OK, sid, cb);
+}
+
+void LocalSessionManagerHandlerImpl::handle_create_session_lte(
+    SessionMap& session_map, const LocalCreateSessionRequest& request,
+    const std::string& sid, SessionConfig cfg,
+    std::function<void(Status, LocalCreateSessionResponse)> cb) {
+  auto imsi = request.sid().id();
+
+  // If there are no existing sessions for the IMSI, just create a new one
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    send_create_session(session_map, sid, cfg, cb);
+    return;
+  }
+
+  for (const auto& session : it->second) {
+    if (cfg == session->get_config() && session->is_active()) {
+      // To recycle the session, it has to be active (i.e., not in
+      // transition for termination) AND it should have the exact same
+      // configuration.
+      MLOG(MINFO) << "Found an active completely duplicated session with IMSI "
+                  << imsi << " and APN " << cfg.apn << ", and same "
+                  << "configuration. Recycling the existing session " << sid;
+      send_local_create_session_response(grpc::Status::OK, sid, cb);
+      return;  // Return early
+    }
+    // At this point, we have session with same IMSI, but not identical config
+    if (session->get_config().apn == cfg.apn && session->is_active()) {
+      // If we have found an active session with the same IMSI+APN, but NOT
+      // identical context, we should terminate the existing session.
+      MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
+                  << " and APN " << cfg.apn << ", but different "
+                  << "configuration. Ending the existing session, "
+                  << "and requesting a new session";
+      end_session(
+          session_map, request.sid(), cfg.apn,
+          [&](grpc::Status status, LocalEndSessionResponse response) {});
+      // All sessions are unique by IMSI+APN
+      break;
+    }
+  }
+  send_create_session(session_map, sid, cfg, cb);
+}
+
+void LocalSessionManagerHandlerImpl::send_local_create_session_response(
+    Status status, const std::string& sid,
+    std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  try {
+    LocalCreateSessionResponse resp;
+    resp.set_session_id(sid);
+    response_callback(status, resp);
+  } catch (...) {
+    std::exception_ptr ep = std::current_exception();
+    MLOG(MERROR) << "CreateSession response_callback exception: "
+                 << (ep ? ep.__cxa_exception_type()->name() : "<unknown");
+  }
 }
 
 void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
@@ -449,21 +468,22 @@ void LocalSessionManagerHandlerImpl::EndSession(
     ServerContext* context, const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   auto& request_cpy = *request;
+  auto& sid         = request->sid();
+  auto& apn         = request->apn();
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
-      [this, request_cpy = std::move(request_cpy), response_callback]() {
-        auto session_map = get_sessions_for_deletion(request_cpy);
-        end_session(session_map, request_cpy, response_callback);
+      [this, sid, apn, response_callback]() {
+        auto session_map = get_sessions_for_deletion(sid.id());
+        end_session(session_map, sid, apn, response_callback);
       });
 }
 
 void LocalSessionManagerHandlerImpl::end_session(
-    SessionMap& session_map, const LocalEndSessionRequest& request,
+    SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   try {
     auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_subscriber(
-        session_map, request.sid().id(), request.apn(), update);
+    enforcer_->terminate_subscriber(session_map, sid.id(), apn, update);
 
     bool update_success = session_store_.update_sessions(update);
     if (update_success) {
@@ -477,15 +497,15 @@ void LocalSessionManagerHandlerImpl::end_session(
     }
   } catch (const SessionNotFound& ex) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                 << request.sid().id();
+                 << sid.id();
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
     response_callback(status, LocalEndSessionResponse());
   }
 }
 
 SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_creation(
-    const LocalCreateSessionRequest& request) {
-  SessionRead req = {request.sid().id()};
+    const std::string& imsi) {
+  SessionRead req = {imsi};
   return session_store_.read_sessions(req);
 }
 
@@ -499,20 +519,20 @@ SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_reporting(
 }
 
 SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(
-    const LocalEndSessionRequest& request) {
+    const std::string& imsi) {
   // Request numbers are not incremented here, but rather in the 5s delayed
   // callback when reporting is done.
-  SessionRead req = {request.sid().id()};
+  SessionRead req = {imsi};
   return session_store_.read_sessions(req);
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event(
     SessionMap& session_map, SessionUpdate& session_update) {
   for (auto& it : session_map) {
-    auto imsi = it.first;
+    auto imsi    = it.first;
     auto session = it.second.begin();
     while (session != it.second.end()) {
-      auto updates = session_update.find(it.first)->second;
+      auto updates    = session_update.find(it.first)->second;
       auto session_id = (*session)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         events_reporter_->session_updated(*session);
@@ -520,20 +540,18 @@ void LocalSessionManagerHandlerImpl::report_session_update_event(
       ++session;
     }
   }
-
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
     SessionMap& session_map, SessionUpdate& session_update,
     const std::string& failure_reason) {
   for (auto& it : session_map) {
-    auto imsi = it.first;
+    auto imsi    = it.first;
     auto session = it.second.begin();
     while (session != it.second.end()) {
-      auto updates = session_update.find(it.first)->second;
+      auto updates    = session_update.find(it.first)->second;
       auto session_id = (*session)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
-
         std::ostringstream failure_stream;
         failure_stream << "Update Session failed due to response from OCS: "
                        << failure_reason;

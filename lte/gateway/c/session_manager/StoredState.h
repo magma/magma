@@ -48,6 +48,8 @@ struct SessionConfig {
   QoSInfo qos_info;
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
+
+  bool operator== (const SessionConfig& config) const;
 };
 
 // Session Credit

@@ -129,7 +129,7 @@ class IPAllocatorDHCP(IPAllocator):
         else:
             raise NoAvailableIPError("No available IP addresses From DHCP")
 
-    def release_ip(self, sid: str, deleted_ip: ip_address, ip_block: ip_network):
+    def release_ip(self, ip_desc: IPDesc):
         """
         Release IP address, this involves following steps.
         1. send DHCP protocol packet to release the IP.
@@ -137,28 +137,29 @@ class IPAllocatorDHCP(IPAllocator):
         3. update IP from ip-state.
 
         Args:
+            ip_desc, release needs following info from IPDesc.
             sid: SID, used to get mac address.
-            deleted_ip: IP assigned to this SID
+            ip: IP assigned to this SID
             ip_block: IP block of the IP address.
 
         Returns: None
         """
-        self._dhcp_client.release_ip_address(create_mac_from_sid(sid))
+        self._dhcp_client.release_ip_address(create_mac_from_sid(ip_desc.sid))
         # Remove the IP from free IP list, since DHCP is the
         # owner of this IP
-        self._ip_state_map.remove_ip_from_state(deleted_ip, IPState.FREE)
+        self._ip_state_map.remove_ip_from_state(ip_desc.ip, IPState.FREE)
 
         list_allocated_ips = self._ip_state_map.list_ips(IPState.ALLOCATED)
         for ipaddr in list_allocated_ips:
-            if ipaddr in ip_block:
+            if ipaddr in ip_desc.ip_block:
                 # found the IP, do not remove this ip_block
                 return
 
-        ip_block_network = ip_network(ip_block)
+        ip_block_network = ip_network(ip_desc.ip_block)
         if ip_block_network in self._assigned_ip_blocks:
             self._assigned_ip_blocks.remove(ip_block_network)
         logging.debug("del: _assigned_ip_blocks %s ipblock %s",
-                      self._assigned_ip_blocks, ip_block)
+                      self._assigned_ip_blocks, ip_desc.ip_block)
 
     def stop_dhcp_sniffer(self):
         self._dhcp_client.stop()

@@ -927,7 +927,6 @@ func (m *LocalCreateSessionRequest) GetPdnType() uint32 {
 
 type CommonSessionContext struct {
 	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	SessionId            string        `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	UeIpv4               string        `protobuf:"bytes,3,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
 	Apn                  string        `protobuf:"bytes,4,opt,name=apn,proto3" json:"apn,omitempty"`
 	Msisdn               []byte        `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
@@ -967,13 +966,6 @@ func (m *CommonSessionContext) GetSid() *SubscriberID {
 		return m.Sid
 	}
 	return nil
-}
-
-func (m *CommonSessionContext) GetSessionId() string {
-	if m != nil {
-		return m.SessionId
-	}
-	return ""
 }
 
 func (m *CommonSessionContext) GetUeIpv4() string {

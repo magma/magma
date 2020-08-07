@@ -92,8 +92,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
 };
 
 MATCHER_P(CheckCreateSession, imsi, "") {
-  auto sid = static_cast<const CreateSessionRequest*>(arg);
-  return sid->subscriber().id() == imsi;
+  auto req = static_cast<const CreateSessionRequest*>(arg);
+  return req->common_context().sid().id() == imsi;
 }
 
 MATCHER_P(CheckUpdateSessionRequest, request_number, "") {
@@ -148,8 +148,11 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
       session_store->create_sessions(imsi, std::move(session_map[imsi]));
   EXPECT_TRUE(write_success);
   session_map = session_store->read_sessions(req);
-  EXPECT_TRUE(
-      local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
+  auto it     = session_map.find("IMSI1");
+  EXPECT_FALSE(it == session_map.end());
+  EXPECT_EQ(session_map["IMSI1"].size(), 1);
+  auto& session = session_map["IMSI1"][0];
+  EXPECT_EQ(session->get_config().apn, "apn1");
 
   grpc::ServerContext create_context;
   request.mutable_sid()->set_id("IMSI1");
@@ -171,10 +174,106 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
 
   // Assert the internal session config is updated to the new one
   session_map = session_store->read_sessions(req);
-  EXPECT_FALSE(
-      local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn1"));
-  EXPECT_TRUE(
-      local_enforcer->session_with_apn_exists(session_map, "IMSI1", "apn2"));
+  it          = session_map.find("IMSI1");
+  EXPECT_FALSE(it == session_map.end());
+  EXPECT_EQ(session_map["IMSI1"].size(), 1);
+  auto& session_apn2 = session_map["IMSI1"][0];
+  EXPECT_EQ(session_apn2->get_config().apn, "apn2");
+}
+
+TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
+  // 1) Insert the entry for a rule
+  insert_static_rule(rule_store, monitoring_key, 1, "rule1");
+  std::vector<std::string> static_rules{"rule1"};
+
+  CreateSessionResponse response;
+  std::string imsi   = "IMSI1";
+  std::string msisdn = "5100001234";
+  auto sid           = id_gen_.gen_session_id(imsi);
+  SessionConfig cfg  = {
+      .ue_ipv4       = "",
+      .spgw_ipv4     = "",
+      .msisdn        = msisdn,
+      .apn           = "apn1",
+      .imei          = "",
+      .plmn_id       = "",
+      .imsi_plmn_id  = "",
+      .user_location = "",
+      .rat_type      = RATType::TGPP_LTE};
+
+  response.set_session_id(sid);
+  create_session_create_response(imsi, monitoring_key, static_rules, &response);
+  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
+  create_credit_update_response(
+      imsi, 1, 1536, response.mutable_credits()->Add());
+
+  SessionRead req  = {"IMSI1"};
+  auto session_map = session_store->read_sessions(req);
+  local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
+  bool write_success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(write_success);
+  session_map = session_store->read_sessions(req);
+  auto it     = session_map.find("IMSI1");
+  EXPECT_FALSE(it == session_map.end());
+  EXPECT_EQ(session_map["IMSI1"].size(), 1);
+  auto& session = session_map["IMSI1"][0];
+  EXPECT_EQ(session->get_config().apn, "apn1");
+
+  // Only active, identical sessions can be recycled for LTE
+  // The previously created session is active and this request has the same
+  // context
+  LocalCreateSessionRequest request;
+  grpc::ServerContext create_context;
+  request.mutable_sid()->set_id(imsi);
+  request.set_rat_type(RATType::TGPP_LTE);
+  request.set_msisdn(msisdn);
+  request.set_apn("apn1");
+
+  // Ensure session is not reported as its a duplicate
+  EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
+  // Termination process for the previous session is started
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules("IMSI1", testing::_, testing::_, testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  session_manager->CreateSession(
+      &create_context, &request,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
+
+  // Run session creation in the EventBase loop
+  // It needs to loop once here.
+  evb->loopOnce();
+
+  // Assert the internal session config is updated to the new one
+  session_map = session_store->read_sessions(req);
+  it          = session_map.find("IMSI1");
+  EXPECT_FALSE(it == session_map.end());
+  EXPECT_EQ(session_map["IMSI1"].size(), 1);
+  auto& session_apn2 = session_map["IMSI1"][0];
+  EXPECT_EQ(session_apn2->get_config().apn, "apn1");
+
+  // Now make the config not identical but with the same APN=apn1, this should
+  // trigger a terminate for the existing and a creation for the new session
+  LocalCreateSessionRequest request2;
+  grpc::ServerContext create_context2;
+  request2.mutable_sid()->set_id(imsi);
+  request2.set_rat_type(RATType::TGPP_LTE);
+  request2.set_msisdn(msisdn + "magma :)");  // different msisdn
+  request2.set_apn("apn1");
+
+  // Ensure a create session for the new session is sent, the old one is
+  // terminated
+  EXPECT_CALL(*reporter, report_create_session(_, _)).Times(1);
+
+  session_manager->CreateSession(
+      &create_context2, &request2,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
+
+  // Run session creation in the EventBase loop
+  // It needs to loop once here.
+  evb->loopOnce();
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session) {
