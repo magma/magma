@@ -57,11 +57,11 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         setup_uplink_br = [SCRIPT_PATH + "scripts/setup-uplink-br.sh",
                            self._br,
                            "t0uplink_p0",
-                           "8A:00:00:00:00:01"]
+                           "t0_dhcp1"]
         subprocess.check_call(setup_uplink_br)
 
         config = {
-            'dhcp_iface': 't_dhcp0',
+            'dhcp_iface': 't0uplink_p0',
             'retry_limit': 50,
             'allocator_type': 'dhcp',
             'persist_to_redis': False,
