@@ -90,6 +90,7 @@ typedef struct itti_mme_app_connection_establishment_cnf_s {
   uint8_t kenb[AUTH_KENB_SIZE];
 
   bstring ue_radio_capability;
+  int ue_radio_cap_length;
 
   uint8_t presencemask;
 #define S1AP_CSFB_INDICATOR_PRESENT (1 << 0)
