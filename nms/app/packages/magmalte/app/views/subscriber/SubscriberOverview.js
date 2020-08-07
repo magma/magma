@@ -20,6 +20,7 @@ import AddSubscriberButton from './SubscriberAddDialog';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
@@ -252,7 +253,21 @@ function SubscriberDashboardInternal({
                 })}
                 columns={[
                   {title: 'Name', field: 'name'},
-                  {title: 'IMSI', field: 'imsi'},
+                  {title: '', field: ''},
+                  {
+                    title: 'IMSI',
+                    field: 'imsi',
+                    render: currRow => (
+                      <Link
+                        variant="body2"
+                        component="button"
+                        onClick={() =>
+                          history.push(relativeUrl('/' + currRow.imsi))
+                        }>
+                        {currRow.imsi}
+                      </Link>
+                    ),
+                  },
                   {title: 'Service', field: 'service'},
                   {title: 'Current Usage', field: 'currentUsage'},
                   {title: 'Daily Average', field: 'dailyAvg'},

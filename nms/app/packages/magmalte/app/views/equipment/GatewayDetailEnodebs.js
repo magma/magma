@@ -18,6 +18,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import EnodebContext from '../../components/context/EnodebContext';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 
 import {isEnodebHealthy} from '../../components/lte/EnodebUtils';
@@ -62,7 +63,25 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
       data={enbRows}
       columns={[
         {title: 'Name', field: 'name'},
-        {title: 'Serial Number', field: 'id'},
+        {
+          title: 'Serial Number',
+          field: 'id',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => {
+                history.push(
+                  match.url.replace(
+                    `gateway/${gwInfo.id}`,
+                    `enodeb/${currRow.id}`,
+                  ),
+                );
+              }}>
+              {currRow.id}
+            </Link>
+          ),
+        },
         {title: 'Health', field: 'health'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
