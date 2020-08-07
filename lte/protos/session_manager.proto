@@ -62,7 +62,6 @@ message LocalCreateSessionRequest {
 
 message CommonSessionContext {
   SubscriberID sid = 1;
-  string session_id = 2;  // Left blank for new sessions
   string ue_ipv4 = 3;
   string apn = 4;
   bytes msisdn = 5;

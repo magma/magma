@@ -189,10 +189,12 @@ func TestStartSessionGxFail(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	assert.Error(t, err)
@@ -254,10 +256,12 @@ func TestStartSessionGyFail(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	assert.Error(t, err)
@@ -385,10 +389,12 @@ func standardUsageTest(
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, multiReqType)),
 	).Return(nil).Run(returnDefaultGyResponse).Once()
 	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	mocksGy.AssertExpectations(t)
@@ -532,10 +538,12 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	ctx := context.Background()
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	assert.NoError(t, err)
 
@@ -1495,10 +1503,12 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 	ctx := context.Background()
 
 	res, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	assert.NoError(t, err)
@@ -1562,10 +1572,12 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	assert.NoError(t, err)
@@ -1633,10 +1645,12 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	assert.NoError(t, err)
@@ -1709,10 +1723,12 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 	mocksGx.AssertExpectations(t)
 	assert.Error(t, err)
@@ -1804,10 +1820,12 @@ func revalidationTimerTest(
 	}
 
 	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		Subscriber: &protos.SubscriberID{
-			Id: IMSI1,
-		},
 		SessionId: genSessionID(IMSI1),
+		CommonContext: &protos.CommonSessionContext{
+			Sid: &protos.SubscriberID{
+				Id: IMSI1,
+			},
+		},
 	})
 
 	mocksGx.AssertExpectations(t)

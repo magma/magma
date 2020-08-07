@@ -196,8 +196,8 @@ class SessiondTest : public ::testing::Test {
 };
 
 MATCHER_P(CheckCreateSession, imsi, "") {
-  auto sid = static_cast<const CreateSessionRequest*>(arg);
-  return sid->subscriber().id() == imsi;
+  auto req = static_cast<const CreateSessionRequest*>(arg);
+  return req->common_context().sid().id() == imsi;
 }
 
 MATCHER_P(CheckSingleUpdate, expected_update, "") {
@@ -333,8 +333,11 @@ TEST_F(SessiondTest, end_to_end_success) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
+  // TODO @themarwhal deprecate
   request.mutable_sid()->set_id("IMSI1");
   request.set_rat_type(RATType::TGPP_LTE);
+  request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
+  request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   // The thread needs to be halted before proceeding to call ReportRuleStats()
@@ -430,8 +433,11 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
+  // TODO @themarwhal deprecate
   request.mutable_sid()->set_id("IMSI1");
   request.set_rat_type(RATType::TGPP_LTE);
+  request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
+  request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   RuleRecordTable table1;

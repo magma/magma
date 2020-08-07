@@ -28,28 +28,39 @@ import (
 )
 
 func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
-	var qos *gx.QosRequestInfo
-	if pReq.GetQosInfo() != nil {
-		qos = (&gx.QosRequestInfo{}).FromProtos(pReq.GetQosInfo())
-	}
-
+	common := pReq.GetCommonContext()
+	ratType := common.GetRatType()
 	request := &gx.CreditControlRequest{
-		SessionID:     pReq.SessionId,
+		SessionID:     pReq.GetSessionId(),
 		Type:          credit_control.CRTInit,
 		IMSI:          imsi,
 		RequestNumber: 0,
-		IPAddr:        pReq.UeIpv4,
-		SpgwIPV4:      pReq.SpgwIpv4,
-		Apn:           pReq.Apn,
-		Msisdn:        pReq.Msisdn,
-		Imei:          pReq.Imei,
-		PlmnID:        pReq.PlmnId,
-		UserLocation:  pReq.UserLocation,
-		GcID:          pReq.GcId,
-		Qos:           qos,
-		HardwareAddr:  pReq.HardwareAddr,
-		RATType:       gx.GetRATType(pReq.RatType),
-		IPCANType:     gx.GetIPCANType(pReq.RatType),
+		IPAddr:        common.GetUeIpv4(),
+		Apn:           common.GetApn(),
+		Msisdn:        common.GetMsisdn(),
+		RATType:       gx.GetRATType(ratType),
+		IPCANType:     gx.GetIPCANType(ratType),
+	}
+
+	if pReq.RatSpecificContext != nil {
+		ratSpecific := pReq.GetRatSpecificContext().GetContext()
+		switch context := ratSpecific.(type) {
+		case *protos.RatSpecificContext_LteContext:
+			lteContext := context.LteContext
+			request.SpgwIPV4 = lteContext.GetSpgwIpv4()
+			request.Imei = lteContext.GetImei()
+			request.PlmnID = lteContext.GetPlmnId()
+			request.UserLocation = lteContext.GetUserLocation()
+			if lteContext.GetQosInfo() != nil {
+				request.Qos = (&gx.QosRequestInfo{}).FromProtos(lteContext.GetQosInfo())
+			}
+			break
+		case *protos.RatSpecificContext_WlanContext:
+			request.HardwareAddr = context.WlanContext.GetMacAddrBinary()
+			break
+		}
+	} else {
+		glog.Warning("No RatSpecificContext is specified")
 	}
 
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)

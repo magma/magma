@@ -85,7 +85,7 @@ func (srv *CentralSessionController) CreateSession(
 	if err := checkCreateSessionRequest(request); err != nil {
 		return nil, err
 	}
-	imsi := credit_control.RemoveIMSIPrefix(request.Subscriber.Id)
+	imsi := credit_control.RemoveIMSIPrefix(request.GetCommonContext().GetSid().Id)
 	gxCCAInit, err := srv.sendInitialGxRequest(imsi, request)
 	metrics.UpdateGxRecentRequestMetrics(err)
 	if err != nil {
@@ -112,7 +112,7 @@ func (srv *CentralSessionController) CreateSession(
 	credits := []*protos.CreditUpdateResponse{}
 
 	if len(chargingKeys) > 0 {
-		gyCCRInit := getCCRInitialCreditRequest(imsi, request, chargingKeys)
+		gyCCRInit := makeCCRInit(imsi, request, chargingKeys)
 		gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 		metrics.UpdateGyRecentRequestMetrics(err)
 		if err != nil {
@@ -147,7 +147,7 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	dynamicRuleInstalls []*protos.DynamicRuleInstall,
 	gxCCAInit *gx.CreditControlAnswer) (*protos.CreateSessionResponse, error) {
 
-	gyCCRInit := getCCRInitRequest(imsi, pReq)
+	gyCCRInit := makeCCRInitWithoutChargingKeys(imsi, pReq)
 	gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 	metrics.UpdateGyRecentRequestMetrics(err)
 	if err != nil {
@@ -420,7 +420,8 @@ func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, tota
 }
 
 func checkCreateSessionRequest(req *protos.CreateSessionRequest) error {
-	if req.Subscriber == nil || req.Subscriber.Id == "" {
+	subscriber := req.GetCommonContext().GetSid()
+	if subscriber == nil || subscriber.GetId() == "" {
 		return fmt.Errorf("Missing Subscriber information on CreateSessionRequest %+v", req)
 	}
 	if req.SessionId == "" {
