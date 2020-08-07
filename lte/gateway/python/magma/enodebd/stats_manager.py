@@ -135,10 +135,10 @@ class StatsManager:
         if ip is None:
             return label
 
-        try:
-            label = self.enb_manager.get_serial_of_ip(ip)
+        label = self.enb_manager.get_serial_of_ip(ip)
+        if label:
             logger.debug('Found serial %s for ip %s', label, ip)
-        except KeyError:
+        else:
             logger.error("Couldn't find serial for ip", ip)
         return label
 
