@@ -6,24 +6,24 @@ WORKDIR /usr/src/
 
 # Copy project dependencies
 COPY package.json yarn.lock babel.config.js ./
-COPY fbcnms-projects/magmalte/package.json fbcnms-projects/magmalte/
-COPY fbcnms-packages fbcnms-packages
+COPY packages/magmalte/package.json packages/magmalte/
+COPY packages/fbcnms-magma-api/package.json packages/fbcnms-magma-api/
 
 # Install node dependencies
 RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
 
 # Build our static files
-COPY fbcnms-projects/magmalte fbcnms-projects/magmalte
-WORKDIR /usr/src/fbcnms-projects/magmalte
+COPY packages packages
+WORKDIR /usr/src/packages/magmalte
 RUN yarn run build
 
 FROM node:10-alpine
 
 # Install required binaries
 RUN apk add ca-certificates curl bash
-COPY fbcnms-projects/magmalte/wait-for-it.sh /usr/local/bin
+COPY packages/magmalte/wait-for-it.sh /usr/local/bin
 
 COPY --from=builder /usr/src /usr/src
 
-WORKDIR /usr/src/fbcnms-projects/magmalte
+WORKDIR /usr/src/packages/magmalte
 CMD ["yarn run start:prod"]

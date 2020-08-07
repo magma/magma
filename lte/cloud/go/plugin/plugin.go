@@ -18,7 +18,6 @@ import (
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
@@ -66,7 +65,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policydb_models.PolicyRuleConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(subscriberdb.EntityType, &subscriberdb_models.LteSubscription{}),
+		configurator.NewNetworkEntityConfigSerde(lte.SubscriberEntityType, &subscriberdb_models.SubscriberConfig{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
 

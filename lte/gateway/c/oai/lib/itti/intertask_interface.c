@@ -37,8 +37,6 @@
 #include <string.h>
 #include <errno.h>
 #include <signal.h>
-#include <sys/epoll.h>
-#include <sys/eventfd.h>
 #include <malloc.h>
 #include <stdint.h>
 #include <sys/time.h>
@@ -94,20 +92,6 @@ typedef struct thread_desc_s {
   pthread_t task_thread;  // pthread associated with the thread
 
   volatile task_state_t task_state;  // State of the thread
-
-  int epoll_fd;  // This fd is used internally by ITTI.
-
-  int task_event_fd;  // The thread fd
-
-  uint16_t nb_events;  // Number of events to monitor
-
-  /*
-   * Array of events monitored by the task.
-   * By default only one fd is monitored (the one used to received messages
-   * from other tasks).
-   * More events can be suscribed later by the task itself.
-   */
-  struct epoll_event* events;
 
 } thread_desc_t;
 
@@ -388,40 +372,6 @@ int itti_init(
   for (thread_id = THREAD_FIRST; thread_id < itti_desc.thread_max;
        thread_id++) {
     itti_desc.threads[thread_id].task_state = TASK_STATE_NOT_CONFIGURED;
-    itti_desc.threads[thread_id].epoll_fd   = epoll_create1(0);
-    if (itti_desc.threads[thread_id].epoll_fd == -1) {
-      // Always assert on this condition
-
-      AssertFatal(0, "Failed to create new epoll fd: %s!\n", strerror(errno));
-    }
-
-    itti_desc.threads[thread_id].task_event_fd = eventfd(0, EFD_SEMAPHORE);
-
-    if (itti_desc.threads[thread_id].task_event_fd == -1) {
-      Fatal("eventfd failed: %s!\n", strerror(errno));
-    }
-
-    itti_desc.threads[thread_id].nb_events = 1;
-    itti_desc.threads[thread_id].events = calloc(1, sizeof(struct epoll_event));
-    itti_desc.threads[thread_id].events->events = EPOLLIN | EPOLLERR;
-    itti_desc.threads[thread_id].events->data.fd =
-        itti_desc.threads[thread_id].task_event_fd;
-
-    // Add the event fd to the list of monitored events
-
-    if (epoll_ctl(
-            itti_desc.threads[thread_id].epoll_fd, EPOLL_CTL_ADD,
-            itti_desc.threads[thread_id].task_event_fd,
-            itti_desc.threads[thread_id].events) != 0) {
-      // Always assert on this condition
-
-      AssertFatal(
-          0, " epoll_ctl (EPOLL_CTL_ADD) failed: %s!\n", strerror(errno));
-    }
-
-    ITTI_DEBUG(
-        ITTI_DEBUG_EVEN_FD, " Successfully subscribed fd %d for thread %d\n",
-        itti_desc.threads[thread_id].task_event_fd, thread_id);
   }
 
   itti_desc.running       = 1;

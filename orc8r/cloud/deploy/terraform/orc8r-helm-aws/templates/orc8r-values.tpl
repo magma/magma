@@ -93,7 +93,7 @@ metrics:
   alertmanagerConfigurer:
     create: true
     image:
-      repository: docker.io/facebookincubator/alertmanager-configurer:
+      repository: docker.io/facebookincubator/alertmanager-configurer
       tag: 1.0.0
     alertmanagerURL: ${alertmanager_url}
 

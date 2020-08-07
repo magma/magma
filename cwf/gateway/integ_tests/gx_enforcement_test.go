@@ -91,7 +91,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("300K")}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200K")}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
