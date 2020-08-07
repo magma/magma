@@ -63,14 +63,15 @@ export function GatewayJsonConfig() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
+  const {status, ...gwInfoJson} = gwInfo;
 
   return (
     <JsonEditor
-      content={gwInfo}
+      content={gwInfoJson}
       error={error}
       onSave={async gateway => {
         try {
-          await ctx.setState(gatewayId, gateway);
+          await ctx.setState(gatewayId, {...gateway, status});
           enqueueSnackbar('Gateway saved successfully', {
             variant: 'success',
           });
