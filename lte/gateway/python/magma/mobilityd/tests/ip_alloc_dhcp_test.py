@@ -23,10 +23,7 @@ from ipaddress import ip_network
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 
 from magma.mobilityd.ip_address_man import IPAddressManager, MappingNotFoundError
-from unittest import mock
-from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.pipelined.bridge_util import BridgeTools
-from magma.mobilityd import mobility_store as store
 from magma.mobilityd.ip_descriptor import IPDesc, IPType, IPState
 
 from magma.mobilityd.mac import create_mac_from_sid
@@ -51,7 +48,6 @@ SCRIPT_PATH = "/home/vagrant/magma/lte/gateway/python/magma/mobilityd/"
 
 
 class DhcpIPAllocEndToEndTest(unittest.TestCase):
-    @mock.patch("redis.Redis", MockRedis)
     def setUp(self):
         self._br = "t_up_br0"
 
@@ -73,20 +69,18 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         self._dhcp_allocator = IPAddressManager(recycling_interval=2,
                                                 allocator_type=MobilityD.DHCP,
                                                 config=config)
-        print("dhcp allocator created")
 
     def tearDown(self):
         self._dhcp_allocator.ip_allocator.stop_dhcp_sniffer()
         BridgeTools.destroy_bridge(self._br)
 
-    @mock.patch("redis.Redis", MockRedis)
     @unittest.skipIf(os.getuid(), reason="needs root user")
     def test_ip_alloc(self):
         sid1 = "IMSI02917"
         ip1 = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
         dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
-        dhcp_store = store.MacToIP()  # mac => DHCP_State
+        dhcp_store = self._dhcp_allocator._dhcp_store
 
         self.assertEqual(str(dhcp_gw_info.getIP()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)
