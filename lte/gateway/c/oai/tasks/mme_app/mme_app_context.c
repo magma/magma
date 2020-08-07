@@ -2353,13 +2353,13 @@ static void mme_app_resume_mobile_reachability_timer(
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Failed to start Mobile Reachability timer for UE id "
-        " " MME_UE_S1AP_ID_FMT "\n",
+        "" MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context_pP->mme_ue_s1ap_id);
     ue_mm_context_pP->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Started Mobile Reachability timer for UE id  " MME_UE_S1AP_ID_FMT "\n",
+        "Started Mobile Reachability timer for UE id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context_pP->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -2403,13 +2403,13 @@ static void mme_app_resume_implicit_detach_timer(
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Failed to start Implicit Detach timer for UE id "
-        " " MME_UE_S1AP_ID_FMT "\n",
+        "" MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context_pP->mme_ue_s1ap_id);
     ue_mm_context_pP->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Started Implicit Detach timer for UE id  " MME_UE_S1AP_ID_FMT "\n",
+        "Started Implicit Detach timer for UE id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context_pP->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
