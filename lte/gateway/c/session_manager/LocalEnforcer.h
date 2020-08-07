@@ -184,25 +184,6 @@ class LocalEnforcer {
       SessionMap& session_map, PolicyReAuthRequest request,
       PolicyReAuthAnswer& answer_out, SessionUpdate& session_update);
 
-  bool session_with_imsi_exists(
-      SessionMap& session_map, const std::string& imsi) const;
-
-  bool session_with_apn_exists(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& apn) const;
-
-  bool is_session_active(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& core_session_id) const;
-
-  bool get_core_sid_of_active_session(
-      SessionMap& session_map, const std::string& imsi,
-      std::string* core_session_id) const;
-
-  bool get_core_sid_of_session_with_same_config(
-      SessionMap& session_map, const std::string& imsi,
-      const magma::SessionConfig& config, std::string* core_session_id) const;
-
   /**
    * Set session config for the IMSI.
    * Should be only used for WIFI as it will apply it to all sessions with the
